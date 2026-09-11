@@ -213,7 +213,6 @@ void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
         Tcl_InitHashTable(assocData, TCL_ONE_WORD_KEYS);
         Tcl_SetAssocData(interp, INST_DATA_KEY, AssocDataCleanup, assocData);
     }
-
     entryPtr = Tcl_CreateHashEntry(assocData, tkwin, &isNew);
     Tcl_SetHashValue(entryPtr, instanceData);
 }
@@ -272,6 +271,7 @@ void Rbc_DeleteWindowInstanceData(Tk_Window tkwin) {
     Tcl_HashEntry *entryPtr;
 
     entryPtr = Tcl_FindHashEntry(assocData, tkwin);
-    if (entryPtr)
+    if (entryPtr) {
         Tcl_DeleteHashEntry(entryPtr);
+    }
 }

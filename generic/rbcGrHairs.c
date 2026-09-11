@@ -27,17 +27,15 @@ struct CrosshairsStruct {
      * Modern Tk option state.
      */
     Tk_OptionTable optionTable;
-    
     /*
      * Original Tcl representations.
      */
     Tcl_Obj *dashesObjPtr;
     Tcl_Obj *lineWidthObjPtr;
     Tcl_Obj *positionObjPtr;
-    
     /*
      * Derived and runtime state.
-     */    
+     */
     Point2D hotSpot;     /* Hot spot for crosshairs */
     int visible;         /* Internal state of crosshairs. If non-zero,
                           * crosshairs are displayed. */
@@ -63,9 +61,9 @@ struct CrosshairsStruct {
 #define DEF_HAIRS_LINE_WIDTH "0"
 #define DEF_HAIRS_HIDE "yes"
 #define DEF_HAIRS_POSITION (char *)NULL
-#define HAIRS_GC_CHANGED       (1U << 0)
+#define HAIRS_GC_CHANGED (1U << 0)
 #define HAIRS_POSITION_CHANGED (1U << 1)
-#define HAIRS_STATE_CHANGED    (1U << 2)
+#define HAIRS_STATE_CHANGED (1U << 2)
 #define HAIRS_INITIALIZE_MASK (HAIRS_GC_CHANGED | HAIRS_POSITION_CHANGED)
 
 static const Tk_OptionSpec crosshairsOptionSpecs[] = {
@@ -90,6 +88,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcGrHairsOp *proc;
 } CrosshairsOpSpec;
+
 static RbcGrHairsOp CgetOp;
 static RbcGrHairsOp ConfigureOp;
 static RbcGrHairsOp OnOp;
@@ -323,7 +322,7 @@ static int ConfigureCrosshairs(Graph *graphPtr, Crosshairs *chPtr, int mask) {
         MoveCrosshairs(graphPtr, chPtr, &newHotSpot);
         return TCL_OK;
     }
-#endif    
+#endif
     /*
      * Build the replacement GC before erasing the old crosshairs.
      */
@@ -491,7 +490,6 @@ int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr) {
     }
     for (i = 0; i < 2; i++) {
         const Segment2D *segPtr = chPtr->segArr + i;
-
         if ((segPtr->p.x < graphPtr->left) || (segPtr->p.x > graphPtr->right) || (segPtr->p.y < graphPtr->top) ||
             (segPtr->p.y > graphPtr->bottom) || (segPtr->q.x < graphPtr->left) || (segPtr->q.x > graphPtr->right) ||
             (segPtr->q.y < graphPtr->top) || (segPtr->q.y > graphPtr->bottom)) {
@@ -512,7 +510,6 @@ int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr) {
 void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
     Crosshairs *chPtr = graphPtr->crosshairs;
     int visible = FALSE;
-
     assert(drawable != Tk_WindowId(graphPtr->tkwin));
     assert(Tk_IsMapped(graphPtr->tkwin));
     if (chPtr != NULL) {
@@ -736,7 +733,6 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
  */
 static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
-
     if (chPtr->hidden) {
         TurnOnHairs(graphPtr, chPtr);
         chPtr->hidden = FALSE;
@@ -767,7 +763,6 @@ static int OnOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
  */
 static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
-
     if (!chPtr->hidden) {
         TurnOffHairs(graphPtr->tkwin, chPtr);
         chPtr->hidden = TRUE;
@@ -798,7 +793,6 @@ static int OffOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Crosshairs *chPtr = graphPtr->crosshairs;
-
     chPtr->hidden = (chPtr->hidden == 0);
     if (chPtr->hidden) {
         TurnOffHairs(graphPtr->tkwin, chPtr);
@@ -808,12 +802,10 @@ static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-static const CrosshairsOpSpec xhairOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
-                                            {{"configure", 3, 0, "?options...?"}, ConfigureOp},
-                                            {{"off", 3, 3, ""}, OffOp},
-                                            {{"on", 3, 3, ""}, OnOp},
-                                            {{"toggle", 3, 3, ""}, ToggleOp},
-                                            {{NULL, 0, 0, NULL}, NULL}};
+static const CrosshairsOpSpec xhairOps[] = {
+    {{"cget", 4, 4, "option"}, CgetOp}, {{"configure", 3, 0, "?options...?"}, ConfigureOp},
+    {{"off", 3, 3, ""}, OffOp},         {{"on", 3, 3, ""}, OnOp},
+    {{"toggle", 3, 3, ""}, ToggleOp},   {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *----------------------------------------------------------------------
@@ -849,6 +841,5 @@ int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         TCL_OK) {
         return TCL_ERROR;
     }
-
     return xhairOps[index].proc(graphPtr, interp, objc, objv);
 }

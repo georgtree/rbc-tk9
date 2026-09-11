@@ -112,7 +112,6 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
     unsigned int gcMask;
 
     Tk_SizeOfImage(tilePtr->tkImage, &width, &height);
-
     Tk_MakeWindowExist(tkwin);
     if ((tilePtr->pixmap == None) || (width != tilePtr->width) || (height != tilePtr->height)) {
         Pixmap pixmap;
@@ -131,7 +130,6 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
         tilePtr->pixmap = pixmap;
     }
     Tk_RedrawImage(tilePtr->tkImage, 0, 0, width, height, tilePtr->pixmap, 0, 0);
-
     gcMask = (GCTile | GCFillStyle);
     gcValues.fill_style = FillTiled;
     gcValues.tile = tilePtr->pixmap;
@@ -142,7 +140,6 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
     tilePtr->gc = newGC;
     tilePtr->width = width;
     tilePtr->height = height;
-
     if (tilePtr->mask != None) {
 #ifdef WIN32
         Tk_FreePixmap(Tk_Display(tkwin), tilePtr->mask);
@@ -197,9 +194,7 @@ static void UpdateTile(ClientData clientData) {
         clientPtr = Rbc_ChainGetValue(linkPtr);
         RedrawTile(clientPtr->tkwin, tilePtr);
     }
-
     /* Notify each of the tile's clients that the pixmap has changed. */
-
     for (linkPtr = Rbc_ChainFirstLink(tilePtr->clients); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         clientPtr = Rbc_ChainGetValue(linkPtr);
         if (clientPtr->notifyProc != NULL) {
@@ -242,7 +237,6 @@ static void UpdateTile(ClientData clientData) {
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
     Tile *tilePtr = (Tile *)clientData;
-
     if (!(tilePtr->flags & TILE_NOTIFY_PENDING)) {
         Tcl_DoWhenIdle(UpdateTile, tilePtr);
         tilePtr->flags |= TILE_NOTIFY_PENDING;
@@ -280,7 +274,6 @@ static void DestroyTile(Tile *tilePtr) {
         ckfree((char *)clientPtr);
     }
     Rbc_ChainDestroy(tilePtr->clients);
-
     if (tilePtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(tilePtr->hashPtr);
     }
@@ -339,7 +332,6 @@ static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageNa
         ckfree((char *)tilePtr);
         return NULL;
     }
-
     /*
      * Initialize the tile server.
      */
@@ -374,8 +366,8 @@ static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageNa
  */
 static void DestroyClient(TileClient *clientPtr) {
     Tile *tilePtr;
+    
     tilePtr = clientPtr->tilePtr;
-
     /* Remove the client from the server's list */
     if (clientPtr->linkPtr != NULL) {
         Rbc_ChainDeleteLink(tilePtr->clients, clientPtr->linkPtr);
@@ -425,7 +417,6 @@ static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char 
     TileKey key;
 
     dataPtr = GetTileInterpData(interp);
-
     key.nameId = Tk_GetUid(name);
     key.display = Tk_Display(tkwin);
     key.depth = Tk_Depth(tkwin);
@@ -444,7 +435,6 @@ static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char 
     }
     clientPtr = RbcCalloc(1, sizeof(TileClient));
     assert(clientPtr);
-
     /* Initialize client information. */
     clientPtr->magic = TILE_MAGIC;
     clientPtr->tkwin = tkwin;
@@ -936,11 +926,9 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
         return;
     }
     tilePtr = clientPtr->tilePtr;
-
     /* Determine the bounding box of the polygon. */
     bbox.left = bbox.right = pointArr[0].x;
     bbox.top = bbox.bottom = pointArr[0].y;
-
     endPtr = pointArr + nPoints;
     for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
         if (pointPtr->x < bbox.left) {
@@ -958,7 +946,6 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     }
     width = bbox.right - bbox.left + 1;
     height = bbox.bottom - bbox.top + 1;
-
     /* Allocate and fill an array of POINTS to create the polygon path. */
     p = winPts = (POINT *)ckalloc(sizeof(POINT) * nPoints);
     for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
@@ -966,7 +953,6 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
         p->y = pointPtr->y - bbox.top;
         p++;
     }
-
     hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
     Rbc_WinSetROP2(hDC, tilePtr->gc->function);
     fillMode = (tilePtr->gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
@@ -976,11 +962,9 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     SelectClipRgn(hDC, hRgn);
     OffsetClipRgn(hDC, bbox.left, bbox.top);
     ckfree((char *)winPts);
-
     hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
     oldBitmap = SelectBitmap(memDC, hBitmap);
-
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
         Rbc_WinDrawableDC *maskStatePtr;
@@ -1038,11 +1022,9 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
     tilePtr = clientPtr->tilePtr;
     hDC = Rbc_WinAcquireDrawableDC(Tk_Display(tkwin), drawable, &dcStatePtr);
     Rbc_WinSetROP2(hDC, tilePtr->gc->function);
-
     hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
     oldBitmap = SelectBitmap(memDC, hBitmap);
-
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
         Rbc_WinDrawableDC *maskStatePtr;
@@ -1101,7 +1083,6 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
     hBitmap = Rbc_WinGetPixmapHandle(tilePtr->pixmap);
     memDC = CreateCompatibleDC(hDC);
     oldBitmap = SelectBitmap(memDC, hBitmap);
-
     endPtr = rectArr + nRectangles;
     /* Tile the bounding box. */
     if (tilePtr->mask != None) {
@@ -1328,7 +1309,6 @@ static Pixmap PolygonMask(Display *display, XPoint *pointArr, int nPoints, Regio
     width = regionPtr->right - regionPtr->left + 1;
     height = regionPtr->bottom - regionPtr->top + 1;
     bitmap = Tk_GetPixmap(display, DefaultRootWindow(display), width, height, 1);
-
     destArr = (XPoint *)ckalloc(sizeof(XPoint) * nPoints);
     endPtr = destArr + nPoints;
     srcPtr = pointArr;
@@ -1388,7 +1368,6 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
         pointPtr = pointArr;
         region.left = region.right = pointPtr->x;
         region.top = region.bottom = pointPtr->y;
-
         endPtr = pointArr + nPoints;
         for (pointPtr = pointArr; pointPtr < endPtr; pointPtr++) {
             if (region.left > pointPtr->x) {

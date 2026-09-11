@@ -171,7 +171,6 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     if (!buttonDown) {
         bindPtr->flags &= ~LEFT_GRABBED_ITEM;
     }
-
     /*
      * Save information about this event in the widget.  The event in
      * the widget is used for two purposes:
@@ -183,7 +182,6 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
      * Translate MotionNotify events into EnterNotify events, since that's
      * what gets reported to item handlers.
      */
-
     if (eventPtr != &bindPtr->pickEvent) {
         if ((eventPtr->type == MotionNotify) || (eventPtr->type == ButtonRelease)) {
             bindPtr->pickEvent.xcrossing.type = EnterNotify;
@@ -208,7 +206,6 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
         }
     }
     bindPtr->activePick = TRUE;
-
     /*
      * If this is a recursive call (there's already a partially completed
      * call pending on the stack;  it's in the middle of processing a
@@ -218,7 +215,6 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     if (bindPtr->flags & REPICK_IN_PROGRESS) {
         return;
     }
-
     /*
      * A LeaveNotify event automatically means that there's no current
      * item, so the check for closest item can be skipped.
@@ -233,7 +229,6 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     } else {
         newItem = NULL;
     }
-
     if (((newItem == bindPtr->currentItem) && (newContext == bindPtr->currentContext)) &&
         (!(bindPtr->flags & LEFT_GRABBED_ITEM))) {
         /*
@@ -260,18 +255,15 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
 
         event = bindPtr->pickEvent;
         event.type = LeaveNotify;
-
         /*
          * If the event's detail happens to be NotifyInferior the
          * binding mechanism will discard the event.  To be consistent,
          * always use NotifyAncestor.
          */
         event.xcrossing.detail = NotifyAncestor;
-
         bindPtr->flags |= REPICK_IN_PROGRESS;
         DoEvent(bindPtr, &event, bindPtr->currentItem, bindPtr->currentContext);
         bindPtr->flags &= ~REPICK_IN_PROGRESS;
-
         /*
          * Note:  during DoEvent above, it's possible that
          * bindPtr->newItem got reset to NULL because the
@@ -359,7 +351,6 @@ static void BindProc(ClientData clientData, XEvent *eventPtr) {
     unsigned int mask;
 
     Tcl_Preserve(bindPtr->clientData);
-
     /*
      * This code below keeps track of the current modifier state in
      * bindPtr->state.  This information is used to defer repicks of
@@ -369,7 +360,6 @@ static void BindProc(ClientData clientData, XEvent *eventPtr) {
     case ButtonPress:
     case ButtonRelease:
         mask = Tk_GetButtonMask(eventPtr->xbutton.button);
-
         /*
          * For button press events, repick the current item using the
          * button state before the event, then process the event.  For
@@ -401,19 +391,16 @@ static void BindProc(ClientData clientData, XEvent *eventPtr) {
             eventPtr->xbutton.state ^= mask;
         }
         break;
-
     case EnterNotify:
     case LeaveNotify:
         bindPtr->state = eventPtr->xcrossing.state;
         PickCurrentItem(bindPtr, eventPtr);
         break;
-
     case MotionNotify:
         bindPtr->state = eventPtr->xmotion.state;
         PickCurrentItem(bindPtr, eventPtr);
         DoEvent(bindPtr, eventPtr, bindPtr->currentItem, bindPtr->currentContext);
         break;
-
     case KeyPress:
     case KeyRelease:
         bindPtr->state = eventPtr->xkey.state;
@@ -456,50 +443,37 @@ int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPt
         Tk_GetAllBindings(interp, bindPtr->bindingTable, item);
         return TCL_OK;
     }
-
     string = Tcl_GetString(objv[0]);
-
     if (objc == 1) {
         command = Tk_GetBinding(interp, bindPtr->bindingTable, item, string);
-
         if (command == NULL) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("invalid binding event \"%s\"", string));
             return TCL_ERROR;
         }
-
         Tcl_SetObjResult(interp, Tcl_NewStringObj(command, -1));
-
         return TCL_OK;
     }
-
     seq = string;
     command = Tcl_GetString(objv[1]);
-
     if (command[0] == '\0') {
         return Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
     }
-
     if (command[0] == '+') {
         mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command + 1, TRUE);
     } else {
         mask = Tk_CreateBinding(interp, bindPtr->bindingTable, item, seq, command, FALSE);
     }
-
     if (mask == 0) {
         return TCL_ERROR;
     }
-
     if (mask & (unsigned)~ALL_VALID_EVENTS_MASK) {
         Tk_DeleteBinding(interp, bindPtr->bindingTable, item, seq);
-
         Tcl_SetObjResult(interp, Tcl_NewStringObj("requested illegal events; only key, button, "
                                                   "motion, enter, leave, and virtual events may "
                                                   "be used",
                                                   -1));
-
         return TCL_ERROR;
     }
-
     return TCL_OK;
 }
 
@@ -616,7 +590,6 @@ void Rbc_PickCurrentItem(Rbc_BindTableStruct *bindPtr) {
  */
 void Rbc_DeleteBindings(Rbc_BindTableStruct *bindPtr, ClientData object) {
     Tk_DeleteAllBindings(bindPtr->bindingTable, object);
-
     /*
      * If this is the object currently picked, we need to repick one.
      */

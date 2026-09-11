@@ -314,7 +314,6 @@ static int StringToDistance(void *clientData, Tcl_Interp *interp, Tk_Window tkwi
                             Tcl_Size offset) {
     int *valuePtr = (int *)(widgRec + offset);
     Tcl_Size data = (Tcl_Size)clientData;
-
     return Rbc_GetPixels(interp, tkwin, string, data, valuePtr);
 }
 
@@ -350,7 +349,6 @@ static const char *DistanceToString(ClientData clientData, Tk_Window tkwin, char
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;
 }
-
 
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr) {
     Tcl_Obj **objv;
@@ -587,7 +585,6 @@ static int GetState(Tcl_Interp *interp, const char *string, int *statePtr) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad state \"%s\": should be normal, active, or disabled", string));
         return TCL_ERROR;
     }
-
     *statePtr = state;
     return TCL_OK;
 }
@@ -648,24 +645,19 @@ static int GetStringList(Tcl_Interp *interp, const char *string, char ***listPtr
     Tcl_Size nElem;
 
     *listPtrPtr = NULL;
-
     if ((string == NULL) || (string[0] == '\0')) {
         return TCL_OK;
     }
-
     elemArr = NULL;
-
     if (Tcl_SplitList(interp, string, &nElem, &elemArr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (nElem == 0) {
         if (elemArr != NULL) {
             ckfree((char *)elemArr);
         }
         return TCL_OK;
     }
-
     /*
      * Tcl_SplitList returns one allocation containing both the pointer
      * array and the strings. Existing RBC users release it with one
@@ -702,7 +694,6 @@ int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPt
     const char *string;
 
     string = (objPtr == NULL) ? "" : Tcl_GetString(objPtr);
-
     return GetStringList(interp, string, listPtrPtr);
 }
 
@@ -733,7 +724,6 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     if (!parent) {
         return NULL;
     }
-
     pathNamePtr = Tcl_ObjPrintf("%s.%s", Tk_PathName(parent), name);
     result = Tk_NameToWindow(NULL, Tcl_GetString(pathNamePtr), parent);
     Tcl_BounceRefCount(pathNamePtr);

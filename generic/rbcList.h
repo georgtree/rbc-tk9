@@ -54,7 +54,6 @@ Rbc_List Rbc_ListCreate(int type);
 void Rbc_ListDestroy(Rbc_List list);
 Rbc_ListNode Rbc_ListCreateNode(Rbc_List list, const char *key);
 void Rbc_ListDeleteNode(Rbc_ListNode node);
-
 Rbc_ListNode Rbc_ListAppend(Rbc_List list, const char *key, ClientData clientData);
 Rbc_ListNode Rbc_ListPrepend(Rbc_List list, const char *key, ClientData clientData);
 void Rbc_ListLinkAfter(Rbc_List list, Rbc_ListNode node, Rbc_ListNode afterNode);

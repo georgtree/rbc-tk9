@@ -12,8 +12,11 @@
 #ifndef _RBCGRAXIS
 #define _RBCGRAXIS
 
+#include "rbcInt.h"
 #include "rbcList.h"
 #include <tcl.h>
+
+typedef struct GraphStruct Graph;
 
 /*
  * -------------------------------------------------------------------
@@ -89,21 +92,15 @@ typedef struct {
     char *name; /* Identifier to refer the element.
                  * Used in the "insert", "delete", or
                  * "show", commands. */
-
     Rbc_Uid classUid; /* Type of axis. */
-
     Graph *graphPtr; /* Graph widget of element*/
-
     Tk_OptionTable optionTable;
-
     int optionMask;
     Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
-
     int optionsConfigured;
     int optionsInitialized;
     int tkResourcesReleased;
-
     Tcl_Obj *bindTagsObjPtr;
     Tcl_Obj *formatCmdObjPtr;
     Tcl_Obj *scrollCmdObjPtr;
@@ -118,13 +115,10 @@ typedef struct {
     Tcl_Obj *scrollMaxObjPtr;
     Tcl_Obj *tickShadowObjPtr;
     Tcl_Obj *titleShadowObjPtr;
-
     Tcl_Obj *borderWidthObjPtr;
     Tcl_Obj *lineWidthObjPtr;
     Tcl_Obj *scrollIncrementObjPtr;
-
     unsigned int flags; /* Set bit field definitions below */
-
     /*
      * AXIS_DRAWN        Axis is designated as a logical axis
      * AXIS_DIRTY
@@ -132,86 +126,61 @@ typedef struct {
      * AXIS_CONFIG_MAJOR    User specified major ticks.
      * AXIS_CONFIG_MINOR    User specified minor ticks.
      */
-
     char **tags;
-
     char *detail;
-
     int deletePending; /* Indicates that the axis was
                         * scheduled for deletion. The actual
                         * deletion may be deferred until the
                         * axis is no longer in use.  */
-
     int refCount; /* Number of elements referencing this
                    * axis. */
-
     Tcl_HashEntry *hashPtr; /* Points to axis entry in hash
                              * table. Used to quickly remove axis
                              * entries. */
-
     int logScale; /* If non-zero, scale the axis values
                    * logarithmically. */
-
     int hidden; /* If non-zero, don't display the
                  * axis title, ticks, or line. */
-
     int showTicks; /* If non-zero, display tick marks and
                     * labels. */
-
     int descending; /* If non-zero, display the range of
                      * values on the axis in descending
                      * order, from high to low. */
-
     int looseMin, looseMax; /* If non-zero, axis range extends to
                              * the outer major ticks, otherwise at
                              * the limits of the data values. This
                              * is overriddened by setting the -min
                              * and -max options.  */
-
     char *title; /* Title of the axis. */
-
     TextStyle titleTextStyle; /* Text attributes (color, font,
                                * rotation, etc.)  of the axis
                                * title. */
-
     int titleAlternate; /* Indicates whether to position the
                          * title above/left of the axis. */
-
     Point2D titlePos; /* Position of the title */
-
     int titleWidth, titleHeight;
-
     int lineWidth; /* Width of lines representing axis
                     * (including ticks).  If zero, then
                     * no axis lines or ticks are
                     * drawn. */
-
     char **limitsFormats; /* One or two strings of sprintf-like
                            * formats describing how to display
                            * virtual axis limits. If NULL,
                            * display no limits. */
     int nFormats;
-
     TextStyle limitsTextStyle; /* Text attributes (color, font,
                                 * rotation, etc.)  of the limits. */
-
     double windowSize; /* Size of a sliding window of values
                         * used to scale the axis automatically
                         * as new data values are added. The axis
                         * will always display the latest values
                         * in this range. */
-
     double shiftBy; /* Shift maximum by this interval. */
-
     int tickLength; /* Length of major ticks in pixels */
-
     TextStyle tickTextStyle; /* Text attributes (color, font, rotation,
                               * etc.) for labels at each major tick. */
-
     int scrollUnits;
-
     double min, max; /* The actual axis range. */
-
     double reqMin, reqMax; /* Requested axis bounds. Consult the
                             * axisPtr->flags field for
                             * AXIS_CONFIG_MIN and AXIS_CONFIG_MAX
@@ -219,69 +188,51 @@ typedef struct {
                             * been set.  They override the
                             * computed range of the axis
                             * (determined by auto-scaling). */
-
     double scrollMin, scrollMax; /* Defines the scrolling reqion of the axis.
                                   * Normally the region is determined from
                                   * the data limits. If specified, these
                                   * values override the data-range. */
-
     AxisRange valueRange; /* Range of data values of elements mapped
                            * to this axis. This is used to auto-scale
                            * the axis in "tight" mode. */
-
     AxisRange axisRange; /* Smallest and largest major tick values
                           * for the axis.  The tick values lie outside
                           * the range of data values.  This is used to
                           * auto-scale the axis in "loose" mode. */
-
     double prevMin, prevMax;
-
     double reqStep; /* If > 0.0, overrides the computed major
                      * tick interval.  Otherwise a stepsize
                      * is automatically calculated, based
                      * upon the range of elements mapped to the
                      * axis. The default value is 0.0. */
-
     GC tickGC; /* Graphics context for axis and tick labels */
-
     Ticks *t1Ptr; /* Array of major tick positions. May be
                    * set by the user or generated from the
                    * major sweep below. */
-
     Ticks *t2Ptr; /* Array of minor tick positions. May be
                    * set by the user or generated from the
                    * minor sweep below. */
-
     TickSweep minorSweep, majorSweep;
-
     int reqNumMinorTicks; /* If non-zero, represents the
                            * requested the number of minor ticks
                            * to be uniformally displayed along
                            * each major tick. */
-
     int labelOffset; /* If non-zero, indicates that the tick
                       * label should be offset to sit in the
                       * middle of the next interval. */
-
     /* The following fields are specific to logical axes */
-
     Rbc_ChainLink *linkPtr; /* Axis link in margin list. */
     Rbc_Chain *chainPtr;
-
     int width, height; /* Extents of axis */
-
     Segment2D *segments; /* Array of line segments representing
                           * the major and minor ticks, but also
                           * the axis line itself. The segment
                           * coordinates are relative to the
                           * axis. */
-
     Tcl_Size nSegments; /* Number of segments in the above array. */
-
     Rbc_Chain *tickLabels; /* Contains major tick label strings
                             * and their offsets along the axis. */
     Region2D region;
-
     Tk_3DBorder border;
     int borderWidth;
     int relief;

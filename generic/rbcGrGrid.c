@@ -32,14 +32,13 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
      DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
     {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, -1, offsetof(Grid, hidden), 0, NULL,
-     GRID_REDRAW},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr),
-     -1, 0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, mapXObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK,
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
+     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK,
      NULL, GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
     {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
      GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
@@ -51,12 +50,12 @@ static const Tk_OptionSpec barGridOptionSpecs[] = {
      TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_BARCHART, -1, offsetof(Grid, hidden), 0, NULL,
      GRID_REDRAW},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr),
-     -1, 0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
+     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_BARCHART, offsetof(Grid, mapXObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK,
-     NULL, GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
     {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
      GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
@@ -69,6 +68,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcGrGridOp *proc;
 } GridOpSpec;
+
 static RbcGrGridOp CgetOp;
 static RbcGrGridOp ConfigureOp;
 static RbcGrGridOp MapOp;
@@ -135,7 +135,6 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
             return TCL_ERROR;
         }
     }
-
     /*
      * Allocate the replacement GC only after every fallible conversion
      * and axis lookup has succeeded.
@@ -164,7 +163,6 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
         Rbc_FreeAxisReference(graphPtr, oldXAxis);
         Rbc_FreeAxisReference(graphPtr, oldYAxis);
     }
-
     /*
      * Commit the new drawing state.
      */
@@ -267,8 +265,7 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     if (gridPtr->hidden) {
         return;
     }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, gridPtr->colorPtr, MAX(1, gridPtr->lineWidth),
-        &gridPtr->dashes, NULL);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, gridPtr->colorPtr, MAX(1, gridPtr->lineWidth), &gridPtr->dashes, NULL);
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, gridPtr->x.segments, gridPtr->x.nSegments);
         Rbc_RenderSegments(ctx, gridPtr->y.segments, gridPtr->y.nSegments);
@@ -585,7 +582,6 @@ static int MapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  */
 static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
-
     if (!gridPtr->hidden) {
         gridPtr->hidden = TRUE; /* Changes "-hide" configuration option */
         graphPtr->flags |= REDRAW_BACKING_STORE;
@@ -618,19 +614,16 @@ static int UnmapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
  */
 static int ToggleOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
-
     gridPtr->hidden = (!gridPtr->hidden);
     graphPtr->flags |= REDRAW_BACKING_STORE;
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
 }
 
-static const GridOpSpec gridOps[] = {{{"cget", 4, 4, "option"}, CgetOp},
-                                     {{"configure", 3, 0, "?options...?"}, ConfigureOp},
-                                     {{"off", 3, 3, ""}, UnmapOp},
-                                     {{"on", 3, 3, ""}, MapOp},
-                                     {{"toggle", 3, 3, ""}, ToggleOp},
-                                     {{NULL, 0, 0, NULL}, NULL}};
+static const GridOpSpec gridOps[] = {
+    {{"cget", 4, 4, "option"}, CgetOp}, {{"configure", 3, 0, "?options...?"}, ConfigureOp},
+    {{"off", 3, 3, ""}, UnmapOp},       {{"on", 3, 3, ""}, MapOp},
+    {{"toggle", 3, 3, ""}, ToggleOp},   {{NULL, 0, 0, NULL}, NULL}};
 
 /*
  *----------------------------------------------------------------------
@@ -661,6 +654,5 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
         TCL_OK) {
         return TCL_ERROR;
     }
-
     return gridOps[index].proc(graphPtr, interp, objc, objv);
 }

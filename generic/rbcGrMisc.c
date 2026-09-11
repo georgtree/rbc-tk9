@@ -104,7 +104,7 @@ badFormat:
  *      TODO: Description
  *
  * Parameters:
- *      Tcl_Interp *interp 
+ *      Tcl_Interp *interp
  *      Tk_Window tkwin
  *      const char *fgStr
  *      const char *bgStr
@@ -1044,7 +1044,7 @@ int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
         }
         if (!isfinite(fract)) {
             Rbc_AppendResultStrings(interp, "bad scroll fraction \"", Tcl_GetString(objv[1]), "\": must be finite",
-                             (char *)NULL);
+                                    (char *)NULL);
             return TCL_ERROR;
         }
         position = (long double)worldSize * (long double)fract;
@@ -1124,14 +1124,12 @@ GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr) 
     pixmap = None;
     drawable = Tk_WindowId(tkwin);
     display = Tk_Display(tkwin);
-
     if (drawable == None) {
         Drawable root;
         int depth;
 
         root = RootWindow(display, Tk_ScreenNumber(tkwin));
         depth = Tk_Depth(tkwin);
-
         if (depth == DefaultDepth(display, Tk_ScreenNumber(tkwin))) {
             drawable = root;
         } else {
@@ -1540,7 +1538,7 @@ int Rbc_MaxRequestSize(Display *display, unsigned int elemSize) {
  *      int x - -
  *      int y - -
  *      int width - -
- *      int height - Outside area of rectangular region. 
+ *      int height - Outside area of rectangular region.
  *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
  *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
  *
@@ -1604,7 +1602,7 @@ void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
  *      int x - -
  *      int y - -
  *      int width - -
- *      int height - Outside area of rectangular region. 
+ *      int height - Outside area of rectangular region.
  *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
  *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
  *

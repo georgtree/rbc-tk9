@@ -74,7 +74,7 @@ extern int redMaskShift, greenMaskShift, blueMaskShift;
  *----------------------------------------------------------------------
  */
 static int ShiftCount(register unsigned int mask) {
-    register int count;
+    int count;
 
     for (count = 0; count < 32; count++) {
         if (mask & 0x01) {
@@ -123,7 +123,6 @@ static void ComputeMasks(Visual *visualPtr) {
     redMaskShift = ShiftCount((unsigned int)visualPtr->red_mask);
     greenMaskShift = ShiftCount((unsigned int)visualPtr->green_mask);
     blueMaskShift = ShiftCount((unsigned int)visualPtr->blue_mask);
-
     redAdjust = greenAdjust = blueAdjust = 0;
     count = CountBits((unsigned long)visualPtr->red_mask);
     if (count < 8) {
@@ -167,7 +166,6 @@ static INLINE unsigned int TrueColorPixel(Visual *visualPtr, Pix32 *pixelPtr) {
     red = ((unsigned int)pixelPtr->Red >> redAdjust);
     green = ((unsigned int)pixelPtr->Green >> greenAdjust);
     blue = ((unsigned int)pixelPtr->Blue >> blueAdjust);
-
     /* Shift each color into the proper location of the pixel index. */
     red = (red << redMaskShift) & visualPtr->red_mask;
     green = (green << greenMaskShift) & visualPtr->green_mask;
@@ -286,9 +284,9 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
     imagePtr->bytes_per_line = (int)rowBytes;
     switch (visualPtr->class) {
     case TrueColor: {
-        register int x, y;
-        register Pix32 *srcPtr;
-        register char *destPtr;
+        int x, y;
+        Pix32 *srcPtr;
+        char *destPtr;
         unsigned int pixel;
         size_t rowOffset;
 
@@ -319,18 +317,16 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
             rowOffset += imagePtr->bytes_per_line;
         }
     } break;
-
     case DirectColor: {
-        register int x, y;
-        register Pix32 *srcPtr;
-        register char *destPtr;
+        int x, y;
+        Pix32 *srcPtr;
+        char *destPtr;
         unsigned int pixel;
         size_t rowOffset;
         struct ColorTableStruct *colorTabPtr;
 
         /* Build a color table first */
         colorTabPtr = Rbc_DirectColorTable(interp, tkwin, image);
-
         /*
          * Compute the colormap locations directly from pixel RGB values.
          */
@@ -359,20 +355,18 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
         }
         *colorTablePtr = colorTabPtr;
     } break;
-
     case GrayScale:
     case StaticGray:
     case PseudoColor:
     case StaticColor: {
-        register int x, y;
-        register Pix32 *srcPtr;
-        register char *destPtr;
+        int x, y;
+        Pix32 *srcPtr;
+        char *destPtr;
         unsigned int pixel;
         size_t rowOffset;
         struct ColorTableStruct *colorTabPtr;
 
         colorTabPtr = Rbc_PseudoColorTable(interp, tkwin, image);
-
         srcPtr = Rbc_ColorImageBits(image);
         rowOffset = 0;
         for (y = 0; y < height; y++) {
@@ -414,7 +408,6 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
 /* ARGSUSED */
 static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;
-
     *errorPtr = TCL_ERROR;
     return 0;
 }
@@ -1177,7 +1170,6 @@ static void MessageProc(j_common_ptr jpegInfo);
 
 static void ErrorProc(j_common_ptr jpgPtr) {
     ReaderHandler *handlerPtr = (ReaderHandler *)jpgPtr->err;
-
     (*handlerPtr->pub.output_message)(jpgPtr);
     longjmp(handlerPtr->jmpBuf, 1);
 }
@@ -1227,20 +1219,16 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
         return NULL;
     }
     image = NULL;
-
     /* Step 1: allocate and initialize JPEG decompression object */
-
     /* We set up the normal JPEG error routines, then override error_exit. */
     jpg.dct_method = JDCT_IFAST;
     jpg.err = jpeg_std_error(&handler.pub);
     handler.pub.error_exit = ErrorProc;
     handler.pub.output_message = MessageProc;
-
     Tcl_DStringInit(&handler.dString);
     Tcl_DStringAppend(&handler.dString, "error reading \"", -1);
     Tcl_DStringAppend(&handler.dString, fileName, -1);
     Tcl_DStringAppend(&handler.dString, "\": ", -1);
-
     if (setjmp(handler.jmpBuf)) {
         jpeg_destroy_decompress(&jpg);
         fclose(f);
@@ -1249,9 +1237,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
     }
     jpeg_create_decompress(&jpg);
     jpeg_stdio_src(&jpg, f);
-
     jpeg_read_header(&jpg, TRUE); /* Step 3: read file parameters */
-
     jpeg_start_decompress(&jpg); /* Step 5: Start decompressor */
     imageWidth = jpg.output_width;
     imageHeight = jpg.output_height;
@@ -1262,13 +1248,11 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
     }
     /* JSAMPLEs per row in output buffer */
     row_stride = imageWidth * jpg.output_components;
-
     /* Make a one-row-high sample array that will go away when done
      * with image */
     readBuffer = (*jpg.mem->alloc_sarray)((j_common_ptr)&jpg, JPOOL_IMAGE, row_stride, 1);
     image = Rbc_CreateColorImage(imageWidth, imageHeight);
     destPtr = Rbc_ColorImageBits(image);
-
     if (jpg.output_components == 1) {
         while (jpg.output_scanline < imageHeight) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
@@ -1297,7 +1281,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
                                    * possible with the stdio data
                                    * source.  */
     jpeg_destroy_decompress(&jpg);
-
     /*
      * After finish_decompress, we can close the input file.  Here we
      * postpone it until after no more JPEG errors are possible, so as
@@ -1306,7 +1289,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
      * anything...)
      */
     fclose(f);
-
     /*
      * At this point you may want to check to see whether any corrupt-data
      * warnings occurred (test whether jerr.pub.num_warnings is nonzero).

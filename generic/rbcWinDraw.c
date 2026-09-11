@@ -1075,7 +1075,6 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
          */
         SEGMENT_WIDE_BATCH = 680
     };
-
     Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
     HPEN pen, oldPen;

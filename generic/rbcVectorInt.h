@@ -80,13 +80,11 @@ typedef union {
  */
 struct Rbc_Vector_s {
     Rbc_VectorType type;
-
     VectorData data;
     Tcl_Size length; /* Current number of values in the array. */
     Tcl_Size size;   /* Maximum number of values that can be stored
                       * in the value array. */
     double min, max; /* Minimum and maximum values in the vector */
-
     /*
      * Source indices of the cached finite extrema.
      *
@@ -94,9 +92,7 @@ struct Rbc_Vector_s {
      */
     Tcl_Size minIndex;
     Tcl_Size maxIndex;
-    
     int dirty;       /* Indicates if the vector has been updated */
-
     /* The following fields are local to this module  */
     char *name; /* The namespace-qualified name of the vector command.
                  * It points to the hash key allocated for the
@@ -127,10 +123,8 @@ struct Rbc_Vector_s {
                              * non-zero, free the vector when its
                              * variable is unset. */
     int flush;
-
     Tcl_Size first, last; /* Selected region of vector. This is used
                            * mostly for the math routines */
-
     /*
      * Coalesced source range modified since the previous client
      * notification.
@@ -277,7 +271,6 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
 void Rbc_VectorUpdateRange(VectorObject *vPtr);
 VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr);
 VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp);
-
 /*
  * Internal convenience interface.
  *
@@ -285,12 +278,10 @@ VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp);
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
                       Tcl_Size initialSize, Rbc_VectorType type, Rbc_Vector **vecPtrPtr);
-
 /*
  * Vector instance command.
  */
 Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
-
 /*
  * Legacy real-valued vector math callback signatures.
  *

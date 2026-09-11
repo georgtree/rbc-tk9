@@ -88,15 +88,12 @@ typedef struct ColorTableStruct {
                              * colormap, or an allocated private map. */
     int flags;
     unsigned int red[256], green[256], blue[256];
-
     /* Array of allocated pixels in colormap */
     ColorInfo colorInfo[256];
     ColorInfo *sortedColors[256];
-
     int nUsedColors, nFreeColors;
     int nPixels; /* Number of colors in the quantized image */
     unsigned long int pixelValues[256];
-
     unsigned int *lut; /* Color lookup table. Used to collect
                         * frequencies of colors and later
                         * colormap indices */
@@ -180,83 +177,53 @@ typedef struct {
 /* Prototypes of image routines */
 
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
-
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
-
 Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image, ColorTable *colorTablePtr);
-
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
-
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
-
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
-
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr);
-
 void Rbc_FreeColorImage(Rbc_ColorImage image);
-
 #if HAVE_JPEG
 Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName);
 #endif
-
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
-
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
-
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
-
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
-
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
-
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight);
-
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                        int destHeight);
-
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
-
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto);
-
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                   int destWidth, int destHeight, const char *photoName, double inputGamma);
-
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr);
-
 ColorTable Rbc_CreateColorTable(Tk_Window tkwin);
-
 ColorTable Rbc_DirectColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image);
-
 ColorTable Rbc_PseudoColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image);
-
 void Rbc_FreeColorTable(ColorTable colorTable);
-
 /* Missing routines from the Tk photo C API */
-
 int Tk_ImageIsDeleted(Tk_Image tkImage);
 Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage);
 Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage);
 Pixmap Tk_ImageGetPhotoPixmap(Tk_Image photoImage);
 GC Tk_ImageGetPhotoGC(Tk_Image photoImage);
-
 const char *Rbc_NameOfImage(Tk_Image tkImage);
 Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData);
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage);
-
 GC Rbc_GetBitmapGC(Tk_Window tkwin);
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src);
-
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap bitmap, int width, int height, double theta, int *widthPtr,
                         int *heightPtr);
-
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int scaledWidth,
                        int scaledHeight);
-
 Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int regionX,
                                    int regionY, int regionWidth, int regionHeight, int virtWidth, int virtHeight,
                                    double theta);

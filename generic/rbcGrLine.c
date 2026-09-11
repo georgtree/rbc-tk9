@@ -85,7 +85,6 @@ typedef struct {
 typedef struct {
     Tcl_Size minIndex;
     Tcl_Size maxIndex;
-
     /*
      * Needed so an incremental Y-block rebuild can update the cache's
      * global logarithmic-domain eligibility without rescanning all Y.
@@ -97,17 +96,14 @@ typedef struct {
     LineDecimateBlock *blocks;
     Tcl_Size nBlocks;
     Tcl_Size nPoints;
-
     /*
      * Retained only for detecting an unexpected data-array replacement.
      * Cache entries themselves contain source indices, not pointers.
      */
     const double *xValues;
     const double *yValues;
-
     int built;
     int supported;
-
     /*
      * Source X ordering:
      *
@@ -116,13 +112,11 @@ typedef struct {
      *   +1  increasing
      */
     int xDirection;
-
     /*
      * These allow the same cache to survive axis linear/log changes.
      */
     int allPositiveX;
     int allPositiveY;
-
     Tcl_Size nonPositiveYCount;
 } LineDecimateCache;
 
@@ -151,7 +145,6 @@ typedef struct {
     GC outlineGC;         /* Outline graphics context */
     XColor *fillColor;    /* Normal fill color */
     GC fillGC;            /* Fill graphics context */
-
     /* The last two fields are used only for bitmap symbols. */
     Pixmap bitmap; /* Bitmap to determine foreground/background
                     * pixels of the symbol */
@@ -214,7 +207,6 @@ typedef struct {
      * Common pen state. This must remain the first member.
      */
     Pen core;
-
     /*
      * Original Tcl representations for manually derived values.
      */
@@ -233,62 +225,46 @@ typedef struct {
     Tcl_Obj *symbolObjPtr;
     Tcl_Obj *valueRotateObjPtr;
     Tcl_Obj *valueShadowObjPtr;
-    
     Symbol symbol;
-
     int traceWidth;
     Rbc_Dashes traceDashes;
     XColor *traceColor;
     XColor *traceOffColor;
     GC traceGC;
-
     int errorBarShow;
     int errorBarLineWidth;
     int errorBarCapWidth;
     XColor *errorBarColor;
     GC errorBarGC;
-
     int valueShow;
     char *valueFormat;
     TextStyle valueStyle;
 } LinePen;
 
 #define LINE_PEN_FROM_CORE(penPtr) ((LinePen *)((char *)(penPtr) - offsetof(LinePen, core)))
-
 #define LINE_PEN_CORE_OFFSET(member) (offsetof(LinePen, core) + offsetof(Pen, member))
 
 typedef struct {
     Weight weight; /* Weight range where this pen is valid. */
-
     LinePen *penPtr; /* Pen used to draw symbols, traces, error
                       * bars, segments, etc. */
-
     Segment2D *xErrorBars; /* Point to start of this pen's X-error bar
                             * segments in the element's array. */
     Segment2D *yErrorBars; /* Point to start of this pen's Y-error bar
                             * segments in the element's array. */
     Tcl_Size xErrorBarCnt;      /* # of error bars for this pen. */
     Tcl_Size yErrorBarCnt;      /* # of error bars for this pen. */
-
     int errorBarCapWidth; /* Length of the cap ends on each
                            * error bar. */
-
     int symbolSize; /* Size of the pen's symbol scaled to the
                      * current graph size. */
-
     /* Graph specific data. */
-
     Point2D *symbolPts; /* Points to start of array for this pen. */
-
     Tcl_Size nSymbolPts; /* # of points for this pen. */
-
     /* The last two fields are used only for stripcharts. */
-
     Segment2D *strips; /* Points to start of the line segments
                         * for this pen. */
-
     Tcl_Size nStrips; /* # of line segments for this pen. */
-
 } LinePenStyle;
 
 typedef struct {
@@ -297,8 +273,6 @@ typedef struct {
      * Line specific configurable attributes
      */
     LinePen builtinPen;
-
-
     /*
      * Original Tcl representations for line-element options that
      * require validation or conversion after Tk_SetOptions.
@@ -310,105 +284,83 @@ typedef struct {
     Tcl_Obj *traceObjPtr;
     Tcl_Obj *cDataObjPtr;
     Tcl_Obj *paramObjPtr;
-
     ElemComplexVector z;
     ElemVector param;
-
     LineDataMode dataMode;
     LineComplexDataFormat cDataFormat;
     double z0;
-
     /* Line smoothing */
     Smoothing reqSmooth; /* Requested smoothing function to use
                           * for connecting the data points */
-
     Smoothing smooth; /* Smoothing function used. */
-
     double rTolerance; /* Tolerance to reduce the number of
                         * points displayed. */
     LineDecimation decimate;
     LineDecimateCache decimateCache;
-
     /*
      * True when the current screen mapping intentionally omitted the
      * full symbolPts/symbolToData arrays because the trace was reduced
      * before world-to-screen mapping.
      */
     int pointMapOmitted;
-
     /*
      * Drawing related data structures.
      */
-
     /* Area-under-curve fill attributes. */
     XColor *fillFgColor;
     XColor *fillBgColor;
     GC fillGC;
-
     Rbc_Tile fillTile;  /* Tile for fill area. */
     Pixmap fillStipple; /* Stipple for fill area. */
-
     Tcl_Size nFillPts;
     Point2D *fillPts; /* Array of points used to draw
                        * polygon to fill area under the
                        * curve */
-
     /* Symbol points */
     Point2D *symbolPts; /* Holds the screen coordinates of all
                          * the data points for the element. */
     Tcl_Size nSymbolPts;     /* Number of points */
-
     Tcl_Size *symbolToData; /* Contains indices of data points.
                         * It's first used to map pens to the
                         * visible points to sort them by pen
                         * style, and later to find data
                         * points from the index of a visible
                         * point. */
-
     /* Active symbol points */
     Point2D *activePts; /* Array of indices representing the
                          * "active" points. */
     Tcl_Size nActivePts;     /* Number of indices in the above array. */
-
     Tcl_Size *activeToData; /* Contains indices of data points.
                         * It's first used to map pens to the
                         * visible points to sort them by pen
                         * style, and later to find data
                         * points from the index of a visible
                         * point. */
-
     int reqMaxSymbols;
     Tcl_Size symbolInterval;
     Tcl_Size symbolCounter;
-
     /* X-Y graph-specific fields */
-
     int penDir; /* Indicates if a change in the pen
                  * direction should be considered a
                  * retrace (line segment is not
                  * drawn). */
-
     Rbc_Chain *traces; /* List of traces (a trace is a series
                         * of contiguous line segments).  New
                         * traces are generated when either
                         * the next segment changes the pen
                         * direction, or the end point is
                         * clipped by the plotting area. */
-
     /* Stripchart-specific fields */
-
     Segment2D *strips; /* Holds the the line segments of the
                         * element trace. The segments are
                         * grouped by pen style. */
     Tcl_Size nStrips;       /* Number of line segments to be drawn. */
     Tcl_Size *stripToData;  /* Pen to visible line segment mapping. */
-
 } Line;
 
 _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line member");
 
 #define LINE_FROM_CORE(elemPtr) ((Line *)((char *)(elemPtr) - offsetof(Line, core)))
-
 #define LINE_CORE_OFFSET(member) (offsetof(Line, core) + offsetof(Element, member))
 #define LINE_BUILTIN_PEN_OFFSET(member) (offsetof(Line, builtinPen) + offsetof(LinePen, member))
 
@@ -448,12 +400,10 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define DEF_LINE_TAGS "all"
 #define DEF_LINE_X_DATA (char *)NULL
 #define DEF_LINE_Y_DATA (char *)NULL
-
 #define DEF_LINE_ERRORBAR_COLOR "defcolor"
 #define DEF_LINE_ERRORBAR_LINE_WIDTH "1"
 #define DEF_LINE_ERRORBAR_CAP_WIDTH "1"
 #define DEF_LINE_SHOW_ERRORBARS "both"
-
 #define DEF_PEN_ACTIVE_COLOR RGB_BLUE
 #define DEF_PEN_ACTIVE_MONO RGB_BLACK
 #define DEF_PEN_DASHES (char *)NULL
@@ -477,10 +427,8 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define DEF_PEN_VALUE_ROTATE (char *)NULL
 #define DEF_PEN_VALUE_SHADOW (char *)NULL
 #define DEF_PEN_SHOW_VALUES "no"
-
 #define DEF_LINE_CDATA_FORMAT "gamma"
 #define DEF_LINE_Z0 "50.0"
-
 #define DEF_LINE_DECIMATE "none"
 
 /*
@@ -508,7 +456,6 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_PARAM_MASK (1 << 16)
 
 #define LINE_ELEM_COMPLEX_TRANSFORM_MASK (LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_Z0_MASK)
-
 #define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
 
 typedef enum {
@@ -522,7 +469,6 @@ typedef enum {
 
 typedef struct {
     unsigned int stagedMask;
-
     int maxSymbols;
     Smoothing smooth;
     int penDir;
@@ -538,7 +484,6 @@ typedef enum {
 
 typedef struct {
     unsigned int stagedMask;
-
     Pixmap stipple;
     Rbc_Tile tile;
     GC gc;
@@ -1042,22 +987,17 @@ typedef struct {
 static const Tk_OptionSpec lineElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
-
     {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
      (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
-
     {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_PARAM_MASK},
-
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES,
                                 LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES),
-
     {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
      (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
-
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 #define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                         \
@@ -1284,19 +1224,15 @@ static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES
 static const Tk_OptionSpec polarElemOptionSpecs[] = {
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
-
     {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_PARAM_MASK},
-
     {TK_OPTION_STRING, "-cdata", "cData", "CData", NULL, offsetof(Line, cDataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_CDATA_MASK | LINE_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING_TABLE, "-cdataformat", "cDataFormat", "CDataFormat", DEF_LINE_CDATA_FORMAT, -1,
      offsetof(Line, cDataFormat), 0, (ClientData)lineComplexDataFormatNames,
      LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_MAP_ITEM_MASK},
-
     {TK_OPTION_DOUBLE, "-z0", "z0", "Z0", DEF_LINE_Z0, -1, offsetof(Line, z0), 0, NULL,
      LINE_ELEM_Z0_MASK | LINE_ELEM_MAP_ITEM_MASK},
-
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 typedef double(DistanceProc)(int x, int y, Point2D *p, Point2D *q, Point2D *t);
@@ -1376,11 +1312,11 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
                                const Tcl_Size *pointToData);
 static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
+
 static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
 
     fullLength = (Tcl_Size)strlen(fullName);
-
     return ((length > 0) && (length <= fullLength) && (strncmp(string, fullName, (size_t)length) == 0));
 }
 
@@ -1737,7 +1673,6 @@ static int PrepareLineComplexDataTransaction(Graph *graphPtr, Element *elemPtr, 
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     transactionPtr->mode = linePtr->dataMode;
     explicitCData = FALSE;
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
@@ -2137,14 +2072,11 @@ static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char 
         stipple = PATTERN_SOLID;
     } else {
         stipple = Tk_GetBitmap(interp, tkwin, Tk_GetUid(string));
-
         if (stipple == None) {
             return TCL_ERROR;
         }
     }
-
     *stipplePtr = stipple;
-
     return TCL_OK;
 }
 
@@ -2152,7 +2084,6 @@ static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPt
     const char *string;
 
     string = (objPtr == NULL) ? NULL : Tcl_GetString(objPtr);
-
     return GetPatternFromString(interp, tkwin, string, stipplePtr);
 }
 
@@ -2169,9 +2100,7 @@ static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransa
     if (GetPatternFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &newStipple) != TCL_OK) {
         return TCL_ERROR;
     }
-
     mask = LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN);
-
     /*
      * Resolve the replacement before releasing an earlier staged
      * candidate.
@@ -2179,10 +2108,8 @@ static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransa
     if (transactionPtr->stagedMask & mask) {
         FreeLinePattern(graphPtr->display, transactionPtr->stipple);
     }
-
     transactionPtr->stipple = newStipple;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
@@ -2192,29 +2119,23 @@ static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransacti
     unsigned int mask;
 
     newTile = NULL;
-
     if (objPtr != NULL) {
         name = Tcl_GetString(objPtr);
-
         if (name[0] != '\0') {
             if (Rbc_GetTile(graphPtr->interp, graphPtr->tkwin, name, &newTile) != TCL_OK) {
                 return TCL_ERROR;
             }
         }
     }
-
     mask = LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE);
-
     /*
      * Acquire the replacement before releasing an earlier staged tile.
      */
     if ((transactionPtr->stagedMask & mask) && (transactionPtr->tile != NULL)) {
         Rbc_FreeTile(transactionPtr->tile);
     }
-
     transactionPtr->tile = newTile;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
@@ -2224,24 +2145,19 @@ static GC CreateLineFillGC(Graph *graphPtr, Line *linePtr, Pixmap stipple) {
 
     gcMask = 0;
     memset(&gcValues, 0, sizeof(gcValues));
-
     if (linePtr->fillFgColor != NULL) {
         gcMask |= GCForeground;
         gcValues.foreground = linePtr->fillFgColor->pixel;
     }
-
     if (linePtr->fillBgColor != NULL) {
         gcMask |= GCBackground;
         gcValues.background = linePtr->fillBgColor->pixel;
     }
-
     if ((stipple != None) && (stipple != PATTERN_SOLID)) {
         gcMask |= GCStipple | GCFillStyle;
-
         gcValues.stipple = stipple;
         gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
     }
-
     return Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
 }
 
@@ -2249,15 +2165,12 @@ static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transa
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
         FreeLinePattern(graphPtr->display, transactionPtr->stipple);
     }
-
     if (transactionPtr->tile != NULL) {
         Rbc_FreeTile(transactionPtr->tile);
     }
-
     if (transactionPtr->gc != NULL) {
         Tk_FreeGC(graphPtr->display, transactionPtr->gc);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -2281,11 +2194,8 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
     int i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which manually converted area options were supplied
      * explicitly.
@@ -2294,12 +2204,10 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
         LineAreaOption option;
 
         option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option != LINE_AREA_OPTION_NONE) {
             explicitMask |= LINE_AREA_OPTION_MASK(option);
         }
     }
-
     /*
      * During initial modern configuration, process effective defaults
      * and option-database values not explicitly overridden.
@@ -2310,14 +2218,12 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
                 goto error;
             }
         }
-
         if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) && (linePtr->areaTileObjPtr != NULL)) {
             if (StageLineAreaTile(graphPtr, linePtr->areaTileObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
         }
     }
-
     /*
      * Process explicit occurrences in their original order.
      */
@@ -2326,27 +2232,22 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
         Tcl_Obj *valueObjPtr;
 
         option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
-
         valueObjPtr = elemPtr->optionObjv[i + 1];
-
         switch (option) {
         case LINE_AREA_OPTION_PATTERN:
             if (StageLineAreaPattern(graphPtr, valueObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
             break;
-
         case LINE_AREA_OPTION_TILE:
             if (StageLineAreaTile(graphPtr, valueObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
             break;
-
         case LINE_AREA_OPTION_NONE:
             break;
         }
     }
-
     /*
      * Build the replacement GC from the effective stipple and the
      * colors currently installed by Tk_SetOptions.
@@ -2356,14 +2257,11 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
     } else {
         effectiveStipple = linePtr->fillStipple;
     }
-
     transactionPtr->gc = CreateLineFillGC(graphPtr, linePtr, effectiveStipple);
-
     return TCL_OK;
 
 error:
     FreeLineAreaTransaction(graphPtr, transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -2372,27 +2270,19 @@ static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTr
         Pixmap oldStipple;
 
         oldStipple = linePtr->fillStipple;
-
         linePtr->fillStipple = transactionPtr->stipple;
-
         transactionPtr->stipple = None;
-
         FreeLinePattern(graphPtr->display, oldStipple);
     }
-
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) {
         Rbc_Tile oldTile;
 
         oldTile = linePtr->fillTile;
-
         linePtr->fillTile = transactionPtr->tile;
-
         transactionPtr->tile = NULL;
-
         if (linePtr->fillTile != NULL) {
             Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
         }
-
         if (oldTile != NULL) {
             Rbc_FreeTile(oldTile);
         }
@@ -2403,34 +2293,26 @@ static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTr
          */
         Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
     }
-
     if (transactionPtr->gc != NULL) {
         GC oldGC;
 
         oldGC = linePtr->fillGC;
-
         linePtr->fillGC = transactionPtr->gc;
-
         transactionPtr->gc = NULL;
-
         if (oldGC != NULL) {
             Tk_FreeGC(graphPtr->display, oldGC);
         }
     }
-
     transactionPtr->stagedMask = 0;
 }
 
 static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
     if (symbolPtr->bitmap != None) {
         Tk_FreeBitmap(display, symbolPtr->bitmap);
-
         symbolPtr->bitmap = None;
     }
-
     if (symbolPtr->mask != None) {
         Tk_FreeBitmap(display, symbolPtr->mask);
-
         symbolPtr->mask = None;
     }
 }
@@ -2442,63 +2324,50 @@ static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr
     symbolPtr->type = SYMBOL_NONE;
     symbolPtr->bitmap = None;
     symbolPtr->mask = None;
-
     string = Tcl_GetStringFromObj(objPtr, &length);
-
     if (length == 0) {
         return TCL_OK;
     }
-
     if (IsLinePenPrefix(string, length, "none")) {
         symbolPtr->type = SYMBOL_NONE;
         return TCL_OK;
     }
-
     if ((length > 1) && IsLinePenPrefix(string, length, "circle")) {
         symbolPtr->type = SYMBOL_CIRCLE;
         return TCL_OK;
     }
-
     if ((length > 1) && IsLinePenPrefix(string, length, "square")) {
         symbolPtr->type = SYMBOL_SQUARE;
         return TCL_OK;
     }
-
     if (IsLinePenPrefix(string, length, "diamond")) {
         symbolPtr->type = SYMBOL_DIAMOND;
         return TCL_OK;
     }
-
     if (IsLinePenPrefix(string, length, "plus")) {
         symbolPtr->type = SYMBOL_PLUS;
         return TCL_OK;
     }
-
     if ((length > 1) && IsLinePenPrefix(string, length, "cross")) {
         symbolPtr->type = SYMBOL_CROSS;
         return TCL_OK;
     }
-
     if ((length > 1) && IsLinePenPrefix(string, length, "splus")) {
         symbolPtr->type = SYMBOL_SPLUS;
         return TCL_OK;
     }
-
     if ((length > 1) && IsLinePenPrefix(string, length, "scross")) {
         symbolPtr->type = SYMBOL_SCROSS;
         return TCL_OK;
     }
-
     if (IsLinePenPrefix(string, length, "triangle")) {
         symbolPtr->type = SYMBOL_TRIANGLE;
         return TCL_OK;
     }
-
     if (IsLinePenPrefix(string, length, "arrow")) {
         symbolPtr->type = SYMBOL_ARROW;
         return TCL_OK;
     }
-
     /*
      * Otherwise, interpret the value as:
      *
@@ -2513,47 +2382,35 @@ static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr
         if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
             return TCL_ERROR;
         }
-
         if ((objc < 1) || (objc > 2)) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad symbol \"%s\": should be a symbol name "
                                                    "or \"bitmap ?mask?\"",
                                                    string));
-
             return TCL_ERROR;
         }
-
         bitmap = Tk_GetBitmap(interp, tkwin, Tk_GetUid(Tcl_GetString(objv[0])));
-
         if (bitmap == None) {
             Tcl_ResetResult(interp);
-
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad symbol \"%s\": should be "
                                                    "\"none\", \"circle\", \"square\", "
                                                    "\"diamond\", \"plus\", \"cross\", "
                                                    "\"splus\", \"scross\", \"triangle\", "
                                                    "\"arrow\", or the name of a bitmap",
                                                    string));
-
             return TCL_ERROR;
         }
-
         mask = None;
-
         if ((objc == 2) && (Tcl_GetCharLength(objv[1]) > 0)) {
             mask = Tk_GetBitmap(interp, tkwin, Tk_GetUid(Tcl_GetString(objv[1])));
-
             if (mask == None) {
                 Tk_FreeBitmap(Tk_Display(tkwin), bitmap);
-
                 return TCL_ERROR;
             }
         }
-
         symbolPtr->type = SYMBOL_BITMAP;
         symbolPtr->bitmap = bitmap;
         symbolPtr->mask = mask;
     }
-
     return TCL_OK;
 }
 
@@ -2576,10 +2433,8 @@ static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing
             return TCL_OK;
         }
     }
-
     Rbc_AppendResultStrings(interp, "bad smooth value \"", string, "\": should be linear, step, natural, or quadratic",
                      (char *)NULL);
-
     return TCL_ERROR;
 }
 
@@ -2603,7 +2458,6 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
 
     c = string[0];
     length = strlen(string);
-
     if ((c == 'i') && (length <= strlen("increasing")) && (strncmp(string, "increasing", length) == 0)) {
         *penDirPtr = PEN_INCREASING;
     } else if ((c == 'd') && (length <= strlen("decreasing")) && (strncmp(string, "decreasing", length) == 0)) {
@@ -2613,10 +2467,8 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
     } else {
         Rbc_AppendResultStrings(interp, "bad trace value \"", string,
                          "\" : should be \"increasing\", \"decreasing\", or \"both\"", (char *)NULL);
-
         return TCL_ERROR;
     }
-
     return TCL_OK;
 }
 
@@ -2644,35 +2496,26 @@ static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOpt
         if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, PIXELS_NONNEGATIVE, &intValue) != TCL_OK) {
             return TCL_ERROR;
         }
-
         transactionPtr->maxSymbols = intValue;
         break;
-
     case LINE_SCALAR_OPTION_SMOOTH:
         if (GetSmoothFromObj(graphPtr->interp, objPtr, &smoothValue) != TCL_OK) {
             return TCL_ERROR;
         }
-
         transactionPtr->smooth = smoothValue;
         break;
-
     case LINE_SCALAR_OPTION_TRACE:
         if (GetPenDirFromObj(graphPtr->interp, objPtr, &intValue) != TCL_OK) {
             return TCL_ERROR;
         }
-
         transactionPtr->penDir = intValue;
         break;
-
     case LINE_SCALAR_OPTION_NONE:
     default:
         Tcl_Panic("StageLineScalarOption called with invalid option");
-
         return TCL_ERROR;
     }
-
     transactionPtr->stagedMask |= LINE_SCALAR_OPTION_MASK(option);
-
     return TCL_OK;
 }
 
@@ -2696,11 +2539,8 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
     int i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which scalar options were explicitly supplied.
      */
@@ -2708,12 +2548,10 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
         LineScalarOption option;
 
         option = GetLineScalarOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option != LINE_SCALAR_OPTION_NONE) {
             explicitMask |= LINE_SCALAR_OPTION_MASK(option);
         }
     }
-
     /*
      * During the initial modern configuration, parse effective default
      * and option-database values that were not explicitly overridden.
@@ -2726,14 +2564,12 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_SMOOTH)) && (linePtr->smoothObjPtr != NULL)) {
             if (StageLineScalarOption(graphPtr, linePtr->smoothObjPtr, LINE_SCALAR_OPTION_SMOOTH, transactionPtr) !=
                 TCL_OK) {
                 return TCL_ERROR;
             }
         }
-
         /*
          * Strip elements have no -trace table entry, so traceObjPtr
          * remains NULL for them.
@@ -2745,7 +2581,6 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
             }
         }
     }
-
     /*
      * Process explicit occurrences in their original order.
      */
@@ -2753,16 +2588,13 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
         LineScalarOption option;
 
         option = GetLineScalarOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option == LINE_SCALAR_OPTION_NONE) {
             continue;
         }
-
         if (StageLineScalarOption(graphPtr, elemPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -2779,15 +2611,12 @@ static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *tr
     if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_MAX_SYMBOLS)) {
         linePtr->reqMaxSymbols = transactionPtr->maxSymbols;
     }
-
     if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_SMOOTH)) {
         linePtr->reqSmooth = transactionPtr->smooth;
     }
-
     if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_TRACE)) {
         linePtr->penDir = transactionPtr->penDir;
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -2866,6 +2695,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     GC newValueGC;
     XGCValues gcValues;
     unsigned long gcMask;
+    
     assert(penPtr->optionSpecs != NULL);
     lpPtr = LINE_PEN_FROM_CORE(penPtr);
     newErrorBarColor = NULL;
@@ -2882,7 +2712,6 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newTraceGC = NULL;
     newErrorBarGC = NULL;
     newValueGC = NULL;
-
     if (Rbc_ValidateValueFormat(graphPtr->interp, lpPtr->valueFormat) != TCL_OK) {
         goto error;
     }
@@ -3134,47 +2963,32 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     LinePen *lpPtr;
 
     lpPtr = LINE_PEN_FROM_CORE(penPtr);
-
     Rbc_FreeTextStyle(graphPtr->display, &lpPtr->valueStyle);
-
     lpPtr->valueStyle.gc = NULL;
-
     if (lpPtr->symbol.outlineGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.outlineGC);
-
         lpPtr->symbol.outlineGC = NULL;
     }
-
     if (lpPtr->symbol.fillGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->symbol.fillGC);
-
         lpPtr->symbol.fillGC = NULL;
     }
-
     if (lpPtr->errorBarGC != NULL) {
         Tk_FreeGC(graphPtr->display, lpPtr->errorBarGC);
-
         lpPtr->errorBarGC = NULL;
     }
-
     if (lpPtr->traceGC != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lpPtr->traceGC);
-
         lpPtr->traceGC = NULL;
     }
-
     if (lpPtr->symbol.bitmap != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.bitmap);
-
         lpPtr->symbol.bitmap = None;
     }
-
     if (lpPtr->symbol.mask != None) {
         Tk_FreeBitmap(graphPtr->display, lpPtr->symbol.mask);
-
         lpPtr->symbol.mask = None;
     }
-
     /*
      * These resources are manually derived from retained option objects
      * and are not released by Tk_FreeConfigOptions.
@@ -3183,15 +2997,12 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     FreeLinePenColor(lpPtr->symbol.fillColor);
     FreeLinePenColor(lpPtr->traceOffColor);
     FreeLinePenColor(lpPtr->symbol.outlineColor);
-
     lpPtr->errorBarColor = NULL;
     lpPtr->symbol.fillColor = NULL;
     lpPtr->traceOffColor = NULL;
     lpPtr->symbol.outlineColor = NULL;
-
     if (lpPtr->valueStyle.shadow.color != NULL) {
         Tk_FreeColor(lpPtr->valueStyle.shadow.color);
-
         lpPtr->valueStyle.shadow.color = NULL;
     }
 }
@@ -3218,31 +3029,23 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
     Pen *corePtr;
 
     assert(optionSpecs != NULL);
-
     corePtr = &penPtr->core;
-
     Rbc_InitTextStyle(&penPtr->valueStyle);
-
     corePtr->optionSpecs = optionSpecs;
     corePtr->optionTable = NULL;
-
     corePtr->optionsInitialized = FALSE;
     corePtr->tkResourcesReleased = FALSE;
-
     corePtr->configProc = ConfigurePen;
     corePtr->destroyProc = DestroyPen;
     corePtr->flags = flags;
     corePtr->name = "";
-
     penPtr->errorBarLineWidth = 1;
     penPtr->errorBarShow = SHOW_BOTH;
-
     penPtr->symbol.bitmap = None;
     penPtr->symbol.mask = None;
     penPtr->symbol.outlineColor = COLOR_DEFAULT;
     penPtr->symbol.fillColor = COLOR_DEFAULT;
     penPtr->symbol.outlineWidth = 1;
-
     penPtr->traceWidth = 1;
     penPtr->symbol.type = SYMBOL_CIRCLE;
     penPtr->valueShow = SHOW_NONE;
@@ -3279,15 +3082,11 @@ Pen *Rbc_LinePen(const char *penName) {
         optionSpecs = normalLinePenOptionSpecs;
         flags = NORMAL_PEN;
     }
-
     penPtr = RbcCalloc(1, sizeof(LinePen));
     assert(penPtr != NULL);
-
     InitPen(penPtr, optionSpecs, flags);
-
     corePtr = &penPtr->core;
     corePtr->name = RbcStrdup(penName);
-
     return corePtr;
 }
 
@@ -4369,17 +4168,14 @@ static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapIn
     double pixelMin;
     double pixelMax;
     double pixelSpan;
-
     int haveBucket;
     double currentBucket;
-
     Tcl_Size first;
     Tcl_Size last;
     Tcl_Size minIndex;
     Tcl_Size maxIndex;
     double minY;
     double maxY;
-
     int startsRun;
     int nextStartsRun;
     int havePreviousX;
@@ -5273,7 +5069,6 @@ static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints) {
         }
         blocks = newBlockArr;
     }
-
     /*
      * If oldPoints was not block-aligned, its old final block has
      * acquired new members and must be rebuilt.  If it was aligned,
@@ -6122,7 +5917,6 @@ static void GenerateParametricSpline(Graph *graphPtr, Line *linePtr, MapInfo *ma
     intpPts = NULL;
     indices = NULL;
     Rbc_GraphExtents(graphPtr, &exts);
-
     /*
      * Every original point is retained. Additional points are generated
      * at approximately two-pixel intervals along the visible portion of
@@ -7035,7 +6829,6 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
 
     inside = ((code1 | code2) == 0);
     outside = ((code1 & code2) != 0);
-
     /*
      * In the worst case, we'll clip the line segment against each of
      * the four sides of the bounding rectangle.
@@ -7063,7 +6856,6 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
             p->y = extsPtr->top;
         }
         code1 = OutCode(extsPtr, p);
-
         inside = ((code1 | code2) == 0);
         outside = ((code1 & code2) != 0);
     }
@@ -7642,7 +7434,6 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         (((linePtr->core.yHigh.nValues > 0) && (linePtr->core.yLow.nValues > 0)) ||
          ((linePtr->core.xHigh.nValues > 0) && (linePtr->core.xLow.nValues > 0)) ||
          (linePtr->core.xError.nValues > 0) || (linePtr->core.yError.nValues > 0))) {
-
         Rbc_MapErrorBars(graphPtr, &linePtr->core, dataToStyle);
     }
     MergePens(linePtr, dataToStyle);
@@ -7834,7 +7625,7 @@ static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     Point2D closest, b;
     LineTrace *tracePtr;
     double dist, minDist;
-    register Point2D *pointPtr, *endPtr;
+    Point2D *pointPtr, *endPtr;
     Tcl_Size dataIndex;
 
     dataIndex = -1;
@@ -7889,7 +7680,7 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     Point2D closest, b;
     double dist, minDist;
     Tcl_Size count;
-    register Segment2D *s;
+    Segment2D *s;
     Tcl_Size dataIndex;
 
     dataIndex = 0;
@@ -8241,7 +8032,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int paramTransactionPrepared;    
 
     linePtr = LINE_FROM_CORE(elemPtr);
-
     memset(&dataTransaction, 0, sizeof(dataTransaction));
     memset(&penTransaction, 0, sizeof(penTransaction));
     memset(&axisTransaction, 0, sizeof(axisTransaction));
@@ -8252,7 +8042,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     memset(&areaTransaction, 0, sizeof(areaTransaction));
     memset(&complexDataTransaction, 0, sizeof(complexDataTransaction));
     memset(&paramTransaction, 0, sizeof(paramTransaction));
-
     dataTransactionPrepared = FALSE;
     penTransactionPrepared = FALSE;
     axisTransactionPrepared = FALSE;
@@ -8263,7 +8052,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     areaTransactionPrepared = FALSE;
     complexDataTransactionPrepared = FALSE;
     paramTransactionPrepared = FALSE;
-
     /*
      * Parse all data-vector replacements before modifying the live
      * element.
@@ -8291,10 +8079,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (PrepareLineParamTransaction(graphPtr, elemPtr, linePtr, &paramTransaction) != TCL_OK) {
             goto error;
         }
-
         paramTransactionPrepared = TRUE;
     }
-
     /*
      * Validate the prospective complete data/parameter state before any
      * transaction is committed.
@@ -8315,7 +8101,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (Rbc_PrepareElemPenTransaction(graphPtr, elemPtr, rbcLineElementUid, &penTransaction) != TCL_OK) {
             goto error;
         }
-
         penTransactionPrepared = TRUE;
     }
     /*
@@ -8326,7 +8111,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (Rbc_PrepareElemAxisTransaction(graphPtr, elemPtr, &axisTransaction) != TCL_OK) {
             goto error;
         }
-
         axisTransactionPrepared = TRUE;
     }
     /*
@@ -8340,10 +8124,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (Rbc_PrepareElemStateTransaction(graphPtr, elemPtr, &stateTransaction) != TCL_OK) {
             goto error;
         }
-
         stateTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the element bind tags before modifying the live element.
      *
@@ -8354,10 +8136,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (Rbc_PrepareElemTagsTransaction(graphPtr, elemPtr, &tagsTransaction) != TCL_OK) {
             goto error;
         }
-
         tagsTransactionPrepared = TRUE;
     }
-
     /*
      * Parse the element's weighted pen styles before modifying the live
      * palette.
@@ -8370,10 +8150,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
                                              &stylesTransaction) != TCL_OK) {
             goto error;
         }
-
         stylesTransactionPrepared = TRUE;
     }
-
     /*
      * Parse line-specific scalar values before modifying the live element.
      *
@@ -8384,10 +8162,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (PrepareLineScalarTransaction(graphPtr, elemPtr, linePtr, &scalarTransaction) != TCL_OK) {
             goto error;
         }
-
         scalarTransactionPrepared = TRUE;
     }
-
     /*
      * Resolve line-area resources and construct the replacement fill GC
      * before modifying the live element.
@@ -8399,10 +8175,8 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &areaTransaction) != TCL_OK) {
             goto error;
         }
-
         areaTransactionPrepared = TRUE;
     }
-
     /*
      * Configure the embedded line pen only when its options may have
      * changed.
@@ -8412,7 +8186,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
             goto error;
         }
     }
-
     /*
      * No remaining operation before palette synchronisation can report a
      * Tcl configuration error. Transfer all staged values and references
@@ -8421,42 +8194,32 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     if (axisTransactionPrepared) {
         Rbc_CommitElemAxisTransaction(graphPtr, elemPtr, &axisTransaction);
     }
-
     if (penTransactionPrepared) {
         Rbc_CommitElemPenTransaction(graphPtr, elemPtr, &linePtr->builtinPen.core, &penTransaction);
     }
-
     if (stateTransactionPrepared) {
         Rbc_CommitElemStateTransaction(elemPtr, &stateTransaction);
     }
-
     if (tagsTransactionPrepared) {
         Rbc_CommitElemTagsTransaction(elemPtr, &tagsTransaction);
     }
-    
     if (stylesTransactionPrepared) {
         Rbc_CommitElemStylesTransaction(graphPtr, elemPtr, &stylesTransaction);
     }
-
     if (scalarTransactionPrepared) {
         CommitLineScalarTransaction(linePtr, &scalarTransaction);
     }
-
     if (areaTransactionPrepared) {
         CommitLineAreaTransaction(graphPtr, linePtr, &areaTransaction);
     }
-
     assert(elemPtr->normalPenPtr != NULL);
-
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
-
     if (linkPtr != NULL) {
         LinePenStyle *stylePtr;
 
         stylePtr = Rbc_ChainGetValue(linkPtr);
         stylePtr->penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     }
-
     if ((elemPtr->classUid == rbcPolarElementUid) &&
         ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_Z0_MASK))) {
         if ((!FINITE(linePtr->z0)) || (linePtr->z0 <= 0.0)) {
@@ -8466,7 +8229,6 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
             goto error;
         }
     }
-
     /*
      * Nothing below this point can fail. Commit the staged vectors and
      * synchronize their retained Tcl representations.
@@ -8475,58 +8237,45 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         Rbc_CommitElemDataTransaction(elemPtr, &dataTransaction);
         Rbc_SyncElemDataOptionObjects(elemPtr);
     }
-
     if (complexDataTransactionPrepared) {
         CommitLineComplexDataTransaction(linePtr, &complexDataTransaction);
     }
-
     if (paramTransactionPrepared) {
         CommitLineParamTransaction(linePtr, &paramTransaction);
     }
-
     if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_SCALE_SYMBOL_MASK)) {
         elemPtr->flags |= MAP_ITEM | SCALE_SYMBOL;
     }
-
     if (!elemPtr->optionsConfigured || (elemPtr->optionMask & LINE_ELEM_MAP_ITEM_MASK)) {
         elemPtr->flags |= MAP_ITEM;
     }
-
     return TCL_OK;
 
 error:
     if (areaTransactionPrepared) {
         FreeLineAreaTransaction(graphPtr, &areaTransaction);
     }
-
     if (stylesTransactionPrepared) {
         Rbc_FreeElemStylesTransaction(graphPtr, &stylesTransaction);
     }
-
     if (tagsTransactionPrepared) {
         Rbc_FreeElemTagsTransaction(&tagsTransaction);
     }
-
     if (axisTransactionPrepared) {
         Rbc_FreeElemAxisTransaction(graphPtr, &axisTransaction);
     }
-
     if (penTransactionPrepared) {
         Rbc_FreeElemPenTransaction(graphPtr, &penTransaction);
     }
-
     if (dataTransactionPrepared) {
         Rbc_FreeElemDataTransaction(&dataTransaction);
     }
-
     if (complexDataTransactionPrepared) {
         FreeLineComplexDataTransaction(&complexDataTransaction);
     }
-
     if (paramTransactionPrepared) {
         FreeLineParamTransaction(&paramTransaction);
     }
-
     return TCL_ERROR;
 }
 
@@ -8804,7 +8553,6 @@ enum {
     CIRCLE_WIDE_OUTLINE_BATCH = 64
 };
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -8822,14 +8570,7 @@ enum {
  *
  *----------------------------------------------------------------------
  */
-static int
-GetCirclePathTemplate(
-    HDC dc,
-    int radius,
-    POINT **pointsPtrPtr,
-    BYTE **typesPtrPtr,
-    int *nPointsPtr)
-{
+static int GetCirclePathTemplate(HDC dc, int radius, POINT **pointsPtrPtr, BYTE **typesPtrPtr, int *nPointsPtr) {
     POINT *points;
     BYTE *types;
     int diameter;
@@ -8839,27 +8580,21 @@ GetCirclePathTemplate(
     *pointsPtrPtr = NULL;
     *typesPtrPtr = NULL;
     *nPointsPtr = 0;
-
     if (radius < 1) {
         return FALSE;
     }
-
     diameter = radius + radius + 1;
-
     if (!BeginPath(dc)) {
         return FALSE;
     }
-
     if (!Ellipse(dc, 0, 0, diameter, diameter)) {
         AbortPath(dc);
         return FALSE;
     }
-
     if (!EndPath(dc)) {
         AbortPath(dc);
         return FALSE;
     }
-
     /*
      * With a zero buffer size GetPath returns the number of path points
      * without writing any output.
@@ -8869,47 +8604,36 @@ GetCirclePathTemplate(
         AbortPath(dc);
         return FALSE;
     }
-
     if ((size_t)nPoints > SIZE_MAX / sizeof(*points)) {
         AbortPath(dc);
         return FALSE;
     }
-
-    points = Tcl_AttemptAlloc(
-        (size_t)nPoints * sizeof(*points));
+    points = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*points));
     if (points == NULL) {
         AbortPath(dc);
         return FALSE;
     }
-
-    types = Tcl_AttemptAlloc(
-        (size_t)nPoints * sizeof(*types));
+    types = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*types));
     if (types == NULL) {
         ckfree(points);
         AbortPath(dc);
         return FALSE;
     }
-
     result = GetPath(dc, points, types, nPoints);
-
     /*
      * We only needed the path as a reusable template.
      */
     AbortPath(dc);
-
     if (result != nPoints) {
         ckfree(types);
         ckfree(points);
         return FALSE;
     }
-
     *pointsPtrPtr = points;
     *typesPtrPtr = types;
     *nPointsPtr = nPoints;
-
     return TRUE;
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -8921,35 +8645,20 @@ GetCirclePathTemplate(
  *
  *----------------------------------------------------------------------
  */
-static void
-LoadCirclePath(
-    POINT *dstPoints,
-    BYTE *dstTypes,
-    const POINT *templatePoints,
-    const BYTE *templateTypes,
-    int nTemplatePoints,
-    LONG x,
-    LONG y,
-    int radius)
-{
+static void LoadCirclePath(POINT *dstPoints, BYTE *dstTypes, const POINT *templatePoints, const BYTE *templateTypes,
+                           int nTemplatePoints, LONG x, LONG y, int radius) {
     LONG dx;
     LONG dy;
     int i;
 
     dx = x - radius;
     dy = y - radius;
-
     for (i = 0; i < nTemplatePoints; i++) {
         dstPoints[i].x = templatePoints[i].x + dx;
         dstPoints[i].y = templatePoints[i].y + dy;
     }
-
-    memcpy(
-        dstTypes,
-        templateTypes,
-        (size_t)nTemplatePoints * sizeof(*dstTypes));
+    memcpy(dstTypes, templateTypes, (size_t)nTemplatePoints * sizeof(*dstTypes));
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -8960,25 +8669,13 @@ LoadCirclePath(
  *
  *----------------------------------------------------------------------
  */
-static void
-DrawCircleCentersDirect(
-    HDC dc,
-    const POINT *centers,
-    int nCenters,
-    int radius)
-{
+static void DrawCircleCentersDirect(HDC dc, const POINT *centers, int nCenters, int radius) {
     int i;
 
     for (i = 0; i < nCenters; i++) {
-        Ellipse(
-            dc,
-            centers[i].x - radius,
-            centers[i].y - radius,
-            centers[i].x + radius + 1,
-            centers[i].y + radius + 1);
+        Ellipse(dc, centers[i].x - radius, centers[i].y - radius, centers[i].x + radius + 1, centers[i].y + radius + 1);
     }
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -8995,43 +8692,29 @@ DrawCircleCentersDirect(
  *
  *----------------------------------------------------------------------
  */
-static int
-DrawCirclePathBatch(
-    HDC dc,
-    const POINT *points,
-    const BYTE *types,
-    int nPoints,
-    int doFill,
-    int doOutline)
-{
+static int DrawCirclePathBatch(HDC dc, const POINT *points, const BYTE *types, int nPoints, int doFill, int doOutline) {
     if (!doFill) {
         /*
          * PolyDraw directly strokes all disjoint figures.
          */
         return PolyDraw(dc, points, types, nPoints);
     }
-
     if (!BeginPath(dc)) {
         return FALSE;
     }
-
     if (!PolyDraw(dc, points, types, nPoints)) {
         AbortPath(dc);
         return FALSE;
     }
-
     if (!EndPath(dc)) {
         AbortPath(dc);
         return FALSE;
     }
-
     if (doOutline) {
         return StrokeAndFillPath(dc);
     }
-
     return FillPath(dc);
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -9042,16 +8725,8 @@ DrawCirclePathBatch(
  *
  *----------------------------------------------------------------------
  */
-static void
-DrawCircles(
-    Display *display,
-    Drawable drawable,
-    Line *linePtr,
-    LinePen *penPtr,
-    Tcl_Size nSymbolPts,
-    Point2D *symbolPts,
-    int radius)
-{
+static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
+                        Point2D *symbolPts, int radius) {
     Rbc_WinDrawableDC *dcStatePtr;
     Point2D *pointPtr;
     Point2D *endPtr;
@@ -9077,46 +8752,32 @@ DrawCircles(
     if ((drawable == None) || (nSymbolPts <= 0)) {
         return;
     }
-
     doFill = (penPtr->symbol.fillGC != NULL);
-
-    doOutline =
-        ((penPtr->symbol.outlineGC != NULL) &&
-         (penPtr->symbol.outlineWidth > 0));
-
+    doOutline = ((penPtr->symbol.outlineGC != NULL) && (penPtr->symbol.outlineWidth > 0));
     if (!doFill && !doOutline) {
         return;
     }
-
     templatePoints = NULL;
     templateTypes = NULL;
     batchPoints = NULL;
     batchTypes = NULL;
     batchCenters = NULL;
-
-    dc = Rbc_WinAcquireDrawableDC(
-        display, drawable, &dcStatePtr);
-
+    dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     /*
      * Set up the same brush and pen used by the old Ellipse renderer.
      */
     if (doFill) {
-        brush = CreateSolidBrush(
-            penPtr->symbol.fillGC->foreground);
+        brush = CreateSolidBrush(penPtr->symbol.fillGC->foreground);
     } else {
         brush = GetStockBrush(NULL_BRUSH);
     }
-
     if (doOutline) {
-        pen = Rbc_GCToPen(
-            dc, penPtr->symbol.outlineGC);
+        pen = Rbc_GCToPen(dc, penPtr->symbol.outlineGC);
     } else {
         pen = GetStockPen(NULL_PEN);
     }
-
     oldBrush = SelectBrush(dc, brush);
     oldPen = SelectPen(dc, pen);
-
     /*
      * Combining overlapping symbols into one filled path is only
      * equivalent to the old renderer for the normal GXcopy case.
@@ -9126,36 +8787,21 @@ DrawCircles(
      * outlines remain visible where symbols overlap.
      */
     useBatch = TRUE;
-
-    if (doFill &&
-        (penPtr->symbol.fillGC->function != GXcopy)) {
+    if (doFill && (penPtr->symbol.fillGC->function != GXcopy)) {
         useBatch = FALSE;
     }
-
-    if (doOutline &&
-        (penPtr->symbol.outlineGC->function != GXcopy)) {
+    if (doOutline && (penPtr->symbol.outlineGC->function != GXcopy)) {
         useBatch = FALSE;
     }
-
-    if (doFill && doOutline &&
-        (penPtr->symbol.fillGC->foreground !=
-         penPtr->symbol.outlineGC->foreground)) {
+    if (doFill && doOutline && (penPtr->symbol.fillGC->foreground != penPtr->symbol.outlineGC->foreground)) {
         useBatch = FALSE;
     }
-
     if (useBatch) {
         Rbc_WinSetROP2(dc, GXcopy);
-
-        if (!GetCirclePathTemplate(
-                dc,
-                radius,
-                &templatePoints,
-                &templateTypes,
-                &nTemplatePoints)) {
+        if (!GetCirclePathTemplate(dc, radius, &templatePoints, &templateTypes, &nTemplatePoints)) {
             useBatch = FALSE;
         }
     }
-
     if (useBatch) {
         if (doFill) {
             maxBatch = CIRCLE_FILL_BATCH;
@@ -9164,49 +8810,29 @@ DrawCircles(
         } else {
             maxBatch = CIRCLE_OUTLINE_BATCH;
         }
-
-        if ((size_t)nTemplatePoints >
-            SIZE_MAX / (size_t)maxBatch) {
+        if ((size_t)nTemplatePoints > SIZE_MAX / (size_t)maxBatch) {
             useBatch = FALSE;
         } else {
-            nBatchPoints =
-                (size_t)nTemplatePoints *
-                (size_t)maxBatch;
-
-            if (nBatchPoints >
-                SIZE_MAX / sizeof(*batchPoints)) {
+            nBatchPoints = (size_t)nTemplatePoints * (size_t)maxBatch;
+            if (nBatchPoints > SIZE_MAX / sizeof(*batchPoints)) {
                 useBatch = FALSE;
             }
         }
-
         if (useBatch) {
-            batchPoints = Tcl_AttemptAlloc(
-                nBatchPoints * sizeof(*batchPoints));
-
-            batchTypes = Tcl_AttemptAlloc(
-                nBatchPoints * sizeof(*batchTypes));
-
-            batchCenters = Tcl_AttemptAlloc(
-                (size_t)maxBatch *
-                sizeof(*batchCenters));
-
-            if ((batchPoints == NULL) ||
-                (batchTypes == NULL) ||
-                (batchCenters == NULL)) {
+            batchPoints = Tcl_AttemptAlloc(nBatchPoints * sizeof(*batchPoints));
+            batchTypes = Tcl_AttemptAlloc(nBatchPoints * sizeof(*batchTypes));
+            batchCenters = Tcl_AttemptAlloc((size_t)maxBatch * sizeof(*batchCenters));
+            if ((batchPoints == NULL) || (batchTypes == NULL) || (batchCenters == NULL)) {
                 useBatch = FALSE;
             }
         }
     }
-
     if (!useBatch) {
         /*
          * Preserve the old implementation for unusual GCs or if the
          * batching setup cannot be constructed.
          */
-        for (pointPtr = symbolPts,
-                 endPtr = symbolPts + nSymbolPts;
-             pointPtr < endPtr;
-             pointPtr++) {
+        for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
             int draw;
 
             if (linePtr->symbolInterval > 0) {
@@ -9215,24 +8841,15 @@ DrawCircles(
             } else {
                 draw = TRUE;
             }
-
             if (!draw) {
                 continue;
             }
-
-            Ellipse(
-                dc,
-                (int)pointPtr->x - radius,
-                (int)pointPtr->y - radius,
-                (int)pointPtr->x + radius + 1,
-                (int)pointPtr->y + radius + 1);
+            Ellipse(dc, (int)pointPtr->x - radius, (int)pointPtr->y - radius, (int)pointPtr->x + radius + 1,
+                    (int)pointPtr->y + radius + 1);
         }
-
         goto done;
     }
-
     oldFillMode = 0;
-
     if (doFill) {
         /*
          * All circle figures have the same winding direction.  WINDING
@@ -9241,13 +8858,8 @@ DrawCircles(
          */
         oldFillMode = SetPolyFillMode(dc, WINDING);
     }
-
     nBuffered = 0;
-
-    for (pointPtr = symbolPts,
-             endPtr = symbolPts + nSymbolPts;
-         pointPtr < endPtr;
-         pointPtr++) {
+    for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
         POINT center;
         POINT *dstPoints;
         BYTE *dstTypes;
@@ -9259,89 +8871,38 @@ DrawCircles(
         } else {
             draw = TRUE;
         }
-
         if (!draw) {
             continue;
         }
-
         center.x = (LONG)pointPtr->x;
         center.y = (LONG)pointPtr->y;
-
         batchCenters[nBuffered] = center;
-
-        dstPoints =
-            batchPoints +
-            nBuffered * nTemplatePoints;
-
-        dstTypes =
-            batchTypes +
-            nBuffered * nTemplatePoints;
-
-        LoadCirclePath(
-            dstPoints,
-            dstTypes,
-            templatePoints,
-            templateTypes,
-            nTemplatePoints,
-            center.x,
-            center.y,
-            radius);
-
+        dstPoints = batchPoints + nBuffered * nTemplatePoints;
+        dstTypes = batchTypes + nBuffered * nTemplatePoints;
+        LoadCirclePath(dstPoints, dstTypes, templatePoints, templateTypes, nTemplatePoints, center.x, center.y, radius);
         nBuffered++;
-
         if (nBuffered == maxBatch) {
             int nPoints;
 
-            nPoints =
-                (int)(nBuffered *
-                      (Tcl_Size)nTemplatePoints);
-
-            if (!DrawCirclePathBatch(
-                    dc,
-                    batchPoints,
-                    batchTypes,
-                    nPoints,
-                    doFill,
-                    doOutline)) {
-
+            nPoints = (int)(nBuffered * (Tcl_Size)nTemplatePoints);
+            if (!DrawCirclePathBatch(dc, batchPoints, batchTypes, nPoints, doFill, doOutline)) {
                 /*
                  * GXcopy makes it safe to redraw a failed batch with
                  * the old implementation.
                  */
-                DrawCircleCentersDirect(
-                    dc,
-                    batchCenters,
-                    (int)nBuffered,
-                    radius);
+                DrawCircleCentersDirect(dc, batchCenters, (int)nBuffered, radius);
             }
-
             nBuffered = 0;
         }
     }
-
     if (nBuffered > 0) {
         int nPoints;
 
-        nPoints =
-            (int)(nBuffered *
-                  (Tcl_Size)nTemplatePoints);
-
-        if (!DrawCirclePathBatch(
-                dc,
-                batchPoints,
-                batchTypes,
-                nPoints,
-                doFill,
-                doOutline)) {
-
-            DrawCircleCentersDirect(
-                dc,
-                batchCenters,
-                (int)nBuffered,
-                radius);
+        nPoints = (int)(nBuffered * (Tcl_Size)nTemplatePoints);
+        if (!DrawCirclePathBatch(dc, batchPoints, batchTypes, nPoints, doFill, doOutline)) {
+            DrawCircleCentersDirect(dc, batchCenters, (int)nBuffered, radius);
         }
     }
-
     if (doFill && (oldFillMode != 0)) {
         SetPolyFillMode(dc, oldFillMode);
     }
@@ -9362,17 +8923,14 @@ done:
     if (templatePoints != NULL) {
         ckfree(templatePoints);
     }
-
     SelectPen(dc, oldPen);
     SelectBrush(dc, oldBrush);
-
     if (doOutline) {
         DeletePen(pen);
     }
     if (doFill) {
         DeleteBrush(brush);
     }
-
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
@@ -9421,7 +8979,6 @@ static void DrawCircles(Display *display, Drawable drawable, Line *linePtr, Line
         return;
     }
     arcPtr = arcArr;
-
     if (linePtr->symbolInterval > 0) {
         count = 0;
         for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
@@ -9548,7 +9105,6 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
         }
     } else {
         count = nSymbolPts;
-
         for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
             short x;
             short y;
@@ -9673,7 +9229,6 @@ static void LoadPolygonBatch(POINT *points, const XPoint *polygons, Tcl_Size fir
 
         srcPtr = polygons + (first + i) * stride;
         dstPtr = points + i * nPoints;
-
         for (j = 0; j < nPoints; j++) {
             dstPtr[j].x = (LONG)srcPtr[j].x;
             dstPtr[j].y = (LONG)srcPtr[j].y;
@@ -9710,7 +9265,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
          * well with large batches.
          */
         POLYGON_BATCH_POINTS = 16384,
-
         /*
          * Filled polygon symbols behave very differently under
          * PolyPolygon when many symbols overlap.  These batch sizes were
@@ -9719,13 +9273,11 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         POLYGON_PLUS_FILL_BATCH = 16,
         POLYGON_CROSS_FILL_BATCH = 8,
         POLYGON_CONVEX_FILL_BATCH = 32,
-
         /*
          * Conservative point budget for wide geometric outline pens.
          */
         POLYGON_WIDE_BATCH_POINTS = 1360
     };
-
     Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
     POINT *points;
@@ -9740,7 +9292,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
     if ((drawable == None) || (polygons == NULL) || (nPolygons <= 0) || (nVertices < 3) || (stride < nVertices)) {
         return;
     }
-
     if ((penPtr->symbol.fillGC == NULL) && ((penPtr->symbol.outlineGC == NULL) || (penPtr->symbol.outlineWidth <= 0))) {
         return;
     }
@@ -9754,7 +9305,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
     } else {
         maxPoints = POLYGON_BATCH_POINTS;
     }
-
     maxPolygons = maxPoints / stride;
     if (maxPolygons < 1) {
         maxPolygons = 1;
@@ -9762,7 +9312,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
     if (maxPolygons > nPolygons) {
         maxPolygons = nPolygons;
     }
-
     /*
      * Polygon outlines scale well with large PolyPolyline batches, but
      * large overlapping PolyPolygon fills are extremely expensive on
@@ -9772,7 +9321,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
     case SYMBOL_PLUS:
         maxFillPolygons = POLYGON_PLUS_FILL_BATCH;
         break;
-
     case SYMBOL_CROSS:
         maxFillPolygons = POLYGON_CROSS_FILL_BATCH;
         break;
@@ -9784,20 +9332,16 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         maxFillPolygons = POLYGON_CONVEX_FILL_BATCH;
         break;
     }
-
     if (maxFillPolygons > maxPolygons) {
         maxFillPolygons = maxPolygons;
     }
-
     if ((size_t)maxPolygons > SIZE_MAX / (size_t)stride / sizeof(*points)) {
         return;
     }
-
     points = Tcl_AttemptAlloc((size_t)maxPolygons * (size_t)stride * sizeof(*points));
     if (points == NULL) {
         return;
     }
-
     if ((size_t)maxPolygons > SIZE_MAX / sizeof(*polygonCounts)) {
         ckfree(points);
         return;
@@ -9807,7 +9351,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         ckfree(points);
         return;
     }
-
     if ((size_t)maxPolygons > SIZE_MAX / sizeof(*polylineCounts)) {
         ckfree(polygonCounts);
         ckfree(points);
@@ -9819,14 +9362,11 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         ckfree(points);
         return;
     }
-
     for (i = 0; i < maxPolygons; i++) {
         polygonCounts[i] = nVertices;
         polylineCounts[i] = (DWORD)stride;
     }
-
     dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
-
     /*
      * Fill pass.
      */
@@ -9837,13 +9377,10 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         int oldFillMode;
 
         gc = penPtr->symbol.fillGC;
-
         Rbc_WinSetROP2(dc, gc->function);
-
         brush = CreateSolidBrush(gc->foreground);
         oldBrush = SelectBrush(dc, brush);
         oldPen = SelectPen(dc, GetStockPen(NULL_PEN));
-
         if (gc->function == GXcopy) {
             /*
              * Every RBC symbol polygon is an independent simple
@@ -9853,7 +9390,6 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
              * including where symbols overlap.
              */
             oldFillMode = SetPolyFillMode(dc, WINDING);
-
             first = 0;
             while (first < nPolygons) {
                 Tcl_Size count;
@@ -9862,15 +9398,12 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
                 if (count > maxFillPolygons) {
                     count = maxFillPolygons;
                 }
-
                 LoadPolygonBatch(points, polygons, first, count, stride, nVertices);
-
                 if (!PolyPolygon(dc, points, polygonCounts, (int)count)) {
                     for (i = 0; i < count; i++) {
                         Polygon(dc, points + i * nVertices, nVertices);
                     }
                 }
-
                 first += count;
             }
         } else {
@@ -9881,9 +9414,7 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
              * symbols overlap.  Draw each polygon separately.
              */
             fillMode = (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING;
-
             oldFillMode = SetPolyFillMode(dc, fillMode);
-
             first = 0;
             while (first < nPolygons) {
                 Tcl_Size count;
@@ -9892,25 +9423,19 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
                 if (count > maxFillPolygons) {
                     count = maxFillPolygons;
                 }
-
                 LoadPolygonBatch(points, polygons, first, count, stride, nVertices);
-
                 for (i = 0; i < count; i++) {
                     Polygon(dc, points + i * nVertices, nVertices);
                 }
-
                 first += count;
             }
         }
-
         if (oldFillMode != 0) {
             SetPolyFillMode(dc, oldFillMode);
         }
-
         SelectPen(dc, oldPen);
         DeleteBrush(SelectBrush(dc, oldBrush));
     }
-
     /*
      * Outline pass.
      */
@@ -9920,13 +9445,10 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
         HBRUSH oldBrush;
 
         gc = penPtr->symbol.outlineGC;
-
         Rbc_WinSetROP2(dc, gc->function);
-
         pen = Rbc_GCToPen(dc, gc);
         oldPen = SelectPen(dc, pen);
         oldBrush = SelectBrush(dc, GetStockBrush(NULL_BRUSH));
-
         first = 0;
         while (first < nPolygons) {
             Tcl_Size count;
@@ -9935,13 +9457,11 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
             if (count > maxPolygons) {
                 count = maxPolygons;
             }
-
             /*
              * The source polygon includes RBC's repeated first
              * vertex, so each PolyPolyline entry is already closed.
              */
             LoadPolygonBatch(points, polygons, first, count, stride, stride);
-
             if (gc->function == GXcopy) {
                 if (!PolyPolyline(dc, points, polylineCounts, (DWORD)count)) {
                     for (i = 0; i < count; i++) {
@@ -9957,16 +9477,12 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
                     Polyline(dc, points + i * stride, stride);
                 }
             }
-
             first += count;
         }
-
         SelectBrush(dc, oldBrush);
         DeletePen(SelectPen(dc, oldPen));
     }
-
     Rbc_WinReleaseDrawableDC(dcStatePtr);
-
     ckfree(polylineCounts);
     ckfree(polygonCounts);
     ckfree(points);
@@ -9982,14 +9498,12 @@ static int DrawRenderedTraces(Graph *graphPtr, Drawable drawable, Line *linePtr,
     if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
     }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth,
-        &penPtr->traceDashes, (penPtr->traceOffColor == COLOR_DEFAULT) ?
-        penPtr->traceColor : penPtr->traceOffColor);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+                          (penPtr->traceOffColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->traceOffColor);
     if (ctx == NULL) {
         return FALSE;
     }
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL;
-         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         LineTrace *tracePtr = Rbc_ChainGetValue(linkPtr);
         Rbc_RenderPolyline(ctx, tracePtr->screenPts, tracePtr->nScreenPts);
     }
@@ -9997,14 +9511,12 @@ static int DrawRenderedTraces(Graph *graphPtr, Drawable drawable, Line *linePtr,
     return TRUE;
 }
 
-static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr,
-                               const Segment2D *segments, Tcl_Size count) {
+static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
+                               Tcl_Size count) {
     Rbc_RenderContext *ctx = NULL;
-
     if (graphPtr->renderer == RBC_RENDERER_CAIRO) {
-        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth,
-            &penPtr->traceDashes, (penPtr->traceOffColor == COLOR_DEFAULT) ?
-            penPtr->traceColor : penPtr->traceOffColor);
+        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+                              (penPtr->traceOffColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->traceOffColor);
     }
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, segments, count);
@@ -10016,10 +9528,10 @@ static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penP
 
 /* Use the native symbol proportions and integer template vertices. */
 static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *shape) {
+    int i;
+    
     int r1 = (int)ceil(size * 0.5);
     int r2 = (int)ceil(size * 0.886226925452758 * 0.5);
-    int i;
-
     memset(shape, 0, sizeof(*shape));
     shape->type = RBC_RENDER_POLYGON;
     switch (type) {
@@ -10065,7 +9577,6 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
             {-r2,-d}, {-d,-d}, {-d,-r2}, {d,-r2}, {d,-d}, {r2,-d},
             {r2,d}, {d,d}, {d,r2}, {-d,r2}, {-d,d}, {-r2,d}
         };
-
         shape->nPoints = 12;
         memcpy(shape->points, points, sizeof(points));
         if (type == SYMBOL_CROSS) {
@@ -10085,7 +9596,6 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
         int h2 = Round(0.57735026918962573 * b2);
         int h1 = Round(b2 / 0.86602540378443871);
         int direction = (type == SYMBOL_ARROW) ? -1 : 1;
-
         shape->nPoints = 3;
         shape->points[0] = (Point2D){0, -direction * h1};
         shape->points[1] = (Point2D){b2, direction * h2};
@@ -10100,26 +9610,32 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
 
 /* Draw plot symbols in bounded fill/outline passes; leave legends native. */
 /* Native tiny symbols use fill only and bypass symbol decimation. */
-static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPtr,
-    int size, Tcl_Size count, const Point2D *points, int targetWidth, int targetHeight) {
+static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPtr, int size, Tcl_Size count,
+                              const Point2D *points, int targetWidth, int targetHeight) {
     Rbc_RenderContext *ctx;
     XColor *color;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (size >= 3)) return FALSE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (size >= 3)) {
+        return FALSE;
+    }
     color = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
-    if ((color == NULL) || (count <= 0)) return TRUE;
-    ctx = (targetWidth > 0) ?
-        Rbc_RenderBeginDrawable(graphPtr, drawable, targetWidth, targetHeight, color, 1, NULL, NULL) :
-        Rbc_RenderBegin(graphPtr, drawable, color, 1, NULL, NULL);
-    if (ctx == NULL) return FALSE;
+    if ((color == NULL) || (count <= 0)) {
+        return TRUE;
+    }
+    ctx = (targetWidth > 0)
+              ? Rbc_RenderBeginDrawable(graphPtr, drawable, targetWidth, targetHeight, color, 1, NULL, NULL)
+              : Rbc_RenderBegin(graphPtr, drawable, color, 1, NULL, NULL);
+    if (ctx == NULL) {
+        return FALSE;
+    }
     Rbc_RenderPoints(ctx, points, count);
     Rbc_RenderEnd(ctx);
     return TRUE;
 }
 
 /* Share one scaled bitmap and Cairo source across this symbol pass. */
-static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr,
-    int size, Tcl_Size nPoints, const Point2D *points, int targetWidth, int targetHeight) {
+static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                                     Tcl_Size nPoints, const Point2D *points, int targetWidth, int targetHeight) {
     Pixmap bitmap, mask = None;
     Rbc_RenderContext *ctx;
     XColor *foreground, *background;
@@ -10128,19 +9644,29 @@ static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *l
     Point2D centers[256];
     Tcl_Size i, count = 0, counter = linePtr->symbolCounter;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (penPtr->symbol.type != SYMBOL_BITMAP) ||
-        (size < 3) || (nPoints <= 0)) return FALSE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (penPtr->symbol.type != SYMBOL_BITMAP) || (size < 3) ||
+        (nPoints <= 0)) {
+        return FALSE;
+    }
     foreground = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
     background = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
-    if (foreground == NULL) return FALSE;
+    if (foreground == NULL) {
+        return FALSE;
+    }
     Tk_SizeOfBitmap(graphPtr->display, penPtr->symbol.bitmap, &width, &height);
-    if ((width <= 0) || (height <= 0)) return FALSE;
+    if ((width <= 0) || (height <= 0)) {
+        return FALSE;
+    }
     scale = MIN((double)size / width, (double)size / height);
     scaledWidth = (int)(width * scale);
     scaledHeight = (int)(height * scale);
-    if ((scaledWidth <= 0) || (scaledHeight <= 0)) return FALSE;
+    if ((scaledWidth <= 0) || (scaledHeight <= 0)) {
+        return FALSE;
+    }
     bitmap = Rbc_ScaleBitmap(graphPtr->tkwin, penPtr->symbol.bitmap, width, height, scaledWidth, scaledHeight);
-    if (bitmap == None) return FALSE;
+    if (bitmap == None) {
+        return FALSE;
+    }
     if (background == NULL) {
         mask = bitmap; /* Native transparent symbols use their own bitmap as the mask. */
     } else if (penPtr->symbol.mask != None) {
@@ -10150,14 +9676,17 @@ static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *l
             return FALSE;
         }
     }
-    ctx = Rbc_RenderBeginBitmapSymbols(graphPtr, drawable, bitmap, mask, scaledWidth, scaledHeight,
-        foreground, background, targetWidth, targetHeight);
-    if ((mask != None) && (mask != bitmap)) Tk_FreePixmap(graphPtr->display, mask);
+    ctx = Rbc_RenderBeginBitmapSymbols(graphPtr, drawable, bitmap, mask, scaledWidth, scaledHeight, foreground,
+                                       background, targetWidth, targetHeight);
+    if ((mask != None) && (mask != bitmap)) {
+        Tk_FreePixmap(graphPtr->display, mask);
+    }
     Tk_FreePixmap(graphPtr->display, bitmap);
-    if (ctx == NULL) return FALSE;
+    if (ctx == NULL) {
+        return FALSE;
+    }
     for (i = 0; i < nPoints; i++) {
         int draw = TRUE;
-
         if ((targetWidth == 0) && (linePtr->symbolInterval > 0)) {
             draw = ((counter % linePtr->symbolInterval) == 0);
             counter++;
@@ -10172,12 +9701,14 @@ static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *l
     }
     Rbc_RenderBitmapSymbols(ctx, centers, count);
     Rbc_RenderEnd(ctx);
-    if ((targetWidth == 0) && (linePtr->symbolInterval > 0)) linePtr->symbolCounter = counter;
+    if ((targetWidth == 0) && (linePtr->symbolInterval > 0)) {
+        linePtr->symbolCounter = counter;
+    }
     return TRUE;
 }
 
-static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr,
-                               int size, Tcl_Size nSymbolPts, const Point2D *symbolPts) {
+static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
+                               Tcl_Size nSymbolPts, const Point2D *symbolPts) {
     Rbc_RenderContext *ctx;
     Rbc_RenderShape shape;
     XColor *fillColor, *outlineColor;
@@ -10189,17 +9720,14 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
         !GetRenderedSymbolShape(penPtr->symbol.type, size, &shape)) {
         return FALSE;
     }
-    fillColor = (penPtr->symbol.fillColor == COLOR_DEFAULT) ?
-        penPtr->traceColor : penPtr->symbol.fillColor;
-    outlineColor = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ?
-        penPtr->traceColor : penPtr->symbol.outlineColor;
+    fillColor = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
+    outlineColor = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
     outline = (penPtr->symbol.outlineWidth > 0);
     if (shape.type == RBC_RENDER_SEGMENTS) {
         fillColor = NULL;
         outline = TRUE; /* Native splus/scross retain a hairline at width zero. */
     }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, outlineColor,
-        MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, outlineColor, MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
     if (ctx == NULL) {
         return FALSE;
     }
@@ -10236,12 +9764,10 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
 }
 
 /* Error bars are solid and keep the native zero-width hairline convention. */
-static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr,
-                                 const Segment2D *segments, Tcl_Size count) {
+static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
+                                  Tcl_Size count) {
     XColor *color = (penPtr->errorBarColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->errorBarColor;
-    Rbc_RenderContext *ctx = Rbc_RenderBegin(graphPtr, drawable, color,
-        MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
-
+    Rbc_RenderContext *ctx = Rbc_RenderBegin(graphPtr, drawable, color, MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, segments, count);
         Rbc_RenderEnd(ctx);
@@ -10267,7 +9793,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
             int maxPoints;
 
             maxPoints = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
-
             if (maxPoints < 1) {
                 return;
             }
@@ -10299,19 +9824,15 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
     }
     r1 = (int)ceil(size * 0.5);
     r2 = (int)ceil(size * S_RATIO * 0.5);
-
     switch (penPtr->symbol.type) {
     case SYMBOL_NONE:
         break;
-
     case SYMBOL_SQUARE:
         DrawSquares(graphPtr->display, drawable, linePtr, penPtr, nSymbolPts, symbolPts, r2);
         break;
-
     case SYMBOL_CIRCLE:
         DrawCircles(graphPtr->display, drawable, linePtr, penPtr, nSymbolPts, symbolPts, r1);
         break;
-
     case SYMBOL_SPLUS:
     case SYMBOL_SCROSS: {
         XSegment *segArr; /* Array of line segments (splus, scross) */
@@ -10385,7 +9906,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         }
         ckfree((char *)segArr);
     } break;
-
     case SYMBOL_PLUS:
     case SYMBOL_CROSS: {
         XPoint *polygon;
@@ -10393,7 +9913,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         int d; /* Small delta for cross/plus thickness */
 
         d = (r2 / 3);
-
         /*
          *
          *          2   3       The plus/cross symbol is a closed polygon
@@ -10404,7 +9923,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
          *                      last points.
          *          9   8
          */
-
         pattern[0].x = pattern[11].x = pattern[12].x = -r2;
         pattern[2].x = pattern[1].x = pattern[10].x = pattern[9].x = -d;
         pattern[3].x = pattern[4].x = pattern[7].x = pattern[8].x = d;
@@ -10413,7 +9931,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         pattern[0].y = pattern[1].y = pattern[4].y = pattern[5].y = pattern[12].y = -d;
         pattern[11].y = pattern[10].y = pattern[7].y = pattern[6].y = d;
         pattern[9].y = pattern[8].y = r2;
-
         if (penPtr->symbol.type == SYMBOL_CROSS) {
             double dx, dy;
 
@@ -10473,11 +9990,9 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
 #endif
         ckfree((char *)polygon);
     } break;
-
     case SYMBOL_DIAMOND: {
         XPoint *polygon;
         register XPoint *p;
-
         /*
          *
          *                      The plus symbol is a closed polygon
@@ -10492,7 +10007,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         pattern[2].y = pattern[3].x = pattern[0].y = pattern[1].x = 0;
         pattern[3].y = pattern[2].x = r1;
         pattern[4] = pattern[0];
-
         if ((nSymbolPts <= 0) || ((size_t)nSymbolPts > SIZE_MAX / (5u * sizeof(*polygon)))) {
             return;
         }
@@ -10538,7 +10052,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
 #endif
         ckfree((char *)polygon);
     } break;
-
     case SYMBOL_TRIANGLE:
     case SYMBOL_ARROW: {
         XPoint *polygon;
@@ -10564,7 +10077,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
          *      2           1   last points.
          *
          */
-
         if (penPtr->symbol.type == SYMBOL_ARROW) {
             pattern[3].x = pattern[0].x = 0;
             pattern[3].y = pattern[0].y = h1;
@@ -10630,11 +10142,10 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         int width, height, bmWidth, bmHeight;
         double scale, sx, sy;
         int dx, dy;
-        register int x, y;
+        int x, y;
 
         Tk_SizeOfBitmap(graphPtr->display, penPtr->symbol.bitmap, &width, &height);
         mask = None;
-
         /*
          * Compute the size of the scaled bitmap.  Stretch the
          * bitmap to fit a nxn bounding box.
@@ -10644,7 +10155,6 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
         scale = MIN(sx, sy);
         bmWidth = (int)(width * scale);
         bmHeight = (int)(height * scale);
-
         XSetClipMask(graphPtr->display, penPtr->symbol.outlineGC, None);
         if (penPtr->symbol.mask != None) {
             mask = Rbc_ScaleBitmap(graphPtr->tkwin, penPtr->symbol.mask, width, height, bmWidth, bmHeight);
@@ -10790,7 +10300,6 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
         Pixmap clippedPixmap;
         unsigned int width = (unsigned int)(right - left + 1);
         unsigned int height = (unsigned int)(bottom - top + 1);
-
         /*
          * Preserve absolute coordinates and existing bitmap masks.
          * Seed the plot pixels, draw normally, then copy only the plot.
@@ -10801,13 +10310,9 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
         if (clippedPixmap == None) {
             return;
         }
-
         XCopyArea(graphPtr->display, drawable, clippedPixmap, graphPtr->drawGC, left, top, width, height, left, top);
-
         DrawSymbolsUnclipped(graphPtr, clippedPixmap, linePtr, penPtr, size, nSymbolPts, symbolPts);
-
         XCopyArea(graphPtr->display, clippedPixmap, drawable, graphPtr->drawGC, left, top, width, height, left, top);
-
         Tk_FreePixmap(graphPtr->display, clippedPixmap);
     }
 #endif
@@ -10836,18 +10341,17 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
  *
  * -----------------------------------------------------------------
  */
-static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size,
-                       int width, int height) {
+static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size, int width,
+                       int height) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     Rbc_RenderContext *ctx;
 
     if (penPtr->traceWidth > 0) {
-        ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, penPtr->traceColor,
-            penPtr->traceWidth, &penPtr->traceDashes, penPtr->traceOffColor);
+        ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, penPtr->traceColor, penPtr->traceWidth,
+                                      &penPtr->traceDashes, penPtr->traceOffColor);
         if (ctx != NULL) {
-            Segment2D segments[2] = {{{x - size, y}, {x + size, y}},
-                                     {{x - size, y + 1}, {x + size, y + 1}}};
+            Segment2D segments[2] = {{{x - size, y}, {x + size, y}}, {{x - size, y + 1}, {x + size, y + 1}}};
             Rbc_RenderSegments(ctx, segments, 2);
             Rbc_RenderEnd(ctx);
         } else {
@@ -10860,18 +10364,19 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         Rbc_RenderShape shape;
 
         if (DrawRenderedPoints(graphPtr, drawable, penPtr, size, 1, &point, width, height) ||
-            DrawRenderedBitmapSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point, width, height)) return;
+            DrawRenderedBitmapSymbols(graphPtr, drawable, linePtr, penPtr, size, 1, &point, width, height))
+            return;
         if ((size >= 3) && GetRenderedSymbolShape(penPtr->symbol.type, size, &shape)) {
             XColor *fill = (penPtr->symbol.fillColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.fillColor;
-            XColor *outline = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
+            XColor *outline =
+                (penPtr->symbol.outlineColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->symbol.outlineColor;
             int drawOutline = (penPtr->symbol.outlineWidth > 0) && (outline != NULL);
-
             if (shape.type == RBC_RENDER_SEGMENTS) {
                 fill = NULL;
                 drawOutline = (outline != NULL);
             }
-            ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height,
-                (outline != NULL) ? outline : fill, MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
+            ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, (outline != NULL) ? outline : fill,
+                                          MAX(1, penPtr->symbol.outlineWidth), NULL, NULL);
             if (ctx != NULL) {
                 Rbc_RenderSymbols(ctx, &shape, &point, 1, fill, drawOutline);
                 Rbc_RenderEnd(ctx);
@@ -10906,14 +10411,12 @@ static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2
          * Each strip is an independent two-point polyline.
          */
         STRIP_BATCH_SEGMENTS = 8192,
-
         /*
          * Devices without wide-line support may have a 1360-point
          * limit for wide lines.
          */
         STRIP_WIDE_BATCH_SEGMENTS = 680
     };
-
     Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
     HPEN pen, oldPen;
@@ -10949,7 +10452,6 @@ static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2
     if (points == NULL) {
         return;
     }
-
     if ((size_t)maxSegments > SIZE_MAX / sizeof(*counts)) {
         ckfree(points);
         return;
@@ -11026,7 +10528,6 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
         return;
     }
-
     Rbc_ChainLink *linkPtr;
     HBRUSH brush, oldBrush;
     HDC dc;
@@ -11041,7 +10542,7 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
 
     /*
      * Depending on whether the line is wide (> 1 pixel), arbitrarily
-     * break the line into sections of 100 points.  Long polylines
+     * break the line into sections of 100 points. Long polylines
      * drawn with wide geometric pens can be prohibitively slow.
      */
     if (penPtr->traceGC->line_width > 1) {
@@ -11155,7 +10656,6 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
         return;
     }
-
     Rbc_ChainLink *linkPtr;
     LineTrace *tracePtr;
     XPoint *points;
@@ -11166,7 +10666,6 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     int requestSize;
 
     requestSize = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
-
     /*
      * Reserve one point in each request for the endpoint shared with
      * the preceding chunk.
@@ -11314,15 +10813,13 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
 static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
     LinePen *penPtr;
-
-    penPtr = (elemPtr->activePenPtr != NULL) ? LINE_PEN_FROM_CORE(elemPtr->activePenPtr) : NULL;
     int symbolSize;
 
+    penPtr = (elemPtr->activePenPtr != NULL) ? LINE_PEN_FROM_CORE(elemPtr->activePenPtr) : NULL;
     if (penPtr == NULL) {
         return;
     }
     symbolSize = ScaleSymbol(elemPtr, penPtr->symbol.size);
-
     /*
      * nActiveIndices
      *      > 0        Some points are active.  Uses activeArr.
@@ -11361,8 +10858,8 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
 /* Tiles take precedence, including when the image is empty or unsupported. */
 static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
     XColor gcColor;
-    XColor *foreground = linePtr->fillFgColor;
 
+    XColor *foreground = linePtr->fillFgColor;
     if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
     }
@@ -11378,12 +10875,12 @@ static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
         return FALSE;
     }
     if (foreground == NULL) {
-        if (!Rbc_RenderGCForeground(graphPtr, linePtr->fillGC, &gcColor)) return FALSE;
+        if (!Rbc_RenderGCForeground(graphPtr, linePtr->fillGC, &gcColor))
+            return FALSE;
         foreground = &gcColor;
     }
-    return Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts,
-        foreground, linePtr->fillBgColor,
-        (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple);
+    return Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, foreground, linePtr->fillBgColor,
+                          (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple);
 }
 
 /*
@@ -11456,22 +10953,19 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
         DrawTraces(graphPtr, drawable, linePtr, normalPenPtr);
     }
-
     if (linePtr->reqMaxSymbols > 0) {
         Tcl_Size total;
 
         total = 0;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
+             linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             total += stylePtr->nSymbolPts;
         }
         linePtr->symbolInterval = total / (Tcl_Size)linePtr->reqMaxSymbols;
-
         linePtr->symbolCounter = 0;
     }
-
     /* Symbols, error bars, values. */
-
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
@@ -11524,7 +11018,6 @@ static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *p
     outlineColor = penPtr->symbol.outlineColor;
     fillColor = penPtr->symbol.fillColor;
     defaultColor = penPtr->traceColor;
-
     if (fillColor == COLOR_DEFAULT) {
         fillColor = defaultColor;
     }
@@ -11538,7 +11031,6 @@ static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *p
         Rbc_LineWidthToPostScript(psToken, penPtr->symbol.outlineWidth);
         Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
     }
-
     /*
      * Build a PostScript procedure to draw the symbols.  For bitmaps,
      * paint both the bitmap and its mask. Otherwise fill and stroke
@@ -11561,7 +11053,6 @@ static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *p
         sx = (double)size / (double)width;
         sy = (double)size / (double)height;
         scale = MIN(sx, sy);
-
         if ((penPtr->symbol.mask != None) && (fillColor != NULL)) {
             Rbc_AppendToPostScript(psToken, "\n  % Bitmap mask is \"",
                                    Tk_NameOfBitmap(graphPtr->display, penPtr->symbol.mask), "\"\n\n  ", (char *)NULL);
@@ -11624,7 +11115,6 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
         "Li", "Sq", "Ci", "Di", "Pl", "Cr", "Sp", "Sc", "Tr", "Ar", "Bm", (char *)NULL,
     };
     GetSymbolPostScriptInfo(graphPtr, psToken, penPtr, size);
-
     symbolSize = (double)size;
     switch (penPtr->symbol.type) {
     case SYMBOL_SQUARE:
@@ -11641,7 +11131,6 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
     case SYMBOL_DIAMOND:
         symbolSize = (double)Round(size * M_SQRT1_2);
         break;
-
     default:
         break;
     }
@@ -11676,7 +11165,6 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
  */
 static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
-
     if (penPtr->traceWidth > 0) {
         /*
          * Draw an extra line offset by one pixel from the previous to
@@ -11760,7 +11248,6 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
     /*
      * Maximum number of components in a PostScript level-1 path.
      */
-
     SetLineAttributes(psToken, penPtr);
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         tracePtr = Rbc_ChainGetValue(linkPtr);
@@ -11794,7 +11281,6 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
         Rbc_FormatToPostScript(psToken, " %g %g lineto\n", pointPtr->x, pointPtr->y);
         Rbc_AppendToPostScript(psToken, "DashesProc stroke\n", (char *)NULL);
     }
-
 #undef PS_MAXPATH
 }
 
@@ -11877,13 +11363,10 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
 
     linePtr = LINE_FROM_CORE(elemPtr);
     penPtr = (elemPtr->activePenPtr != NULL) ? LINE_PEN_FROM_CORE(elemPtr->activePenPtr) : NULL;
-
     if (penPtr == NULL) {
         return;
     }
-
     symbolSize = ScaleSymbol(elemPtr, penPtr->symbol.size);
-
     if (elemPtr->nActiveIndices > 0) {
         if (elemPtr->flags & ACTIVE_PENDING) {
             MapActiveSymbols(graphPtr, linePtr);
@@ -11950,7 +11433,6 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
         /* Create a path to use for both the polygon and its outline. */
         Rbc_PathToPostScript(psToken, linePtr->fillPts, linePtr->nFillPts);
         Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
-
         /* If the background fill color was specified, draw the
          * polygon in a solid fashion with that color.  */
         if (linePtr->fillBgColor != NULL) {
@@ -11980,9 +11462,7 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
         TracesToPostScript(psToken, linePtr, normalPenPtr);
     }
-
     /* Draw symbols, error bars, values. */
-
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         stylePtr = Rbc_ChainGetValue(linkPtr);
@@ -12154,14 +11634,11 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     } else {
         elemPtr->optionSpecs = stripElemOptionSpecs;
     }
-
     elemPtr->optionTable = NULL;
-
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
     elemPtr->optionsConfigured = FALSE;
-
     elemPtr->optionsInitialized = FALSE;
     elemPtr->tkResourcesReleased = FALSE;
     if (classUid == rbcPolarElementUid) {
@@ -12169,7 +11646,6 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     } else {
         elemPtr->procsPtr = &lineProcs;
     }
-
     /*
      * By default an element's name and label are the same.
      */
@@ -12179,13 +11655,9 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     elemPtr->flags = SCALE_SYMBOL;
     elemPtr->graphPtr = graphPtr;
     elemPtr->labelRelief = TK_RELIEF_FLAT;
-
     InitPen(&linePtr->builtinPen, normalLinePenOptionSpecs, NORMAL_PEN);
-
     elemPtr->normalPenPtr = &linePtr->builtinPen.core;
-
     elemPtr->palette = Rbc_ChainCreate();
-
     linePtr->penDir = PEN_BOTH_DIRECTIONS;
     linePtr->reqSmooth = PEN_SMOOTH_NONE;
     linePtr->dataMode = LINE_DATA_XY;

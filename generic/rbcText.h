@@ -23,16 +23,12 @@
  */
 typedef struct {
     const char *text; /* Text to be displayed. */
-
     int x, y; /* X-Y offset of the baseline from the
                * upper-left corner of the bounding box. */
-
     int sx, sy; /* Reserved screen-coordinate fields. */
-
     Tcl_Size count; /* Number of bytes in text. The actual
                      * character count may differ because of
                      * multi-byte UTF encodings. */
-
     int width; /* Width of segment in pixels. This is used
                 * to draw PostScript strings at the same
                 * width as the screen representation. */
@@ -74,7 +70,6 @@ typedef struct {
     unsigned int state; /* If non-zero, indicates to draw text
                          * in the active color */
     int width, height;  /* Extents of text */
-
     XColor *color;       /* Normal color */
     XColor *activeColor; /* Active color */
     Tk_Font font;        /* Font to use to draw text */
@@ -94,31 +89,20 @@ typedef struct {
 } TextStyle;
 
 TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *stylePtr);
-
 void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int *heightPtr);
-
 void Rbc_InitTextStyle(TextStyle *stylePtr);
-
 void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *stylePtr);
-
 void Rbc_FreeTextStyle(Display *display, TextStyle *stylePtr);
-
 void Rbc_SetDrawTextStyle(TextStyle *stylePtr, Tk_Font font, GC gc, XColor *normalColor, XColor *activeColor,
                           XColor *shadowColor, double theta, Tk_Anchor anchor, Tk_Justify justify, int leader,
                           int shadowOffset);
-
 void Rbc_SetPrintTextStyle(TextStyle *stylePtr, Tk_Font font, XColor *fgColor, XColor *bgColor, XColor *shadowColor,
                            double theta, Tk_Anchor anchor, Tk_Justify justify, int leader, int shadowOffset);
-
 void Rbc_DrawText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y);
-
 void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr, TextStyle *stylePtr, int x, int y);
-
 void Rbc_DrawText2(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *stylePtr, int x, int y,
                    Dim2D *dimPtr);
-
 Pixmap Rbc_CreateTextBitmap(Tk_Window tkwin, TextLayout *textPtr, TextStyle *stylePtr, int *widthPtr, int *heightPtr);
-
 int Rbc_DrawRotatedText(Display *display, Drawable drawable, int x, int y, double theta, TextStyle *stylePtr,
                         TextLayout *textPtr);
 

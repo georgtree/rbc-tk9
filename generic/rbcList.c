@@ -262,9 +262,8 @@ Rbc_ListNode Rbc_ListCreateNode(struct Rbc_ListStruct *listPtr, const char *key)
  */
 void Rbc_ListReset(struct Rbc_ListStruct *listPtr) {
     if (listPtr != NULL) {
-        register struct Rbc_ListNodeStruct *oldPtr;
-        register struct Rbc_ListNodeStruct *nodePtr = listPtr->headPtr;
-
+        struct Rbc_ListNodeStruct *oldPtr;
+        struct Rbc_ListNodeStruct *nodePtr = listPtr->headPtr;
         while (nodePtr != NULL) {
             oldPtr = nodePtr;
             nodePtr = nodePtr->nextPtr;

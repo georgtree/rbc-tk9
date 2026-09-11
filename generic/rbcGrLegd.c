@@ -24,7 +24,6 @@
  */
 struct LegendStruct {
     Tk_OptionTable optionTable;
-
     /*
      * Original Tcl representations for values requiring additional
      * conversion or validation.
@@ -39,10 +38,8 @@ struct LegendStruct {
     Tcl_Obj *positionObjPtr;
     Tcl_Obj *rowsObjPtr;
     Tcl_Obj *shadowObjPtr;
-
     int optionsInitialized;
     int tkResourcesReleased;
-
     unsigned int flags;
     Rbc_Uid classUid;         /* Type: Element or Marker. */
     int hidden;               /* If non-zero, don't display the legend. */
@@ -84,7 +81,6 @@ typedef struct {
     Point2D anchorPos;
     const char *windowName;
 } LegendPosition;
-
 
 static int LegendLayoutInt(Tcl_WideInt value) {
     if (value > INT_MAX) {
@@ -227,7 +223,6 @@ static Tcl_IdleProc DisplayLegend;
 static Rbc_BindPickProc PickLegendEntry;
 static Rbc_BindTagProc LegendTags;
 static Tk_EventProc LegendEventProc;
-
 static void EventuallyRedrawLegend(Legend *legendPtr);
 static void SetLegendOrigin(Legend *legendPtr);
 static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask);
@@ -238,6 +233,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcGrLegdOp *proc;
 } LegendOpSpec;
+
 static RbcGrLegdOp GetOp;
 static RbcGrLegdOp ActivateOp;
 static RbcGrLegdOp BindOp;
@@ -314,6 +310,7 @@ static int GetLegendPositionFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, LegendP
         Tcl_Size yLength;
         long x, y;
         int result;
+
         comma = memchr(string + 1, ',', (size_t)(length - 1));
         if ((comma == NULL) || (comma == string + 1) || (comma == string + length - 1)) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad screen position \"%s\": "
@@ -390,7 +387,7 @@ static int PrepareLegendWindow(Tcl_Interp *interp, Legend *legendPtr, const char
     Tk_Window mainWindow;
     Tk_Window tkwin;
     Tcl_Command cmdToken;
-    
+
     mainWindow = Tk_MainWindow(interp);
     tkwin = Tk_CreateWindowFromPath(interp, mainWindow, pathName, NULL);
     if (tkwin == NULL) {
@@ -457,35 +454,26 @@ static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
     if ((legendPtr == NULL) || (!legendPtr->optionsInitialized) || (legendPtr->tkResourcesReleased)) {
         return;
     }
-
     if (legendPtr->flags & REDRAW_PENDING) {
         Tcl_CancelIdleCall(DisplayLegend, legendPtr);
-
         legendPtr->flags &= ~REDRAW_PENDING;
     }
-
     /*
      * Release the GC before Tk frees the font, colours, and borders
      * referenced by the text style.
      */
     Rbc_FreeTextStyle(graphPtr->display, &legendPtr->style);
-
     legendPtr->style.gc = NULL;
-
     /*
      * The shadow colour was allocated by Rbc_GetShadowFromObj(),
      * not by Tk's option table.
      */
     if (legendPtr->style.shadow.color != NULL) {
         Tk_FreeColor(legendPtr->style.shadow.color);
-
         legendPtr->style.shadow.color = NULL;
     }
-
     Tk_FreeConfigOptions((char *)legendPtr, legendPtr->optionTable, graphPtr->tkwin);
-
     legendPtr->tkResourcesReleased = TRUE;
-
     /*
      * Do not retain the graph's Tk_Window after it is destroyed.
      * An external legend window remains valid.
@@ -524,7 +512,6 @@ void Rbc_ReleaseLegendTkResources(Graph *graphPtr) {
  */
 static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
     Legend *legendPtr = clientData;
-
     if (eventPtr->type == Expose) {
         if (eventPtr->xexpose.count == 0) {
             EventuallyRedrawLegend(legendPtr);
@@ -554,8 +541,6 @@ static void LegendEventProc(ClientData clientData, register XEvent *eventPtr) {
         EventuallyRedrawLegend(legendPtr);
     }
 }
-
-
 
 /*
  *----------------------------------------------------------------------
@@ -736,8 +721,9 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
  *
  * Parameters:
  *      Legend *legendPtr
- *      int plotWidth - Maximum width available in window to draw the legend. Will calculate number of columns from this.
- *                          
+ *      int plotWidth - Maximum width available in window to draw the legend. Will calculate number of columns from
+ * this.
+ *
  *      int plotHeight - Maximum height available in window to draw the legend. Will calculate number of rows from this.
  *
  * Results:
@@ -958,7 +944,6 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         return;
     }
     SetLegendOrigin(legendPtr);
-
     if (legendPtr->tkwin != graphPtr->tkwin) {
         tkwin = legendPtr->tkwin;
         width = Tk_Width(tkwin);
@@ -1032,11 +1017,11 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                                     legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief);
             }
         }
-        (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width, height);
+        (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width,
+                                             height);
         Rbc_DrawText(legendPtr->tkwin, pixmap, elemPtr->label, &legendPtr->style, x + labelX,
                      y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;
-
         /* Check when to move to the next column */
         if ((count % legendPtr->nRows) > 0) {
             y += legendPtr->style.height;
@@ -1054,7 +1039,6 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     }
     Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, border, 0, 0, width, height, legendPtr->borderWidth,
                         legendPtr->relief);
-
     XCopyArea(graphPtr->display, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x, legendPtr->y);
     Tk_FreePixmap(graphPtr->display, pixmap);
 }
@@ -1179,7 +1163,6 @@ static void DisplayLegend(ClientData clientData) {
     int width, height;
 
     legendPtr->flags &= ~REDRAW_PENDING;
-
     if (legendPtr->tkwin == NULL) {
         return; /* Window has been destroyed. */
     }
@@ -1223,13 +1206,10 @@ static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
     Rbc_Pad newIpadY;
     Rbc_Pad newPadX;
     Rbc_Pad newPadY;
-
     Shadow newShadow;
     LegendPosition newPosition;
-
     Tk_Window preparedWindow;
     Tcl_Command preparedCommand;
-
     int shadowChanged;
     int positionChanged;
 
@@ -1243,7 +1223,6 @@ static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
     preparedCommand = NULL;
     shadowChanged = ((mask & LEGEND_SHADOW_CHANGED) != 0);
     positionChanged = ((mask & LEGEND_POSITION_CHANGED) != 0);
-
     /*
      * Validate Tk-parsed integer and pixel values.
      */
@@ -1266,7 +1245,6 @@ static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
             return TCL_ERROR;
         }
     }
-
     /*
      * Parse all derived values into temporary storage.
      */
@@ -1305,7 +1283,6 @@ static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
             }
         }
     }
-
     /*
      * All fallible operations have succeeded. Commit derived values.
      */
@@ -1409,7 +1386,6 @@ void Rbc_DestroyLegend(Graph *graphPtr) {
 
         legendPtr->flags &= ~REDRAW_PENDING;
     }
-
     /*
      * This normally did nothing during final destruction because
      * ReleaseLegendTkResources() already ran while tkwin was valid.
@@ -1513,17 +1489,16 @@ error:
  *----------------------------------------------------------------------
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    register Element *elemPtr;
-    Legend *legendPtr = graphPtr->legend;
+    Element *elemPtr;
     int x, y;
+
+    Legend *legendPtr = graphPtr->legend;
     const char *str = Tcl_GetString(objv[3]);
     char c = str[0];
-
     if ((legendPtr->hidden) || (legendPtr->nEntries == 0)) {
         return TCL_OK;
     }
     elemPtr = NULL;
-
     if ((c == 'c') && (strcmp(str, "current") == 0)) {
         elemPtr = (Element *)Rbc_GetCurrentItem(legendPtr->bindTable);
     } else if ((c == '@') && (Rbc_GetXY(interp, graphPtr->tkwin, str, &x, &y) == TCL_OK)) {
@@ -1557,15 +1532,15 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  *----------------------------------------------------------------------
  */
 static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Legend *legendPtr = graphPtr->legend;
     Element *elemPtr;
     unsigned int active, redraw;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
     Tcl_Size i;
-    const char *str = Tcl_GetString(objv[2]);
     Tcl_Obj *resultObj;
 
+    Legend *legendPtr = graphPtr->legend;
+    const char *str = Tcl_GetString(objv[2]);
     active = (str[0] == 'a') ? LABEL_ACTIVE : 0;
     redraw = 0;
     for (hPtr = Tcl_FirstHashEntry(&(graphPtr->elements.table), &cursor); hPtr != NULL;
@@ -1646,8 +1621,8 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
         const char *tagName;
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
         for (hPtr = Tcl_FirstHashEntry(&(graphPtr->elements.tagTable), &cursor); hPtr != NULL;
              hPtr = Tcl_NextHashEntry(&cursor)) {
             tagName = Tcl_GetHashKey(&(graphPtr->elements.tagTable), hPtr);
@@ -1791,7 +1766,6 @@ int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
         TCL_OK) {
         return TCL_ERROR;
     }
-
     return legendOps[index].proc(graphPtr, interp, objc, objv);
 }
 

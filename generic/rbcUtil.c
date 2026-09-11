@@ -106,7 +106,6 @@ static unsigned char caseTable[] = {
 int strcasecmp(CONST char *s1, CONST char *s2) {
     unsigned char *s = (unsigned char *)s1;
     unsigned char *t = (unsigned char *)s2;
-
     for (/* empty */; (caseTable[*s] == caseTable[*t]); s++, t++) {
         if (*s == '\0') {
             return 0;
@@ -197,7 +196,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
              * the other, the number with more leading zeros sorts
              * later, but only as a secondary choice.
              */
-
             zeros = 0;
             while ((*right == '0') && (isdigit(UCHAR(right[1])))) {
                 right++;
@@ -217,7 +215,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
              * does this by first comparing the lengths of the
              * numbers and then comparing the digit values.
              */
-
             diff = 0;
             for (;;) {
                 if (diff == 0) {
@@ -225,7 +222,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
                 }
                 right++;
                 left++;
-
                 /* Ignore commas in numbers. */
                 if (*left == ',') {
                     left++;
@@ -233,7 +229,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
                 if (*right == ',') {
                     right++;
                 }
-
                 if (!isdigit(UCHAR(*right))) {   /* INTL: digit */
                     if (isdigit(UCHAR(*left))) { /* INTL: digit */
                         return 1;
@@ -242,7 +237,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
                          * The two numbers have the same length. See
                          * if their values are different.
                          */
-
                         if (diff != 0) {
                             return diff;
                         }
@@ -254,7 +248,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
             }
             continue;
         }
-
         /*
          * Convert character to Unicode for comparison purposes.  If either
          * string is at the terminating null, do a byte-wise comparison and
@@ -275,7 +268,6 @@ int Rbc_DictionaryCompare(char *left, char *right) {
             diff = UCHAR(*left) - UCHAR(*right);
             break;
         }
-
         diff = uniLeftLower - uniRightLower;
         if (diff) {
             return diff;
@@ -378,7 +370,7 @@ double Rbc_RandomDouble(void) { return (double)rand() / ((double)RAND_MAX + 1.0)
  */
 void Rbc_DStringAppendElements(Tcl_DString *dsPtr, ...) {
     va_list argList;
-    register const char *elem;
+    const char *elem;
 
     va_start(argList, dsPtr);
     while ((elem = va_arg(argList, const char *)) != NULL) {
@@ -744,12 +736,10 @@ int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size spec
     assert(specArr != NULL);
     assert(specSize >= (Tcl_Size)sizeof(Rbc_OpSpecHeader));
     assert(indexPtr != NULL);
-
     if (objc <= operPos) {
         Tcl_WrongNumArgs(interp, objc, objv, "subcommand ?arg ...?");
         return TCL_ERROR;
     }
-
     /*
      * The operation name is the first field of Rbc_OpSpecHeader, and
      * Rbc_OpSpecHeader is the first field of every typed entry.
@@ -757,16 +747,12 @@ int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size spec
     if (Tcl_GetIndexFromObjStruct(interp, objv[operPos], specArr, specSize, "subcommand", 0, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     entryPtr = (const char *)specArr + ((Tcl_Size)index * specSize);
     headerPtr = (const Rbc_OpSpecHeader *)entryPtr;
-
     if ((objc < headerPtr->minArgs) || ((headerPtr->maxArgs > 0) && (objc > headerPtr->maxArgs))) {
         Tcl_WrongNumArgs(interp, operPos + 1, objv, headerPtr->usage);
         return TCL_ERROR;
     }
-
     *indexPtr = index;
-
     return TCL_OK;
 }

@@ -72,8 +72,8 @@ static INLINE Moment Volume(Cube *cubePtr, Moment m[33][33][33]);
 static Moment Bottom(Cube *cubePtr, unsigned char dir, Moment m[33][33][33]);
 static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33]);
 static double Variance(Cube *cubePtr, ColorImageStatistics *s);
-static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole,
-                       Moment gWhole, Moment bWhole, Moment wWhole, ColorImageStatistics *s);
+static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole, Moment gWhole,
+                       Moment bWhole, Moment wWhole, ColorImageStatistics *s);
 static int Cut(Cube *set1, Cube *set2, ColorImageStatistics *s);
 static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors);
 static void Mark(Cube *cubePtr, int label, unsigned int tag[33][33][33]);
@@ -937,7 +937,6 @@ static double GiFilter(double x) {
 #define I3 0.333333333333333
         double x2 = x * x;
         double x3 = x2 * x;
-
         if (x > 0.5) {
             return .5625 - (x3 * I6 - 3 * x2 * I4 + 1.125 * x);
         } else if (x > -0.5) {
@@ -1261,11 +1260,9 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
     if ((srcWidth <= 0) || (srcHeight <= 0) || (destWidth <= 0) || (destHeight <= 0)) {
         return;
     }
-
     /* Pre-calculate filter contributions for a row */
     size = ComputeWeights(srcHeight, destHeight, filterPtr, &samples);
     endPtr = (Sample *)((char *)samples + ((size_t)destHeight * size));
-
     /* Apply filter to zoom vertically from tmp to destination */
     for (x = 0; x < srcWidth; x++) {
         srcColumnPtr = Rbc_ColorImageBits(src) + x;
@@ -1463,8 +1460,8 @@ void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y
  *      register int y - Region of source photo to be scaled.
  *      int width
  *      int height
- *      Tk_PhotoHandle destPhoto - Resulting scaled photo image. Scaling factors are derived from the destination photo's
- *                                 dimensions. 
+ *      Tk_PhotoHandle destPhoto - Resulting scaled photo image. Scaling factors are derived from the destination
+ * photo's dimensions.
  *
  * Results:
  *      The designated destination photo will contain the resampled
@@ -2087,13 +2084,10 @@ static Rbc_ColorImage Rotate45(Rbc_ColorImage src, double theta, Pix32 bgColor) 
     sinTheta = sin(theta);
     cosTheta = cos(theta);
     tanTheta = tan(theta * 0.5);
-
     srcWidth = Rbc_ColorImageWidth(src);
     srcHeight = Rbc_ColorImageHeight(src);
-
     tmpWidth = GetRotationDimension((double)srcWidth + ((double)srcHeight * FABS(tanTheta)));
     tmpHeight = srcHeight;
-
     /* 1st shear */
     tmp1 = Rbc_CreateColorImage(tmpWidth, tmpHeight);
     if (tanTheta >= 0.0) { /* Positive angle */
@@ -2308,7 +2302,7 @@ static Rbc_ColorImage Rotate270(Rbc_ColorImage src) {
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
     Rbc_ColorImage dest, tmp;
     int quadrant;
-    
+
     if (!FINITE(angle)) {
         Tcl_Panic("Rbc_RotateColorImage: non-finite rotation angle");
     }
@@ -2358,9 +2352,7 @@ Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
         }
         break;
     }
-
     assert((angle >= -45.0) && (angle <= 45.0));
-
     dest = tmp;
     if (angle != 0.0) {
         double theta;
@@ -2479,19 +2471,16 @@ static void M3d(ColorImageStatistics *s) {
             line2 = line = rLine = gLine = bLine = 0;
             for (b = 1; b <= 32; b++) {
                 /* ind1 = RGBIndex(r, g, b); */
-
                 line += s->wt[r][g][b];
                 rLine += s->mR[r][g][b];
                 gLine += s->mG[r][g][b];
                 bLine += s->mB[r][g][b];
                 line2 += s->gm2[r][g][b];
-
                 area[b] += line;
                 rArea[b] += rLine;
                 gArea[b] += gLine;
                 bArea[b] += bLine;
                 area2[b] += line2;
-
                 /* ind2 = ind1 - 1089; [r0][g][b] */
                 s->wt[r][g][b] = s->wt[r0][g][b] + area[b];
                 s->mR[r][g][b] = s->mR[r0][g][b] + rArea[b];
@@ -2598,10 +2587,8 @@ static Moment Top(Cube *cubePtr, unsigned char dir, int pos, Moment m[33][33][33
     switch (dir) {
     case RED:
         return (m[pos][G1][B1] - m[pos][G1][B0] - m[pos][G0][B1] + m[pos][G0][B0]);
-
     case GREEN:
         return (m[R1][pos][B1] - m[R1][pos][B0] - m[R0][pos][B1] + m[R0][pos][B0]);
-
     case BLUE:
         return (m[R1][G1][pos] - m[R1][G0][pos] - m[R0][G1][pos] + m[R0][G0][pos]);
     }
@@ -2678,8 +2665,8 @@ static double Variance(Cube *cubePtr, ColorImageStatistics *s) {
  *
  *--------------------------------------------------------------
  */
-static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole,
-                       Moment gWhole, Moment bWhole, Moment wWhole, ColorImageStatistics *s) {
+static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, int *cut, Moment rWhole, Moment gWhole,
+                       Moment bWhole, Moment wWhole, ColorImageStatistics *s) {
     Moment rHalf, gHalf, bHalf, wHalf;
     Moment rBase, gBase, bBase, wBase;
     register int i;
@@ -2696,7 +2683,6 @@ static double Maximize(Cube *cubePtr, unsigned char dir, int first, int last, in
         gHalf = gBase + Top(cubePtr, dir, i, s->mG);
         bHalf = bBase + Top(cubePtr, dir, i, s->mB);
         wHalf = wBase + Top(cubePtr, dir, i, s->wt);
-
         /* Now half_x is sum over lower half of box, if split at i */
         if (wHalf == 0) { /* subbox could be empty of pixels! */
             continue;     /* never split into an empty box */
@@ -2928,7 +2914,7 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
         color.Red = red >> 8;
         color.Green = green >> 8;
         color.Blue = blue >> 8;
-        Mark(cubePtr, color.value, (unsigned int(*)[33][33])lut);
+        Mark(cubePtr, color.value, (unsigned int (*)[33][33])lut);
     }
     return lut;
 }
@@ -3035,7 +3021,7 @@ int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceCo
     lut = CreateColorLookupTable(statistics, cubes, nColors);
     ckfree((char *)statistics);
     ckfree((char *)cubes);
-    MapColors(src, dest, (unsigned int(*)[33][33])lut);
+    MapColors(src, dest, (unsigned int (*)[33][33])lut);
     ckfree((char *)lut);
     return TCL_OK;
 }
@@ -3182,7 +3168,6 @@ typedef struct TkPhotoInstanceStruct {
  */
 int Tk_ImageIsDeleted(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
-
     if (imagePtr->masterPtr == NULL) {
         return TRUE;
     }
@@ -3209,7 +3194,6 @@ int Tk_ImageIsDeleted(Tk_Image tkImage) {
  */
 Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
-
     return (Tk_ImageMaster)imagePtr->masterPtr;
 }
 
@@ -3233,7 +3217,6 @@ Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage) {
  */
 Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
-
     return imagePtr->masterPtr->typePtr;
 }
 
@@ -3257,7 +3240,6 @@ Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage) {
  */
 Pixmap Tk_ImageGetPhotoPixmap(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
-
     if (strcmp(imagePtr->masterPtr->typePtr->name, "photo") == 0) {
         TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
         return instPtr->pixels;

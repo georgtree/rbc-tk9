@@ -864,8 +864,8 @@ void Rbc_DrawTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *textPtr,
     Rbc_TranslateAnchor(x, y, newWidth, newHeight, tsPtr->anchor, &x, &y);
     if (tsPtr->state & (STATE_DISABLED | STATE_EMPHASIS)) {
         XColor xcolor1, xcolor2, *color1, *color2;
+        
         Tk_Get3DBorderColors(tsPtr->border, NULL, &xcolor2, &xcolor1);
-
         color1 = &xcolor1;
         color2 = &xcolor2;
         if (tsPtr->state & STATE_EMPHASIS) {

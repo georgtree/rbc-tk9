@@ -36,7 +36,6 @@ char *Rbc_LastError(void) {
     DWORD length;
 
     error = GetLastError();
-
     length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error,
                             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, (DWORD)sizeof(buffer), NULL);
     if (length == 0) {

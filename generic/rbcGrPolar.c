@@ -15,15 +15,11 @@
 
 #define POLAR_PI 3.14159265358979323846264338327950288
 #define POLAR_DEG_TO_RAD (POLAR_PI / 180.0)
-
 #define POLAR_CIRCLE_SEGMENTS 180
-
 #define POLAR_ANGLE_LABEL_RADIUS 0.90
 #define POLAR_RADIAL_LABEL_OFFSET 2
-
 #define SMITH_CIRCLE_SEGMENTS 180
 #define SMITH_ARC_SEGMENTS 90
-
 #define SMITH_RESISTANCE_LABEL_OFFSET 2
 #define SMITH_REACTANCE_LABEL_RADIUS 0.94
 
@@ -610,7 +606,6 @@ static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString 
             return Tcl_DStringValue(dsPtr);
         }
     }
-
     {
         Tcl_Obj *cmdObjPtr;
         Tcl_Obj **objv;
@@ -1468,16 +1463,13 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
             index += SMITH_ARC_SEGMENTS;                                                                               \
         }                                                                                                              \
     } while (0)
-
     if (doImpedance) {
         MAP_REACTIVE_DOMAIN(FALSE);
     }
     if (doAdmittance) {
         MAP_REACTIVE_DOMAIN(TRUE);
     }
-
 #undef MAP_REACTIVE_DOMAIN
-
     gridPtr->y.segments = segments;
     gridPtr->y.nSegments = index;
 }

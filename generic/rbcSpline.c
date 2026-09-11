@@ -74,6 +74,7 @@ static Tcl_Size NaturalParametricSplineCore(const Point2D origPts[], Tcl_Size nO
 static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
                                               Tcl_Size nIntpPts);
 
+
 static int GetSplineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if ((count < 0) || (elementSize == 0) || ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / elementSize))) {
         return TCL_ERROR;

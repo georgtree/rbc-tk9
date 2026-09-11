@@ -92,7 +92,6 @@ typedef enum {
 #define POLAR (TK_CONFIG_USER_BIT << 4)
 #define LINE_GRAPHS (GRAPH | STRIPCHART | POLAR)
 #define ALL_GRAPHS (GRAPH | BARCHART | STRIPCHART | POLAR)
-
 #define PEN_DELETE_PENDING (1 << 0)
 #define ACTIVE_PEN (TK_CONFIG_USER_BIT << 6)
 #define NORMAL_PEN (TK_CONFIG_USER_BIT << 7)
@@ -104,7 +103,6 @@ typedef struct {
 } PolarLabelAnchor;
 
 typedef enum { POLAR_REPRESENTATION_POLAR, POLAR_REPRESENTATION_SMITH } PolarRepresentation;
-
 typedef enum { SMITH_GRID_IMPEDANCE, SMITH_GRID_ADMITTANCE, SMITH_GRID_BOTH } SmithGridMode;
 
 /*
@@ -175,13 +173,10 @@ struct PenStruct {
     unsigned int flags;
     int refCount;
     Tcl_HashEntry *hashPtr;
-
     const Tk_OptionSpec *optionSpecs;
     Tk_OptionTable optionTable;
-
     int optionsInitialized;
     int tkResourcesReleased;
-
     PenConfigureProc *configProc;
     PenDestroyProc *destroyProc;
 };
@@ -200,7 +195,6 @@ typedef struct {
      * Modern Tk option state.
      */
     Tk_OptionTable optionTable;
-
     /*
      * Original Tcl representations.
      */
@@ -212,9 +206,7 @@ typedef struct {
     Tcl_Obj *paperWidthObjPtr;
     Tcl_Obj *previewFormatObjPtr;
     Tcl_Obj *widthObjPtr;
-    
     /* User configurable fields */
-
     int decorations; /* If non-zero, print graph with
                       * color background and 3D borders */
 
@@ -249,12 +241,9 @@ typedef struct {
     int previewFormat;     /* Format of EPS preview:
                             * PS_PREVIEW_WMF, PS_PREVIEW_EPSI, or
                             * PS_PREVIEW_TIFF. */
-
     /* Computed fields */
-
     int left, bottom; /* Bounding box of PostScript plot. */
     int right, top;
-
     double pageScale; /* Scale of page. Set if "-maxpect" option
                        * is set, otherwise 1.0. */
 } PostScript;
@@ -275,7 +264,6 @@ typedef struct {
      * Modern Tk option state.
      */
     Tk_OptionTable optionTable;
-
     /*
      * Original Tcl option values. These are owned and reference-counted
      * by Tk_InitOptions(), Tk_SetOptions(), and Tk_FreeConfigOptions().
@@ -284,20 +272,16 @@ typedef struct {
     Tcl_Obj *lineWidthObjPtr;
     Tcl_Obj *mapXObjPtr;
     Tcl_Obj *mapYObjPtr;
-
     /*
      * Derived/internal state.
      */
     GC gc; /* Graphics context for the grid. */
     Axis2D axes;
-
     int hidden;    /* If non-zero, grid isn't displayed. */
     int minorGrid; /* If non-zero, draw minor grid lines. */
-
     Rbc_Dashes dashes; /* Parsed dash pattern. */
     int lineWidth;     /* Line width in pixels. */
     XColor *colorPtr;  /* Grid colour. */
-
     struct GridSegments {
         Segment2D *segments;
         Tcl_Size nSegments;
@@ -318,7 +302,6 @@ typedef struct CrosshairsStruct Crosshairs;
 
 typedef struct {
     int width, height; /* Extents of the margin */
-
     int axesOffset;
     int axesTitleLength; /* Width of the widest title to be shown.
                           * Multiple titles are displayed in
@@ -326,13 +309,11 @@ typedef struct {
                           * space requirement. */
     Tcl_Size nAxes;      /* Number of axes to be displayed */
     Rbc_Chain *axes;     /* Extra axes associated with this margin */
-
-    char *varName; /* If non-NULL, name of variable to be
-                    * updated when the margin size changes */
-
-    int reqSize; /* Requested size of margin */
-    int site;    /* Indicates where margin is located:
-                  * left/right/top/bottom. */
+    char *varName;       /* If non-NULL, name of variable to be
+                          * updated when the margin size changes */
+    int reqSize;         /* Requested size of margin */
+    int site;            /* Indicates where margin is located:
+                          * left/right/top/bottom. */
 } Margin;
 
 #define MARGIN_NONE -1
@@ -368,19 +349,16 @@ struct GraphStruct {
                            * resources after tkwin has already gone
                            * away. */
     Tcl_Command cmdToken; /* Token for graph's widget command. */
-
     /*
      * Modern Tk option state.
      */
     Tk_OptionTable optionTable;
-
     /*
      * Anonymous Tk window used to perform option-database lookup for
      * graph pseudo-components without creating a temporary child window
      * for every element, marker, pen, etc.
      */
-    Tk_Window optionProxy;    
-
+    Tk_Window optionProxy;
     /*
      * Original Tcl representations for values requiring additional
      * conversion or validation.
@@ -409,65 +387,49 @@ struct GraphStruct {
     Tcl_Obj *smithRealMinorTicksObjPtr;
     Tcl_Obj *smithImagMajorTicksObjPtr;
     Tcl_Obj *smithImagMinorTicksObjPtr;
-
     /*
      * Temporary context for a modern option transaction.
      */
     unsigned int optionMask;
     Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
-
     int optionsConfigured;
-
     int optionsInitialized;
     int tkResourcesReleased;
-
     char *data; /* This value isn't used in C code.
                  * It may be used in Tcl bindings to
                  * associate extra data. */
-
     Tk_Cursor cursor;
-
-    int inset; /* Sum of focus highlight and 3-D
-                * border.  Indicates how far to
-                * offset the graph from outside
-                * edge of the window. */
-
-    int borderWidth;    /* Width of the exterior border */
-    int relief;         /* Relief of the exterior border */
-    Tk_3DBorder border; /* 3-D border used to delineate the plot
-                         * surface and outer edge of window */
-
+    int inset;                /* Sum of focus highlight and 3-D
+                               * border.  Indicates how far to
+                               * offset the graph from outside
+                               * edge of the window. */
+    int borderWidth;          /* Width of the exterior border */
+    int relief;               /* Relief of the exterior border */
+    Tk_3DBorder border;       /* 3-D border used to delineate the plot
+                               * surface and outer edge of window */
     int highlightWidth;       /* Width in pixels of highlight to draw
                                * around widget when it has the focus.
                                * <= 0 means don't draw a highlight. */
     XColor *highlightBgColor; /* Color for drawing traversal highlight
                                * area when highlight is off. */
     XColor *highlightColor;   /* Color for drawing traversal highlight. */
-
     char *title;
     int titleX, titleY;
     TextStyle titleTextStyle; /* Graph title */
-
     char *takeFocus;
-
     int reqWidth, reqHeight; /* Requested size of graph window */
     int width, height;       /* Size of graph window or PostScript
                               * page */
-
-    Tcl_HashTable penTable; /* Table of pens */
-
+    Tcl_HashTable penTable;  /* Table of pens */
     struct Component {
         Tcl_HashTable table;    /* Hash table of ids. */
         Rbc_Chain *displayList; /* Display list. */
         Tcl_HashTable tagTable; /* Table of bind tags. */
     } elements, markers, axes;
-
     Rbc_Uid classUid; /* Default element type */
-
     Rbc_BindTable bindTable;
-    int nextMarkerId; /* Tracks next marker identifier available */
-
+    int nextMarkerId;        /* Tracks next marker identifier available */
     Rbc_Chain *axisChain[4]; /* Chain of axes for each of the
                               * margins.  They're separate from the
                               * margin structures to make it easier
@@ -475,16 +437,14 @@ struct GraphStruct {
                               * switching chain pointers.
                               */
     Margin margins[4];
-
     PostScript *postscript; /* PostScript options: see rbcGrPS.c */
     Legend *legend;         /* Legend information: see rbcGrLegd.c */
     Crosshairs *crosshairs; /* Crosshairs information: see rbcGrHairs.c */
     Grid *gridPtr;          /* Grid attribute information */
-
-    int halo;     /* Maximum distance allowed between points
-                   * when searching for a point */
-    int inverted; /* If non-zero, indicates the x and y axis
-                   * positions should be inverted. */
+    int halo;               /* Maximum distance allowed between points
+                             * when searching for a point */
+    int inverted;           /* If non-zero, indicates the x and y axis
+                             * positions should be inverted. */
     Rbc_Tile tile;
     GC drawGC;           /* Used for drawing on the margins. This
                           * includes the axis lines */
@@ -495,15 +455,12 @@ struct GraphStruct {
     int plotBorderWidth; /* Width of interior 3-D border. */
     int plotRelief;      /* 3-d effect: TK_RELIEF_RAISED etc. */
     XColor *plotBg;      /* Color of plotting surface */
-
-    GC plotFillGC; /* Used to fill the plotting area with a
-                    * solid background color. The fill color
-                    * is stored in "plotBg". */
-
+    GC plotFillGC;       /* Used to fill the plotting area with a
+                          * solid background color. The fill color
+                          * is stored in "plotBg". */
     double aspect;       /* If non-zero, force plot to conform to aspect ratio W/H */
     int polarAutoAspect; /* If non-zero, Polar/Smith layout preserves
                           * equal physical X/Y data-unit scales. */
-
     /*
      * Polar-specific presentation options.
      */
@@ -523,10 +480,8 @@ struct GraphStruct {
     Tcl_Size nSmithImagMajorTicks;
     double *smithImagMinorTicks;
     Tcl_Size nSmithImagMinorTicks;
-
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;
-
     Rbc_Pad padX;        /* Vertical padding for plotarea */
     int vRange, vOffset; /* Vertical axis range and offset from the
                           * left side of the graph window. Used to
@@ -537,27 +492,25 @@ struct GraphStruct {
                           * the top of the graph window. Used to
                           * transform horizontal axes */
     double vScale, hScale;
-
-    int antialias;             /* Rbc_Antialias; applies to Cairo geometry. */
+    int antialias;                         /* Rbc_Antialias; applies to Cairo geometry. */
     struct Rbc_RenderTarget *renderTarget; /* Active, synchronous marker drawing target. */
-    int renderer;              /* Rbc_Renderer selected by -renderer. */
-    int doubleBuffer;          /* If non-zero, draw the graph into a pixmap
-                                * first to reduce flashing. */
-    int backingStore;          /* If non-zero, cache elements by drawing
-                                * them into a pixmap */
-    Pixmap backPixmap;         /* Pixmap used to cache elements
-                                * displayed.  If *backingStore* is
-                                * non-zero, each element is drawn
-                                * into this pixmap before it is
-                                * copied onto the screen.  The pixmap
-                                * then acts as a cache (only the
-                                * pixmap is redisplayed if the none
-                                * of elements have changed). This is
-                                * done so that markers can be redrawn
-                                * quickly over elements without
-                                * redrawing each element. */
-    int backWidth, backHeight; /* Size of element backing store pixmap. */
-
+    int renderer;                          /* Rbc_Renderer selected by -renderer. */
+    int doubleBuffer;                      /* If non-zero, draw the graph into a pixmap
+                                            * first to reduce flashing. */
+    int backingStore;                      /* If non-zero, cache elements by drawing
+                                            * them into a pixmap */
+    Pixmap backPixmap;                     /* Pixmap used to cache elements
+                                            * displayed.  If *backingStore* is
+                                            * non-zero, each element is drawn
+                                            * into this pixmap before it is
+                                            * copied onto the screen.  The pixmap
+                                            * then acts as a cache (only the
+                                            * pixmap is redisplayed if the none
+                                            * of elements have changed). This is
+                                            * done so that markers can be redrawn
+                                            * quickly over elements without
+                                            * redrawing each element. */
+    int backWidth, backHeight;             /* Size of element backing store pixmap. */
     /*
      * barchart specific information
      */
@@ -646,12 +599,10 @@ struct GraphStruct {
 #define GET_AXIS_GEOMETRY (1 << 2) /* 0x0004 */
 #define RESET_AXES (1 << 3)        /* 0x0008 */
 #define LAYOUT_NEEDED (1 << 4)     /* 0x0010 */
-
 #define REDRAW_PENDING (1 << 8)        /* 0x0100 */
 #define DRAW_LEGEND (1 << 9)           /* 0x0200 */
 #define DRAW_MARGINS (1 << 10)         /* 0x0400 */
 #define REDRAW_BACKING_STORE (1 << 11) /* 0x0800 */
-
 #define GRAPH_FOCUS (1 << 12)  /* 0x1000 */
 #define DATA_CHANGED (1 << 13) /* 0x2000 */
 #define GRAPH_POSTSCRIPT (1 << 14) /* 0x4000 */
@@ -689,7 +640,6 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl
                           Tcl_Size outputCapacity);
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
 void Rbc_RedrawExternalLegend(Graph *graphPtr);
-
 void Rbc_ComputeStacks(Graph *graphPtr);
 void Rbc_ConfigureCrosshairs(Graph *graphPtr);
 void Rbc_DestroyAxes(Graph *graphPtr);
@@ -737,7 +687,6 @@ Pen *Rbc_BarPen(const char *penName);
 Pen *Rbc_LinePen(const char *penName);
 Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_Size nOpts, Tcl_Obj *const options[]);
 void Rbc_FreePen(Graph *graphPtr, Pen *penPtr);
-
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid);
@@ -770,7 +719,6 @@ Rbc_BindTagProc Rbc_GraphTags;
 int Rbc_GraphType(Graph *graphPtr);
 
 /* ---------------------- Global declarations ------------------------ */
-
 extern Rbc_Uid rbcBarElementUid;
 extern Rbc_Uid rbcLineElementUid;
 extern Rbc_Uid rbcStripElementUid;

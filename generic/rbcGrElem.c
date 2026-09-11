@@ -42,6 +42,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcGrElementOp *proc;
 } ElementOpSpec;
+
 static RbcGrElementOp ActivateOp;
 static RbcGrElementOp BindOp;
 static RbcGrElementOp CreateOp;
@@ -133,18 +134,15 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
     double max;
 
     interp = graphPtr->interp;
-
     if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if ((objc != 1) && (objc != 3)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad style \"%s\": should be "
                                                "\"penName\" or \"penName min max\"",
                                                Tcl_GetString(objPtr)));
         return TCL_ERROR;
     }
-
     /*
      * Validate the numeric range before acquiring a pen reference.
      */
@@ -156,17 +154,13 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
             return TCL_ERROR;
         }
     }
-
     penPtr = NULL;
-
     if (Rbc_GetPen(graphPtr, Tcl_GetString(objv[0]), type, &penPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (objc == 3) {
         SetWeight(stylePtr->weight, min, max);
     }
-
     stylePtr->penPtr = penPtr;
     return TCL_OK;
 }
@@ -573,7 +567,6 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
          * Destruction invalidates the complete source vector.
          */
         RecordElemVectorChange(vPtr, FALSE, 0, 0);
-
         vPtr->clientId = NULL;
         vPtr->valueArr = NULL;
         vPtr->nValues = 0;
@@ -700,9 +693,7 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
 
     memset(candidatePtr, 0, sizeof(*candidatePtr));
     candidatePtr->elemPtr = elemPtr;
-
     string = Tcl_GetString(objPtr);
-
     if (Rbc_VectorExists2(interp, string)) {
         Rbc_VectorId clientId;
 
@@ -710,7 +701,6 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
         if (clientId == NULL) {
             return TCL_ERROR;
         }
-
         if (Rbc_GetVectorById(interp, clientId, &candidatePtr->vecPtr) != TCL_OK) {
             Rbc_FreeVectorId(clientId);
             memset(candidatePtr, 0, sizeof(*candidatePtr));
@@ -725,7 +715,6 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
         }
         candidatePtr->clientId = clientId;
         SyncElemVector(candidatePtr);
-
         /*
          * Do not install VectorChangedProc yet. Its clientData must
          * point to the final, stable ElemVector member, not this
@@ -733,12 +722,10 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
          */
         return TCL_OK;
     }
-
     if (EvalExprListObj(interp, objPtr, &candidatePtr->nValues, &candidatePtr->valueArr) != TCL_OK) {
         memset(candidatePtr, 0, sizeof(*candidatePtr));
         return TCL_ERROR;
     }
-
     candidatePtr->arraySize = candidatePtr->nValues;
     FindRange(candidatePtr);
     return TCL_OK;
@@ -854,9 +841,7 @@ void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *can
 
     *destPtr = *candidatePtr;
     memset(candidatePtr, 0, sizeof(*candidatePtr));
-
     destPtr->elemPtr = elemPtr;
-
     if (destPtr->clientId != NULL) {
         /*
          * The callback must refer to the stable destination member,
@@ -927,7 +912,6 @@ static ElemDataOption GetElemDataOption(Element *elemPtr, Tcl_Obj *objPtr) {
     if (strcmp(name, "-ylow") == 0) {
         return ELEM_DATA_OPTION_Y_LOW;
     }
-
     return ELEM_DATA_OPTION_NONE;
 }
 
@@ -1094,7 +1078,6 @@ void Rbc_FreeElemTagsTransaction(ElemTagsTransaction *transactionPtr) {
     if (transactionPtr->tags != NULL) {
         ckfree((char *)transactionPtr->tags);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -1117,11 +1100,8 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine whether -bindtags was supplied explicitly.
      */
@@ -1130,7 +1110,6 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * On the first modern configuration, process the effective default
      * or option-database value unless it was explicitly overridden.
@@ -1140,7 +1119,6 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
             goto error;
         }
     }
-
     /*
      * Process every explicit occurrence in caller order.
      *
@@ -1154,12 +1132,10 @@ int Rbc_PrepareElemTagsTransaction(Graph *graphPtr, Element *elemPtr, ElemTagsTr
             }
         }
     }
-
     return TCL_OK;
 
 error:
     Rbc_FreeElemTagsTransaction(transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -1179,13 +1155,10 @@ void Rbc_CommitElemTagsTransaction(Element *elemPtr, ElemTagsTransaction *transa
     if (!transactionPtr->staged) {
         return;
     }
-
     oldTags = elemPtr->tags;
-
     elemPtr->tags = transactionPtr->tags;
     transactionPtr->tags = NULL;
     transactionPtr->staged = FALSE;
-
     if (oldTags != NULL) {
         ckfree((char *)oldTags);
     }
@@ -1228,11 +1201,8 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine whether -state was supplied explicitly.
      */
@@ -1241,7 +1211,6 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * During the first modern configuration, process the effective
      * default or option-database value unless the caller explicitly
@@ -1254,10 +1223,8 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
         if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->stateObjPtr, &transactionPtr->state) != TCL_OK) {
             return TCL_ERROR;
         }
-
         transactionPtr->staged = TRUE;
     }
-
     /*
      * Process every explicit occurrence in caller order.
      *
@@ -1270,11 +1237,9 @@ int Rbc_PrepareElemStateTransaction(Graph *graphPtr, Element *elemPtr, ElemState
             if (Rbc_GetStateFromObj(graphPtr->interp, elemPtr->optionObjv[i + 1], &transactionPtr->state) != TCL_OK) {
                 return TCL_ERROR;
             }
-
             transactionPtr->staged = TRUE;
         }
     }
-
     return TCL_OK;
 }
 
@@ -1340,22 +1305,18 @@ static int StageElemAxis(Graph *graphPtr, Tcl_Obj *objPtr, ElemAxisTransaction *
     unsigned int mask;
 
     newAxisPtr = NULL;
-
     switch (option) {
     case ELEM_AXIS_OPTION_X:
         classUid = rbcXAxisUid;
         break;
-
     case ELEM_AXIS_OPTION_Y:
         classUid = rbcYAxisUid;
         break;
-
     case ELEM_AXIS_OPTION_NONE:
     default:
         Tcl_Panic("StageElemAxis called with invalid option");
         return TCL_ERROR;
     }
-
     /*
      * Element -mapx and -mapy values must identify an existing axis;
      * an empty axis name is not accepted.
@@ -1363,19 +1324,15 @@ static int StageElemAxis(Graph *graphPtr, Tcl_Obj *objPtr, ElemAxisTransaction *
     if (Rbc_GetAxisFromObj(graphPtr, objPtr, classUid, FALSE, &newAxisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     mask = ELEM_AXIS_OPTION_MASK(option);
-
     /*
      * Resolve the replacement before releasing a previous candidate.
      */
     if (transactionPtr->stagedMask & mask) {
         Rbc_FreeAxisReference(graphPtr, *candidatePtrPtr);
     }
-
     *candidatePtrPtr = newAxisPtr;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
@@ -1393,11 +1350,9 @@ void Rbc_FreeElemAxisTransaction(Graph *graphPtr, ElemAxisTransaction *transacti
     if (transactionPtr->xAxisPtr != NULL) {
         Rbc_FreeAxisReference(graphPtr, transactionPtr->xAxisPtr);
     }
-
     if (transactionPtr->yAxisPtr != NULL) {
         Rbc_FreeAxisReference(graphPtr, transactionPtr->yAxisPtr);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -1421,11 +1376,8 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which axis options were supplied explicitly.
      */
@@ -1433,12 +1385,10 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
         ElemAxisOption option;
 
         option = GetElemAxisOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option != ELEM_AXIS_OPTION_NONE) {
             explicitMask |= ELEM_AXIS_OPTION_MASK(option);
         }
     }
-
     /*
      * During the first modern configuration, process effective
      * default or option-database values that were not overridden by
@@ -1451,7 +1401,6 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_Y)) && (elemPtr->mapYObjPtr != NULL)) {
             if (StageElemAxis(graphPtr, elemPtr->mapYObjPtr, transactionPtr, &transactionPtr->yAxisPtr,
                               ELEM_AXIS_OPTION_Y) != TCL_OK) {
@@ -1459,7 +1408,6 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
             }
         }
     }
-
     /*
      * Process explicit options in their original order.
      */
@@ -1468,32 +1416,26 @@ int Rbc_PrepareElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
         Tcl_Obj *valueObjPtr;
 
         option = GetElemAxisOption(elemPtr, elemPtr->optionObjv[i]);
-
         valueObjPtr = elemPtr->optionObjv[i + 1];
-
         switch (option) {
         case ELEM_AXIS_OPTION_X:
             if (StageElemAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->xAxisPtr, option) != TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_AXIS_OPTION_Y:
             if (StageElemAxis(graphPtr, valueObjPtr, transactionPtr, &transactionPtr->yAxisPtr, option) != TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_AXIS_OPTION_NONE:
             break;
         }
     }
-
     return TCL_OK;
 
 error:
     Rbc_FreeElemAxisTransaction(graphPtr, transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -1512,30 +1454,22 @@ void Rbc_CommitElemAxisTransaction(Graph *graphPtr, Element *elemPtr, ElemAxisTr
         Axis *oldAxisPtr;
 
         oldAxisPtr = elemPtr->axes.x;
-
         elemPtr->axes.x = transactionPtr->xAxisPtr;
-
         transactionPtr->xAxisPtr = NULL;
-
         if (oldAxisPtr != NULL) {
             Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
         }
     }
-
     if (transactionPtr->stagedMask & ELEM_AXIS_OPTION_MASK(ELEM_AXIS_OPTION_Y)) {
         Axis *oldAxisPtr;
 
         oldAxisPtr = elemPtr->axes.y;
-
         elemPtr->axes.y = transactionPtr->yAxisPtr;
-
         transactionPtr->yAxisPtr = NULL;
-
         if (oldAxisPtr != NULL) {
             Rbc_FreeAxisReference(graphPtr, oldAxisPtr);
         }
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -1560,19 +1494,15 @@ static int StageElemPen(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid penType, ElemP
     unsigned int mask;
 
     newPenPtr = NULL;
-
     if (objPtr != NULL) {
         name = Tcl_GetString(objPtr);
-
         if (name[0] != '\0') {
             if (Rbc_GetPen(graphPtr, name, penType, &newPenPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
         }
     }
-
     mask = ELEM_PEN_OPTION_MASK(option);
-
     /*
      * Resolve the replacement before releasing an earlier staged
      * candidate.
@@ -1580,10 +1510,8 @@ static int StageElemPen(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid penType, ElemP
     if ((transactionPtr->stagedMask & mask) && (*candidatePtrPtr != NULL)) {
         Rbc_FreePen(graphPtr, *candidatePtrPtr);
     }
-
     *candidatePtrPtr = newPenPtr;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
@@ -1601,11 +1529,9 @@ void Rbc_FreeElemPenTransaction(Graph *graphPtr, ElemPenTransaction *transaction
     if (transactionPtr->activePenPtr != NULL) {
         Rbc_FreePen(graphPtr, transactionPtr->activePenPtr);
     }
-
     if (transactionPtr->normalPenPtr != NULL) {
         Rbc_FreePen(graphPtr, transactionPtr->normalPenPtr);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -1630,11 +1556,8 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which pen options were supplied explicitly.
      */
@@ -1642,12 +1565,10 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
         ElemPenOption option;
 
         option = GetElemPenOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option != ELEM_PEN_OPTION_NONE) {
             explicitMask |= ELEM_PEN_OPTION_MASK(option);
         }
     }
-
     /*
      * On the first modern configuration, process effective option
      * database/default values not explicitly overridden.
@@ -1659,7 +1580,6 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_NORMAL)) && (elemPtr->normalPenObjPtr != NULL)) {
             if (StageElemPen(graphPtr, elemPtr->normalPenObjPtr, penType, transactionPtr, &transactionPtr->normalPenPtr,
                              ELEM_PEN_OPTION_NORMAL) != TCL_OK) {
@@ -1667,7 +1587,6 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
             }
         }
     }
-
     /*
      * Process explicit options in their original order.
      */
@@ -1676,9 +1595,7 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
         Tcl_Obj *valueObjPtr;
 
         option = GetElemPenOption(elemPtr, elemPtr->optionObjv[i]);
-
         valueObjPtr = elemPtr->optionObjv[i + 1];
-
         switch (option) {
         case ELEM_PEN_OPTION_ACTIVE:
             if (StageElemPen(graphPtr, valueObjPtr, penType, transactionPtr, &transactionPtr->activePenPtr, option) !=
@@ -1686,24 +1603,20 @@ int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid pen
                 goto error;
             }
             break;
-
         case ELEM_PEN_OPTION_NORMAL:
             if (StageElemPen(graphPtr, valueObjPtr, penType, transactionPtr, &transactionPtr->normalPenPtr, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_PEN_OPTION_NONE:
             break;
         }
     }
-
     return TCL_OK;
 
 error:
     Rbc_FreeElemPenTransaction(graphPtr, transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -1726,30 +1639,23 @@ void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builti
         Pen *oldPenPtr;
 
         oldPenPtr = elemPtr->activePenPtr;
-
         elemPtr->activePenPtr = transactionPtr->activePenPtr;
-
         transactionPtr->activePenPtr = NULL;
-
         if (oldPenPtr != NULL) {
             Rbc_FreePen(graphPtr, oldPenPtr);
         }
     }
-
     if (transactionPtr->stagedMask & ELEM_PEN_OPTION_MASK(ELEM_PEN_OPTION_NORMAL)) {
         Pen *oldPenPtr;
         Pen *newPenPtr;
 
         oldPenPtr = elemPtr->normalPenPtr;
         newPenPtr = transactionPtr->normalPenPtr;
-
         if (newPenPtr == NULL) {
             newPenPtr = builtinPenPtr;
         }
-
         elemPtr->normalPenPtr = newPenPtr;
         transactionPtr->normalPenPtr = NULL;
-
         /*
          * The embedded pen is owned by the concrete element and has no
          * named-pen reference to release.
@@ -1758,7 +1664,6 @@ void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builti
             Rbc_FreePen(graphPtr, oldPenPtr);
         }
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -1785,15 +1690,12 @@ void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
     Rbc_FreeElemVector(&transactionPtr->x);
     Rbc_FreeElemVector(&transactionPtr->y);
     Rbc_FreeElemVector(&transactionPtr->w);
-
     Rbc_FreeElemVector(&transactionPtr->xError);
     Rbc_FreeElemVector(&transactionPtr->xHigh);
     Rbc_FreeElemVector(&transactionPtr->xLow);
-
     Rbc_FreeElemVector(&transactionPtr->yError);
     Rbc_FreeElemVector(&transactionPtr->yHigh);
     Rbc_FreeElemVector(&transactionPtr->yLow);
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -1855,8 +1757,8 @@ Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTrans
  *
  *----------------------------------------------------------------------
  */
-static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemDataTransaction *transactionPtr,
-                              ElemVector *candidatePtr, ElemDataOption option) {
+static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
+                               ElemDataTransaction *transactionPtr, ElemVector *candidatePtr, ElemDataOption option) {
     ElemVector newCandidate;
     unsigned int mask;
 
@@ -1897,7 +1799,7 @@ static int StageElemDataVector(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *ob
  *----------------------------------------------------------------------
  */
 static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
-                             ElemDataTransaction *transactionPtr) {
+                              ElemDataTransaction *transactionPtr) {
     ElemVector newX;
     ElemVector newY;
     unsigned int xMask;
@@ -1905,27 +1807,22 @@ static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *obj
 
     memset(&newX, 0, sizeof(newX));
     memset(&newY, 0, sizeof(newY));
-
     if (Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &newX, &newY) != TCL_OK) {
         Rbc_FreeElemVector(&newX);
         Rbc_FreeElemVector(&newY);
         return TCL_ERROR;
     }
-
     xMask = ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X);
     yMask = ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y);
-
     if (transactionPtr->stagedMask & xMask) {
         Rbc_FreeElemVector(&transactionPtr->x);
     }
     if (transactionPtr->stagedMask & yMask) {
         Rbc_FreeElemVector(&transactionPtr->y);
     }
-
     transactionPtr->x = newX;
     transactionPtr->y = newY;
     transactionPtr->stagedMask |= xMask | yMask;
-
     return TCL_OK;
 }
 
@@ -1963,11 +1860,8 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
 
     interp = graphPtr->interp;
     explicitMask = 0;
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     /*
      * First identify all explicitly supplied data options. This lets
      * the first configuration retain option-database values for options
@@ -1981,7 +1875,6 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
             explicitMask |= ELEM_DATA_OPTION_MASK(option);
         }
     }
-
     /*
      * Tk_InitOptions may have installed values from the option database
      * before the first Tk_SetOptions call. Process those effective values
@@ -1996,71 +1889,61 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_WEIGHTS)) && (elemPtr->weightsObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->weightsObjPtr, transactionPtr, &transactionPtr->w,
-                                   ELEM_DATA_OPTION_WEIGHTS) != TCL_OK) {
+                                    ELEM_DATA_OPTION_WEIGHTS) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) && (elemPtr->xObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->xObjPtr, transactionPtr, &transactionPtr->x,
-                                   ELEM_DATA_OPTION_X) != TCL_OK) {
+                                    ELEM_DATA_OPTION_X) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) && (elemPtr->yObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->yObjPtr, transactionPtr, &transactionPtr->y,
-                                   ELEM_DATA_OPTION_Y) != TCL_OK) {
+                                    ELEM_DATA_OPTION_Y) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_ERROR)) && (elemPtr->xErrorObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->xErrorObjPtr, transactionPtr, &transactionPtr->xError,
-                                   ELEM_DATA_OPTION_X_ERROR) != TCL_OK) {
+                                    ELEM_DATA_OPTION_X_ERROR) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_HIGH)) && (elemPtr->xHighObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->xHighObjPtr, transactionPtr, &transactionPtr->xHigh,
-                                   ELEM_DATA_OPTION_X_HIGH) != TCL_OK) {
+                                    ELEM_DATA_OPTION_X_HIGH) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_LOW)) && (elemPtr->xLowObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->xLowObjPtr, transactionPtr, &transactionPtr->xLow,
-                                   ELEM_DATA_OPTION_X_LOW) != TCL_OK) {
+                                    ELEM_DATA_OPTION_X_LOW) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_ERROR)) && (elemPtr->yErrorObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->yErrorObjPtr, transactionPtr, &transactionPtr->yError,
-                                   ELEM_DATA_OPTION_Y_ERROR) != TCL_OK) {
+                                    ELEM_DATA_OPTION_Y_ERROR) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_HIGH)) && (elemPtr->yHighObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->yHighObjPtr, transactionPtr, &transactionPtr->yHigh,
-                                   ELEM_DATA_OPTION_Y_HIGH) != TCL_OK) {
+                                    ELEM_DATA_OPTION_Y_HIGH) != TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_LOW)) && (elemPtr->yLowObjPtr != NULL)) {
             if (StageElemDataVector(interp, elemPtr, elemPtr->yLowObjPtr, transactionPtr, &transactionPtr->yLow,
-                                   ELEM_DATA_OPTION_Y_LOW) != TCL_OK) {
+                                    ELEM_DATA_OPTION_Y_LOW) != TCL_OK) {
                 goto error;
             }
         }
     }
-
     /*
      * Process the original option/value vector rather than the retained
      * object fields. The retained fields contain only each option's final
@@ -2072,82 +1955,70 @@ int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTr
 
         option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
         valueObjPtr = elemPtr->optionObjv[i + 1];
-
         switch (option) {
         case ELEM_DATA_OPTION_PAIRS:
             if (StageElemDataPairs(interp, elemPtr, valueObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_WEIGHTS:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->w, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_X:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->x, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_Y:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->y, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_X_ERROR:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xError, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_X_HIGH:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xHigh, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_X_LOW:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->xLow, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_Y_ERROR:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yError, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_Y_HIGH:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yHigh, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_Y_LOW:
             if (StageElemDataVector(interp, elemPtr, valueObjPtr, transactionPtr, &transactionPtr->yLow, option) !=
                 TCL_OK) {
                 goto error;
             }
             break;
-
         case ELEM_DATA_OPTION_NONE:
             break;
         }
     }
-
     return TCL_OK;
 
 error:
@@ -2179,39 +2050,30 @@ void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transa
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->y, &transactionPtr->y);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_WEIGHTS)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->w, &transactionPtr->w);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_ERROR)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->xError, &transactionPtr->xError);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_HIGH)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->xHigh, &transactionPtr->xHigh);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_LOW)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->xLow, &transactionPtr->xLow);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_ERROR)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->yError, &transactionPtr->yError);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_HIGH)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->yHigh, &transactionPtr->yHigh);
     }
-
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_LOW)) {
         Rbc_CommitElemVector(elemPtr, &elemPtr->yLow, &transactionPtr->yLow);
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -2240,17 +2102,13 @@ static void ReplaceElemOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     Tcl_Obj *oldObjPtr;
 
     oldObjPtr = *objPtrPtr;
-
     if (oldObjPtr == newObjPtr) {
         return;
     }
-
     if (newObjPtr != NULL) {
         Tcl_IncrRefCount(newObjPtr);
     }
-
     *objPtrPtr = newObjPtr;
-
     if (oldObjPtr != NULL) {
         Tcl_DecrRefCount(oldObjPtr);
     }
@@ -2291,24 +2149,19 @@ static void SetElemDataPairOptionObjects(Element *elemPtr, Tcl_Obj *dataObjPtr) 
     if (Tcl_ListObjGetElements(elemPtr->graphPtr->interp, dataObjPtr, &objc, &objv) != TCL_OK) {
         Tcl_Panic("validated bar -data value is no longer a Tcl list");
     }
-
     if ((objc & 1) != 0) {
         Tcl_Panic("validated bar -data value has an odd length");
     }
-
     xObjPtr = Tcl_NewListObj(0, NULL);
     yObjPtr = Tcl_NewListObj(0, NULL);
-
     for (i = 0; i < objc; i += 2) {
         if (Tcl_ListObjAppendElement(NULL, xObjPtr, objv[i]) != TCL_OK) {
             Tcl_Panic("can't construct bar -x option value");
         }
-
         if (Tcl_ListObjAppendElement(NULL, yObjPtr, objv[i + 1]) != TCL_OK) {
             Tcl_Panic("can't construct bar -y option value");
         }
     }
-
     ReplaceElemOptionObject(&elemPtr->dataObjPtr, dataObjPtr);
     ReplaceElemOptionObject(&elemPtr->xObjPtr, xObjPtr);
     ReplaceElemOptionObject(&elemPtr->yObjPtr, yObjPtr);
@@ -2351,23 +2204,18 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     Tcl_Size i;
 
     assert((elemPtr->optionObjc & 1) == 0);
-
     explicitMask = 0;
-
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         ElemDataOption option;
 
         option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
-
         if (option != ELEM_DATA_OPTION_NONE) {
             explicitMask |= ELEM_DATA_OPTION_MASK(option);
         }
     }
-
     initialDataObjPtr = NULL;
     initialXObjPtr = NULL;
     initialYObjPtr = NULL;
-
     /*
      * Preserve references to initial option-database values while the
      * retained fields are being replaced below.
@@ -2375,12 +2223,10 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
     if (!elemPtr->optionsConfigured) {
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_PAIRS))) {
             initialDataObjPtr = elemPtr->dataObjPtr;
-
             if (initialDataObjPtr != NULL) {
                 Tcl_IncrRefCount(initialDataObjPtr);
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X))) {
             initialXObjPtr = elemPtr->xObjPtr;
 
@@ -2388,15 +2234,12 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
                 Tcl_IncrRefCount(initialXObjPtr);
             }
         }
-
         if (!(explicitMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y))) {
             initialYObjPtr = elemPtr->yObjPtr;
-
             if (initialYObjPtr != NULL) {
                 Tcl_IncrRefCount(initialYObjPtr);
             }
         }
-
         /*
          * Apply initial values in the same order used by the data
          * transaction: -data first, followed by -x and -y.
@@ -2404,17 +2247,14 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
         if (initialDataObjPtr != NULL) {
             SetElemDataPairOptionObjects(elemPtr, initialDataObjPtr);
         }
-
         if (initialXObjPtr != NULL) {
             ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
             ReplaceElemOptionObject(&elemPtr->xObjPtr, initialXObjPtr);
         }
-
         if (initialYObjPtr != NULL) {
             ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
             ReplaceElemOptionObject(&elemPtr->yObjPtr, initialYObjPtr);
         }
-
         if (initialDataObjPtr != NULL) {
             Tcl_DecrRefCount(initialDataObjPtr);
         }
@@ -2425,7 +2265,6 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
             Tcl_DecrRefCount(initialYObjPtr);
         }
     }
-
     /*
      * Apply explicit options in their original order. This preserves
      * the same last-option-wins rule used when staging the vectors.
@@ -2436,22 +2275,18 @@ void Rbc_SyncElemDataOptionObjects(Element *elemPtr) {
 
         option = GetElemDataOption(elemPtr, elemPtr->optionObjv[i]);
         valueObjPtr = elemPtr->optionObjv[i + 1];
-
         switch (option) {
         case ELEM_DATA_OPTION_PAIRS:
             SetElemDataPairOptionObjects(elemPtr, valueObjPtr);
             break;
-
         case ELEM_DATA_OPTION_X:
             ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
             ReplaceElemOptionObject(&elemPtr->xObjPtr, valueObjPtr);
             break;
-
         case ELEM_DATA_OPTION_Y:
             ReplaceElemOptionObject(&elemPtr->dataObjPtr, NULL);
             ReplaceElemOptionObject(&elemPtr->yObjPtr, valueObjPtr);
             break;
-
         case ELEM_DATA_OPTION_NONE:
         case ELEM_DATA_OPTION_WEIGHTS:
         case ELEM_DATA_OPTION_X_ERROR:
@@ -2502,18 +2337,14 @@ static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, R
     Rbc_Chain *newPalette;
 
     newPalette = NULL;
-
     if (Rbc_ParseStylesObj(graphPtr, elemPtr, objPtr, styleSize, &newPalette) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (transactionPtr->palette != NULL) {
         Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
     }
-
     transactionPtr->palette = newPalette;
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -2528,7 +2359,6 @@ static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, R
  */
 void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr) {
     Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -2552,17 +2382,13 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((elemPtr->optionObjc & 1) == 0);
-
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         if (IsElemStylesOption(elemPtr, elemPtr->optionObjv[i])) {
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * Always construct the initial palette, even when stylesObjPtr is
      * NULL. NULL represents an empty style list, but the palette still
@@ -2573,7 +2399,6 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
             goto error;
         }
     }
-
     /*
      * Process every explicit occurrence in original caller order.
      */
@@ -2585,7 +2410,6 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
             }
         }
     }
-
     return TCL_OK;
 
 error:
@@ -2608,14 +2432,10 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
     if (!transactionPtr->staged) {
         return;
     }
-
     oldPalette = elemPtr->palette;
-
     elemPtr->palette = transactionPtr->palette;
-
     transactionPtr->palette = NULL;
     transactionPtr->staged = FALSE;
-
     Rbc_DestroyPalette(graphPtr, oldPalette);
 }
 
@@ -2765,7 +2585,6 @@ void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
     if (palette == NULL) {
         return;
     }
-
     Rbc_FreePalette(graphPtr, palette);
     Rbc_ChainDestroy(palette);
 }
@@ -2808,37 +2627,29 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
     PenStyle *stylePtr;
 
     *palettePtrPtr = NULL;
-
     objv = NULL;
     objc = 0;
-
     if (objPtr != NULL) {
         if (Tcl_ListObjGetElements(graphPtr->interp, objPtr, &objc, &objv) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     palette = Rbc_ChainCreate();
     if (palette == NULL) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("can't allocate element palette", -1));
         return TCL_ERROR;
     }
-
     /*
      * The first entry is always reserved for the element's normal pen.
      * This entry does not own a pen reference.
      */
     linkPtr = Rbc_ChainAllocLink(styleSize);
     Rbc_ChainLinkBefore(palette, linkPtr, NULL);
-
     stylePtr = Rbc_ChainGetValue(linkPtr);
     stylePtr->penPtr = elemPtr->normalPenPtr;
-
     for (i = 0; i < objc; i++) {
         linkPtr = Rbc_ChainAllocLink(styleSize);
-
         stylePtr = Rbc_ChainGetValue(linkPtr);
-
         /*
          * Preserve the legacy default ranges. A three-item style
          * specification may replace these values.
@@ -2846,20 +2657,16 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
         stylePtr->weight.min = (double)i;
         stylePtr->weight.max = (double)i + 1.0;
         stylePtr->weight.range = 1.0;
-
         if (GetPenStyleFromObj(graphPtr, objv[i], elemPtr->classUid, stylePtr) != TCL_OK) {
             /*
              * This link has not yet been attached to the chain.
              */
             ckfree((char *)linkPtr);
-
             Rbc_DestroyPalette(graphPtr, palette);
             return TCL_ERROR;
         }
-
         Rbc_ChainLinkBefore(palette, linkPtr, NULL);
     }
-
     *palettePtrPtr = palette;
     return TCL_OK;
 }
@@ -3195,6 +3002,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
         Tcl_Size *errorToData;
         Tcl_Size *indexPtr;
         Tcl_Size i;
+
         if (AllocateErrorBarArrays(n, &errorBars, &errorToData) != TCL_OK) {
             return;
         }
@@ -3206,6 +3014,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
             double low;
             double x;
             double y;
+
             x = elemPtr->x.valueArr[i];
             y = elemPtr->y.valueArr[i];
             stylePtr = dataToStyle[i];
@@ -3225,6 +3034,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
             {
                 Point2D p;
                 Point2D q;
+
                 p = Rbc_Map2D(graphPtr, high, y, &elemPtr->axes);
                 q = Rbc_Map2D(graphPtr, low, y, &elemPtr->axes);
                 if ((!FINITE(p.x)) || (!FINITE(p.y)) || (!FINITE(q.x)) || (!FINITE(q.y))) {
@@ -3250,7 +3060,6 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                 capQ.x = p.x;
                 capQ.y = p.y + stylePtr->errorBarCapWidth;
                 if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
-
                     segPtr++;
                     *indexPtr++ = i;
                 }
@@ -3285,6 +3094,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
         Tcl_Size *errorToData;
         Tcl_Size *indexPtr;
         Tcl_Size i;
+
         if (AllocateErrorBarArrays(n, &errorBars, &errorToData) != TCL_OK) {
             return;
         }
@@ -3296,6 +3106,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
             double low;
             double x;
             double y;
+
             x = elemPtr->x.valueArr[i];
             y = elemPtr->y.valueArr[i];
             stylePtr = dataToStyle[i];
@@ -3317,6 +3128,7 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
                 Point2D q;
                 Point2D capP;
                 Point2D capQ;
+
                 p = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
                 q = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
                 if ((!FINITE(p.x)) || (!FINITE(p.y)) || (!FINITE(q.x)) || (!FINITE(q.y))) {
@@ -3400,6 +3212,7 @@ static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tc
         Tcl_Obj *exprObjPtr;
         Tcl_Obj *valueObjPtr;
         int result;
+
         exprObjPtr = Tcl_NewStringObj(string, -1);
         Tcl_IncrRefCount(exprObjPtr);
         valueObjPtr = NULL;
@@ -3445,8 +3258,8 @@ static int GetIndex(Tcl_Interp *interp, Element *elemPtr, const char *string, Tc
  */
 static int NameToElement(Graph *graphPtr, Tcl_Obj *nameObj, Element **elemPtrPtr) {
     Tcl_HashEntry *hPtr;
-    const char *name = Tcl_GetString(nameObj);
 
+    const char *name = Tcl_GetString(nameObj);
     hPtr = Tcl_FindHashEntry(&graphPtr->elements.table, name);
     if (hPtr == NULL) {
         Tcl_SetObjResult(graphPtr->interp,
@@ -3481,26 +3294,24 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 }
 
-static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
+static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
+                                   int *maskPtr) {
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
 
     assert(elemPtr->optionsInitialized);
     assert(elemPtr->optionTable != NULL);
-
     /*
      * Clear any stale transaction context before invoking Tk.
      */
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
-
     if (Tk_SetOptions(graphPtr->interp, (char *)elemPtr, elemPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Make the changed-option mask and the original argument order
      * available to the concrete configuration procedure.
@@ -3508,7 +3319,6 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
     elemPtr->optionMask = mask;
     elemPtr->optionObjc = objc;
     elemPtr->optionObjv = objv;
-
     /*
      * Concrete configuration procedures must be transactional:
      * they must not replace active derived resources until every
@@ -3517,7 +3327,6 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
     if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
         Tcl_IncrRefCount(errorObjPtr);
-
         /*
          * The argument vector belongs to the caller and must not
          * remain stored while restoring or destroying the element.
@@ -3525,21 +3334,16 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
         elemPtr->optionMask = 0;
         elemPtr->optionObjc = 0;
         elemPtr->optionObjv = NULL;
-
         Tk_RestoreSavedOptions(&savedOptions);
-
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
         Tcl_DecrRefCount(errorObjPtr);
         return TCL_ERROR;
     }
-
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
     elemPtr->optionsConfigured = TRUE;
-
     Tk_FreeSavedOptions(&savedOptions);
-
     if (maskPtr != NULL) {
         *maskPtr = mask;
     }
@@ -3557,7 +3361,6 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
-
     /*
      * Release derived GCs and manually managed resources before Tk
      * releases the colours, fonts, borders, and bitmaps referenced by
@@ -3583,7 +3386,6 @@ void Rbc_ReleaseElementTkResources(Graph *graphPtr) {
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&cursor)) {
         Element *elemPtr = Tcl_GetHashValue(hPtr);
-
         ReleaseElementResources(graphPtr, elemPtr);
     }
 }
@@ -3612,9 +3414,7 @@ static void DestroyElement(Graph *graphPtr, Element *elemPtr) {
 
     Rbc_DeleteBindings(graphPtr->bindTable, elemPtr);
     Rbc_LegendRemoveElement(graphPtr->legend, elemPtr);
-
     ReleaseElementResources(graphPtr, elemPtr);
-
     /* Remove it also from the element display list */
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -3663,16 +3463,17 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     Element *elemPtr;
     Tcl_HashEntry *hPtr;
     int isNew;
-    const char *elemName = Tcl_GetString(objv[3]);
 
+    const char *elemName = Tcl_GetString(objv[3]);
     if (elemName[0] == '-') {
-        Rbc_AppendResultStrings(graphPtr->interp, "name of element \"", elemName, "\" can't start with a '-'", (char *)NULL);
+        Rbc_AppendResultStrings(graphPtr->interp, "name of element \"", elemName, "\" can't start with a '-'",
+                                (char *)NULL);
         return TCL_ERROR;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->elements.table, elemName, &isNew);
     if (!isNew) {
         Rbc_AppendResultStrings(interp, "element \"", elemName, "\" already exists in \"", Tcl_GetString(objv[0]), "\"",
-                         (char *)NULL);
+                                (char *)NULL);
         return TCL_ERROR;
     }
     if (classUid == rbcBarElementUid) {
@@ -3683,14 +3484,11 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     }
     elemPtr->hashPtr = hPtr;
     Tcl_SetHashValue(hPtr, elemPtr);
-
     assert(elemPtr->optionSpecs != NULL);
-
     if (InitElementOptions(graphPtr, elemPtr) != TCL_OK) {
         DestroyElement(graphPtr, elemPtr);
         return TCL_ERROR;
     }
-
     /*
      * Always use the transactional path, including when no explicit
      * option/value pairs were supplied. Tk_InitOptions installed the
@@ -3701,7 +3499,6 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         return TCL_ERROR;
     }
     Rbc_ChainPrepend(graphPtr->elements.displayList, elemPtr);
-
     if (!elemPtr->hidden) {
         /* If the new element isn't hidden then redraw the graph.  */
         graphPtr->flags |= REDRAW_BACKING_STORE;
@@ -3756,7 +3553,6 @@ static int RebuildDisplayList(Graph *graphPtr, Tcl_Obj *newListObj) {
         elemPtr = (Element *)Tcl_GetHashValue(hPtr);
         elemPtr->hidden = TRUE;
     }
-
     /* Rebuild the display list, checking that each name it exists
      * (currently ignoring invalid element names).  */
     for (i = 0; i < nNames; i++) {
@@ -4053,7 +3849,6 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
     Tcl_Size nActiveIndices;
 
     (void)type;
-
     /*
      * With no element name, return all currently active elements.
      */
@@ -4063,59 +3858,45 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
         Tcl_Obj *resultObjPtr;
 
         resultObjPtr = Tcl_NewListObj(0, NULL);
-
         for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
              hPtr = Tcl_NextHashEntry(&cursor)) {
             elemPtr = Tcl_GetHashValue(hPtr);
-
             if (elemPtr->flags & ELEM_ACTIVE) {
                 Tcl_ListObjAppendElement(interp, resultObjPtr, Tcl_NewStringObj(elemPtr->name, -1));
             }
         }
-
         Tcl_SetObjResult(interp, resultObjPtr);
-
         return TCL_OK;
     }
-
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     activeArr = NULL;
     nActiveIndices = -1;
-
     if (objc > 4) {
         Tcl_Size count;
         Tcl_Size *activePtr;
         size_t byteCount;
 
         count = objc - 4;
-
         if (GetElemArrayByteCount(interp, count, sizeof(Tcl_Size), &byteCount) != TCL_OK) {
             return TCL_ERROR;
         }
-
         activeArr = Tcl_AttemptAlloc(byteCount);
-
         if (activeArr == NULL) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate active element indices", -1));
             return TCL_ERROR;
         }
-
         activePtr = activeArr;
         nActiveIndices = count;
-
         for (Tcl_Size i = 4; i < objc; i++) {
             if (GetIndex(interp, elemPtr, Tcl_GetString(objv[i]), activePtr) != TCL_OK) {
                 ckfree(activeArr);
                 return TCL_ERROR;
             }
-
             activePtr++;
         }
     }
-
     /*
      * Commit the replacement only after every supplied index has been
      * validated.
@@ -4123,13 +3904,10 @@ static int ActivateOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Siz
     if (elemPtr->activeIndices != NULL) {
         ckfree(elemPtr->activeIndices);
     }
-
     elemPtr->activeIndices = activeArr;
     elemPtr->nActiveIndices = nActiveIndices;
     elemPtr->flags |= ELEM_ACTIVE | ACTIVE_PENDING;
-
     Rbc_EventuallyRedrawGraph(graphPtr);
-
     return TCL_OK;
 }
 /*
@@ -4200,8 +3978,8 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
         char *tagName;
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
         for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.tagTable, &cursor); hPtr != NULL;
              hPtr = Tcl_NextHashEntry(&cursor)) {
             tagName = Tcl_GetHashKey(&graphPtr->elements.tagTable, hPtr);
@@ -4270,15 +4048,11 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
     if (NameToElement(graphPtr, objv[3], &elemPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     resultObjPtr = Tk_GetOptionValue(interp, (char *)elemPtr, elemPtr->optionTable, objv[4], graphPtr->tkwin);
-
     if (resultObjPtr == NULL) {
         return TCL_ERROR;
     }
-
     Tcl_SetObjResult(interp, resultObjPtr);
-
     return TCL_OK;
 }
 
@@ -4294,7 +4068,7 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
  *      -interpolate    Find closest point along element traces, not just
  *              data points.
  *      -along
-*
+ *
  * Return the common closest-element information.  Bar elements
  * additionally return the mapped screen rectangle of the selected
  * bar segment as left, top, right, and bottom.
@@ -4510,62 +4284,47 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Si
      */
     objc -= 3;
     objv += 3;
-
     for (i = 0; i < objc; i++) {
         const char *string;
 
         string = Tcl_GetString(objv[i]);
-
         if (string[0] == '-') {
             break;
         }
-
         if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     numNames = i;
     numOpts = objc - i;
     options = objv + numNames;
-
     for (i = 0; i < numNames; i++) {
         if (NameToElement(graphPtr, objv[i], &elemPtr) != TCL_OK) {
             return TCL_ERROR;
         }
-
         if (numOpts == 0) {
             Tcl_Obj *resultObjPtr;
 
             resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, NULL, graphPtr->tkwin);
-
             if (resultObjPtr == NULL) {
                 return TCL_ERROR;
             }
-
             Tcl_SetObjResult(interp, resultObjPtr);
-
             return TCL_OK;
         }
-
         if (numOpts == 1) {
             Tcl_Obj *resultObjPtr;
 
             resultObjPtr = Tk_GetOptionInfo(interp, (char *)elemPtr, elemPtr->optionTable, options[0], graphPtr->tkwin);
-
             if (resultObjPtr == NULL) {
                 return TCL_ERROR;
             }
-
             Tcl_SetObjResult(interp, resultObjPtr);
-
             return TCL_OK;
         }
-
         if (ConfigureElementOptions(graphPtr, elemPtr, numOpts, options, NULL) != TCL_OK) {
             return TCL_ERROR;
         }
-
         /*
          * Keep the element's hidden state and display-list membership
          * synchronized.
@@ -4579,7 +4338,6 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Si
                     break;
                 }
             }
-
             if (elemPtr->hidden != (linkPtr == NULL)) {
                 if (linkPtr == NULL) {
                     Rbc_ChainPrepend(graphPtr->elements.displayList, elemPtr);
@@ -4588,18 +4346,13 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Si
                 }
             }
         }
-
         graphPtr->flags |= RESET_AXES;
         graphPtr->flags |= RESET_WORLD;
         graphPtr->flags |= MAP_WORLD | REDRAW_WORLD;
-
         elemPtr->flags |= MAP_ITEM;
     }
-
     graphPtr->flags |= REDRAW_BACKING_STORE | DRAW_MARGINS;
-
     Rbc_EventuallyRedrawGraph(graphPtr);
-
     return TCL_OK;
 }
 
@@ -4741,8 +4494,8 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size 
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size objc, Tcl_Obj *const objv[]) {
     register Element *elemPtr;
-    const char *str = Tcl_GetString(objv[3]);
 
+    const char *str = Tcl_GetString(objv[3]);
     if ((str[0] == 'c') && (strcmp(str, "current") == 0)) {
         elemPtr = (Element *)Rbc_GetCurrentItem(graphPtr->bindTable);
         /* Report only on elements. */
@@ -4785,8 +4538,8 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size o
     Tcl_HashSearch cursor;
     register Tcl_HashEntry *hPtr;
     Tcl_Size i;
-    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &cursor); hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&cursor)) {
         elemPtr = (Element *)Tcl_GetHashValue(hPtr);
@@ -4913,10 +4666,10 @@ static const ElementOpSpec elemOps[] = {
  *      documentation for details on what it does.
  *
  * Parameters:
- *      Graph *graphPtr - Graph widget record 
+ *      Graph *graphPtr - Graph widget record
  *      Tcl_Interp *interp
- *      int objc - # arguments 
- *      Tcl_Obj *const objv[] - Argument list 
+ *      int objc - # arguments
+ *      Tcl_Obj *const objv[] - Argument list
  *      Rbc_Uid type
  *
  * Results:
@@ -4934,6 +4687,5 @@ int Rbc_ElementOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         TCL_OK) {
         return TCL_ERROR;
     }
-
     return elemOps[index].proc(graphPtr, interp, type, objc, objv);
 }

@@ -38,9 +38,9 @@
 #define DEF_PS_PREVIEW_FORMAT "epsi"
 #define DEF_PS_WIDTH "0"
 
-#define PS_DIMENSIONS_CHANGED     (1U << 0)
-#define PS_PADDING_CHANGED        (1U << 1)
-#define PS_COLOR_MODE_CHANGED     (1U << 2)
+#define PS_DIMENSIONS_CHANGED (1U << 0)
+#define PS_PADDING_CHANGED (1U << 1)
+#define PS_COLOR_MODE_CHANGED (1U << 2)
 #define PS_PREVIEW_FORMAT_CHANGED (1U << 3)
 #define PS_INITIALIZE_MASK                                                                                             \
     (PS_DIMENSIONS_CHANGED | PS_PADDING_CHANGED | PS_COLOR_MODE_CHANGED | PS_PREVIEW_FORMAT_CHANGED)
@@ -93,6 +93,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcGrPsOp *proc;
 } PostScriptOpSpec;
+
 static RbcGrPsOp CgetOp;
 static RbcGrPsOp ConfigureOp;
 static RbcGrPsOp OutputOp;
@@ -560,7 +561,6 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
     drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
                             Tk_Depth(graphPtr->tkwin));
     Rbc_DrawGraph(graphPtr, drawable, noBackingStore);
-
     /* Get a color image from the pixmap */
     image = Rbc_DrawableToColorImage(graphPtr->tkwin, drawable, 0, 0, graphPtr->width, graphPtr->height, 1.0);
     Tk_FreePixmap(graphPtr->display, drawable);
@@ -579,7 +579,6 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
         xScale = PS_MAX_PREVIEW_WIDTH / (double)graphPtr->width;
         yScale = PS_MAX_PREVIEW_HEIGHT / (double)graphPtr->height;
         scale = MIN(xScale, yScale);
-
         width = (int)(scale * graphPtr->width + 0.5);
         height = (int)(scale * graphPtr->height + 0.5);
         destImage = Rbc_ResampleColorImage(image, width, height, rbcBoxFilterPtr, rbcBoxFilterPtr);
@@ -598,7 +597,6 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
     Tcl_DStringInit(&dString);
     /* Finally, we can generate PostScript for the image */
     nLines = Rbc_ColorImageToPsData(image, 1, &dString, "%");
-
     Rbc_AppendToPostScript(psToken, "%%BeginPreview: ", (char *)NULL);
     Rbc_FormatToPostScript(psToken, "%d %d 8 %d\n", Rbc_ColorImageWidth(image), Rbc_ColorImageHeight(image), nLines);
     Rbc_AppendToPostScript(psToken, Tcl_DStringValue(&dString), (char *)NULL);
@@ -643,7 +641,7 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
 static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken) {
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
     time_t ticks;
-    const char *dateString;    
+    const char *dateString;
     char date[200]; /* Hold the date string from ctime() */
     const char *version;
     double dpiX, dpiY;
@@ -657,7 +655,6 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
         fileName = Tk_PathName(graphPtr->tkwin);
     }
     Rbc_AppendToPostScript(psToken, "%!PS-Adobe-3.0 EPSF-3.0\n", (char *)NULL);
-
     /*
      * Compute the scale factors to convert PostScript to X11 coordinates.
      * Round the pixels per inch (dpi) to an integral value before computing
@@ -670,7 +667,6 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
     xPixelsToPica = PICA_INCH / dpiX;
     dpiY = (HeightOfScreen(screenPtr) * MM_INCH) / HeightMMOfScreen(screenPtr);
     yPixelsToPica = PICA_INCH / dpiY;
-
     /*
      * The "BoundingBox" comment is required for EPS files. The box
      * coordinates are integers, so we need round away from the
@@ -680,9 +676,7 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
                            (int)floor((paperHeightPixels - psPtr->top) * yPixelsToPica),
                            (int)ceil(psPtr->right * xPixelsToPica),
                            (int)ceil((paperHeightPixels - psPtr->bottom) * yPixelsToPica));
-
     Rbc_AppendToPostScript(psToken, "%%Pages: 0\n", (char *)NULL);
-
     version = Tcl_GetVar(graphPtr->interp, "rbc_version", TCL_GLOBAL_ONLY);
     if (version == NULL) {
         version = "???";
@@ -828,7 +822,6 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
     margin[2].height = margin[1].height = graphPtr->bottom - graphPtr->top;
     margin[2].x = graphPtr->right;
     margin[2].width = graphPtr->width - graphPtr->right;
-
     /* Clear the surrounding margins and clip the plotting surface */
     if (psPtr->decorations) {
         Rbc_BackgroundToPostScript(psToken, Tk_3DBorderColor(graphPtr->border));
@@ -836,7 +829,6 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
         Rbc_ClearBackgroundToPostScript(psToken);
     }
     Rbc_RectanglesToPostScript(psToken, margin, 4);
-
     /* Interior 3D border */
     if ((psPtr->decorations) && (graphPtr->plotBorderWidth > 0)) {
         int x, y, width, height;
@@ -912,10 +904,8 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
      */
     x = graphPtr->left - graphPtr->plotBorderWidth;
     y = graphPtr->top - graphPtr->plotBorderWidth;
-
     width = (graphPtr->right - graphPtr->left + 1) + (2 * graphPtr->plotBorderWidth);
     height = (graphPtr->bottom - graphPtr->top + 1) + (2 * graphPtr->plotBorderWidth);
-
     Rbc_FontToPostScript(psToken, graphPtr->titleTextStyle.font);
     Rbc_RegionToPostScript(psToken, (double)x, (double)y, width, height);
     if (graphPtr->postscript->decorations) {
@@ -955,14 +945,12 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     Rbc_AppendToPostScript(psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
     MarginsToPostScript(graphPtr, psToken);
     Rbc_AppendToPostScript(psToken, "showpage\n", "%Trailer\n", "grestore\n", "end\n", "%EOF\n", (char *)NULL);
-    
+
 error:
     graphPtr->flags &= ~GRAPH_POSTSCRIPT;
-
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags = MAP_WORLD;
-
     Rbc_EventuallyRedrawGraph(graphPtr);
     return result;
 }
@@ -1059,11 +1047,9 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     epsHeader.tiffStart = 0L;
     epsHeader.tiffLength = 0L;
     epsHeader.checksum = 0xFFFF;
-
     result = TCL_ERROR;
     hWnd = Tk_GetHWND(Tk_WindowId(graphPtr->tkwin));
     hRefDC = GetDC(hWnd);
-
     /* Build a description string. */
     Tcl_DStringInit(&dString);
     Tcl_DStringAppend(&dString, "Rbc Graph ", -1);
@@ -1071,10 +1057,8 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     Tcl_DStringAppend(&dString, "\0", -1);
     Tcl_DStringAppend(&dString, Tk_PathName(graphPtr->tkwin), -1);
     Tcl_DStringAppend(&dString, "\0", -1);
-
     hDC = CreateEnhMetaFileA(hRefDC, NULL, NULL, Tcl_DStringValue(&dString));
     Tcl_DStringFree(&dString);
-
     if (hDC == NULL) {
         Rbc_AppendResultStrings(graphPtr->interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
         return TCL_ERROR;
@@ -1082,7 +1066,6 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     /* Assemble a Tk drawable that points to the metafile and let the
      * graph's drawing routine draw into it. */
     metaDrawable = Rbc_WinCreateDrawableFromDC(hDC);
-
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags |= RESET_WORLD;
@@ -1091,7 +1074,6 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     GdiFlush();
     Rbc_WinFreeDrawableFromDC(metaDrawable);
     hMetaFile = CloseEnhMetaFile(hDC);
-
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {
@@ -1103,14 +1085,12 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
         Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile data:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
-
     /*
      * Fix up the EPS header with the correct metafile length and PS
      * offset (now that we what they are).
      */
     epsHeader.wmfLength = size;
     epsHeader.wmfStart = epsHeader.psStart + epsHeader.psLength;
-
     /* Write out the eps header, */
     if (fwrite(&epsHeader, 1, sizeof(epsHeader), f) != sizeof(epsHeader)) {
         Rbc_AppendResultStrings(graphPtr->interp, "error writing eps header:", Rbc_LastError(), (char *)NULL);
@@ -1176,18 +1156,15 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     psToken = NULL;
     fileName = NULL;
     optionIndex = 3;
-
     if (objc > 3) {
         const char *arg;
 
         arg = Tcl_GetString(objv[3]);
-
         if (arg[0] != '-') {
             fileName = arg;
             optionIndex = 4;
         }
     }
-
     if (objc > optionIndex) {
         Tk_SavedOptions savedOptions;
         int mask;
@@ -1196,7 +1173,6 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
             TCL_OK) {
             return TCL_ERROR;
         }
-
         /*
          * Successful output options remain installed, matching the
          * existing command semantics.
@@ -1218,7 +1194,6 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     psToken->fontVarName = psPtr->fontVarName;
     psToken->colorVarName = psPtr->colorVarName;
     psToken->colorMode = psPtr->colorMode;
-
     if (GraphToPostScript(graphPtr, fileName, psToken) != TCL_OK) {
         goto error;
     }
@@ -1349,6 +1324,5 @@ int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     if (Rbc_GetOpIndexFromObj(interp, psOps, (Tcl_Size)sizeof(psOps[0]), RBC_OP_ARG2, objc, objv, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     return psOps[index].proc(graphPtr, interp, objc, objv);
 }

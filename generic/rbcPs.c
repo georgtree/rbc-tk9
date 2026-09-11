@@ -52,7 +52,6 @@ PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin) {
 
     tokenPtr = (struct PsTokenStruct *)ckalloc(sizeof(struct PsTokenStruct));
     assert(tokenPtr);
-
     tokenPtr->fontVarName = tokenPtr->colorVarName = NULL;
     tokenPtr->interp = interp;
     tokenPtr->tkwin = tkwin;
@@ -463,7 +462,6 @@ INLINE static unsigned char ReverseBits(unsigned char byte) {
  */
 INLINE static void ByteToHex(unsigned char byte, char *string) {
     static char hexDigits[] = "0123456789ABCDEF";
-
     string[0] = hexDigits[byte >> 4];
     string[1] = hexDigits[byte & 0x0F];
 }
@@ -1318,7 +1316,6 @@ void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
     if ((width < twiceWidth) || (height < twiceWidth)) {
         return;
     }
-
     Tk_Get3DBorderColors(border, &bdBgColor, &bdDarkColor, &bdLightColor);
     if (relief == TK_RELIEF_SOLID) {
         if (bdBgColor.pixel == bdDarkColor.pixel && bdBgColor.pixel == bdLightColor.pixel) {
@@ -1342,7 +1339,6 @@ void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
         lightColorPtr = &bdLightColor;
         darkColorPtr = &bdDarkColor;
     }
-
     /*
      * Handle grooves and ridges with recursive calls.
      */
@@ -1651,7 +1647,6 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
             return;
         }
     }
-
     /*
      * Otherwise do a quick test to see if it's a PostScript font.
      * Tk_PostScriptFontName will silently generate a bogus PostScript
@@ -1675,7 +1670,6 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
         }
     }
     Tcl_DecrRefCount(fontDescObj);
-
     /*
      * Can't find it. Try to use the current point size.
      */
@@ -1787,13 +1781,10 @@ void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyl
     anchorPos = Rbc_TranslatePoint(&anchorPos, ROUND(rotWidth), ROUND(rotHeight), tsPtr->anchor);
     anchorPos.x += (rotWidth * 0.5);
     anchorPos.y += (rotHeight * 0.5);
-
     /* Initialize text (sets translation and rotation) */
     Rbc_FormatToPostScript(tokenPtr, "%d %d %g %g %g BeginText\n", textPtr->width, textPtr->height, tsPtr->theta,
                            anchorPos.x, anchorPos.y);
-
     Rbc_FontToPostScript(tokenPtr, tsPtr->font);
-
     /* All coordinates are now relative to what was set by BeginText */
     if ((tsPtr->shadow.offset > 0) && (tsPtr->shadow.color != NULL)) {
         Rbc_ForegroundToPostScript(tokenPtr, tsPtr->shadow.color);

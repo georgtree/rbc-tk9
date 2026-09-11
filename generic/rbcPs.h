@@ -20,19 +20,14 @@ typedef struct PsTokenStruct *PsToken;
 
 struct PsTokenStruct {
     Tcl_Interp *interp; /* Interpreter to report errors to. */
-
     Tk_Window tkwin; /* Tk_Window used to get font and color
                       * information */
-
     Tcl_DString dString; /* Dynamic string used to contain the
                           * PostScript generated. */
-
     char *fontVarName; /* Name of a Tcl array variable to convert
                         * X font names to PostScript fonts. */
-
     char *colorVarName; /* Name of a Tcl array variable to convert
                          * X color names to PostScript. */
-
     PsColorMode colorMode; /* Mode: color or greyscale */
 
 #define PSTOKEN_BUFSIZ ((BUFSIZ * 2) - 1)

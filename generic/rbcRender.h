@@ -42,23 +42,18 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
                    const XColor *foreground, const XColor *background, Pixmap stipple);
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block);
-
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y);
-
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
                          Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple);
-
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                          const XColor *color, double lineWidth,
                                          const Rbc_Dashes *dashes, const XColor *offColor);
 int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height,
                         const Rbc_RenderRectangle *r, const XColor *foreground,
                         const XColor *background, Pixmap stipple);
-
 int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
                       Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,
                       const Point2D *polygon, Tcl_Size nPoints);
-
 Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable,
     Pixmap bitmap, Pixmap mask, int width, int height, const XColor *foreground,
     const XColor *background, int targetWidth, int targetHeight);

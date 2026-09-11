@@ -18,10 +18,8 @@
 
 #define DEF_NUM_TICKS 4 /* Each minor tick is 20% */
 #define STATIC_TICK_SPACE 10
-
 #define TICK_LABEL_SIZE 200
 #define MAXTICKS 10001
-
 #define CLAMP(val, low, high) (((val) < (low)) ? (low) : ((val) > (high)) ? (high) : (val))
 
 /*
@@ -77,13 +75,11 @@ typedef struct {
 #define DEF_AXIS_STEP "0.0"
 #define DEF_AXIS_SUBDIVISIONS "2"
 #define DEF_AXIS_TAGS "all"
-
 #ifdef WIN32
 #define DEF_AXIS_TICK_FONT "{Arial Narrow} 8"
 #else
 #define DEF_AXIS_TICK_FONT "TkSmallCaptionFont"
 #endif
-
 #define DEF_AXIS_TICK_LENGTH "8"
 #define DEF_AXIS_TITLE_ALTERNATE "0"
 #define DEF_AXIS_TITLE_FONT STD_FONT
@@ -115,28 +111,23 @@ typedef struct {
 #define AXIS_LOG_SCALE_MASK (1u << 15)
 #define AXIS_FORMAT_COMMAND_MASK (1u << 16)
 #define AXIS_SCROLL_COMMAND_MASK (1u << 17)
-
 /*
  * Options that affect the axis's requested numerical range.
  */
 #define AXIS_RANGE_MASK (AXIS_LIMITS_MASK | AXIS_SCROLL_LIMITS_MASK | AXIS_LOOSE_MASK)
-
 /*
  * Options that affect tick generation.
  */
 #define AXIS_TICKS_MASK (AXIS_MAJOR_TICKS_MASK | AXIS_MINOR_TICKS_MASK)
-
 /*
  * Options that require recalculating axis geometry.
  */
 #define AXIS_GEOMETRY_MASK                                                                                             \
     (AXIS_RANGE_MASK | AXIS_TICKS_MASK | AXIS_PIXELS_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK)
-
 /*
  * Options that require remapping graph contents against this axis.
  */
 #define AXIS_RESET_MASK (AXIS_GEOMETRY_MASK | AXIS_MAP_MASK)
-
 #define AXIS_SHADOW_MASK (AXIS_LIMITS_SHADOW_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK)
 
 typedef enum {
@@ -164,14 +155,12 @@ typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_M
 
 typedef struct {
     unsigned int stagedMask;
-
     Ticks *majorTicksPtr;
     Ticks *minorTicksPtr;
 } AxisTickTransaction;
 
 typedef struct {
     int staged;
-
     int looseMin;
     int looseMax;
 } AxisLooseTransaction;
@@ -187,7 +176,6 @@ typedef enum {
 
 typedef struct {
     unsigned int stagedMask;
-
     int borderWidth;
     int lineWidth;
     int scrollIncrement;
@@ -204,7 +192,6 @@ typedef enum {
 
 typedef struct {
     unsigned int stagedMask;
-
     Shadow limitsShadow;
     Shadow tickShadow;
     Shadow titleShadow;
@@ -217,7 +204,6 @@ typedef struct {
 
 typedef struct {
     int staged;
-
     char **formats;
     int nFormats;
 } AxisFormatTransaction;
@@ -316,7 +302,7 @@ static double titleRotate[4] = {0.0, 90.0, 0.0, 270.0};
 static void SetAxisRange(AxisRange *rangePtr, double min, double max);
 static double NormalizeAxisValue(const AxisRange *rangePtr, double value);
 static double InterpolateAxisValue(const AxisRange *rangePtr, double norm);
-static int InRange(register double x, AxisRange *rangePtr);
+static int InRange(double x, AxisRange *rangePtr);
 static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr);
 static void FreeLabels(Rbc_Chain *chainPtr);
 static void GetDataLimits(Axis *axisPtr, double min, double max);
@@ -356,7 +342,6 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
 static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr);
 
 typedef int RbcGrAxisOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
-
 typedef int RbcGrAxisVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 typedef struct {
@@ -471,7 +456,6 @@ static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFrac
     }
     if (result == TCL_OK) {
         Tcl_ResetResult(interp);
-
         /*
          * Preserve the old Tcl_GlobalEval() global-scope behaviour,
          * but invoke the command as an object vector rather than
@@ -523,7 +507,7 @@ static int GetLinearSweep(double min, double max, double step, double *tickMinPt
     double count;
     double tickMin;
     double tickMax;
-    
+
     if ((!FINITE(min)) || (!FINITE(max)) || (!FINITE(step)) || (step <= 0.0)) {
         return FALSE;
     }
@@ -769,7 +753,7 @@ static void MakeLogRange(double value, double *minPtr, double *maxPtr) {
  *      Please note, *max* can't equal *min*.
  *
  * Parameters:
- *      register double x
+ *      double x
  *      AxisRange *rangePtr
  *
  * Results:
@@ -871,11 +855,8 @@ static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTr
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine whether -bindtags was explicitly supplied.
      */
@@ -884,7 +865,6 @@ static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTr
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * During initial configuration, parse the effective
      * default or option-database value unless explicitly overridden.
@@ -894,7 +874,6 @@ static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTr
             goto error;
         }
     }
-
     /*
      * Process every explicit occurrence in caller order.
      */
@@ -905,12 +884,10 @@ static int PrepareAxisTagsTransaction(Graph *graphPtr, Axis *axisPtr, AxisTagsTr
             }
         }
     }
-
     return TCL_OK;
 
 error:
     FreeAxisTagsTransaction(transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -930,14 +907,10 @@ static void CommitAxisTagsTransaction(Axis *axisPtr, AxisTagsTransaction *transa
     if (!transactionPtr->staged) {
         return;
     }
-
     oldTags = axisPtr->tags;
-
     axisPtr->tags = transactionPtr->tags;
-
     transactionPtr->tags = NULL;
     transactionPtr->staged = FALSE;
-
     if (oldTags != NULL) {
         ckfree((char *)oldTags);
     }
@@ -1089,29 +1062,21 @@ static int GetAxisLimitsFormatsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char
 
     *formatsPtrPtr = NULL;
     *nFormatsPtr = 0;
-
     if (objPtr == NULL) {
         return TCL_OK;
     }
-
     string = Tcl_GetString(objPtr);
-
     if (string[0] == '\0') {
         return TCL_OK;
     }
-
     formats = NULL;
     nFormats = 0;
-
     if (Tcl_SplitList(interp, string, &nFormats, (const char ***)&formats) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (nFormats > 2) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("too many elements in limits format list \"%s\"", string));
-
         FreeAxisFormats(formats);
-
         return TCL_ERROR;
     }
     {
@@ -1148,25 +1113,18 @@ static int StageAxisLimitsFormats(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisForma
 
     newFormats = NULL;
     newNFormats = 0;
-
     if (GetAxisLimitsFormatsFromObj(interp, objPtr, &newFormats, &newNFormats) != TCL_OK) {
         return TCL_ERROR;
     }
-
     FreeAxisFormats(transactionPtr->formats);
-
     transactionPtr->formats = newFormats;
-
     transactionPtr->nFormats = newNFormats;
-
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
 static void FreeAxisFormatTransaction(AxisFormatTransaction *transactionPtr) {
     FreeAxisFormats(transactionPtr->formats);
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -1189,11 +1147,8 @@ static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisForm
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine whether -limitsformat was explicitly supplied.
      */
@@ -1202,7 +1157,6 @@ static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisForm
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * During initial configuration, parse the effective option
      * database/default value unless explicitly overridden.
@@ -1212,7 +1166,6 @@ static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisForm
             goto error;
         }
     }
-
     /*
      * Process explicit occurrences in caller order.
      */
@@ -1223,12 +1176,10 @@ static int PrepareAxisFormatTransaction(Graph *graphPtr, Axis *axisPtr, AxisForm
             }
         }
     }
-
     return TCL_OK;
 
 error:
     FreeAxisFormatTransaction(transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -1248,17 +1199,12 @@ static void CommitAxisFormatTransaction(Axis *axisPtr, AxisFormatTransaction *tr
     if (!transactionPtr->staged) {
         return;
     }
-
     oldFormats = axisPtr->limitsFormats;
-
     axisPtr->limitsFormats = transactionPtr->formats;
-
     axisPtr->nFormats = transactionPtr->nFormats;
-
     transactionPtr->formats = NULL;
     transactionPtr->nFormats = 0;
     transactionPtr->staged = FALSE;
-
     FreeAxisFormats(oldFormats);
 }
 
@@ -1290,13 +1236,10 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->optionsInitialized) {
         return TCL_OK;
     }
-
     axisPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, axisOptionSpecs);
-
     if (axisPtr->optionTable == NULL) {
         return TCL_ERROR;
     }
-
     /*
      * Preserve the legacy component resource hierarchy:
      *
@@ -1308,23 +1251,18 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
      * by the modern element path.
      */
     componentName = RbcStrdup(axisPtr->name);
-
     if (componentName[0] != '\0') {
         componentName[0] = (char)tolower((unsigned char)componentName[0]);
     }
-
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Axis",
                                       (char *)axisPtr, axisPtr->optionTable);
     ckfree(componentName);
-
     if (result != TCL_OK) {
         axisPtr->optionTable = NULL;
         return TCL_ERROR;
     }
-
     axisPtr->optionsInitialized = TRUE;
     axisPtr->tkResourcesReleased = FALSE;
-
     return TCL_OK;
 }
 
@@ -1364,17 +1302,14 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
     assert(axisPtr->optionsInitialized);
     assert(axisPtr->optionTable != NULL);
     assert((objc & 1) == 0);
-
     /*
      * Clear stale transaction context before invoking Tk.
      */
     ResetAxisOptionContext(axisPtr);
-
     if (Tk_SetOptions(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Make the changed-option mask and original argument order
      * available to the axis transactions.
@@ -1382,41 +1317,29 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
     axisPtr->optionMask = mask;
     axisPtr->optionObjc = objc;
     axisPtr->optionObjv = objv;
-
     if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
         /*
          * Restoring Tk-managed options may alter the interpreter
          * result. Preserve the error produced by ConfigureAxis.
          */
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-
         Tcl_IncrRefCount(errorObjPtr);
-
         /*
          * Never retain pointers to the caller-owned option vector
          * while restoring the configuration.
          */
         ResetAxisOptionContext(axisPtr);
-
         Tk_RestoreSavedOptions(&savedOptions);
-
         Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-
         Tcl_DecrRefCount(errorObjPtr);
-
         return TCL_ERROR;
     }
-
     ResetAxisOptionContext(axisPtr);
-
     axisPtr->optionsConfigured = TRUE;
-
     Tk_FreeSavedOptions(&savedOptions);
-
     if (maskPtr != NULL) {
         *maskPtr = mask;
     }
-
     return TCL_OK;
 }
 
@@ -1424,7 +1347,6 @@ static int ConfigureNewAxis(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_O
     if (InitAxisOptions(graphPtr, axisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Configure even when objc is zero. Tk_InitOptions has installed
      * defaults and option-database values that must be converted into
@@ -1450,19 +1372,15 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
     if (axisPtr->tkResourcesReleased) {
         return;
     }
-
     /*
      * Do not retain pointers to configuration arguments during
      * destruction.
      */
     ResetAxisOptionContext(axisPtr);
-
     if (axisPtr->optionsInitialized) {
         Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
-
         axisPtr->optionsInitialized = FALSE;
     }
-
     axisPtr->tkResourcesReleased = TRUE;
 }
 
@@ -1589,44 +1507,33 @@ static int StageAxisPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, AxisPixelOptio
     case AXIS_PIXEL_OPTION_LINE_WIDTH:
         check = PIXELS_NONNEGATIVE;
         break;
-
     case AXIS_PIXEL_OPTION_SCROLL_INCREMENT:
         check = PIXELS_POSITIVE;
         break;
-
     case AXIS_PIXEL_OPTION_NONE:
     default:
         Tcl_Panic("StageAxisPixelOption called with invalid option");
-
         return TCL_ERROR;
     }
-
     if (Rbc_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, check, &value) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (option) {
     case AXIS_PIXEL_OPTION_BORDER_WIDTH:
         transactionPtr->borderWidth = value;
         break;
-
     case AXIS_PIXEL_OPTION_LINE_WIDTH:
         transactionPtr->lineWidth = value;
         break;
-
     case AXIS_PIXEL_OPTION_SCROLL_INCREMENT:
         transactionPtr->scrollIncrement = value;
         break;
-
     case AXIS_PIXEL_OPTION_NONE:
     default:
         Tcl_Panic("StageAxisPixelOption called with invalid option");
-
         return TCL_ERROR;
     }
-
     transactionPtr->stagedMask |= AXIS_PIXEL_OPTION_MASK(option);
-
     return TCL_OK;
 }
 
@@ -1649,11 +1556,8 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which options were explicitly supplied.
      */
@@ -1661,12 +1565,10 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
         AxisPixelOption option;
 
         option = GetAxisPixelOption(axisPtr->optionObjv[i]);
-
         if (option != AXIS_PIXEL_OPTION_NONE) {
             explicitMask |= AXIS_PIXEL_OPTION_MASK(option);
         }
     }
-
     /*
      * During initial configuration, parse effective defaults
      * and option-database values that were not explicitly overridden.
@@ -1679,7 +1581,6 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_LINE_WIDTH)) &&
             (axisPtr->lineWidthObjPtr != NULL)) {
             if (StageAxisPixelOption(graphPtr, axisPtr->lineWidthObjPtr, AXIS_PIXEL_OPTION_LINE_WIDTH,
@@ -1687,7 +1588,6 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_SCROLL_INCREMENT)) &&
             (axisPtr->scrollIncrementObjPtr != NULL)) {
             if (StageAxisPixelOption(graphPtr, axisPtr->scrollIncrementObjPtr, AXIS_PIXEL_OPTION_SCROLL_INCREMENT,
@@ -1696,7 +1596,6 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
             }
         }
     }
-
     /*
      * Process explicit occurrences in their original order.
      */
@@ -1704,16 +1603,13 @@ static int PrepareAxisPixelTransaction(Graph *graphPtr, Axis *axisPtr, AxisPixel
         AxisPixelOption option;
 
         option = GetAxisPixelOption(axisPtr->optionObjv[i]);
-
         if (option == AXIS_PIXEL_OPTION_NONE) {
             continue;
         }
-
         if (StageAxisPixelOption(graphPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -1731,15 +1627,12 @@ static void CommitAxisPixelTransaction(Axis *axisPtr, AxisPixelTransaction *tran
     if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_BORDER_WIDTH)) {
         axisPtr->borderWidth = transactionPtr->borderWidth;
     }
-
     if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_LINE_WIDTH)) {
         axisPtr->lineWidth = transactionPtr->lineWidth;
     }
-
     if (transactionPtr->stagedMask & AXIS_PIXEL_OPTION_MASK(AXIS_PIXEL_OPTION_SCROLL_INCREMENT)) {
         axisPtr->scrollUnits = transactionPtr->scrollIncrement;
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -1759,33 +1652,25 @@ static int StageAxisLimit(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLimitOption o
     if (GetAxisLimitFromObj(interp, objPtr, &value) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (option) {
     case AXIS_LIMIT_OPTION_MIN:
         transactionPtr->reqMin = value;
         break;
-
     case AXIS_LIMIT_OPTION_MAX:
         transactionPtr->reqMax = value;
         break;
-
     case AXIS_LIMIT_OPTION_SCROLL_MIN:
         transactionPtr->scrollMin = value;
         break;
-
     case AXIS_LIMIT_OPTION_SCROLL_MAX:
         transactionPtr->scrollMax = value;
         break;
-
     case AXIS_LIMIT_OPTION_NONE:
     default:
         Tcl_Panic("StageAxisLimit called with invalid option");
-
         return TCL_ERROR;
     }
-
     transactionPtr->stagedMask |= AXIS_LIMIT_OPTION_MASK(option);
-
     return TCL_OK;
 }
 
@@ -1809,23 +1694,16 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     /*
      * Start with the current effective live values. Options not
      * involved in this configuration retain these candidates.
      */
     transactionPtr->reqMin = axisPtr->reqMin;
-
     transactionPtr->reqMax = axisPtr->reqMax;
-
     transactionPtr->scrollMin = axisPtr->scrollMin;
-
     transactionPtr->scrollMax = axisPtr->scrollMax;
-
     explicitMask = 0;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which limit options were explicitly supplied.
      */
@@ -1833,12 +1711,10 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
         AxisLimitOption option;
 
         option = GetAxisLimitOption(axisPtr->optionObjv[i]);
-
         if (option != AXIS_LIMIT_OPTION_NONE) {
             explicitMask |= AXIS_LIMIT_OPTION_MASK(option);
         }
     }
-
     /*
      * During initial configuration, parse option-database
      * values that were not explicitly overridden.
@@ -1849,13 +1725,11 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MAX)) && (axisPtr->maxObjPtr != NULL)) {
             if (StageAxisLimit(graphPtr->interp, axisPtr->maxObjPtr, AXIS_LIMIT_OPTION_MAX, transactionPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MIN)) &&
             (axisPtr->scrollMinObjPtr != NULL)) {
             if (StageAxisLimit(graphPtr->interp, axisPtr->scrollMinObjPtr, AXIS_LIMIT_OPTION_SCROLL_MIN,
@@ -1863,7 +1737,6 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
                 return TCL_ERROR;
             }
         }
-
         if (!(explicitMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MAX)) &&
             (axisPtr->scrollMaxObjPtr != NULL)) {
             if (StageAxisLimit(graphPtr->interp, axisPtr->scrollMaxObjPtr, AXIS_LIMIT_OPTION_SCROLL_MAX,
@@ -1872,7 +1745,6 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
             }
         }
     }
-
     /*
      * Process explicit occurrences in caller order.
      */
@@ -1880,11 +1752,9 @@ static int PrepareAxisLimitTransaction(Graph *graphPtr, Axis *axisPtr, AxisLimit
         AxisLimitOption option;
 
         option = GetAxisLimitOption(axisPtr->optionObjv[i]);
-
         if (option == AXIS_LIMIT_OPTION_NONE) {
             continue;
         }
-
         if (StageAxisLimit(graphPtr->interp, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
@@ -1951,19 +1821,15 @@ static void CommitAxisLimitTransaction(Axis *axisPtr, AxisLimitTransaction *tran
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MIN)) {
         axisPtr->reqMin = transactionPtr->reqMin;
     }
-
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_MAX)) {
         axisPtr->reqMax = transactionPtr->reqMax;
     }
-
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MIN)) {
         axisPtr->scrollMin = transactionPtr->scrollMin;
     }
-
     if (transactionPtr->stagedMask & AXIS_LIMIT_OPTION_MASK(AXIS_LIMIT_OPTION_SCROLL_MAX)) {
         axisPtr->scrollMax = transactionPtr->scrollMax;
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -2176,18 +2042,14 @@ static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMi
     if (Tcl_ListObjGetElements(interp, objPtr, &valueObjc, &valueObjv) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if ((valueObjc < 1) || (valueObjc > 2)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong # elements in loose value \"%s\"", Tcl_GetString(objPtr)));
-
         return TCL_ERROR;
     }
-
     for (i = 0; i < valueObjc; i++) {
         const char *string;
 
         string = Tcl_GetString(valueObjv[i]);
-
         if (strcmp(string, "always") == 0) {
             values[i] = TICK_RANGE_ALWAYS_LOOSE;
         } else {
@@ -2196,18 +2058,14 @@ static int GetAxisLooseFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *looseMi
             if (Tcl_GetBooleanFromObj(interp, valueObjv[i], &boolean) != TCL_OK) {
                 return TCL_ERROR;
             }
-
             values[i] = boolean ? TICK_RANGE_LOOSE : TICK_RANGE_TIGHT;
         }
     }
-
     *looseMinPtr = values[0];
     *looseMaxPtr = values[0];
-
     if (valueObjc == 2) {
         *looseMaxPtr = values[1];
     }
-
     return TCL_OK;
 }
 
@@ -2228,13 +2086,9 @@ static int StageAxisLoose(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisLooseTransact
     if (GetAxisLooseFromObj(interp, objPtr, &looseMin, &looseMax) != TCL_OK) {
         return TCL_ERROR;
     }
-
     transactionPtr->looseMin = looseMin;
-
     transactionPtr->looseMax = looseMax;
-
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -2257,11 +2111,8 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitlySpecified = FALSE;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine whether -loose was supplied explicitly.
      */
@@ -2270,7 +2121,6 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
             explicitlySpecified = TRUE;
         }
     }
-
     /*
      * During initial configuration, parse the effective default
      * or option-database value unless the caller explicitly overrides
@@ -2281,7 +2131,6 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
             return TCL_ERROR;
         }
     }
-
     /*
      * Process explicit occurrences in caller order.
      */
@@ -2292,7 +2141,6 @@ static int PrepareAxisLooseTransaction(Graph *graphPtr, Axis *axisPtr, AxisLoose
             }
         }
     }
-
     return TCL_OK;
 }
 
@@ -2310,11 +2158,8 @@ static void CommitAxisLooseTransaction(Axis *axisPtr, AxisLooseTransaction *tran
     if (!transactionPtr->staged) {
         return;
     }
-
     axisPtr->looseMin = transactionPtr->looseMin;
-
     axisPtr->looseMax = transactionPtr->looseMax;
-
     transactionPtr->staged = FALSE;
 }
 
@@ -2390,31 +2235,23 @@ static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption op
     unsigned int mask;
 
     newTicksPtr = NULL;
-
     if (GetAxisTicksFromObj(interp, objPtr, &newTicksPtr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (option) {
     case AXIS_TICK_OPTION_MAJOR:
         candidatePtrPtr = &transactionPtr->majorTicksPtr;
         break;
-
     case AXIS_TICK_OPTION_MINOR:
         candidatePtrPtr = &transactionPtr->minorTicksPtr;
         break;
-
     case AXIS_TICK_OPTION_NONE:
     default:
         FreeAxisTicks(newTicksPtr);
-
         Tcl_Panic("StageAxisTicks called with invalid option");
-
         return TCL_ERROR;
     }
-
     mask = AXIS_TICK_OPTION_MASK(option);
-
     /*
      * Do not discard an earlier candidate until the replacement has
      * parsed successfully.
@@ -2422,18 +2259,14 @@ static int StageAxisTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, AxisTickOption op
     if (transactionPtr->stagedMask & mask) {
         FreeAxisTicks(*candidatePtrPtr);
     }
-
     *candidatePtrPtr = newTicksPtr;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
 static void FreeAxisTickTransaction(AxisTickTransaction *transactionPtr) {
     FreeAxisTicks(transactionPtr->majorTicksPtr);
-
     FreeAxisTicks(transactionPtr->minorTicksPtr);
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -2442,11 +2275,8 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which tick options were explicitly supplied.
      */
@@ -2454,12 +2284,10 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
         AxisTickOption option;
 
         option = GetAxisTickOption(axisPtr->optionObjv[i]);
-
         if (option != AXIS_TICK_OPTION_NONE) {
             explicitMask |= AXIS_TICK_OPTION_MASK(option);
         }
     }
-
     /*
      * On initial configuration, parse effective option-database
      * values that were not explicitly overridden.
@@ -2471,7 +2299,6 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
                 goto error;
             }
         }
-
         if (!(explicitMask & AXIS_TICK_OPTION_MASK(AXIS_TICK_OPTION_MINOR)) && (axisPtr->minorTicksObjPtr != NULL)) {
             if (StageAxisTicks(graphPtr->interp, axisPtr->minorTicksObjPtr, AXIS_TICK_OPTION_MINOR, transactionPtr) !=
                 TCL_OK) {
@@ -2479,7 +2306,6 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
             }
         }
     }
-
     /*
      * Process explicit repeated occurrences in caller order.
      */
@@ -2487,21 +2313,17 @@ static int PrepareAxisTickTransaction(Graph *graphPtr, Axis *axisPtr, AxisTickTr
         AxisTickOption option;
 
         option = GetAxisTickOption(axisPtr->optionObjv[i]);
-
         if (option == AXIS_TICK_OPTION_NONE) {
             continue;
         }
-
         if (StageAxisTicks(graphPtr->interp, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     return TCL_OK;
 
 error:
     FreeAxisTickTransaction(transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -2510,17 +2332,12 @@ static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transa
         Ticks *oldTicksPtr;
 
         oldTicksPtr = axisPtr->t1Ptr;
-
         axisPtr->t1Ptr = transactionPtr->majorTicksPtr;
-
         transactionPtr->majorTicksPtr = NULL;
-
         axisPtr->flags &= ~AXIS_CONFIG_MAJOR;
-
         if (axisPtr->t1Ptr != NULL) {
             axisPtr->flags |= AXIS_CONFIG_MAJOR;
         }
-
         FreeAxisTicks(oldTicksPtr);
     }
 
@@ -2528,20 +2345,14 @@ static void CommitAxisTickTransaction(Axis *axisPtr, AxisTickTransaction *transa
         Ticks *oldTicksPtr;
 
         oldTicksPtr = axisPtr->t2Ptr;
-
         axisPtr->t2Ptr = transactionPtr->minorTicksPtr;
-
         transactionPtr->minorTicksPtr = NULL;
-
         axisPtr->flags &= ~AXIS_CONFIG_MINOR;
-
         if (axisPtr->t2Ptr != NULL) {
             axisPtr->flags |= AXIS_CONFIG_MINOR;
         }
-
         FreeAxisTicks(oldTicksPtr);
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -2549,7 +2360,6 @@ static void FreeAxisShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
         Tk_FreeColor(shadowPtr->color);
     }
-
     shadowPtr->color = NULL;
     shadowPtr->offset = 0;
 }
@@ -2581,7 +2391,6 @@ static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption op
 
     newShadow.color = NULL;
     newShadow.offset = 0;
-
     /*
      * Rbc_GetShadowFromObj acquires the colour and validates the
      * optional non-negative offset without modifying live state.
@@ -2589,31 +2398,23 @@ static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption op
     if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &newShadow) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (option) {
     case AXIS_SHADOW_OPTION_LIMITS:
         candidatePtr = &transactionPtr->limitsShadow;
         break;
-
     case AXIS_SHADOW_OPTION_TICK:
         candidatePtr = &transactionPtr->tickShadow;
         break;
-
     case AXIS_SHADOW_OPTION_TITLE:
         candidatePtr = &transactionPtr->titleShadow;
         break;
-
     case AXIS_SHADOW_OPTION_NONE:
     default:
         FreeAxisShadow(&newShadow);
-
         Tcl_Panic("StageAxisShadow called with invalid option");
-
         return TCL_ERROR;
     }
-
     mask = AXIS_SHADOW_OPTION_MASK(option);
-
     /*
      * Parse and acquire the replacement before releasing an earlier
      * staged candidate for the same option.
@@ -2621,20 +2422,15 @@ static int StageAxisShadow(Graph *graphPtr, Tcl_Obj *objPtr, AxisShadowOption op
     if (transactionPtr->stagedMask & mask) {
         FreeAxisShadow(candidatePtr);
     }
-
     *candidatePtr = newShadow;
     transactionPtr->stagedMask |= mask;
-
     return TCL_OK;
 }
 
 static void FreeAxisShadowTransaction(AxisShadowTransaction *transactionPtr) {
     FreeAxisShadow(&transactionPtr->limitsShadow);
-
     FreeAxisShadow(&transactionPtr->tickShadow);
-
     FreeAxisShadow(&transactionPtr->titleShadow);
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -2643,11 +2439,8 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
     Tcl_Size i;
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
-
     explicitMask = 0;
-
     assert((axisPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which shadow options were explicitly supplied.
      */
@@ -2655,12 +2448,10 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
         AxisShadowOption option;
 
         option = GetAxisShadowOption(axisPtr->optionObjv[i]);
-
         if (option != AXIS_SHADOW_OPTION_NONE) {
             explicitMask |= AXIS_SHADOW_OPTION_MASK(option);
         }
     }
-
     /*
      * During initial configuration, parse effective option
      * database values that were not explicitly overridden.
@@ -2673,14 +2464,12 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
                 goto error;
             }
         }
-
         if (!(explicitMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TICK)) && (axisPtr->tickShadowObjPtr != NULL)) {
             if (StageAxisShadow(graphPtr, axisPtr->tickShadowObjPtr, AXIS_SHADOW_OPTION_TICK, transactionPtr) !=
                 TCL_OK) {
                 goto error;
             }
         }
-
         if (!(explicitMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TITLE)) &&
             (axisPtr->titleShadowObjPtr != NULL)) {
             if (StageAxisShadow(graphPtr, axisPtr->titleShadowObjPtr, AXIS_SHADOW_OPTION_TITLE, transactionPtr) !=
@@ -2689,7 +2478,6 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
             }
         }
     }
-
     /*
      * Process explicit repeated occurrences in caller order. An
      * invalid earlier value is therefore not hidden by a later valid
@@ -2699,21 +2487,17 @@ static int PrepareAxisShadowTransaction(Graph *graphPtr, Axis *axisPtr, AxisShad
         AxisShadowOption option;
 
         option = GetAxisShadowOption(axisPtr->optionObjv[i]);
-
         if (option == AXIS_SHADOW_OPTION_NONE) {
             continue;
         }
-
         if (StageAxisShadow(graphPtr, axisPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     return TCL_OK;
 
 error:
     FreeAxisShadowTransaction(transactionPtr);
-
     return TCL_ERROR;
 }
 
@@ -2722,44 +2506,29 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
         Shadow oldShadow;
 
         oldShadow = axisPtr->limitsTextStyle.shadow;
-
         axisPtr->limitsTextStyle.shadow = transactionPtr->limitsShadow;
-
         transactionPtr->limitsShadow.color = NULL;
-
         transactionPtr->limitsShadow.offset = 0;
-
         FreeAxisShadow(&oldShadow);
     }
-
     if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TICK)) {
         Shadow oldShadow;
 
         oldShadow = axisPtr->tickTextStyle.shadow;
-
         axisPtr->tickTextStyle.shadow = transactionPtr->tickShadow;
-
         transactionPtr->tickShadow.color = NULL;
-
         transactionPtr->tickShadow.offset = 0;
-
         FreeAxisShadow(&oldShadow);
     }
-
     if (transactionPtr->stagedMask & AXIS_SHADOW_OPTION_MASK(AXIS_SHADOW_OPTION_TITLE)) {
         Shadow oldShadow;
 
         oldShadow = axisPtr->titleTextStyle.shadow;
-
         axisPtr->titleTextStyle.shadow = transactionPtr->titleShadow;
-
         transactionPtr->titleShadow.color = NULL;
-
         transactionPtr->titleShadow.offset = 0;
-
         FreeAxisShadow(&oldShadow);
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -3037,7 +2806,6 @@ static void FixAxisRange(Axis *axisPtr) {
      */
     min = axisPtr->valueRange.min;
     max = axisPtr->valueRange.max;
-
     if (min == DBL_MAX) {
         if (DEFINED(axisPtr->reqMin)) {
             min = axisPtr->reqMin;
@@ -3080,7 +2848,6 @@ static void FixAxisRange(Axis *axisPtr) {
         }
     }
     SetAxisRange(&axisPtr->valueRange, min, max);
-
     /*
      * The axis limits are either the current data range or overridden
      * by the values selected by the user with the -min or -max
@@ -3739,7 +3506,6 @@ void Rbc_ResetAxes(Graph *graphPtr) {
         axisPtr->min = axisPtr->valueRange.min = DBL_MAX;
         axisPtr->max = axisPtr->valueRange.max = -DBL_MAX;
     }
-
     /*
      * Step 2:  For each element that's to be displayed, get the smallest
      *        and largest data values mapped to each X and Y-axis.  This
@@ -3811,7 +3577,6 @@ void Rbc_ResetAxes(Graph *graphPtr) {
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
         FixAxisRange(axisPtr);
-
         /* Calculate min/max tick (major/minor) layouts */
         min = axisPtr->min;
         max = axisPtr->max;
@@ -3831,9 +3596,7 @@ void Rbc_ResetAxes(Graph *graphPtr) {
             graphPtr->flags |= REDRAW_BACKING_STORE;
         }
     }
-
     graphPtr->flags &= ~RESET_AXES;
-
     /*
      * When any axis changes, we need to layout the entire graph.
      */
@@ -3871,12 +3634,10 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
     Rbc_ResetTextStyle(graphPtr->tkwin, &axisPtr->titleTextStyle);
     Rbc_ResetTextStyle(graphPtr->tkwin, &axisPtr->tickTextStyle);
     Rbc_ResetTextStyle(graphPtr->tkwin, &axisPtr->limitsTextStyle);
-
     gcMask = (GCForeground | GCLineWidth | GCCapStyle);
     gcValues.foreground = axisPtr->tickTextStyle.color->pixel;
     gcValues.line_width = LineWidth(axisPtr->lineWidth);
     gcValues.cap_style = CapProjecting;
-
     newGC = Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
     if (axisPtr->tickGC != NULL) {
         Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
@@ -3906,70 +3667,52 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
  */
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
     ReleaseAxisOptionResources(graphPtr, axisPtr);
-
     if (graphPtr->bindTable != NULL) {
         Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
     }
-
     if (axisPtr->linkPtr != NULL) {
         Rbc_ChainDeleteLink(axisPtr->chainPtr, axisPtr->linkPtr);
     }
-
     if (axisPtr->name != NULL) {
         ckfree((char *)axisPtr->name);
     }
-
     if (axisPtr->hashPtr != NULL) {
         Tcl_DeleteHashEntry(axisPtr->hashPtr);
     }
-
     /*
      * These release the graphics contexts maintained by each text
      * style. The option system owns the fonts and foreground colours.
      */
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->titleTextStyle);
-
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->limitsTextStyle);
-
     Rbc_FreeTextStyle(graphPtr->display, &axisPtr->tickTextStyle);
-
     /*
      * Shadow colours are allocated independently by the shadow parser
      * and are not released by Rbc_FreeTextStyle or the Tk option table.
      */
     FreeAxisShadow(&axisPtr->titleTextStyle.shadow);
-
     FreeAxisShadow(&axisPtr->limitsTextStyle.shadow);
-
     FreeAxisShadow(&axisPtr->tickTextStyle.shadow);
-
     if (axisPtr->tickGC != NULL) {
         Tk_FreeGC(graphPtr->display, axisPtr->tickGC);
     }
-
     if (axisPtr->t1Ptr != NULL) {
         ckfree((char *)axisPtr->t1Ptr);
     }
-
     if (axisPtr->t2Ptr != NULL) {
         ckfree((char *)axisPtr->t2Ptr);
     }
-
     if (axisPtr->limitsFormats != NULL) {
         ckfree((char *)axisPtr->limitsFormats);
     }
-
     FreeLabels(axisPtr->tickLabels);
     Rbc_ChainDestroy(axisPtr->tickLabels);
-
     if (axisPtr->segments != NULL) {
         ckfree((char *)axisPtr->segments);
     }
-
     if (axisPtr->tags != NULL) {
         ckfree((char *)axisPtr->tags);
     }
-
     ckfree((char *)axisPtr);
 }
 
@@ -4006,7 +3749,6 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
     int x, y;
 
     axisPtr->titleTextStyle.theta = titleRotate[margin];
-
     majorOffset = minorOffset = 0;
     labelOffset = AXIS_TITLE_PAD;
     if (axisPtr->lineWidth > 0) {
@@ -4030,7 +3772,6 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
      * the individual major and minor ticks.
      */
     p = 0; /* Suppress compiler warning */
-
     switch (margin) {
     case MARGIN_TOP:
         p = graphPtr->top - axisOffset - pad;
@@ -4052,7 +3793,6 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
         axisPtr->titlePos.x = x;
         axisPtr->titlePos.y = y;
         break;
-
     case MARGIN_BOTTOM:
         p = graphPtr->bottom + axisOffset + pad;
         if (axisPtr->titleAlternate) {
@@ -4074,7 +3814,6 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
         axisPtr->titlePos.x = x;
         axisPtr->titlePos.y = y;
         break;
-
     case MARGIN_LEFT:
         p = graphPtr->left - axisOffset - pad;
         if (axisPtr->titleAlternate) {
@@ -4089,14 +3828,12 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
         axisPtr->tickTextStyle.anchor = TK_ANCHOR_E;
         axisPtr->region.left = graphPtr->left - offset + labelOffset - 1;
         axisPtr->region.right = graphPtr->left - offset + 2;
-
         offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
         axisPtr->region.top = graphPtr->vOffset - offset - 2;
         axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange + offset - 1;
         axisPtr->titlePos.x = x;
         axisPtr->titlePos.y = y;
         break;
-
     case MARGIN_RIGHT:
         p = graphPtr->right + axisOffset + pad;
         if (axisPtr->titleAlternate) {
@@ -4109,17 +3846,14 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
             axisPtr->titleTextStyle.anchor = TK_ANCHOR_E;
         }
         axisPtr->tickTextStyle.anchor = TK_ANCHOR_W;
-
         axisPtr->region.left = graphPtr->right + axisOffset + axisPtr->lineWidth - axisPtr->lineWidth / 2;
         axisPtr->region.right = graphPtr->right + axisOffset + labelOffset + axisPtr->lineWidth + 1;
-
         offset = axisPtr->borderWidth + axisPtr->lineWidth / 2;
         axisPtr->region.top = graphPtr->vOffset - offset - 2;
         axisPtr->region.bottom = graphPtr->vOffset + graphPtr->vRange + offset - 1;
         axisPtr->titlePos.x = x;
         axisPtr->titlePos.y = y;
         break;
-
     case MARGIN_NONE:
         break;
     }
@@ -4127,7 +3861,6 @@ static void AxisOffsets(Graph *graphPtr, Axis *axisPtr, int margin, int axisOffs
     infoPtr->t1 = p + majorOffset;
     infoPtr->t2 = p + minorOffset;
     infoPtr->label = p + labelOffset;
-
     if (axisPtr->tickLength < 0) {
         int hold;
 
@@ -4250,9 +3983,7 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     Segment2D *segPtr;
 
     AxisOffsets(graphPtr, axisPtr, margin, offset, &info);
-
     /* Save all line coordinates in an array of line segments. */
-
     if (axisPtr->segments != NULL) {
         ckfree(axisPtr->segments);
         axisPtr->segments = NULL;
@@ -4276,7 +4007,6 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
     if (segments == NULL) {
         return;
     }
-
     segPtr = segments;
     if (axisPtr->lineWidth > 0) {
         /* Axis baseline */
@@ -4311,10 +4041,8 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
             MakeTick(graphPtr, axisPtr, t1, info.t1, info.axis, segPtr);
             segPtr++;
         }
-
         linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels);
         labelPos = (double)info.label;
-
         for (i = 0; i < axisPtr->t1Ptr->nTicks; i++) {
             t1 = axisPtr->t1Ptr->values[i];
             if (axisPtr->labelOffset) {
@@ -4475,16 +4203,13 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
     if (viewMax < worldMin) {
         viewMin = worldMin;
         viewMax = worldMin;
-
     } else if (viewMin > worldMax) {
         viewMin = worldMax;
         viewMax = worldMax;
-
     } else {
         if (viewMin < worldMin) {
             viewMin = worldMin;
         }
-
         if (viewMax > worldMax) {
             viewMax = worldMax;
         }
@@ -4523,8 +4248,8 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
  *
  *----------------------------------------------------------------------
  */
-static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr, double windowSize,
-                             double scrollUnits) {
+static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
+                             double windowSize, double scrollUnits) {
     char c;
     const char *s;
     unsigned int length;
@@ -4658,7 +4383,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
         }
     }
     if (axisPtr->showTicks) {
-        register Rbc_ChainLink *linkPtr;
+        Rbc_ChainLink *linkPtr;
         TickLabel *labelPtr;
 
         for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -4671,8 +4396,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
         /* Draw the tick marks and axis line. */
         Rbc_RenderContext *ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, graphPtr->width, graphPtr->height,
-            axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL, NULL);
-
+                                                         axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL, NULL);
         if (ctx != NULL) {
             Rbc_RenderLineStyle(ctx, CapProjecting, JoinMiter);
             Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
@@ -4712,7 +4436,7 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
                              axisPtr->titlePos.y);
     }
     if (axisPtr->showTicks) {
-        register Rbc_ChainLink *linkPtr;
+        Rbc_ChainLink *linkPtr;
         TickLabel *labelPtr;
 
         for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -5404,7 +5128,6 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
     Tcl_WideInt value;
 
     ComputeMargins(graphPtr);
-
     left =
         (Tcl_WideInt)graphPtr->leftMargin.width + (Tcl_WideInt)graphPtr->inset + (Tcl_WideInt)graphPtr->plotBorderWidth;
     right = (Tcl_WideInt)graphPtr->rightMargin.width + (Tcl_WideInt)graphPtr->inset +
@@ -5611,31 +5334,24 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     if (limitTransactionPrepared) {
         CommitAxisLimitTransaction(axisPtr, &limitTransaction);
     }
-
     if (tickTransactionPrepared) {
         CommitAxisTickTransaction(axisPtr, &tickTransaction);
     }
-
     if (looseTransactionPrepared) {
         CommitAxisLooseTransaction(axisPtr, &looseTransaction);
     }
-
     if (pixelTransactionPrepared) {
         CommitAxisPixelTransaction(axisPtr, &pixelTransaction);
     }
-
     if (shadowTransactionPrepared) {
         CommitAxisShadowTransaction(axisPtr, &shadowTransaction);
     }
-
     if (tagsTransactionPrepared) {
         CommitAxisTagsTransaction(axisPtr, &tagsTransaction);
     }
-
     if (formatTransactionPrepared) {
         CommitAxisFormatTransaction(axisPtr, &formatTransaction);
     }
-
     axisPtr->tickTextStyle.theta = fmod(axisPtr->tickTextStyle.theta, 360.0);
     if (axisPtr->tickTextStyle.theta < 0.0) {
         axisPtr->tickTextStyle.theta += 360.0;
@@ -5649,7 +5365,6 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
         axisPtr->titleWidth = w;
         axisPtr->titleHeight = h;
     }
-
     /*
      * Don't bother to check what configuration options have changed.
      * Almost every option changes the size of the plotting area
@@ -5663,7 +5378,6 @@ static int ConfigureAxis(Graph *graphPtr, Axis *axisPtr) {
     graphPtr->flags |= (MAP_WORLD | RESET_AXES);
     axisPtr->flags |= AXIS_DIRTY;
     Rbc_EventuallyRedrawGraph(graphPtr);
-
     return TCL_OK;
 
 error:
@@ -5679,7 +5393,6 @@ error:
     if (tickTransactionPrepared) {
         FreeAxisTickTransaction(&tickTransaction);
     }
-
     return TCL_ERROR;
 }
 
@@ -5725,17 +5438,13 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     } else {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
-
         axisPtr->optionTable = NULL;
-
         axisPtr->optionMask = 0;
         axisPtr->optionObjc = 0;
         axisPtr->optionObjv = NULL;
-
         axisPtr->optionsConfigured = FALSE;
         axisPtr->optionsInitialized = FALSE;
         axisPtr->tkResourcesReleased = FALSE;
-
         axisPtr->name = RbcStrdup(name);
         axisPtr->hashPtr = hPtr;
         axisPtr->classUid = NULL;
@@ -5745,7 +5454,6 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
         axisPtr->showTicks = TRUE;
         axisPtr->reqMin = axisPtr->reqMax = VALUE_UNDEFINED;
         axisPtr->scrollMin = axisPtr->scrollMax = VALUE_UNDEFINED;
-
         if ((graphPtr->classUid == rbcBarElementUid) && ((margin == MARGIN_TOP) || (margin == MARGIN_BOTTOM))) {
             axisPtr->reqStep = 1.0;
             axisPtr->reqNumMinorTicks = 0;
@@ -5956,16 +5664,13 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
     for (i = 0; i < 4; i++) {
         chainPtr = Rbc_ChainCreate();
         graphPtr->axisChain[i] = chainPtr;
-
         /*
          * Create a default axis for each margin.
          */
         axisPtr = CreateAxis(graphPtr, axisNames[i], i);
-
         if (axisPtr == NULL) {
             return TCL_ERROR;
         }
-
         /*
          * Polar graphs use the ordinary Cartesian axes internally, but their
          * rectangular axis decoration is not part of the default Polar
@@ -5977,18 +5682,14 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
          */
         if (graphPtr->classUid == rbcPolarElementUid) {
             axisPtr->hidden = TRUE;
-        }        
-
+        }
         /*
          * Default axes are assumed to be in use and visible on their
          * respective margins.
          */
         axisPtr->refCount = 1;
-
         axisPtr->classUid = (i & 1) ? rbcYAxisUid : rbcXAxisUid;
-
         axisPtr->flags |= AXIS_ONSCREEN;
-
         /*
          * Initialise the modern option table, apply option-database
          * defaults, and construct the derived axis resources.
@@ -5996,12 +5697,9 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
         if (ConfigureNewAxis(graphPtr, axisPtr, 0, NULL) != TCL_OK) {
             return TCL_ERROR;
         }
-
         axisPtr->linkPtr = Rbc_ChainAppend(chainPtr, axisPtr);
-
         axisPtr->chainPtr = chainPtr;
     }
-
     return TCL_OK;
 }
 
@@ -6028,7 +5726,6 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
  */
 static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
-
     return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, Rbc_MakeAxisTag(graphPtr, axisPtr->name), objc,
                                         objv);
 }
@@ -6061,15 +5758,11 @@ static int CgetOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl
 
     assert(axisPtr->optionTable != NULL);
     assert(axisPtr->optionsInitialized);
-
     valueObjPtr = Tk_GetOptionValue(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
-
     if (valueObjPtr == NULL) {
         return TCL_ERROR;
     }
-
     Tcl_SetObjResult(graphPtr->interp, valueObjPtr);
-
     return TCL_OK;
 }
 
@@ -6102,48 +5795,35 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
 
     assert(axisPtr->optionTable != NULL);
     assert(axisPtr->optionsInitialized);
-
     if (objc == 0) {
         infoObjPtr = Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, NULL, graphPtr->tkwin);
-
         if (infoObjPtr == NULL) {
             return TCL_ERROR;
         }
-
         Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
-
         return TCL_OK;
     }
-
     if (objc == 1) {
         infoObjPtr =
             Tk_GetOptionInfo(graphPtr->interp, (char *)axisPtr, axisPtr->optionTable, objv[0], graphPtr->tkwin);
-
         if (infoObjPtr == NULL) {
             return TCL_ERROR;
         }
-
         Tcl_SetObjResult(graphPtr->interp, infoObjPtr);
-
         return TCL_OK;
     }
-
     if (ConfigureAxisOptions(graphPtr, axisPtr, objc, objv, NULL) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (axisPtr->flags & AXIS_ONSCREEN) {
         /*
          * Preserve the conservative redraw behaviour used during
          * activation.
          */
         graphPtr->flags |= REDRAW_BACKING_STORE;
-
         graphPtr->flags |= DRAW_MARGINS;
-
         Rbc_EventuallyRedrawGraph(graphPtr);
     }
-
     return TCL_OK;
 }
 
@@ -6351,12 +6031,10 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     chainPtr = graphPtr->margins[margin].axes;
     if (objc == 0) {
         Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
-
         for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewStringObj(axisPtr->name, -1));
         }
-
         Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
     }
@@ -6368,7 +6046,6 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     if (Tcl_ListObjGetElements(interp, objv[0], &nNames, &names) != TCL_OK) {
         return TCL_ERROR;
     }
-
     for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         axisPtr = Rbc_ChainGetValue(linkPtr);
         axisPtr->linkPtr = NULL;
@@ -6405,7 +6082,6 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     /* When any axis changes, we need to layout the entire graph.  */
     graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
     Rbc_EventuallyRedrawGraph(graphPtr);
-
     return TCL_OK;
 }
 
@@ -6431,13 +6107,12 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
  */
 static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
-
     if (objc == 3) {
         Tcl_HashEntry *hPtr;
         Tcl_HashSearch cursor;
         char *tagName;
-        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+        Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
         for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.tagTable, &cursor); hPtr != NULL;
              hPtr = Tcl_NextHashEntry(&cursor)) {
             tagName = Tcl_GetHashKey(&graphPtr->axes.tagTable, hPtr);
@@ -6474,22 +6149,17 @@ static int CreateVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
     Axis *axisPtr;
 
     axisPtr = CreateAxis(graphPtr, Tcl_GetString(objv[3]), MARGIN_NONE);
-
     if (axisPtr == NULL) {
         return TCL_ERROR;
     }
-
     if (ConfigureNewAxis(graphPtr, axisPtr, objc - 4, objv + 4) != TCL_OK) {
         goto error;
     }
-
     Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj(axisPtr->name, -1));
-
     return TCL_OK;
 
 error:
     DestroyAxis(graphPtr, axisPtr);
-
     return TCL_ERROR;
 }
 
@@ -6551,7 +6221,7 @@ static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
     Tcl_Size nOpts;
     Tcl_Size i;
     Tcl_Obj *const *options;
- 
+
     /* Figure out where the option value pairs begin */
     objc -= 3;
     objv += 3;
@@ -6567,7 +6237,6 @@ static int ConfigureVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const obj
     nNames = i;         /* Number of pen names specified */
     nOpts = objc - i;   /* Number of options specified */
     options = objv + i; /* Start of options in objv  */
-
     for (i = 0; i < nNames; i++) {
         if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
             return TCL_ERROR;
@@ -6646,7 +6315,7 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
  */
 static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
-    register Axis *axisPtr;
+    Axis *axisPtr;
 
     axisPtr = (Axis *)Rbc_GetCurrentItem(graphPtr->bindTable);
     /* Report only on axes. */
@@ -6654,7 +6323,6 @@ static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
         ((axisPtr->classUid == rbcXAxisUid) || (axisPtr->classUid == rbcYAxisUid) || (axisPtr->classUid == NULL))) {
         const char *s = Tcl_GetString(objv[3]);
         const char c = s[0];
-
         if ((c == 'c') && (strcmp(s, "current") == 0)) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj(axisPtr->name, -1));
         } else if ((c == 'd') && (strcmp(s, "detail") == 0)) {
@@ -6752,8 +6420,8 @@ static int NamesVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[])
     Tcl_HashSearch cursor;
     Axis *axisPtr;
     Tcl_Size i;
-    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+    Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
         if (axisPtr->deletePending) {
@@ -6938,16 +6606,13 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
           "axisName ?moveto fract? "
           "?scroll number what?"},
          ViewOp},
-
         {{NULL, 0, 0, NULL}, NULL}};
-
     int index;
 
     if (Rbc_GetOpIndexFromObj(interp, axisOps, (Tcl_Size)sizeof(axisOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
         TCL_OK) {
         return TCL_ERROR;
     }
-
     return axisOps[index].proc(graphPtr, objc, objv);
 }
 
@@ -6989,9 +6654,7 @@ int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]
                               &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     axisPtr = Rbc_GetFirstAxis(graphPtr->margins[margin].axes);
-
     return axisOps[index].proc(graphPtr, axisPtr, margin, objc - 3, objv + 3);
 }
 
@@ -7017,7 +6680,7 @@ void Rbc_MapAxes(Graph *graphPtr) {
     Axis *axisPtr;
     Rbc_Chain *chainPtr;
     Rbc_ChainLink *linkPtr;
-    register int margin;
+    int margin;
     int offset;
 
     for (margin = 0; margin < 4; margin++) {
@@ -7059,7 +6722,7 @@ void Rbc_MapAxes(Graph *graphPtr) {
 void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
     Rbc_ChainLink *linkPtr;
-    register int i;
+    int i;
 
     for (i = 0; i < 4; i++) {
         for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes); linkPtr != NULL;
@@ -7094,7 +6757,7 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
 void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken) {
     Axis *axisPtr;
     Rbc_ChainLink *linkPtr;
-    register int i;
+    int i;
 
     for (i = 0; i < 4; i++) {
         for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes); linkPtr != NULL;
@@ -7325,7 +6988,7 @@ Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr) {
  *----------------------------------------------------------------------
  */
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
-    register Tcl_HashEntry *hPtr;
+    Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
     Axis *axisPtr;
     int width, height;
@@ -7339,7 +7002,7 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
                        * that are virtual. */
         }
         if (axisPtr->showTicks) {
-            register Rbc_ChainLink *linkPtr;
+            Rbc_ChainLink *linkPtr;
             TickLabel *labelPtr;
             Point2D t;
 

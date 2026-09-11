@@ -67,10 +67,8 @@ Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImag
     height = Rbc_ColorImageHeight(image);
     display = Tk_Display(tkwin);
     depth = Tk_Depth(tkwin);
-
     pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, depth);
     pixmapDC = Rbc_WinAcquireDrawableDC(display, pixmap, &dcStatePtr);
-
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < height; y++) {
         for (x = 0; x < width; x++) {
@@ -264,6 +262,7 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
             srcPtr++;
         }
     }
+    
 done:
     if (memDC != NULL) {
         if (oldBitmap != NULL) {
@@ -750,7 +749,6 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     Display *display;
 
     /* Create a new bitmap the size of the region and clear it */
-
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
     destBitmap = Tk_GetPixmap(display, root, destWidth, destHeight, 1);
@@ -759,9 +757,7 @@ Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcH
     }
     src = Rbc_WinAcquireDrawableDC(display, srcBitmap, &srcStatePtr);
     dest = Rbc_WinAcquireDrawableDC(display, destBitmap, &destStatePtr);
-
     StretchBlt(dest, 0, 0, destWidth, destHeight, src, 0, 0, srcWidth, srcHeight, SRCCOPY);
-
     Rbc_WinReleaseDrawableDC(srcStatePtr);
     Rbc_WinReleaseDrawableDC(destStatePtr);
     return destBitmap;
@@ -836,7 +832,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
     }
     display = Tk_Display(tkwin);
     root = RootWindow(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
-
     /* Create a bitmap and image big enough to contain the rotated text */
     destBitmap = Tk_GetPixmap(display, root, regionWidth, regionHeight, 1);
     if (destBitmap == None) {
@@ -943,7 +938,6 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
 
         radians = (theta / 180.0) * M_PI;
         sinTheta = sin(radians), cosTheta = cos(radians);
-
         /*
          * Coordinates of the centers of the source and destination rectangles
          */
@@ -951,33 +945,25 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
         scy = srcHeight * 0.5;
         rcx = rotWidth * 0.5;
         rcy = rotHeight * 0.5;
-
         /* For each pixel of the destination image, transform back to the
          * associated pixel in the source image. */
-
         for (y = 0; y < (int)regionHeight; y++) {
             ty = (yScale * (double)(y + regionY)) - rcy;
             for (x = 0; x < (int)regionWidth; x++) {
-
                 /* Translate origin to center of destination image. */
                 tx = (xScale * (double)(x + regionX)) - rcx;
-
                 /* Rotate the coordinates about the origin. */
                 rx = (tx * cosTheta) - (ty * sinTheta);
                 ry = (tx * sinTheta) + (ty * cosTheta);
-
                 /* Translate back to the center of the source image. */
                 rx += scx;
                 ry += scy;
-
                 sx = ROUND(rx);
                 sy = ROUND(ry);
-
                 /*
                  * Verify the coordinates, since the destination image can be
                  * bigger than the source.
                  */
-
                 if ((sx >= (int)srcWidth) || (sx < 0) || (sy >= (int)srcHeight) || (sy < 0)) {
                     continue;
                 }
@@ -1060,7 +1046,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
         Rbc_AppendResultStrings(interp, "bad JPEG image size", (char *)NULL);
         goto error;
     }
-
     // !dudnik: to fix bug case 584680, [OT:287A305B]
     // Set the JPG color space ... this will always be
     // somewhat of an educated guess at best because JPEG
@@ -1090,13 +1075,10 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unsupported JPEG channel count %d", jpgProps.JPGChannels));
         goto error;
     }
-
     jpgProps.DIBWidth = jpgProps.JPGWidth;
     jpgProps.DIBHeight = jpgProps.JPGHeight;
     jpgProps.DIBPadBytes = IJL_DIB_PAD_BYTES(jpgProps.DIBWidth, jpgProps.DIBChannels);
-
     image = Rbc_CreateColorImage(jpgProps.JPGWidth, jpgProps.JPGHeight);
-
     jpgProps.DIBBytes = (BYTE *)Rbc_ColorImageBits(image);
     if (ijlRead(&jpgProps, IJL_JFILE_READWHOLEIMAGE) != IJL_OK) {
         Rbc_AppendResultStrings(interp, "can't read image data from \"", fileName, "\"", (char *)NULL);
@@ -1158,7 +1140,6 @@ static void MessageProc(j_common_ptr jpegInfo);
  */
 static void ErrorProc(j_common_ptr jpgPtr) {
     ReaderHandler *handlerPtr = (ReaderHandler *)jpgPtr->err;
-
     (*handlerPtr->pub.output_message)(jpgPtr);
     longjmp(handlerPtr->jmpBuf, 1);
 }
@@ -1228,20 +1209,16 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
         return NULL;
     }
     image = NULL;
-
     /* Step 1: allocate and initialize JPEG decompression object */
-
     /* We set up the normal JPEG error routines, then override error_exit. */
     jpg.dct_method = JDCT_IFAST;
     jpg.err = jpeg_std_error(&handler.pub);
     handler.pub.error_exit = ErrorProc;
     handler.pub.output_message = MessageProc;
-
     Tcl_DStringInit(&handler.dString);
     Tcl_DStringAppend(&handler.dString, "error reading \"", -1);
     Tcl_DStringAppend(&handler.dString, fileName, -1);
     Tcl_DStringAppend(&handler.dString, "\": ", -1);
-
     if (setjmp(handler.jmpBuf)) {
         jpeg_destroy_decompress(&jpg);
         fclose(f);
@@ -1250,9 +1227,7 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
     }
     jpeg_create_decompress(&jpg);
     jpeg_stdio_src(&jpg, f);
-
     jpeg_read_header(&jpg, TRUE); /* Step 3: read file parameters */
-
     jpeg_start_decompress(&jpg); /* Step 5: Start decompressor */
     if ((jpg.output_width < 1) || (jpg.output_height < 1) || (jpg.output_width > (JDIMENSION)INT_MAX) ||
         (jpg.output_height > (JDIMENSION)INT_MAX)) {
@@ -1276,14 +1251,12 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
         return NULL;
     }
     JDIMENSION rowStride;
-
     rowStride = jpg.output_width * jpg.output_components;
     /* Make a one-row-high sample array that will go away when done
      * with image */
     readBuffer = (*jpg.mem->alloc_sarray)((j_common_ptr)&jpg, JPOOL_IMAGE, row_stride, 1);
     image = Rbc_CreateColorImage(imageWidth, imageHeight);
     destPtr = Rbc_ColorImageBits(image);
-
     if (jpg.output_components == 1) {
         while (jpg.output_scanline < imageHeight) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
@@ -1312,7 +1285,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
                                    * possible with the stdio data
                                    * source.  */
     jpeg_destroy_decompress(&jpg);
-
     /*
      * After finish_decompress, we can close the input file.  Here we
      * postpone it until after no more JPEG errors are possible, so as
@@ -1321,7 +1293,6 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
      * anything...)
      */
     fclose(f);
-
     /*
      * At this point you may want to check to see whether any corrupt-data
      * warnings occurred (test whether jerr.pub.num_warnings is nonzero).

@@ -703,7 +703,7 @@ static int ComplexValueIsFinite(Rbc_Complex value) { return FINITE(value.real) &
  */
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr) {
     Tcl_HashEntry *hPtr;
-    register MathFunction *mathPtr;
+    MathFunction *mathPtr;
     int isNew;
 
     for (mathPtr = mathFunctions; mathPtr->name != NULL; mathPtr++) {
@@ -885,7 +885,6 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
 
 static double Random(double value) {
     (void)value;
-
     return Rbc_RandomDouble();
 }
 
@@ -1027,7 +1026,7 @@ static double Sum(Rbc_Vector *vecPtr) {
 static double Product(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     Tcl_Size i;
-    register double prod;
+    double prod;
 
     prod = 1.0;
     for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
@@ -1186,7 +1185,7 @@ static double Median(Rbc_Vector *vecPtr) {
  */
 static double Variance(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register double dx, var, mean;
+    double dx, var, mean;
     Tcl_Size i;
     Tcl_Size count;
 
@@ -1225,7 +1224,7 @@ static double Variance(Rbc_Vector *vecPtr) {
  */
 static double Skew(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register double diff, var, skew, mean, diffsq;
+    double diff, var, skew, mean, diffsq;
     Tcl_Size i;
     Tcl_Size count;
 
@@ -1296,7 +1295,7 @@ static double StdDeviation(Rbc_Vector *vecPtr) {
  */
 static double AvgDeviation(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register double diff, avg, mean;
+    double diff, avg, mean;
     Tcl_Size i;
     Tcl_Size count;
 
@@ -1335,7 +1334,7 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
  */
 static double Kurtosis(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
-    register double diff, diffsq, kurt, var, mean;
+    double diff, diffsq, kurt, var, mean;
     Tcl_Size i;
     Tcl_Size count;
 
@@ -2378,9 +2377,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         goto done;
     }
     if (parsePtr->token == OPEN_PAREN) {
-
         /* Parenthesized sub-expression. */
-
         result = NextValue(interp, parsePtr, -1, valuePtr);
         if (result != TCL_OK) {
             goto done;
@@ -2477,8 +2474,8 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             goto done;
         }
     } else if (v2Ptr->length == 1) {
-        register double *opnd;
-        register double scalar;
+        double *opnd;
+        double scalar;
 
         /*
          * 2nd operand is a scalar.
@@ -2572,8 +2569,8 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
         }
 
     } else if (vPtr->length == 1) {
-        register double *opnd;
-        register double scalar;
+        double *opnd;
+        double scalar;
 
         /*
          * 1st operand is a scalar.
@@ -2668,7 +2665,7 @@ static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *v
             goto error;
         }
     } else {
-        register double *opnd1, *opnd2;
+        double *opnd1, *opnd2;
         /*
          * Carry out the function of the specified operator.
          */
@@ -2957,7 +2954,7 @@ static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char *
  *----------------------------------------------------------------------
  */
 static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
-    register char *p;
+    char *p;
     const char *termPtr;    
     char *endPtr;
     const char *var;
@@ -3020,7 +3017,6 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
         }
         parsePtr->nextPtr = (char *)termPtr;
         return TCL_OK;
-
     case '"':
         parsePtr->token = VALUE;
         result = ParseQuotedValue(interp, p, &termPtr, valuePtr);
@@ -3029,7 +3025,6 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
         }
         parsePtr->nextPtr = (char *)termPtr;
         return TCL_OK;
-
     case '{':
         parsePtr->token = VALUE;
         result = ParseBracedValue(interp, p, &termPtr, valuePtr);
@@ -3038,7 +3033,6 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
         }
         parsePtr->nextPtr = (char *)termPtr;
         return TCL_OK;
-        
     case '(':
         parsePtr->token = OPEN_PAREN;
         break;
@@ -3257,7 +3251,6 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
         if (vPtr == NULL) {
             return TCL_ERROR;
         }
-
         if (*vectorEndPtr != '\0') {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("extra characters after vector", -1));
             return TCL_ERROR;
@@ -3302,7 +3295,7 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
 static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePtr, Value *valuePtr) {
     Tcl_HashEntry *hPtr;
     MathFunction *mathPtr; /* Info about math function. */
-    register char *p;
+    char *p;
     VectorInterpData *dataPtr; /* Interpreter-specific data. */
 
     /*
@@ -3456,8 +3449,8 @@ static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, Vecto
  */
 static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     double value;
+    
     ScalarProc *procPtr = (ScalarProc *)clientData;
-
     if (vPtr->type == RBC_VECTOR_COMPLEX) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("math function is not supported for complex vectors yet", -1));
         return TCL_ERROR;
@@ -3479,7 +3472,6 @@ static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorOb
     ComplexScalarFunction *functionPtr;
 
     functionPtr = (ComplexScalarFunction *)clientData;
-
     if (vPtr->type == RBC_VECTOR_REAL) {
         double value;
 

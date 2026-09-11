@@ -135,11 +135,7 @@ Rbc_Uid rbcWindowMarkerUid;
      GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_SMITH_GRID_MASK | GRAPH_POLAR_ANGLE_TICKS_MASK |                          \
      GRAPH_POLAR_ANGLE_COMMAND_MASK | GRAPH_SMITH_TICKS_MASK | GRAPH_SMITH_COMMAND_MASK)
 
-typedef enum {
-    GRAPH_BIND_CONTEXT_AXIS = 1,
-    GRAPH_BIND_CONTEXT_ELEMENT,
-    GRAPH_BIND_CONTEXT_MARKER
-} GraphBindContext;
+typedef enum { GRAPH_BIND_CONTEXT_AXIS = 1, GRAPH_BIND_CONTEXT_ELEMENT, GRAPH_BIND_CONTEXT_MARKER } GraphBindContext;
 
 typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
@@ -172,11 +168,7 @@ typedef struct {
     int reqWidth;
 } GraphPixelTransaction;
 
-typedef enum {
-    GRAPH_PADDING_OPTION_NONE,
-    GRAPH_PADDING_OPTION_X,
-    GRAPH_PADDING_OPTION_Y
-} GraphPaddingOption;
+typedef enum { GRAPH_PADDING_OPTION_NONE, GRAPH_PADDING_OPTION_X, GRAPH_PADDING_OPTION_Y } GraphPaddingOption;
 
 #define GRAPH_PADDING_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
@@ -239,9 +231,7 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
  * Modern graph option table.
  */
 static const char *const graphRendererNames[] = {"native", "cairo", NULL};
-static const char *const graphAntialiasNames[] = {
-    "default", "none", "gray", "fast", "good", "best", NULL
-};
+static const char *const graphAntialiasNames[] = {"default", "none", "gray", "fast", "good", "best", NULL};
 
 /* Cairo-enabled builds use Cairo unless the option database or caller overrides it. */
 #ifdef RBC_HAVE_CAIRO
@@ -251,12 +241,10 @@ static const char *const graphAntialiasNames[] = {
 #endif
 
 static const Tk_OptionSpec graphOptionSpecs[] = {
-    {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1,
-     offsetof(Graph, antialias), 0, (ClientData)graphAntialiasNames,
-     GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1,
-     offsetof(Graph, renderer), 0, (ClientData)graphRendererNames,
-     GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1, offsetof(Graph, antialias), 0,
+     (ClientData)graphAntialiasNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1, offsetof(Graph, renderer), 0,
+     (ClientData)graphRendererNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRAPH_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Graph, angleLabelAnchor), 0, &polarLabelAnchorOption, GRAPH_POLAR_LABEL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRAPH_ANGLE_COMMAND,
@@ -316,7 +304,6 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,
      offsetof(Graph, titleTextStyle.justify), 0, NULL, GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
-
     {TK_OPTION_STRING, "-leftmargin", "leftMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, leftMarginObjPtr), -1,
      0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-leftvariable", "leftVariable", "LeftVariable", DEF_GRAPH_MARGIN_VAR, -1,
@@ -551,34 +538,24 @@ static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
     switch (option) {
     case GRAPH_PIXEL_OPTION_BORDER_WIDTH:
         return graphPtr->borderWidthObjPtr;
-
     case GRAPH_PIXEL_OPTION_BOTTOM_MARGIN:
         return graphPtr->bottomMarginObjPtr;
-
     case GRAPH_PIXEL_OPTION_HALO:
         return graphPtr->haloObjPtr;
-
     case GRAPH_PIXEL_OPTION_HEIGHT:
         return graphPtr->heightObjPtr;
-
     case GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH:
         return graphPtr->highlightWidthObjPtr;
-
     case GRAPH_PIXEL_OPTION_LEFT_MARGIN:
         return graphPtr->leftMarginObjPtr;
-
     case GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH:
         return graphPtr->plotBorderWidthObjPtr;
-
     case GRAPH_PIXEL_OPTION_RIGHT_MARGIN:
         return graphPtr->rightMarginObjPtr;
-
     case GRAPH_PIXEL_OPTION_TOP_MARGIN:
         return graphPtr->topMarginObjPtr;
-
     case GRAPH_PIXEL_OPTION_WIDTH:
         return graphPtr->widthObjPtr;
-
     case GRAPH_PIXEL_OPTION_NONE:
     default:
         Tcl_Panic("GetGraphPixelObject called with invalid option");
@@ -607,56 +584,43 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
             return TCL_ERROR;
         }
     }
-
     switch (option) {
     case GRAPH_PIXEL_OPTION_BORDER_WIDTH:
         transactionPtr->borderWidth = value;
         break;
-
     case GRAPH_PIXEL_OPTION_BOTTOM_MARGIN:
         transactionPtr->bottomMarginSize = value;
         break;
-
     case GRAPH_PIXEL_OPTION_HALO:
         transactionPtr->halo = value;
         break;
-
     case GRAPH_PIXEL_OPTION_HEIGHT:
         transactionPtr->reqHeight = value;
         break;
-
     case GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH:
         transactionPtr->highlightWidth = value;
         break;
-
     case GRAPH_PIXEL_OPTION_LEFT_MARGIN:
         transactionPtr->leftMarginSize = value;
         break;
-
     case GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH:
         transactionPtr->plotBorderWidth = value;
         break;
-
     case GRAPH_PIXEL_OPTION_RIGHT_MARGIN:
         transactionPtr->rightMarginSize = value;
         break;
-
     case GRAPH_PIXEL_OPTION_TOP_MARGIN:
         transactionPtr->topMarginSize = value;
         break;
-
     case GRAPH_PIXEL_OPTION_WIDTH:
         transactionPtr->reqWidth = value;
         break;
-
     case GRAPH_PIXEL_OPTION_NONE:
     default:
         Tcl_Panic("StageGraphPixelOption called with invalid option");
         return TCL_ERROR;
     }
-
     transactionPtr->stagedMask |= GRAPH_PIXEL_OPTION_MASK(option);
-
     return TCL_OK;
 }
 
@@ -667,20 +631,16 @@ static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitMask = 0;
-
     assert((graphPtr->optionObjc & 1) == 0);
-
     /*
      * Determine which values were explicitly supplied.
      */
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         option = GetGraphPixelOption(graphPtr->optionObjv[i]);
-
         if (option != GRAPH_PIXEL_OPTION_NONE) {
             explicitMask |= GRAPH_PIXEL_OPTION_MASK(option);
         }
     }
-
     /*
      * During initial modern configuration, parse defaults and option
      * database values that were not explicitly overridden.
@@ -693,31 +653,25 @@ static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
             if (explicitMask & GRAPH_PIXEL_OPTION_MASK(option)) {
                 continue;
             }
-
             objPtr = GetGraphPixelObject(graphPtr, option);
-
             if ((objPtr != NULL) && (StageGraphPixelOption(graphPtr, objPtr, option, transactionPtr) != TCL_OK)) {
                 return TCL_ERROR;
             }
         }
     }
-
     /*
      * Process explicit occurrences in caller order. Therefore an invalid
      * earlier occurrence is not hidden by a later valid occurrence.
      */
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         option = GetGraphPixelOption(graphPtr->optionObjv[i]);
-
         if (option == GRAPH_PIXEL_OPTION_NONE) {
             continue;
         }
-
         if (StageGraphPixelOption(graphPtr, graphPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -725,50 +679,39 @@ static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_BORDER_WIDTH)) {
         graphPtr->borderWidth = transactionPtr->borderWidth;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_BOTTOM_MARGIN)) {
         graphPtr->bottomMargin.reqSize = transactionPtr->bottomMarginSize;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HALO)) {
         graphPtr->halo = transactionPtr->halo;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH)) {
         graphPtr->highlightWidth = transactionPtr->highlightWidth;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_HEIGHT)) {
         graphPtr->reqHeight = transactionPtr->reqHeight;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_LEFT_MARGIN)) {
         graphPtr->leftMargin.reqSize = transactionPtr->leftMarginSize;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH)) {
         graphPtr->plotBorderWidth = transactionPtr->plotBorderWidth;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_RIGHT_MARGIN)) {
         graphPtr->rightMargin.reqSize = transactionPtr->rightMarginSize;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_TOP_MARGIN)) {
         graphPtr->topMargin.reqSize = transactionPtr->topMarginSize;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_WIDTH)) {
         graphPtr->reqWidth = transactionPtr->reqWidth;
     }
-
     transactionPtr->stagedMask = 0;
 }
 
 static GraphPaddingOption GetGraphPaddingOption(Tcl_Obj *objPtr) {
     static const GraphOptionName optionMap[] = {{"-plotpadx", GRAPH_PADDING_OPTION_X},
                                                 {"-plotpady", GRAPH_PADDING_OPTION_Y}};
-
     return (GraphPaddingOption)GetGraphOptionFromObj(objPtr, optionMap, sizeof(optionMap) / sizeof(optionMap[0]));
 }
 
@@ -776,10 +719,8 @@ static Tcl_Obj *GetGraphPaddingObject(Graph *graphPtr, GraphPaddingOption option
     switch (option) {
     case GRAPH_PADDING_OPTION_X:
         return graphPtr->plotPadXObjPtr;
-
     case GRAPH_PADDING_OPTION_Y:
         return graphPtr->plotPadYObjPtr;
-
     case GRAPH_PADDING_OPTION_NONE:
     default:
         Tcl_Panic("GetGraphPaddingObject called with invalid option");
@@ -794,24 +735,19 @@ static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddin
     if (Rbc_GetPadFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &pad) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (option) {
     case GRAPH_PADDING_OPTION_X:
         transactionPtr->padX = pad;
         break;
-
     case GRAPH_PADDING_OPTION_Y:
         transactionPtr->padY = pad;
         break;
-
     case GRAPH_PADDING_OPTION_NONE:
     default:
         Tcl_Panic("StageGraphPaddingOption called with invalid option");
         return TCL_ERROR;
     }
-
     transactionPtr->stagedMask |= GRAPH_PADDING_OPTION_MASK(option);
-
     return TCL_OK;
 }
 
@@ -822,17 +758,13 @@ static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitMask = 0;
-
     assert((graphPtr->optionObjc & 1) == 0);
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         option = GetGraphPaddingOption(graphPtr->optionObjv[i]);
-
         if (option != GRAPH_PADDING_OPTION_NONE) {
             explicitMask |= GRAPH_PADDING_OPTION_MASK(option);
         }
     }
-
     if (!graphPtr->optionsConfigured) {
         for (option = GRAPH_PADDING_OPTION_X; option <= GRAPH_PADDING_OPTION_Y;
              option = (GraphPaddingOption)(option + 1)) {
@@ -841,27 +773,21 @@ static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
             if (explicitMask & GRAPH_PADDING_OPTION_MASK(option)) {
                 continue;
             }
-
             objPtr = GetGraphPaddingObject(graphPtr, option);
-
             if ((objPtr != NULL) && (StageGraphPaddingOption(graphPtr, objPtr, option, transactionPtr) != TCL_OK)) {
                 return TCL_ERROR;
             }
         }
     }
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         option = GetGraphPaddingOption(graphPtr->optionObjv[i]);
-
         if (option == GRAPH_PADDING_OPTION_NONE) {
             continue;
         }
-
         if (StageGraphPaddingOption(graphPtr, graphPtr->optionObjv[i + 1], option, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -869,11 +795,9 @@ static void CommitGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
     if (transactionPtr->stagedMask & GRAPH_PADDING_OPTION_MASK(GRAPH_PADDING_OPTION_X)) {
         graphPtr->padX = transactionPtr->padX;
     }
-
     if (transactionPtr->stagedMask & GRAPH_PADDING_OPTION_MASK(GRAPH_PADDING_OPTION_Y)) {
         graphPtr->padY = transactionPtr->padY;
     }
-
     transactionPtr->stagedMask = 0;
 }
 
@@ -889,9 +813,7 @@ static int GetGraphBarModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, BarMode *
     if (Tcl_GetIndexFromObjStruct(interp, objPtr, barModes, sizeof(barModes[0]), "mode", 0, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     *modePtr = barModes[index].mode;
-
     return TCL_OK;
 }
 
@@ -901,10 +823,8 @@ static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTrans
     if (GetGraphBarModeFromObj(graphPtr->interp, objPtr, &mode) != TCL_OK) {
         return TCL_ERROR;
     }
-
     transactionPtr->mode = mode;
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -914,32 +834,26 @@ static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransacti
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
-
     assert((graphPtr->optionObjc & 1) == 0);
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (IsGraphOption(graphPtr->optionObjv[i], "-barmode")) {
             explicitlySet = TRUE;
             break;
         }
     }
-
     if ((!graphPtr->optionsConfigured) && (!explicitlySet) && (graphPtr->barModeObjPtr != NULL)) {
         if (StageGraphBarMode(graphPtr, graphPtr->barModeObjPtr, transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (!IsGraphOption(graphPtr->optionObjv[i], "-barmode")) {
             continue;
         }
-
         if (StageGraphBarMode(graphPtr, graphPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     return TCL_OK;
 }
 
@@ -954,7 +868,6 @@ static void FreeGraphShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
         Tk_FreeColor(shadowPtr->color);
     }
-
     shadowPtr->color = NULL;
     shadowPtr->offset = 0;
 }
@@ -964,11 +877,9 @@ static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransac
 
     newShadow.color = NULL;
     newShadow.offset = 0;
-
     if (Rbc_GetShadowFromObj(graphPtr->interp, graphPtr->tkwin, objPtr, &newShadow) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Acquire and validate the replacement before releasing a candidate
      * staged by an earlier occurrence.
@@ -976,10 +887,8 @@ static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransac
     if (transactionPtr->staged) {
         FreeGraphShadow(&transactionPtr->shadow);
     }
-
     transactionPtr->shadow = newShadow;
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -987,7 +896,6 @@ static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
     if (transactionPtr->staged) {
         FreeGraphShadow(&transactionPtr->shadow);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -997,32 +905,26 @@ static int PrepareGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
-
     assert((graphPtr->optionObjc & 1) == 0);
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (IsGraphOption(graphPtr->optionObjv[i], "-shadow")) {
             explicitlySet = TRUE;
             break;
         }
     }
-
     if ((!graphPtr->optionsConfigured) && (!explicitlySet) && (graphPtr->shadowObjPtr != NULL)) {
         if (StageGraphShadow(graphPtr, graphPtr->shadowObjPtr, transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (!IsGraphOption(graphPtr->optionObjv[i], "-shadow")) {
             continue;
         }
-
         if (StageGraphShadow(graphPtr, graphPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     return TCL_OK;
 
 error:
@@ -1036,14 +938,11 @@ static void CommitGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction
     if (!transactionPtr->staged) {
         return;
     }
-
     oldShadow = graphPtr->titleTextStyle.shadow;
     graphPtr->titleTextStyle.shadow = transactionPtr->shadow;
-
     transactionPtr->shadow.color = NULL;
     transactionPtr->shadow.offset = 0;
     transactionPtr->staged = FALSE;
-
     FreeGraphShadow(&oldShadow);
 }
 
@@ -1051,23 +950,19 @@ static int StageGraphTile(Graph *graphPtr, Tcl_Obj *objPtr, GraphTileTransaction
     Rbc_Tile newTile;
 
     newTile = NULL;
-
     if ((objPtr != NULL) && (Tcl_GetCharLength(objPtr) > 0)) {
         if (Rbc_GetTile(graphPtr->interp, graphPtr->tkwin, Tcl_GetString(objPtr), &newTile) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     /*
      * Acquire the replacement before releasing a previously staged tile.
      */
     if (transactionPtr->staged && (transactionPtr->tile != NULL)) {
         Rbc_FreeTile(transactionPtr->tile);
     }
-
     transactionPtr->tile = newTile;
     transactionPtr->staged = TRUE;
-
     return TCL_OK;
 }
 
@@ -1075,7 +970,6 @@ static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
     if (transactionPtr->staged && (transactionPtr->tile != NULL)) {
         Rbc_FreeTile(transactionPtr->tile);
     }
-
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -1085,32 +979,26 @@ static int PrepareGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
 
     memset(transactionPtr, 0, sizeof(*transactionPtr));
     explicitlySet = FALSE;
-
     assert((graphPtr->optionObjc & 1) == 0);
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (IsGraphOption(graphPtr->optionObjv[i], "-tile")) {
             explicitlySet = TRUE;
             break;
         }
     }
-
     if ((!graphPtr->optionsConfigured) && (!explicitlySet) && (graphPtr->tileObjPtr != NULL)) {
         if (StageGraphTile(graphPtr, graphPtr->tileObjPtr, transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (!IsGraphOption(graphPtr->optionObjv[i], "-tile")) {
             continue;
         }
-
         if (StageGraphTile(graphPtr, graphPtr->optionObjv[i + 1], transactionPtr) != TCL_OK) {
             goto error;
         }
     }
-
     return TCL_OK;
 
 error:
@@ -1124,17 +1012,13 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
     if (!transactionPtr->staged) {
         return;
     }
-
     oldTile = graphPtr->tile;
     graphPtr->tile = transactionPtr->tile;
-
     transactionPtr->tile = NULL;
     transactionPtr->staged = FALSE;
-
     if (graphPtr->tile != NULL) {
         Rbc_SetTileChangedProc(graphPtr->tile, TileChangedProc, graphPtr);
     }
-
     if (oldTile != NULL) {
         Rbc_FreeTile(oldTile);
     }
@@ -1290,7 +1174,6 @@ static int StageGraphSmithTicks(Graph *graphPtr, Tcl_Obj *objPtr, int realPart, 
     ticks = NULL;
     nTicks = 0;
     allowZero = realPart;
-
     if (realPart) {
         optionName = major ? "-smithrealmajorticks" : "-smithrealminorticks";
     } else {
@@ -1299,7 +1182,6 @@ static int StageGraphSmithTicks(Graph *graphPtr, Tcl_Obj *objPtr, int realPart, 
     if (ParseSmithTicks(graphPtr->interp, objPtr, optionName, allowZero, &ticks, &nTicks) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Only release an earlier staged value after the new
      * value has parsed successfully.
@@ -1450,57 +1332,51 @@ static int PrepareGraphSmithTicksTransaction(Graph *graphPtr, GraphSmithTicksTra
             explicitImagMinor = TRUE;
         }
     }
-
     if (!graphPtr->optionsConfigured) {
         if ((!explicitRealMajor) && (graphPtr->smithRealMajorTicksObjPtr != NULL)) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMajorTicksObjPtr, TRUE, TRUE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMajorTicksObjPtr, TRUE, TRUE, transactionPtr) !=
+                TCL_OK) {
                 goto error;
             }
         }
         if ((!explicitRealMinor) && (graphPtr->smithRealMinorTicksObjPtr != NULL)) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMinorTicksObjPtr, TRUE, FALSE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithRealMinorTicksObjPtr, TRUE, FALSE, transactionPtr) !=
+                TCL_OK) {
                 goto error;
             }
         }
         if ((!explicitImagMajor) && (graphPtr->smithImagMajorTicksObjPtr != NULL)) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMajorTicksObjPtr, FALSE, TRUE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMajorTicksObjPtr, FALSE, TRUE, transactionPtr) !=
+                TCL_OK) {
                 goto error;
             }
         }
         if ((!explicitImagMinor) && (graphPtr->smithImagMinorTicksObjPtr != NULL)) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMinorTicksObjPtr, FALSE, FALSE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->smithImagMinorTicksObjPtr, FALSE, FALSE, transactionPtr) !=
+                TCL_OK) {
                 goto error;
             }
         }
     }
-
     /*
      * Process explicit values in caller order so that an invalid
      * earlier duplicate is not hidden by a later valid value.
      */
     for (i = 0; i < graphPtr->optionObjc; i += 2) {
         if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealmajorticks")) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, TRUE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, TRUE, transactionPtr) != TCL_OK) {
                 goto error;
             }
         } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithrealminorticks")) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, FALSE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], TRUE, FALSE, transactionPtr) != TCL_OK) {
                 goto error;
             }
         } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagmajorticks")) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, TRUE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, TRUE, transactionPtr) != TCL_OK) {
                 goto error;
             }
         } else if (IsGraphOption(graphPtr->optionObjv[i], "-smithimagminorticks")) {
-            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, FALSE,
-                                     transactionPtr) != TCL_OK) {
+            if (StageGraphSmithTicks(graphPtr, graphPtr->optionObjv[i + 1], FALSE, FALSE, transactionPtr) != TCL_OK) {
                 goto error;
             }
         }
@@ -1634,7 +1510,6 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     }
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -1697,17 +1572,13 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
             Rbc_ReleaseElementTkResources(graphPtr);
             Rbc_ReleasePenTkResources(graphPtr);
             ReleaseGraphOptionResources(graphPtr);
-
             Rbc_DeleteWindowInstanceData(graphPtr->tkwin);
             graphPtr->tkwin = NULL;
-
             Tcl_DeleteCommandFromToken(graphPtr->interp, graphPtr->cmdToken);
         }
-
         if (graphPtr->flags & REDRAW_PENDING) {
             Tcl_CancelIdleCall(DisplayGraph, graphPtr);
         }
-
         Tcl_EventuallyFree(graphPtr, DestroyGraph);
     } else if (eventPtr->type == ConfigureNotify) {
         graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
@@ -1736,12 +1607,10 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
  *---------------------------------------------------------------------- */
 static void GraphInstCmdDeleteProc(ClientData clientData) {
     Graph *graphPtr = clientData;
-
     if (graphPtr->tkwin != NULL) {
         Tk_Window tkwin;
 
         tkwin = graphPtr->tkwin;
-
         if (graphPtr->gridPtr != NULL) {
             Rbc_DestroyGrid(graphPtr);
         }
@@ -1758,13 +1627,10 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
         Rbc_ReleaseElementTkResources(graphPtr);
         Rbc_ReleasePenTkResources(graphPtr);
         ReleaseGraphOptionResources(graphPtr);
-
         graphPtr->tkwin = NULL;
-
 #ifdef ITCL_NAMESPACES
         Itk_SetWidgetCommand(tkwin, (Tcl_Command)NULL);
 #endif
-
         Rbc_DeleteWindowInstanceData(tkwin);
         Tk_DestroyWindow(tkwin);
     }
@@ -1791,7 +1657,6 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
  */
 static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Graph *graphPtr = clientData;
-
     if (graphPtr->tkwin != NULL) {
         graphPtr->flags |= REDRAW_WORLD;
         Rbc_EventuallyRedrawGraph(graphPtr);
@@ -2036,13 +1901,10 @@ static int InitGraphOptions(Graph *graphPtr) {
     if (graphPtr->optionsInitialized) {
         return TCL_OK;
     }
-
     graphPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, graphOptionSpecs);
-
     if (graphPtr->optionTable == NULL) {
         return TCL_ERROR;
     }
-
     /*
      * Graph is the widget record itself, so use the graph window
      * directly for option-database lookup and Tk resource allocation.
@@ -2054,15 +1916,11 @@ static int InitGraphOptions(Graph *graphPtr) {
          * pointer fields were initially NULL, so partial cleanup is safe.
          */
         Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
-
         graphPtr->optionTable = NULL;
-
         return TCL_ERROR;
     }
-
     graphPtr->optionsInitialized = TRUE;
     graphPtr->tkResourcesReleased = FALSE;
-
     return TCL_OK;
 }
 
@@ -2129,11 +1987,9 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
     int aspectSpecified;
     int mask;
     int oldRenderer = graphPtr->renderer;
-
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);
     assert((objc & 1) == 0);
-
     aspectSpecified = FALSE;
     if (graphPtr->classUid == rbcPolarElementUid) {
         for (i = 0; i < objc; i += 2) {
@@ -2147,12 +2003,10 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
      * Clear stale transaction context before invoking Tk.
      */
     ResetGraphOptionContext(graphPtr);
-
     if (Tk_SetOptions(graphPtr->interp, (char *)graphPtr, graphPtr->optionTable, objc, objv, graphPtr->tkwin,
                       &savedOptions, &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Make the changed-option mask and original argument order
      * available to retained-value transactions.
@@ -2256,7 +2110,6 @@ static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv
             graphPtr->polarAutoAspect = FALSE;
         }
     }
-
     return ConfigureGraphOptions(graphPtr, objc, objv, NULL);
 }
 
@@ -2291,18 +2144,14 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
     if ((!graphPtr->optionsInitialized) || graphPtr->tkResourcesReleased) {
         return;
     }
-
     assert(graphPtr->optionTable != NULL);
     assert(graphPtr->tkwin != NULL);
-
     /*
      * Do not retain pointers to configuration arguments during
      * destruction.
      */
     ResetGraphOptionContext(graphPtr);
-
     Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
-
     graphPtr->optionsInitialized = FALSE;
     graphPtr->tkResourcesReleased = TRUE;
 }
@@ -2358,11 +2207,10 @@ static int ConfigureGraph(Graph *graphPtr) {
     unsigned long gcMask;
 
     assert(graphPtr->optionsInitialized);
-    assert(graphPtr->optionTable != NULL);    
+    assert(graphPtr->optionTable != NULL);
 #ifndef RBC_HAVE_CAIRO
     if (graphPtr->renderer == RBC_RENDERER_CAIRO) {
-        Tcl_SetObjResult(graphPtr->interp,
-            Tcl_NewStringObj("Cairo renderer is not available in this build", -1));
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("Cairo renderer is not available in this build", -1));
         return TCL_ERROR;
     }
 #endif
@@ -2379,7 +2227,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     shadowTransactionPrepared = FALSE;
     tileTransactionPrepared = FALSE;
     polarAngleTicksTransactionPrepared = FALSE;
-    smithTicksTransactionPrepared = FALSE;   
+    smithTicksTransactionPrepared = FALSE;
     /*
      * TK_OPTION_DOUBLE accepts the numeric value itself, but these
      * options participate directly in layout and graph-coordinate
@@ -2476,7 +2324,6 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (smithTicksTransactionPrepared) {
         CommitGraphSmithTicksTransaction(graphPtr, &smithTicksTransaction);
     }
-
     invertXYModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_INVERT_XY_MASK));
     layoutModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_LAYOUT_MASK));
     plotBackgroundModified = ((!graphPtr->optionsConfigured) || (graphPtr->optionMask & GRAPH_PLOT_BACKGROUND_MASK));
@@ -2578,7 +2425,6 @@ static int ConfigureGraph(Graph *graphPtr) {
         smithTicksModified) {
         graphPtr->flags |= RESET_WORLD;
     }
-
     if (plotBackgroundModified || polarLabelsModified || representationModified || smithGridModified ||
         polarAngleTicksModified || smithTicksModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
@@ -2648,7 +2494,6 @@ static void DestroyGraph(DestroyData dataPtr) {
     }
     Rbc_DestroyAxes(graphPtr);
     Rbc_DestroyPens(graphPtr);
-
     if (graphPtr->postscript != NULL) {
         Rbc_DestroyPostScript(graphPtr);
     }
@@ -2723,7 +2568,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     Graph *graphPtr;
     Tk_Window tkwin;
     const char *pathName = Tcl_GetString(objv[1]);
-
     tkwin = Tk_CreateWindowFromPath(interp, Tk_MainWindow(interp), pathName, NULL);
     if (tkwin == NULL) {
         return NULL;
@@ -3059,31 +2903,22 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
     assert(graphPtr->optionTable != NULL);
     assert(graphPtr->optionsInitialized);
-
     if (objc == 2) {
         infoObjPtr = Tk_GetOptionInfo(interp, (char *)graphPtr, graphPtr->optionTable, NULL, graphPtr->tkwin);
-
         if (infoObjPtr == NULL) {
             return TCL_ERROR;
         }
-
         Tcl_SetObjResult(interp, infoObjPtr);
-
         return TCL_OK;
     }
-
     if (objc == 3) {
         infoObjPtr = Tk_GetOptionInfo(interp, (char *)graphPtr, graphPtr->optionTable, objv[2], graphPtr->tkwin);
-
         if (infoObjPtr == NULL) {
             return TCL_ERROR;
         }
-
         Tcl_SetObjResult(interp, infoObjPtr);
-
         return TCL_OK;
     }
-
     return ConfigureGraphOptions(graphPtr, objc - 2, objv + 2, NULL);
 }
 
@@ -3113,15 +2948,11 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 
     assert(graphPtr->optionTable != NULL);
     assert(graphPtr->optionsInitialized);
-
     valueObjPtr = Tk_GetOptionValue(interp, (char *)graphPtr, graphPtr->optionTable, objv[2], graphPtr->tkwin);
-
     if (valueObjPtr == NULL) {
         return TCL_ERROR;
     }
-
     Tcl_SetObjResult(interp, valueObjPtr);
-
     return TCL_OK;
 }
 
@@ -3169,11 +3000,9 @@ static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         EXT_TOPMARGIN,
         EXT_BOTTOMMARGIN
     } index;
-
     if (Tcl_GetIndexFromObj(interp, objv[2], extentOps, "extent item", 0, &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     switch (index) {
     case EXT_PLOTHEIGHT:
         Tcl_SetObjResult(interp, Tcl_NewIntObj(graphPtr->bottom - graphPtr->top + 1));
@@ -3204,7 +3033,6 @@ static int ExtentsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         Tcl_SetObjResult(interp, Tcl_NewIntObj(graphPtr->bottomMargin.height));
         break;
     }
-
     return TCL_OK;
 }
 
@@ -3296,7 +3124,6 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
     axes.x = Rbc_GetFirstAxis(graphPtr->axisChain[0]);
     axes.y = Rbc_GetFirstAxis(graphPtr->axisChain[1]);
     point = Rbc_InvMap2D(graphPtr, x, y, &axes);
-
     resultObj[0] = Tcl_NewDoubleObj(point.x);
     resultObj[1] = Tcl_NewDoubleObj(point.y);
     Tcl_SetObjResult(interp, Tcl_NewListObj(2, resultObj));
@@ -3347,9 +3174,7 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
      */
     axes.x = Rbc_GetFirstAxis(graphPtr->axisChain[0]);
     axes.y = Rbc_GetFirstAxis(graphPtr->axisChain[1]);
-
     point = Rbc_Map2D(graphPtr, x, y, &axes);
-
     resultObj[0] = Tcl_NewIntObj(ROUND(point.x));
     resultObj[1] = Tcl_NewIntObj(ROUND(point.y));
     Tcl_SetObjResult(interp, Tcl_NewListObj(2, resultObj));
@@ -3388,11 +3213,9 @@ static int InitMetaFileHeader(Tk_Window tkwin, int width, int height, APMHEADER 
     mfhPtr->key = 0x9ac6cdd7L;
     mfhPtr->hmf = 0;
     mfhPtr->inch = 1440;
-
     screen = Tk_Screen(tkwin);
     dpiX = (WidthOfScreen(screen) * MM_INCH) / WidthMMOfScreen(screen);
     dpiY = (HeightOfScreen(screen) * MM_INCH) / HeightMMOfScreen(screen);
-
     mfhPtr->bbox.Left = mfhPtr->bbox.Top = 0;
     mfhPtr->bbox.Bottom = (SHORT)((width * 1440) / dpiX);
     mfhPtr->bbox.Right = (SHORT)((height * 1440) / dpiY);
@@ -3447,7 +3270,8 @@ static int CreateAPMetaFile(Tcl_Interp *interp, HANDLE hMetaFile, HDC hDC, APMHE
         return TCL_ERROR;
     }
     if ((!WriteFile(hFile, (LPVOID)mfhPtr, sizeof(APMHEADER), &count, NULL)) || (count != sizeof(APMHEADER))) {
-        Rbc_AppendResultStrings(interp, "can't create metafile header to \"", fileName, "\":", Rbc_LastError(), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't create metafile header to \"", fileName, "\":", Rbc_LastError(),
+                                (char *)NULL);
         goto error;
     }
     nBytes = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hDC);
@@ -3528,13 +3352,11 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         Tcl_WrongNumArgs(interp, 2, objv, "name ?-option value ...?");
         return TCL_ERROR;
     }
-
     /* .g snap name ?switches? */
     data.height = 0;
     data.width = 0;
     data.format = FORMAT_PHOTO;
     data.name = Tcl_GetString(objv[2]);
-
     if (objc > 3) {
         for (i = 3; i < objc; i += 2) {
             if (Tcl_GetIndexFromObj(interp, objv[i], optNames, "option", 0, &index) != TCL_OK) {
@@ -3561,7 +3383,6 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
             }
         }
     }
-
     if (data.width < 2) {
         data.width = Tk_Width(graphPtr->tkwin);
     }
@@ -3572,7 +3393,6 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     graphPtr->width = data.width;
     graphPtr->height = data.height;
     Rbc_LayoutGraph(graphPtr);
-
     drawable = Tk_WindowId(graphPtr->tkwin);
     if (data.format == FORMAT_PHOTO) {
         drawable =
@@ -3597,7 +3417,6 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 
         hWnd = Tk_GetHWND(drawable);
         hRefDC = GetDC(hWnd);
-
         Tcl_DStringInit(&dString);
         Tcl_DStringAppend(&dString, "RBC Graph ", -1);
         Tcl_DStringAppend(&dString, RBC_VERSION, -1);
@@ -3607,15 +3426,12 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         title = Tcl_DStringValue(&dString);
         hDC = CreateEnhMetaFileA(hRefDC, NULL, NULL, title);
         Tcl_DStringFree(&dString);
-
         if (hDC == NULL) {
             ReleaseDC(hWnd, hRefDC);
             Rbc_AppendResultStrings(interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
             return TCL_ERROR;
         }
-
         metaDrawable = Rbc_WinCreateDrawableFromDC(hDC);
-
         Rbc_LayoutGraph(graphPtr);
         graphPtr->flags |= RESET_WORLD;
         Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
@@ -3658,27 +3474,27 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 }
 
 static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_VirtualAxisOp},
-                                      {{"bar", 2, 0, "oper ?args?"}, BarOp},
-                                      {{"cget", 3, 3, "option"}, CgetOp},
-                                      {{"configure", 2, 0, "?option value?..."}, ConfigureOp},
-                                      {{"crosshairs", 2, 0, "oper ?args?"}, Rbc_CrosshairsOp},
-                                      {{"element", 2, 0, "oper ?args?"}, ElementOp},
-                                      {{"extents", 3, 3, "item"}, ExtentsOp},
-                                      {{"grid", 2, 0, "oper ?args?"}, Rbc_GridOp},
-                                      {{"inside", 4, 4, "winX winY"}, InsideOp},
-                                      {{"invtransform", 4, 4, "winX winY"}, InvtransformOp},
-                                      {{"legend", 2, 0, "oper ?args?"}, Rbc_LegendOp},
-                                      {{"line", 2, 0, "oper ?args?"}, LineOp},
-                                      {{"marker", 2, 0, "oper ?args?"}, Rbc_MarkerOp},
-                                      {{"pen", 2, 0, "oper ?args?"}, Rbc_PenOp},
-                                      {{"postscript", 2, 0, "oper ?args?"}, Rbc_PostScriptOp},
-                                      {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
-                                      {{"transform", 4, 4, "x y"}, TransformOp},
-                                      {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
-                                      {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},
-                                      {{"y2axis", 2, 0, "oper ?args?"}, Y2AxisOp},
-                                      {{"yaxis", 2, 0, "oper ?args?"}, YAxisOp},
-                                      {{NULL, 0, 0, NULL}, NULL}
+                                       {{"bar", 2, 0, "oper ?args?"}, BarOp},
+                                       {{"cget", 3, 3, "option"}, CgetOp},
+                                       {{"configure", 2, 0, "?option value?..."}, ConfigureOp},
+                                       {{"crosshairs", 2, 0, "oper ?args?"}, Rbc_CrosshairsOp},
+                                       {{"element", 2, 0, "oper ?args?"}, ElementOp},
+                                       {{"extents", 3, 3, "item"}, ExtentsOp},
+                                       {{"grid", 2, 0, "oper ?args?"}, Rbc_GridOp},
+                                       {{"inside", 4, 4, "winX winY"}, InsideOp},
+                                       {{"invtransform", 4, 4, "winX winY"}, InvtransformOp},
+                                       {{"legend", 2, 0, "oper ?args?"}, Rbc_LegendOp},
+                                       {{"line", 2, 0, "oper ?args?"}, LineOp},
+                                       {{"marker", 2, 0, "oper ?args?"}, Rbc_MarkerOp},
+                                       {{"pen", 2, 0, "oper ?args?"}, Rbc_PenOp},
+                                       {{"postscript", 2, 0, "oper ?args?"}, Rbc_PostScriptOp},
+                                       {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
+                                       {{"transform", 4, 4, "x y"}, TransformOp},
+                                       {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
+                                       {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},
+                                       {{"y2axis", 2, 0, "oper ?args?"}, Y2AxisOp},
+                                       {{"yaxis", 2, 0, "oper ?args?"}, YAxisOp},
+                                       {{NULL, 0, 0, NULL}, NULL}
 
 };
 
@@ -3689,7 +3505,6 @@ static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl
         TCL_OK) {
         return NULL;
     }
-
     return graphOps[index].proc;
 }
 
@@ -3717,8 +3532,8 @@ static Rbc_GraphOpProc *GetGraphOpFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl
 int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_GraphOpProc *proc;
     int result;
+    
     Graph *graphPtr = clientData;
-
     proc = GetGraphOpFromObj(interp, objc, objv);
     if (proc == NULL) {
         return TCL_ERROR;
@@ -3753,6 +3568,7 @@ int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
  */
 static int NewGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
+    
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "pathName ?-option value ...?");
         return TCL_ERROR;
@@ -3857,8 +3673,6 @@ static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y
         XFillRectangle(graphPtr->display, drawable, graphPtr->fillGC, x, y, (unsigned int)width, (unsigned int)height);
     }
 }
-
-
 
 /*
  * -----------------------------------------------------------------------
@@ -3980,9 +3794,7 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
     XFillRectangle(graphPtr->display, drawable, graphPtr->plotFillGC, graphPtr->left, graphPtr->top,
                    graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
-
     /* Draw the elements, markers, legend, and axis limits. */
-
     if (!graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);
     }
@@ -4063,7 +3875,7 @@ void Rbc_LayoutGraph(Graph *graphPtr) {
  * Parameters:
  *      Graph *graphPtr
  *      Drawable drawable - Pixmap or window to draw into
- *      int backingStore - If non-zero, use backing store for plotting area. 
+ *      int backingStore - If non-zero, use backing store for plotting area.
  *
  * Results:
  *      TODO: Results
@@ -4081,7 +3893,6 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
          */
         if ((graphPtr->backPixmap == None) || (graphPtr->backWidth != graphPtr->width) ||
             (graphPtr->backHeight != graphPtr->height)) {
-
             if (graphPtr->backPixmap != None) {
                 Tk_FreePixmap(graphPtr->display, graphPtr->backPixmap);
             }
@@ -4155,7 +3966,7 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
 static void UpdateMarginTraces(Graph *graphPtr) {
     Margin *marginPtr;
     int size;
-    register int i;
+    int i;
 
     for (i = 0; i < 4; i++) {
         marginPtr = graphPtr->margins + i;
@@ -4220,12 +4031,10 @@ static void DisplayGraph(ClientData clientData) {
         graphPtr->height = height;
     }
     Rbc_LayoutGraph(graphPtr);
-
     if (!Tk_IsMapped(graphPtr->tkwin)) {
         Rbc_UpdateCrosshairs(graphPtr);
         return;
     }
-
     if (graphPtr->doubleBuffer) {
         /*
          * Check the old segment geometry before updating it.
@@ -4238,27 +4047,22 @@ static void DisplayGraph(ClientData clientData) {
         if (Rbc_CrosshairsNeedFullRedraw(graphPtr)) {
             graphPtr->flags |= DRAW_MARGINS;
         }
-
         drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
                                 Tk_Depth(graphPtr->tkwin));
-
 #ifdef WIN32
         assert(drawable != None);
 #endif
-
         /*
          * Leave the visible window untouched while preparing the
          * complete frame. The element backing store contains only
          * graph content, never crosshairs.
          */
         Rbc_DrawGraph(graphPtr, drawable, graphPtr->backingStore);
-
         /*
          * Compose the hairs into the final pixmap and present once.
          * Do not erase or enable window crosshairs around this call.
          */
         Rbc_PresentGraphWithCrosshairs(graphPtr, drawable);
-
         Tk_FreePixmap(graphPtr->display, drawable);
     } else {
         /*
@@ -4267,10 +4071,8 @@ static void DisplayGraph(ClientData clientData) {
          */
         Rbc_DisableCrosshairs(graphPtr);
         Rbc_UpdateCrosshairs(graphPtr);
-
         drawable = Tk_WindowId(graphPtr->tkwin);
         Rbc_DrawGraph(graphPtr, drawable, FALSE);
-
         Rbc_EnableCrosshairs(graphPtr);
     }
     graphPtr->flags &= ~RESET_WORLD;
@@ -4286,7 +4088,6 @@ static void DisplayGraph(ClientData clientData) {
         graphPtr->flags &= ~GRAPH_CHANGED;
         Tk_SendVirtualEvent(graphPtr->tkwin, "RbcGraphChanged", NULL);
     }
-
     UpdateMarginTraces(graphPtr);
 }
 
@@ -4312,19 +4113,16 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBarElementUid = (Rbc_Uid)Tk_GetUid("BarElement");
     rbcLineElementUid = (Rbc_Uid)Tk_GetUid("LineElement");
     rbcStripElementUid = (Rbc_Uid)Tk_GetUid("StripElement");
-    rbcPolarElementUid = (Rbc_Uid)Tk_GetUid("PolarElement");    
+    rbcPolarElementUid = (Rbc_Uid)Tk_GetUid("PolarElement");
     rbcContourElementUid = (Rbc_Uid)Tk_GetUid("ContourElement");
-
     rbcLineMarkerUid = (Rbc_Uid)Tk_GetUid("LineMarker");
     rbcBitmapMarkerUid = (Rbc_Uid)Tk_GetUid("BitmapMarker");
     rbcImageMarkerUid = (Rbc_Uid)Tk_GetUid("ImageMarker");
     rbcTextMarkerUid = (Rbc_Uid)Tk_GetUid("TextMarker");
     rbcPolygonMarkerUid = (Rbc_Uid)Tk_GetUid("PolygonMarker");
     rbcWindowMarkerUid = (Rbc_Uid)Tk_GetUid("WindowMarker");
-
     rbcXAxisUid = (Rbc_Uid)Tk_GetUid("X");
     rbcYAxisUid = (Rbc_Uid)Tk_GetUid("Y");
-
     Tcl_CreateObjCommand2(interp, "rbc::graph", GraphObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::barchart", BarchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::stripchart", StripchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);

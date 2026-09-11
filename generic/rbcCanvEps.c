@@ -587,13 +587,13 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     Tcl_DStringSetLength(&epsPtr->dString, 0);
     if (epsPtr->psStart > 0) {
         if (epsPtr->psStart > (size_t)LONG_MAX) {
-            Rbc_AppendResultStrings(interp, "PostScript offset is too large in \"", epsPtr->fileName, "\"", (char *)NULL);
+            Rbc_AppendResultStrings(interp, "PostScript offset is too large in \"", epsPtr->fileName, "\"",
+                                    (char *)NULL);
             return TCL_ERROR;
         }
-
         if (fseek(epsPtr->psFile, (long)epsPtr->psStart, SEEK_SET) != 0) {
             Rbc_AppendResultStrings(interp, "can't seek to start of PostScript code in \"", epsPtr->fileName, "\"",
-                             (char *)NULL);
+                                    (char *)NULL);
             return TCL_ERROR;
         }
     }
@@ -727,8 +727,8 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
 
     f = fopen(epsPtr->fileName, "rb");
     if (f == NULL) {
-        Rbc_AppendResultStrings(epsPtr->interp, "can't open \"", epsPtr->fileName, "\": ", Tcl_PosixError(epsPtr->interp),
-                         (char *)NULL);
+        Rbc_AppendResultStrings(epsPtr->interp, "can't open \"", epsPtr->fileName,
+                                "\": ", Tcl_PosixError(epsPtr->interp), (char *)NULL);
         return TCL_ERROR;
     }
     epsPtr->psFile = f;
@@ -756,7 +756,8 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
         }
     }
     if (fseek(f, 0, SEEK_SET) != 0) {
-        Rbc_AppendResultStrings(interp, "can't seek in \"", epsPtr->fileName, "\": ", Tcl_PosixError(interp), (char *)NULL);
+        Rbc_AppendResultStrings(interp, "can't seek in \"", epsPtr->fileName, "\": ", Tcl_PosixError(interp),
+                                (char *)NULL);
         CloseEpsFile(epsPtr);
         return TCL_ERROR;
     }
@@ -881,7 +882,6 @@ static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
         Tk_FreeGC(display, epsPtr->fillGC);
     }
     Rbc_FreeTextStyle(display, &(epsPtr->titleStyle));
-
     if (epsPtr->title != NULL) {
         ckfree((char *)epsPtr->title);
     }
@@ -919,8 +919,8 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
 
     tkwin = Tk_CanvasTkwin(canvas);
     if (objc < 2) {
-        Rbc_AppendResultStrings(interp, "wrong # args: should be \"", Tk_PathName(tkwin), " create ", itemPtr->typePtr->name,
-                         " x1 y1 ?options?\"", (char *)NULL);
+        Rbc_AppendResultStrings(interp, "wrong # args: should be \"", Tk_PathName(tkwin), " create ",
+                                itemPtr->typePtr->name, " x1 y1 ?options?\"", (char *)NULL);
         return TCL_ERROR;
     }
     /*
@@ -995,7 +995,6 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
     EpsItem *epsPtr = clientData;
-
     if ((epsPtr->preview == NULL) || (Tk_ImageIsDeleted(epsPtr->preview))) {
         epsPtr->preview = NULL;
         if (epsPtr->previewName != NULL) {
@@ -1011,7 +1010,6 @@ static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *
     size_t optionNameLength;
 
     optionNameLength = strlen(optionName);
-
     /*
      * Configuration arguments consist of option-value pairs.
      * Prefix matching preserves Tk's abbreviated-option behaviour.
@@ -1022,7 +1020,6 @@ static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *
 
         option = Tcl_GetString(objv[i]);
         optionLength = strlen(option);
-
         if ((optionLength <= optionNameLength) && (strncmp(optionName, option, optionLength) == 0)) {
             return TRUE;
         }
@@ -1069,9 +1066,7 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
         return TCL_ERROR;
     }
     imageModified = EpsOptionSpecified(objc, objv, "-image");
-
     fileModified = EpsOptionSpecified(objc, objv, "-file");
-
     quickModified = EpsOptionSpecified(objc, objv, "-quick");
     /* Determine the size of the EPS item */
     width = height = 0;
@@ -1095,8 +1090,8 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
              */
             photo = Tk_FindPhoto(interp, epsPtr->previewName);
             if (photo == NULL) {
-                Rbc_AppendResultStrings(interp, "image \"", epsPtr->previewName, "\" doesn't  exist or is not a photo image",
-                                 (char *)NULL);
+                Rbc_AppendResultStrings(interp, "image \"", epsPtr->previewName,
+                                        "\" doesn't  exist or is not a photo image", (char *)NULL);
                 return TCL_ERROR;
             }
             epsPtr->preview = Tk_GetImage(interp, tkwin, epsPtr->previewName, ImageChangedProc, epsPtr);
@@ -1223,7 +1218,6 @@ static int EpsCoords(Tcl_Interp *interp,    /* Used for error reporting. */
                                              * x2, y2, ... */
 {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
-
     if ((objc != 0) && (objc != 2)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("wrong # coordinates: "
                                                "expected 0 or 2, got %" TCL_SIZE_MODIFIER "d",
@@ -1360,10 +1354,8 @@ static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
     Tk_CanvasDrawableCoords(canvas, (double)epsPtr->canvasX, (double)epsPtr->canvasY, &drawableX, &drawableY);
     x = (int)drawableX;
     y = (int)drawableY;
-
     twiceBW = epsPtr->borderWidth * 2;
     title = epsPtr->title;
-
     if (epsPtr->reqTitle != NULL) {
         title = epsPtr->reqTitle;
     }
@@ -1514,7 +1506,6 @@ static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
  */
 static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double originY, double scaleX, double scaleY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
-
     epsPtr->x = originX + scaleX * (epsPtr->x - originX);
     epsPtr->y = originY + scaleY * (epsPtr->y - originY);
     ComputeEpsBbox(canvas, epsPtr);
@@ -1539,7 +1530,6 @@ static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double 
  */
 static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, double deltaY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
-
     epsPtr->x += deltaX;
     epsPtr->y += deltaY;
     ComputeEpsBbox(canvas, epsPtr);

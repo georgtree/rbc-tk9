@@ -14,6 +14,7 @@
 
 #include "rbcList.h"
 #include <tcl.h>
+#include <tk.h>
 
 typedef struct Rbc_BindTableStruct *Rbc_BindTable;
 typedef ClientData(Rbc_BindPickProc)(ClientData clientData, int x, int y, ClientData *contextPtr);

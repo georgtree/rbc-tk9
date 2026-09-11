@@ -26,44 +26,63 @@ struct Rbc_RenderTarget {
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
     Rbc_RenderTarget *target;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (graphPtr->renderTarget != NULL) ||
-        (graphPtr->width <= 0) || (graphPtr->height <= 0)) return NULL;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (graphPtr->renderTarget != NULL) || (graphPtr->width <= 0) ||
+        (graphPtr->height <= 0)) {
+        return NULL;
+    }
     target = Tcl_AttemptAlloc(sizeof(*target));
-    if (target == NULL) return NULL;
+    if (target == NULL) {
+        return NULL;
+    }
     memset(target, 0, sizeof(*target));
     target->graphPtr = graphPtr;
     target->destinationDC = Rbc_WinAcquireDrawableDC(graphPtr->display, *drawablePtr, &target->destinationState);
     if ((target->destinationDC == NULL) ||
         ((GetObjectType(target->destinationDC) != OBJ_DC) && (GetObjectType(target->destinationDC) != OBJ_MEMDC)) ||
-        (GetDeviceCaps(target->destinationDC, TECHNOLOGY) != DT_RASDISPLAY)) goto fail;
+        (GetDeviceCaps(target->destinationDC, TECHNOLOGY) != DT_RASDISPLAY)) {
+        goto fail;
+    }
     target->surface = cairo_win32_surface_create_with_dib(CAIRO_FORMAT_RGB24, graphPtr->width, graphPtr->height);
-    if (cairo_surface_status(target->surface) != CAIRO_STATUS_SUCCESS) goto fail;
+    if (cairo_surface_status(target->surface) != CAIRO_STATUS_SUCCESS) {
+        goto fail;
+    }
     target->dc = cairo_win32_surface_get_dc(target->surface);
     target->image = cairo_win32_surface_get_image(target->surface);
     if ((target->dc == NULL) || (target->image == NULL) ||
-        (cairo_surface_status(target->image) != CAIRO_STATUS_SUCCESS)) goto fail;
+        (cairo_surface_status(target->image) != CAIRO_STATUS_SUCCESS)) {
+        goto fail;
+    }
     GdiFlush();
-    if (!BitBlt(target->dc, 0, 0, graphPtr->width, graphPtr->height, target->destinationDC, 0, 0, SRCCOPY)) goto fail;
+    if (!BitBlt(target->dc, 0, 0, graphPtr->width, graphPtr->height, target->destinationDC, 0, 0, SRCCOPY)) {
+        goto fail;
+    }
     GdiFlush();
     cairo_surface_mark_dirty(target->image);
     target->drawable = Rbc_WinCreateDrawableFromDC(target->dc);
-    if (target->drawable == None) goto fail;
+    if (target->drawable == None) {
+        goto fail;
+    }
     graphPtr->renderTarget = target;
     *drawablePtr = target->drawable;
     return target;
 
 fail:
-    if (target->surface != NULL) cairo_surface_destroy(target->surface);
+    if (target->surface != NULL) {
+        cairo_surface_destroy(target->surface);
+    }
     Rbc_WinReleaseDrawableDC(target->destinationState);
     ckfree(target);
     return NULL;
 }
 
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) {
-    if (target == NULL) return;
+    if (target == NULL) {
+        return;
+    }
     cairo_surface_flush(target->image);
     GdiFlush();
-    if (!BitBlt(target->destinationDC, 0, 0, target->graphPtr->width, target->graphPtr->height, target->dc, 0, 0, SRCCOPY)) {
+    if (!BitBlt(target->destinationDC, 0, 0, target->graphPtr->width, target->graphPtr->height, target->dc, 0, 0,
+                SRCCOPY)) {
         Tcl_Interp *interp = target->graphPtr->interp;
         Tcl_InterpState saved = Tcl_SaveInterpState(interp, TCL_OK);
         Tcl_SetObjResult(interp, Tcl_NewStringObj("Cairo marker target copy failed", -1));
@@ -79,7 +98,8 @@ void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) {
 }
 #else
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
-    (void)graphPtr; (void)drawablePtr;
+    (void)graphPtr;
+    (void)drawablePtr;
     return NULL;
 }
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
@@ -105,7 +125,9 @@ struct Rbc_RenderContext {
 };
 
 static void FreeRenderContext(Rbc_RenderContext *ctx) {
-    if (ctx->bitmapPattern != NULL) cairo_pattern_destroy(ctx->bitmapPattern);
+    if (ctx->bitmapPattern != NULL) {
+        cairo_pattern_destroy(ctx->bitmapPattern);
+    }
     if (ctx->cr != NULL) {
         cairo_destroy(ctx->cr);
     }
@@ -123,18 +145,23 @@ static void FreeRenderContext(Rbc_RenderContext *ctx) {
 
 static cairo_antialias_t GetAntialias(int mode) {
     switch (mode) {
-    case RBC_ANTIALIAS_NONE: return CAIRO_ANTIALIAS_NONE;
-    case RBC_ANTIALIAS_GRAY: return CAIRO_ANTIALIAS_GRAY;
-    case RBC_ANTIALIAS_FAST: return CAIRO_ANTIALIAS_FAST;
-    case RBC_ANTIALIAS_GOOD: return CAIRO_ANTIALIAS_GOOD;
-    case RBC_ANTIALIAS_BEST: return CAIRO_ANTIALIAS_BEST;
-    default: return CAIRO_ANTIALIAS_DEFAULT;
+    case RBC_ANTIALIAS_NONE:
+        return CAIRO_ANTIALIAS_NONE;
+    case RBC_ANTIALIAS_GRAY:
+        return CAIRO_ANTIALIAS_GRAY;
+    case RBC_ANTIALIAS_FAST:
+        return CAIRO_ANTIALIAS_FAST;
+    case RBC_ANTIALIAS_GOOD:
+        return CAIRO_ANTIALIAS_GOOD;
+    case RBC_ANTIALIAS_BEST:
+        return CAIRO_ANTIALIAS_BEST;
+    default:
+        return CAIRO_ANTIALIAS_DEFAULT;
     }
 }
 
 static void SetStrokeColor(cairo_t *cr, const XColor *colorPtr) {
-    cairo_set_source_rgb(cr, colorPtr->red / 65535.0,
-        colorPtr->green / 65535.0, colorPtr->blue / 65535.0);
+    cairo_set_source_rgb(cr, colorPtr->red / 65535.0, colorPtr->green / 65535.0, colorPtr->blue / 65535.0);
 }
 
 /* Match the existing PostScript offdash-underlay convention. */
@@ -151,7 +178,9 @@ static void StrokeRenderPath(Rbc_RenderContext *ctx) {
 
 /* Resolve GC defaults without treating an empty option as transparency. */
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (gc == NULL)) return FALSE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (gc == NULL)) {
+        return FALSE;
+    }
     memset(color, 0, sizeof(*color));
 #ifdef WIN32
     color->pixel = gc->foreground;
@@ -161,7 +190,9 @@ int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
 #else
     XGCValues values;
 
-    if (!XGetGCValues(graphPtr->display, gc, GCForeground, &values)) return FALSE;
+    if (!XGetGCValues(graphPtr->display, gc, GCForeground, &values)) {
+        return FALSE;
+    }
     color->pixel = values.foreground;
     XQueryColors(graphPtr->display, Tk_Colormap(graphPtr->tkwin), color, 1);
 #endif
@@ -169,15 +200,13 @@ int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
 }
 
 /* Open one uninterrupted Cairo drawing batch; NULL requests native drawing. */
-static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable,
-                                   const XColor *colorPtr, double width,
-                                   const Rbc_Dashes *dashesPtr, const XColor *offColorPtr,
-                                   int targetWidth, int targetHeight, int left, int top, int right, int bottom) {
+static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
+                                            const Rbc_Dashes *dashesPtr, const XColor *offColorPtr, int targetWidth,
+                                            int targetHeight, int left, int top, int right, int bottom) {
     Rbc_RenderContext *ctx;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (drawable == None) ||
-        (colorPtr == NULL) || !FINITE(width) || (width <= 0.0) ||
-        (targetWidth <= 0) || (targetHeight <= 0)) {
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (drawable == None) || (colorPtr == NULL) || !FINITE(width) ||
+        (width <= 0.0) || (targetWidth <= 0) || (targetHeight <= 0)) {
         return NULL;
     }
     ctx = Tcl_AttemptAlloc(sizeof(*ctx));
@@ -188,16 +217,14 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable,
     ctx->graphPtr = graphPtr;
     ctx->foreground = *colorPtr;
     if (dashesPtr != NULL) {
-        while ((ctx->nDashes < RBC_MAX_DASH_VALUES) &&
-               (dashesPtr->values[ctx->nDashes] != 0)) {
+        while ((ctx->nDashes < RBC_MAX_DASH_VALUES) && (dashesPtr->values[ctx->nDashes] != 0)) {
             ctx->dashes[ctx->nDashes] = dashesPtr->values[ctx->nDashes];
             ctx->nDashes++;
         }
         ctx->dashOffset = dashesPtr->offset;
     }
     if ((ctx->nDashes > 0) && (offColorPtr != NULL)) {
-        if ((offColorPtr->red == colorPtr->red) &&
-            (offColorPtr->green == colorPtr->green) &&
+        if ((offColorPtr->red == colorPtr->red) && (offColorPtr->green == colorPtr->green) &&
             (offColorPtr->blue == colorPtr->blue)) {
             /* Equal dash colors form a solid stroke; avoid double coverage. */
             ctx->nDashes = 0;
@@ -233,16 +260,14 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable,
         ctx->surface = cairo_win32_surface_create(ctx->dc);
     }
 #else
-    ctx->surface = cairo_xlib_surface_create(graphPtr->display, drawable,
-        Tk_Visual(graphPtr->tkwin), targetWidth, targetHeight);
+    ctx->surface =
+        cairo_xlib_surface_create(graphPtr->display, drawable, Tk_Visual(graphPtr->tkwin), targetWidth, targetHeight);
 #endif
     if (cairo_surface_status(ctx->surface) != CAIRO_STATUS_SUCCESS) {
         goto fail;
     }
     ctx->cr = cairo_create(ctx->surface);
-    cairo_rectangle(ctx->cr, left, top,
-        MAX(0.0, (double)right - left + 1.0),
-        MAX(0.0, (double)bottom - top + 1.0));
+    cairo_rectangle(ctx->cr, left, top, MAX(0.0, (double)right - left + 1.0), MAX(0.0, (double)bottom - top + 1.0));
     cairo_clip(ctx->cr);
     /* RBC integer screen coordinates identify pixel centers. */
     cairo_translate(ctx->cr, 0.5, 0.5);
@@ -262,20 +287,21 @@ fail:
     return NULL;
 }
 
-Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
-                                   const XColor *colorPtr, double width,
+Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr) {
-    return BeginRenderTarget(graphPtr, drawable, colorPtr, width, dashesPtr, offColorPtr,
-        graphPtr->width, graphPtr->height, graphPtr->left, graphPtr->top, graphPtr->right, graphPtr->bottom);
+    return BeginRenderTarget(graphPtr, drawable, colorPtr, width, dashesPtr, offColorPtr, graphPtr->width,
+                             graphPtr->height, graphPtr->left, graphPtr->top, graphPtr->right, graphPtr->bottom);
 }
 
 /* Draw in full drawable coordinates, outside the plot-area clip. */
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
-                                         const XColor *color, double lineWidth,
-                                         const Rbc_Dashes *dashes, const XColor *offColor) {
-    if ((width <= 0) || (height <= 0)) return NULL;
-    return BeginRenderTarget(graphPtr, drawable, color, lineWidth, dashes, offColor,
-        width, height, 0, 0, width - 1, height - 1);
+                                           const XColor *color, double lineWidth, const Rbc_Dashes *dashes,
+                                           const XColor *offColor) {
+    if ((width <= 0) || (height <= 0)) {
+        return NULL;
+    }
+    return BeginRenderTarget(graphPtr, drawable, color, lineWidth, dashes, offColor, width, height, 0, 0, width - 1,
+                             height - 1);
 }
 
 /* Each call is a separate trace; preserve joins within that trace. */
@@ -294,10 +320,12 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
 
 /* Marker options use X cap/join constants; keep them out of Cairo callers. */
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
-    cairo_set_line_cap(ctx->cr, (capStyle == CapRound) ? CAIRO_LINE_CAP_ROUND :
-        (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE : CAIRO_LINE_CAP_BUTT);
-    cairo_set_line_join(ctx->cr, (joinStyle == JoinRound) ? CAIRO_LINE_JOIN_ROUND :
-        (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL : CAIRO_LINE_JOIN_MITER);
+    cairo_set_line_cap(ctx->cr, (capStyle == CapRound)        ? CAIRO_LINE_CAP_ROUND
+                                : (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE
+                                                              : CAIRO_LINE_CAP_BUTT);
+    cairo_set_line_join(ctx->cr, (joinStyle == JoinRound)   ? CAIRO_LINE_JOIN_ROUND
+                                 : (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL
+                                                            : CAIRO_LINE_JOIN_MITER);
 }
 
 /* Separate subpaths preserve strip-segment boundaries. Bound path storage. */
@@ -326,7 +354,7 @@ static void AppendRenderSymbol(cairo_t *cr, const Rbc_RenderShape *shape, const 
     } else if (shape->type == RBC_RENDER_SEGMENTS) {
         for (i = 0; i + 1 < shape->nPoints; i += 2) {
             cairo_move_to(cr, center->x + shape->points[i].x, center->y + shape->points[i].y);
-            cairo_line_to(cr, center->x + shape->points[i+1].x, center->y + shape->points[i+1].y);
+            cairo_line_to(cr, center->x + shape->points[i + 1].x, center->y + shape->points[i + 1].y);
         }
     } else if (shape->nPoints > 0) {
         cairo_move_to(cr, center->x + shape->points[0].x, center->y + shape->points[0].y);
@@ -347,14 +375,16 @@ void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size co
     cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
     for (i = 0; i < count; i++) {
         cairo_rectangle(ctx->cr, (int)points[i].x, (int)points[i].y, 1, 1);
-        if ((i % 8192) == 8191) cairo_fill(ctx->cr);
+        if ((i % 8192) == 8191) {
+            cairo_fill(ctx->cr);
+        }
     }
     cairo_fill(ctx->cr);
     cairo_restore(ctx->cr);
 }
 
-void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
-                       const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
+void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, const Point2D *centers, Tcl_Size count,
+                       const XColor *fillColor, int outline) {
     Tcl_Size i;
 
     if ((count <= 0) || ((fillColor == NULL) && !outline)) {
@@ -384,18 +414,19 @@ static uint32_t RenderAreaPixel(const XColor *color) {
     if (color == NULL) {
         return 0; /* Transparent stipple gap. */
     }
-    return 0xff000000u | (((uint32_t)color->red + 128u) / 257u << 16) |
-        (((uint32_t)color->green + 128u) / 257u << 8) | ((uint32_t)color->blue + 128u) / 257u;
+    return 0xff000000u | (((uint32_t)color->red + 128u) / 257u << 16) | (((uint32_t)color->green + 128u) / 257u << 8) |
+           ((uint32_t)color->blue + 128u) / 257u;
 }
 
 /* Read the native bitmap before acquiring the destination drawing context. */
-static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple,
-                                           const XColor *foreground, const XColor *background) {
+static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple, const XColor *foreground,
+                                            const XColor *background) {
     cairo_surface_t *surface;
     cairo_pattern_t *pattern;
     XImage *image;
     unsigned char *data;
-    uint32_t fg = RenderAreaPixel(foreground), bg = RenderAreaPixel(background);
+    uint32_t fg = RenderAreaPixel(foreground);
+    uint32_t bg = RenderAreaPixel(background);
     int width, height, stride, x, y;
 
     Tk_SizeOfBitmap(graphPtr->display, stipple, &width, &height);
@@ -436,38 +467,49 @@ static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple,
 }
 
 /* Bar swatches restart the stipple at their top-left corner, as Tk does. */
-int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height,
-                        const Rbc_RenderRectangle *r, const XColor *foreground,
-                        const XColor *background, Pixmap stipple) {
+int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
+                        const XColor *foreground, const XColor *background, Pixmap stipple) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
     cairo_matrix_t matrix;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL)) return FALSE;
-    if ((r->width <= 0) || (r->height <= 0)) return TRUE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL)) {
+        return FALSE;
+    }
+    if ((r->width <= 0) || (r->height <= 0)) {
+        return TRUE;
+    }
     if (stipple != None) {
         pattern = CreateRenderStipple(graphPtr, stipple, foreground, background);
-        if (pattern == NULL) return FALSE;
+        if (pattern == NULL) {
+            return FALSE;
+        }
         cairo_matrix_init_translate(&matrix, -(double)r->x, -(double)r->y);
         cairo_pattern_set_matrix(pattern, &matrix);
     }
     ctx = Rbc_RenderBeginDrawable(graphPtr, drawable, width, height, foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
-        if (pattern != NULL) cairo_pattern_destroy(pattern);
+        if (pattern != NULL) {
+            cairo_pattern_destroy(pattern);
+        }
         return FALSE;
     }
     cairo_translate(ctx->cr, -0.5, -0.5);
-    if (pattern != NULL) cairo_set_source(ctx->cr, pattern);
+    if (pattern != NULL) {
+        cairo_set_source(ctx->cr, pattern);
+    }
     cairo_rectangle(ctx->cr, r->x, r->y, r->width, r->height);
     cairo_fill(ctx->cr);
-    if (pattern != NULL) cairo_pattern_destroy(pattern);
+    if (pattern != NULL) {
+        cairo_pattern_destroy(pattern);
+    }
     Rbc_RenderEnd(ctx);
     return TRUE;
 }
 
 /* Integer bar edges stay sharp; bound path storage independently of bar count. */
-int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
-                         Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple) {
+int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
+                         const XColor *foreground, const XColor *background, Pixmap stipple) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
     Tcl_Size i;
@@ -483,29 +525,35 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
     }
     ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
-        if (pattern != NULL) cairo_pattern_destroy(pattern);
+        if (pattern != NULL) {
+            cairo_pattern_destroy(pattern);
+        }
         return FALSE;
     }
     cairo_translate(ctx->cr, -0.5, -0.5);
     cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
-    if (pattern != NULL) cairo_set_source(ctx->cr, pattern);
+    if (pattern != NULL) {
+        cairo_set_source(ctx->cr, pattern);
+    }
     for (i = 0; i < count; i++) {
         const Rbc_RenderRectangle *r = rectangles + i;
-
         if ((r->width > 0) && (r->height > 0)) {
             cairo_rectangle(ctx->cr, r->x, r->y, r->width, r->height);
         }
-        if ((i + 1) % 8192 == 0) cairo_fill(ctx->cr);
+        if ((i + 1) % 8192 == 0) {
+            cairo_fill(ctx->cr);
+        }
     }
     cairo_fill(ctx->cr);
-    if (pattern != NULL) cairo_pattern_destroy(pattern);
+    if (pattern != NULL) {
+        cairo_pattern_destroy(pattern);
+    }
     Rbc_RenderEnd(ctx);
     return TRUE;
 }
 
 /* Area vertices are boundaries, not the pixel centers used by strokes. */
-static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count,
-                           cairo_pattern_t *pattern) {
+static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count, cairo_pattern_t *pattern) {
     Tcl_Size i;
 
     cairo_translate(ctx->cr, -0.5, -0.5);
@@ -522,18 +570,20 @@ static void FillRenderArea(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
 }
 
 /* Mapped bitmaps are raw pixmaps, not entries in Tk's named bitmap cache. */
-static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixmap mask,
-                                            int width, int height, const XColor *foreground,
-                                            const XColor *background) {
+static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixmap mask, int width, int height,
+                                           const XColor *foreground, const XColor *background) {
     XImage *bits, *maskBits = NULL;
     cairo_surface_t *surface;
     cairo_pattern_t *pattern;
     unsigned char *data;
     int x, y, stride;
-    uint32_t fg = RenderAreaPixel(foreground), bg = RenderAreaPixel(background);
+    uint32_t fg = RenderAreaPixel(foreground);
+    uint32_t bg = RenderAreaPixel(background);
 
     bits = XGetImage(graphPtr->display, bitmap, 0, 0, width, height, 1, XYPixmap);
-    if (bits == NULL) return NULL;
+    if (bits == NULL) {
+        return NULL;
+    }
     if (mask == bitmap) {
         maskBits = bits;
     } else if (mask != None) {
@@ -546,7 +596,9 @@ static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixma
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
         cairo_surface_destroy(surface);
-        if ((maskBits != NULL) && (maskBits != bits)) XDestroyImage(maskBits);
+        if ((maskBits != NULL) && (maskBits != bits)) {
+            XDestroyImage(maskBits);
+        }
         XDestroyImage(bits);
         return NULL;
     }
@@ -556,11 +608,12 @@ static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixma
     for (y = 0; y < height; y++) {
         uint32_t *row = (uint32_t *)(data + (size_t)y * stride);
         for (x = 0; x < width; x++) {
-            row[x] = ((maskBits != NULL) && !XGetPixel(maskBits, x, y)) ? 0 :
-                (XGetPixel(bits, x, y) ? fg : bg);
+            row[x] = ((maskBits != NULL) && !XGetPixel(maskBits, x, y)) ? 0 : (XGetPixel(bits, x, y) ? fg : bg);
         }
     }
-    if ((maskBits != NULL) && (maskBits != bits)) XDestroyImage(maskBits);
+    if ((maskBits != NULL) && (maskBits != bits)) {
+        XDestroyImage(maskBits);
+    }
     XDestroyImage(bits);
     cairo_surface_mark_dirty(surface);
     pattern = cairo_pattern_create_for_surface(surface);
@@ -575,19 +628,23 @@ static cairo_pattern_t *CreateRenderBitmap(Graph *graphPtr, Pixmap bitmap, Pixma
 }
 
 /* Convert once per pen pass; zero target dimensions select the plot clip. */
-Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable,
-    Pixmap bitmap, Pixmap mask, int width, int height, const XColor *foreground,
-    const XColor *background, int targetWidth, int targetHeight) {
+Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable, Pixmap bitmap, Pixmap mask,
+                                                int width, int height, const XColor *foreground,
+                                                const XColor *background, int targetWidth, int targetHeight) {
     cairo_pattern_t *pattern;
     Rbc_RenderContext *ctx;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (bitmap == None) ||
-        (foreground == NULL) || (width <= 0) || (height <= 0)) return NULL;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (bitmap == None) || (foreground == NULL) || (width <= 0) ||
+        (height <= 0)) {
+        return NULL;
+    }
     pattern = CreateRenderBitmap(graphPtr, bitmap, mask, width, height, foreground, background);
-    if (pattern == NULL) return NULL;
-    ctx = (targetWidth > 0) ?
-        Rbc_RenderBeginDrawable(graphPtr, drawable, targetWidth, targetHeight, foreground, 1.0, NULL, NULL) :
-        Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
+    if (pattern == NULL) {
+        return NULL;
+    }
+    ctx = (targetWidth > 0)
+              ? Rbc_RenderBeginDrawable(graphPtr, drawable, targetWidth, targetHeight, foreground, 1.0, NULL, NULL)
+              : Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
         cairo_pattern_destroy(pattern);
         return NULL;
@@ -617,18 +674,23 @@ void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl
 }
 
 /* Prepare all bitmap resources before drawing the optional rotated background. */
-int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
-                      Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,
-                      const Point2D *polygon, Tcl_Size nPoints) {
+int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r, Pixmap bitmap, Pixmap mask,
+                     const XColor *foreground, const XColor *background, const Point2D *polygon, Tcl_Size nPoints) {
     cairo_pattern_t *pattern;
     cairo_matrix_t matrix;
     Rbc_RenderContext *ctx;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (bitmap == None) || (foreground == NULL)) return FALSE;
-    if ((r->width <= 0) || (r->height <= 0)) return TRUE;
-    pattern = CreateRenderBitmap(graphPtr, bitmap, mask, r->width, r->height,
-        foreground, (nPoints >= 3) ? NULL : background);
-    if (pattern == NULL) return FALSE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (bitmap == None) || (foreground == NULL)) {
+        return FALSE;
+    }
+    if ((r->width <= 0) || (r->height <= 0)) {
+        return TRUE;
+    }
+    pattern =
+        CreateRenderBitmap(graphPtr, bitmap, mask, r->width, r->height, foreground, (nPoints >= 3) ? NULL : background);
+    if (pattern == NULL) {
+        return FALSE;
+    }
     ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
         cairo_pattern_destroy(pattern);
@@ -651,8 +713,8 @@ int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectang
 }
 
 /* Fill one mapped polygon with the native even-odd rule and widget pattern origin. */
-int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
-                   const XColor *foreground, const XColor *background, Pixmap stipple) {
+int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
+                   const XColor *background, Pixmap stipple) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
 
@@ -696,8 +758,8 @@ static cairo_pattern_t *CreateRenderPhoto(const Tk_PhotoImageBlock *block) {
         }
     }
     hasAlpha = (block->offset[3] >= 0) && (block->offset[3] < block->pixelSize) &&
-        (block->offset[3] != block->offset[0]) && (block->offset[3] != block->offset[1]) &&
-        (block->offset[3] != block->offset[2]);
+               (block->offset[3] != block->offset[0]) && (block->offset[3] != block->offset[1]) &&
+               (block->offset[3] != block->offset[2]);
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, block->width, block->height);
     if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
         cairo_surface_destroy(surface);
@@ -709,7 +771,6 @@ static cairo_pattern_t *CreateRenderPhoto(const Tk_PhotoImageBlock *block) {
     for (y = 0; y < block->height; y++) {
         const unsigned char *src = block->pixelPtr + (ptrdiff_t)y * block->pitch;
         uint32_t *dst = (uint32_t *)(data + (size_t)y * stride);
-
         for (x = 0; x < block->width; x++, src += block->pixelSize) {
             uint32_t a = hasAlpha ? src[block->offset[3]] : 255;
             uint32_t r = (src[block->offset[0]] * a + 127) / 255;
@@ -815,98 +876,159 @@ void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     FreeRenderContext(ctx);
     if (status != CAIRO_STATUS_SUCCESS) {
         Tcl_InterpState saved = Tcl_SaveInterpState(interp, TCL_OK);
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf("Cairo rendering failed: %s",
-            cairo_status_to_string(status)));
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("Cairo rendering failed: %s", cairo_status_to_string(status)));
         Tcl_BackgroundException(interp, TCL_ERROR);
         Tcl_RestoreInterpState(interp, saved);
     }
 }
 #else
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
-                                         const XColor *color, double lineWidth,
-                                         const Rbc_Dashes *dashes, const XColor *offColor) {
-    (void)graphPtr; (void)drawable; (void)width; (void)height;
-    (void)color; (void)lineWidth; (void)dashes; (void)offColor;
+                                           const XColor *color, double lineWidth, const Rbc_Dashes *dashes,
+                                           const XColor *offColor) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)width;
+    (void)height;
+    (void)color;
+    (void)lineWidth;
+    (void)dashes;
+    (void)offColor;
     return NULL;
 }
-int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height,
-                        const Rbc_RenderRectangle *r, const XColor *foreground,
-                        const XColor *background, Pixmap stipple) {
-    (void)graphPtr; (void)drawable; (void)width; (void)height; (void)r;
-    (void)foreground; (void)background; (void)stipple;
+int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
+                        const XColor *foreground, const XColor *background, Pixmap stipple) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)width;
+    (void)height;
+    (void)r;
+    (void)foreground;
+    (void)background;
+    (void)stipple;
     return FALSE;
 }
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
-    (void)graphPtr; (void)drawablePtr;
+    (void)graphPtr;
+    (void)drawablePtr;
     return NULL;
 }
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
-Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
-                                   const XColor *colorPtr, double width,
+Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr) {
-    (void)graphPtr; (void)drawable; (void)colorPtr; (void)width;
-    (void)dashesPtr; (void)offColorPtr;
+    (void)graphPtr;
+    (void)drawable;
+    (void)colorPtr;
+    (void)width;
+    (void)dashesPtr;
+    (void)offColorPtr;
     return NULL;
 }
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
-    (void)ctx; (void)points; (void)count;
+    (void)ctx;
+    (void)points;
+    (void)count;
 }
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
-    (void)ctx; (void)segments; (void)count;
+    (void)ctx;
+    (void)segments;
+    (void)count;
 }
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
-    (void)ctx; (void)capStyle; (void)joinStyle;
+    (void)ctx;
+    (void)capStyle;
+    (void)joinStyle;
 }
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
-    (void)graphPtr; (void)gc; (void)color;
+    (void)graphPtr;
+    (void)gc;
+    (void)color;
     return FALSE;
 }
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
-    (void)ctx; (void)points; (void)count;
+    (void)ctx;
+    (void)points;
+    (void)count;
 }
-void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
-                       const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline) {
-    (void)ctx; (void)shape; (void)centers; (void)count; (void)fillColor; (void)outline;
+void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, const Point2D *centers, Tcl_Size count,
+                       const XColor *fillColor, int outline) {
+    (void)ctx;
+    (void)shape;
+    (void)centers;
+    (void)count;
+    (void)fillColor;
+    (void)outline;
 }
-int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles,
-                         Tcl_Size count, const XColor *foreground, const XColor *background, Pixmap stipple) {
-    (void)graphPtr; (void)drawable; (void)rectangles; (void)count;
-    (void)foreground; (void)background; (void)stipple;
+int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
+                         const XColor *foreground, const XColor *background, Pixmap stipple) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)rectangles;
+    (void)count;
+    (void)foreground;
+    (void)background;
+    (void)stipple;
     return FALSE;
 }
-Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable,
-    Pixmap bitmap, Pixmap mask, int width, int height, const XColor *foreground,
-    const XColor *background, int targetWidth, int targetHeight) {
-    (void)graphPtr; (void)drawable; (void)bitmap; (void)mask; (void)width; (void)height;
-    (void)foreground; (void)background; (void)targetWidth; (void)targetHeight;
+Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable, Pixmap bitmap, Pixmap mask,
+                                                int width, int height, const XColor *foreground,
+                                                const XColor *background, int targetWidth, int targetHeight) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)bitmap;
+    (void)mask;
+    (void)width;
+    (void)height;
+    (void)foreground;
+    (void)background;
+    (void)targetWidth;
+    (void)targetHeight;
     return NULL;
 }
 void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
-    (void)ctx; (void)centers; (void)count;
+    (void)ctx;
+    (void)centers;
+    (void)count;
 }
-int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
-                      Pixmap bitmap, Pixmap mask, const XColor *foreground, const XColor *background,
-                      const Point2D *polygon, Tcl_Size nPoints) {
-    (void)graphPtr; (void)drawable; (void)r; (void)bitmap; (void)mask;
-    (void)foreground; (void)background; (void)polygon; (void)nPoints;
+int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r, Pixmap bitmap, Pixmap mask,
+                     const XColor *foreground, const XColor *background, const Point2D *polygon, Tcl_Size nPoints) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)r;
+    (void)bitmap;
+    (void)mask;
+    (void)foreground;
+    (void)background;
+    (void)polygon;
+    (void)nPoints;
     return FALSE;
 }
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y) {
-    (void)graphPtr; (void)drawable; (void)block; (void)x; (void)y;
+    (void)graphPtr;
+    (void)drawable;
+    (void)block;
+    (void)x;
+    (void)y;
     return FALSE;
 }
-void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
-    (void)ctx;
-}
-int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
-                   const XColor *foreground, const XColor *background, Pixmap stipple) {
-    (void)graphPtr; (void)drawable; (void)points; (void)count;
-    (void)foreground; (void)background; (void)stipple;
+void Rbc_RenderEnd(Rbc_RenderContext *ctx) { (void)ctx; }
+int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
+                   const XColor *background, Pixmap stipple) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)points;
+    (void)count;
+    (void)foreground;
+    (void)background;
+    (void)stipple;
     return FALSE;
 }
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block) {
-    (void)graphPtr; (void)drawable; (void)points; (void)count; (void)block;
+    (void)graphPtr;
+    (void)drawable;
+    (void)points;
+    (void)count;
+    (void)block;
     return FALSE;
 }
 #endif

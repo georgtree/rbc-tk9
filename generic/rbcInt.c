@@ -87,24 +87,19 @@ int DLLEXPORT Rbc_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
         return TCL_ERROR;
     }
-
     if (Tk_InitStubs(interp, TK_VERSION, 0) == NULL) {
         return TCL_ERROR;
     }
-
     static const char *ExportList[] = {"barchart", "graph", "polar", "spline", "stripchart", "vector", "winop", NULL};
-
     nsPtr = Tcl_CreateNamespace(interp, "rbc", NULL, NULL);
     if (nsPtr == NULL) {
         return TCL_ERROR;
     }
-
     for (cmd = ExportList; *cmd != NULL; cmd++) {
         if (Tcl_Export(interp, nsPtr, *cmd, 0) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
     if (Rbc_VectorInit(interp) != TCL_OK) {
         return TCL_ERROR;
     }

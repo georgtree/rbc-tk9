@@ -212,8 +212,8 @@ Rbc_ChainLink *Rbc_ChainNewLink() {
 void Rbc_ChainReset(Rbc_Chain *chainPtr) {
     if (chainPtr != NULL) {
         Rbc_ChainLink *oldPtr;
-        Rbc_ChainLink *linkPtr = chainPtr->headPtr;
 
+        Rbc_ChainLink *linkPtr = chainPtr->headPtr;
         while (linkPtr != NULL) {
             oldPtr = linkPtr;
             linkPtr = linkPtr->nextPtr;

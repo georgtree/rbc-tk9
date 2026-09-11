@@ -97,7 +97,6 @@ static void GetPaletteSizes(int nColors, unsigned int *nRedsPtr, unsigned int *n
     }
     nReds--;
     nGreens = nColors / (nBlues * nReds);
-
     *nRedsPtr = nReds;
     *nGreensPtr = nGreens;
     *nBluesPtr = nBlues;
@@ -179,7 +178,6 @@ static int QueryColormap(Display *display, Colormap colorMap, XColor mapColors[]
 
     /* Initially, we assume all color cells are allocated. */
     memset((char *)inUse, 0, sizeof(int) * NCOLORS);
-
     /*
      * Start allocating color cells.  This will tell us which color cells
      * haven't already been allocated in the colormap.  We'll release the
@@ -194,7 +192,6 @@ static int QueryColormap(Display *display, Colormap colorMap, XColor mapColors[]
         numAvail++;
     }
     XFreeColors(display, colorMap, pixelValues, numAvail, 0);
-
     /*
      * Put the indices of the cells already allocated into a color array.
      * We'll use the array to query the RGB values of the allocated colors.
@@ -245,15 +242,12 @@ static void FindClosestColor(ColorInfo *colorPtr, XColor mapColors[], int numMap
 
     min = DBL_MAX; /* Any color is closer. */
     lastMatch = NULL;
-
     /* Linear search of color */
-
     mapColorPtr = mapColors;
     for (i = 0; i < numMapColors; i++, mapColorPtr++) {
         r = (double)mapColorPtr->red - (double)colorPtr->exact.red;
         g = (double)mapColorPtr->green - (double)colorPtr->exact.green;
         b = (double)mapColorPtr->blue - (double)colorPtr->exact.blue;
-
         dist = (r * r) + (b * b) + (g * g);
         if (dist < min) {
             min = dist;
@@ -345,12 +339,10 @@ static float MatchColors(struct ColorTableStruct *colorTabPtr, Pix32 *rgbPtr, in
         colorPtr->exact.flags = (DoRed | DoGreen | DoBlue);
         FindClosestColor(colorPtr, mapColors, numMapColors);
     }
-
     /* Sort the colors, first by frequency (most to least), then by
      * matching error (worst to best).
      */
     qsort(colorTabPtr->sortedColors, numColors, sizeof(ColorInfo *), (QSortCompareProc *)CompareColors);
-
     for (i = 0; i < numColors; i++) {
         colorPtr = colorTabPtr->sortedColors[i];
         fprintf(stderr, "%d. %04x%04x%04x / %04x%04x%04x = %f (%d)\n", i, colorPtr->exact.red, colorPtr->exact.green,
@@ -403,7 +395,6 @@ static int AllocateColors(int nImageColors, struct ColorTableStruct *colorTabPtr
             pixelValue = colorPtr->best.pixel;
         } else {
             colorPtr->allocated = XAllocColor(colorTabPtr->display, colorTabPtr->colorMap, &colorPtr->exact);
-
             if (colorPtr->allocated) {
                 pixelValue = colorPtr->exact.pixel;
             } else {
@@ -443,19 +434,15 @@ ColorTable Rbc_CreateColorTable(Tk_Window tkwin) {
 
     display = Tk_Display(tkwin);
     visualPtr = Tk_Visual(tkwin);
-
     colorTabPtr = RbcCalloc(1, sizeof(struct ColorTableStruct));
     assert(colorTabPtr);
     colorTabPtr->display = Tk_Display(tkwin);
     colorTabPtr->colorMap = Tk_Colormap(tkwin);
-
     visualInfo.screen = Tk_ScreenNumber(tkwin);
     visualInfo.visualid = XVisualIDFromVisual(visualPtr);
     visualInfoPtr = XGetVisualInfo(display, VisualScreenMask | VisualIDMask, &visualInfo, &nVisuals);
-
     colorTabPtr->visualInfo = *visualInfoPtr;
     XFree(visualInfoPtr);
-
     return colorTabPtr;
 }
 
@@ -522,7 +509,6 @@ ColorTable Rbc_DirectColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorIm
 
     display = Tk_Display(tkwin);
     visualPtr = Tk_Visual(tkwin);
-
     colorTabPtr = Rbc_CreateColorTable(tkwin);
     /*
      * Compute the number of distinct colors in each band
@@ -530,7 +516,6 @@ ColorTable Rbc_DirectColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorIm
     nr = ((unsigned int)visualPtr->red_mask >> redMaskShift) + 1;
     ng = ((unsigned int)visualPtr->green_mask >> greenMaskShift) + 1;
     nb = ((unsigned int)visualPtr->blue_mask >> blueMaskShift) + 1;
-
 #ifdef notdef
     assert((nr <= visualPtr->map_entries) && (ng <= visualPtr->map_entries) && (nb <= visualPtr->map_entries));
 #endif
@@ -564,7 +549,6 @@ retry:
         color.red = (r - 1) * (NCOLORS + 1);
         color.green = (g - 1) * (NCOLORS + 1);
         color.blue = (b - 1) * (NCOLORS + 1);
-
         if (!XAllocColor(display, colorTabPtr->colorMap, &color)) {
             XFreeColors(display, colorTabPtr->colorMap, colorTabPtr->pixelValues, i, 0);
             if ((colorTabPtr->flags & PRIVATE_COLORMAP) == 0) {
@@ -640,7 +624,6 @@ static int GetUniqueColors(Rbc_ColorImage image) {
     Tcl_HashTable colorTable;
 
     Tcl_InitHashTable(&colorTable, TCL_ONE_WORD_KEYS);
-
     nPixels = Rbc_ColorImageWidth(image) * Rbc_ColorImageHeight(image);
     nColors = 0;
     pixelPtr = Rbc_ColorImageBits(image);
@@ -701,9 +684,7 @@ static void PrivateColormap(Tcl_Interp *interp, struct ColorTableStruct *colorTa
      */
 
     colorTabPtr->colorMap = colorMap = Tk_Colormap(tkwin);
-
     nUsedColors = 0; /* Number of colors allocated */
-
     if (colorTabPtr->nPixels > 0) {
         XFreeColors(colorTabPtr->display, colorTabPtr->colorMap, colorTabPtr->pixelValues, colorTabPtr->nPixels, 0);
     }
@@ -712,16 +693,13 @@ static void PrivateColormap(Tcl_Interp *interp, struct ColorTableStruct *colorTa
     QueryColormap(colorTabPtr->display, colorMap, usedColors, &nUsedColors);
     memset((char *)inUse, 0, sizeof(int) * NCOLORS);
     if ((nUsedColors == 0) && (keepColors > 0)) {
-
         /*
          * We're starting with a clean colormap so find out what colors
          * have been used in the default colormap.
          */
-
         //    nFreeColors = QueryColormap(colorTabPtr->display,
         //        Rbc_DefaultColormap(tkwin), usedColors, &nUsedColors);
         QueryColormap(colorTabPtr->display, Rbc_DefaultColormap(tkwin), usedColors, &nUsedColors);
-
         /*
          * Copy a number of colors from the default colormap into the private
          * colormap.  We can assume that this is the working set from most
@@ -729,7 +707,6 @@ static void PrivateColormap(Tcl_Interp *interp, struct ColorTableStruct *colorTa
          * image from flashing and looking dumb when colormaps are swapped
          * in and out, at least everything else should remain unaffected.
          */
-
         if (nUsedColors > keepColors) {
             nUsedColors = keepColors;
         }
@@ -742,7 +719,6 @@ static void PrivateColormap(Tcl_Interp *interp, struct ColorTableStruct *colorTa
     for (colorPtr = usedColors, i = 0; i < nUsedColors; i++, colorPtr++) {
         inUse[colorPtr->pixel] = TRUE;
     }
-
     /*
      * In an "exact" colormap, we try to allocate as many of colors from the
      * image as we can fit.  If necessary, we'll cheat and reduce the number
@@ -784,7 +760,6 @@ ColorTable Rbc_PseudoColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorIm
     /* All other visuals use an 8-bit colormap */
     colorTabPtr->lut = (unsigned int *)ckalloc(sizeof(unsigned int) * 33 * 33 * 33);
     assert(colorTabPtr->lut);
-
     usePrivate = TRUE;
     if (usePrivate) {
         PrivateColormap(interp, colorTabPtr, image, tkwin);
@@ -823,13 +798,10 @@ static void ConvoleColorImage(Rbc_ColorImage srcImage, Rbc_ColorImage destImage,
     int red, green, blue;
 
     /* i = 0 case, ignore left column of pixels */
-
     srcPtr = Rbc_ColorImageBits(srcImage);
     destPtr = Rbc_ColorImageBits(destImage);
-
     width = Rbc_ColorImageWidth(srcImage);
     height = Rbc_ColorImageHeight(srcImage);
-
     yOffset = kernelPtr->height / 2;
     xOffset = kernelPtr->width / 2;
     for (y = yOffset; y < (height - yOffset); y++) {
@@ -864,11 +836,9 @@ static void ConvoleColorImage(Rbc_ColorImage srcImage, Rbc_ColorImage destImage,
     greenVal = mid[0].Green - (error * blend / blend_divisor);
     error = (blue / 5) - mid[0].Blue;
     blueVal = mid[0].Blue - (error * blend / blend_divisor);
-
     out[0].Red = CLAMP(redVal);
     out[0].Green = CLAMP(greenVal);
     out[0].Blue = CLAMP(blueVal);
-
     for (i = 1; i < (width - 1); i++) {
         for (chan = 0; chan < 3; chan++) {
             total = bot[chan][i - 1] + bot[chan][i] + bot[chan][i + 1] + mid[chan][i - 1] + mid[chan][i + 1] +
@@ -905,7 +875,6 @@ static void ConvoleColorImage(Rbc_ColorImage srcImage, Rbc_ColorImage destImage,
  *
  *----------------------------------------------------------------------
  */
-
 static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
     int width, height;
 
@@ -913,24 +882,18 @@ static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
     topPtr = Rbc_ColorImageBits(destPtr) + (width * row);
     rowPtr = topPtr + width;
     botPtr = rowPtr + width;
-
     for (x = 0; x < width; x++) {
-
         /* Clamp current error entry */
-
         midPtr->red = CLAMP(midPtr->red);
         midPtr->blue = CLAMP(midPtr->blue);
         midPtr->green = CLAMP(midPtr->green);
-
         r = (midPtr->red >> 3) + 1;
         g = (midPtr->green >> 3) + 1;
         b = (midPtr->blue >> 3) + 1;
         index = colorTabPtr->lut[r][g][b];
-
         redVal = midPtr->red * (NCOLORS + 1);
         greenVal = midPtr->green * (NCOLORS + 1);
         blueVal = midPtr->blue * (NCOLORS + 1);
-
         error = colorVal - colorMap[index].red;
         if (x < 511) {
             currRow[x + 1].Red = currRow[x + 1].Red + 7 * error / 16;
@@ -941,20 +904,16 @@ static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
             nextRow[x - 1].Red = nextRow[x - 1].Red + 3 * error / 16;
         }
         error = row[x][c] - colormap[index][c];
-
         value = srcPtr->channel[i] * error[i];
         value = CLAMP(value);
         destPtr->channel[i] = value;
-
         /* Closest pixel */
         pixel = PsuedoColorPixel();
         error[RED] = colorPtr->Red - srcPtr->Red * (NCOLORS + 1);
-
         /* translate pixel to colorInfoPtr to get error */
         colorTabPtr->lut[r][g][b];
         colorPtr = PixelToColorInfo(pixel);
         error = colorPtr->error;
-
         register rle_pixel *optr;
         register int j;
         register short *thisptr, *nextptr = NULL;
@@ -963,7 +922,6 @@ static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
         int lastline = 0, lastpixel;
         static int *cval = 0;
         static rle_pixel *pixel = 0;
-
         if (nchan != in_hdr->ncolors)
             if (cval) {
                 ckfree((char *)cval);
@@ -977,22 +935,17 @@ static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
                 malloc_ERR;
         }
         optr = outrow[RLE_RED];
-
         thisptr = row_top;
         if (row_bottom)
             nextptr = row_bottom;
         else
             lastline = 1;
-
         for (x = 0; x < width; x++) {
             int cmap_index = 0;
-
             lastpixel = (x == (width - 1));
             val = srcPtr->Red;
-
             for (chan = 0; chan < 3; chan++) {
                 cval[chan] = *thisptr++;
-
                 /*
                  * Current channel value has been accumulating error,
                  * it could be out of range.
@@ -1001,14 +954,11 @@ static void DitherRow(Rbc_ColorImage srcImage, Rbc_ColorImage destImage) {
                     cval[chan] = 0;
                 else if (cval[chan] > 255)
                     cval[chan] = 255;
-
                 pixel[chan] = cval[chan];
             }
-
             /* find closest color */
             find_closest(map, nchan, maplen, pixel, &cmap_index);
             *optr++ = cmap_index;
-
             /* thisptr is now looking at pixel to the right of current pixel
              * nextptr is looking at pixel below current pixel
              * So, increment thisptr as stuff gets stored.  nextptr gets moved
@@ -1099,13 +1049,11 @@ static Rbc_ColorImage DoColorDither(byte *pic24, byte *pic8, int w, int h, byte 
         error[256 + i] = j;
         error[256 - i] = -j;
     }
-
     cnt1 = cnt2 = 0;
     pwide3 = w * 3;
     imax = h - 1;
     jmax = w - 1;
     ep = (pic24) ? pic24 : pic8;
-
     /* attempt to malloc things */
     newpic = (byte *)ckalloc((size_t)(w * h));
     cache = RbcCalloc((size_t)(2 << 14), sizeof(short));
@@ -1123,32 +1071,28 @@ static Rbc_ColorImage DoColorDither(byte *pic24, byte *pic8, int w, int h, byte 
         return (byte *)NULL;
     }
     np = newpic;
-
     /* Get first line of picture in reverse order. */
-
     srcPtr = Rbc_ColorImageBits(image), tempPtr = tempArr;
     for (x = 0; x < width; x++, tempPtr++, srcPtr--) {
         *tempPtr = *srcPtr;
     }
-
     for (y = 0; y < height; y++) {
         tempPtr = curRowPtr, curRowPtr = nextRowPtr, nextRowPtr = tempPtr;
-
         if (y != (height - 1)) { /* get next line */
             for (x = 0; x < width; x++, tempPtr++, srcPtr--)
                 *tempPtr = *srcPtr;
         }
     }
-
     ckfree((char *)thisline);
     ckfree((char *)nextline);
     ckfree((char *)cache);
-
     return newpic;
 }
 
-static void DitherImage(image) Rbc_ColorImage image;
-{ int width, height; }
+static void DitherImage(Rbc_ColorImage image);
+{
+    int width, height;
+}
 
 #endif
 

@@ -123,6 +123,7 @@ typedef struct {
     Rbc_OpSpecHeader header;
     RbcVectorCmdOp *proc;
 } VectorInstOpSpec;
+
 static RbcVectorCmdOp TypeOp;
 static RbcVectorCmdOp AppendOp;
 static RbcVectorCmdOp ArithOp;
@@ -211,12 +212,10 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
     int index;
 
     vPtr = clientData;
-
     if (Rbc_GetOpIndexFromObj(interp, vectorInstOpCmd, (Tcl_Size)sizeof(vectorInstOpCmd[0]), RBC_OP_ARG1, objc, objv,
                               &index) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (vPtr->type == RBC_VECTOR_COMPLEX) {
         RbcVectorCmdOp *proc;
 
@@ -227,13 +226,11 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
             return TCL_ERROR;
         }
     }
-
     /*
      * Reset the selected region before each instance operation.
      */
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
-
     return vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
 }
 
@@ -531,6 +528,7 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
 
     Tcl_Obj *sizeObjPtr;
     int result;
+    
     sizeObjPtr = Tcl_NewStringObj(string + 1, len - 1);
     Tcl_IncrRefCount(sizeObjPtr);
     result = Tcl_GetIntFromObj(NULL, sizeObjPtr, &size);
@@ -539,7 +537,6 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown binary format \"%s\": incorrect byte size", string));
         return -1;
     }
-
     switch (tolower(string[0])) {
     case 'r':
     case 'f':
@@ -558,14 +555,12 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
                                                string));
         return -1;
     }
-
     for (cursor = table; cursor->size != -1; cursor++) {
         if (cursor->size == size) {
             *(struct NativeFmtValue *)dstPtr = *cursor;
             return 1;
         }
     }
-
     Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't handle format \"%s\"", string));
     return -1;
 }
@@ -661,72 +656,56 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     swap = FALSE;
     translationChanged = FALSE;
     result = TCL_ERROR;
-
     nfmt.size = sizeof(double);
     nfmt.format = FMT_DOUBLE;
-
     Tcl_DStringInit(&translation);
-
     channelName = Tcl_GetString(objv[2]);
-
     channel = Tcl_GetChannel(interp, channelName, &mode);
-
     if (channel == NULL) {
         goto cleanup;
     }
-
     if ((mode & TCL_READABLE) == 0) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("channel \"%s\" wasn't opened for reading", channelName));
         goto cleanup;
     }
-
     /*
      * An optional count precedes the options. A zero count retains the
      * historical meaning of reading until EOF.
      */
     if (optionStart < objc) {
         string = Tcl_GetString(objv[optionStart]);
-
         if (string[0] != '-') {
             if (Tcl_GetSizeIntFromObj(interp, objv[optionStart], &count) != TCL_OK) {
                 goto cleanup;
             }
-
             if (count < 0) {
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("count can't be negative", -1));
                 goto cleanup;
             }
-
             optionStart++;
         }
     }
-
     /*
      * Tcl_ParseArgsObjv() treats its first argument as the command name.
      * Use either the channel name or the optional count as that ignored
      * argument, then parse the remaining options.
      */
     argc = objc - optionStart + 1;
-
     if (argc > 1) {
         const Tcl_ArgvInfo binreadOpts[] = {{TCL_ARGV_CONSTANT, "-swap", (void *)TRUE, &swap, NULL, NULL},
                                             {TCL_ARGV_GENFUNC, "-format", ParseFormat, &nfmt, NULL, NULL},
                                             {TCL_ARGV_GENFUNC, "-at", ParseAt, &first, NULL, vPtr},
                                             TCL_ARGV_TABLE_END};
-
         if (Tcl_ParseArgsObjv(interp, binreadOpts, &argc, objv + optionStart - 1, NULL) != TCL_OK) {
             goto cleanup;
         }
     }
-
     fmt = nfmt.format;
     size = nfmt.size;
-
     if ((fmt == FMT_UNKNOWN) || (size <= 0)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("invalid binary format", -1));
         goto cleanup;
     }
-
     switch (vPtr->type) {
     case RBC_VECTOR_REAL:
         componentsPerValue = 1;
@@ -741,17 +720,14 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     if (MultiplyVectorSizes(interp, (Tcl_Size)size, componentsPerValue, &bytesPerValue) != TCL_OK) {
         goto cleanup;
     }
-
     /*
      * With no explicit count, read BUFFER_SIZE values per iteration.
      * With a count, allocate enough space for that one requested read.
      */
     bufferValues = (count == 0) ? (Tcl_Size)BUFFER_SIZE : count;
-
     if (GetArrayByteCount(interp, bufferValues, (size_t)bytesPerValue, &bufferByteCount) != TCL_OK) {
         goto cleanup;
     }
-
     /*
      * Tcl_Read() accepts its byte count as Tcl_Size.
      */
@@ -759,37 +735,28 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         Tcl_SetObjResult(interp, Tcl_NewStringObj("binary read size is too large", -1));
         goto cleanup;
     }
-
     bufferBytes = (Tcl_Size)bufferByteCount;
-
     byteArr = Tcl_AttemptAlloc(bufferByteCount);
-
     if ((byteArr == NULL) && (bufferByteCount > 0)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate binary input buffer", -1));
         goto cleanup;
     }
-
     /*
      * Preserve the channel's original translation setting.
      */
     if (Tcl_GetChannelOption(interp, channel, "-translation", &translation) != TCL_OK) {
         goto cleanup;
     }
-
     if (Tcl_SetChannelOption(interp, channel, "-translation", "binary") != TCL_OK) {
         goto cleanup;
     }
-
     translationChanged = TRUE;
-
     for (;;) {
         bytesRead = Tcl_Read(channel, byteArr, bufferBytes);
-
         if (bytesRead < 0) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("error reading channel: %s", Tcl_PosixError(interp)));
             goto cleanup;
         }
-
         /*
          * This also prevents an infinite loop on a nonblocking channel
          * that currently has no input available.
@@ -797,7 +764,6 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         if (bytesRead == 0) {
             break;
         }
-
         if ((bytesRead % bytesPerValue) != 0) {
             if (vPtr->type == RBC_VECTOR_COMPLEX) {
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("error reading channel: "
@@ -810,9 +776,7 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             }
             goto cleanup;
         }
-
         length = bytesRead / bytesPerValue;
-
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
             if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
@@ -832,7 +796,6 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             goto cleanup;
         }
         total = newTotal;
-
         /*
          * An explicit count requests at most one Tcl_Read(). This
          * preserves the existing behavior for blocking and nonblocking
@@ -841,12 +804,10 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         if (count > 0) {
             break;
         }
-
         if (Tcl_Eof(channel)) {
             break;
         }
     }
-
     result = TCL_OK;
 
 cleanup:
@@ -858,7 +819,6 @@ cleanup:
         savedErrorObj = Tcl_GetObjResult(interp);
         Tcl_IncrRefCount(savedErrorObj);
     }
-
     if (translationChanged) {
         if (Tcl_SetChannelOption(interp, channel, "-translation", Tcl_DStringValue(&translation)) != TCL_OK) {
             if (result == TCL_OK) {
@@ -866,30 +826,22 @@ cleanup:
             }
         }
     }
-
     if (savedErrorObj != NULL) {
         Tcl_SetObjResult(interp, savedErrorObj);
         Tcl_DecrRefCount(savedErrorObj);
     }
-
     Tcl_DStringFree(&translation);
-
     if (byteArr != NULL) {
         ckfree(byteArr);
     }
-
     if (result != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (vPtr->flush) {
         Rbc_VectorFlushCache(vPtr);
     }
-
     Rbc_VectorUpdateClients(vPtr);
-
     Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)total));
-
     return TCL_OK;
 }
 
@@ -1318,9 +1270,7 @@ static int MergeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     firstArr = NULL;
     valueData.raw = NULL;
     result = TCL_ERROR;
-
     nVectors = objc - 2;
-
     /*
      * "merge" requires at least one source vector according to the
      * operation table, so nVectors should always be positive here.
@@ -1585,7 +1535,6 @@ static int PopulateOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad density \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
     }
-
     /*
      * Calculate:
      *
@@ -2233,7 +2182,6 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     Tcl_Obj **elemObjArr;
 
     /* The source can be either a list of numbers or another vector.  */
-
     v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
     if (v2Ptr != NULL) {
         if (vPtr == v2Ptr) {
@@ -2258,7 +2206,6 @@ static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     } else {
         return TCL_ERROR;
     }
-
     if (result == TCL_OK) {
         /*
          * The vector has changed; so flush the array indices (they're
@@ -2374,7 +2321,6 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         Rbc_VectorFlushCache(vPtr);
     }
     Rbc_VectorUpdateClients(vPtr);
-
     /* Now sort any other vectors in the same fashion.  The vectors
      * must be the same size as the iArr though.  */
     result = TCL_ERROR;
@@ -2397,6 +2343,7 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
         }
     }
     result = TCL_OK;
+    
 error:
     ckfree((char *)mergeArr);
     ckfree((char *)iArr);
@@ -2717,16 +2664,13 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary vector range", -1));
         return TCL_ERROR;
     }
-
     if ((fmt == FMT_UNKNOWN) || (size <= 0)) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary format", -1));
         return TCL_ERROR;
     }
-
     if (AddVectorSizes(vPtr->interp, *indexPtr, length, &newSize) != TCL_OK) {
         return TCL_ERROR;
     }
-
     if (swap && (size > 1)) {
         size_t nBytes;
         size_t byteOffset;
@@ -2738,82 +2682,63 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
         if (GetArrayByteCount(vPtr->interp, length, (size_t)size, &nBytes) != TCL_OK) {
             return TCL_ERROR;
         }
-
         for (byteOffset = 0; byteOffset < nBytes; byteOffset += (size_t)size) {
-
             p = (unsigned char *)byteArr + byteOffset;
-
             for (left = 0, right = size - 1; left < right; left++, right--) {
-
                 temp = p[left];
                 p[left] = p[right];
                 p[right] = temp;
             }
         }
     }
-
     if (newSize > vPtr->length) {
         if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
             return TCL_ERROR;
         }
     }
-
 #define CopyArrayToVector(array)                                                                                       \
     do {                                                                                                               \
         for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
             vPtr->data.real[n] = (double)(array)[i];                                                                    \
         }                                                                                                              \
     } while (0)
-
     switch (fmt) {
     case FMT_CHAR:
         CopyArrayToVector((char *)byteArr);
         break;
-
     case FMT_UCHAR:
         CopyArrayToVector((unsigned char *)byteArr);
         break;
-
     case FMT_SHORT:
         CopyArrayToVector((short *)byteArr);
         break;
-
     case FMT_USHORT:
         CopyArrayToVector((unsigned short *)byteArr);
         break;
-
     case FMT_INT:
         CopyArrayToVector((int *)byteArr);
         break;
-
     case FMT_UINT:
         CopyArrayToVector((unsigned int *)byteArr);
         break;
-
     case FMT_LONG:
         CopyArrayToVector((long *)byteArr);
         break;
-
     case FMT_ULONG:
         CopyArrayToVector((unsigned long *)byteArr);
         break;
-
     case FMT_LONGLONG:
         CopyArrayToVector((long long *)byteArr);
         break;
-
     case FMT_ULONGLONG:
         CopyArrayToVector((unsigned long long *)byteArr);
         break;
-
     case FMT_FLOAT:
         CopyArrayToVector((float *)byteArr);
         break;
-
     case FMT_DOUBLE:
         CopyArrayToVector((double *)byteArr);
         break;
-
     case FMT_UNKNOWN:
         /*
          * Rejected above. Keep the case to satisfy exhaustive-switch
@@ -2822,12 +2747,9 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
         assert(0);
         return TCL_ERROR;
     }
-
 #undef CopyArrayToVector
-
     *indexPtr = newSize;
     vPtr->notifyFlags |= UPDATE_RANGE;
-
     return TCL_OK;
 }
 
@@ -2885,7 +2807,6 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
             return TCL_ERROR;
         }
     }
-    
 #define CopyArrayToComplexVector(array)                                                                                \
     do {                                                                                                               \
         for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
@@ -2893,7 +2814,6 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
             vPtr->data.complex[n].imag = (double)(array)[2 * i + 1];                                                   \
         }                                                                                                              \
     } while (0)
-
     switch (fmt) {
     case FMT_CHAR:
         CopyArrayToComplexVector((char *)byteArr);
@@ -2935,9 +2855,7 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
         assert(0);
         return TCL_ERROR;
     }
-
 #undef CopyArrayToComplexVector
-
     *indexPtr = newSize;
     vPtr->notifyFlags |= UPDATE_RANGE;
     return TCL_OK;

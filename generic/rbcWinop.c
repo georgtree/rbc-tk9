@@ -296,7 +296,6 @@ static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     }
     /* Initially, we assume all color cells are allocated. */
     memset((char *)inUse, 0, sizeof(int) * MAXCOLORS);
-
     /*
      * Start allocating color cells.  This will tell us which color cells
      * haven't already been allocated in the colormap.  We'll release the
@@ -315,7 +314,6 @@ static int ColormapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
         colorPtr->pixel = i;
     }
     XQueryColors(Tk_Display(tkwin), Tk_Colormap(tkwin), colorArr, MAXCOLORS);
-
     resultObj = Tcl_NewListObj(0, NULL);
     for (colorPtr = colorArr, i = 0; i < MAXCOLORS; i++, colorPtr++) {
         if (!inUse[colorPtr->pixel]) {
@@ -624,7 +622,6 @@ static int QueryOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
 
     /* GetCursorPos */
     if (XQueryPointer(Tk_Display(tkwin), Tk_WindowId(tkwin), &root, &child, &rootX, &rootY, &childX, &childY, &mask)) {
-
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("@%d,%d", rootX, rootY));
     }
     return TCL_OK;
@@ -717,10 +714,10 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     double value, sum;
     Tcl_Size i;
     int dim;
+    
     int result = TCL_ERROR;
     const char *srcName = Tcl_GetString(objv[2]);
     const char *destName = Tcl_GetString(objv[3]);
-
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
         Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
@@ -736,7 +733,6 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     if (Tcl_ListObjGetElements(interp, objv[4], &nValues, &valueArr) != TCL_OK) {
         return TCL_ERROR;
     }
-
     kernel = NULL;
     if (nValues == 0) {
         Rbc_AppendResultStrings(interp, "empty kernel", (char *)NULL);
@@ -772,7 +768,6 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     filter.support = dim * 0.5;
     filter.sum = (sum == 0.0) ? 1.0 : sum;
     filter.scale = 1.0 / nValues;
-
     srcImage = Rbc_PhotoToColorImage(srcPhoto);
     destImage = Rbc_ConvolveColorImage(srcImage, &filter);
     Rbc_FreeColorImage(srcImage);
@@ -813,9 +808,9 @@ static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     Rbc_ColorImage srcImage, destImage;
     int nColors;
     int result;
+    
     const char *srcName = Tcl_GetString(objv[2]);
     const char *destName = Tcl_GetString(objv[3]);
-
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
         Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
@@ -957,14 +952,11 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     range[0] = (double)((rightPtr->red - leftPtr->red) / 257.0);
     range[1] = (double)((rightPtr->green - leftPtr->green) / 257.0);
     range[2] = (double)((rightPtr->blue - leftPtr->blue) / 257.0);
-
     destImage = Rbc_CreateColorImage(src.width, src.height);
     destPtr = Rbc_ColorImageBits(destImage);
-
     if (Tcl_GetIndexFromObj(interp, objv[5], gradientTypes, "gradient type", 0, &index) != TCL_OK) {
         goto done;
     }
-
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 1.0) ? 1.0 : (c)))
     //    if (strcmp(argv[5], "linear") == 0) {
     switch (index) {
@@ -1021,7 +1013,6 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
         angle = M_PI_2 * -0.3;
         cosTheta = cos(angle);
         sinTheta = sin(angle);
-
         midX = 0.5, midY = 0.5;
         for (y = 0; y < src.height; y++) {
             dy = (y / (double)src.height) - midY;
@@ -1055,7 +1046,6 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
         }
     } break;
     }
-
     Rbc_ColorImageToPhoto(interp, destImage, photo);
     result = TCL_OK;
     
@@ -1203,7 +1193,6 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     }
     srcImage = Rbc_PhotoToColorImage(srcPhoto);
     destImage = Rbc_RotateColorImage(srcImage, theta);
-
     Rbc_ColorImageToPhoto(interp, destImage, destPhoto);
     Rbc_FreeColorImage(srcImage);
     Rbc_FreeColorImage(destImage);
@@ -1241,8 +1230,8 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     Tk_Window tkwin;
     int width, height, destWidth, destHeight;
     Window window;
+    
     const char *wname = Tcl_GetString(objv[2]);
-
     tkwin = Tk_MainWindow(interp);
     window = StringToWindow(interp, wname);
     if (window == None) {
@@ -1293,9 +1282,9 @@ static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
     int flag;
     int x, y;
     int width, height;
+    
     const char *srcName = Tcl_GetString(objv[2]);
     const char *destName = Tcl_GetString(objv[3]);
-
     srcPhoto = Tk_FindPhoto(interp, srcName);
     if (srcPhoto == NULL) {
         Rbc_AppendResultStrings(interp, "source image \"", srcName, "\" doesn't", " exist or is not a photo image",
@@ -1356,7 +1345,6 @@ static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
     } else {
         Rbc_ResamplePhoto(interp, srcPhoto, x, y, width, height, destPhoto, horzFilterPtr, vertFilterPtr);
     }
-
     return TCL_OK;
 }
 
@@ -1400,7 +1388,6 @@ static int ImageOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
         TCL_OK) {
         return TCL_ERROR;
     }
-
     /*
      * Remove the "image" word so the selected operation sees the same
      * argument positions as its direct rbc::winop form.
