@@ -52,55 +52,6 @@ typedef union {
 #define Green rgba.green
 #define Alpha rgba.alpha
 
-typedef struct {
-    XColor exact, best;
-    double error;
-    unsigned int freq;
-    int allocated;
-    int index;
-} ColorInfo;
-
-/*
- *----------------------------------------------------------------------
- *
- * ColorTable --
- *
- *    For colormap-ed visuals, this structure contains color lookup
- *    information needed to translate RGB triplets to pixel indices.
- *
- *    This structure isn't needed for TrueColor or Monochrome visuals.
- *
- *    DirectColor:
- *        Pixel values for each color channel
- *    StaticColor, PsuedoColor, StaticGray, and GrayScale:
- *        Red represents the 8-bit color. Green and Blue pixel
- *        values are unused.
- *
- *----------------------------------------------------------------------
- */
-typedef struct ColorTableStruct {
-    double outputGamma;     /* Gamma correction value */
-    Display *display;       /* Display of colortable. Used to free
-                             * colors allocated. */
-    XVisualInfo visualInfo; /* Visual information for window displaying
-                             * the image. */
-    Colormap colorMap;      /* Colormap used.  This may be the default
-                             * colormap, or an allocated private map. */
-    int flags;
-    unsigned int red[256], green[256], blue[256];
-    /* Array of allocated pixels in colormap */
-    ColorInfo colorInfo[256];
-    ColorInfo *sortedColors[256];
-    int nUsedColors, nFreeColors;
-    int nPixels; /* Number of colors in the quantized image */
-    unsigned long int pixelValues[256];
-    unsigned int *lut; /* Color lookup table. Used to collect
-                        * frequencies of colors and later
-                        * colormap indices */
-} *ColorTable;
-
-#define PRIVATE_COLORMAP 1
-#define RGBIndex(r, g, b) (((r) << 10) + ((r) << 6) + (r) + ((g) << 5) + (g) + (b))
 
 /*
  *----------------------------------------------------------------------
@@ -178,7 +129,6 @@ typedef struct {
 
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
-Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image, ColorTable *colorTablePtr);
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
@@ -205,10 +155,6 @@ void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, 
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                   int destWidth, int destHeight, const char *photoName, double inputGamma);
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr);
-ColorTable Rbc_CreateColorTable(Tk_Window tkwin);
-ColorTable Rbc_DirectColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image);
-ColorTable Rbc_PseudoColorTable(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image);
-void Rbc_FreeColorTable(ColorTable colorTable);
 /* Missing routines from the Tk photo C API */
 int Tk_ImageIsDeleted(Tk_Image tkImage);
 Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage);

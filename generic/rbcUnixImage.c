@@ -45,9 +45,11 @@ static int GetBitmapDimension(double value) {
 
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
-/* Defined rbcColor.c */
-extern int redAdjust, greenAdjust, blueAdjust;
-extern int redMaskShift, greenMaskShift, blueMaskShift;
+/* Per-capture shifts for converting TrueColor pixels to RGB bytes. */
+typedef struct {
+    int redAdjust, greenAdjust, blueAdjust;
+    int redMaskShift, greenMaskShift, blueMaskShift;
+} TrueColorMasks;
 
 /*
  *----------------------------------------------------------------------
@@ -117,295 +119,28 @@ static int CountBits(register unsigned long mask) {
     return mask;
 }
 
-static void ComputeMasks(Visual *visualPtr) {
+static void ComputeMasks(const Visual *visualPtr, TrueColorMasks *masks) {
     int count;
 
-    redMaskShift = ShiftCount((unsigned int)visualPtr->red_mask);
-    greenMaskShift = ShiftCount((unsigned int)visualPtr->green_mask);
-    blueMaskShift = ShiftCount((unsigned int)visualPtr->blue_mask);
-    redAdjust = greenAdjust = blueAdjust = 0;
+    masks->redMaskShift = ShiftCount((unsigned int)visualPtr->red_mask);
+    masks->greenMaskShift = ShiftCount((unsigned int)visualPtr->green_mask);
+    masks->blueMaskShift = ShiftCount((unsigned int)visualPtr->blue_mask);
+    masks->redAdjust = masks->greenAdjust = masks->blueAdjust = 0;
     count = CountBits((unsigned long)visualPtr->red_mask);
     if (count < 8) {
-        redAdjust = 8 - count;
+        masks->redAdjust = 8 - count;
     }
     count = CountBits((unsigned long)visualPtr->green_mask);
     if (count < 8) {
-        greenAdjust = 8 - count;
+        masks->greenAdjust = 8 - count;
     }
     count = CountBits((unsigned long)visualPtr->blue_mask);
     if (count < 8) {
-        blueAdjust = 8 - count;
+        masks->blueAdjust = 8 - count;
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * TrueColorPixel --
- *
- *      Computes a pixel index from the 3 component RGB values.
- *
- * Parameters:
- *      Visual *visualPtr
- *      Pix32 *pixelPtr
- *
- * Results:
- *      The pixel index is returned.
- *
- *----------------------------------------------------------------------
- */
-static INLINE unsigned int TrueColorPixel(Visual *visualPtr, Pix32 *pixelPtr) {
-    unsigned int red, green, blue;
-
-    /*
-     * The number of bits per color may be less than eight. For example,
-     * 15/16 bit displays (hi-color) use only 5 bits, 8-bit displays
-     * use 2 or 3 bits (don't ask me why you'd have an 8-bit TrueColor
-     * display). So shift off the least significant bits.
-     */
-    red = ((unsigned int)pixelPtr->Red >> redAdjust);
-    green = ((unsigned int)pixelPtr->Green >> greenAdjust);
-    blue = ((unsigned int)pixelPtr->Blue >> blueAdjust);
-    /* Shift each color into the proper location of the pixel index. */
-    red = (red << redMaskShift) & visualPtr->red_mask;
-    green = (green << greenMaskShift) & visualPtr->green_mask;
-    blue = (blue << blueMaskShift) & visualPtr->blue_mask;
-    return (red | green | blue);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * DirectColorPixel --
- *
- *      Translates the 3 component RGB values into a pixel index.
- *      This differs from TrueColor only in that it first translates
- *    the RGB values through a color table.
- *
- * Parameters:
- *      struct ColorTableStruct *colorTabPtr
- *      Pix32 *pixelPtr
- *
- * Results:
- *      The pixel index is returned.
- *
- *----------------------------------------------------------------------
- */
-static INLINE unsigned int DirectColorPixel(struct ColorTableStruct *colorTabPtr, Pix32 *pixelPtr) {
-    unsigned int red, green, blue;
-
-    red = colorTabPtr->red[pixelPtr->Red];
-    green = colorTabPtr->green[pixelPtr->Green];
-    blue = colorTabPtr->blue[pixelPtr->Blue];
-    return (red | green | blue);
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * PseudoColorPixel --
- *
- *      Translates the 3 component RGB values into a pixel index.
- *      This differs from TrueColor only in that it first translates
- *      the RGB values through a color table.
- *
- * Parameters:
- *      Pix32 *pixelPtr
- *      unsigned int *lut
- *
- * Results:
- *      The pixel index is returned.
- *
- *----------------------------------------------------------------------
- */
-static INLINE unsigned int PseudoColorPixel(Pix32 *pixelPtr, unsigned int *lut) {
-    int red, green, blue;
-    int pixel;
-
-    red = (pixelPtr->Red >> 3) + 1;
-    green = (pixelPtr->Green >> 3) + 1;
-    blue = (pixelPtr->Blue >> 3) + 1;
-    pixel = RGBIndex(red, green, blue);
-    return lut[pixel];
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ColorImageToPixmap --
- *
- *      Converts a color image into a pixmap.
- *
- *      Right now this only handles TrueColor visuals.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      Rbc_ColorImage image
- *      ColorTable *colorTablePtr - Points to array of colormap indices
- *
- * Results:
- *      The new pixmap is returned.
- *
- *----------------------------------------------------------------------
- */
-Pixmap Rbc_ColorImageToPixmap(Tcl_Interp *interp, Tk_Window tkwin, Rbc_ColorImage image, ColorTable *colorTablePtr) {
-    Display *display;
-    int width, height;
-    Pixmap pixmap;
-    GC pixmapGC;
-    Visual *visualPtr;
-    XImage *imagePtr;
-    size_t nPixels;
-    size_t rowBytes;
-
-    visualPtr = Tk_Visual(tkwin);
-    width = Rbc_ColorImageWidth(image);
-    height = Rbc_ColorImageHeight(image);
-    if ((width <= 0) || (height <= 0)) {
-        return None;
-    }
-    if ((size_t)width > (size_t)INT_MAX / sizeof(Pix32)) {
-        return None;
-    }
-    rowBytes = (size_t)width * sizeof(Pix32);
-    display = Tk_Display(tkwin);
-    ComputeMasks(visualPtr);
-    *colorTablePtr = NULL;
-    imagePtr =
-        XCreateImage(Tk_Display(tkwin), visualPtr, Tk_Depth(tkwin), ZPixmap, 0, (char *)NULL, width, height, 32, 0);
-    if (imagePtr == NULL) {
-        return None;
-    }
-    nPixels = GetUnixImagePixelCount(width, height);
-    imagePtr->data = RbcCalloc(nPixels, sizeof(Pix32));
-    imagePtr->byte_order = MSBFirst; /* Force the byte order */
-    imagePtr->bitmap_bit_order = imagePtr->byte_order;
-    imagePtr->bytes_per_line = (int)rowBytes;
-    switch (visualPtr->class) {
-    case TrueColor: {
-        int x, y;
-        Pix32 *srcPtr;
-        char *destPtr;
-        unsigned int pixel;
-        size_t rowOffset;
-
-        /*
-         * Compute the colormap locations directly from pixel RGB values.
-         */
-        srcPtr = Rbc_ColorImageBits(image);
-        rowOffset = 0;
-        for (y = 0; y < height; y++) {
-            destPtr = imagePtr->data + rowOffset;
-            for (x = 0; x < width; x++, srcPtr++) {
-                pixel = TrueColorPixel(visualPtr, srcPtr);
-                switch (imagePtr->bits_per_pixel) {
-                case 32:
-                    *destPtr++ = (pixel >> 24) & 0xFF;
-                /*FALLTHRU*/
-                case 24:
-                    *destPtr++ = (pixel >> 16) & 0xFF;
-                /*FALLTHRU*/
-                case 16:
-                    *destPtr++ = (pixel >> 8) & 0xFF;
-                /*FALLTHRU*/
-                case 8:
-                    *destPtr++ = pixel & 0xFF;
-                    /*FALLTHRU*/
-                }
-            }
-            rowOffset += imagePtr->bytes_per_line;
-        }
-    } break;
-    case DirectColor: {
-        int x, y;
-        Pix32 *srcPtr;
-        char *destPtr;
-        unsigned int pixel;
-        size_t rowOffset;
-        struct ColorTableStruct *colorTabPtr;
-
-        /* Build a color table first */
-        colorTabPtr = Rbc_DirectColorTable(interp, tkwin, image);
-        /*
-         * Compute the colormap locations directly from pixel RGB values.
-         */
-        srcPtr = Rbc_ColorImageBits(image);
-        rowOffset = 0;
-        for (y = 0; y < height; y++) {
-            destPtr = imagePtr->data + rowOffset;
-            for (x = 0; x < width; x++, srcPtr++) {
-                pixel = DirectColorPixel(colorTabPtr, srcPtr);
-                switch (imagePtr->bits_per_pixel) {
-                case 32:
-                    *destPtr++ = (pixel >> 24) & 0xFF;
-                /*FALLTHRU*/
-                case 24:
-                    *destPtr++ = (pixel >> 16) & 0xFF;
-                /*FALLTHRU*/
-                case 16:
-                    *destPtr++ = (pixel >> 8) & 0xFF;
-                /*FALLTHRU*/
-                case 8:
-                    *destPtr++ = pixel & 0xFF;
-                    /*FALLTHRU*/
-                }
-            }
-            rowOffset += imagePtr->bytes_per_line;
-        }
-        *colorTablePtr = colorTabPtr;
-    } break;
-    case GrayScale:
-    case StaticGray:
-    case PseudoColor:
-    case StaticColor: {
-        int x, y;
-        Pix32 *srcPtr;
-        char *destPtr;
-        unsigned int pixel;
-        size_t rowOffset;
-        struct ColorTableStruct *colorTabPtr;
-
-        colorTabPtr = Rbc_PseudoColorTable(interp, tkwin, image);
-        srcPtr = Rbc_ColorImageBits(image);
-        rowOffset = 0;
-        for (y = 0; y < height; y++) {
-            destPtr = imagePtr->data + rowOffset;
-            for (x = 0; x < width; x++, srcPtr++) {
-                pixel = PseudoColorPixel(srcPtr, colorTabPtr->lut);
-                switch (imagePtr->bits_per_pixel) {
-                case 32:
-                    *destPtr++ = (pixel >> 24) & 0xFF;
-                /*FALLTHRU*/
-                case 24:
-                    *destPtr++ = (pixel >> 16) & 0xFF;
-                /*FALLTHRU*/
-                case 16:
-                    *destPtr++ = (pixel >> 8) & 0xFF;
-                /*FALLTHRU*/
-                case 8:
-                    *destPtr++ = pixel & 0xFF;
-                    /*FALLTHRU*/
-                }
-            }
-            rowOffset += imagePtr->bytes_per_line;
-        }
-        ckfree((char *)colorTabPtr->lut);
-        *colorTablePtr = colorTabPtr;
-    } break;
-    default:
-        XDestroyImage(imagePtr);
-        return None;
-    }
-    pixmapGC = Tk_GetGC(tkwin, 0L, (XGCValues *)NULL);
-    pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, Tk_Depth(tkwin));
-    XPutImage(display, pixmap, pixmapGC, imagePtr, 0, 0, 0, 0, width, height);
-    XDestroyImage(imagePtr);
-    Tk_FreeGC(display, pixmapGC);
-    return pixmap;
-}
-
-/* ARGSUSED */
+/* Record asynchronous drawable-capture errors while the X handler is installed. */
 static int XGetImageErrorProc(ClientData clientData, XErrorEvent *errEventPtr) {
     int *errorPtr = clientData;
     *errorPtr = TCL_ERROR;
@@ -493,19 +228,20 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
     visualPtr = Tk_Visual(tkwin);
     if (visualPtr->class == TrueColor) {
         unsigned int red, green, blue;
+        TrueColorMasks masks;
 
         /*
          * Directly compute the RGB color values from the pixel index
          * rather than going through XQueryColors.
          */
-        ComputeMasks(visualPtr);
+        ComputeMasks(visualPtr, &masks);
         destPtr = Rbc_ColorImageBits(image);
         for (y = 0; y < height; y++) {
             for (x = 0; x < width; x++) {
                 pixel = XGetPixel(imagePtr, x, y);
-                red = ((pixel & visualPtr->red_mask) >> redMaskShift) << redAdjust;
-                green = ((pixel & visualPtr->green_mask) >> greenMaskShift) << greenAdjust;
-                blue = ((pixel & visualPtr->blue_mask) >> blueMaskShift) << blueAdjust;
+                red = ((pixel & visualPtr->red_mask) >> masks.redMaskShift) << masks.redAdjust;
+                green = ((pixel & visualPtr->green_mask) >> masks.greenMaskShift) << masks.greenAdjust;
+                blue = ((pixel & visualPtr->blue_mask) >> masks.blueMaskShift) << masks.blueAdjust;
                 destPtr->Red = lut[red];
                 destPtr->Green = lut[green];
                 destPtr->Blue = lut[blue];

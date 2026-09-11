@@ -360,7 +360,6 @@ typedef struct {
     int width, height;    /* Dimensions of the image */
     Tk_Image tmpImage;
     Pixmap pixmap;         /* Pixmap containing the scaled image */
-    ColorTable colorTable; /* Pointer to color table */
     Rbc_ColorImage srcImage;
     GC gc;
 
@@ -2629,15 +2628,6 @@ static void MapImageMarker(Marker *markerPtr) {
         width = (int)(right - left + 1);
         height = (int)(bottom - top + 1);
         destImage = Rbc_ResizeColorSubimage(imPtr->srcImage, x, y, width, height, scaledWidth, scaledHeight);
-#ifdef notyet
-        /* Now convert the color image into a pixmap */
-        if (imPtr->pixmap != None) {
-            Rbc_FreeColorTable(imPtr->colorTable);
-            Tk_FreePixmap(Tk_Display(graphPtr->tkwin), imPtr->pixmap);
-            imPtr->colorTable = NULL;
-        }
-        imPtr->pixmap = Rbc_ColorImageToPixmap(graphPtr->interp, graphPtr->tkwin, destImage, &imPtr->colorTable);
-#else
         imPtr->pixmap = None;
         if (imPtr->tmpImage == NULL) {
             imPtr->tmpImage = Rbc_CreateTemporaryImage(graphPtr->interp, graphPtr->tkwin, imPtr);
@@ -2648,7 +2638,6 @@ static void MapImageMarker(Marker *markerPtr) {
         /* Put the scaled colorimage into the photo. */
         photo = Tk_FindPhoto(graphPtr->interp, Rbc_NameOfImage(imPtr->tmpImage));
         Rbc_ColorImageToPhoto(graphPtr->interp, destImage, photo);
-#endif
         Rbc_FreeColorImage(destImage);
         imPtr->width = width;
         imPtr->height = height;

@@ -147,7 +147,6 @@ typedef struct {
                                 * overwriting the Tk image everytime the
                                 * EPS item is resized. In the future
                                 * we'll use our own image routines. */
-    ColorTable colorTable;     /* Pointer to color table */
     Rbc_ColorImage colorImage; /* The original photo or PostScript
                                 * preview image converted to a color
                                 * image.  This is kept around for
@@ -870,9 +869,6 @@ static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
         Rbc_DestroyTemporaryImage(epsPtr->interp, epsPtr->tmpImage);
     }
     if (epsPtr->pixmap != None) {
-#ifdef notyet
-        Rbc_FreeColorTable(epsPtr->colorTable);
-#endif
         Tk_FreePixmap(display, epsPtr->pixmap);
     }
     if (epsPtr->stipple != None) {
@@ -1113,9 +1109,6 @@ static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
         }
         CloseEpsFile(epsPtr);
         if (epsPtr->pixmap != None) {
-#ifdef notyet
-            Rbc_FreeColorTable(epsPtr->colorTable);
-#endif
             Tk_FreePixmap(Tk_Display(tkwin), epsPtr->pixmap);
             epsPtr->pixmap = None;
         }
@@ -1339,10 +1332,6 @@ static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
              */
             photo = Tk_FindPhoto(epsPtr->interp, Rbc_NameOfImage(epsPtr->tmpImage));
             Rbc_ColorImageToPhoto(epsPtr->interp, image, photo);
-        } else {
-#ifdef notyet
-            epsPtr->pixmap = Rbc_ColorImageToPixmap(epsPtr->interp, tkwin, image, &(epsPtr->colorTable));
-#endif
         }
         epsPtr->lastHeight = epsPtr->height;
         epsPtr->lastWidth = epsPtr->width;

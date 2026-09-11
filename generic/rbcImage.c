@@ -2470,7 +2470,6 @@ static void M3d(ColorImageStatistics *s) {
         for (g = 1; g <= 32; g++) {
             line2 = line = rLine = gLine = bLine = 0;
             for (b = 1; b <= 32; b++) {
-                /* ind1 = RGBIndex(r, g, b); */
                 line += s->wt[r][g][b];
                 rLine += s->mR[r][g][b];
                 gLine += s->mG[r][g][b];
