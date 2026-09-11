@@ -131,6 +131,9 @@ namespace eval ::rbc::graphtoolbar {
         The **Shift** modifier is required only when the operation starts. Releasing **Shift** while **Button-1**
         remains held does not terminate or strand the pan.
 
+        Pan motion samples the current pointer position so delayed Motion events do not replay older positions.
+        Releasing the button applies the release-event coordinates as the final position.
+
         Panning changes axis limits without changing their scale:
         - Linear axes preserve `max-min`.
         - Logarithmic axes preserve `max/min`.
@@ -5011,7 +5014,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Erase the crosshair lines themselves.
         $graph crosshairs off
         bind [my BindTagName pan-region] <Motion> [namespace code {
-            my DragPan %x %y
+            my PanMotion
             break
         }]
         my AddBindTag $graph [my BindTagName pan-region]
@@ -5099,6 +5102,20 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set deltaPixel $maxDelta
         }
         return $deltaPixel
+    }
+    method PanMotion {} {
+        # Updates a pan from the live pointer, avoiding stale Motion coordinates.
+        # Returns: Nothing.
+        if {![info exists PanInfo(active)] || !$PanInfo(active)} {
+            return
+        }
+        set graph $Subwidgets(graph)
+        lassign [winfo pointerxy $graph] rootX rootY
+        # Tk reports {-1 -1} when the pointer is on another screen.
+        if {$rootX == -1 && $rootY == -1} {
+            return
+        }
+        my DragPan [expr {$rootX-[winfo rootx $graph]}] [expr {$rootY-[winfo rooty $graph]}]
     }
     method DragPan {x y} {
         # Updates an active pan from the current pointer position.
@@ -5201,7 +5218,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        my RemoveBindTag $graph pan-region-$graph
+        my RemoveBindTag $graph [my BindTagName pan-region]
         if {[info exists PanTransientChecks(activeAxes)]} {
             my setAxisActiveScale $PanTransientChecks(activeAxes)
             unset PanTransientChecks(activeAxes)
@@ -5282,7 +5299,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         set historySaved $PanInfo(historySaved)
         set PanInfo(active) false
-        my RemoveBindTag $graph pan-region-$graph
+        my RemoveBindTag $graph [my BindTagName pan-region]
         if {$historySaved} {
             my PopZoom yes $x $y
         }

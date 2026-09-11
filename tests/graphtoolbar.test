@@ -166,7 +166,12 @@ proc FindLegendPoint {graph element} {
 
 proc GenerateGraphEvent {graph sequence x y time} {
     sleep $time
-    event generate $graph $sequence -x $x -y $y
+    if {$sequence eq "<Motion>" && "gtb-pan-region-$graph" in [bindtags $graph]} {
+        # Pan motion reads the physical pointer rather than synthetic event coordinates.
+        event generate $graph $sequence -x $x -y $y -warp 1
+    } else {
+        event generate $graph $sequence -x $x -y $y
+    }
     update
 }
 
@@ -1857,6 +1862,47 @@ foreach device {mouse touchpad} {
 }
 
 #### pan
+foreach inverted {no yes} {
+    test panInteractive-15-$inverted {stale motion does not reverse a pan; release removes its tag} \
+            -constraints {isInteractive isPan} -setup {
+        set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
+        pack .gtb -fill both -expand yes
+        set graph [$widget subwidget graph]
+        $graph configure -invertxy $inverted
+        $graph axis configure x -min 0 -max 10
+        $graph axis configure y -min 0 -max 10
+        $graph element create line1 -data {0 0 5 5 10 10}
+    } -body {
+        WaitForWindow $graph
+        lassign [$graph extents plotarea] left top width height
+        set ax [expr {$left+$width/2}]
+        set ay [expr {$top+$height/2}]
+        set bx [expr {$ax+30}]
+        set by [expr {$ay+20}]
+        set cx [expr {$bx+10}]
+        set cy [expr {$by+10}]
+        set expected [ExpectedPanLimits $graph $ax $ay $cx $cy]
+        PlaceGraphPointer $graph $ax $ay
+        GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay 20
+        PlaceGraphPointer $graph $bx $by
+        set before [list [$graph axis cget x -min] [$graph axis cget x -max] \
+                         [$graph axis cget y -min] [$graph axis cget y -max]]
+        # Deliberately do not warp: these event coordinates are obsolete.
+        foreach x [list $ax [expr {$ax+5}] $ax] {
+            event generate $graph <Motion> -x $x -y $ay
+            update
+        }
+        set after [list [$graph axis cget x -min] [$graph axis cget x -max] \
+                        [$graph axis cget y -min] [$graph axis cget y -max]]
+        GenerateGraphEvent $graph <ButtonRelease-1> $cx $cy 20
+        set final [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
+        list [approxNestedEqual $before $after] [approxNestedEqual $final $expected] \
+            [expr {"gtb-pan-region-$graph" ni [bindtags $graph]}]
+    } -cleanup {
+        destroy $widget
+    } -result {true true 1}
+}
+
 test panInteractive-1 {pan translates linear axes and is reversible} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
     pack .gtb -fill both -expand yes
