@@ -203,6 +203,9 @@ interfaces without requiring applications to reconstruct bar geometry themselves
 </section>
 <section id="custom-element-value-labels">
 <span id="r-tcltk9upgrade-custom-element-value-labels"></span><span id="r-3a3atcltk9upgradeqzcustom20element20value20labels"></span><h2>Custom element value labels<a class="headerlink" href="#custom-element-value-labels" title="Link to this heading">¶</a></h2>
+<p>Value labels accept <code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> on elements and pens. Signed integer pixel offsets move
+the label anchor right/down, independently of axis inversion and text rotation. The default <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>
+preserves existing placement in both renderers and PostScript.</p>
 <p>Elements and named pens now accept <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, a Tcl command prefix receiving the graph pathname,
 element name, source index, X and Y. Its result replaces the <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code> label on screen and in PostScript.
 Empty results hide individual labels; clearing the option restores <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code>.</p>

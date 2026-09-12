@@ -190,6 +190,36 @@ int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * Rbc_GetValueOffset --
+ *
+ *     Parse two signed pixel offsets without changing the output on error.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_GetValueOffset(Tcl_Interp *interp, Tcl_Obj *objPtr, Point2D *offsetPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    int dx, dy;
+
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc != 2) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("-valueoffset must contain two integer pixel offsets", -1));
+        return TCL_ERROR;
+    }
+    if ((Tcl_GetIntFromObj(interp, objv[0], &dx) != TCL_OK) ||
+        (Tcl_GetIntFromObj(interp, objv[1], &dy) != TCL_OK)) {
+        return TCL_ERROR;
+    }
+    offsetPtr->x = dx;
+    offsetPtr->y = dy;
+    return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_GetElementValueLabel --
  *
  *      Formats a source point using the pen's command or value format.

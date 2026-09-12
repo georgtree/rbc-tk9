@@ -581,19 +581,36 @@ precedence over <code class="docutils literal notranslate"><span class="pre">-yl
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
 <td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
+<td><p>Moves the label anchor by signed integer pixels. Default: <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p>Sets the printf-style floating-point format. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">angle</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">angle</span></code></p></td>
 <td><p>Rotates the label by the specified angle in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p>Specifies an optional text shadow. An empty value disables the shadow.</p></td>
 </tr>
 </tbody>
 </table>
 <p><code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> is validated before it is accepted. It may contain at most one floating-point conversion,
 using <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">e</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, or <code class="docutils literal notranslate"><span class="pre">G</span></code>. Dynamic width or precision using <code class="docutils literal notranslate"><span class="pre">*</span></code> is not permitted.</p>
+<section id="value-label-position">
+<span id="r-rbc-lineelement-value-label-position"></span><span id="r-3a3arbc3a3alineelementqzvalue2dlabel20position"></span><h3>Value-label position<a class="headerlink" href="#value-label-position" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> moves the label anchor by signed integer pixels: positive X moves right,
+positive Y moves down. The default is <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. Directions stay the same with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-valuerotate</span></code>; <code class="docutils literal notranslate"><span class="pre">-valueanchor</span></code> still controls text alignment. The offset is measured from the
+existing label position, not from the symbol edge.</p>
+<p>This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
+pens. It works with <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, in both renderers and PostScript output.
+PostScript uses the offset before page scaling. Source coordinates passed to callbacks do not change.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>showvalues<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>valueanchor<span class="w"> </span>s<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="o">-</span><span class="mi">8</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>pen<span class="w"> </span>configure<span class="w"> </span>selected<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="o">-</span><span class="mi">8</span><span class="k">}</span>
+</pre></div>
+</div>
+</section>
 <section id="custom-value-label-text">
 <span id="r-rbc-lineelement-custom-value-label-text"></span><span id="r-3a3arbc3a3alineelementqzcustom20value2dlabel20text"></span><h3>Custom value-label text<a class="headerlink" href="#custom-value-label-text" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> supplies a Tcl command prefix for value labels. It is available on line, strip, Polar and
@@ -901,72 +918,77 @@ runs.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code></p></td>
 <td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">valueOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ValueOffset</span></code></p></td>
+<td><p>Moves the label anchor by signed integer pixels. Default: <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Weights</span></code></p></td>
 <td><p>Supplies per-point numeric weights used to select pens through <code class="docutils literal notranslate"><span class="pre">-styles</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XData</span></code></p></td>
 <td><p>Supplies the element’s X coordinates as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-x</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
 <td><p>Supplies symmetric X error magnitudes as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
 <td><p>Supplies the upper X error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
 <td><p>Supplies the lower X error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YData</span></code></p></td>
 <td><p>Supplies the element’s Y coordinates as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
 <td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
 <td><p>Supplies the upper Y error endpoints as a list or Rbc vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
 <td><p>Supplies the lower Y error endpoints as a list or Rbc vector.</p></td>
@@ -1009,6 +1031,7 @@ runs.</p>
 <li><a class="reference internal" href="#symbols">Symbols</a></li>
 <li><a class="reference internal" href="#error-bars-of-line-elements">Error bars of line elements</a></li>
 <li><a class="reference internal" href="#value-labels-of-line-elements">Value labels of line elements</a><ul>
+<li><a class="reference internal" href="#value-label-position">Value-label position</a></li>
 <li><a class="reference internal" href="#custom-value-label-text">Custom value-label text</a></li>
 </ul>
 </li>

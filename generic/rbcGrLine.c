@@ -239,6 +239,8 @@ typedef struct {
     int valueShow;
     char *valueFormat;
     Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
+    Tcl_Obj *valueOffsetObjPtr; /* Pixel offset of the value-label anchor. */
+    Point2D valueOffset;
     TextStyle valueStyle;
 } LinePen;
 
@@ -884,6 +886,8 @@ typedef struct {
          0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
+        {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0", \
+         LINE_BUILTIN_PEN_OFFSET(valueOffsetObjPtr), -1, 0, NULL, LINE_ELEM_BUILTIN_PEN_MASK}, \
         {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
          LINE_BUILTIN_PEN_OFFSET(valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, LINE_ELEM_BUILTIN_PEN_MASK}, \
         {TK_OPTION_STRING,                                                                                             \
@@ -1184,6 +1188,8 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
         NULL,                                                         \
         0                                                             \
     },                                                                \
+    {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0", \
+     offsetof(LinePen, valueOffsetObjPtr), -1, 0, NULL, 0}, \
     {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
      offsetof(LinePen, valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
     {                                                                 \
@@ -2693,6 +2699,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     int newSymbolSize;
     int newErrorBarShow;
     int newValueShow;
+    Point2D newValueOffset;
     GC newOutlineGC;
     GC newFillGC;
     GC newTraceGC;
@@ -2717,6 +2724,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newTraceGC = NULL;
     newErrorBarGC = NULL;
     newValueGC = NULL;
+    if (Rbc_GetValueOffset(graphPtr->interp, lpPtr->valueOffsetObjPtr, &newValueOffset) != TCL_OK) {
+        goto error;
+    }
     if (Rbc_ValidateValueCommand(graphPtr->interp, lpPtr->valueCommandObjPtr) != TCL_OK) {
         goto error;
     }
@@ -2911,6 +2921,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     lpPtr->symbol.size = newSymbolSize;
     lpPtr->errorBarShow = newErrorBarShow;
     lpPtr->valueShow = newValueShow;
+    lpPtr->valueOffset = newValueOffset;
     /*
      * Commit GCs.
      */
@@ -10795,8 +10806,15 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
             Tcl_DecrRefCount(labelObjPtr);
             continue;
         }
-        Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
-                     (int)pointPtr->x, (int)pointPtr->y);
+        {
+            double labelX = pointPtr->x + penPtr->valueOffset.x;
+            double labelY = pointPtr->y + penPtr->valueOffset.y;
+            if ((labelX >= INT_MIN) && (labelX <= INT_MAX) &&
+                (labelY >= INT_MIN) && (labelY <= INT_MAX)) {
+                Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                             (int)labelX, (int)labelY);
+            }
+        }
         Tcl_DecrRefCount(labelObjPtr);
     }
 }
@@ -11350,7 +11368,8 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
             Tcl_DecrRefCount(labelObjPtr);
             continue;
         }
-        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle, pointPtr->x, pointPtr->y);
+        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                             pointPtr->x + penPtr->valueOffset.x, pointPtr->y + penPtr->valueOffset.y);
         Tcl_DecrRefCount(labelObjPtr);
     }
 }

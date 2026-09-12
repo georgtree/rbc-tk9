@@ -3393,6 +3393,7 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     graphPtr->width = data.width;
     graphPtr->height = data.height;
     Rbc_LayoutGraph(graphPtr);
+    Tk_MakeWindowExist(graphPtr->tkwin);
     drawable = Tk_WindowId(graphPtr->tkwin);
     if (data.format == FORMAT_PHOTO) {
         drawable =

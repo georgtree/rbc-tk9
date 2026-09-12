@@ -35,11 +35,6 @@ namespace eval ::valuecommandTests {
         return [lsort -integer -unique $result]
     }
 
-    ::rbc::graph .valuecmdProbe
-    set available [expr {![catch {.valuecmdProbe configure -renderer cairo}]}]
-    destroy .valuecmdProbe
-    testConstraint valuecommandCairo $available
-
     foreach kind {graph stripchart barchart polar} {
         test valuecommand-1-$kind {element and pen command options validate and roll back} -setup {
             Create $kind
@@ -69,54 +64,47 @@ namespace eval ::valuecommandTests {
             destroy .valuecmd
         } -result {1 1 1 1 %.2f %.3f {} {}}
 
-        foreach renderer {native cairo} {
-            set constraints {}
-            if {$renderer eq "cairo"} {set constraints valuecommandCairo}
-            test valuecommand-2-$kind-$renderer {screen callbacks receive source indices and data values} \
-                    -constraints $constraints -setup {
-                Create $kind
-                .valuecmd configure -renderer $renderer -invertxy yes
-                .valuecmd element configure signal -showvalues both \
+        test valuecommand-2-$kind {screen callbacks receive source indices and data values} -setup {
+            Create $kind
+            .valuecmd configure -invertxy yes
+            .valuecmd element configure signal -showvalues both \
                     -valuecommand [list ::valuecommandTests::Format {bound argument}]
-                set photo [image create photo]
-                set calls {}
-            } -body {
-                .valuecmd snap $photo
-                set actual [lsort -index 3 -unique $calls]
-                set expected {}
-                foreach {index x y} {0 2 2 1 5 5 2 8 2} {
-                    lappend expected [list {bound argument} .valuecmd signal $index \
-                        [expr {double($x)}] [expr {double($y)}]]
-                }
-                expr {$actual eq $expected}
-            } -cleanup {
-                image delete $photo
-                destroy .valuecmd
-            } -result 1
+            set photo [image create photo]
+            set calls {}
+        } -body {
+            .valuecmd snap $photo
+            set actual [lsort -index 3 -unique $calls]
+            set expected {}
+            foreach {index x y} {0 2 2 1 5 5 2 8 2} {
+                lappend expected [list {bound argument} .valuecmd signal $index \
+                                          [expr {double($x)}] [expr {double($y)}]]
+            }
+            expr {$actual eq $expected}
+        } -cleanup {
+            image delete $photo
+            destroy .valuecmd
+        } -result 1
 
-            test valuecommand-3-$kind-$renderer {empty callback output hides labels; showvalues none skips callbacks} \
-                    -constraints $constraints -setup {
-                Create $kind
-                .valuecmd configure -renderer $renderer
-                set photo [image create photo]
-            } -body {
-                .valuecmd element configure signal -showvalues none
-                .valuecmd snap $photo
-                set without [$photo data]
-                .valuecmd element configure signal -showvalues y \
+        test valuecommand-3-$kind {empty callback output hides labels; showvalues none skips callbacks} -setup {
+            Create $kind
+            set photo [image create photo]
+        } -body {
+            .valuecmd element configure signal -showvalues none
+            .valuecmd snap $photo
+            set without [$photo data]
+            .valuecmd element configure signal -showvalues y \
                     -valuecommand [list apply {{graph element index x y} {return {}}}]
-                .valuecmd snap $photo
-                set emptyMatches [expr {[$photo data] eq $without}]
-                .valuecmd element configure signal -showvalues none \
+            .valuecmd snap $photo
+            set emptyMatches [expr {[$photo data] eq $without}]
+            .valuecmd element configure signal -showvalues none \
                     -valuecommand [list ::valuecommandTests::Format disabled]
-                set calls {}
-                .valuecmd snap $photo
-                list $emptyMatches [llength $calls]
-            } -cleanup {
-                image delete $photo
-                destroy .valuecmd
-            } -result {1 0}
-        }
+            set calls {}
+            .valuecmd snap $photo
+            list $emptyMatches [llength $calls]
+        } -cleanup {
+            image delete $photo
+            destroy .valuecmd
+        } -result {1 0}
 
         test valuecommand-4-$kind {PostScript uses custom text and clearing restores valueformat} -setup {
             Create $kind

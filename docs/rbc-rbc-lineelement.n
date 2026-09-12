@@ -619,6 +619,7 @@ Value-label appearance is controlled by:
 │ -valuecolor color     │ Sets the label color\&. The default is black\&.                                          │
 │ -valuefont font       │ Sets the label font\&.                                                                 │
 │ -valuecommand cmd     │ Formats value labels with a Tcl command prefix\&. Default: empty\&.                      │
+│ -valueoffset {dx dy}  │ Pixel offset\&. Default: 0 0\&.                                                          │
 │ -valueformat format   │ Sets the printf-style floating-point format\&. The default is %g\&.                      │
 │ -valuerotate angle    │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.             │
 │ -valueshadow shadow   │ Specifies an optional text shadow\&. An empty value disables the shadow\&.               │
@@ -628,6 +629,23 @@ Value-label appearance is controlled by:
 .PP
 -valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion,
 using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
+.SS "VALUE-LABEL POSITION"
+.PP
+-valueoffset {dx dy} moves the label anchor by signed integer pixels: positive X moves right,
+positive Y moves down\&. The default is {0 0}\&. Directions stay the same with -invertxy and
+-valuerotate; -valueanchor still controls text alignment\&. The offset is measured from the
+existing label position, not from the symbol edge\&.
+.PP
+This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
+pens\&. It works with -valueformat and -valuecommand, in both renderers and PostScript output\&.
+PostScript uses the offset before page scaling\&. Source coordinates passed to callbacks do not change\&.
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -showvalues y -valueanchor s -valueoffset {0 -8}
+\&.g pen configure selected -valueoffset {8 -8}
+.fi
+.RE
 .SS "CUSTOM VALUE-LABEL TEXT"
 .PP
 -valuecommand supplies a Tcl command prefix for value labels\&. It is available on line, strip, Polar and
@@ -854,6 +872,7 @@ The complete line-element option set is:
 │ -valuefont font         │ valueFont        │ ValueFont        │ Sets the font used to draw value labels\&.                │
 │ -valuecommand cmd       │ valueCommand     │ ValueCommand     │ Formats value labels with a Tcl command prefix\&.         │
 │                         │                  │                  │ Default: empty\&.                                         │
+│ -valueoffset {dx dy}    │ valueOffset      │ ValueOffset      │ Pixel offset\&. Default: 0 0\&.                             │
 │ -valueformat format     │ valueFormat      │ ValueFormat      │ Sets the printf-style format used for value labels\&. The │
 │                         │                  │                  │ default is %g\&.                                          │
 │ -valuerotate degrees    │ valueRotate      │ ValueRotate      │ Sets the rotation angle of value labels in degrees\&. The │

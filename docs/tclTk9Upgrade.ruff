@@ -198,6 +198,10 @@ namespace eval TclTk9Upgrade {
 
         ## Custom element value labels
 
+        Value labels accept `-valueoffset {dx dy}` on elements and pens. Signed integer pixel offsets move
+        the label anchor right/down, independently of axis inversion and text rotation. The default `{0 0}`
+        preserves existing placement in both renderers and PostScript.
+
         Elements and named pens now accept `-valuecommand`, a Tcl command prefix receiving the graph pathname,
         element name, source index, X and Y. Its result replaces the `-showvalues` label on screen and in PostScript.
         Empty results hide individual labels; clearing the option restores `-valueformat`.

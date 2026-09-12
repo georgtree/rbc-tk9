@@ -210,6 +210,7 @@ Label appearance is controlled by:
 -valuecolor
 -valuefont
 -valuecommand
+-valueoffset
 -valueformat
 -valuerotate
 -valueshadow
@@ -315,6 +316,7 @@ The complete strip-element option set is:
 │ -valuefont font       │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.        │
 │ -valuecommand cmd     │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. │
 │                       │               │                │ Default: empty\&.                                 │
+│ -valueoffset {dx dy}  │ valueOffset   │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                     │
 │ -valueformat format   │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value     │
 │                       │               │                │ labels\&. The default is %g\&.                      │
 │ -valuerotate degrees  │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in      │

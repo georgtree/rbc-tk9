@@ -299,3 +299,49 @@ proc DemoThumbnail {file width height} {
     return $target
 }
 
+proc ReadCsv {path} {
+    package require csv
+    set ch [open $path r]
+    try {
+        fconfigure $ch -encoding utf-8
+        set header {}
+        set rows {}
+        set record {}
+        set line 0
+        while {[gets $ch part] >= 0} {
+            incr line
+            append record $part
+            if {![::csv::iscomplete $record]} {
+                append record \n
+                continue
+            }
+            if {$record eq {}} {
+                continue
+            }
+            set values [::csv::split $record]
+            set record {}
+            if {$header eq {}} {
+                set header [lreplace $values 0 0 [string trimleft [lindex $values 0] \ufeff]]
+                if {[llength [lsort -unique $header]] != [llength $header]} {
+                    return -code error "$path: duplicate CSV columns"
+                }
+                continue
+            }
+            if {[llength $values] != [llength $header]} {
+                return -code error "$path:$line: wrong column count"
+            }
+            set row {}
+            foreach k $header v $values {
+                dict set row $k $v
+            }
+            lappend rows $row
+        }
+        if {$record ne {}} {
+            return -code error "$path: incomplete CSV record"
+        }
+        if {$header eq {}} {
+            return -code error "$path: empty CSV"
+        }
+        return $rows
+    } finally {close $ch}
+}

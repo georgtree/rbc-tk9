@@ -49,6 +49,8 @@ typedef struct {
     int valueShow;
     char *valueFormat;
     Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
+    Tcl_Obj *valueOffsetObjPtr; /* Pixel offset of the value-label anchor. */
+    Point2D valueOffset;
     TextStyle valueStyle;
 } BarPen;
 
@@ -209,6 +211,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_BUILTIN_PEN_OFFSET(valueStyle.color), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, -1,
      BAR_BUILTIN_PEN_OFFSET(valueStyle.font), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0",
+     BAR_BUILTIN_PEN_OFFSET(valueOffsetObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL,
      BAR_BUILTIN_PEN_OFFSET(valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT, -1,
@@ -358,6 +362,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
+        {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0", \
+         offsetof(BarPen, valueOffsetObjPtr), -1, 0, NULL, 0}, \
         {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
          offsetof(BarPen, valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
         {TK_OPTION_STRING,                                                                                             \
@@ -551,6 +557,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     int newErrorBarLineWidth;
     int newErrorBarShow;
     int newValueShow;
+    Point2D newValueOffset;
     Shadow newShadow;
     XGCValues gcValues;
     unsigned long gcMask;
@@ -565,6 +572,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newErrorBarColor = NULL;
     newShadow.color = NULL;
     newShadow.offset = 0;
+    if (Rbc_GetValueOffset(graphPtr->interp, bpPtr->valueOffsetObjPtr, &newValueOffset) != TCL_OK) {
+        goto error;
+    }
     if (Rbc_ValidateValueCommand(graphPtr->interp, bpPtr->valueCommandObjPtr) != TCL_OK) {
         goto error;
     }
@@ -660,6 +670,7 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     bpPtr->errorBarLineWidth = newErrorBarLineWidth;
     bpPtr->errorBarShow = newErrorBarShow;
     bpPtr->valueShow = newValueShow;
+    bpPtr->valueOffset = newValueOffset;
     bpPtr->errorBarColor = newErrorBarColor;
     bpPtr->valueStyle.shadow = newShadow;
     newErrorBarColor = NULL;
@@ -2235,8 +2246,15 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
-                     (int)anchorPos.x, (int)anchorPos.y);
+        {
+            double labelX = anchorPos.x + penPtr->valueOffset.x;
+            double labelY = anchorPos.y + penPtr->valueOffset.y;
+            if ((labelX >= INT_MIN) && (labelX <= INT_MAX) &&
+                (labelY >= INT_MIN) && (labelY <= INT_MAX)) {
+                Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                             (int)labelX, (int)labelY);
+            }
+        }
         Tcl_DecrRefCount(labelObjPtr);
     }
 }
@@ -2536,7 +2554,8 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle, anchorPos.x, anchorPos.y);
+        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                             anchorPos.x + penPtr->valueOffset.x, anchorPos.y + penPtr->valueOffset.y);
         Tcl_DecrRefCount(labelObjPtr);
     }
 }

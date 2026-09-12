@@ -242,6 +242,7 @@ Appearance is controlled by:
 -valuecolor
 -valuefont
 -valuecommand
+-valueoffset
 -valueformat
 -valuerotate
 -valueshadow
@@ -297,6 +298,7 @@ a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitt
 │ -valuefont font        │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.                 │
 │ -valuecommand cmd      │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. Default: │
 │                        │                │                │ empty\&.                                                   │
+│ -valueoffset {dx dy}   │ valueOffset    │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                              │
 │ -valueformat format    │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value labels\&.      │
 │                        │                │                │ The default is %g\&.                                       │
 │ -valuerotate degrees   │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&.      │
@@ -366,6 +368,7 @@ Bar pens use the same value-label controls as line pens:
 -valuecolor
 -valuefont
 -valuecommand
+-valueoffset
 -valueformat
 -valuerotate
 -valueshadow
@@ -419,6 +422,7 @@ See \fIBARELEMENT\fP for placement of value labels relative to the baseline and 
 │ -valuefont font       │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.         │
 │ -valuecommand cmd     │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&.  │
 │                       │                │                │ Default: empty\&.                                  │
+│ -valueoffset {dx dy}  │ valueOffset    │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                      │
 │ -valueformat format   │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value      │
 │                       │                │                │ labels\&. The default is %g\&.                       │
 │ -valuerotate degrees  │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in       │
