@@ -8,24 +8,25 @@ package require Tk
 package require rbc
 namespace import rbc::*
 
-
 ### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText {At this scale the 250,000 plotted points overlap, zoom closer to see individual points.
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: select from availible mods on toolbar;}
-
+set HeaderText [MakeLine {
+    |This is an example of the displaying large amount of scattered points. At this scale the 250,000 plotted points
+    |overlap, zoom closer to see individual points.
+}]
 CommonHeader .header $HeaderText 7 $DemoDir .graph
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: select from availible mods on toolbar;}
 
 ### Colors and other options for the graph:
 option add *HighlightThickness 0
@@ -47,6 +48,7 @@ $graph graph element create line3 -symbol square -color green4 -fill green2 -lin
 
 ### Map everything
 grid .header -sticky ew
+grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1

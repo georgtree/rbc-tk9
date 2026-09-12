@@ -21,17 +21,19 @@ source $DemoDir/scripts/common.tcl
 # scripts/common.tcl for choices, including the stock dialog
 # Rbc_PostScriptDialog which is not used in these demos.
 source $DemoDir/scripts/ps.tcl
-set HeaderText {This is an example of displaying many waveforms curves but but as a monochrome curves.
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: select from availible mods on toolbar;}
+set HeaderText [MakeLine {
+    |This is an example of displaying many waveforms curves but but as a monochrome curves.
+}]
 CommonHeader .header $HeaderText 5 $DemoDir .graph graph6.ps
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: select from availible mods on toolbar;}
 
 ### Set options for graph.
 option add *Graph.Width 10i
@@ -83,9 +85,10 @@ for {set i 1} {$i<=39} {incr i} {
     $graph graph element create V$i -x x -y v$i
 }
 
-### Map everything, add Rbc_* commands and bindings.
+### Map everything
 wm min . 0 0 
 grid .header -sticky ew
+grid .details -sticky ew -padx 15
 grid $graph .legend -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1

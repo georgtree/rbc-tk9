@@ -14,19 +14,21 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText {This is an example of a bitmap marker. Try zooming in on a region by clicking and holding the left\
-button, moving the pointer, and release the button. Notice that the bitmap scales too. To restore the last view,\
-click on the middle mouse button (wheel button).
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: select from availible mods on toolbar;}
+set HeaderText [MakeLine {
+    |This is an example of a bitmap marker. Try zooming in on a region by clicking and holding the left button, moving
+    |the pointer, and release the button. Notice that the bitmap scales too. To restore the last view, click on the
+    |middle mouse button (wheel button).
+}]
 CommonHeader .header $HeaderText 4 $DemoDir .g
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: select from availible mods on toolbar;}
 
 option add *HighlightThickness 0
 
@@ -67,6 +69,7 @@ $graph graph postscript configure -maxpect yes -landscape yes
 
 ### Map everything
 grid .header -sticky ew -padx 4 -pady 4
+grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1

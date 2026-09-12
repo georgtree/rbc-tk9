@@ -14,19 +14,21 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands
 source $DemoDir/scripts/common.tcl
-set HeaderText {This is an example of the graphtoolbar widget with toolbar control mode. In this example sine and\
-cosine curves are displayed with applied different styles pens. Also demonstrated custom X-axis tick markers and limits\
-labels.
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: select from availible mods on toolbar;}
+set HeaderText [MakeLine {
+    |This is an example of the graphtoolbar widget with toolbar control mode. In this example sine and cosine curves
+    |are displayed with applied different styles pens. Also demonstrated custom X-axis tick markers and limits
+    |labels
+}]
 CommonHeader .header $HeaderText 6 $DemoDir
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: select from availible mods on toolbar;}
 
 ### Create the graph.
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
@@ -112,6 +114,7 @@ $graph graph element create line1 -color orange -outline black -fill orange -fil
 
 ### Map everything
 grid .header -columnspan 1 -sticky ew
+grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1

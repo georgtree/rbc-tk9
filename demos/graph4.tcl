@@ -14,19 +14,21 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText {This is an example of displaying many waveforms curves. If you zoom closer, you can see individual\
-markers appear, hidden with default scale. Hover mouse over the certain waveform highlight name of that waveform\
-in the legend list.
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: select from availible mods on toolbar;}
+set HeaderText [MakeLine {
+    |This is an example of displaying many waveforms curves. If you zoom closer, you can see individual symbols appear,
+    |hidden with default scale. Hover mouse over the certain waveform highlight name of that waveform in the legend
+    |list.
+}]
 CommonHeader .header $HeaderText 6 $DemoDir .graph {} graph4.ppm
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: select from availible mods on toolbar;}
 
 ### These options apply to the graph.
 option add *Graph.Legend.activeBackground grey
@@ -121,6 +123,7 @@ foreach {label yData outline color} $attributes {
 
 ### Map everything
 grid .header -sticky ew
+grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1

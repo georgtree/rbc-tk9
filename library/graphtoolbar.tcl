@@ -1458,7 +1458,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     lappend crosshairsModeWidths [string length $label]
                 }
                 set Subwidgets(crosshairsModeLabel)\
-                    [ttk::label $Subwidgets(toolbarFrame).crosshairsModeLabel -text {Crosshairs mode}]
+                    [ttk::label $Subwidgets(toolbarFrame).crosshairsModeLabel -text {Crosshairs mode:}]
                 grid $Subwidgets(crosshairsModeLabel) -row 0 -column [incr butCount] -sticky e -padx {6 2}
                 set Subwidgets(crosshairsComBox)\
                         [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -values [my CrosshairsModeLabels]\

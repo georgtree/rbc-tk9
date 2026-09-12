@@ -13,18 +13,20 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-set HeaderText {This is an example of the graphtoolbar widget with context control mode. It displays two-variable data\
-with assorted line attributes and symbols.
-Availible actions:
-    - Zoom box selection: left mouse button press + motion + button release;
-    - Reverse zoom/pan to the previous state:  middle mouse button click;
-    - Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
-    - Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
-    - Panning: press and hold Shift + left mouse button press and hold + motion;
-    - Toggle axive axis scale: left mouse button click over the selected axis;
-    - Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
-    - Change crosshairs mode: right mouse button click, and select from four availible modes;}
+set HeaderText [MakeLine {
+    |This is an example of the graph/graphtoolbar widget with context control mode. It displays two-variable data
+    |with assorted line attributes and symbols.
+}]
 CommonHeader .header $HeaderText 6 $DemoDir
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: right mouse button click, and select from four availible modes;}
 
 ### Create the graph and configure its options
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode context -zoom -zoomtitle -zoommark\
@@ -36,7 +38,7 @@ ttk::scrollbar .xbar -command [list $graph graph axis view x] -orient horizontal
 ttk::scrollbar .ybar -command [list MultiplexView $graph] -orient vertical 
 
 ####  Defines the data values (as lists), options for graph elements, and the graph elements themselves.
-#####  (1) Define lists of data to be plotted
+#####  Define lists of data to be plotted
 # Data are not defined as vectors or arrays in this example.
 set X { 
     2.00000e-01 4.00000e-01 6.00000e-01 8.00000e-01 1.00000e+00 
@@ -66,7 +68,7 @@ set Y3 {
     1.91411e+02 1.91775e+02 1.92139e+02 1.92503e+02 1.92867e+02 
     1.93231e+02 1.93595e+02 1.93958e+02 1.94322e+02 1.94686e+02 
 }
-#####  (2) Set option defaults for graph elements
+#####  Set option defaults for graph elements
 set configOptions {
     Element.Pixels 10
     Element.Smooth catrom
@@ -84,7 +86,7 @@ foreach {option value} $configOptions {
     option add *$resource.$option $value
 }
 
-#####  (3) Add elements to the graph
+#####  Add elements to the graph
 $graph graph element create line1 -x $X -y $Y2
 $graph graph element create line2 -x $X -y $Y3
 $graph graph element create line3 -x $X -y $Y1 
@@ -103,6 +105,7 @@ $graph graph element configure line3 -areatile $image2
 
 ### Map everything, add Rbc_* commands and bindings.
 grid .header -columnspan 2 -sticky ew
+grid .details -sticky ew -padx 15
 grid $graph .ybar -sticky news
 grid .xbar -sticky ew
 grid .ybar -sticky ns

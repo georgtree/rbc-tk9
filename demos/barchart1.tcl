@@ -12,6 +12,21 @@ namespace import rbc::*
 ### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
+source $DemoDir/scripts/common.tcl
+set HeaderText [MakeLine {
+    |This is an example of the barchart graph with stipple pattern as a bar's filling.
+}]
+CommonHeader .header $HeaderText 6 $DemoDir
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: right mouse button click, and select from four availible modes;}
+
 ### Set option defaults for the barchart.
 option add *Barchart.title {A Simple Barchart}
 option add *Barchart.font {Helvetica 12 bold}
@@ -73,6 +88,8 @@ foreach stipple $bitmaps {
 }
 
 ### Map everything
+grid .header -columnspan 2 -sticky ew
+grid .details -sticky ew -padx 15
 grid $barchart -sticky nsew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1

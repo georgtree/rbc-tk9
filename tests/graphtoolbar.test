@@ -773,13 +773,10 @@ test generalConfiguration-17 {toolbar crosshair controls have descriptive labels
     set modeLabel [$widget subwidget crosshairsModeLabel]
     set formatLabel [$widget subwidget closestCoordLabel]
 } -body {
-    list \
-        [$modeLabel cget -text] \
-        [$formatLabel cget -text]
-} -result {{Crosshairs mode} {Closest crosshairs format:}} -cleanup {
+    list [$modeLabel cget -text] [$formatLabel cget -text]
+} -result {{Crosshairs mode:} {Closest crosshairs format:}} -cleanup {
     destroy $widget
 }
-
 
 test generalConfiguration-18 {context-menu mode has graph and menu but no visible toolbar controls} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -controlmode contextmenu -zoom -crosshairs]

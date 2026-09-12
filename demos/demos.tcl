@@ -48,6 +48,36 @@ proc RunDemo {DemoDir fileTail} {
     exec -ignorestderr -keepnewline -- $::MyBinary $DemoPath &
     return
 }
+proc DemoCardWidth {card {padx 6}} {
+    # Returns the requested card width, including outer grid padding.
+    update idletasks
+    return [expr {[winfo reqwidth $card] + 2*$padx}]
+}
+proc SizeWindowToScreen {win {fraction 0.65}} {
+    # Sizes the toplevel to a fraction of the screen dimensions.
+    set top [winfo toplevel $win]
+    set width [expr {round([winfo screenwidth $top]*$fraction)}]
+    set height [expr {round([winfo screenheight $top]*$fraction)}]
+    wm geometry $top ${width}x${height}
+}
+
+proc LayoutDemoCards {frame width cardWidth} {
+    # Arranges demo cards for the available canvas width.
+    set columns [expr {max(1, $width / $cardWidth)}]
+    # Clear column settings left by the previous layout.
+    lassign [grid size $frame] oldColumns oldRows
+    for {set column 0} {$column < $oldColumns} {incr column} {
+        grid columnconfigure $frame $column -weight 0 -uniform {}
+    }
+    set index 0
+    foreach card [winfo children $frame] {
+        grid $card -row [expr {$index/$columns}] -column [expr {$index%$columns}] -sticky nsew -padx 6 -pady 6
+        incr index
+    }
+    for {set column 0} {$column < $columns} {incr column} {
+        grid columnconfigure $frame $column -weight 1 -uniform demoColumns
+    }
+}
 proc MainWindow {win DemoDir} {
     # To test font resizing:
     # font configure TkDefaultFont -size -18
@@ -124,7 +154,8 @@ proc MainWindow {win DemoDir} {
         |
         |demo barchart3.tcl
         |
-        |Conventional barchart showing colors and stipple patterns, with X as the value and Y as the independent variable.
+        |Conventional barchart showing colors and stipple patterns, with X as the value and Y as the independent
+        |variable.
     }]
     set Caption(barchart4.tcl) [MakeLine {
         |barchart widget
@@ -171,7 +202,8 @@ proc MainWindow {win DemoDir} {
     }]
     # create canvas with scrollbars
     ttk::frame $win
-    canvas $win.c -width 500 -height 800 -xscrollcommand [list $win.xscroll set] -yscrollcommand [list $win.yscroll set]
+    canvas $win.c -xscrollcommand [list $win.xscroll set] -yscrollcommand [list $win.yscroll set] -borderwidth 0\
+            -highlightthickness 0 -relief flat
     ttk::scrollbar $win.xscroll -orient horizontal -command [list $win.c xview]
     ttk::scrollbar $win.yscroll -command [list $win.c yview]
     pack $win.xscroll -side bottom -fill x
@@ -185,8 +217,15 @@ proc MainWindow {win DemoDir} {
         set demo $name.tcl
         incr i
         ttk::labelframe $win.c.targetFrame.ins$i -text $name
-        image create photo im$i -file [file normalize [file join $DemoDir thumbnails $img]]
-        ttk::button $win.c.targetFrame.ins$i.pic$i -image im$i -command [list RunDemo $DemoDir $demo] 
+        if {$name eq {winop1}} {
+            set size [list 240 70]
+        } elseif {$name eq {winop2}} {
+            set size [list 240 57]
+        } else {
+            set size [list 240 150]
+        }
+        set thumbnail [DemoThumbnail [file normalize [file join $DemoDir thumbnails $img]] {*}$size]
+        ttk::button $win.c.targetFrame.ins$i.pic$i -image $thumbnail -command [list RunDemo $DemoDir $demo] 
         text $win.c.targetFrame.ins$i.caption$i -wrap word -width 20 -height 6 -relief flat -padx 15 -pady 5\
                 -highlightthickness 0
         $win.c.targetFrame.ins$i.caption$i insert end [string map [list \n\n \n] $Caption($demo)]
@@ -198,7 +237,14 @@ proc MainWindow {win DemoDir} {
         grid $win.c.targetFrame.ins$i -sticky nsew
         grid $win.c.targetFrame.ins$i.caption$i $win.c.targetFrame.ins$i.pic$i -sticky nsew
     }
-    grid {*}[winfo children $win.c.targetFrame] -sticky nsew
+    update idletasks
+
+    set cardWidth 1
+    foreach card [winfo children $win.c.targetFrame] {
+        set cardWidth [expr {max($cardWidth, [winfo reqwidth $card] + 12)}]
+    }
+
+    bind $win.c <Configure> [list LayoutDemoCards $win.c.targetFrame %w $cardWidth]
     $win.c create window 0 0 -anchor nw -window $win.c.targetFrame
     bind $win.c.targetFrame <Configure> "
         set w $win.c.targetFrame
@@ -265,6 +311,7 @@ grid .main -sticky nsew
 grid .footer -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
+SizeWindowToScreen . 0.8
 
 ### For a quick exit.
 menu .menu -tearoff 0

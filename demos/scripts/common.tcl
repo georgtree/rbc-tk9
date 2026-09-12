@@ -7,6 +7,7 @@
 
 # The text widget is being used as a large read-only label with word wrap.
 # We need to set its -background and -font appropriately.
+package require rbc
 option add *Text.Background [. cget -bg]
 option add *Text.Font TkDefaultFont
 
@@ -254,10 +255,46 @@ proc DestroySnapshot {win im1 im2} {
     return
 }
 
-# Unused: commented out in MakeSnapshot (including BLT original)
-proc Sharpen { photo } {
-    #set kernel { -1 -1 -1 -1  16 -1 -1 -1 -1 } 
-    set kernel { 0 -1 0 -1  4.9 -1 0 -1 0 }
-    winop convolve $photo $photo $kernel
-    return
+proc UpdateTextWrap {label width} {
+    $label configure -wraplength [expr {max(1, $width - 16)}]
+}
+
+proc ExpandableText {win wraplength title text} {
+    ttk::frame $win
+    ttk::button $win.toggle -text "▶ $title" -command [list ToggleExpandableText $win $title] -style Toolbutton
+    ttk::label $win.body -text $text -wraplength $wraplength -justify left
+    grid $win.toggle -sticky w
+    grid $win.body -sticky ew -padx 8
+    grid remove $win.body
+    grid columnconfigure $win 0 -weight 1
+    bind $win <Configure> [list UpdateTextWrap $win.body %w]
+    return $win
+}
+
+proc ToggleExpandableText {win title} {
+    if {[winfo manager $win.body] eq "grid"} {
+        grid remove $win.body
+        $win.toggle configure -text "▶ $title"
+    } else {
+        grid $win.body
+        $win.toggle configure -text "▼ $title"
+    }
+}
+
+proc DemoThumbnail {file width height} {
+    # Creates a resized photo. The caller owns the returned image.
+    set source [image create photo -file $file]
+    set target {}
+    try {
+        set target [image create photo -width $width -height $height]
+        rbc::winop image resample $source $target sinc
+    } on error {message options} {
+        if {$target ne {}} {
+            image delete $target
+        }
+        return -options $options $message
+    } finally {
+        image delete $source
+    }
+    return $target
 }

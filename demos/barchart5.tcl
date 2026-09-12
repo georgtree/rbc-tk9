@@ -23,11 +23,18 @@ source $DemoDir/scripts/common.tcl
 source $DemoDir/scripts/ps.tcl
 set graph .graph
 set HeaderText [MakeLine {
-    |This is an example of the barchart widget.
-    |The barchart has many components; x and y axis, legend, crosshairs,
-    |elements, etc.
+    |This is an example of the barchart widget with sine wave plotted as a barchart.
 }]
 CommonHeader .header $HeaderText 6 $DemoDir $graph barchart5.ps
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: right mouse button click, and select from four availible modes;}
 
 ### Set option defaults for the graph.
 option add *graph.title {A Simple Barchart}
@@ -45,7 +52,7 @@ if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
 
 ### Create and configure barchart.
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
-                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan]
 $barchart graph configure -relief raised -bd 2
 $barchart graph xaxis configure -rotate 90 -stepsize 0 
 
@@ -61,6 +68,7 @@ $barchart graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $ba
 
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew
+grid .details -sticky ew -padx 15
 grid $barchart -sticky nsew -padx 4
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1

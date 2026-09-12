@@ -13,15 +13,25 @@ set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
-
+set HeaderText [MakeLine {
+    |Conventional barchart showing colors and stipple patterns, with X as the value and Y as the independent variable.
+}]
 # To use the demo's "PostScript Options" dialog, source the file
 # scripts/ps.tcl. If this is not done, the "Print" button will print to a
 # file without offering an options dialog.  See command CommonPrint in
 # scripts/common.tcl for choices, including the stock dialog
 # Rbc_PostScriptDialog which is not used in these demos.
 source $DemoDir/scripts/ps.tcl
-set HeaderText {This is an example of the barchart widget.}
 CommonHeader .header $HeaderText 5 $DemoDir .b barchart3.ps
+ExpandableText .details 800 {Availible actions} {
+- Zoom box selection: left mouse button press + motion + button release;
+- Reverse zoom/pan to the previous state:  middle mouse button click;
+- Zoom with mouse wheel: press and hold Ctrl + wheel scroll;
+- Selected axis zoom: put mouse pointer over axis + press and hold Ctrl + wheel scroll;
+- Panning: press and hold Shift + left mouse button press and hold + motion;
+- Toggle axive axis scale: left mouse button click over the selected axis;
+- Highlight/hide certain plot: left mouse button click of legend, toggle between normal-active-hide state;
+- Change crosshairs mode: right mouse button click, and select from four availible modes;}
 
 ### Create and configure barchart.
 # Note that the plot is inverted (One to Eleven), and the bars are drawn from a baseline at 1.2, not zero.
@@ -38,7 +48,7 @@ proc FormatLabel {w value} {
     return [lindex $info 4]
 }
 set barchart [graphtoolbar .bc -width 800 -height 500 -type barchart -zoom -zoomtitle -zoommark -crosshairs\
-                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel]
+                      -crosshairsmode closest -scaletoggle y -activelegend -zoomwheel -pan]
 
 $barchart graph configure -invert true -baseline 1.2
 $barchart graph xaxis configure -command FormatLabel -descending true
@@ -72,6 +82,7 @@ $barchart graph element create Eleven -data {11 3.3} -fg blue
 
 ### Map everything
 grid .header -sticky ew -padx 15
+grid .details -sticky ew -padx 15
 grid $barchart -sticky news
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 1 -weight 1
