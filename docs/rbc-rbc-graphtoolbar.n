@@ -190,6 +190,9 @@ finish      <ButtonRelease-1>
 The \fBShift\fP modifier is required only when the operation starts\&. Releasing \fBShift\fP while \fBButton-1\fP
 remains held does not terminate or strand the pan\&.
 .PP
+Pan motion samples the current pointer position so delayed Motion events do not replay older positions\&.
+Releasing the button applies the release-event coordinates as the final position\&.
+.PP
 Panning changes axis limits without changing their scale:
 .TP
 \(bu
@@ -444,6 +447,49 @@ Polar representation: axis, complex, polar
 Smith representation: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance
 .PP
 The toolbar combobox and context-menu submenu expose only the modes valid for the current representation\&.
+.SH "CUSTOM CLOSEST-POINT TEXT"
+.PP
+-closestcommand configures a Tcl command prefix for custom closest-point annotations\&.  A nonempty prefix adds
+\fBCustom\fP to the combobox and context menu\&. Select it with -coordclosestmark custom\&.
+.PP
+.RS 4n
+.nf
+proc DescribePoint {element x y info} {
+    return [format "%s\\nX: %\&.4g\\nY: %\&.4g" $element $x $y]
+}
+
+\&.gtb configure -closestcommand ::DescribePoint
+\&.gtb configure -coordclosestmark custom
+.fi
+.RE
+.PP
+The callback runs in the global namespace with four arguments appended to its prefix:
+.TP
+\(bu
+element: selected element name\&.
+.TP
+\(bu
+x, y: numeric values on the element's mapped axes\&. Polar elements receive Cartesian real/imaginary components\&. In Smith representation, Polar elements receive normalized admittance components when -smithgrid admittance is selected, and normalized impedance components for -smithgrid impedance or both\&.
+.TP
+\(bu
+info: the public element closest result, including index and optional param, extended with mapx, mapy, and coordinateSystem\&.  The coordinate system is axis, complex, or normalizedimpedance\&. Original info(x) and info(y) are preserved; for Smith elements these are Gamma components\&.
+.PP
+Values are independent of axis label formatting and -invertxy\&. Interpolated searches can supply interpolated
+values\&. Smith singularities may produce Inf\&.
+.PP
+The returned string replaces the complete annotation\&. Neither the element name nor parameter value is appended
+automatically\&. Returning an empty string suppresses that result's annotation and pointer or bar dimension line\&.
+.PP
+With -single no, the callback runs separately for each matching element\&.  Normal marker styling and placement
+still apply\&.
+.PP
+Registration leaves the selected format unchanged\&. Setting -closestcommand {} removes Custom and restores the
+representation's default format if Custom was selected\&. Callback and format changes refresh annotations at
+idle\&.
+.PP
+Use qualified command names or namespace code for namespace-local callbacks\&.  Command prefixes may include
+bound arguments\&. Keep callbacks short and avoid graph modifications, widget destruction, or nested update
+calls\&. Errors propagate to Tk's background error handling when invoked from an event\&.
 .SH "POLAR AND SMITH INTERACTION"
 .PP
 A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
@@ -759,6 +805,9 @@ For a Smith representation, selects impedance, admittance, or both\&. The defaul
 -coordmark mode
 Initial value of the -coordmark configurable property\&. The default is auto\&.
 .TP
+-closestcommand commandPrefix
+Custom closest-point text callback\&. Receives element x y info\&. The default is empty\&.
+.TP
 -coordclosestmark mode
 Initial closest-point coordinate format\&. The default is axis\&. For a Smith widget with crosshairs enabled, initialization selects the normalized impedance or admittance format appropriate to -smithgrid\&.
 .TP
@@ -853,8 +902,11 @@ Enables hover activation and three-state Button-1 interaction on legend entries\
 \fBProperties\fR
 .RS 4n
 .TP
+-closestcommand
+Readable, writable\&. Tcl command prefix for Custom closest-point text\&. Receives element x y info and returns the complete annotation\&. An empty prefix removes Custom from the available formats\&. See the Custom closest-point text section for coordinate semantics\&.
+.TP
 -coordclosestmark
-Readable, writable\&. Selects the value representation used for closest-point annotations\&. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: axis - Polar: axis, complex, polar - Smith: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance The toolbar and context-menu selectors are synchronized with this property\&.
+Readable, writable\&. Selects the value representation used for closest-point annotations\&. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: axis - Polar: axis, complex, polar - Smith: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance custom is also available when -closestcommand is nonempty\&. The toolbar and context-menu selectors are synchronized with this property\&.
 .TP
 -coordmark
 Readable, writable\&. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers\&. Accepted values are auto, axis, complex, polar, gamma, normalizedimpedance, normalizedimpedanceri, normalizedadmittance, and normalizedadmittanceri\&. auto uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid\&.

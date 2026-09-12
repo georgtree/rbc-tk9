@@ -320,6 +320,45 @@ namespace eval ::rbc::graphtoolbar {
 
         The toolbar combobox and context-menu submenu expose only the modes valid for the current representation.
 
+        ## Custom closest-point text
+        `-closestcommand` configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
+        **Custom** to the combobox and context menu. Select it with `-coordclosestmark custom`.
+
+        ```tcl
+        proc DescribePoint {element x y info} {
+            return [format "%s\nX: %.4g\nY: %.4g" $element $x $y]
+        }
+
+        .gtb configure -closestcommand ::DescribePoint
+        .gtb configure -coordclosestmark custom
+        ```
+
+        The callback runs in the global namespace with four arguments appended to its prefix:
+        - `element`: selected element name.
+        - `x`, `y`: numeric values on the element's mapped axes. Polar elements receive Cartesian real/imaginary
+          components. In Smith representation, Polar elements receive normalized admittance components when `-smithgrid
+          admittance` is selected, and normalized impedance components for `-smithgrid impedance` or `both`.
+        - `info`: the public `element closest` result, including `index` and optional `param`, extended with `mapx`,
+          `mapy`, and `coordinateSystem`.  The coordinate system is `axis`, `complex`, or `normalizedimpedance`.
+          Original `info(x)` and `info(y)` are preserved; for Smith elements these are Gamma components.
+
+        Values are independent of axis label formatting and `-invertxy`. Interpolated searches can supply interpolated
+        values. Smith singularities may produce `Inf`.
+
+        The returned string replaces the complete annotation. Neither the element name nor parameter value is appended
+        automatically. Returning an empty string suppresses that result's annotation and pointer or bar dimension line.
+
+        With `-single no`, the callback runs separately for each matching element.  Normal marker styling and placement
+        still apply.
+
+        Registration leaves the selected format unchanged. Setting `-closestcommand {}` removes Custom and restores the
+        representation's default format if Custom was selected. Callback and format changes refresh annotations at
+        idle.
+
+        Use qualified command names or `namespace code` for namespace-local callbacks.  Command prefixes may include
+        bound arguments. Keep callbacks short and avoid graph modifications, widget destruction, or nested `update`
+        calls. Errors propagate to Tk's background error handling when invoked from an event.
+
         ## Polar and Smith interaction
         A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
         are hidden or are not installed in graph margins. They therefore participate in zooming, panning, coordinate
@@ -731,11 +770,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                       normalizedadmittance normalizedadmittanceri}
         variable CoordClosestMarkModes
         const CoordClosestMarkModes {axis complex polar gamma normalizedimpedance impedance normalizedadmittance\
-                                             admittance}
+                                             admittance custom}
         variable CoordClosestMarkLabels
         const CoordClosestMarkLabels [dict create axis {Axis} complex {Complex} polar {Polar} gamma {Gamma}\
                                               normalizedimpedance {Normalized impedance} impedance {Impedance}\
-                                              normalizedadmittance {Normalized admittance} admittance {Admittance}]
+                                              normalizedadmittance {Normalized admittance} admittance {Admittance}\
+                                              custom {Custom}]
     }
     classmethod _ruffClassHook {} {
         return {
@@ -775,6 +815,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -smithgrid mode - For a Smith representation, selects `impedance`, `admittance`, or `both`. The default
                  is `impedance`.
                 -coordmark mode - Initial value of the `-coordmark` configurable property. The default is `auto`.
+                -closestcommand commandPrefix - Custom closest-point text callback. Receives `element x y info`. The
+                 default is empty.
                 -coordclosestmark mode - Initial closest-point coordinate format. The default is `axis`. For a Smith
                  widget with crosshairs enabled, initialization selects the normalized impedance or admittance format
                  appropriate to `-smithgrid`.
@@ -842,7 +884,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     `auto` uses ordinary axis values except on a Smith chart, where normalized impedance/admittance
                     real and imaginary components are selected according to the Smith grid.
                 }
+                -closestcommand {
+                    Tcl command prefix for Custom closest-point text.
 
+                    Receives `element x y info` and returns the complete annotation. An empty prefix removes Custom
+                    from the available formats. See the Custom closest-point text section for coordinate semantics.
+                }
                 -coordclosestmark {
                     Selects the value representation used for closest-point annotations.
 
@@ -850,6 +897,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     - ordinary graph/barchart/stripchart: `axis`
                     - Polar: `axis`, `complex`, `polar`
                     - Smith: `axis`, `gamma`, `normalizedimpedance`, `impedance`, `normalizedadmittance`, `admittance`
+
+                    `custom` is also available when `-closestcommand` is nonempty.
 
                     The toolbar and context-menu selectors are synchronized with this property.
                 }
@@ -987,6 +1036,27 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set coordmark $value
     }
+    property closestcommand -set {
+        if {[catch {llength $value} count]} {
+            return -code error "closest command must be a Tcl command prefix"
+        }
+        if {$count==0} {
+            set value {}
+        }
+        set closestcommand $value
+        if {[info exists Subwidgets(graph)] && [info exists coordclosestmark]} {
+            if {$value eq {} && $coordclosestmark eq {custom}} {
+                my configure -coordclosestmark [my DefaultClosestCoordinateMode]
+            }
+            my UpdateClosestCoordinateModes
+            if {[info exists Subwidgets(contextMenu)] && [winfo exists $Subwidgets(contextMenu).closest]} {
+                my UpdateClosestContextMenu
+            }
+            if {[info exists CrosshairsMarkerInfo]} {
+                my QueueCrosshairsRefresh
+            }
+        }
+    }
     property coordclosestmark -set {
         classvariable CoordClosestMarkModes
         if {[info exists Subwidgets(graph)]} {
@@ -999,6 +1069,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set coordclosestmark $value
         set ClosestCoordSelector [my ClosestCoordinateLabel $value]
+        if {[info exists CrosshairsMarkerInfo]} {
+            my QueueCrosshairsRefresh
+        }
     }
     property zoomtitle
     property zoomtitleopts -set {
@@ -1266,7 +1339,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
             zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
-    variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts
+    variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
     variable CrosshairsSelector ClosestCoordSelector
     variable CrosshairsRefreshAfter CrosshairsRefreshTag CrosshairsRefreshTop
     variable AxisScaleInfo SavedToolbarStates
@@ -1307,6 +1380,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
             {-coordmark= -default auto}
+            {-closestcommand= -type list -default {}}
             {-coordclosestmark= -default axis}
             {-toolbarside= -default bottom -enum {bottom top}}
             {-pointeropts= -type dict -default {}}
@@ -1355,8 +1429,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $Subwidgets(graph) configure -representation [dict get $arguments representation]\
                     -smithgrid [dict get $arguments smithgrid]
         }
-        my configure -coordmark [dict get $arguments coordmark] -coordclosestmark [dict get $arguments coordclosestmark]
-        my configure -pointeropts [dict get $arguments pointeropts]
+        my configure -closestcommand [dict get $arguments closestcommand]
+        my configure -coordmark [dict get $arguments coordmark]\
+                -coordclosestmark [dict get $arguments coordclosestmark] -pointeropts [dict get $arguments pointeropts]
         # Layout of the graph/control surface.
         grid columnconfigure $frameName 0 -weight 1
         if {$ControlMode eq {toolbar}} {
@@ -1430,7 +1505,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         ##### crosshairs activation
         if {[dict exists $arguments crosshairs]} {
             # Smith representation has a semantic default for the closest coordinate display.
-            if {$GraphType eq {polar}} {
+            if {$GraphType eq {polar} && [dict get $arguments coordclosestmark] eq {axis}} {
                 if {[dict get $arguments representation] eq {smith}} {
                     if {[dict get $arguments smithgrid] eq {impedance}} {
                         my configure -coordclosestmark normalizedimpedance
@@ -3341,25 +3416,24 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my configure -coordclosestmark $mode
     }
     method ClosestCoordinateModes {} {
-        # Returns closest-coordinate representations valid for the current graph.
-        #
-        # Ordinary graphs support only `axis`; Polar and Smith representations expose their corresponding semantic
-        # coordinate forms.
+        # Returns formats supported by the graph and configured callback.
         #
         # Returns: List of internal mode names.
-        set graph $Subwidgets(graph)
-        if {$GraphType ne {polar}} {
-            return {axis}
-        }
-        switch -- [$graph cget -representation] {
-            polar {
-                return {axis complex polar}
+        set modes {axis}
+        if {$GraphType eq {polar}} {
+            switch -- [$Subwidgets(graph) cget -representation] {
+                polar {
+                    set modes {axis complex polar}
+                }
+                smith {
+                    set modes {axis gamma normalizedimpedance impedance normalizedadmittance admittance}
+                }
             }
-            smith {
-                return {axis gamma normalizedimpedance impedance normalizedadmittance admittance}
-            }
         }
-        return {axis}
+        if {[info exists closestcommand] && [llength $closestcommand]} {
+            lappend modes custom
+        }
+        return $modes
     }
     method DefaultClosestCoordinateMode {} {
         # Returns a valid default closest-coordinate mode for the current representation and Smith-grid selection.
@@ -3554,6 +3628,30 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$mode ni [my ClosestCoordinateModes]} {
             return
         }
+        if {$mode eq {custom}} {
+            set graph $Subwidgets(graph)
+            dict set closestInfo mapx [$graph element cget $element -mapx]
+            dict set closestInfo mapy [$graph element cget $element -mapy]
+            dict set closestInfo coordinateSystem axis
+            if {$GraphType eq {polar} && [$graph element type $element] eq {PolarElement}} {
+                dict set closestInfo coordinateSystem complex
+                if {[$graph cget -representation] eq {smith}} {
+                    if {[$graph cget -smithgrid] eq {admittance}} {
+                        set key normalizedAdmittance
+                        set system normalizedadmittance
+                    } else {
+                        set key normalizedImpedance
+                        set system normalizedimpedance
+                    }
+                    if {![dict exists $closestInfo $key]} {
+                        return
+                    }
+                    lassign [dict get $closestInfo $key] xValue yValue
+                    dict set closestInfo coordinateSystem $system
+                }
+            }
+            return [uplevel #0 [list {*}$closestcommand $element $xValue $yValue $closestInfo]]
+        }
         if {$mode eq {axis}} {
             set text [my ClosestAxisMarkerText $element $xValue $yValue $options]
         } else {
@@ -3655,7 +3753,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set boxOptions [my configure -crosshairsmarkboxopts]
         my DrawTextBackground ${textMarker}Box $textX $textY $text $options $boxOptions $mapx $mapy
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
-
         $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
                 -mapy $mapy -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
         #

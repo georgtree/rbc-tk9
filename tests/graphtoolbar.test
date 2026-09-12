@@ -5159,4 +5159,162 @@ test activeLegendInteractive-1 {three-state active legend} -constraints {isInter
     destroy $widget
 }
 
+proc GtbCustomClosest {prefix element x y info} {
+    set ::gtbCustomResult [list $prefix $element $x $y $info]
+    return "$prefix\n$element: $x, $y"
+}
+
+foreach control {toolbar contextmenu} {
+    test closestCustom-1-$control {Custom availability, selection and removal} -setup {
+        set widget [graphtoolbar .gtb -crosshairs -controlmode $control]
+    } -body {
+        set rejected [catch {$widget configure -coordclosestmark custom}]
+        set prefix [list ::GtbCustomClosest {Bound argument}]
+        $widget configure -closestcommand $prefix
+        set stored [$widget configure -closestcommand]
+        if {$control eq {toolbar}} {
+            set combo [$widget subwidget closestCoordComBox]
+            set labels [$combo cget -values]
+            $combo set Custom
+            event generate $combo <<ComboboxSelected>>
+        } else {
+            set menu [$widget subwidget contextMenu].closest
+            uplevel #0 [$menu cget -postcommand]
+            set labels {}
+            foreach entry [MenuDescription $menu] {
+                lappend labels [lindex $entry 1]
+            }
+            $menu invoke Custom
+        }
+        set selected [$widget configure -coordclosestmark]
+        $widget configure -closestcommand {}
+        if {$control eq {toolbar}} {
+            set removed [expr {{Custom} ni [$combo cget -values]}]
+        } else {
+            set removed [catch {$menu index Custom}]
+        }
+        list $rejected [expr {$stored eq $prefix}] $labels $selected [$widget configure -closestcommand]\
+                [$widget configure -coordclosestmark] $removed
+    } -cleanup {
+        destroy $widget
+    } -result {1 1 {Axis Custom} custom {} axis 1}
+}
+
+foreach type {graph stripchart barchart} {
+    foreach invert {no yes} {
+        test closestCustom-2-$type-$invert {Custom receives mapped values and replaces the complete annotation}\
+                -constraints {isInteractive isCrosshairs} -setup {
+            unset -nocomplain ::gtbCustomResult
+            set widget [graphtoolbar .gtb -type $type -crosshairs\
+                                -closestcommand [list ::GtbCustomClosest {Selected sample}]\
+                                -coordclosestmark custom -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
+            pack $widget -fill both -expand yes
+            set graph [$widget subwidget graph]
+            $graph configure -invertxy $invert
+            $graph axis create xa -min 0 -max 10
+            $graph axis create ya -min 100 -max 200
+            $graph xaxis use xa
+            $graph yaxis use ya
+            $graph element create Signal -x {2 5 8} -y {120 150 120} -mapx xa -mapy ya
+        } -body {
+            WaitForWindow $graph
+            set px [$graph axis transform xa 5]
+            set py [$graph axis transform ya 150]
+            if {$invert eq {yes}} {
+                PlaceGraphPointer $graph $py $px
+            } else {
+                PlaceGraphPointer $graph $px $py
+            }
+            lassign $::gtbCustomResult prefix element x y info
+            set actual [$graph marker cget gtbCrosshairsClosestText -text]
+            list $prefix $element [approxNestedEqual [list $x $y] {5 150}] [dict get $info mapx] [dict get $info mapy]\
+                    [dict get $info coordinateSystem] [expr {$actual eq "$prefix\n$element: $x, $y"}]
+        } -cleanup {
+            destroy $widget
+            unset -nocomplain ::gtbCustomResult
+        } -result {{Selected sample} Signal true xa ya axis 1}
+    }
+}
+
+foreach {representation grid expectedSystem expectedValues} {
+    polar impedance complex {0.2 0.4}
+    smith impedance normalizedimpedance {1 1}
+    smith admittance normalizedadmittance {0.5 -0.5}
+    smith both normalizedimpedance {1 1}
+} {
+    test closestCustom-3-$representation-$grid {Polar and Smith callbacks receive semantic coordinates}\
+            -constraints {isInteractive isCrosshairs} -setup {
+        unset -nocomplain ::gtbCustomResult
+        vector create gtbCustomGamma -type complex
+        gtbCustomGamma set {{0.2 0.4}}
+        set widget [graphtoolbar .gtb -type polar -representation $representation -smithgrid $grid\
+                    -crosshairs -closestcommand [list ::GtbCustomClosest Smith] -coordclosestmark custom\
+                            -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
+        pack $widget -fill both -expand yes
+        set graph [$widget subwidget graph]
+        $graph axis configure x -min -1.2 -max 1.2
+        $graph axis configure y -min -1.2 -max 1.2
+        $graph element create Signal -cdata gtbCustomGamma -z0 75
+    } -body {
+        WaitForWindow $graph
+        lassign [$graph transform 0.2 0.4] x y
+        PlaceGraphPointer $graph $x $y
+        lassign $::gtbCustomResult prefix element real imag info
+        list [$widget configure -coordclosestmark] [approxNestedEqual [list $real $imag] $expectedValues]\
+                [dict get $info coordinateSystem]\
+                [approxNestedEqual [list [dict get $info x] [dict get $info y]] {0.2 0.4}]
+    } -cleanup {
+        destroy $widget
+        vector destroy gtbCustomGamma
+        unset -nocomplain ::gtbCustomResult
+    } -result [list custom true $expectedSystem true]
+}
+
+test closestCustom-4 {Callback replacement refreshes without motion; param is metadata; empty text hides markers}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    set widget [graphtoolbar .gtb -crosshairs -closestcommand [list ::GtbCustomClosest First] -coordclosestmark custom\
+                        -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
+    pack $widget -fill both -expand yes
+    set graph [$widget subwidget graph]
+    $graph axis configure x -min 0 -max 10
+    $graph axis configure y -min 0 -max 10
+    vector create gtbCustomParam
+    gtbCustomParam set {123}
+    $graph element create Signal -x {5} -y {5} -param gtbCustomParam
+} -body {
+    WaitForWindow $graph
+    lassign [$graph transform 5 5] x y
+    PlaceGraphPointer $graph $x $y
+    $widget configure -closestcommand [list ::GtbCustomClosest Second]
+    update idletasks
+    lassign $::gtbCustomResult prefix element cx cy info
+    set actual [$graph marker cget gtbCrosshairsClosestText -text]
+    set changed [expr {
+        $prefix eq "Second" &&
+        $actual eq "$prefix\n$element: $cx, $cy"
+    }]
+    set paramOK [expr {[dict get $info param] == 123}]
+    $widget configure -closestcommand [list apply {{element x y info} {return {}}}]
+    update idletasks
+    list $changed $paramOK [$graph marker exists gtbCrosshairsClosestText]\
+            [$graph marker exists gtbCrosshairsClosestTextBox] [$graph marker exists gtbCrosshairsClosestBitmap]
+} -cleanup {
+    destroy $widget
+    vector destroy gtbCustomParam
+    unset -nocomplain ::gtbCustomResult
+} -result {1 1 0 0 0}
+
+test closestCustom-5 {Invalid prefixes preserve the configured command} -setup {
+    set prefix [list ::GtbCustomClosest {Keep this prefix}]
+    set widget [graphtoolbar .gtb -crosshairs -closestcommand $prefix -coordclosestmark custom]
+} -body {
+    # A single opening brace is not a valid Tcl list.
+    set rejected [catch {$widget configure -closestcommand [format %c 123]}]
+    list $rejected [expr {[$widget configure -closestcommand] eq $prefix}] [$widget configure -coordclosestmark]
+} -cleanup {
+    destroy $widget
+} -result {1 1 custom}
+
+rename ::GtbCustomClosest {}
+
 cleanupTests
