@@ -238,6 +238,7 @@ typedef struct {
     GC errorBarGC;
     int valueShow;
     char *valueFormat;
+    Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
     TextStyle valueStyle;
 } LinePen;
 
@@ -883,6 +884,8 @@ typedef struct {
          0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
+        {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
+         LINE_BUILTIN_PEN_OFFSET(valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, LINE_ELEM_BUILTIN_PEN_MASK}, \
         {TK_OPTION_STRING,                                                                                             \
          "-valueformat",                                                                                               \
          "valueFormat",                                                                                                \
@@ -1181,6 +1184,8 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
         NULL,                                                         \
         0                                                             \
     },                                                                \
+    {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
+     offsetof(LinePen, valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
     {                                                                 \
         TK_OPTION_STRING,                                             \
         "-valueformat", "valueFormat", "ValueFormat",                 \
@@ -2712,6 +2717,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newTraceGC = NULL;
     newErrorBarGC = NULL;
     newValueGC = NULL;
+    if (Rbc_ValidateValueCommand(graphPtr->interp, lpPtr->valueCommandObjPtr) != TCL_OK) {
+        goto error;
+    }
     if (Rbc_ValidateValueFormat(graphPtr->interp, lpPtr->valueFormat) != TCL_OK) {
         goto error;
     }
@@ -10766,7 +10774,7 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Point2D *endPtr;
     Tcl_Size count;
     Extents2D exts;
-    char string[RBC_VALUE_LABEL_SIZE];
+    Tcl_Obj *labelObjPtr;
 
     Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     count = 0;
@@ -10781,8 +10789,15 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
         if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
             continue;
         }
-        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
-        Rbc_DrawText(graphPtr->tkwin, drawable, string, &penPtr->valueStyle, (int)pointPtr->x, (int)pointPtr->y);
+        labelObjPtr = Rbc_GetElementValueLabel(&linePtr->core, penPtr->valueCommandObjPtr,
+                                               penPtr->valueFormat, penPtr->valueShow, dataIndex, x, y);
+        if (Tcl_GetCharLength(labelObjPtr) == 0) {
+            Tcl_DecrRefCount(labelObjPtr);
+            continue;
+        }
+        Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                     (int)pointPtr->x, (int)pointPtr->y);
+        Tcl_DecrRefCount(labelObjPtr);
     }
 }
 
@@ -11313,7 +11328,7 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
     Point2D *endPtr;
     Tcl_Size count;
     Extents2D exts;    
-    char string[RBC_VALUE_LABEL_SIZE];
+    Tcl_Obj *labelObjPtr;
 
     Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     count = 0;
@@ -11329,8 +11344,14 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
         if (!GetLineDataPoint(linePtr, dataIndex, &x, &y)) {
             continue;
         }
-        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
-        Rbc_TextToPostScript(psToken, string, &penPtr->valueStyle, pointPtr->x, pointPtr->y);
+        labelObjPtr = Rbc_GetElementValueLabel(&linePtr->core, penPtr->valueCommandObjPtr,
+                                               penPtr->valueFormat, penPtr->valueShow, dataIndex, x, y);
+        if (Tcl_GetCharLength(labelObjPtr) == 0) {
+            Tcl_DecrRefCount(labelObjPtr);
+            continue;
+        }
+        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle, pointPtr->x, pointPtr->y);
+        Tcl_DecrRefCount(labelObjPtr);
     }
 }
 

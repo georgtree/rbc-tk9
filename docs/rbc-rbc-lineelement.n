@@ -618,6 +618,7 @@ Value-label appearance is controlled by:
 │ -valueanchor anchor   │ Specifies the Tk anchor of the label relative to the data point\&. The default is s\&.   │
 │ -valuecolor color     │ Sets the label color\&. The default is black\&.                                          │
 │ -valuefont font       │ Sets the label font\&.                                                                 │
+│ -valuecommand cmd     │ Formats value labels with a Tcl command prefix\&. Default: empty\&.                      │
 │ -valueformat format   │ Sets the printf-style floating-point format\&. The default is %g\&.                      │
 │ -valuerotate angle    │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.             │
 │ -valueshadow shadow   │ Specifies an optional text shadow\&. An empty value disables the shadow\&.               │
@@ -627,6 +628,47 @@ Value-label appearance is controlled by:
 .PP
 -valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion,
 using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
+.SS "CUSTOM VALUE-LABEL TEXT"
+.PP
+-valuecommand supplies a Tcl command prefix for value labels\&. It is available on line, strip, Polar and
+bar elements and on their named pens, including active and weighted-style pens\&. The option database name
+and class are valueCommand and ValueCommand\&. The default is empty\&.
+.PP
+.RS 4n
+.nf
+proc ElementLabel {names graph element index x y} {
+    return [lindex $names $index]
+}
+\&.g element configure samples -showvalues y  -valuecommand [list ::ElementLabel {Hydrogen Helium Lithium}]
+.fi
+.RE
+.PP
+The callback runs in the global namespace with five arguments appended to its prefix:
+.TP
+\(bu
+graph: graph widget pathname\&.
+.TP
+\(bu
+element: element name, including when several elements share a named pen\&.
+.TP
+\(bu
+index: original zero-based source index, not an index into mapped or clipped geometry\&.
+.TP
+\(bu
+x, y: numeric source-point coordinates, before axis transformations and independent of -invertxy\&. Polar complex data supplies Cartesian components; Smith data supplies Gamma components\&.
+.PP
+-showvalues none disables labels and callback invocation\&. For x, y, or both, the callback receives
+both coordinates and returns the complete label\&. Its result takes precedence over -valueformat\&.
+An empty result hides that label\&. Multiline text is supported, and callback output is not subject to the
+fixed printf-format buffer limit\&. Font, color, anchor, rotation, and shadow options still apply\&.
+.PP
+Commands are called when labels are drawn or exported to PostScript\&. Buffered redraws may reuse existing
+output, so applications must not rely on a fixed invocation count\&. Formatting callbacks must not modify
+the graph, elements, pens, or source vectors, destroy widgets, or enter a nested event loop\&.
+.PP
+Malformed command prefixes are rejected during configuration\&. Callback errors are reported through Tcl's
+background error handler and the affected label uses -valueformat, matching axis formatter behaviour\&.
+Clearing -valuecommand restores normal formatting\&. -valueformat remains validated as the fallback\&.
 .SH "PENS, WEIGHTS, AND STYLES"
 .PP
 -weights associates one numeric weight with each data point\&. The value may be a Tcl list or the name of an
@@ -810,6 +852,8 @@ The complete line-element option set is:
 │                         │                  │                  │ to their data points\&. The default is s\&.                 │
 │ -valuecolor color       │ valueColor       │ ValueColor       │ Sets the color used to draw value labels\&.               │
 │ -valuefont font         │ valueFont        │ ValueFont        │ Sets the font used to draw value labels\&.                │
+│ -valuecommand cmd       │ valueCommand     │ ValueCommand     │ Formats value labels with a Tcl command prefix\&.         │
+│                         │                  │                  │ Default: empty\&.                                         │
 │ -valueformat format     │ valueFormat      │ ValueFormat      │ Sets the printf-style format used for value labels\&. The │
 │                         │                  │                  │ default is %g\&.                                          │
 │ -valuerotate degrees    │ valueRotate      │ ValueRotate      │ Sets the rotation angle of value labels in degrees\&. The │

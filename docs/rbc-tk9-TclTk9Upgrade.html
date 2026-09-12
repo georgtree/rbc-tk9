@@ -201,6 +201,12 @@ physical X coordinates, while <code class="docutils literal notranslate"><span c
 interfaces without requiring applications to reconstruct bar geometry themselves.</p>
 </section>
 </section>
+<section id="custom-element-value-labels">
+<span id="r-tcltk9upgrade-custom-element-value-labels"></span><span id="r-3a3atcltk9upgradeqzcustom20element20value20labels"></span><h2>Custom element value labels<a class="headerlink" href="#custom-element-value-labels" title="Link to this heading">¶</a></h2>
+<p>Elements and named pens now accept <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, a Tcl command prefix receiving the graph pathname,
+element name, source index, X and Y. Its result replaces the <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code> label on screen and in PostScript.
+Empty results hide individual labels; clearing the option restores <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code>.</p>
+</section>
 <section id="implementation-modernization">
 <span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
 <p>The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
@@ -615,6 +621,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>
 <li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>

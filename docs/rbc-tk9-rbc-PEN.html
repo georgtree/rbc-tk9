@@ -222,11 +222,14 @@ transparent.</p>
 </section>
 <section id="value-labels-of-line-element-pen">
 <span id="r-rbc-pen-value-labels-of-line-element-pen"></span><span id="r-3a3arbc3a3apenqzvalue20labels20of20line20element20pen"></span><h3>Value labels of line element pen<a class="headerlink" href="#value-labels-of-line-element-pen" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> can replace the label text with a Tcl callback. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling.</p>
 <p>A line pen may display the element’s data values with <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code>.</p>
 <p>Appearance is controlled by:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-valueanchor
 -valuecolor
 -valuefont
+-valuecommand
 -valueformat
 -valuerotate
 -valueshadow
@@ -343,17 +346,22 @@ transparent.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFont</span></code></p></td>
 <td><p>Sets the font used to draw value labels.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">valueCommand</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code></p></td>
+<td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>
@@ -397,11 +405,14 @@ transparent.</p>
 </section>
 <section id="value-labels-of-bar-element-pen">
 <span id="r-rbc-pen-value-labels-of-bar-element-pen"></span><span id="r-3a3arbc3a3apenqzvalue20labels20of20bar20element20pen"></span><h3>Value labels of bar element pen<a class="headerlink" href="#value-labels-of-bar-element-pen" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> can replace the label text with a Tcl callback. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling.</p>
 <p>Bar pens use the same value-label controls as line pens:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-showvalues
 -valueanchor
 -valuecolor
 -valuefont
+-valuecommand
 -valueformat
 -valuerotate
 -valueshadow
@@ -511,17 +522,22 @@ transparent.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFont</span></code></p></td>
 <td><p>Sets the font used to draw value labels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">valueCommand</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code></p></td>
+<td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>

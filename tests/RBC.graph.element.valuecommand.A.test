@@ -1,0 +1,209 @@
+# Element value-label command prefixes, ownership and output.
+# See license.terms for details.
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval ::valuecommandTests {
+    variable calls {}
+
+    proc Format {tag graph element index x y} {
+        variable calls
+        lappend calls [list $tag $graph $element $index $x $y]
+        return "CUSTOM_${tag}_${index}"
+    }
+
+    proc Create {kind} {
+        ::rbc::$kind .valuecmd -width 400 -height 300 \
+            -bufferelements no -title {} -borderwidth 0 -highlightthickness 0
+        .valuecmd axis configure x -min 0 -max 10
+        .valuecmd axis configure y -min 0 -max 10
+        .valuecmd legend configure -hide yes
+        .valuecmd element create signal -x {2 5 8} -y {2 5 2}
+        pack .valuecmd
+        update idletasks
+    }
+
+    proc Indices {tag} {
+        variable calls
+        set result {}
+        foreach call $calls {
+            if {[lindex $call 0] eq $tag} {
+                lappend result [lindex $call 3]
+            }
+        }
+        return [lsort -integer -unique $result]
+    }
+
+    ::rbc::graph .valuecmdProbe
+    set available [expr {![catch {.valuecmdProbe configure -renderer cairo}]}]
+    destroy .valuecmdProbe
+    testConstraint valuecommandCairo $available
+
+    foreach kind {graph stripchart barchart polar} {
+        test valuecommand-1-$kind {element and pen command options validate and roll back} -setup {
+            Create $kind
+            set penType [expr {$kind eq "barchart" ? "bar" : "line"}]
+            .valuecmd pen create customPen -type $penType
+            set prefix [list ::valuecommandTests::Format {bound argument}]
+            .valuecmd element configure signal -valuecommand $prefix -valueformat %.2f
+            .valuecmd pen configure customPen -valuecommand $prefix -valueformat %.3f
+        } -body {
+            set bad [format %c 123]
+            set elementError [catch {
+                .valuecmd element configure signal -valueformat %.4f -valuecommand $bad
+            }]
+            set penError [catch {
+                .valuecmd pen configure customPen -valueformat %.5f -valuecommand $bad
+            }]
+            set result [list $elementError $penError \
+                [expr {[.valuecmd element cget signal -valuecommand] eq $prefix}] \
+                [expr {[.valuecmd pen cget customPen -valuecommand] eq $prefix}] \
+                [.valuecmd element cget signal -valueformat] \
+                [.valuecmd pen cget customPen -valueformat]]
+            .valuecmd element configure signal -valuecommand {}
+            .valuecmd pen configure customPen -valuecommand {}
+            lappend result [.valuecmd element cget signal -valuecommand] \
+                [.valuecmd pen cget customPen -valuecommand]
+        } -cleanup {
+            destroy .valuecmd
+        } -result {1 1 1 1 %.2f %.3f {} {}}
+
+        foreach renderer {native cairo} {
+            set constraints {}
+            if {$renderer eq "cairo"} {set constraints valuecommandCairo}
+            test valuecommand-2-$kind-$renderer {screen callbacks receive source indices and data values} \
+                    -constraints $constraints -setup {
+                Create $kind
+                .valuecmd configure -renderer $renderer -invertxy yes
+                .valuecmd element configure signal -showvalues both \
+                    -valuecommand [list ::valuecommandTests::Format {bound argument}]
+                set photo [image create photo]
+                set calls {}
+            } -body {
+                .valuecmd snap $photo
+                set actual [lsort -index 3 -unique $calls]
+                set expected {}
+                foreach {index x y} {0 2 2 1 5 5 2 8 2} {
+                    lappend expected [list {bound argument} .valuecmd signal $index \
+                        [expr {double($x)}] [expr {double($y)}]]
+                }
+                expr {$actual eq $expected}
+            } -cleanup {
+                image delete $photo
+                destroy .valuecmd
+            } -result 1
+
+            test valuecommand-3-$kind-$renderer {empty callback output hides labels; showvalues none skips callbacks} \
+                    -constraints $constraints -setup {
+                Create $kind
+                .valuecmd configure -renderer $renderer
+                set photo [image create photo]
+            } -body {
+                .valuecmd element configure signal -showvalues none
+                .valuecmd snap $photo
+                set without [$photo data]
+                .valuecmd element configure signal -showvalues y \
+                    -valuecommand [list apply {{graph element index x y} {return {}}}]
+                .valuecmd snap $photo
+                set emptyMatches [expr {[$photo data] eq $without}]
+                .valuecmd element configure signal -showvalues none \
+                    -valuecommand [list ::valuecommandTests::Format disabled]
+                set calls {}
+                .valuecmd snap $photo
+                list $emptyMatches [llength $calls]
+            } -cleanup {
+                image delete $photo
+                destroy .valuecmd
+            } -result {1 0}
+        }
+
+        test valuecommand-4-$kind {PostScript uses custom text and clearing restores valueformat} -setup {
+            Create $kind
+            .valuecmd element configure signal -showvalues y -valueformat {FALLBACK=%.1f} \
+                -valuecommand [list ::valuecommandTests::Format export]
+        } -body {
+            set ps [.valuecmd postscript output]
+            set custom [expr {[string first CUSTOM_export_1 $ps] >= 0}]
+            set noFallback [expr {[string first FALLBACK=5.0 $ps] < 0}]
+            .valuecmd element configure signal -valuecommand {}
+            set ps [.valuecmd postscript output]
+            list $custom $noFallback [expr {[string first FALLBACK=5.0 $ps] >= 0}]
+        } -cleanup {
+            destroy .valuecmd
+        } -result {1 1 1}
+
+        test valuecommand-5-$kind {weighted and active pens use their own commands and original indices} -setup {
+            Create $kind
+            set penType [expr {$kind eq "barchart" ? "bar" : "line"}]
+            .valuecmd pen create weighted -type $penType -showvalues y \
+                -valuecommand [list ::valuecommandTests::Format weighted]
+            .valuecmd pen create highlighted -type $penType -showvalues y \
+                -valuecommand [list ::valuecommandTests::Format highlighted]
+            .valuecmd element configure signal -showvalues none -weights {0 1 0} \
+                -styles {{weighted 0.5 1.5}} -activepen highlighted
+            .valuecmd element activate signal 2
+            set photo [image create photo]
+        } -body {
+            set calls {}
+            .valuecmd snap $photo
+            set screen [list [Indices weighted] [Indices highlighted]]
+            set calls {}
+            .valuecmd postscript output
+            list $screen [list [Indices weighted] [Indices highlighted]]
+        } -cleanup {
+            image delete $photo
+            destroy .valuecmd
+        } -result {{1 2} {1 2}}
+    }
+
+    test valuecommand-6 {callback output is not truncated to the printf buffer} -setup {
+        Create graph
+        .valuecmd element configure signal -showvalues y \
+            -valuecommand [list apply {{graph element index x y} {
+                return "START_[string repeat x 3000]_END_CUSTOM_LABEL"
+            }}]
+    } -body {
+        set ps [.valuecmd postscript output]
+        expr {[string first "START_[string repeat x 3000]_END_CUSTOM_LABEL" $ps] >= 0}
+    } -cleanup {
+        destroy .valuecmd
+    } -result 1
+
+    test valuecommand-7 {callback errors report in the background and use valueformat} -setup {
+        Create graph
+        set hadBgerror [expr {[llength [info commands ::bgerror]] > 0}]
+        if {$hadBgerror} {rename ::bgerror ::valuecommandTests::savedBgerror}
+        set errors {}
+        proc ::bgerror {message} {lappend ::valuecommandTests::errors $message}
+        .valuecmd element configure signal -showvalues y -valueformat {FALLBACK=%.1f} \
+            -valuecommand [list apply {{graph element index x y} {error "value formatter failed"}}]
+    } -body {
+        set ps [.valuecmd postscript output]
+        # Disable it before processing queued background errors/redraws.
+        .valuecmd element configure signal -valuecommand {}
+        update
+        list [expr {[string first FALLBACK=5.0 $ps] >= 0}] \
+            [expr {[llength $errors] > 0 && [lsort -unique $errors] eq {{value formatter failed}}}]
+    } -cleanup {
+        destroy .valuecmd
+        rename ::bgerror {}
+        if {$hadBgerror} {rename ::valuecommandTests::savedBgerror ::bgerror}
+    } -result {1 1}
+
+    test valuecommand-8 {pen references retain callbacks after the pen name is deleted} -setup {
+        Create graph
+        .valuecmd pen create retained -showvalues y \
+            -valuecommand [list ::valuecommandTests::Format retained]
+        .valuecmd element configure signal -pen retained
+        .valuecmd pen delete retained
+    } -body {
+        set ps [.valuecmd postscript output]
+        expr {[string first CUSTOM_retained_1 $ps] >= 0}
+    } -cleanup {
+        destroy .valuecmd
+    } -result 1
+}
+
+namespace delete ::valuecommandTests
+cleanupTests

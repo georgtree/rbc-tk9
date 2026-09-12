@@ -357,6 +357,9 @@ If -errorbarcap is 0, Rbc chooses a cap size from the rendered bar width\&.
 Error-bar values also participate in automatic graph extents\&.
 .SH "VALUE LABELS OF BAR ELEMENTS"
 .PP
+-valuecommand can replace the label text with a Tcl callback\&. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling\&.
+.PP
 -showvalues displays data values at the end of each rendered bar\&.
 .PP
 It may select X values, Y values, both coordinates, or no values\&. The default is no\&.
@@ -382,6 +385,7 @@ Label appearance is controlled by:
 │ -valueanchor anchor   │ Sets the Tk anchor of the label\&. The default is s\&.                         │
 │ -valuecolor color     │ Sets the label color\&. The default is black\&.                                │
 │ -valuefont font       │ Sets the label font\&.                                                       │
+│ -valuecommand cmd     │ Formats value labels with a Tcl command prefix\&. Default: empty\&.            │
 │ -valueformat format   │ Sets the printf-style floating-point format\&. The default is %g\&.            │
 │ -valuerotate angle    │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.   │
 │ -valueshadow shadow   │ Specifies an optional text shadow\&. An empty value disables the shadow\&.     │
@@ -538,6 +542,8 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │                         │                 │                  │ relative to bars\&. The default is s\&.            │
 │ -valuecolor color       │ valueColor      │ ValueColor       │ Sets the color used to draw value labels\&.      │
 │ -valuefont font         │ valueFont       │ ValueFont        │ Sets the font used to draw value labels\&.       │
+│ -valuecommand cmd       │ valueCommand    │ ValueCommand     │ Formats value labels with a Tcl command        │
+│                         │                 │                  │ prefix\&. Default: empty\&.                        │
 │ -valueformat format     │ valueFormat     │ ValueFormat      │ Sets the printf-style format used for value    │
 │                         │                 │                  │ labels\&. The default is %g\&.                     │
 │ -valuerotate degrees    │ valueRotate     │ ValueRotate      │ Sets the rotation angle of value labels in     │

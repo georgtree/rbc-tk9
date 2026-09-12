@@ -48,6 +48,7 @@ typedef struct {
     GC errorBarGC;
     int valueShow;
     char *valueFormat;
+    Tcl_Obj *valueCommandObjPtr; /* Optional value-label command prefix. */
     TextStyle valueStyle;
 } BarPen;
 
@@ -208,6 +209,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_BUILTIN_PEN_OFFSET(valueStyle.color), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, -1,
      BAR_BUILTIN_PEN_OFFSET(valueStyle.font), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL,
+     BAR_BUILTIN_PEN_OFFSET(valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT, -1,
      BAR_BUILTIN_PEN_OFFSET(valueFormat), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", "0.0", BAR_BUILTIN_PEN_OFFSET(valueRotateObjPtr),
@@ -355,6 +358,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
+        {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
+         offsetof(BarPen, valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
         {TK_OPTION_STRING,                                                                                             \
          "-valueformat",                                                                                               \
          "valueFormat",                                                                                                \
@@ -560,6 +565,9 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newErrorBarColor = NULL;
     newShadow.color = NULL;
     newShadow.offset = 0;
+    if (Rbc_ValidateValueCommand(graphPtr->interp, bpPtr->valueCommandObjPtr) != TCL_OK) {
+        goto error;
+    }
     if (Rbc_ValidateValueFormat(graphPtr->interp, bpPtr->valueFormat) != TCL_OK) {
         goto error;
     }
@@ -2197,7 +2205,7 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
     BarRectangle *rectPtr;
     BarRectangle *endPtr;
     Tcl_Size count;
-    char string[RBC_VALUE_LABEL_SIZE];
+    Tcl_Obj *labelObjPtr;
     double x;
     double y;
     Point2D anchorPos;
@@ -2208,7 +2216,12 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
         dataIndex = rectToData[count++];
         x = barPtr->core.x.valueArr[dataIndex];
         y = barPtr->core.y.valueArr[dataIndex];
-        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
+        labelObjPtr = Rbc_GetElementValueLabel(&barPtr->core, penPtr->valueCommandObjPtr,
+                                               penPtr->valueFormat, penPtr->valueShow, dataIndex, x, y);
+        if (Tcl_GetCharLength(labelObjPtr) == 0) {
+            Tcl_DecrRefCount(labelObjPtr);
+            continue;
+        }
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;
@@ -2222,7 +2235,9 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_DrawText(graphPtr->tkwin, drawable, string, &penPtr->valueStyle, (int)anchorPos.x, (int)anchorPos.y);
+        Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                     (int)anchorPos.x, (int)anchorPos.y);
+        Tcl_DecrRefCount(labelObjPtr);
     }
 }
 
@@ -2492,7 +2507,7 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
     BarRectangle *rectPtr, *endPtr;
     Tcl_Size count;
-    char string[RBC_VALUE_LABEL_SIZE];
+    Tcl_Obj *labelObjPtr;
     double x, y;
     Point2D anchorPos;
 
@@ -2502,7 +2517,12 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
         dataIndex = rectToData[count++];
         x = barPtr->core.x.valueArr[dataIndex];
         y = barPtr->core.y.valueArr[dataIndex];
-        Rbc_FormatValueLabel(string, sizeof(string), penPtr->valueFormat, penPtr->valueShow, x, y);
+        labelObjPtr = Rbc_GetElementValueLabel(&barPtr->core, penPtr->valueCommandObjPtr,
+                                               penPtr->valueFormat, penPtr->valueShow, dataIndex, x, y);
+        if (Tcl_GetCharLength(labelObjPtr) == 0) {
+            Tcl_DecrRefCount(labelObjPtr);
+            continue;
+        }
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;
@@ -2516,7 +2536,8 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_TextToPostScript(psToken, string, &(penPtr->valueStyle), anchorPos.x, anchorPos.y);
+        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle, anchorPos.x, anchorPos.y);
+        Tcl_DecrRefCount(labelObjPtr);
     }
 }
 

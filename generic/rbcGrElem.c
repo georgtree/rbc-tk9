@@ -165,6 +165,100 @@ static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, Pe
     return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_ValidateValueCommand --
+ *
+ *      Validates a value-label command prefix before option commit.
+ *      Empty prefixes retain printf-style formatting.
+ *
+ * Results:
+ *      TCL_OK or TCL_ERROR.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr) {
+    Tcl_Size length;
+
+    if (commandObjPtr == NULL) {
+        return TCL_OK;
+    }
+    return Tcl_ListObjLength(interp, commandObjPtr, &length);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_GetElementValueLabel --
+ *
+ *      Formats a source point using the pen's command or value format.
+ *      Commands receive graph, element, source index, X and Y. They
+ *      must not mutate drawing state or enter a nested event loop.
+ *      Errors are reported in the background and use the default text,
+ *      as with axis tick formatters. Preserve the enclosing command's
+ *      interpreter result, including during PostScript generation.
+ *
+ * Results:
+ *      A referenced Tcl object; the caller must decrement its reference
+ *      count after drawing. Callback text is not buffer-truncated.
+ *
+ *----------------------------------------------------------------------
+ */
+Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, const char *format,
+                                 int show, Tcl_Size index, double x, double y) {
+    Tcl_Interp *interp = elemPtr->graphPtr->interp;
+    Tcl_Obj *labelObjPtr;
+    Tcl_Obj *cmdObjPtr;
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_InterpState state;
+    int result;
+    char fallback[RBC_VALUE_LABEL_SIZE];
+
+    /* Copy fallback text before evaluating any application code. */
+    Rbc_FormatValueLabel(fallback, sizeof(fallback), format, show, x, y);
+    labelObjPtr = Tcl_NewStringObj(fallback, -1);
+    Tcl_IncrRefCount(labelObjPtr);
+    if ((commandObjPtr == NULL) || (show == SHOW_NONE)) {
+        return labelObjPtr;
+    }
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    result = Tcl_ListObjLength(interp, commandObjPtr, &objc);
+    if ((result == TCL_OK) && (objc == 0)) {
+        Tcl_RestoreInterpState(interp, state);
+        return labelObjPtr;
+    }
+    if (result == TCL_OK) {
+        /* The option object is Tk-owned: append only to a duplicate. */
+        cmdObjPtr = Tcl_DuplicateObj(commandObjPtr);
+        Tcl_IncrRefCount(cmdObjPtr);
+        Tcl_ListObjAppendElement(interp, cmdObjPtr,
+            Tcl_NewStringObj(Tk_PathName(elemPtr->graphPtr->tkwin), -1));
+        Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(elemPtr->name, -1));
+        Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewWideIntObj((Tcl_WideInt)index));
+        Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewDoubleObj(x));
+        Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewDoubleObj(y));
+        result = Tcl_ListObjGetElements(interp, cmdObjPtr, &objc, &objv);
+        if (result == TCL_OK) {
+            Tcl_ResetResult(interp);
+            result = Tcl_EvalObjv(interp, objc, objv, TCL_EVAL_GLOBAL);
+        }
+        if (result == TCL_OK) {
+            Tcl_DecrRefCount(labelObjPtr);
+            labelObjPtr = Tcl_GetObjResult(interp);
+            Tcl_IncrRefCount(labelObjPtr);
+        }
+        Tcl_DecrRefCount(cmdObjPtr);
+    }
+    if (result != TCL_OK) {
+        Tcl_AddErrorInfo(interp, "\n    (element value-label command)");
+        Tcl_BackgroundException(interp, result);
+    }
+    Tcl_RestoreInterpState(interp, state);
+    return labelObjPtr;
+}
+
 #define VALUE_FORMAT_LIMIT 200
 
 /*

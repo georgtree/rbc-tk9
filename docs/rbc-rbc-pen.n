@@ -229,6 +229,9 @@ The pen does not contain error data itself\&. Error coordinates are supplied by 
 -yerror, -xlow, -xhigh, -ylow, and -yhigh\&.
 .SS "VALUE LABELS OF LINE ELEMENT PEN"
 .PP
+-valuecommand can replace the label text with a Tcl callback\&. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling\&.
+.PP
 A line pen may display the element's data values with -showvalues\&.
 .PP
 Appearance is controlled by:
@@ -238,6 +241,7 @@ Appearance is controlled by:
 -valueanchor
 -valuecolor
 -valuefont
+-valuecommand
 -valueformat
 -valuerotate
 -valueshadow
@@ -291,6 +295,8 @@ a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitt
 │ -valuecolor color      │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The default    │
 │                        │                │                │ is black\&.                                                │
 │ -valuefont font        │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.                 │
+│ -valuecommand cmd      │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. Default: │
+│                        │                │                │ empty\&.                                                   │
 │ -valueformat format    │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value labels\&.      │
 │                        │                │                │ The default is %g\&.                                       │
 │ -valuerotate degrees   │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&.      │
@@ -348,6 +354,9 @@ As with line pens, bar pens control error-bar appearance rather than the error d
 -errorbarcolor defcolor uses the normal bar drawing color\&.
 .SS "VALUE LABELS OF BAR ELEMENT PEN"
 .PP
+-valuecommand can replace the label text with a Tcl callback\&. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling\&.
+.PP
 Bar pens use the same value-label controls as line pens:
 .PP
 .RS 4n
@@ -356,6 +365,7 @@ Bar pens use the same value-label controls as line pens:
 -valueanchor
 -valuecolor
 -valuefont
+-valuecommand
 -valueformat
 -valuerotate
 -valueshadow
@@ -407,6 +417,8 @@ See \fIBARELEMENT\fP for placement of value labels relative to the baseline and 
 │ -valuecolor color     │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The    │
 │                       │                │                │ default is black\&.                                │
 │ -valuefont font       │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.         │
+│ -valuecommand cmd     │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&.  │
+│                       │                │                │ Default: empty\&.                                  │
 │ -valueformat format   │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value      │
 │                       │                │                │ labels\&. The default is %g\&.                       │
 │ -valuerotate degrees  │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in       │

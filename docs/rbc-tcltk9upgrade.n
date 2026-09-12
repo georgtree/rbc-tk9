@@ -211,6 +211,11 @@ physical X coordinates, while top and bottom always describe physical Y coordina
 .PP
 This makes element closest directly usable for bar highlighting, overlays, annotations, and interactive
 interfaces without requiring applications to reconstruct bar geometry themselves\&.
+.SH "CUSTOM ELEMENT VALUE LABELS"
+.PP
+Elements and named pens now accept -valuecommand, a Tcl command prefix receiving the graph pathname,
+element name, source index, X and Y\&. Its result replaces the -showvalues label on screen and in PostScript\&.
+Empty results hide individual labels; clearing the option restores -valueformat\&.
 .SH "IMPLEMENTATION MODERNIZATION"
 .PP
 The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves

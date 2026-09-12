@@ -298,3 +298,4 @@ proc DemoThumbnail {file width height} {
     }
     return $target
 }
+

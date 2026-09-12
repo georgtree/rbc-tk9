@@ -197,6 +197,9 @@ Their appearance is controlled by:
 See \fILINEELEMENT\fP for the complete error-bar semantics\&.
 .SH "VALUE LABELS OF STRIP ELEMENTS"
 .PP
+-valuecommand can replace the label text with a Tcl callback\&. See the custom value-label text section
+in LINEELEMENT for the callback arguments and error handling\&.
+.PP
 Strip elements can display coordinate values next to their data points using -showvalues\&.
 .PP
 Label appearance is controlled by:
@@ -206,6 +209,7 @@ Label appearance is controlled by:
 -valueanchor
 -valuecolor
 -valuefont
+-valuecommand
 -valueformat
 -valuerotate
 -valueshadow
@@ -309,6 +313,8 @@ The complete strip-element option set is:
 │                       │               │                │ s\&.                                              │
 │ -valuecolor color     │ valueColor    │ ValueColor     │ Sets the color used to draw value labels\&.       │
 │ -valuefont font       │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.        │
+│ -valuecommand cmd     │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. │
+│                       │               │                │ Default: empty\&.                                 │
 │ -valueformat format   │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value     │
 │                       │               │                │ labels\&. The default is %g\&.                      │
 │ -valuerotate degrees  │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in      │

@@ -368,6 +368,9 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);
+int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr);
+Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, const char *format,
+                                 int show, Tcl_Size index, double x, double y);
 int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format);
 void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y);
 

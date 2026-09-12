@@ -9,7 +9,7 @@ package require rbc
 namespace import rbc::*
 
 
-### The script can be run from any location.It loads the files it needs from the demo directory.
+### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands
@@ -60,16 +60,10 @@ proc FormatAxisLabel {graph x} {
 #####   (2a) create and configure graph pens and styles
 set max -1.0
 set step 0.2
-set letters {A B C D E F G H I J K L}
 set count 0
 for {set level 30} {$level <= 100} {incr level 10} {
     set color [format "#E07C%0.2x" [expr round($level*2.55)]]
     set pen pen$count
-    ### No bitmap command in rbc - so
-    ### use "-symbol circle" instead of "-symbol $symbol"
-    ### set symbol "symbol$count"
-    ### bitmap compose $symbol [lindex $letters $count]\
-    ###	-font -*-helvetica-medium-r-*-*-34-*-*-*-*-*-*-*
     $graph graph pen create $pen -color $color -symbol circle -fill {} -pixels 13
     set min $max
     set max [expr {$max+$step}]
