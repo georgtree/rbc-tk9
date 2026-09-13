@@ -244,6 +244,8 @@ LEGEND get can also identify the entry at an explicit screen position\&.
 │                             │                     │                     │ The value may select a graph margin,        │
 │                             │                     │                     │ plotarea, or an explicit @x,y window        │
 │                             │                     │                     │ position\&. The default is right\&.             │
+│                             │                     │                     │ In @x,y form, each coordinate accepts a Tcl │
+│                             │                     │                     │ integer expression\&.                         │
 │ -raised boolean             │ raised              │ Raised              │ Controls whether a legend placed in the     │
 │                             │                     │                     │ plotting area is drawn above graph          │
 │                             │                     │                     │ elements\&. The default is no\&.                │

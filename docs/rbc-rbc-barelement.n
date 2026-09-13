@@ -493,6 +493,8 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │                         │                 │                  │ The default is 2\&.                              │
 │ -data data              │ data            │ Data             │ Supplies an even-length list of alternating X  │
 │                         │                 │                  │ and Y values\&.                                  │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -errorbarcap width      │ errorBarCap     │ ErrorBarCap      │ Sets the requested error-bar cap width\&. A      │
 │                         │                 │                  │ positive value selects an explicit size; 0     │
 │                         │                 │                  │ automatically derives the size from the bar    │
@@ -554,24 +556,42 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │                         │                 │                  │ value disables the shadow\&.                     │
 │ -weights weights        │ weights         │ Weights          │ Supplies per-point numeric weights used to     │
 │                         │                 │                  │ select pens through -styles\&.                   │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -x data                 │ xdata           │ Xdata            │ Supplies the element's X coordinates as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -xdata data             │ —               │ —                │ Synonym for -x\&.                                │
 │ -xerror data            │ xError          │ XError           │ Supplies symmetric X error magnitudes as a     │
 │                         │                 │                  │ list or Rbc vector\&.                            │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -xhigh data             │ xHigh           │ XHigh            │ Supplies the upper X error endpoints as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -xlow data              │ xLow            │ XLow             │ Supplies the lower X error endpoints as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -y data                 │ ydata           │ Ydata            │ Supplies the element's Y coordinates as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -ydata data             │ —               │ —                │ Synonym for -y\&.                                │
 │ -yerror data            │ yError          │ YError           │ Supplies symmetric Y error magnitudes as a     │
 │                         │                 │                  │ list or Rbc vector\&.                            │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -yhigh data             │ yHigh           │ YHigh            │ Supplies the upper Y error endpoints as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 │ -ylow data              │ yLow            │ YLow             │ Supplies the lower Y error endpoints as a list │
 │                         │                 │                  │ or Rbc vector\&.                                 │
+│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
+│                         │                 │                  │ expression\&.                                    │
 └─────────────────────────┴─────────────────┴──────────────────┴────────────────────────────────────────────────┘
 .fi
 .RE

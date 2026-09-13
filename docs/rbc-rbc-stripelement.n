@@ -241,8 +241,12 @@ The complete strip-element option set is:
 │                       │               │                │ default is navy blue\&.                           │
 │ -dashes dashes        │ dashes        │ Dashes         │ Sets the built-in normal pen's trace dash       │
 │                       │               │                │ pattern\&. An empty value selects a solid line\&.   │
+│                       │               │                │ Each numeric list item accepts a Tcl integer    │
+│                       │               │                │ expression\&.                                     │
 │ -data data            │ data          │ Data           │ Supplies an even-length list of alternating X   │
 │                       │               │                │ and Y values\&.                                   │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -decimate mode        │ decimate      │ Decimate       │ Selects automatic screen-density trace          │
 │                       │               │                │ decimation\&. Accepted values are none and auto\&.  │
 │                       │               │                │ The default is none\&.                            │
@@ -325,24 +329,42 @@ The complete strip-element option set is:
 │                       │               │                │ value disables the shadow\&.                      │
 │ -weights weights      │ weights       │ Weights        │ Supplies per-point numeric weights used to      │
 │                       │               │                │ select pens through -styles\&.                    │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -x data               │ xData         │ XData          │ Supplies the element's X coordinates as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -xdata data           │ —             │ —              │ Synonym for -x\&.                                 │
 │ -xerror data          │ xError        │ XError         │ Supplies symmetric X error magnitudes as a list │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -xhigh data           │ xHigh         │ XHigh          │ Supplies the upper X error endpoints as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -xlow data            │ xLow          │ XLow           │ Supplies the lower X error endpoints as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -y data               │ yData         │ YData          │ Supplies the element's Y coordinates as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -ydata data           │ —             │ —              │ Synonym for -y\&.                                 │
 │ -yerror data          │ yError        │ YError         │ Supplies symmetric Y error magnitudes as a list │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -yhigh data           │ yHigh         │ YHigh          │ Supplies the upper Y error endpoints as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 │ -ylow data            │ yLow          │ YLow           │ Supplies the lower Y error endpoints as a list  │
 │                       │               │                │ or Rbc vector\&.                                  │
+│                       │               │                │ Each literal list item accepts a Tcl numeric    │
+│                       │               │                │ expression\&.                                     │
 └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────┘
 .fi
 .RE

@@ -59,6 +59,53 @@ Graph widgets contain several components with their own command interfaces:
 .RE
 .PP
 These component interfaces are documented separately\&.
+.SH "NUMERIC VALUES AND EXPRESSIONS"
+.PP
+Expression support is option-specific\&. The option tables say when a value accepts a Tcl numeric
+expression, or when each list item accepts one\&. Integer expressions must produce integer results;
+numeric expressions may produce floating-point results\&. The option's range and domain rules still apply\&.
+.PP
+Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
+lists, and the legend's @x,y position support expressions\&. Other numeric options do not automatically
+evaluate arithmetic\&. For example, -valueoffset requires two integer pixel values, and crosshair
+-position accepts Tk pixel distances rather than the legend's integer expressions\&.
+.PP
+Brace an expression to pass it to Rbc without Tcl substituting it first:
+.PP
+.RS 4n
+.nf
+\&.g axis configure x -max {2 * acos(-1)}
+\&.g legend configure -position {@10+5,20+10}
+.fi
+.RE
+.PP
+For list options, each expression must be one list item\&. Use inner braces around expressions containing
+spaces; the outer braces delimit the entire list:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -x {0 {1\&.0 / 3} {2\&.0 / 3} 1}
+\&.g grid configure -dashes {{2 * 3} {1 + 1}}
+.fi
+.RE
+.PP
+Use floating-point operands when a fractional result is needed: 1 / 3 is integer division,
+while 1\&.0 / 3 produces a fraction\&. Tcl expression functions and substitutions follow normal Tcl
+expression rules\&. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression\&.
+.PP
+Expressions are evaluated when Rbc parses the option\&. They are not live formulas: changing a referenced
+Tcl variable does not itself update the graph\&. Supply the option again to evaluate it with new values\&.
+An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
+not an expression; vector notifications provide its automatic updates\&.
+.PP
+For an option that does not evaluate expressions, calculate the value explicitly:
+.PP
+.RS 4n
+.nf
+set gap 8
+\&.g element configure signal -valueoffset [list 0 [expr {-$gap - 4}]]
+.fi
+.RE
 .SH "COORDINATE SYSTEMS"
 .PP
 Graph widgets use two coordinate systems:

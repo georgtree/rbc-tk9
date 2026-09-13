@@ -176,6 +176,8 @@ option valid for one marker type is not necessarily valid for another\&.
 │ -coords coordList     │ coords        │ Coords         │ Specifies the graph coordinates of the marker\&. The  │
 │                       │               │                │ required number of coordinates depends on the       │
 │                       │               │                │ marker type\&. The default is empty\&.                  │
+│                       │               │                │ Each coordinate accepts a Tcl numeric expression;   │
+│                       │               │                │ Inf, +Inf and -Inf select elastic bounds\&.           │
 │ -element elementName  │ element       │ Element        │ Associates the marker with an element\&. The marker   │
 │                       │               │                │ is displayed only while that element is displayed\&.  │
 │                       │               │                │ An empty value removes the association\&.             │
@@ -291,6 +293,8 @@ In addition to the common marker options, line markers support:
 │                        │              │                │ butt, projecting, and round\&. The default is butt\&.    │
 │ -dashes dashList       │ dashes       │ Dashes         │ Specifies the dash pattern\&. An empty value selects   │
 │                        │              │                │ a solid line\&.                                        │
+│                        │              │                │ Each numeric list item accepts a Tcl integer         │
+│                        │              │                │ expression\&.                                          │
 │ -dashoffset distance   │ dashOffset   │ DashOffset     │ Specifies the offset into the dash pattern\&. The      │
 │                        │              │                │ default is 0\&.                                        │
 │ -fill color            │ fill         │ Fill           │ Specifies the color used for the off portions of a   │
@@ -365,6 +369,8 @@ In addition to the common marker options, polygon markers support:
 │                       │              │                │ butt\&.                                              │
 │ -dashes dashList      │ dashes       │ Dashes         │ Specifies the dash pattern used for the polygon    │
 │                       │              │                │ outline\&. An empty value selects a solid outline\&.   │
+│                       │              │                │ Each numeric list item accepts a Tcl integer       │
+│                       │              │                │ expression\&.                                        │
 │ -fill colorList       │ fill         │ Fill           │ Specifies the polygon fill colors\&. The value may   │
 │                       │              │                │ contain one foreground color or a foreground and   │
 │                       │              │                │ background color\&. With -stipple, the second color  │

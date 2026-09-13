@@ -239,7 +239,7 @@ option valid for one marker type is not necessarily valid for another.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-coords</span> <span class="pre">coordList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Coords</span></code></p></td>
-<td><p>Specifies the graph coordinates of the marker. The required number of coordinates depends on the marker type. The default is empty.</p></td>
+<td><p>Specifies the graph coordinates of the marker. The required number of coordinates depends on the marker type. The default is empty. Each coordinate accepts a Tcl numeric expression; Inf, +Inf and -Inf select elastic bounds.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-element</span> <span class="pre">elementName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">element</span></code></p></td>
@@ -440,7 +440,7 @@ option valid for one marker type is not necessarily valid for another.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
-<td><p>Specifies the dash pattern. An empty value selects a solid line.</p></td>
+<td><p>Specifies the dash pattern. An empty value selects a solid line. Each numeric list item accepts a Tcl integer expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-dashoffset</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dashOffset</span></code></p></td>
@@ -528,7 +528,7 @@ arrowhead so that it does not protrude through the filled arrowhead.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
-<td><p>Specifies the dash pattern used for the polygon outline. An empty value selects a solid outline.</p></td>
+<td><p>Specifies the dash pattern used for the polygon outline. An empty value selects a solid outline. Each numeric list item accepts a Tcl integer expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">colorList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>

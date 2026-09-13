@@ -151,6 +151,8 @@ contents to be redrawn\&.
 │                       │               │                │ default is black\&.                                      │
 │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw the crosshairs\&. An  │
 │                       │               │                │ empty value selects solid lines\&.                       │
+│                       │               │                │ Each numeric list item accepts a Tcl integer           │
+│                       │               │                │ expression\&.                                            │
 │ -hide boolean         │ hide          │ Hide           │ Controls whether the crosshairs are enabled\&. The       │
 │                       │               │                │ default is yes\&. When enabled, the crosshairs are       │
 │                       │               │                │ visible only while their position is inside the        │

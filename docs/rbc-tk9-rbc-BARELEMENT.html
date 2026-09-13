@@ -472,7 +472,7 @@ rectangle.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-data</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Data</span></code></p></td>
-<td><p>Supplies an even-length list of alternating X and Y values.</p></td>
+<td><p>Supplies an even-length list of alternating X and Y values. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarCap</span></code></p></td>
@@ -607,12 +607,12 @@ rectangle.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Weights</span></code></p></td>
-<td><p>Supplies per-point numeric weights used to select pens through <code class="docutils literal notranslate"><span class="pre">-styles</span></code>.</p></td>
+<td><p>Supplies per-point numeric weights used to select pens through <code class="docutils literal notranslate"><span class="pre">-styles</span></code>. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xdata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Xdata</span></code></p></td>
-<td><p>Supplies the element’s X coordinates as a list or Rbc vector.</p></td>
+<td><p>Supplies the element’s X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -622,22 +622,22 @@ rectangle.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
-<td><p>Supplies symmetric X error magnitudes as a list or Rbc vector.</p></td>
+<td><p>Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
-<td><p>Supplies the upper X error endpoints as a list or Rbc vector.</p></td>
+<td><p>Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
-<td><p>Supplies the lower X error endpoints as a list or Rbc vector.</p></td>
+<td><p>Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ydata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Ydata</span></code></p></td>
-<td><p>Supplies the element’s Y coordinates as a list or Rbc vector.</p></td>
+<td><p>Supplies the element’s Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -647,17 +647,17 @@ rectangle.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
-<td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector.</p></td>
+<td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
-<td><p>Supplies the upper Y error endpoints as a list or Rbc vector.</p></td>
+<td><p>Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
-<td><p>Supplies the lower Y error endpoints as a list or Rbc vector.</p></td>
+<td><p>Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 </tbody>
 </table>

@@ -174,6 +174,45 @@ namespace eval ::rbc::GRAPHINST {
 
         These component interfaces are documented separately.
 
+        ## Numeric values and expressions
+
+        Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
+        expression, or when each list item accepts one. Integer expressions must produce integer results;
+        numeric expressions may produce floating-point results. The option's range and domain rules still apply.
+
+        Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
+        lists, and the legend's `@x,y` position support expressions. Other numeric options do not automatically
+        evaluate arithmetic. For example, `-valueoffset` requires two integer pixel values, and crosshair
+        `-position` accepts Tk pixel distances rather than the legend's integer expressions.
+
+        Brace an expression to pass it to Rbc without Tcl substituting it first:
+        ```tcl
+        .g axis configure x -max {2 * acos(-1)}
+        .g legend configure -position {@10+5,20+10}
+        ```
+
+        For list options, each expression must be one list item. Use inner braces around expressions containing
+        spaces; the outer braces delimit the entire list:
+        ```tcl
+        .g element configure signal -x {0 {1.0 / 3} {2.0 / 3} 1}
+        .g grid configure -dashes {{2 * 3} {1 + 1}}
+        ```
+
+        Use floating-point operands when a fractional result is needed: `1 / 3` is integer division,
+        while `1.0 / 3` produces a fraction. Tcl expression functions and substitutions follow normal Tcl
+        expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.
+
+        Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
+        Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
+        An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
+        not an expression; vector notifications provide its automatic updates.
+
+        For an option that does not evaluate expressions, calculate the value explicitly:
+        ```tcl
+        set gap 8
+        .g element configure signal -valueoffset [list 0 [expr {-$gap - 4}]]
+        ```
+
         ## Coordinate systems
         Graph widgets use two coordinate systems:
 

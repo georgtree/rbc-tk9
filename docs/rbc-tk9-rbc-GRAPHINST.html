@@ -125,6 +125,39 @@ element type used by the <code class="docutils literal notranslate"><span class=
 </tbody>
 </table>
 <p>These component interfaces are documented separately.</p>
+<section id="numeric-values-and-expressions">
+<span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
+<p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
+expression, or when each list item accepts one. Integer expressions must produce integer results;
+numeric expressions may produce floating-point results. The option’s range and domain rules still apply.</p>
+<p>Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
+lists, and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically
+evaluate arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair
+<code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk pixel distances rather than the legend’s integer expressions.</p>
+<p>Brace an expression to pass it to Rbc without Tcl substituting it first:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>acos<span class="k">(</span><span class="nv">-1</span><span class="k">)}</span>
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{</span>@10<span class="o">+</span><span class="nv">5</span>,20<span class="o">+</span><span class="mi">10</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>For list options, each expression must be one list item. Use inner braces around expressions containing
+spaces; the outer braces delimit the entire list:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="k">{</span><span class="nv">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}}</span>
+</pre></div>
+</div>
+<p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division,
+while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code> produces a fraction. Tcl expression functions and substitutions follow normal Tcl
+expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
+<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
+Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
+An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
+not an expression; vector notifications provide its automatic updates.</p>
+<p>For an option that does not evaluate expressions, calculate the value explicitly:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>gap<span class="w"> </span><span class="mi">8</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">-$gap</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">4</span><span class="k">}]]</span>
+</pre></div>
+</div>
+</section>
 <section id="coordinate-systems">
 <span id="r-rbc-graphinst-coordinate-systems"></span><span id="r-3a3arbc3a3agraphinstqzcoordinate20systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Link to this heading">¶</a></h2>
 <p>Graph widgets use two coordinate systems:</p>
@@ -1179,6 +1212,7 @@ but the current graph core does not automatically execute it.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
+<li><a class="reference internal" href="#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
 <li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>
 <li><a class="reference internal" href="#delivery-and-event-data">Delivery and event data</a></li>

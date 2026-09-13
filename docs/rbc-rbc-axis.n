@@ -463,20 +463,26 @@ The following options apply to virtual axes and to axes displayed through the ma
 │                           │                 │                 │ automatic generation of minor ticks; │
 │                           │                 │                 │ explicit -minorticks may still be    │
 │                           │                 │                 │ supplied\&.                            │
+│                           │                 │                 │ Expression results must be finite\&.   │
 │ -max value                │ max             │ Max             │ Specifies the requested maximum      │
 │                           │                 │                 │ value of the axis\&. An empty value    │
 │                           │                 │                 │ selects an automatically determined  │
 │                           │                 │                 │ maximum\&.                             │
+│                           │                 │                 │ Accepts a Tcl numeric expression     │
+│                           │                 │                 │ with a finite result\&.                │
 │ -min value                │ min             │ Min             │ Specifies the requested minimum      │
 │                           │                 │                 │ value of the axis\&. An empty value    │
 │                           │                 │                 │ selects an automatically determined  │
 │                           │                 │                 │ minimum\&.                             │
+│                           │                 │                 │ Accepts a Tcl numeric expression     │
+│                           │                 │                 │ with a finite result\&.                │
 │ -minorticks tickList      │ minorTicks      │ MinorTicks      │ Specifies explicit minor tick        │
 │                           │                 │                 │ positions within each major tick     │
 │                           │                 │                 │ interval\&. Each list element is       │
 │                           │                 │                 │ evaluated as a Tcl numeric           │
 │                           │                 │                 │ expression\&. An empty value restores  │
 │                           │                 │                 │ automatic minor ticks\&.               │
+│                           │                 │                 │ Expression results must be finite\&.   │
 │ -relief relief            │ relief          │ Relief          │ Specifies the relief of the axis     │
 │                           │                 │                 │ background and border\&. The default   │
 │                           │                 │                 │ is flat\&.                             │
@@ -494,10 +500,14 @@ The following options apply to virtual axes and to axes displayed through the ma
 │                           │                 │                 │ axis scrolling region\&. An empty      │
 │                           │                 │                 │ value leaves the scrolling maximum   │
 │                           │                 │                 │ unrestricted\&.                        │
+│                           │                 │                 │ Accepts a Tcl numeric expression     │
+│                           │                 │                 │ with a finite result\&.                │
 │ -scrollmin value          │ scrollMin       │ ScrollMin       │ Specifies the minimum value of the   │
 │                           │                 │                 │ axis scrolling region\&. An empty      │
 │                           │                 │                 │ value leaves the scrolling minimum   │
 │                           │                 │                 │ unrestricted\&.                        │
+│                           │                 │                 │ Accepts a Tcl numeric expression     │
+│                           │                 │                 │ with a finite result\&.                │
 │ -shiftby value            │ shiftBy         │ ShiftBy         │ Specifies the increment used when    │
 │                           │                 │                 │ advancing an autoranging axis\&. When  │
 │                           │                 │                 │ positive, the upper end of the       │

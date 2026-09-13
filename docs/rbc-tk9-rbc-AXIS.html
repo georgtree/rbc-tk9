@@ -402,22 +402,22 @@ supplied with <code class="docutils literal notranslate"><span class="pre">-bind
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-majorticks</span> <span class="pre">tickList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">majorTicks</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MajorTicks</span></code></p></td>
-<td><p>Specifies explicit major tick positions. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic major ticks. Supplying explicit major ticks disables automatic generation of minor ticks; explicit <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> may still be supplied.</p></td>
+<td><p>Specifies explicit major tick positions. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic major ticks. Supplying explicit major ticks disables automatic generation of minor ticks; explicit <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> may still be supplied. Expression results must be finite.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-max</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Max</span></code></p></td>
-<td><p>Specifies the requested maximum value of the axis. An empty value selects an automatically determined maximum.</p></td>
+<td><p>Specifies the requested maximum value of the axis. An empty value selects an automatically determined maximum. Accepts a Tcl numeric expression with a finite result.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-min</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">min</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Min</span></code></p></td>
-<td><p>Specifies the requested minimum value of the axis. An empty value selects an automatically determined minimum.</p></td>
+<td><p>Specifies the requested minimum value of the axis. An empty value selects an automatically determined minimum. Accepts a Tcl numeric expression with a finite result.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minorticks</span> <span class="pre">tickList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">minorTicks</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MinorTicks</span></code></p></td>
-<td><p>Specifies explicit minor tick positions within each major tick interval. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic minor ticks.</p></td>
+<td><p>Specifies explicit minor tick positions within each major tick interval. Each list element is evaluated as a Tcl numeric expression. An empty value restores automatic minor ticks. Expression results must be finite.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">relief</span></code></p></td>
@@ -442,12 +442,12 @@ supplied with <code class="docutils literal notranslate"><span class="pre">-bind
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmax</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scrollMax</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ScrollMax</span></code></p></td>
-<td><p>Specifies the maximum value of the axis scrolling region. An empty value leaves the scrolling maximum unrestricted.</p></td>
+<td><p>Specifies the maximum value of the axis scrolling region. An empty value leaves the scrolling maximum unrestricted. Accepts a Tcl numeric expression with a finite result.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-scrollmin</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scrollMin</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ScrollMin</span></code></p></td>
-<td><p>Specifies the minimum value of the axis scrolling region. An empty value leaves the scrolling minimum unrestricted.</p></td>
+<td><p>Specifies the minimum value of the axis scrolling region. An empty value leaves the scrolling minimum unrestricted. Accepts a Tcl numeric expression with a finite result.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-shiftby</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">shiftBy</span></code></p></td>

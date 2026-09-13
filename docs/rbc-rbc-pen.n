@@ -264,6 +264,7 @@ a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitt
 │                        │                │                │ normal line pens and blue for activeLine\&.                │
 │ -dashes dashes         │ dashes         │ Dashes         │ Sets the trace dash pattern\&. An empty value selects a    │
 │                        │                │                │ solid line\&.                                              │
+│                        │                │                │ Each numeric list item accepts a Tcl integer expression\&. │
 │ -errorbarcap width     │ errorBarCap    │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A positive    │
 │                        │                │                │ value selects an explicit size; 0 automatically          │
 │                        │                │                │ derives the size from the symbol size\&. The default is 1\&. │

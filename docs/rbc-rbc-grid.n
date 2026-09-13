@@ -148,6 +148,8 @@ The remaining grid defaults are common to all graph widget types\&.
 │                       │               │                │ grey64, or black on monochrome displays\&.                │
 │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines\&. An empty │
 │                       │               │                │ value selects solid lines\&. The default is dot\&.          │
+│                       │               │                │ Each numeric list item accepts a Tcl integer            │
+│                       │               │                │ expression\&.                                             │
 │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is  │
 │                       │               │                │ yes for graph, stripchart, and polar widgets and no for │
 │                       │               │                │ barchart widgets\&.                                       │
