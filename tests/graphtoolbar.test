@@ -5215,7 +5215,7 @@ foreach type {graph stripchart barchart} {
             $graph axis create ya -min 100 -max 200
             $graph xaxis use xa
             $graph yaxis use ya
-            $graph element create Signal -x {2 5 8} -y {120 150 120} -mapx xa -mapy ya
+            $graph element create Signal -x {2 5 8} -y {120 150 120} -mapx xa -mapy ya -label {Measured voltage}
         } -body {
             WaitForWindow $graph
             set px [$graph axis transform xa 5]
@@ -5316,5 +5316,68 @@ test closestCustom-5 {Invalid prefixes preserve the configured command} -setup {
 } -result {1 1 custom}
 
 rename ::GtbCustomClosest {}
+
+foreach {type representation} {
+    graph {}
+    stripchart {}
+    barchart {}
+    polar polar
+    polar smith
+} {
+    test closestLabel-1-$type-$representation {built-in closest text uses labels and falls back to element names}\
+            -setup {
+        set widget [graphtoolbar .gtb -type $type -crosshairs]
+        set graph [$widget subwidget graph]
+        if {$representation ne {}} {
+            $graph configure -representation $representation
+        }
+        $graph element create Signal -x {0.2} -y {0.4} -label {}
+        set objectNs [info object namespace $widget]
+        set options [dict create -formatx .6g -formaty .6g -formatparam .6g]
+        set closestInfo [dict create name Signal index 0 x 0.2 y 0.4 radius 0.4472135955 angle 63.43494882\
+                                 gamma {0.2 0.4} normalizedImpedance {1 1} impedance {50 50}\
+                                 normalizedAdmittance {0.5 -0.5} admittance {0.01 -0.01} param 7]
+    } -body {
+        set failures {}
+        foreach mode [namespace eval $objectNs {my ClosestCoordinateModes}] {
+            $widget configure -coordclosestmark $mode
+            $graph element configure Signal -label {}
+            set original [namespace eval $objectNs [list my ClosestMarkerText Signal 0.2 0.4 $options $closestInfo]]
+            if {![string match "Signal\n*" $original]} {
+                lappend failures [list $mode missingName]
+                continue
+            }
+            # Preserve coordinates and parameter text exactly.
+            set suffix [string range $original [string length Signal] end]
+            foreach label [list {Measured voltage} "Voltage\nChannel 1" {}] {
+                $graph element configure Signal -label $label
+                set actual [namespace eval $objectNs [list my ClosestMarkerText Signal 0.2 0.4 $options $closestInfo]]
+                set heading $label
+                if {$heading eq {}} {
+                    set heading Signal
+                }
+                if {$actual ne "${heading}${suffix}"} {
+                    lappend failures [list $mode $label $actual]
+                }
+            }
+        }
+        set failures
+    } -cleanup {
+        destroy $widget
+    } -result {}
+}
+
+test closestLabel-2 {custom callbacks retain element names and control their text} -setup {
+    set widget [graphtoolbar .gtb -crosshairs -closestcommand [list apply {{element x y info} {
+            return [list $element [dict get $info name] CUSTOM]
+        }}] -coordclosestmark custom]
+    set graph [$widget subwidget graph]
+    $graph element create Signal -x {2} -y {3} -label {Measured voltage}
+    set objectNs [info object namespace $widget]
+} -body {
+    namespace eval $objectNs [list my ClosestMarkerText Signal 2 3 {} [dict create name Signal index 0 x 2 y 3]]
+} -cleanup {
+    destroy $widget
+} -result {Signal Signal CUSTOM}
 
 cleanupTests

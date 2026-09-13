@@ -2676,6 +2676,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # location.
         my RefreshCrosshairsMarker $x $y
     }
+    method ElementDisplayLabel {element} {
+        # Returns the element label, falling back to its name.
+        #  element - name of the element
+        # Returns: label of elements, of it's name
+        set label [$Subwidgets(graph) element cget $element -label]
+        if {$label eq {}} {
+            return $element
+        }
+        return $label
+    }
 
     #### axes toggle methods
     method ToggleAxisScale {graph} {
@@ -3606,7 +3616,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set xText [my ClosestAxisFormattedValue $mapx $xValue [dict get $options -formatx]]
         set yText [my ClosestAxisFormattedValue $mapy $yValue [dict get $options -formaty]]
-        return [format "%s\n%s(%s)=%s\n%s(%s)=%s" $element $xName $xOrientation $xText $yName $yOrientation $yText]
+        return [format "%s\n%s(%s)=%s\n%s(%s)=%s" [my ElementDisplayLabel $element] $xName $xOrientation $xText $yName\
+                        $yOrientation $yText]
     }
     method ClosestMarkerText {element xValue yValue options closestInfo} {
         # Builds semantic closest-point annotation text.
@@ -3708,7 +3719,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     return
                 }
             }
-            set text "$element\n$valueText"
+            set text "[my ElementDisplayLabel $element]\n$valueText"
         }
         # -param is optional metadata supplied by line and Polar elements.
         # RBC omits it from the closest result whenever no valid parameter
