@@ -78,7 +78,7 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 <li><p>The Tcl <a class="reference external" href="https://github.com/georgtree/argparse">argparse package</a>.</p></li>
 <li><p>A graphical environment supported by the Tk installation.</p></li>
 </ul>
-<p>The supported build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64. Tcl/Tk 8.x
+<p>The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.</p>
 <p>The current package loader loads <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code> as part of <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>, so <code class="docutils literal notranslate"><span class="pre">argparse</span></code> is required even
 when an application uses only graph or vector commands. A custom package loader can omit the toolbar, but the supplied
@@ -135,6 +135,14 @@ make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_
 locations remain accessible.</p>
 <p>The selected Tcl/Tk shared libraries must also be discoverable by the system dynamic loader. The Makefile supplies the
 build-directory environment for its <code class="docutils literal notranslate"><span class="pre">test</span></code> and <code class="docutils literal notranslate"><span class="pre">shell</span></code> targets.</p>
+</section>
+<section id="windows-with-msvc">
+<span id="r-windows-with-msvc"></span><span id="r-windows20with20msvc"></span><h3>Windows with MSVC<a class="headerlink" href="#windows-with-msvc" title="Link to this heading">¶</a></h3>
+<p>The Nmake build in <code class="docutils literal notranslate"><span class="pre">win</span></code> supports Tcl/Tk 9 and optional Cairo. It requires MSVC-built
+Tcl/Tk source trees and matching libraries; use MSVC Cairo libraries rather than
+MSYS2 import archives. See <a class="reference external" href="win/README.md">the MSVC build instructions</a> for dependency
+setup, <code class="docutils literal notranslate"><span class="pre">CAIRO=1</span></code>, testing, and installation. Autoconf flags below apply to the
+Unix/MSYS2 build, not to Nmake.</p>
 </section>
 <section id="windows-with-msys2-ucrt64">
 <span id="r-windows-with-msys2-ucrt64"></span><span id="r-windows20with20msys22fucrt64"></span><h3>Windows with MSYS2/UCRT64<a class="headerlink" href="#windows-with-msys2-ucrt64" title="Link to this heading">¶</a></h3>
@@ -449,6 +457,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
 </li>
 <li><a class="reference internal" href="#building-from-source">Building from source</a><ul>
 <li><a class="reference internal" href="#linux">Linux</a></li>
+<li><a class="reference internal" href="#windows-with-msvc">Windows with MSVC</a></li>
 <li><a class="reference internal" href="#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
 <li><a class="reference internal" href="#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
 <li><a class="reference internal" href="#installation-locations">Installation locations</a></li>
