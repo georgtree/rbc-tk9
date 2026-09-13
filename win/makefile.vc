@@ -131,7 +131,8 @@ $(CAPI_DLL): $(CAPI_OBJS)
 	$(link32) $(dlllflags) /out:"$@" $(CAPI_OBJS) "$(TCLSTUBLIB)" kernel32.lib ucrt.lib
 
 test: $(PROJECT) $(CAPI_DLL)
-	@set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)
+	@echo Running RBC tests...
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)"
 
 shell: $(PROJECT)
-	@set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""
