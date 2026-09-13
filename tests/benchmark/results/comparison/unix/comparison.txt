@@ -1,0 +1,1824 @@
+Renderer comparison (milliseconds; lower is better)
+Ratio = native/Cairo: above 1 means Cairo is faster.
+Repeated rows: median of run medians, not pooled samples.
+Zero rounded timings have no ratio. Missing pairs are listed explicitly.
+
+Linux-WSL2 / bars / flat / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.588        7.956      0.954       1/1
+       100 cairo/none          7.588        7.718      0.983       1/1
+      1000 cairo/default        8.880        9.443       0.94       1/1
+      1000 cairo/none          8.880       11.349      0.782       1/1
+     10000 cairo/default       20.614       31.177      0.661       1/1
+     10000 cairo/none         20.614       30.664      0.672       1/1
+
+Linux-WSL2 / bars / flat / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.046       15.288      0.461       1/1
+       100 cairo/none          7.046        7.468      0.943       1/1
+      1000 cairo/default        7.402       14.052      0.527       1/1
+      1000 cairo/none          7.402        7.694      0.962       1/1
+     10000 cairo/default       26.667       32.396      0.823       1/1
+     10000 cairo/none         26.667       32.802      0.813       1/1
+
+Linux-WSL2 / bars / flat / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.215        8.359      0.744       1/1
+       100 cairo/none          6.215        7.283      0.853       1/1
+      1000 cairo/default        9.828        9.023      1.089       1/1
+      1000 cairo/none          9.828       10.541      0.932       1/1
+     10000 cairo/default       19.892       29.841      0.667       1/1
+     10000 cairo/none         19.892       30.365      0.655       1/1
+
+Linux-WSL2 / bars / flat / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.791        1.325      1.352       1/1
+       100 cairo/none          1.791        1.172      1.528       1/1
+      1000 cairo/default        1.825        2.522      0.724       1/1
+      1000 cairo/none          1.825        2.844      0.642       1/1
+     10000 cairo/default        6.750       14.917      0.453       1/1
+     10000 cairo/none          6.750       14.227      0.474       1/1
+
+Linux-WSL2 / bars / flat / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.094        1.825      1.147       1/1
+       100 cairo/none          2.094        1.488      1.407       1/1
+      1000 cairo/default        4.128        3.974      1.039       1/1
+      1000 cairo/none          4.128        3.967      1.041       1/1
+     10000 cairo/default        9.213       17.319      0.532       1/1
+     10000 cairo/none          9.213       16.974      0.543       1/1
+
+Linux-WSL2 / bars / flat / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.466        1.269      1.155       1/1
+       100 cairo/none          1.466        1.412      1.038       1/1
+      1000 cairo/default        1.677        2.614      0.642       1/1
+      1000 cairo/none          1.677        2.312      0.725       1/1
+     10000 cairo/default        6.815       16.604       0.41       1/1
+     10000 cairo/none          6.815       14.429      0.472       1/1
+
+Linux-WSL2 / bars / many-elements / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.327        9.158        0.8       1/1
+       100 cairo/none          7.327       10.594      0.692       1/1
+      1000 cairo/default       12.908       12.665      1.019       1/1
+      1000 cairo/none         12.908       11.343      1.138       1/1
+
+Linux-WSL2 / bars / many-elements / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       29.141       22.917      1.272       1/1
+       100 cairo/none         29.141       29.733       0.98       1/1
+      1000 cairo/default      134.281      134.084      1.001       1/1
+      1000 cairo/none        134.281      132.155      1.016       1/1
+
+Linux-WSL2 / bars / many-elements / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.359        6.570      1.272       1/1
+       100 cairo/none          8.359       11.297       0.74       1/1
+      1000 cairo/default        9.345       12.414      0.753       1/1
+      1000 cairo/none          9.345       12.183      0.767       1/1
+
+Linux-WSL2 / bars / many-elements / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.553        3.026      0.513       1/1
+       100 cairo/none          1.553        1.749      0.888       1/1
+      1000 cairo/default        2.254        2.416      0.933       1/1
+      1000 cairo/none          2.254        2.637      0.855       1/1
+
+Linux-WSL2 / bars / many-elements / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       15.985       14.801       1.08       1/1
+       100 cairo/none         15.985       15.721      1.017       1/1
+      1000 cairo/default      121.640      125.785      0.967       1/1
+      1000 cairo/none        121.640      123.304      0.987       1/1
+
+Linux-WSL2 / bars / many-elements / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.465        1.584      0.925       1/1
+       100 cairo/none          1.465        1.643      0.892       1/1
+      1000 cairo/default        1.839        2.241      0.821       1/1
+      1000 cairo/none          1.839        2.173      0.846       1/1
+
+Linux-WSL2 / bars / raised / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.135        9.813      0.829       1/1
+       100 cairo/none          8.135        9.289      0.876       1/1
+      1000 cairo/default       11.522       14.138      0.815       1/1
+      1000 cairo/none         11.522       11.607      0.993       1/1
+     10000 cairo/default       23.056       33.143      0.696       1/1
+     10000 cairo/none         23.056       32.912      0.701       1/1
+
+Linux-WSL2 / bars / raised / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.202        7.701      1.065       1/1
+       100 cairo/none          8.202        8.973      0.914       1/1
+      1000 cairo/default       14.796       16.823       0.88       1/1
+      1000 cairo/none         14.796       15.411       0.96       1/1
+     10000 cairo/default       26.290       33.560      0.783       1/1
+     10000 cairo/none         26.290       32.741      0.803       1/1
+
+Linux-WSL2 / bars / raised / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.832       10.292      0.664       1/1
+       100 cairo/none          6.832        8.193      0.834       1/1
+      1000 cairo/default       10.916       14.528      0.751       1/1
+      1000 cairo/none         10.916       13.106      0.833       1/1
+     10000 cairo/default       21.651       31.070      0.697       1/1
+     10000 cairo/none         21.651       31.471      0.688       1/1
+
+Linux-WSL2 / bars / raised / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.692        1.499      1.796       1/1
+       100 cairo/none          2.692        1.387      1.941       1/1
+      1000 cairo/default        3.301        3.429      0.963       1/1
+      1000 cairo/none          3.301        3.524      0.937       1/1
+     10000 cairo/default        7.601       16.278      0.467       1/1
+     10000 cairo/none          7.601       16.671      0.456       1/1
+
+Linux-WSL2 / bars / raised / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.976        2.328      0.849       1/1
+       100 cairo/none          1.976        3.926      0.503       1/1
+      1000 cairo/default        5.147        4.104      1.254       1/1
+      1000 cairo/none          5.147        5.338      0.964       1/1
+     10000 cairo/default       11.516       17.331      0.664       1/1
+     10000 cairo/none         11.516       17.241      0.668       1/1
+
+Linux-WSL2 / bars / raised / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.453        1.715      0.847       1/1
+       100 cairo/none          1.453        1.292      1.125       1/1
+      1000 cairo/default        3.269        4.147      0.788       1/1
+      1000 cairo/none          3.269        3.873      0.844       1/1
+     10000 cairo/default        8.339       16.358       0.51       1/1
+     10000 cairo/none          8.339       16.513      0.505       1/1
+
+Linux-WSL2 / bars / stipple / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        9.792       16.570      0.591       1/1
+       100 cairo/none          9.792       11.644      0.841       1/1
+      1000 cairo/default       10.899        9.299      1.172       1/1
+      1000 cairo/none         10.899       11.823      0.922       1/1
+     10000 cairo/default       28.787       33.422      0.861       1/1
+     10000 cairo/none         28.787       33.656      0.855       1/1
+
+Linux-WSL2 / bars / stipple / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.619       15.016      0.574       1/1
+       100 cairo/none          8.619        9.905       0.87       1/1
+      1000 cairo/default       14.650       15.977      0.917       1/1
+      1000 cairo/none         14.650       14.778      0.991       1/1
+     10000 cairo/default       32.489       34.685      0.937       1/1
+     10000 cairo/none         32.489       38.329      0.848       1/1
+
+Linux-WSL2 / bars / stipple / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.837       12.394      0.713       1/1
+       100 cairo/none          8.837       14.924      0.592       1/1
+      1000 cairo/default       10.246       11.240      0.912       1/1
+      1000 cairo/none         10.246       11.712      0.875       1/1
+     10000 cairo/default       29.096       33.629      0.865       1/1
+     10000 cairo/none         29.096       33.010      0.881       1/1
+
+Linux-WSL2 / bars / stipple / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.254        1.724      0.727       1/1
+       100 cairo/none          1.254        1.458       0.86       1/1
+      1000 cairo/default        2.304        2.418      0.953       1/1
+      1000 cairo/none          2.304        2.921      0.789       1/1
+     10000 cairo/default       10.033       16.628      0.603       1/1
+     10000 cairo/none         10.033       15.975      0.628       1/1
+
+Linux-WSL2 / bars / stipple / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.735        3.957      0.944       1/1
+       100 cairo/none          3.735        2.905      1.286       1/1
+      1000 cairo/default        2.609        2.920      0.893       1/1
+      1000 cairo/none          2.609        2.630      0.992       1/1
+     10000 cairo/default       12.178       17.785      0.685       1/1
+     10000 cairo/none         12.178       16.889      0.721       1/1
+
+Linux-WSL2 / bars / stipple / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.159        1.926      0.602       1/1
+       100 cairo/none          1.159        1.473      0.787       1/1
+      1000 cairo/default        2.314        2.891        0.8       1/1
+      1000 cairo/none          2.314        3.144      0.736       1/1
+     10000 cairo/default        9.589       15.043      0.637       1/1
+     10000 cairo/none          9.589       16.944      0.566       1/1
+
+Linux-WSL2 / bars / yerror / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.962       12.867      0.541       1/1
+       100 cairo/none          6.962        7.046      0.988       1/1
+      1000 cairo/default       11.961       17.742      0.674       1/1
+      1000 cairo/none         11.961       10.107      1.183       1/1
+     10000 cairo/default       20.608       65.119      0.316       1/1
+     10000 cairo/none         20.608       34.385      0.599       1/1
+
+Linux-WSL2 / bars / yerror / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.748       13.381      0.579       1/1
+       100 cairo/none          7.748        7.491      1.034       1/1
+      1000 cairo/default        8.473       19.016      0.446       1/1
+      1000 cairo/none          8.473        9.083      0.933       1/1
+     10000 cairo/default       27.117       71.576      0.379       1/1
+     10000 cairo/none         27.117       39.613      0.685       1/1
+
+Linux-WSL2 / bars / yerror / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.669        9.876      0.777       1/1
+       100 cairo/none          7.669        8.478      0.905       1/1
+      1000 cairo/default        9.611       16.880      0.569       1/1
+      1000 cairo/none          9.611       10.243      0.938       1/1
+     10000 cairo/default       24.327       64.188      0.379       1/1
+     10000 cairo/none         24.327       32.354      0.752       1/1
+
+Linux-WSL2 / bars / yerror / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.098        1.671      0.657       1/1
+       100 cairo/none          1.098        1.411      0.778       1/1
+      1000 cairo/default        2.164        4.476      0.483       1/1
+      1000 cairo/none          2.164        2.766      0.782       1/1
+     10000 cairo/default        7.951       31.728      0.251       1/1
+     10000 cairo/none          7.951       18.805      0.423       1/1
+
+Linux-WSL2 / bars / yerror / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.510        1.967      0.768       1/1
+       100 cairo/none          1.510        1.925      0.784       1/1
+      1000 cairo/default        4.463        5.691      0.784       1/1
+      1000 cairo/none          4.463        4.358      1.024       1/1
+     10000 cairo/default       10.575       35.622      0.297       1/1
+     10000 cairo/none         10.575       21.696      0.487       1/1
+
+Linux-WSL2 / bars / yerror / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.112        1.501      0.741       1/1
+       100 cairo/none          1.112        2.279      0.488       1/1
+      1000 cairo/default        1.957        4.943      0.396       1/1
+      1000 cairo/none          1.957        3.312      0.591       1/1
+     10000 cairo/default        7.388       31.816      0.232       1/1
+     10000 cairo/none          7.388       18.579      0.398       1/1
+
+Linux-WSL2 / errorbars / xy / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        7.522       14.054      0.535       1/1
+      1000 cairo/none          7.522       12.247      0.614       1/1
+     10000 cairo/default        8.689       40.107      0.217       1/1
+     10000 cairo/none          8.689       22.224      0.391       1/1
+    100000 cairo/default       40.700      279.907      0.145       1/1
+    100000 cairo/none         40.700       89.941      0.453       1/1
+
+Linux-WSL2 / errorbars / xy / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        7.296       18.544      0.393       1/1
+      1000 cairo/none          7.296        7.732      0.944       1/1
+     10000 cairo/default        9.440       47.014      0.201       1/1
+     10000 cairo/none          9.440       19.503      0.484       1/1
+    100000 cairo/default       39.840      289.176      0.138       1/1
+    100000 cairo/none         39.840       89.355      0.446       1/1
+
+Linux-WSL2 / errorbars / xy / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        6.452       15.109      0.427       1/1
+      1000 cairo/none          6.452        8.358      0.772       1/1
+     10000 cairo/default        8.113       36.428      0.223       1/1
+     10000 cairo/none          8.113       16.604      0.489       1/1
+    100000 cairo/default       18.688      259.770      0.072       1/1
+    100000 cairo/none         18.688       68.069      0.275       1/1
+
+Linux-WSL2 / errorbars / xy / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.312        4.295      0.305       1/1
+      1000 cairo/none          1.312        2.300       0.57       1/1
+     10000 cairo/default        3.896       19.867      0.196       1/1
+     10000 cairo/none          3.896        9.785      0.398       1/1
+    100000 cairo/default       32.158      185.534      0.173       1/1
+    100000 cairo/none         32.158       82.971      0.388       1/1
+
+Linux-WSL2 / errorbars / xy / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.922        4.406      0.436       1/1
+      1000 cairo/none          1.922        2.950      0.652       1/1
+     10000 cairo/default        3.735       25.526      0.146       1/1
+     10000 cairo/none          3.735        9.448      0.395       1/1
+    100000 cairo/default       35.319      180.898      0.195       1/1
+    100000 cairo/none         35.319       76.417      0.462       1/1
+
+Linux-WSL2 / errorbars / xy / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.601        4.722      0.339       1/1
+      1000 cairo/none          1.601        1.864      0.859       1/1
+     10000 cairo/default        2.360       19.072      0.124       1/1
+     10000 cairo/none          2.360        6.516      0.362       1/1
+    100000 cairo/default        9.326      162.731      0.057       1/1
+    100000 cairo/none          9.326       61.588      0.151       1/1
+
+Linux-WSL2 / errorbars / y / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        8.251       13.808      0.598       1/1
+      1000 cairo/none          8.251       13.285      0.621       1/1
+     10000 cairo/default        9.977       31.458      0.317       1/1
+     10000 cairo/none          9.977       14.782      0.675       1/1
+    100000 cairo/default       30.004      205.756      0.146       1/1
+    100000 cairo/none         30.004       43.193      0.695       1/1
+
+Linux-WSL2 / errorbars / y / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        6.689       10.267      0.652       1/1
+      1000 cairo/none          6.689        8.635      0.775       1/1
+     10000 cairo/default        9.354       37.570      0.249       1/1
+     10000 cairo/none          9.354       17.034      0.549       1/1
+    100000 cairo/default       28.514      214.305      0.133       1/1
+    100000 cairo/none         28.514       48.067      0.593       1/1
+
+Linux-WSL2 / errorbars / y / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        7.892       12.445      0.634       1/1
+      1000 cairo/none          7.892        9.552      0.826       1/1
+     10000 cairo/default       10.179       32.701      0.311       1/1
+     10000 cairo/none         10.179       12.031      0.846       1/1
+    100000 cairo/default       15.880      201.656      0.079       1/1
+    100000 cairo/none         15.880       38.284      0.415       1/1
+
+Linux-WSL2 / errorbars / y / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.428        2.721      0.525       1/1
+      1000 cairo/none          1.428        1.765      0.809       1/1
+     10000 cairo/default        2.534       14.124      0.179       1/1
+     10000 cairo/none          2.534        5.472      0.463       1/1
+    100000 cairo/default       22.044      110.644      0.199       1/1
+    100000 cairo/none         22.044       35.421      0.622       1/1
+
+Linux-WSL2 / errorbars / y / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.700        4.356       0.39       1/1
+      1000 cairo/none          1.700        2.035      0.835       1/1
+     10000 cairo/default        3.823       18.140      0.211       1/1
+     10000 cairo/none          3.823        7.608      0.502       1/1
+    100000 cairo/default       23.319      122.862       0.19       1/1
+    100000 cairo/none         23.319       47.647      0.489       1/1
+
+Linux-WSL2 / errorbars / y / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.015        2.802      0.362       1/1
+      1000 cairo/none          1.015        2.120      0.479       1/1
+     10000 cairo/default        3.090       13.866      0.223       1/1
+     10000 cairo/none          3.090        4.616      0.669       1/1
+    100000 cairo/default        6.356      106.228       0.06       1/1
+    100000 cairo/none          6.356       31.029      0.205       1/1
+
+Linux-WSL2 / errorbars / y+circle / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.657       23.283      0.715       1/1
+      1000 cairo/none         16.657       12.115      1.375       1/1
+     10000 cairo/default       18.307      105.074      0.174       1/1
+     10000 cairo/none         18.307       42.032      0.436       1/1
+    100000 cairo/default       47.794     1103.755      0.043       1/1
+    100000 cairo/none         47.794      291.967      0.164       1/1
+
+Linux-WSL2 / errorbars / y+circle / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       18.922       26.867      0.704       1/1
+      1000 cairo/none         18.922       17.286      1.095       1/1
+     10000 cairo/default       22.053      116.455      0.189       1/1
+     10000 cairo/none         22.053       46.654      0.473       1/1
+    100000 cairo/default       59.760     1119.400      0.053       1/1
+    100000 cairo/none         59.760      299.085        0.2       1/1
+
+Linux-WSL2 / errorbars / y+circle / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       15.985       23.917      0.668       1/1
+      1000 cairo/none         15.985       11.956      1.337       1/1
+     10000 cairo/default       18.239      103.925      0.176       1/1
+     10000 cairo/none         18.239       39.478      0.462       1/1
+    100000 cairo/default       39.534     1099.859      0.036       1/1
+    100000 cairo/none         39.534      288.914      0.137       1/1
+
+Linux-WSL2 / errorbars / y+circle / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.899       11.070      0.262       1/1
+      1000 cairo/none          2.899        3.775      0.768       1/1
+     10000 cairo/default        4.754       96.602      0.049       1/1
+     10000 cairo/none          4.754       33.344      0.143       1/1
+    100000 cairo/default       31.214     1129.561      0.028       1/1
+    100000 cairo/none         31.214      285.713      0.109       1/1
+
+Linux-WSL2 / errorbars / y+circle / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.507       14.348      0.175       1/1
+      1000 cairo/none          2.507        4.987      0.503       1/1
+     10000 cairo/default        6.220      100.711      0.062       1/1
+     10000 cairo/none          6.220       35.996      0.173       1/1
+    100000 cairo/default       35.394     1167.821       0.03       1/1
+    100000 cairo/none         35.394      296.273      0.119       1/1
+
+Linux-WSL2 / errorbars / y+circle / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.972       12.503      0.238       1/1
+      1000 cairo/none          2.972        4.263      0.697       1/1
+     10000 cairo/default        4.561       94.988      0.048       1/1
+     10000 cairo/none          4.561       31.480      0.145       1/1
+    100000 cairo/default       19.410     1121.019      0.017       1/1
+    100000 cairo/none         19.410      282.877      0.069       1/1
+
+Linux-WSL2 / line / decimate=auto / append-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        9.075       33.313      0.272       1/1
+     10000 cairo/none          9.075       13.191      0.688       1/1
+    100000 cairo/default        9.369       27.880      0.336       1/1
+    100000 cairo/none          9.369       17.335       0.54       1/1
+   1000000 cairo/default       10.761       31.463      0.342       1/1
+   1000000 cairo/none         10.761       16.719      0.644       1/1
+
+Linux-WSL2 / line / decimate=auto / array-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.715       26.190      0.295       1/1
+     10000 cairo/none          7.715       13.032      0.592       1/1
+    100000 cairo/default        8.897       27.423      0.324       1/1
+    100000 cairo/none          8.897       18.330      0.485       1/1
+   1000000 cairo/default       10.490       30.328      0.346       1/1
+   1000000 cairo/none         10.490       20.077      0.522       1/1
+
+Linux-WSL2 / line / decimate=auto / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        8.196       26.547      0.309       1/1
+     10000 cairo/none          8.196       15.729      0.521       1/1
+    100000 cairo/default        8.460       28.742      0.294       1/1
+    100000 cairo/none          8.460       15.255      0.555       1/1
+   1000000 cairo/default       11.730       32.936      0.356       1/1
+   1000000 cairo/none         11.730       20.113      0.583       1/1
+
+Linux-WSL2 / line / decimate=auto / closest / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.074        0.003     24.667       1/1
+     10000 cairo/none          0.074        0.003     24.667       1/1
+    100000 cairo/default        0.009        0.008      1.125       1/1
+    100000 cairo/none          0.009        0.010        0.9       1/1
+   1000000 cairo/default        0.069        0.049      1.408       1/1
+   1000000 cairo/none          0.069        0.190      0.363       1/1
+
+Linux-WSL2 / line / decimate=auto / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        6.746       34.691      0.194       1/1
+     10000 cairo/none          6.746       20.069      0.336       1/1
+    100000 cairo/default        7.810       36.798      0.212       1/1
+    100000 cairo/none          7.810       16.422      0.476       1/1
+   1000000 cairo/default       11.194       46.156      0.243       1/1
+   1000000 cairo/none         11.194       22.669      0.494       1/1
+
+Linux-WSL2 / line / decimate=auto / index-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.680       26.003      0.295       1/1
+     10000 cairo/none          7.680       14.550      0.528       1/1
+    100000 cairo/default        8.642       27.505      0.314       1/1
+    100000 cairo/none          8.642       16.151      0.535       1/1
+   1000000 cairo/default       10.327       29.302      0.352       1/1
+   1000000 cairo/none         10.327       21.515       0.48       1/1
+
+Linux-WSL2 / line / decimate=auto / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        6.902       26.654      0.259       1/1
+     10000 cairo/none          6.902       15.324       0.45       1/1
+    100000 cairo/default        6.621       30.022      0.221       1/1
+    100000 cairo/none          6.621       17.750      0.373       1/1
+   1000000 cairo/default        7.758       26.999      0.287       1/1
+   1000000 cairo/none          7.758       14.927       0.52       1/1
+
+Linux-WSL2 / line / decimate=auto / append-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.401        8.429      0.166       1/1
+     10000 cairo/none          1.401        3.961      0.354       1/1
+    100000 cairo/default        1.543        8.149      0.189       1/1
+    100000 cairo/none          1.543        4.375      0.353       1/1
+   1000000 cairo/default        2.042        8.385      0.244       1/1
+   1000000 cairo/none          2.042        5.376       0.38       1/1
+
+Linux-WSL2 / line / decimate=auto / array-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.742        8.454      0.206       1/1
+     10000 cairo/none          1.742        4.879      0.357       1/1
+    100000 cairo/default        2.083        9.674      0.215       1/1
+    100000 cairo/none          2.083        4.781      0.436       1/1
+   1000000 cairo/default        2.082        8.504      0.245       1/1
+   1000000 cairo/none          2.082        5.374      0.387       1/1
+
+Linux-WSL2 / line / decimate=auto / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.238        8.962      0.138       1/1
+     10000 cairo/none          1.238        3.378      0.366       1/1
+    100000 cairo/default        1.734        9.098      0.191       1/1
+    100000 cairo/none          1.734        4.340        0.4       1/1
+   1000000 cairo/default        2.125        9.783      0.217       1/1
+   1000000 cairo/none          2.125        4.497      0.473       1/1
+
+Linux-WSL2 / line / decimate=auto / closest / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.003        0.005        0.6       1/1
+     10000 cairo/none          0.003        0.003        1.0       1/1
+    100000 cairo/default        0.018        0.032      0.562       1/1
+    100000 cairo/none          0.018        0.044      0.409       1/1
+   1000000 cairo/default        0.218        0.218        1.0       1/1
+   1000000 cairo/none          0.218        0.140      1.557       1/1
+
+Linux-WSL2 / line / decimate=auto / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.593       12.672      0.126       1/1
+     10000 cairo/none          1.593        5.650      0.282       1/1
+    100000 cairo/default        2.373        8.833      0.269       1/1
+    100000 cairo/none          2.373        4.625      0.513       1/1
+   1000000 cairo/default        6.397       15.500      0.413       1/1
+   1000000 cairo/none          6.397        7.676      0.833       1/1
+
+Linux-WSL2 / line / decimate=auto / index-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.216        8.501      0.143       1/1
+     10000 cairo/none          1.216        3.954      0.308       1/1
+    100000 cairo/default        1.503        8.672      0.173       1/1
+    100000 cairo/none          1.503        4.733      0.318       1/1
+   1000000 cairo/default        2.621        9.420      0.278       1/1
+   1000000 cairo/none          2.621        5.229      0.501       1/1
+
+Linux-WSL2 / line / decimate=auto / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.229        9.375      0.131       1/1
+     10000 cairo/none          1.229        4.312      0.285       1/1
+    100000 cairo/default        1.017        8.876      0.115       1/1
+    100000 cairo/none          1.017        3.666      0.277       1/1
+   1000000 cairo/default        1.099        8.076      0.136       1/1
+   1000000 cairo/none          1.099        4.109      0.267       1/1
+
+Linux-WSL2 / line / decimate=none / append-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       10.028       34.093      0.294       1/1
+     10000 cairo/none         10.028       17.616      0.569       1/1
+    100000 cairo/default       11.029       70.501      0.156       1/1
+    100000 cairo/none         11.029       50.420      0.219       1/1
+   1000000 cairo/default       57.841      406.646      0.142       1/1
+   1000000 cairo/none         57.841      367.953      0.157       1/1
+
+Linux-WSL2 / line / decimate=none / array-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.323       34.877       0.21       1/1
+     10000 cairo/none          7.323       22.424      0.327       1/1
+    100000 cairo/default       10.608       70.353      0.151       1/1
+    100000 cairo/none         10.608       50.549       0.21       1/1
+   1000000 cairo/default       63.984      404.794      0.158       1/1
+   1000000 cairo/none         63.984      359.929      0.178       1/1
+
+Linux-WSL2 / line / decimate=none / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        9.066       32.057      0.283       1/1
+     10000 cairo/none          9.066       18.807      0.482       1/1
+    100000 cairo/default       10.577       69.797      0.152       1/1
+    100000 cairo/none         10.577       49.341      0.214       1/1
+   1000000 cairo/default       64.366      403.376       0.16       1/1
+   1000000 cairo/none         64.366      355.683      0.181       1/1
+
+Linux-WSL2 / line / decimate=none / closest / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.109        0.076      1.434       1/1
+     10000 cairo/none          0.109        0.110      0.991       1/1
+    100000 cairo/default        0.708        0.710      0.997       1/1
+    100000 cairo/none          0.708        0.716      0.989       1/1
+   1000000 cairo/default        6.690        6.939      0.964       1/1
+   1000000 cairo/none          6.690        7.051      0.949       1/1
+
+Linux-WSL2 / line / decimate=none / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.101       46.252      0.154       1/1
+     10000 cairo/none          7.101       20.468      0.347       1/1
+    100000 cairo/default       10.102       77.274      0.131       1/1
+    100000 cairo/none         10.102       55.443      0.182       1/1
+   1000000 cairo/default       66.482      490.056      0.136       1/1
+   1000000 cairo/none         66.482      441.887       0.15       1/1
+
+Linux-WSL2 / line / decimate=none / index-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.026       32.515      0.216       1/1
+     10000 cairo/none          7.026       16.498      0.426       1/1
+    100000 cairo/default       10.333       73.254      0.141       1/1
+    100000 cairo/none         10.333       49.186       0.21       1/1
+   1000000 cairo/default       64.698      405.144       0.16       1/1
+   1000000 cairo/none         64.698      358.378      0.181       1/1
+
+Linux-WSL2 / line / decimate=none / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.835       30.286      0.259       1/1
+     10000 cairo/none          7.835       17.415       0.45       1/1
+    100000 cairo/default        8.944       67.690      0.132       1/1
+    100000 cairo/none          8.944       49.590       0.18       1/1
+   1000000 cairo/default       13.421      355.970      0.038       1/1
+   1000000 cairo/none         13.421      312.017      0.043       1/1
+
+Linux-WSL2 / line / decimate=none / append-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.712       16.837      0.102       1/1
+     10000 cairo/none          1.712       12.013      0.143       1/1
+    100000 cairo/default        5.093       54.702      0.093       1/1
+    100000 cairo/none          5.093       42.601       0.12       1/1
+   1000000 cairo/default       53.213      187.920      0.283       1/1
+   1000000 cairo/none         53.213      165.615      0.321       1/1
+
+Linux-WSL2 / line / decimate=none / array-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        2.898       17.500      0.166       1/1
+     10000 cairo/none          2.898       10.173      0.285       1/1
+    100000 cairo/default        5.475       55.088      0.099       1/1
+    100000 cairo/none          5.475       41.591      0.132       1/1
+   1000000 cairo/default       58.393      185.762      0.314       1/1
+   1000000 cairo/none         58.393      166.233      0.351       1/1
+
+Linux-WSL2 / line / decimate=none / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        2.811       16.418      0.171       1/1
+     10000 cairo/none          2.811       10.840      0.259       1/1
+    100000 cairo/default        4.145       54.741      0.076       1/1
+    100000 cairo/none          4.145       41.419        0.1       1/1
+   1000000 cairo/default       54.701      187.090      0.292       1/1
+   1000000 cairo/none         54.701      165.870       0.33       1/1
+
+Linux-WSL2 / line / decimate=none / closest / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.078        0.077      1.013       1/1
+     10000 cairo/none          0.078        0.076      1.026       1/1
+    100000 cairo/default        0.723        0.819      0.883       1/1
+    100000 cairo/none          0.723        0.719      1.006       1/1
+   1000000 cairo/default        7.042        7.237      0.973       1/1
+   1000000 cairo/none          7.042        7.262       0.97       1/1
+
+Linux-WSL2 / line / decimate=none / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        2.467       16.762      0.147       1/1
+     10000 cairo/none          2.467       11.246      0.219       1/1
+    100000 cairo/default       10.649       71.326      0.149       1/1
+    100000 cairo/none         10.649       58.721      0.181       1/1
+   1000000 cairo/default       62.456      209.671      0.298       1/1
+   1000000 cairo/none         62.456      191.803      0.326       1/1
+
+Linux-WSL2 / line / decimate=none / index-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.303       17.863      0.073       1/1
+     10000 cairo/none          1.303       11.043      0.118       1/1
+    100000 cairo/default        5.095       55.590      0.092       1/1
+    100000 cairo/none          5.095       43.767      0.116       1/1
+   1000000 cairo/default       57.268      187.046      0.306       1/1
+   1000000 cairo/none         57.268      165.784      0.345       1/1
+
+Linux-WSL2 / line / decimate=none / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.307       15.150      0.086       1/1
+     10000 cairo/none          1.307        7.809      0.167       1/1
+    100000 cairo/default        2.167       53.784       0.04       1/1
+    100000 cairo/none          2.167       40.201      0.054       1/1
+   1000000 cairo/default        8.199      138.884      0.059       1/1
+   1000000 cairo/none          8.199      119.597      0.069       1/1
+
+Linux-WSL2 / markers / bitmap / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.962       17.676      0.394       1/1
+       100 cairo/none          6.962       18.007      0.387       1/1
+      1000 cairo/default       12.505       97.251      0.129       1/1
+      1000 cairo/none         12.505       95.958       0.13       1/1
+      5000 cairo/default       35.855      431.009      0.083       1/1
+      5000 cairo/none         35.855      437.935      0.082       1/1
+
+Linux-WSL2 / markers / bitmap / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       13.859       23.552      0.588       1/1
+       100 cairo/none         13.859       22.033      0.629       1/1
+      1000 cairo/default       17.636      111.908      0.158       1/1
+      1000 cairo/none         17.636      110.001       0.16       1/1
+      5000 cairo/default       77.552      482.719      0.161       1/1
+      5000 cairo/none         77.552      476.937      0.163       1/1
+
+Linux-WSL2 / markers / bitmap / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.517       22.130       0.34       1/1
+       100 cairo/none          7.517       19.854      0.379       1/1
+      1000 cairo/default       12.474       95.701       0.13       1/1
+      1000 cairo/none         12.474       95.271      0.131       1/1
+      5000 cairo/default       25.609      427.407       0.06       1/1
+      5000 cairo/none         25.609      425.545       0.06       1/1
+
+Linux-WSL2 / markers / bitmap / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.702       10.502      0.162       1/1
+       100 cairo/none          1.702       10.449      0.163       1/1
+      1000 cairo/default        4.340       89.950      0.048       1/1
+      1000 cairo/none          4.340       87.392       0.05       1/1
+      5000 cairo/default       56.660      454.692      0.125       1/1
+      5000 cairo/none         56.660      456.301      0.124       1/1
+
+Linux-WSL2 / markers / bitmap / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.135       14.821      0.212       1/1
+       100 cairo/none          3.135       16.223      0.193       1/1
+      1000 cairo/default       10.619      100.486      0.106       1/1
+      1000 cairo/none         10.619       99.033      0.107       1/1
+      5000 cairo/default      105.721      497.987      0.212       1/1
+      5000 cairo/none        105.721      509.403      0.208       1/1
+
+Linux-WSL2 / markers / bitmap / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.803       11.532      0.156       1/1
+       100 cairo/none          1.803       10.672      0.169       1/1
+      1000 cairo/default        4.099       86.026      0.048       1/1
+      1000 cairo/none          4.099       86.925      0.047       1/1
+      5000 cairo/default       15.462      415.707      0.037       1/1
+      5000 cairo/none         15.462      416.049      0.037       1/1
+
+Linux-WSL2 / markers / image / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        9.020       11.047      0.817       1/1
+       100 cairo/none          9.020        8.229      1.096       1/1
+      1000 cairo/default       15.254       13.730      1.111       1/1
+      1000 cairo/none         15.254       12.750      1.196       1/1
+      5000 cairo/default       30.968       22.344      1.386       1/1
+      5000 cairo/none         30.968       28.554      1.085       1/1
+
+Linux-WSL2 / markers / image / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       35.127       40.585      0.866       1/1
+       100 cairo/none         35.127       34.356      1.022       1/1
+      1000 cairo/default       50.833       50.863      0.999       1/1
+      1000 cairo/none         50.833       47.172      1.078       1/1
+      5000 cairo/default      101.059       96.641      1.046       1/1
+      5000 cairo/none        101.059       96.233       1.05       1/1
+
+Linux-WSL2 / markers / image / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.625       10.445       0.73       1/1
+       100 cairo/none          7.625        6.943      1.098       1/1
+      1000 cairo/default       14.209       11.557      1.229       1/1
+      1000 cairo/none         14.209       11.127      1.277       1/1
+      5000 cairo/default       32.029       24.385      1.313       1/1
+      5000 cairo/none         32.029       29.685      1.079       1/1
+
+Linux-WSL2 / markers / image / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.248        1.125      1.109       1/1
+       100 cairo/none          1.248        1.701      0.734       1/1
+      1000 cairo/default        6.071        3.549      1.711       1/1
+      1000 cairo/none          6.071        4.229      1.436       1/1
+      5000 cairo/default       23.402       17.534      1.335       1/1
+      5000 cairo/none         23.402       16.303      1.435       1/1
+
+Linux-WSL2 / markers / image / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       24.227       23.907      1.013       1/1
+       100 cairo/none         24.227       25.937      0.934       1/1
+      1000 cairo/default       35.616       35.433      1.005       1/1
+      1000 cairo/none         35.616       35.805      0.995       1/1
+      5000 cairo/default      103.062      101.606      1.014       1/1
+      5000 cairo/none        103.062      101.164      1.019       1/1
+
+Linux-WSL2 / markers / image / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.438        1.633      0.881       1/1
+       100 cairo/none          1.438        1.218      1.181       1/1
+      1000 cairo/default        6.065        3.893      1.558       1/1
+      1000 cairo/none          6.065        4.455      1.361       1/1
+      5000 cairo/default       23.288       16.971      1.372       1/1
+      5000 cairo/none         23.288       17.104      1.362       1/1
+
+Linux-WSL2 / markers / line / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.906       10.241      0.674       1/1
+       100 cairo/none          6.906        8.036      0.859       1/1
+      1000 cairo/default        9.822       15.051      0.653       1/1
+      1000 cairo/none          9.822        7.792      1.261       1/1
+      5000 cairo/default       12.048       22.298       0.54       1/1
+      5000 cairo/none         12.048       20.493      0.588       1/1
+
+Linux-WSL2 / markers / line / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.133        9.503      0.856       1/1
+       100 cairo/none          8.133        8.742       0.93       1/1
+      1000 cairo/default       25.100       24.423      1.028       1/1
+      1000 cairo/none         25.100       22.144      1.133       1/1
+      5000 cairo/default       76.928       81.817       0.94       1/1
+      5000 cairo/none         76.928       80.317      0.958       1/1
+
+Linux-WSL2 / markers / line / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        9.098        8.295      1.097       1/1
+       100 cairo/none          9.098       10.841      0.839       1/1
+      1000 cairo/default        7.058       13.503      0.523       1/1
+      1000 cairo/none          7.058        9.695      0.728       1/1
+      5000 cairo/default        8.484       22.033      0.385       1/1
+      5000 cairo/none          8.484       14.894       0.57       1/1
+
+Linux-WSL2 / markers / line / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.165        1.377      0.846       1/1
+       100 cairo/none          1.165        1.188      0.981       1/1
+      1000 cairo/default        1.739        3.400      0.511       1/1
+      1000 cairo/none          1.739        2.466      0.705       1/1
+      5000 cairo/default        2.599        8.177      0.318       1/1
+      5000 cairo/none          2.599        9.151      0.284       1/1
+
+Linux-WSL2 / markers / line / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.846        4.005      0.711       1/1
+       100 cairo/none          2.846        2.626      1.084       1/1
+      1000 cairo/default       14.633       14.364      1.019       1/1
+      1000 cairo/none         14.633       15.214      0.962       1/1
+      5000 cairo/default       70.209       71.164      0.987       1/1
+      5000 cairo/none         70.209       71.307      0.985       1/1
+
+Linux-WSL2 / markers / line / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.385        1.466      0.945       1/1
+       100 cairo/none          1.385        1.478      0.937       1/1
+      1000 cairo/default        1.222        2.430      0.503       1/1
+      1000 cairo/none          1.222        1.772       0.69       1/1
+      5000 cairo/default        1.679        6.518      0.258       1/1
+      5000 cairo/none          1.679        8.198      0.205       1/1
+
+Linux-WSL2 / markers / polygon-fill / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.158        8.100       0.76       1/1
+       100 cairo/none          6.158       11.152      0.552       1/1
+      1000 cairo/default        9.426       14.981      0.629       1/1
+      1000 cairo/none          9.426       10.844      0.869       1/1
+      5000 cairo/default       12.693       22.096      0.574       1/1
+      5000 cairo/none         12.693       17.832      0.712       1/1
+
+Linux-WSL2 / markers / polygon-fill / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.515        9.459        0.9       1/1
+       100 cairo/none          8.515       13.841      0.615       1/1
+      1000 cairo/default       26.257       20.036       1.31       1/1
+      1000 cairo/none         26.257       19.005      1.382       1/1
+      5000 cairo/default       93.591       94.233      0.993       1/1
+      5000 cairo/none         93.591       89.177      1.049       1/1
+
+Linux-WSL2 / markers / polygon-fill / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.218       11.665      0.533       1/1
+       100 cairo/none          6.218        8.583      0.724       1/1
+      1000 cairo/default        8.924       12.550      0.711       1/1
+      1000 cairo/none          8.924        9.002      0.991       1/1
+      5000 cairo/default        9.958       25.357      0.393       1/1
+      5000 cairo/none          9.958       17.104      0.582       1/1
+
+Linux-WSL2 / markers / polygon-fill / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.492        1.461      1.021       1/1
+       100 cairo/none          1.492        1.473      1.013       1/1
+      1000 cairo/default        1.736        3.348      0.519       1/1
+      1000 cairo/none          1.736        2.281      0.761       1/1
+      5000 cairo/default        2.798        8.835      0.317       1/1
+      5000 cairo/none          2.798       10.101      0.277       1/1
+
+Linux-WSL2 / markers / polygon-fill / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.240        3.291      0.985       1/1
+       100 cairo/none          3.240        3.795      0.854       1/1
+      1000 cairo/default       17.276       17.671      0.978       1/1
+      1000 cairo/none         17.276       16.379      1.055       1/1
+      5000 cairo/default       84.257       89.169      0.945       1/1
+      5000 cairo/none         84.257       85.381      0.987       1/1
+
+Linux-WSL2 / markers / polygon-fill / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.243        1.524      0.816       1/1
+       100 cairo/none          1.243        1.313      0.947       1/1
+      1000 cairo/default        1.665        3.913      0.426       1/1
+      1000 cairo/none          1.665        2.272      0.733       1/1
+      5000 cairo/default        2.044        7.543      0.271       1/1
+      5000 cairo/none          2.044        8.154      0.251       1/1
+
+Linux-WSL2 / markers / polygon-outline / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        9.611       12.315       0.78       1/1
+       100 cairo/none          9.611        7.591      1.266       1/1
+      1000 cairo/default        7.583       18.439      0.411       1/1
+      1000 cairo/none          7.583       11.356      0.668       1/1
+      5000 cairo/default        9.755       27.085       0.36       1/1
+      5000 cairo/none          9.755       24.643      0.396       1/1
+
+Linux-WSL2 / markers / polygon-outline / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.571       10.308      0.734       1/1
+       100 cairo/none          7.571        8.841      0.856       1/1
+      1000 cairo/default       26.635       21.273      1.252       1/1
+      1000 cairo/none         26.635       22.997      1.158       1/1
+      5000 cairo/default       92.137      103.966      0.886       1/1
+      5000 cairo/none         92.137      100.802      0.914       1/1
+
+Linux-WSL2 / markers / polygon-outline / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.417        9.224      0.696       1/1
+       100 cairo/none          6.417        9.826      0.653       1/1
+      1000 cairo/default        6.899       18.049      0.382       1/1
+      1000 cairo/none          6.899        8.632      0.799       1/1
+      5000 cairo/default       10.689       26.220      0.408       1/1
+      5000 cairo/none         10.689       21.287      0.502       1/1
+
+Linux-WSL2 / markers / polygon-outline / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.162        1.430      0.813       1/1
+       100 cairo/none          1.162        1.267      0.917       1/1
+      1000 cairo/default        1.845        4.114      0.448       1/1
+      1000 cairo/none          1.845        2.343      0.787       1/1
+      5000 cairo/default        3.543       11.771      0.301       1/1
+      5000 cairo/none          3.543       13.618       0.26       1/1
+
+Linux-WSL2 / markers / polygon-outline / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.456        4.282      1.041       1/1
+       100 cairo/none          4.456        3.296      1.352       1/1
+      1000 cairo/default       15.394       18.041      0.853       1/1
+      1000 cairo/none         15.394       16.176      0.952       1/1
+      5000 cairo/default       81.999       89.428      0.917       1/1
+      5000 cairo/none         81.999       84.854      0.966       1/1
+
+Linux-WSL2 / markers / polygon-outline / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.956        1.717      0.557       1/1
+       100 cairo/none          0.956        1.597      0.599       1/1
+      1000 cairo/default        1.316        3.880      0.339       1/1
+      1000 cairo/none          1.316        3.117      0.422       1/1
+      5000 cairo/default        1.756        9.691      0.181       1/1
+      5000 cairo/none          1.756       10.721      0.164       1/1
+
+Linux-WSL2 / markers / text-0 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.060       10.876      0.649       1/1
+       100 cairo/none          7.060        7.513       0.94       1/1
+      1000 cairo/default        7.806       10.391      0.751       1/1
+      1000 cairo/none          7.806        7.840      0.996       1/1
+      5000 cairo/default        9.159       14.583      0.628       1/1
+      5000 cairo/none          9.159        9.390      0.975       1/1
+
+Linux-WSL2 / markers / text-0 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.989       13.347      0.524       1/1
+       100 cairo/none          6.989       14.554       0.48       1/1
+      1000 cairo/default       16.001       22.028      0.726       1/1
+      1000 cairo/none         16.001       20.830      0.768       1/1
+      5000 cairo/default       61.265       64.860      0.945       1/1
+      5000 cairo/none         61.265       60.428      1.014       1/1
+
+Linux-WSL2 / markers / text-0 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.023        8.690      0.923       1/1
+       100 cairo/none          8.023        9.056      0.886       1/1
+      1000 cairo/default        6.425       10.209      0.629       1/1
+      1000 cairo/none          6.425        9.159      0.701       1/1
+      5000 cairo/default        9.886       10.730      0.921       1/1
+      5000 cairo/none          9.886       10.046      0.984       1/1
+
+Linux-WSL2 / markers / text-0 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.812        1.109      1.634       1/1
+       100 cairo/none          1.812        1.130      1.604       1/1
+      1000 cairo/default        1.896        1.520      1.247       1/1
+      1000 cairo/none          1.896        1.589      1.193       1/1
+      5000 cairo/default        3.057        2.322      1.317       1/1
+      5000 cairo/none          3.057        3.153       0.97       1/1
+
+Linux-WSL2 / markers / text-0 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.937        3.495      0.554       1/1
+       100 cairo/none          1.937        3.001      0.645       1/1
+      1000 cairo/default       12.225        8.104      1.509       1/1
+      1000 cairo/none         12.225       11.440      1.069       1/1
+      5000 cairo/default       51.862       56.980       0.91       1/1
+      5000 cairo/none         51.862       57.569      0.901       1/1
+
+Linux-WSL2 / markers / text-0 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.078        1.279      0.843       1/1
+       100 cairo/none          1.078        1.497       0.72       1/1
+      1000 cairo/default        1.578        1.915      0.824       1/1
+      1000 cairo/none          1.578        1.841      0.857       1/1
+      5000 cairo/default        3.281        2.323      1.412       1/1
+      5000 cairo/none          3.281        2.452      1.338       1/1
+
+Linux-WSL2 / markers / text-45 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       27.340       27.034      1.011       1/1
+       100 cairo/none         27.340       28.392      0.963       1/1
+      1000 cairo/default      159.987      162.587      0.984       1/1
+      1000 cairo/none        159.987      166.655       0.96       1/1
+      5000 cairo/default      746.575      752.582      0.992       1/1
+      5000 cairo/none        746.575      749.599      0.996       1/1
+
+Linux-WSL2 / markers / text-45 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       33.517       34.031      0.985       1/1
+       100 cairo/none         33.517       31.915       1.05       1/1
+      1000 cairo/default      174.391      177.126      0.985       1/1
+      1000 cairo/none        174.391      177.651      0.982       1/1
+      5000 cairo/default      806.072      793.878      1.015       1/1
+      5000 cairo/none        806.072      792.726      1.017       1/1
+
+Linux-WSL2 / markers / text-45 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       25.086       28.285      0.887       1/1
+       100 cairo/none         25.086       26.536      0.945       1/1
+      1000 cairo/default      165.335      161.626      1.023       1/1
+      1000 cairo/none        165.335      163.905      1.009       1/1
+      5000 cairo/default      752.637      748.192      1.006       1/1
+      5000 cairo/none        752.637      756.875      0.994       1/1
+
+Linux-WSL2 / markers / text-45 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       16.740       18.312      0.914       1/1
+       100 cairo/none         16.740       18.075      0.926       1/1
+      1000 cairo/default      152.327      156.369      0.974       1/1
+      1000 cairo/none        152.327      157.659      0.966       1/1
+      5000 cairo/default      737.542      736.502      1.001       1/1
+      5000 cairo/none        737.542      742.617      0.993       1/1
+
+Linux-WSL2 / markers / text-45 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       21.820       23.847      0.915       1/1
+       100 cairo/none         21.820       23.375      0.933       1/1
+      1000 cairo/default      175.800      169.640      1.036       1/1
+      1000 cairo/none        175.800      165.542      1.062       1/1
+      5000 cairo/default      777.629      781.685      0.995       1/1
+      5000 cairo/none        777.629      792.769      0.981       1/1
+
+Linux-WSL2 / markers / text-45 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default       17.808       17.721      1.005       1/1
+       100 cairo/none         17.808       17.840      0.998       1/1
+      1000 cairo/default      154.035      153.582      1.003       1/1
+      1000 cairo/none        154.035      155.491      0.991       1/1
+      5000 cairo/default      730.203      735.792      0.992       1/1
+      5000 cairo/none        730.203      744.454      0.981       1/1
+
+Linux-WSL2 / mixed / scale-1 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       29.140      246.307      0.118       1/1
+    232750 cairo/none         29.140      126.577       0.23       1/1
+
+Linux-WSL2 / mixed / scale-1 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       41.346      265.003      0.156       1/1
+    232750 cairo/none         41.346      132.709      0.312       1/1
+
+Linux-WSL2 / mixed / scale-1 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       22.435      237.008      0.095       1/1
+    232750 cairo/none         22.435      112.514      0.199       1/1
+
+Linux-WSL2 / mixed / scale-1 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       11.656      225.900      0.052       1/1
+    232750 cairo/none         11.656      109.115      0.107       1/1
+
+Linux-WSL2 / mixed / scale-1 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       26.768      255.579      0.105       1/1
+    232750 cairo/none         26.768      139.961      0.191       1/1
+
+Linux-WSL2 / mixed / scale-1 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default        6.817      225.506       0.03       1/1
+    232750 cairo/none          6.817      104.629      0.065       1/1
+
+Linux-WSL2 / mixed / scale-2 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       38.665      462.953      0.084       1/1
+    465500 cairo/none         38.665      233.431      0.166       1/1
+
+Linux-WSL2 / mixed / scale-2 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       72.700      494.080      0.147       1/1
+    465500 cairo/none         72.700      269.120       0.27       1/1
+
+Linux-WSL2 / mixed / scale-2 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       30.307      453.046      0.067       1/1
+    465500 cairo/none         30.307      226.731      0.134       1/1
+
+Linux-WSL2 / mixed / scale-2 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       21.847      547.909       0.04       1/1
+    465500 cairo/none         21.847      262.742      0.083       1/1
+
+Linux-WSL2 / mixed / scale-2 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       57.900      596.568      0.097       1/1
+    465500 cairo/none         57.900      316.583      0.183       1/1
+
+Linux-WSL2 / mixed / scale-2 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       12.187      542.148      0.022       1/1
+    465500 cairo/none         12.187      258.505      0.047       1/1
+
+Linux-WSL2 / strip / decimate=auto / append-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       12.051        8.479      1.421       1/1
+     10000 cairo/none         12.051        8.930      1.349       1/1
+    100000 cairo/default       10.662        9.821      1.086       1/1
+    100000 cairo/none         10.662        8.273      1.289       1/1
+   1000000 cairo/default       12.490       10.329      1.209       1/1
+   1000000 cairo/none         12.490       10.477      1.192       1/1
+
+Linux-WSL2 / strip / decimate=auto / array-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.738        9.056      0.854       1/1
+     10000 cairo/none          7.738        9.390      0.824       1/1
+    100000 cairo/default        9.201        8.511      1.081       1/1
+    100000 cairo/none          9.201        9.202        1.0       1/1
+   1000000 cairo/default       13.810       16.266      0.849       1/1
+   1000000 cairo/none         13.810       10.868      1.271       1/1
+
+Linux-WSL2 / strip / decimate=auto / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        9.682       12.566       0.77       1/1
+     10000 cairo/none          9.682        7.779      1.245       1/1
+    100000 cairo/default       10.912       11.332      0.963       1/1
+    100000 cairo/none         10.912        8.271      1.319       1/1
+   1000000 cairo/default       12.996       12.423      1.046       1/1
+   1000000 cairo/none         12.996       11.741      1.107       1/1
+
+Linux-WSL2 / strip / decimate=auto / closest / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.112        0.004       28.0       1/1
+     10000 cairo/none          0.112        0.003     37.333       1/1
+    100000 cairo/default        0.009        0.011      0.818       1/1
+    100000 cairo/none          0.009        0.010        0.9       1/1
+   1000000 cairo/default        0.048        0.149      0.322       1/1
+   1000000 cairo/none          0.048        0.048        1.0       1/1
+
+Linux-WSL2 / strip / decimate=auto / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        6.621        7.514      0.881       1/1
+     10000 cairo/none          6.621        7.044       0.94       1/1
+    100000 cairo/default        7.468        8.067      0.926       1/1
+    100000 cairo/none          7.468        7.772      0.961       1/1
+   1000000 cairo/default       11.476       19.125        0.6       1/1
+   1000000 cairo/none         11.476       12.510      0.917       1/1
+
+Linux-WSL2 / strip / decimate=auto / index-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       12.250        8.944       1.37       1/1
+     10000 cairo/none         12.250       10.562       1.16       1/1
+    100000 cairo/default       11.145        8.736      1.276       1/1
+    100000 cairo/none         11.145        8.734      1.276       1/1
+   1000000 cairo/default       13.874       17.188      0.807       1/1
+   1000000 cairo/none         13.874       10.565      1.313       1/1
+
+Linux-WSL2 / strip / decimate=auto / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        9.489        8.715      1.089       1/1
+     10000 cairo/none          9.489        5.797      1.637       1/1
+    100000 cairo/default        9.601        9.350      1.027       1/1
+    100000 cairo/none          9.601        7.766      1.236       1/1
+   1000000 cairo/default        8.818        7.423      1.188       1/1
+   1000000 cairo/none          8.818        8.085      1.091       1/1
+
+Linux-WSL2 / strip / decimate=auto / append-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.391        1.126      1.235       1/1
+     10000 cairo/none          1.391        1.600      0.869       1/1
+    100000 cairo/default        1.427        1.631      0.875       1/1
+    100000 cairo/none          1.427        1.746      0.817       1/1
+   1000000 cairo/default        2.514        2.943      0.854       1/1
+   1000000 cairo/none          2.514        2.571      0.978       1/1
+
+Linux-WSL2 / strip / decimate=auto / array-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.332        1.817      0.733       1/1
+     10000 cairo/none          1.332        1.327      1.004       1/1
+    100000 cairo/default        1.494        1.711      0.873       1/1
+    100000 cairo/none          1.494        1.840      0.812       1/1
+   1000000 cairo/default        1.971        2.758      0.715       1/1
+   1000000 cairo/none          1.971        3.585       0.55       1/1
+
+Linux-WSL2 / strip / decimate=auto / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.400        1.205      1.162       1/1
+     10000 cairo/none          1.400        2.380      0.588       1/1
+    100000 cairo/default        1.968        2.187        0.9       1/1
+    100000 cairo/none          1.968        2.705      0.728       1/1
+   1000000 cairo/default        2.859        3.358      0.851       1/1
+   1000000 cairo/none          2.859        1.978      1.445       1/1
+
+Linux-WSL2 / strip / decimate=auto / closest / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.003        0.005        0.6       1/1
+     10000 cairo/none          0.003        0.004       0.75       1/1
+    100000 cairo/default        0.019        0.018      1.056       1/1
+    100000 cairo/none          0.019        0.016      1.188       1/1
+   1000000 cairo/default        0.202        0.144      1.403       1/1
+   1000000 cairo/none          0.202        0.140      1.443       1/1
+
+Linux-WSL2 / strip / decimate=auto / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.682        1.670      1.007       1/1
+     10000 cairo/none          1.682        1.895      0.888       1/1
+    100000 cairo/default        2.341        2.117      1.106       1/1
+    100000 cairo/none          2.341        2.002      1.169       1/1
+   1000000 cairo/default        7.788        5.234      1.488       1/1
+   1000000 cairo/none          7.788        5.217      1.493       1/1
+
+Linux-WSL2 / strip / decimate=auto / index-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        2.054        1.602      1.282       1/1
+     10000 cairo/none          2.054        1.073      1.914       1/1
+    100000 cairo/default        1.419        1.396      1.016       1/1
+    100000 cairo/none          1.419        1.300      1.092       1/1
+   1000000 cairo/default        1.906        1.646      1.158       1/1
+   1000000 cairo/none          1.906        2.710      0.703       1/1
+
+Linux-WSL2 / strip / decimate=auto / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.441        1.113      1.295       1/1
+     10000 cairo/none          1.441        1.053      1.368       1/1
+    100000 cairo/default        1.056        1.032      1.023       1/1
+    100000 cairo/none          1.056        1.333      0.792       1/1
+   1000000 cairo/default        1.601        1.131      1.416       1/1
+   1000000 cairo/none          1.601        1.205      1.329       1/1
+
+Linux-WSL2 / strip / decimate=none / append-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        8.679       28.365      0.306       1/1
+     10000 cairo/none          8.679       14.616      0.594       1/1
+    100000 cairo/default       13.292       45.951      0.289       1/1
+    100000 cairo/none         13.292       36.332      0.366       1/1
+   1000000 cairo/default       79.039      208.853      0.378       1/1
+   1000000 cairo/none         79.039      222.849      0.355       1/1
+
+Linux-WSL2 / strip / decimate=none / array-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       10.461       27.647      0.378       1/1
+     10000 cairo/none         10.461       16.256      0.644       1/1
+    100000 cairo/default       14.089       46.273      0.304       1/1
+    100000 cairo/none         14.089       33.805      0.417       1/1
+   1000000 cairo/default       78.601      209.915      0.374       1/1
+   1000000 cairo/none         78.601      209.791      0.375       1/1
+
+Linux-WSL2 / strip / decimate=none / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       11.316       27.837      0.407       1/1
+     10000 cairo/none         11.316       16.415      0.689       1/1
+    100000 cairo/default       13.632       46.512      0.293       1/1
+    100000 cairo/none         13.632       35.728      0.382       1/1
+   1000000 cairo/default       78.410      210.270      0.373       1/1
+   1000000 cairo/none         78.410      209.099      0.375       1/1
+
+Linux-WSL2 / strip / decimate=none / closest / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.112        0.075      1.493       1/1
+     10000 cairo/none          0.112        0.110      1.018       1/1
+    100000 cairo/default        0.693        0.711      0.975       1/1
+    100000 cairo/none          0.693        0.701      0.989       1/1
+   1000000 cairo/default        7.221        6.867      1.052       1/1
+   1000000 cairo/none          7.221        6.917      1.044       1/1
+
+Linux-WSL2 / strip / decimate=none / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        7.031       36.162      0.194       1/1
+     10000 cairo/none          7.031       12.955      0.543       1/1
+    100000 cairo/default       16.908       60.920      0.278       1/1
+    100000 cairo/none         16.908       40.974      0.413       1/1
+   1000000 cairo/default       92.506      218.368      0.424       1/1
+   1000000 cairo/none         92.506      211.886      0.437       1/1
+
+Linux-WSL2 / strip / decimate=none / index-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default       12.554       29.249      0.429       1/1
+     10000 cairo/none         12.554       14.188      0.885       1/1
+    100000 cairo/default       16.165       46.280      0.349       1/1
+    100000 cairo/none         16.165       34.472      0.469       1/1
+   1000000 cairo/default       79.048      209.806      0.377       1/1
+   1000000 cairo/none         79.048      234.312      0.337       1/1
+
+Linux-WSL2 / strip / decimate=none / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        6.619       28.255      0.234       1/1
+     10000 cairo/none          6.619       16.157       0.41       1/1
+    100000 cairo/default       11.908       39.968      0.298       1/1
+    100000 cairo/none         11.908       28.887      0.412       1/1
+   1000000 cairo/default       21.381      154.099      0.139       1/1
+   1000000 cairo/none         21.381      153.580      0.139       1/1
+
+Linux-WSL2 / strip / decimate=none / append-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.500       12.143      0.124       1/1
+     10000 cairo/none          1.500        6.081      0.247       1/1
+    100000 cairo/default        5.133       28.784      0.178       1/1
+    100000 cairo/none          5.133       27.642      0.186       1/1
+   1000000 cairo/default       72.068      179.515      0.401       1/1
+   1000000 cairo/none         72.068      178.151      0.405       1/1
+
+Linux-WSL2 / strip / decimate=none / array-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.393       11.676      0.119       1/1
+     10000 cairo/none          1.393        5.748      0.242       1/1
+    100000 cairo/default        4.403       28.824      0.153       1/1
+    100000 cairo/none          4.403       27.001      0.163       1/1
+   1000000 cairo/default       71.459      180.244      0.396       1/1
+   1000000 cairo/none         71.459      177.862      0.402       1/1
+
+Linux-WSL2 / strip / decimate=none / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.949       11.881      0.164       1/1
+     10000 cairo/none          1.949        5.631      0.346       1/1
+    100000 cairo/default        4.806       28.689      0.168       1/1
+    100000 cairo/none          4.806       26.537      0.181       1/1
+   1000000 cairo/default       70.998      179.841      0.395       1/1
+   1000000 cairo/none         70.998      178.907      0.397       1/1
+
+Linux-WSL2 / strip / decimate=none / closest / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.075        0.080      0.938       1/1
+     10000 cairo/none          0.075        0.079      0.949       1/1
+    100000 cairo/default        0.702        0.720      0.975       1/1
+    100000 cairo/none          0.702        0.927      0.757       1/1
+   1000000 cairo/default        7.046        6.879      1.024       1/1
+   1000000 cairo/none          7.046        7.236      0.974       1/1
+
+Linux-WSL2 / strip / decimate=none / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.655       15.047       0.11       1/1
+     10000 cairo/none          1.655        7.294      0.227       1/1
+    100000 cairo/default       10.461       39.457      0.265       1/1
+    100000 cairo/none         10.461       33.100      0.316       1/1
+   1000000 cairo/default       75.201      186.134      0.404       1/1
+   1000000 cairo/none         75.201      182.957      0.411       1/1
+
+Linux-WSL2 / strip / decimate=none / index-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.812       13.154      0.138       1/1
+     10000 cairo/none          1.812        4.928      0.368       1/1
+    100000 cairo/default        5.659       27.857      0.203       1/1
+    100000 cairo/none          5.659       26.304      0.215       1/1
+   1000000 cairo/default       71.442      179.650      0.398       1/1
+   1000000 cairo/none         71.442      177.884      0.402       1/1
+
+Linux-WSL2 / strip / decimate=none / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.138       13.074      0.087       1/1
+     10000 cairo/none          1.138        5.388      0.211       1/1
+    100000 cairo/default        2.331       23.063      0.101       1/1
+    100000 cairo/none          2.331       20.647      0.113       1/1
+   1000000 cairo/default       17.466      124.529       0.14       1/1
+   1000000 cairo/none         17.466      122.904      0.142       1/1
+
+Linux-WSL2 / symbols / circle-7 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.936       23.888      0.709       1/1
+      1000 cairo/none         16.936       12.399      1.366       1/1
+     10000 cairo/default       20.953      110.000       0.19       1/1
+     10000 cairo/none         20.953       51.479      0.407       1/1
+    100000 cairo/default       37.235     1277.126      0.029       1/1
+    100000 cairo/none         37.235      374.138        0.1       1/1
+
+Linux-WSL2 / symbols / circle-7 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       15.806       26.909      0.587       1/1
+      1000 cairo/none         15.806       16.897      0.935       1/1
+     10000 cairo/default       22.987      113.361      0.203       1/1
+     10000 cairo/none         22.987       51.785      0.444       1/1
+    100000 cairo/default       43.570     1266.889      0.034       1/1
+    100000 cairo/none         43.570      374.542      0.116       1/1
+
+Linux-WSL2 / symbols / circle-7 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.487       25.077      0.657       1/1
+      1000 cairo/none         16.487       11.215       1.47       1/1
+     10000 cairo/default       21.063      109.579      0.192       1/1
+     10000 cairo/none         21.063       47.946      0.439       1/1
+    100000 cairo/default       33.722     1267.536      0.027       1/1
+    100000 cairo/none         33.722      372.629       0.09       1/1
+
+Linux-WSL2 / symbols / circle-7 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.912       13.238      0.144       1/1
+      1000 cairo/none          1.912        5.409      0.353       1/1
+     10000 cairo/default        3.421      116.981      0.029       1/1
+     10000 cairo/none          3.421       42.153      0.081       1/1
+    100000 cairo/default       18.442     1409.453      0.013       1/1
+    100000 cairo/none         18.442      367.972       0.05       1/1
+
+Linux-WSL2 / symbols / circle-7 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.311       16.557        0.2       1/1
+      1000 cairo/none          3.311        6.499      0.509       1/1
+     10000 cairo/default        9.171      119.767      0.077       1/1
+     10000 cairo/none          9.171       42.821      0.214       1/1
+    100000 cairo/default       47.067     1399.758      0.034       1/1
+    100000 cairo/none         47.067      372.183      0.126       1/1
+
+Linux-WSL2 / symbols / circle-7 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.256       14.850      0.152       1/1
+      1000 cairo/none          2.256        5.256      0.429       1/1
+     10000 cairo/default        4.176      117.143      0.036       1/1
+     10000 cairo/none          4.176       40.147      0.104       1/1
+    100000 cairo/default       18.304     1406.887      0.013       1/1
+    100000 cairo/none         18.304      369.369       0.05       1/1
+
+Linux-WSL2 / symbols / diamond-7 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.902       15.659      1.079       1/1
+      1000 cairo/none         16.902       13.137      1.287       1/1
+     10000 cairo/default       23.288       40.698      0.572       1/1
+     10000 cairo/none         23.288       30.171      0.772       1/1
+    100000 cairo/default       56.816      388.462      0.146       1/1
+    100000 cairo/none         56.816      309.690      0.183       1/1
+
+Linux-WSL2 / symbols / diamond-7 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       22.077       17.866      1.236       1/1
+      1000 cairo/none         22.077       17.399      1.269       1/1
+     10000 cairo/default       25.861       43.103        0.6       1/1
+     10000 cairo/none         25.861       37.269      0.694       1/1
+    100000 cairo/default       59.826      397.726       0.15       1/1
+    100000 cairo/none         59.826      313.789      0.191       1/1
+
+Linux-WSL2 / symbols / diamond-7 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.049       16.615      0.966       1/1
+      1000 cairo/none         16.049       13.988      1.147       1/1
+     10000 cairo/default       20.924       40.003      0.523       1/1
+     10000 cairo/none         20.924       31.372      0.667       1/1
+    100000 cairo/default       51.287      386.503      0.133       1/1
+    100000 cairo/none         51.287      308.035      0.166       1/1
+
+Linux-WSL2 / symbols / diamond-7 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.459        4.388       0.56       1/1
+      1000 cairo/none          2.459        2.831      0.869       1/1
+     10000 cairo/default        5.648       33.057      0.171       1/1
+     10000 cairo/none          5.648       24.927      0.227       1/1
+    100000 cairo/default       36.082      473.970      0.076       1/1
+    100000 cairo/none         36.082      398.192      0.091       1/1
+
+Linux-WSL2 / symbols / diamond-7 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.413        7.206      0.612       1/1
+      1000 cairo/none          4.413        4.134      1.067       1/1
+     10000 cairo/default        8.577       37.061      0.231       1/1
+     10000 cairo/none          8.577       28.732      0.299       1/1
+    100000 cairo/default       43.234      476.127      0.091       1/1
+    100000 cairo/none         43.234      399.669      0.108       1/1
+
+Linux-WSL2 / symbols / diamond-7 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.471        5.034      0.491       1/1
+      1000 cairo/none          2.471        3.306      0.747       1/1
+     10000 cairo/default        6.444       33.197      0.194       1/1
+     10000 cairo/none          6.444       25.316      0.255       1/1
+    100000 cairo/default       35.245      471.478      0.075       1/1
+    100000 cairo/none         35.245      396.997      0.089       1/1
+
+Linux-WSL2 / symbols / plus-7 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.910       12.537      1.349       1/1
+      1000 cairo/none         16.910       11.904      1.421       1/1
+     10000 cairo/default       26.420       35.685       0.74       1/1
+     10000 cairo/none         26.420       33.738      0.783       1/1
+    100000 cairo/default       65.635      261.637      0.251       1/1
+    100000 cairo/none         65.635      260.683      0.252       1/1
+
+Linux-WSL2 / symbols / plus-7 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       21.227       10.422      2.037       1/1
+      1000 cairo/none         21.227       15.616      1.359       1/1
+     10000 cairo/default       30.016       45.343      0.662       1/1
+     10000 cairo/none         30.016       33.259      0.902       1/1
+    100000 cairo/default       78.699      268.188      0.293       1/1
+    100000 cairo/none         78.699      262.710        0.3       1/1
+
+Linux-WSL2 / symbols / plus-7 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       15.428       14.478      1.066       1/1
+      1000 cairo/none         15.428       13.863      1.113       1/1
+     10000 cairo/default       24.905       34.477      0.722       1/1
+     10000 cairo/none         24.905       33.505      0.743       1/1
+    100000 cairo/default       63.946      261.448      0.245       1/1
+    100000 cairo/none         63.946      259.469      0.246       1/1
+
+Linux-WSL2 / symbols / plus-7 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.935        3.697      0.794       1/1
+      1000 cairo/none          2.935        3.973      0.739       1/1
+     10000 cairo/default        7.343       28.533      0.257       1/1
+     10000 cairo/none          7.343       28.107      0.261       1/1
+    100000 cairo/default       50.287      267.667      0.188       1/1
+    100000 cairo/none         50.287      270.493      0.186       1/1
+
+Linux-WSL2 / symbols / plus-7 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.555        6.066      0.916       1/1
+      1000 cairo/none          5.555        3.985      1.394       1/1
+     10000 cairo/default       10.627       31.507      0.337       1/1
+     10000 cairo/none         10.627       30.218      0.352       1/1
+    100000 cairo/default       56.754      270.972      0.209       1/1
+    100000 cairo/none         56.754      272.802      0.208       1/1
+
+Linux-WSL2 / symbols / plus-7 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.251        3.904      0.577       1/1
+      1000 cairo/none          2.251        4.000      0.563       1/1
+     10000 cairo/default        7.015       28.126      0.249       1/1
+     10000 cairo/none          7.015       27.677      0.253       1/1
+    100000 cairo/default       48.107      266.339      0.181       1/1
+    100000 cairo/none         48.107      269.730      0.178       1/1
+
+Linux-WSL2 / symbols / square-7 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.386       10.979      1.492       1/1
+      1000 cairo/none         16.386        9.071      1.806       1/1
+     10000 cairo/default       17.543       17.747      0.989       1/1
+     10000 cairo/none         17.543       17.389      1.009       1/1
+    100000 cairo/default       28.707       68.244      0.421       1/1
+    100000 cairo/none         28.707       70.673      0.406       1/1
+
+Linux-WSL2 / symbols / square-7 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       12.445        8.838      1.408       1/1
+      1000 cairo/none         12.445        8.862      1.404       1/1
+     10000 cairo/default       20.131       23.551      0.855       1/1
+     10000 cairo/none         20.131       22.466      0.896       1/1
+    100000 cairo/default       33.105       71.759      0.461       1/1
+    100000 cairo/none         33.105       70.628      0.469       1/1
+
+Linux-WSL2 / symbols / square-7 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       16.596        9.513      1.745       1/1
+      1000 cairo/none         16.596        9.968      1.665       1/1
+     10000 cairo/default       15.941       20.217      0.788       1/1
+     10000 cairo/none         15.941       20.269      0.786       1/1
+    100000 cairo/default       26.753       67.960      0.394       1/1
+    100000 cairo/none         26.753       69.399      0.385       1/1
+
+Linux-WSL2 / symbols / square-7 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.564        1.890      1.357       1/1
+      1000 cairo/none          2.564        2.060      1.245       1/1
+     10000 cairo/default        2.698        8.682      0.311       1/1
+     10000 cairo/none          2.698        8.644      0.312       1/1
+    100000 cairo/default       13.086       64.555      0.203       1/1
+    100000 cairo/none         13.086       65.643      0.199       1/1
+
+Linux-WSL2 / symbols / square-7 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.677        2.675      1.001       1/1
+      1000 cairo/none          2.677        2.315      1.156       1/1
+     10000 cairo/default        3.631        8.992      0.404       1/1
+     10000 cairo/none          3.631       10.487      0.346       1/1
+    100000 cairo/default       14.029       67.815      0.207       1/1
+    100000 cairo/none         14.029       67.837      0.207       1/1
+
+Linux-WSL2 / symbols / square-7 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.451        2.358      1.039       1/1
+      1000 cairo/none          2.451        1.559      1.572       1/1
+     10000 cairo/default        4.510        9.033      0.499       1/1
+     10000 cairo/none          4.510        8.592      0.525       1/1
+    100000 cairo/default       11.335       63.329      0.179       1/1
+    100000 cairo/none         11.335       64.971      0.174       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / axis-remap / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       18.541       28.780      0.644       1/1
+      1000 cairo/none         18.541       17.278      1.073       1/1
+     10000 cairo/default       21.479      133.435      0.161       1/1
+     10000 cairo/none         21.479       56.090      0.383       1/1
+    100000 cairo/default       38.756     1323.870      0.029       1/1
+    100000 cairo/none         38.756      409.470      0.095       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / create / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       19.801       41.040      0.482       1/1
+      1000 cairo/none         19.801       18.259      1.084       1/1
+     10000 cairo/default       20.028      145.395      0.138       1/1
+     10000 cairo/none         20.028       61.582      0.325       1/1
+    100000 cairo/default       49.170     1336.747      0.037       1/1
+    100000 cairo/none         49.170      413.553      0.119       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / redraw / 1920x1080
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default       18.479       28.137      0.657       1/1
+      1000 cairo/none         18.479       13.739      1.345       1/1
+     10000 cairo/default       19.718      132.213      0.149       1/1
+     10000 cairo/none         19.718       53.910      0.366       1/1
+    100000 cairo/default       35.800     1325.545      0.027       1/1
+    100000 cairo/none         35.800      409.804      0.087       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / axis-remap / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.160       15.341      0.141       1/1
+      1000 cairo/none          2.160        6.032      0.358       1/1
+     10000 cairo/default        4.482      128.098      0.035       1/1
+     10000 cairo/none          4.482       48.961      0.092       1/1
+    100000 cairo/default       21.383     1438.197      0.015       1/1
+    100000 cairo/none         21.383      403.979      0.053       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / create / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.582       21.048      0.265       1/1
+      1000 cairo/none          5.582        8.492      0.657       1/1
+     10000 cairo/default        6.132      131.894      0.046       1/1
+     10000 cairo/none          6.132       52.207      0.117       1/1
+    100000 cairo/default       22.291     1454.587      0.015       1/1
+    100000 cairo/none         22.291      420.959      0.053       1/1
+
+Linux-WSL2 / symbols / trace+circle-7 / redraw / 640x480
+Environment: unix Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 9.0.4 9.0.4 0.5.0 x11
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.223       16.223      0.199       1/1
+      1000 cairo/none          3.223        7.210      0.447       1/1
+     10000 cairo/default        3.313      125.230      0.026       1/1
+     10000 cairo/none          3.313       45.655      0.073       1/1
+    100000 cairo/default       18.547     1434.917      0.013       1/1
+    100000 cairo/none         18.547      403.275      0.046       1/1

@@ -1,0 +1,13 @@
+platform,os,os_version,machine,tcl,tk,rbc,renderer,antialias,windowing,benchmark,case,count,requested_width,requested_height,actual_width,actual_height,metric,min_ms,median_ms,mean_ms,max_ms
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,640,480,640,480,create,26.768,26.768,26.768,26.768
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,640,480,640,480,redraw,6.658,6.817,6.773,6.844
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,640,480,640,480,axis-remap,11.341,11.656,12.080,13.244
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,1920,1080,1920,1080,create,41.346,41.346,41.346,41.346
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,1920,1080,1920,1080,redraw,22.314,22.435,23.684,26.303
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-1,232750,1920,1080,1920,1080,axis-remap,24.366,29.140,28.004,30.506
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,640,480,640,480,create,57.900,57.900,57.900,57.900
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,640,480,640,480,redraw,12.128,12.187,12.200,12.284
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,640,480,640,480,axis-remap,21.479,21.847,21.840,22.193
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,1920,1080,1920,1080,create,72.700,72.700,72.700,72.700
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,1920,1080,1920,1080,redraw,28.482,30.307,30.538,32.825
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,native,default,x11,mixed,scale-2,465500,1920,1080,1920,1080,axis-remap,36.574,38.665,39.893,44.440

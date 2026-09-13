@@ -1,0 +1,13 @@
+platform,os,os_version,machine,tcl,tk,rbc,renderer,antialias,windowing,benchmark,case,count,requested_width,requested_height,actual_width,actual_height,metric,min_ms,median_ms,mean_ms,max_ms
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,640,480,640,480,create,139.961,139.961,139.961,139.961
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,640,480,640,480,redraw,102.942,104.629,104.321,105.392
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,640,480,640,480,axis-remap,107.716,109.115,112.536,120.777
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,1920,1080,1920,1080,create,132.709,132.709,132.709,132.709
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,1920,1080,1920,1080,redraw,111.483,112.514,112.277,112.833
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-1,232750,1920,1080,1920,1080,axis-remap,125.880,126.577,126.571,127.256
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,640,480,640,480,create,316.583,316.583,316.583,316.583
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,640,480,640,480,redraw,258.151,258.505,258.520,258.904
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,640,480,640,480,axis-remap,261.769,262.742,262.594,263.270
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,1920,1080,1920,1080,create,269.120,269.120,269.120,269.120
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,1920,1080,1920,1080,redraw,224.402,226.731,226.298,227.761
+unix,Linux,6.18.33.2-microsoft-standard-WSL2,x86_64,9.0.4,9.0.4,0.5.0,cairo,none,x11,mixed,scale-2,465500,1920,1080,1920,1080,axis-remap,232.791,233.431,233.381,233.922

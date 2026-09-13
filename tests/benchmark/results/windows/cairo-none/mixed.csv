@@ -1,0 +1,13 @@
+platform,os,os_version,machine,tcl,tk,rbc,renderer,antialias,windowing,benchmark,case,count,requested_width,requested_height,actual_width,actual_height,metric,min_ms,median_ms,mean_ms,max_ms
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,640,480,640,480,create,111.431,111.431,111.431,111.431
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,640,480,640,480,redraw,92.701,92.907,93.275,94.217
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,640,480,640,480,axis-remap,100.051,100.917,100.819,101.490
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,1920,1080,1920,1080,create,138.914,138.914,138.914,138.914
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,1920,1080,1920,1080,redraw,120.065,120.576,121.228,123.042
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-1,232750,1920,1080,1920,1080,axis-remap,126.872,126.957,127.739,129.388
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,640,480,640,480,create,209.112,209.112,209.112,209.112
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,640,480,640,480,redraw,171.333,172.455,172.344,173.245
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,640,480,640,480,axis-remap,185.787,188.026,187.342,188.213
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,1920,1080,1920,1080,create,243.381,243.381,243.381,243.381
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,1920,1080,1920,1080,redraw,205.064,213.707,210.923,213.999
+windows,Windows NT,11.0,amd64,9.0.3,9.0.3,0.5.0,cairo,none,win32,mixed,scale-2,465500,1920,1080,1920,1080,axis-remap,216.150,216.154,217.258,219.469

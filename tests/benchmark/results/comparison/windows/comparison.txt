@@ -1,0 +1,1824 @@
+Renderer comparison (milliseconds; lower is better)
+Ratio = native/Cairo: above 1 means Cairo is faster.
+Repeated rows: median of run medians, not pooled samples.
+Zero rounded timings have no ratio. Missing pairs are listed explicitly.
+
+Windows-PC / bars / flat / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.604        3.747      0.962       1/1
+       100 cairo/none          3.604        3.778      0.954       1/1
+      1000 cairo/default        8.007        6.643      1.205       1/1
+      1000 cairo/none          8.007        6.700      1.195       1/1
+     10000 cairo/default       24.217       27.292      0.887       1/1
+     10000 cairo/none         24.217       27.501      0.881       1/1
+
+Windows-PC / bars / flat / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.543        3.773      1.204       1/1
+       100 cairo/none          4.543        4.933      0.921       1/1
+      1000 cairo/default        8.061        6.656      1.211       1/1
+      1000 cairo/none          8.061        6.261      1.287       1/1
+     10000 cairo/default       24.386       28.371       0.86       1/1
+     10000 cairo/none         24.386       28.252      0.863       1/1
+
+Windows-PC / bars / flat / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.828        3.816      1.003       1/1
+       100 cairo/none          3.828        4.077      0.939       1/1
+      1000 cairo/default        7.548        5.847      1.291       1/1
+      1000 cairo/none          7.548        6.531      1.156       1/1
+     10000 cairo/default       23.128       27.319      0.847       1/1
+     10000 cairo/none         23.128       27.173      0.851       1/1
+
+Windows-PC / bars / flat / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.493        0.437      1.128       1/1
+       100 cairo/none          0.493        0.430      1.147       1/1
+      1000 cairo/default        2.218        1.829      1.213       1/1
+      1000 cairo/none          2.218        1.763      1.258       1/1
+     10000 cairo/default       16.531       13.260      1.247       1/1
+     10000 cairo/none         16.531       13.173      1.255       1/1
+
+Windows-PC / bars / flat / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.834        0.639      1.305       1/1
+       100 cairo/none          0.834        0.730      1.142       1/1
+      1000 cairo/default        2.940        2.189      1.343       1/1
+      1000 cairo/none          2.940        2.128      1.382       1/1
+     10000 cairo/default       17.711       13.814      1.282       1/1
+     10000 cairo/none         17.711       14.021      1.263       1/1
+
+Windows-PC / bars / flat / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.551        0.446      1.235       1/1
+       100 cairo/none          0.551        0.430      1.281       1/1
+      1000 cairo/default        2.210        1.649       1.34       1/1
+      1000 cairo/none          2.210        1.680      1.315       1/1
+     10000 cairo/default       16.483       12.962      1.272       1/1
+     10000 cairo/none         16.483       13.624       1.21       1/1
+
+Windows-PC / bars / many-elements / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        5.537        6.019       0.92       1/1
+       100 cairo/none          5.537        7.099       0.78       1/1
+      1000 cairo/default       20.519       26.552      0.773       1/1
+      1000 cairo/none         20.519       28.390      0.723       1/1
+
+Windows-PC / bars / many-elements / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.060       10.076        0.8       1/1
+       100 cairo/none          8.060       10.250      0.786       1/1
+      1000 cairo/default       55.188       62.476      0.883       1/1
+      1000 cairo/none         55.188       64.966      0.849       1/1
+
+Windows-PC / bars / many-elements / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.936        6.967      0.708       1/1
+       100 cairo/none          4.936        7.485      0.659       1/1
+      1000 cairo/default       20.499       28.994      0.707       1/1
+      1000 cairo/none         20.499       28.787      0.712       1/1
+
+Windows-PC / bars / many-elements / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.864        2.612      0.714       1/1
+       100 cairo/none          1.864        2.576      0.724       1/1
+      1000 cairo/default       13.897       23.020      0.604       1/1
+      1000 cairo/none         13.897       22.350      0.622       1/1
+
+Windows-PC / bars / many-elements / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        6.576        6.845      0.961       1/1
+       100 cairo/none          6.576        7.143      0.921       1/1
+      1000 cairo/default       51.341       59.123      0.868       1/1
+      1000 cairo/none         51.341       58.534      0.877       1/1
+
+Windows-PC / bars / many-elements / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.619        2.413      0.671       1/1
+       100 cairo/none          1.619        2.911      0.556       1/1
+      1000 cairo/default       14.646       22.968      0.638       1/1
+      1000 cairo/none         14.646       22.780      0.643       1/1
+
+Windows-PC / bars / raised / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.279        4.089      1.046       1/1
+       100 cairo/none          4.279        4.369      0.979       1/1
+      1000 cairo/default        9.122        8.148       1.12       1/1
+      1000 cairo/none          9.122        8.305      1.098       1/1
+     10000 cairo/default       24.260       27.534      0.881       1/1
+     10000 cairo/none         24.260       28.286      0.858       1/1
+
+Windows-PC / bars / raised / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.718        4.191      1.126       1/1
+       100 cairo/none          4.718        5.254      0.898       1/1
+      1000 cairo/default       10.269        8.636      1.189       1/1
+      1000 cairo/none         10.269        8.951      1.147       1/1
+     10000 cairo/default       23.973       27.080      0.885       1/1
+     10000 cairo/none         23.973       28.254      0.848       1/1
+
+Windows-PC / bars / raised / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.558        4.291      1.062       1/1
+       100 cairo/none          4.558        4.818      0.946       1/1
+      1000 cairo/default       10.979        9.631       1.14       1/1
+      1000 cairo/none         10.979        8.827      1.244       1/1
+     10000 cairo/default       22.826       26.784      0.852       1/1
+     10000 cairo/none         22.826       27.273      0.837       1/1
+
+Windows-PC / bars / raised / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.832        0.934      0.891       1/1
+       100 cairo/none          0.832        0.772      1.078       1/1
+      1000 cairo/default        3.482        3.270      1.065       1/1
+      1000 cairo/none          3.482        2.933      1.187       1/1
+     10000 cairo/default       16.723       14.807      1.129       1/1
+     10000 cairo/none         16.723       13.311      1.256       1/1
+
+Windows-PC / bars / raised / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.492        1.011      1.476       1/1
+       100 cairo/none          1.492        1.559      0.957       1/1
+      1000 cairo/default        3.639        4.760      0.764       1/1
+      1000 cairo/none          3.639        3.228      1.127       1/1
+     10000 cairo/default       17.925       15.278      1.173       1/1
+     10000 cairo/none         17.925       15.049      1.191       1/1
+
+Windows-PC / bars / raised / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.811        0.987      0.822       1/1
+       100 cairo/none          0.811        0.786      1.032       1/1
+      1000 cairo/default        3.900        2.934      1.329       1/1
+      1000 cairo/none          3.900        2.907      1.342       1/1
+     10000 cairo/default       16.777       13.891      1.208       1/1
+     10000 cairo/none         16.777       14.608      1.148       1/1
+
+Windows-PC / bars / stipple / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.400        8.723      0.504       1/1
+       100 cairo/none          4.400        8.959      0.491       1/1
+      1000 cairo/default        6.862       10.042      0.683       1/1
+      1000 cairo/none          6.862        8.772      0.782       1/1
+     10000 cairo/default       21.462       43.973      0.488       1/1
+     10000 cairo/none         21.462       44.858      0.478       1/1
+
+Windows-PC / bars / stipple / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.599        8.224      0.559       1/1
+       100 cairo/none          4.599        9.956      0.462       1/1
+      1000 cairo/default        6.863        7.978       0.86       1/1
+      1000 cairo/none          6.863        9.376      0.732       1/1
+     10000 cairo/default       25.196       45.913      0.549       1/1
+     10000 cairo/none         25.196       47.174      0.534       1/1
+
+Windows-PC / bars / stipple / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.548        8.410      0.541       1/1
+       100 cairo/none          4.548        9.256      0.491       1/1
+      1000 cairo/default        5.543        8.759      0.633       1/1
+      1000 cairo/none          5.543        9.713      0.571       1/1
+     10000 cairo/default       23.882       43.874      0.544       1/1
+     10000 cairo/none         23.882       44.388      0.538       1/1
+
+Windows-PC / bars / stipple / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.448        0.875      0.512       1/1
+       100 cairo/none          0.448        0.987      0.454       1/1
+      1000 cairo/default        1.804        2.043      0.883       1/1
+      1000 cairo/none          1.804        2.111      0.855       1/1
+     10000 cairo/default       14.870       22.445      0.663       1/1
+     10000 cairo/none         14.870       23.127      0.643       1/1
+
+Windows-PC / bars / stipple / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.559        2.556       0.61       1/1
+       100 cairo/none          1.559        2.741      0.569       1/1
+      1000 cairo/default        2.268        2.577       0.88       1/1
+      1000 cairo/none          2.268        3.275      0.693       1/1
+     10000 cairo/default       16.139       26.872      0.601       1/1
+     10000 cairo/none         16.139       24.169      0.668       1/1
+
+Windows-PC / bars / stipple / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.440        1.218      0.361       1/1
+       100 cairo/none          0.440        0.943      0.467       1/1
+      1000 cairo/default        1.749        2.337      0.748       1/1
+      1000 cairo/none          1.749        2.159       0.81       1/1
+     10000 cairo/default       15.375       22.262      0.691       1/1
+     10000 cairo/none         15.375       22.524      0.683       1/1
+
+Windows-PC / bars / yerror / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.920        6.545      0.599       1/1
+       100 cairo/none          3.920        7.581      0.517       1/1
+      1000 cairo/default        7.684       15.750      0.488       1/1
+      1000 cairo/none          7.684        9.634      0.798       1/1
+     10000 cairo/default       25.125       90.385      0.278       1/1
+     10000 cairo/none         25.125       40.318      0.623       1/1
+
+Windows-PC / bars / yerror / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.123        6.848      0.602       1/1
+       100 cairo/none          4.123        7.104       0.58       1/1
+      1000 cairo/default        8.485       16.049      0.529       1/1
+      1000 cairo/none          8.485        9.529       0.89       1/1
+     10000 cairo/default       27.062       92.285      0.293       1/1
+     10000 cairo/none         27.062       43.053      0.629       1/1
+
+Windows-PC / bars / yerror / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.758        6.234      0.603       1/1
+       100 cairo/none          3.758        6.377      0.589       1/1
+      1000 cairo/default        7.862       15.175      0.518       1/1
+      1000 cairo/none          7.862        9.362       0.84       1/1
+     10000 cairo/default       26.277       89.268      0.294       1/1
+     10000 cairo/none         26.277       39.355      0.668       1/1
+
+Windows-PC / bars / yerror / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.627        0.963      0.651       1/1
+       100 cairo/none          0.627        0.767      0.817       1/1
+      1000 cairo/default        2.569        5.185      0.495       1/1
+      1000 cairo/none          2.569        3.331      0.771       1/1
+     10000 cairo/default       18.477       48.685       0.38       1/1
+     10000 cairo/none         18.477       21.943      0.842       1/1
+
+Windows-PC / bars / yerror / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.138        1.846      0.616       1/1
+       100 cairo/none          1.138        1.296      0.878       1/1
+      1000 cairo/default        2.602        5.807      0.448       1/1
+      1000 cairo/none          2.602        3.208      0.811       1/1
+     10000 cairo/default       20.738       52.472      0.395       1/1
+     10000 cairo/none         20.738       24.896      0.833       1/1
+
+Windows-PC / bars / yerror / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.531        1.100      0.483       1/1
+       100 cairo/none          0.531        0.957      0.555       1/1
+      1000 cairo/default        2.472        5.552      0.445       1/1
+      1000 cairo/none          2.472        2.861      0.864       1/1
+     10000 cairo/default       17.862       47.626      0.375       1/1
+     10000 cairo/none         17.862       21.171      0.844       1/1
+
+Windows-PC / errorbars / xy / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.714       14.111      0.263       1/1
+      1000 cairo/none          3.714       10.119      0.367       1/1
+     10000 cairo/default        8.749       63.488      0.138       1/1
+     10000 cairo/none          8.749       23.935      0.366       1/1
+    100000 cairo/default       46.089      493.538      0.093       1/1
+    100000 cairo/none         46.089      137.881      0.334       1/1
+
+Windows-PC / errorbars / xy / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.654       15.760      0.295       1/1
+      1000 cairo/none          4.654       10.650      0.437       1/1
+     10000 cairo/default        8.755       66.738      0.131       1/1
+     10000 cairo/none          8.755       24.743      0.354       1/1
+    100000 cairo/default       52.261      499.819      0.105       1/1
+    100000 cairo/none         52.261      140.068      0.373       1/1
+
+Windows-PC / errorbars / xy / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.503       15.802      0.222       1/1
+      1000 cairo/none          3.503       10.060      0.348       1/1
+     10000 cairo/default        6.797       62.205      0.109       1/1
+     10000 cairo/none          6.797       21.381      0.318       1/1
+    100000 cairo/default       32.849      482.656      0.068       1/1
+    100000 cairo/none         32.849      122.475      0.268       1/1
+
+Windows-PC / errorbars / xy / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.610        4.956      0.123       1/1
+      1000 cairo/none          0.610        2.227      0.274       1/1
+     10000 cairo/default        4.476       37.266       0.12       1/1
+     10000 cairo/none          4.476       14.638      0.306       1/1
+    100000 cairo/default       41.300      372.483      0.111       1/1
+    100000 cairo/none         41.300      112.696      0.366       1/1
+
+Windows-PC / errorbars / xy / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.150        5.608      0.383       1/1
+      1000 cairo/none          2.150        3.167      0.679       1/1
+     10000 cairo/default        6.443       41.152      0.157       1/1
+     10000 cairo/none          6.443       17.819      0.362       1/1
+    100000 cairo/default       42.725      373.125      0.115       1/1
+    100000 cairo/none         42.725      130.840      0.327       1/1
+
+Windows-PC / errorbars / xy / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.533        5.257      0.101       1/1
+      1000 cairo/none          0.533        2.254      0.236       1/1
+     10000 cairo/default        2.962       36.327      0.082       1/1
+     10000 cairo/none          2.962       12.812      0.231       1/1
+    100000 cairo/default       26.886      356.481      0.075       1/1
+    100000 cairo/none         26.886      112.212       0.24       1/1
+
+Windows-PC / errorbars / y / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.481       11.378      0.306       1/1
+      1000 cairo/none          3.481        6.084      0.572       1/1
+     10000 cairo/default        5.972       43.182      0.138       1/1
+     10000 cairo/none          5.972       15.682      0.381       1/1
+    100000 cairo/default       28.352      395.823      0.072       1/1
+    100000 cairo/none         28.352       90.522      0.313       1/1
+
+Windows-PC / errorbars / y / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.370       10.921        0.4       1/1
+      1000 cairo/none          4.370        7.261      0.602       1/1
+     10000 cairo/default        6.074       44.243      0.137       1/1
+     10000 cairo/none          6.074       15.117      0.402       1/1
+    100000 cairo/default       28.758      395.149      0.073       1/1
+    100000 cairo/none         28.758       99.297       0.29       1/1
+
+Windows-PC / errorbars / y / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.201       12.094      0.265       1/1
+      1000 cairo/none          3.201        6.508      0.492       1/1
+     10000 cairo/default        4.652       42.892      0.108       1/1
+     10000 cairo/none          4.652       15.614      0.298       1/1
+    100000 cairo/default       20.348      386.530      0.053       1/1
+    100000 cairo/none         20.348       83.317      0.244       1/1
+
+Windows-PC / errorbars / y / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.424        3.706      0.114       1/1
+      1000 cairo/none          0.424        1.235      0.343       1/1
+     10000 cairo/default        2.632       24.353      0.108       1/1
+     10000 cairo/none          2.632        7.856      0.335       1/1
+    100000 cairo/default       23.558      257.591      0.091       1/1
+    100000 cairo/none         23.558       69.379       0.34       1/1
+
+Windows-PC / errorbars / y / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.770        3.560      0.216       1/1
+      1000 cairo/none          0.770        2.508      0.307       1/1
+     10000 cairo/default        3.938       26.397      0.149       1/1
+     10000 cairo/none          3.938        8.729      0.451       1/1
+    100000 cairo/default       24.113      264.227      0.091       1/1
+    100000 cairo/none         24.113       74.415      0.324       1/1
+
+Windows-PC / errorbars / y / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.361        3.987      0.091       1/1
+      1000 cairo/none          0.361        1.567       0.23       1/1
+     10000 cairo/default        1.561       23.798      0.066       1/1
+     10000 cairo/none          1.561        7.869      0.198       1/1
+    100000 cairo/default       13.507      250.333      0.054       1/1
+    100000 cairo/none         13.507       63.013      0.214       1/1
+
+Windows-PC / errorbars / y+circle / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.856       21.925      0.221       1/1
+      1000 cairo/none          4.856       12.277      0.396       1/1
+     10000 cairo/default       17.159      112.502      0.153       1/1
+     10000 cairo/none         17.159       42.876        0.4       1/1
+    100000 cairo/default      120.830      814.764      0.148       1/1
+    100000 cairo/none        120.830      313.639      0.385       1/1
+
+Windows-PC / errorbars / y+circle / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.646       20.463      0.276       1/1
+      1000 cairo/none          5.646       12.939      0.436       1/1
+     10000 cairo/default       16.624      112.829      0.147       1/1
+     10000 cairo/none         16.624       45.633      0.364       1/1
+    100000 cairo/default      124.119      817.088      0.152       1/1
+    100000 cairo/none        124.119      324.127      0.383       1/1
+
+Windows-PC / errorbars / y+circle / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.624       22.676      0.204       1/1
+      1000 cairo/none          4.624       12.806      0.361       1/1
+     10000 cairo/default       16.078      111.393      0.144       1/1
+     10000 cairo/none         16.078       43.735      0.368       1/1
+    100000 cairo/default      112.183      805.333      0.139       1/1
+    100000 cairo/none        112.183      311.013      0.361       1/1
+
+Windows-PC / errorbars / y+circle / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.466       11.748      0.125       1/1
+      1000 cairo/none          1.466        5.205      0.282       1/1
+     10000 cairo/default       12.564       82.283      0.153       1/1
+     10000 cairo/none         12.564       33.425      0.376       1/1
+    100000 cairo/default      115.737      669.667      0.173       1/1
+    100000 cairo/none        115.737      285.946      0.405       1/1
+
+Windows-PC / errorbars / y+circle / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.828       12.860      0.142       1/1
+      1000 cairo/none          1.828        5.778      0.316       1/1
+     10000 cairo/default       13.676       85.083      0.161       1/1
+     10000 cairo/none         13.676       36.218      0.378       1/1
+    100000 cairo/default      119.527      671.833      0.178       1/1
+    100000 cairo/none        119.527      288.582      0.414       1/1
+
+Windows-PC / errorbars / y+circle / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.390       11.783      0.118       1/1
+      1000 cairo/none          1.390        5.396      0.258       1/1
+     10000 cairo/default       11.427       81.435       0.14       1/1
+     10000 cairo/none         11.427       33.073      0.346       1/1
+    100000 cairo/default      106.075      661.531       0.16       1/1
+    100000 cairo/none        106.075      274.720      0.386       1/1
+
+Windows-PC / line / decimate=auto / append-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.108       45.810       0.09       1/1
+     10000 cairo/none          4.108       10.164      0.404       1/1
+    100000 cairo/default        3.927       46.734      0.084       1/1
+    100000 cairo/none          3.927       11.531      0.341       1/1
+   1000000 cairo/default        5.537       46.784      0.118       1/1
+   1000000 cairo/none          5.537       11.975      0.462       1/1
+
+Windows-PC / line / decimate=auto / array-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.944       45.759      0.086       1/1
+     10000 cairo/none          3.944       11.079      0.356       1/1
+    100000 cairo/default        4.219       46.927       0.09       1/1
+    100000 cairo/none          4.219       12.000      0.352       1/1
+   1000000 cairo/default        5.547       46.978      0.118       1/1
+   1000000 cairo/none          5.547       12.372      0.448       1/1
+
+Windows-PC / line / decimate=auto / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.967       46.053      0.086       1/1
+     10000 cairo/none          3.967       11.024       0.36       1/1
+    100000 cairo/default        4.474       46.601      0.096       1/1
+    100000 cairo/none          4.474       10.986      0.407       1/1
+   1000000 cairo/default        5.805       47.039      0.123       1/1
+   1000000 cairo/none          5.805       12.829      0.452       1/1
+
+Windows-PC / line / decimate=auto / closest / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.041        0.006      6.833       1/1
+     10000 cairo/none          0.041        0.002       20.5       1/1
+    100000 cairo/default        0.006        0.009      0.667       1/1
+    100000 cairo/none          0.006        0.009      0.667       1/1
+   1000000 cairo/default        0.045        0.047      0.957       1/1
+   1000000 cairo/none          0.045        0.046      0.978       1/1
+
+Windows-PC / line / decimate=auto / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.022       48.252      0.083       1/1
+     10000 cairo/none          4.022       12.441      0.323       1/1
+    100000 cairo/default        4.768       50.976      0.094       1/1
+    100000 cairo/none          4.768       11.108      0.429       1/1
+   1000000 cairo/default        8.264       52.718      0.157       1/1
+   1000000 cairo/none          8.264       15.416      0.536       1/1
+
+Windows-PC / line / decimate=auto / index-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.009       45.994      0.087       1/1
+     10000 cairo/none          4.009       10.794      0.371       1/1
+    100000 cairo/default        4.064       47.385      0.086       1/1
+    100000 cairo/none          4.064       11.515      0.353       1/1
+   1000000 cairo/default        5.311       47.032      0.113       1/1
+   1000000 cairo/none          5.311       12.262      0.433       1/1
+
+Windows-PC / line / decimate=auto / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.640       45.857      0.079       1/1
+     10000 cairo/none          3.640       11.170      0.326       1/1
+    100000 cairo/default        3.344       45.240      0.074       1/1
+    100000 cairo/none          3.344        9.805      0.341       1/1
+   1000000 cairo/default        3.624       44.695      0.081       1/1
+   1000000 cairo/none          3.624        9.584      0.378       1/1
+
+Windows-PC / line / decimate=auto / append-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.546       13.095      0.042       1/1
+     10000 cairo/none          0.546        2.179      0.251       1/1
+    100000 cairo/default        0.520       12.935       0.04       1/1
+    100000 cairo/none          0.520        2.736       0.19       1/1
+   1000000 cairo/default        0.779       12.336      0.063       1/1
+   1000000 cairo/none          0.779        2.373      0.328       1/1
+
+Windows-PC / line / decimate=auto / array-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.503       13.082      0.038       1/1
+     10000 cairo/none          0.503        2.144      0.235       1/1
+    100000 cairo/default        0.557       12.865      0.043       1/1
+    100000 cairo/none          0.557        2.886      0.193       1/1
+   1000000 cairo/default        0.764       12.445      0.061       1/1
+   1000000 cairo/none          0.764        2.564      0.298       1/1
+
+Windows-PC / line / decimate=auto / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.515       14.110      0.036       1/1
+     10000 cairo/none          0.515        2.301      0.224       1/1
+    100000 cairo/default        0.632       13.189      0.048       1/1
+    100000 cairo/none          0.632        2.635       0.24       1/1
+   1000000 cairo/default        1.085       12.631      0.086       1/1
+   1000000 cairo/none          1.085        2.724      0.398       1/1
+
+Windows-PC / line / decimate=auto / closest / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.002        0.003      0.667       1/1
+     10000 cairo/none          0.002        0.003      0.667       1/1
+    100000 cairo/default        0.014        0.016      0.875       1/1
+    100000 cairo/none          0.014        0.015      0.933       1/1
+   1000000 cairo/default        0.133        0.134      0.993       1/1
+   1000000 cairo/none          0.133        0.133        1.0       1/1
+
+Windows-PC / line / decimate=auto / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.840       14.760      0.057       1/1
+     10000 cairo/none          0.840        3.047      0.276       1/1
+    100000 cairo/default        1.297       15.280      0.085       1/1
+    100000 cairo/none          1.297        3.853      0.337       1/1
+   1000000 cairo/default        4.560       19.021       0.24       1/1
+   1000000 cairo/none          4.560        7.238       0.63       1/1
+
+Windows-PC / line / decimate=auto / index-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.552       13.106      0.042       1/1
+     10000 cairo/none          0.552        2.584      0.214       1/1
+    100000 cairo/default        0.532       12.863      0.041       1/1
+    100000 cairo/none          0.532        2.248      0.237       1/1
+   1000000 cairo/default        0.657       12.309      0.053       1/1
+   1000000 cairo/none          0.657        2.843      0.231       1/1
+
+Windows-PC / line / decimate=auto / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.386       13.157      0.029       1/1
+     10000 cairo/none          0.386        2.133      0.181       1/1
+    100000 cairo/default        0.427       13.259      0.032       1/1
+    100000 cairo/none          0.427        2.074      0.206       1/1
+   1000000 cairo/default        0.346       12.039      0.029       1/1
+   1000000 cairo/none          0.346        2.069      0.167       1/1
+
+Windows-PC / line / decimate=none / append-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.958       51.297      0.077       1/1
+     10000 cairo/none          3.958       12.532      0.316       1/1
+    100000 cairo/default        8.656      104.446      0.083       1/1
+    100000 cairo/none          8.656       32.188      0.269       1/1
+   1000000 cairo/default       40.957      336.236      0.122       1/1
+   1000000 cairo/none         40.957      163.127      0.251       1/1
+
+Windows-PC / line / decimate=none / array-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.026       50.919      0.079       1/1
+     10000 cairo/none          4.026       11.449      0.352       1/1
+    100000 cairo/default        7.814      104.686      0.075       1/1
+    100000 cairo/none          7.814       32.132      0.243       1/1
+   1000000 cairo/default       41.102      349.940      0.117       1/1
+   1000000 cairo/none         41.102      163.957      0.251       1/1
+
+Windows-PC / line / decimate=none / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.546       51.301      0.089       1/1
+     10000 cairo/none          4.546       11.798      0.385       1/1
+    100000 cairo/default        9.328      105.594      0.088       1/1
+    100000 cairo/none          9.328       31.011      0.301       1/1
+   1000000 cairo/default       41.319      354.815      0.116       1/1
+   1000000 cairo/none         41.319      162.327      0.255       1/1
+
+Windows-PC / line / decimate=none / closest / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.042        0.042        1.0       1/1
+     10000 cairo/none          0.042        0.042        1.0       1/1
+    100000 cairo/default        0.404        0.399      1.013       1/1
+    100000 cairo/none          0.404        0.406      0.995       1/1
+   1000000 cairo/default        4.078        4.120       0.99       1/1
+   1000000 cairo/none          4.078        4.126      0.988       1/1
+
+Windows-PC / line / decimate=none / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.566       53.917      0.085       1/1
+     10000 cairo/none          4.566       12.054      0.379       1/1
+    100000 cairo/default        8.590      106.523      0.081       1/1
+    100000 cairo/none          8.590       35.560      0.242       1/1
+   1000000 cairo/default       43.636      352.953      0.124       1/1
+   1000000 cairo/none         43.636      164.189      0.266       1/1
+
+Windows-PC / line / decimate=none / index-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.009       51.018      0.079       1/1
+     10000 cairo/none          4.009       11.333      0.354       1/1
+    100000 cairo/default        9.680      104.679      0.092       1/1
+    100000 cairo/none          9.680       31.587      0.306       1/1
+   1000000 cairo/default       40.842      353.035      0.116       1/1
+   1000000 cairo/none         40.842      162.494      0.251       1/1
+
+Windows-PC / line / decimate=none / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.538       50.753       0.07       1/1
+     10000 cairo/none          3.538       13.921      0.254       1/1
+    100000 cairo/default        5.659      102.363      0.055       1/1
+    100000 cairo/none          5.659       29.032      0.195       1/1
+   1000000 cairo/default       12.282      327.462      0.038       1/1
+   1000000 cairo/none         12.282      132.799      0.092       1/1
+
+Windows-PC / line / decimate=none / append-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.993       23.576      0.042       1/1
+     10000 cairo/none          0.993        4.364      0.228       1/1
+    100000 cairo/default        5.298       63.134      0.084       1/1
+    100000 cairo/none          5.298       24.822      0.213       1/1
+   1000000 cairo/default       36.710      166.516       0.22       1/1
+   1000000 cairo/none         36.710       86.419      0.425       1/1
+
+Windows-PC / line / decimate=none / array-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.896       23.495      0.038       1/1
+     10000 cairo/none          0.896        4.422      0.203       1/1
+    100000 cairo/default        5.129       63.519      0.081       1/1
+    100000 cairo/none          5.129       22.908      0.224       1/1
+   1000000 cairo/default       36.897      164.957      0.224       1/1
+   1000000 cairo/none         36.897       85.814       0.43       1/1
+
+Windows-PC / line / decimate=none / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.045       23.614      0.044       1/1
+     10000 cairo/none          1.045        5.582      0.187       1/1
+    100000 cairo/default        5.252       62.995      0.083       1/1
+    100000 cairo/none          5.252       22.856       0.23       1/1
+   1000000 cairo/default       39.166      165.310      0.237       1/1
+   1000000 cairo/none         39.166       86.340      0.454       1/1
+
+Windows-PC / line / decimate=none / closest / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.042        0.041      1.024       1/1
+     10000 cairo/none          0.042        0.042        1.0       1/1
+    100000 cairo/default        0.407        0.403       1.01       1/1
+    100000 cairo/none          0.407        0.411       0.99       1/1
+   1000000 cairo/default        4.121        4.100      1.005       1/1
+   1000000 cairo/none          4.121        4.108      1.003       1/1
+
+Windows-PC / line / decimate=none / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.378       24.974      0.055       1/1
+     10000 cairo/none          1.378        5.221      0.264       1/1
+    100000 cairo/default        5.886       65.987      0.089       1/1
+    100000 cairo/none          5.886       26.590      0.221       1/1
+   1000000 cairo/default       40.299      166.480      0.242       1/1
+   1000000 cairo/none         40.299       89.856      0.448       1/1
+
+Windows-PC / line / decimate=none / index-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.902       23.505      0.038       1/1
+     10000 cairo/none          0.902        4.403      0.205       1/1
+    100000 cairo/default        4.997       63.083      0.079       1/1
+    100000 cairo/none          4.997       23.503      0.213       1/1
+   1000000 cairo/default       36.626      165.470      0.221       1/1
+   1000000 cairo/none         36.626       85.865      0.427       1/1
+
+Windows-PC / line / decimate=none / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.694       22.986       0.03       1/1
+     10000 cairo/none          0.694        4.733      0.147       1/1
+    100000 cairo/default        1.984       60.966      0.033       1/1
+    100000 cairo/none          1.984       22.277      0.089       1/1
+   1000000 cairo/default        7.865      136.813      0.057       1/1
+   1000000 cairo/none          7.865       56.885      0.138       1/1
+
+Windows-PC / markers / bitmap / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.362        6.461       0.52       1/1
+       100 cairo/none          3.362        8.521      0.395       1/1
+      1000 cairo/default        5.218       16.768      0.311       1/1
+      1000 cairo/none          5.218       17.814      0.293       1/1
+      5000 cairo/default       16.773       67.302      0.249       1/1
+      5000 cairo/none         16.773       65.755      0.255       1/1
+
+Windows-PC / markers / bitmap / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.138        7.387       0.56       1/1
+       100 cairo/none          4.138        9.191       0.45       1/1
+      1000 cairo/default       11.051       25.893      0.427       1/1
+      1000 cairo/none         11.051       24.199      0.457       1/1
+      5000 cairo/default       56.181      107.709      0.522       1/1
+      5000 cairo/none         56.181      106.019       0.53       1/1
+
+Windows-PC / markers / bitmap / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.793        6.457      0.587       1/1
+       100 cairo/none          3.793        7.526      0.504       1/1
+      1000 cairo/default        6.080       17.680      0.344       1/1
+      1000 cairo/none          6.080       17.891       0.34       1/1
+      5000 cairo/default       14.880       61.931       0.24       1/1
+      5000 cairo/none         14.880       63.100      0.236       1/1
+
+Windows-PC / markers / bitmap / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.407        2.021      0.201       1/1
+       100 cairo/none          0.407        2.022      0.201       1/1
+      1000 cairo/default        2.086       12.851      0.162       1/1
+      1000 cairo/none          2.086       13.156      0.159       1/1
+      5000 cairo/default       32.737       72.137      0.454       1/1
+      5000 cairo/none         32.737       72.009      0.455       1/1
+
+Windows-PC / markers / bitmap / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.062        3.242      0.636       1/1
+       100 cairo/none          2.062        4.925      0.419       1/1
+      1000 cairo/default        8.375       21.538      0.389       1/1
+      1000 cairo/none          8.375       19.517      0.429       1/1
+      5000 cairo/default       75.321      116.314      0.648       1/1
+      5000 cairo/none         75.321      113.607      0.663       1/1
+
+Windows-PC / markers / bitmap / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.397        1.572      0.253       1/1
+       100 cairo/none          0.397        1.594      0.249       1/1
+      1000 cairo/default        2.173       11.740      0.185       1/1
+      1000 cairo/none          2.173       12.963      0.168       1/1
+      5000 cairo/default       20.220       56.268      0.359       1/1
+      5000 cairo/none         20.220       57.859      0.349       1/1
+
+Windows-PC / markers / image / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.635        5.887      1.297       1/1
+       100 cairo/none          7.635        6.026      1.267       1/1
+      1000 cairo/default       30.277        9.770      3.099       1/1
+      1000 cairo/none         30.277       11.414      2.653       1/1
+      5000 cairo/default      146.756       22.543       6.51       1/1
+      5000 cairo/none        146.756       22.425      6.544       1/1
+
+Windows-PC / markers / image / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        8.907        8.337      1.068       1/1
+       100 cairo/none          8.907        8.344      1.067       1/1
+      1000 cairo/default       41.633       18.066      2.304       1/1
+      1000 cairo/none         41.633       20.325      2.048       1/1
+      5000 cairo/default      196.737       66.495      2.959       1/1
+      5000 cairo/none        196.737       67.202      2.928       1/1
+
+Windows-PC / markers / image / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.023        5.802       1.21       1/1
+       100 cairo/none          7.023        5.875      1.195       1/1
+      1000 cairo/default       33.120       10.239      3.235       1/1
+      1000 cairo/none         33.120        9.868      3.356       1/1
+      5000 cairo/default      148.925       23.500      6.337       1/1
+      5000 cairo/none        148.925       23.339      6.381       1/1
+
+Windows-PC / markers / image / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.491        0.842      4.146       1/1
+       100 cairo/none          3.491        0.798      4.375       1/1
+      1000 cairo/default       30.839        4.134       7.46       1/1
+      1000 cairo/none         30.839        4.674      6.598       1/1
+      5000 cairo/default      145.745       20.691      7.044       1/1
+      5000 cairo/none        145.745       20.287      7.184       1/1
+
+Windows-PC / markers / image / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        5.792        3.757      1.542       1/1
+       100 cairo/none          5.792        3.922      1.477       1/1
+      1000 cairo/default       39.412       12.415      3.175       1/1
+      1000 cairo/none         39.412       13.175      2.991       1/1
+      5000 cairo/default      196.192       74.871       2.62       1/1
+      5000 cairo/none        196.192       73.886      2.655       1/1
+
+Windows-PC / markers / image / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.184        0.878      3.626       1/1
+       100 cairo/none          3.184        0.829      3.841       1/1
+      1000 cairo/default       29.729        4.407      6.746       1/1
+      1000 cairo/none         29.729        3.761      7.905       1/1
+      5000 cairo/default      145.736       17.946      8.121       1/1
+      5000 cairo/none        145.736       18.009      8.092       1/1
+
+Windows-PC / markers / line / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.049        6.001      0.508       1/1
+       100 cairo/none          3.049        5.521      0.552       1/1
+      1000 cairo/default        3.403        9.168      0.371       1/1
+      1000 cairo/none          3.403        6.855      0.496       1/1
+      5000 cairo/default        5.009       17.743      0.282       1/1
+      5000 cairo/none          5.009       13.008      0.385       1/1
+
+Windows-PC / markers / line / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.489        8.528      0.526       1/1
+       100 cairo/none          4.489        7.484        0.6       1/1
+      1000 cairo/default       14.027       17.708      0.792       1/1
+      1000 cairo/none         14.027       14.650      0.957       1/1
+      5000 cairo/default       64.158       76.119      0.843       1/1
+      5000 cairo/none         64.158       68.726      0.934       1/1
+
+Windows-PC / markers / line / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.216        6.507      0.494       1/1
+       100 cairo/none          3.216        5.519      0.583       1/1
+      1000 cairo/default        3.363        9.692      0.347       1/1
+      1000 cairo/none          3.363        7.753      0.434       1/1
+      5000 cairo/default        4.383       16.730      0.262       1/1
+      5000 cairo/none          4.383       12.671      0.346       1/1
+
+Windows-PC / markers / line / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.333        0.795      0.419       1/1
+       100 cairo/none          0.333        0.614      0.542       1/1
+      1000 cairo/default        0.358        2.294      0.156       1/1
+      1000 cairo/none          0.358        1.402      0.255       1/1
+      5000 cairo/default        1.103        8.705      0.127       1/1
+      5000 cairo/none          1.103        5.345      0.206       1/1
+
+Windows-PC / markers / line / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.357        2.098      0.647       1/1
+       100 cairo/none          1.357        2.945      0.461       1/1
+      1000 cairo/default        8.402       10.648      0.789       1/1
+      1000 cairo/none          8.402        9.724      0.864       1/1
+      5000 cairo/default       61.623       66.030      0.933       1/1
+      5000 cairo/none         61.623       62.536      0.985       1/1
+
+Windows-PC / markers / line / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.232        1.162        0.2       1/1
+       100 cairo/none          0.232        0.636      0.365       1/1
+      1000 cairo/default        0.444        2.309      0.192       1/1
+      1000 cairo/none          0.444        1.314      0.338       1/1
+      5000 cairo/default        0.873        7.589      0.115       1/1
+      5000 cairo/none          0.873        4.852       0.18       1/1
+
+Windows-PC / markers / polygon-fill / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.758        6.667      0.564       1/1
+       100 cairo/none          3.758        6.301      0.596       1/1
+      1000 cairo/default        5.385       10.699      0.503       1/1
+      1000 cairo/none          5.385       11.026      0.488       1/1
+      5000 cairo/default       16.738       23.255       0.72       1/1
+      5000 cairo/none         16.738       20.525      0.815       1/1
+
+Windows-PC / markers / polygon-fill / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.406        8.246      0.534       1/1
+       100 cairo/none          4.406        8.037      0.548       1/1
+      1000 cairo/default       16.743       24.051      0.696       1/1
+      1000 cairo/none         16.743       21.472       0.78       1/1
+      5000 cairo/default       90.645       98.737      0.918       1/1
+      5000 cairo/none         90.645       94.311      0.961       1/1
+
+Windows-PC / markers / polygon-fill / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.156        7.062      0.447       1/1
+       100 cairo/none          3.156        6.273      0.503       1/1
+      1000 cairo/default        6.183       10.833      0.571       1/1
+      1000 cairo/none          6.183        9.345      0.662       1/1
+      5000 cairo/default       13.645       26.415      0.517       1/1
+      5000 cairo/none         13.645       20.516      0.665       1/1
+
+Windows-PC / markers / polygon-fill / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.396        1.139      0.348       1/1
+       100 cairo/none          0.396        1.017      0.389       1/1
+      1000 cairo/default        2.005        4.553       0.44       1/1
+      1000 cairo/none          2.005        2.985      0.672       1/1
+      5000 cairo/default        8.905       17.235      0.517       1/1
+      5000 cairo/none          8.905       13.210      0.674       1/1
+
+Windows-PC / markers / polygon-fill / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.815        2.429      1.159       1/1
+       100 cairo/none          2.815        2.151      1.309       1/1
+      1000 cairo/default       11.557       17.279      0.669       1/1
+      1000 cairo/none         11.557       14.076      0.821       1/1
+      5000 cairo/default       84.084       91.992      0.914       1/1
+      5000 cairo/none         84.084       87.390      0.962       1/1
+
+Windows-PC / markers / polygon-fill / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.405        1.071      0.378       1/1
+       100 cairo/none          0.405        0.828      0.489       1/1
+      1000 cairo/default        1.935        3.822      0.506       1/1
+      1000 cairo/none          1.935        3.254      0.595       1/1
+      5000 cairo/default        8.269       16.480      0.502       1/1
+      5000 cairo/none          8.269       13.349      0.619       1/1
+
+Windows-PC / markers / polygon-outline / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.163        8.018      0.394       1/1
+       100 cairo/none          3.163        5.942      0.532       1/1
+      1000 cairo/default        3.721       11.127      0.334       1/1
+      1000 cairo/none          3.721        8.232      0.452       1/1
+      5000 cairo/default        6.677       21.154      0.316       1/1
+      5000 cairo/none          6.677       14.196       0.47       1/1
+
+Windows-PC / markers / polygon-outline / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.518        8.211       0.55       1/1
+       100 cairo/none          4.518        7.738      0.584       1/1
+      1000 cairo/default       14.858       20.850      0.713       1/1
+      1000 cairo/none         14.858       18.924      0.785       1/1
+      5000 cairo/default       80.897       99.501      0.813       1/1
+      5000 cairo/none         80.897       90.427      0.895       1/1
+
+Windows-PC / markers / polygon-outline / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.283        7.822       0.42       1/1
+       100 cairo/none          3.283        6.062      0.542       1/1
+      1000 cairo/default        3.642       11.503      0.317       1/1
+      1000 cairo/none          3.642        8.759      0.416       1/1
+      5000 cairo/default        5.235       19.979      0.262       1/1
+      5000 cairo/none          5.235       13.845      0.378       1/1
+
+Windows-PC / markers / polygon-outline / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.331        0.943      0.351       1/1
+       100 cairo/none          0.331        0.896      0.369       1/1
+      1000 cairo/default        0.677        3.429      0.197       1/1
+      1000 cairo/none          0.677        1.967      0.344       1/1
+      5000 cairo/default        1.987       11.820      0.168       1/1
+      5000 cairo/none          1.987        7.060      0.281       1/1
+
+Windows-PC / markers / polygon-outline / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.543        3.188      0.484       1/1
+       100 cairo/none          1.543        2.590      0.596       1/1
+      1000 cairo/default       11.638       12.992      0.896       1/1
+      1000 cairo/none         11.638       11.047      1.053       1/1
+      5000 cairo/default       77.193       91.063      0.848       1/1
+      5000 cairo/none         77.193       83.016       0.93       1/1
+
+Windows-PC / markers / polygon-outline / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        0.253        1.176      0.215       1/1
+       100 cairo/none          0.253        0.735      0.344       1/1
+      1000 cairo/default        0.560        3.317      0.169       1/1
+      1000 cairo/none          0.560        1.584      0.354       1/1
+      5000 cairo/default        1.262       12.221      0.103       1/1
+      5000 cairo/none          1.262        6.296        0.2       1/1
+
+Windows-PC / markers / text-0 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.148        4.032      1.029       1/1
+       100 cairo/none          4.148        4.298      0.965       1/1
+      1000 cairo/default       14.240       12.713       1.12       1/1
+      1000 cairo/none         14.240       13.414      1.062       1/1
+      5000 cairo/default       48.372       46.791      1.034       1/1
+      5000 cairo/none         48.372       47.860      1.011       1/1
+
+Windows-PC / markers / text-0 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        5.427        5.725      0.948       1/1
+       100 cairo/none          5.427        6.513      0.833       1/1
+      1000 cairo/default       27.128       27.139        1.0       1/1
+      1000 cairo/none         27.128       28.035      0.968       1/1
+      5000 cairo/default      126.143      128.283      0.983       1/1
+      5000 cairo/none        126.143      129.139      0.977       1/1
+
+Windows-PC / markers / text-0 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.152        4.161      0.998       1/1
+       100 cairo/none          4.152        4.252      0.976       1/1
+      1000 cairo/default       13.321       13.997      0.952       1/1
+      1000 cairo/none         13.321       13.699      0.972       1/1
+      5000 cairo/default       46.507       46.894      0.992       1/1
+      5000 cairo/none         46.507       46.769      0.994       1/1
+
+Windows-PC / markers / text-0 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.393        1.247      1.117       1/1
+       100 cairo/none          1.393        1.080       1.29       1/1
+      1000 cairo/default        9.289        9.674       0.96       1/1
+      1000 cairo/none          9.289        9.961      0.933       1/1
+      5000 cairo/default       45.501       45.030       1.01       1/1
+      5000 cairo/none         45.501       46.066      0.988       1/1
+
+Windows-PC / markers / text-0 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        3.900        3.377      1.155       1/1
+       100 cairo/none          3.900        3.436      1.135       1/1
+      1000 cairo/default       25.450       25.661      0.992       1/1
+      1000 cairo/none         25.450       26.077      0.976       1/1
+      5000 cairo/default      128.423      128.951      0.996       1/1
+      5000 cairo/none        128.423      125.522      1.023       1/1
+
+Windows-PC / markers / text-0 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.162        1.060      1.096       1/1
+       100 cairo/none          1.162        1.537      0.756       1/1
+      1000 cairo/default        9.149        9.809      0.933       1/1
+      1000 cairo/none          9.149        9.975      0.917       1/1
+      5000 cairo/default       45.898       44.140       1.04       1/1
+      5000 cairo/none         45.898       45.786      1.002       1/1
+
+Windows-PC / markers / text-45 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.976        5.673      0.877       1/1
+       100 cairo/none          4.976        5.059      0.984       1/1
+      1000 cairo/default       20.417       20.969      0.974       1/1
+      1000 cairo/none         20.417       21.464      0.951       1/1
+      5000 cairo/default       81.666       81.963      0.996       1/1
+      5000 cairo/none         81.666       81.352      1.004       1/1
+
+Windows-PC / markers / text-45 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        7.258        6.660       1.09       1/1
+       100 cairo/none          7.258        6.732      1.078       1/1
+      1000 cairo/default       38.142       36.284      1.051       1/1
+      1000 cairo/none         38.142       36.620      1.042       1/1
+      5000 cairo/default      162.449      160.967      1.009       1/1
+      5000 cairo/none        162.449      158.214      1.027       1/1
+
+Windows-PC / markers / text-45 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        5.504        5.164      1.066       1/1
+       100 cairo/none          5.504        4.713      1.168       1/1
+      1000 cairo/default       20.874       22.406      0.932       1/1
+      1000 cairo/none         20.874       20.830      1.002       1/1
+      5000 cairo/default       83.430       82.287      1.014       1/1
+      5000 cairo/none         83.430       82.073      1.017       1/1
+
+Windows-PC / markers / text-45 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        2.227        1.664      1.338       1/1
+       100 cairo/none          2.227        1.722      1.293       1/1
+      1000 cairo/default       15.935       16.530      0.964       1/1
+      1000 cairo/none         15.935       16.103       0.99       1/1
+      5000 cairo/default       78.227       77.785      1.006       1/1
+      5000 cairo/none         78.227       77.789      1.006       1/1
+
+Windows-PC / markers / text-45 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        4.717        3.969      1.188       1/1
+       100 cairo/none          4.717        4.568      1.033       1/1
+      1000 cairo/default       30.435       32.744      0.929       1/1
+      1000 cairo/none         30.435       32.208      0.945       1/1
+      5000 cairo/default      160.190      158.669       1.01       1/1
+      5000 cairo/none        160.190      157.797      1.015       1/1
+
+Windows-PC / markers / text-45 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+       100 cairo/default        1.630        1.603      1.017       1/1
+       100 cairo/none          1.630        1.748      0.932       1/1
+      1000 cairo/default       16.153       15.325      1.054       1/1
+      1000 cairo/none         16.153       15.691      1.029       1/1
+      5000 cairo/default       77.987       77.318      1.009       1/1
+      5000 cairo/none         77.987       77.792      1.003       1/1
+
+Windows-PC / mixed / scale-1 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       50.500      324.074      0.156       1/1
+    232750 cairo/none         50.500      126.957      0.398       1/1
+
+Windows-PC / mixed / scale-1 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       64.988      330.561      0.197       1/1
+    232750 cairo/none         64.988      138.914      0.468       1/1
+
+Windows-PC / mixed / scale-1 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       44.040      315.796      0.139       1/1
+    232750 cairo/none         44.040      120.576      0.365       1/1
+
+Windows-PC / mixed / scale-1 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       46.363      231.078      0.201       1/1
+    232750 cairo/none         46.363      100.917      0.459       1/1
+
+Windows-PC / mixed / scale-1 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       56.681      248.566      0.228       1/1
+    232750 cairo/none         56.681      111.431      0.509       1/1
+
+Windows-PC / mixed / scale-1 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    232750 cairo/default       38.901      226.719      0.172       1/1
+    232750 cairo/none         38.901       92.907      0.419       1/1
+
+Windows-PC / mixed / scale-2 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       95.634      495.677      0.193       1/1
+    465500 cairo/none         95.634      216.154      0.442       1/1
+
+Windows-PC / mixed / scale-2 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default      120.888      514.508      0.235       1/1
+    465500 cairo/none        120.888      243.381      0.497       1/1
+
+Windows-PC / mixed / scale-2 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       82.130      478.764      0.172       1/1
+    465500 cairo/none         82.130      213.707      0.384       1/1
+
+Windows-PC / mixed / scale-2 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       89.281      390.248      0.229       1/1
+    465500 cairo/none         89.281      188.026      0.475       1/1
+
+Windows-PC / mixed / scale-2 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default      114.686      421.574      0.272       1/1
+    465500 cairo/none        114.686      209.112      0.548       1/1
+
+Windows-PC / mixed / scale-2 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+    465500 cairo/default       76.747      382.542      0.201       1/1
+    465500 cairo/none         76.747      172.455      0.445       1/1
+
+Windows-PC / strip / decimate=auto / append-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.110        3.053      1.346       1/1
+     10000 cairo/none          4.110        3.398       1.21       1/1
+    100000 cairo/default        3.674        3.654      1.005       1/1
+    100000 cairo/none          3.674        3.743      0.982       1/1
+   1000000 cairo/default        4.924        4.933      0.998       1/1
+   1000000 cairo/none          4.924        4.982      0.988       1/1
+
+Windows-PC / strip / decimate=auto / array-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.134        3.613      1.144       1/1
+     10000 cairo/none          4.134        3.333       1.24       1/1
+    100000 cairo/default        3.991        3.965      1.007       1/1
+    100000 cairo/none          3.991        3.981      1.003       1/1
+   1000000 cairo/default        7.361        5.313      1.385       1/1
+   1000000 cairo/none          7.361        5.290      1.391       1/1
+
+Windows-PC / strip / decimate=auto / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.056        3.385      1.198       1/1
+     10000 cairo/none          4.056        3.661      1.108       1/1
+    100000 cairo/default        4.029        3.944      1.022       1/1
+    100000 cairo/none          4.029        3.996      1.008       1/1
+   1000000 cairo/default        5.590        5.513      1.014       1/1
+   1000000 cairo/none          5.590        5.436      1.028       1/1
+
+Windows-PC / strip / decimate=auto / closest / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.041        0.002       20.5       1/1
+     10000 cairo/none          0.041        0.001       41.0       1/1
+    100000 cairo/default        0.006        0.006        1.0       1/1
+    100000 cairo/none          0.006        0.006        1.0       1/1
+   1000000 cairo/default        0.046        0.045      1.022       1/1
+   1000000 cairo/none          0.046        0.046        1.0       1/1
+
+Windows-PC / strip / decimate=auto / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.881        3.748      1.302       1/1
+     10000 cairo/none          4.881        4.214      1.158       1/1
+    100000 cairo/default        4.192        4.610      0.909       1/1
+    100000 cairo/none          4.192        4.209      0.996       1/1
+   1000000 cairo/default        8.094        9.479      0.854       1/1
+   1000000 cairo/none          8.094        9.481      0.854       1/1
+
+Windows-PC / strip / decimate=auto / index-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.329        3.216      1.346       1/1
+     10000 cairo/none          4.329        3.354      1.291       1/1
+    100000 cairo/default        3.944        3.753      1.051       1/1
+    100000 cairo/none          3.944        3.758      1.049       1/1
+   1000000 cairo/default        5.431        4.895      1.109       1/1
+   1000000 cairo/none          5.431        4.964      1.094       1/1
+
+Windows-PC / strip / decimate=auto / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        3.649        2.965      1.231       1/1
+     10000 cairo/none          3.649        2.917      1.251       1/1
+    100000 cairo/default        3.126        2.993      1.044       1/1
+    100000 cairo/none          3.126        2.850      1.097       1/1
+   1000000 cairo/default        2.978        3.151      0.945       1/1
+   1000000 cairo/none          2.978        3.242      0.919       1/1
+
+Windows-PC / strip / decimate=auto / append-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.352        0.340      1.035       1/1
+     10000 cairo/none          0.352        0.423      0.832       1/1
+    100000 cairo/default        0.483        0.597      0.809       1/1
+    100000 cairo/none          0.483        0.618      0.782       1/1
+   1000000 cairo/default        0.674        0.651      1.035       1/1
+   1000000 cairo/none          0.674        0.751      0.897       1/1
+
+Windows-PC / strip / decimate=auto / array-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.386        0.344      1.122       1/1
+     10000 cairo/none          0.386        0.384      1.005       1/1
+    100000 cairo/default        0.595        0.520      1.144       1/1
+    100000 cairo/none          0.595        0.568      1.048       1/1
+   1000000 cairo/default        0.583        0.816      0.714       1/1
+   1000000 cairo/none          0.583        2.403      0.243       1/1
+
+Windows-PC / strip / decimate=auto / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.477        0.424      1.125       1/1
+     10000 cairo/none          0.477        0.363      1.314       1/1
+    100000 cairo/default        0.496        0.533      0.931       1/1
+    100000 cairo/none          0.496        0.601      0.825       1/1
+   1000000 cairo/default        0.673        0.906      0.743       1/1
+   1000000 cairo/none          0.673        0.784      0.858       1/1
+
+Windows-PC / strip / decimate=auto / closest / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.004        0.004        1.0       1/1
+     10000 cairo/none          0.004        0.002        2.0       1/1
+    100000 cairo/default        0.014        0.015      0.933       1/1
+    100000 cairo/none          0.014        0.024      0.583       1/1
+   1000000 cairo/default        0.132        0.196      0.673       1/1
+   1000000 cairo/none          0.132        0.135      0.978       1/1
+
+Windows-PC / strip / decimate=auto / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.757        0.720       2.44       1/1
+     10000 cairo/none          1.757        0.859      2.045       1/1
+    100000 cairo/default        1.023        1.452      0.705       1/1
+    100000 cairo/none          1.023        1.443      0.709       1/1
+   1000000 cairo/default        5.989        4.857      1.233       1/1
+   1000000 cairo/none          5.989        4.683      1.279       1/1
+
+Windows-PC / strip / decimate=auto / index-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.356        0.405      0.879       1/1
+     10000 cairo/none          0.356        0.358      0.994       1/1
+    100000 cairo/default        0.489        0.480      1.019       1/1
+    100000 cairo/none          0.489        0.604       0.81       1/1
+   1000000 cairo/default        0.584        0.539      1.083       1/1
+   1000000 cairo/none          0.584        0.790      0.739       1/1
+
+Windows-PC / strip / decimate=auto / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.349        0.358      0.975       1/1
+     10000 cairo/none          0.349        0.226      1.544       1/1
+    100000 cairo/default        0.230        0.290      0.793       1/1
+    100000 cairo/none          0.230        0.445      0.517       1/1
+   1000000 cairo/default        0.238        0.540      0.441       1/1
+   1000000 cairo/none          0.238        0.335       0.71       1/1
+
+Windows-PC / strip / decimate=none / append-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.510       41.474      0.109       1/1
+     10000 cairo/none          4.510       11.039      0.409       1/1
+    100000 cairo/default       11.027       63.002      0.175       1/1
+    100000 cairo/none         11.027       28.586      0.386       1/1
+   1000000 cairo/default       67.513      240.250      0.281       1/1
+   1000000 cairo/none         67.513      164.330      0.411       1/1
+
+Windows-PC / strip / decimate=none / array-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.502       41.762      0.108       1/1
+     10000 cairo/none          4.502       10.672      0.422       1/1
+    100000 cairo/default       10.882       62.857      0.173       1/1
+    100000 cairo/none         10.882       29.330      0.371       1/1
+   1000000 cairo/default       69.476      239.697       0.29       1/1
+   1000000 cairo/none         69.476      164.103      0.423       1/1
+
+Windows-PC / strip / decimate=none / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.381       41.613      0.105       1/1
+     10000 cairo/none          4.381       13.074      0.335       1/1
+    100000 cairo/default       12.512       63.713      0.196       1/1
+    100000 cairo/none         12.512       29.588      0.423       1/1
+   1000000 cairo/default       67.527      241.114       0.28       1/1
+   1000000 cairo/none         67.527      163.267      0.414       1/1
+
+Windows-PC / strip / decimate=none / closest / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.041        0.042      0.976       1/1
+     10000 cairo/none          0.041        0.042      0.976       1/1
+    100000 cairo/default        0.405        0.409       0.99       1/1
+    100000 cairo/none          0.405        0.410      0.988       1/1
+   1000000 cairo/default        4.057        4.003      1.013       1/1
+   1000000 cairo/none          4.057        4.163      0.975       1/1
+
+Windows-PC / strip / decimate=none / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.520       45.490      0.099       1/1
+     10000 cairo/none          4.520       10.784      0.419       1/1
+    100000 cairo/default       10.952       66.360      0.165       1/1
+    100000 cairo/none         10.952       35.851      0.305       1/1
+   1000000 cairo/default       71.103      243.520      0.292       1/1
+   1000000 cairo/none         71.103      167.124      0.425       1/1
+
+Windows-PC / strip / decimate=none / index-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.480       41.648      0.108       1/1
+     10000 cairo/none          4.480       10.507      0.426       1/1
+    100000 cairo/default       11.001       61.960      0.178       1/1
+    100000 cairo/none         11.001       28.701      0.383       1/1
+   1000000 cairo/default       67.135      241.765      0.278       1/1
+   1000000 cairo/none         67.135      164.210      0.409       1/1
+
+Windows-PC / strip / decimate=none / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        4.114       40.991        0.1       1/1
+     10000 cairo/none          4.114       11.592      0.355       1/1
+    100000 cairo/default        9.186       58.679      0.157       1/1
+    100000 cairo/none          9.186       27.115      0.339       1/1
+   1000000 cairo/default       29.820      204.651      0.146       1/1
+   1000000 cairo/none         29.820      127.858      0.233       1/1
+
+Windows-PC / strip / decimate=none / append-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.085       17.715      0.061       1/1
+     10000 cairo/none          1.085        4.803      0.226       1/1
+    100000 cairo/default        7.139       39.904      0.179       1/1
+    100000 cairo/none          7.139       22.038      0.324       1/1
+   1000000 cairo/default       63.285      190.119      0.333       1/1
+   1000000 cairo/none         63.285      138.103      0.458       1/1
+
+Windows-PC / strip / decimate=none / array-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.170       17.708      0.066       1/1
+     10000 cairo/none          1.170        4.087      0.286       1/1
+    100000 cairo/default        7.725       40.112      0.193       1/1
+    100000 cairo/none          7.725       23.810      0.324       1/1
+   1000000 cairo/default       63.181      190.866      0.331       1/1
+   1000000 cairo/none         63.181      137.573      0.459       1/1
+
+Windows-PC / strip / decimate=none / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.081       17.786      0.061       1/1
+     10000 cairo/none          1.081        4.971      0.217       1/1
+    100000 cairo/default        7.663       40.624      0.189       1/1
+    100000 cairo/none          7.663       23.188       0.33       1/1
+   1000000 cairo/default       64.089      188.700       0.34       1/1
+   1000000 cairo/none         64.089      139.545      0.459       1/1
+
+Windows-PC / strip / decimate=none / closest / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.041        0.042      0.976       1/1
+     10000 cairo/none          0.041        0.042      0.976       1/1
+    100000 cairo/default        0.408        0.411      0.993       1/1
+    100000 cairo/none          0.408        0.408        1.0       1/1
+   1000000 cairo/default        4.077        4.259      0.957       1/1
+   1000000 cairo/none          4.077        4.122      0.989       1/1
+
+Windows-PC / strip / decimate=none / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        2.357       20.269      0.116       1/1
+     10000 cairo/none          2.357        5.175      0.455       1/1
+    100000 cairo/default        7.909       43.662      0.181       1/1
+    100000 cairo/none          7.909       28.455      0.278       1/1
+   1000000 cairo/default       64.213      194.469       0.33       1/1
+   1000000 cairo/none         64.213      143.598      0.447       1/1
+
+Windows-PC / strip / decimate=none / index-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        1.188       17.687      0.067       1/1
+     10000 cairo/none          1.188        4.019      0.296       1/1
+    100000 cairo/default        7.289       39.994      0.182       1/1
+    100000 cairo/none          7.289       22.969      0.317       1/1
+   1000000 cairo/default       62.734      192.563      0.326       1/1
+   1000000 cairo/none         62.734      138.272      0.454       1/1
+
+Windows-PC / strip / decimate=none / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+     10000 cairo/default        0.730       17.284      0.042       1/1
+     10000 cairo/none          0.730        4.315      0.169       1/1
+    100000 cairo/default        3.596       36.588      0.098       1/1
+    100000 cairo/none          3.596       19.481      0.185       1/1
+   1000000 cairo/default       26.020      151.748      0.171       1/1
+   1000000 cairo/none         26.020      102.506      0.254       1/1
+
+Windows-PC / symbols / circle-7 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.522       18.932      0.239       1/1
+      1000 cairo/none          4.522       10.231      0.442       1/1
+     10000 cairo/default       18.082      121.159      0.149       1/1
+     10000 cairo/none         18.082       47.909      0.377       1/1
+    100000 cairo/default      128.445      813.578      0.158       1/1
+    100000 cairo/none        128.445      351.778      0.365       1/1
+
+Windows-PC / symbols / circle-7 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.675       22.053      0.212       1/1
+      1000 cairo/none          4.675       10.497      0.445       1/1
+     10000 cairo/default       17.462      123.937      0.141       1/1
+     10000 cairo/none         17.462       49.659      0.352       1/1
+    100000 cairo/default      133.422      818.889      0.163       1/1
+    100000 cairo/none        133.422      357.030      0.374       1/1
+
+Windows-PC / symbols / circle-7 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.471       18.491      0.242       1/1
+      1000 cairo/none          4.471       10.501      0.426       1/1
+     10000 cairo/default       16.504      121.099      0.136       1/1
+     10000 cairo/none         16.504       48.156      0.343       1/1
+    100000 cairo/default      126.446      818.834      0.154       1/1
+    100000 cairo/none        126.446      348.016      0.363       1/1
+
+Windows-PC / symbols / circle-7 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.575       13.449      0.117       1/1
+      1000 cairo/none          1.575        5.522      0.285       1/1
+     10000 cairo/default       13.373      105.976      0.126       1/1
+     10000 cairo/none         13.373       41.213      0.324       1/1
+    100000 cairo/default      124.754      712.619      0.175       1/1
+    100000 cairo/none        124.754      337.386       0.37       1/1
+
+Windows-PC / symbols / circle-7 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.112       15.081       0.14       1/1
+      1000 cairo/none          2.112        5.822      0.363       1/1
+     10000 cairo/default       14.305      115.824      0.124       1/1
+     10000 cairo/none         14.305       43.327       0.33       1/1
+    100000 cairo/default      127.605      777.479      0.164       1/1
+    100000 cairo/none        127.605      406.083      0.314       1/1
+
+Windows-PC / symbols / circle-7 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.484       13.861      0.107       1/1
+      1000 cairo/none          1.484        5.583      0.266       1/1
+     10000 cairo/default       13.460      105.380      0.128       1/1
+     10000 cairo/none         13.460       41.836      0.322       1/1
+    100000 cairo/default      123.466      768.717      0.161       1/1
+    100000 cairo/none        123.466      343.369       0.36       1/1
+
+Windows-PC / symbols / diamond-7 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.692       11.995      0.308       1/1
+      1000 cairo/none          3.692        7.013      0.526       1/1
+     10000 cairo/default       10.685       57.195      0.187       1/1
+     10000 cairo/none         10.685       19.792       0.54       1/1
+    100000 cairo/default       53.110      359.806      0.148       1/1
+    100000 cairo/none         53.110      130.306      0.408       1/1
+
+Windows-PC / symbols / diamond-7 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.087       12.067      0.339       1/1
+      1000 cairo/none          4.087        7.636      0.535       1/1
+     10000 cairo/default       10.620       61.263      0.173       1/1
+     10000 cairo/none         10.620       20.865      0.509       1/1
+    100000 cairo/default       55.861      360.248      0.155       1/1
+    100000 cairo/none         55.861      133.509      0.418       1/1
+
+Windows-PC / symbols / diamond-7 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.799       11.051      0.344       1/1
+      1000 cairo/none          3.799        6.703      0.567       1/1
+     10000 cairo/default       11.170       58.893       0.19       1/1
+     10000 cairo/none         11.170       21.653      0.516       1/1
+    100000 cairo/default       52.889      357.530      0.148       1/1
+    100000 cairo/none         52.889      128.118      0.413       1/1
+
+Windows-PC / symbols / diamond-7 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.115        5.845      0.191       1/1
+      1000 cairo/none          1.115        1.923       0.58       1/1
+     10000 cairo/default        6.428       43.410      0.148       1/1
+     10000 cairo/none          6.428       13.073      0.492       1/1
+    100000 cairo/default       51.180      315.896      0.162       1/1
+    100000 cairo/none         51.180      109.490      0.467       1/1
+
+Windows-PC / symbols / diamond-7 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.558        6.075      0.256       1/1
+      1000 cairo/none          1.558        2.990      0.521       1/1
+     10000 cairo/default        6.715       46.865      0.143       1/1
+     10000 cairo/none          6.715       14.409      0.466       1/1
+    100000 cairo/default       55.932      316.476      0.177       1/1
+    100000 cairo/none         55.932      113.669      0.492       1/1
+
+Windows-PC / symbols / diamond-7 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.010        6.144      0.164       1/1
+      1000 cairo/none          1.010        1.758      0.575       1/1
+     10000 cairo/default        6.067       43.435       0.14       1/1
+     10000 cairo/none          6.067       12.760      0.475       1/1
+    100000 cairo/default       49.902      312.535       0.16       1/1
+    100000 cairo/none         49.902      106.978      0.466       1/1
+
+Windows-PC / symbols / plus-7 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.011        9.546      0.525       1/1
+      1000 cairo/none          5.011       26.509      0.189       1/1
+     10000 cairo/default       16.861       36.937      0.456       1/1
+     10000 cairo/none         16.861      152.282      0.111       1/1
+    100000 cairo/default       78.731      293.007      0.269       1/1
+    100000 cairo/none         78.731      454.830      0.173       1/1
+
+Windows-PC / symbols / plus-7 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        6.007       10.032      0.599       1/1
+      1000 cairo/none          6.007       27.607      0.218       1/1
+     10000 cairo/default       15.304       40.676      0.376       1/1
+     10000 cairo/none         15.304      155.191      0.099       1/1
+    100000 cairo/default       81.431      293.716      0.277       1/1
+    100000 cairo/none         81.431      458.143      0.178       1/1
+
+Windows-PC / symbols / plus-7 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.238       11.078      0.473       1/1
+      1000 cairo/none          5.238       25.810      0.203       1/1
+     10000 cairo/default       14.657       38.153      0.384       1/1
+     10000 cairo/none         14.657      150.363      0.097       1/1
+    100000 cairo/default       78.786      289.954      0.272       1/1
+    100000 cairo/none         78.786      453.174      0.174       1/1
+
+Windows-PC / symbols / plus-7 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.934        4.300       0.45       1/1
+      1000 cairo/none          1.934       20.368      0.095       1/1
+     10000 cairo/default       10.517       28.675      0.367       1/1
+     10000 cairo/none         10.517       75.352       0.14       1/1
+    100000 cairo/default       74.190      273.884      0.271       1/1
+    100000 cairo/none         74.190      319.281      0.232       1/1
+
+Windows-PC / symbols / plus-7 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.426        5.171      0.469       1/1
+      1000 cairo/none          2.426       21.737      0.112       1/1
+     10000 cairo/default       11.307       31.690      0.357       1/1
+     10000 cairo/none         11.307       79.435      0.142       1/1
+    100000 cairo/default       77.602      277.483       0.28       1/1
+    100000 cairo/none         77.602      323.524       0.24       1/1
+
+Windows-PC / symbols / plus-7 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.901        4.551      0.418       1/1
+      1000 cairo/none          1.901       20.667      0.092       1/1
+     10000 cairo/default        9.910       29.326      0.338       1/1
+     10000 cairo/none          9.910       75.163      0.132       1/1
+    100000 cairo/default       72.046      272.185      0.265       1/1
+    100000 cairo/none         72.046      316.397      0.228       1/1
+
+Windows-PC / symbols / square-7 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.014        8.020        0.5       1/1
+      1000 cairo/none          4.014       11.478       0.35       1/1
+     10000 cairo/default        8.738       19.044      0.459       1/1
+     10000 cairo/none          8.738       76.655      0.114       1/1
+    100000 cairo/default       37.731      108.395      0.348       1/1
+    100000 cairo/none         37.731      134.778       0.28       1/1
+
+Windows-PC / symbols / square-7 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.966        7.197      0.551       1/1
+      1000 cairo/none          3.966       12.364      0.321       1/1
+     10000 cairo/default        9.560       18.147      0.527       1/1
+     10000 cairo/none          9.560       77.136      0.124       1/1
+    100000 cairo/default       42.938      110.913      0.387       1/1
+    100000 cairo/none         42.938      139.506      0.308       1/1
+
+Windows-PC / symbols / square-7 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        3.816        7.032      0.543       1/1
+      1000 cairo/none          3.816       12.088      0.316       1/1
+     10000 cairo/default        9.920       20.256       0.49       1/1
+     10000 cairo/none          9.920       76.410       0.13       1/1
+    100000 cairo/default       36.822      106.495      0.346       1/1
+    100000 cairo/none         36.822      132.518      0.278       1/1
+
+Windows-PC / symbols / square-7 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.917        1.908      0.481       1/1
+      1000 cairo/none          0.917        8.435      0.109       1/1
+     10000 cairo/default        4.968       10.167      0.489       1/1
+     10000 cairo/none          4.968       35.692      0.139       1/1
+    100000 cairo/default       33.413       76.614      0.436       1/1
+    100000 cairo/none         33.413       83.999      0.398       1/1
+
+Windows-PC / symbols / square-7 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.465        3.727      0.393       1/1
+      1000 cairo/none          1.465        9.146       0.16       1/1
+     10000 cairo/default        5.322       10.949      0.486       1/1
+     10000 cairo/none          5.322       38.071       0.14       1/1
+    100000 cairo/default       39.379       77.834      0.506       1/1
+    100000 cairo/none         39.379       86.598      0.455       1/1
+
+Windows-PC / symbols / square-7 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        0.921        2.015      0.457       1/1
+      1000 cairo/none          0.921        8.466      0.109       1/1
+     10000 cairo/default        5.690        9.741      0.584       1/1
+     10000 cairo/none          5.690       36.346      0.157       1/1
+    100000 cairo/default       32.647       74.644      0.437       1/1
+    100000 cairo/none         32.647       81.847      0.399       1/1
+
+Windows-PC / symbols / trace+circle-7 / axis-remap / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.014       34.411      0.146       1/1
+      1000 cairo/none          5.014       15.295      0.328       1/1
+     10000 cairo/default       18.187      161.197      0.113       1/1
+     10000 cairo/none         18.187       57.714      0.315       1/1
+    100000 cairo/default      131.283      891.692      0.147       1/1
+    100000 cairo/none        131.283      379.894      0.346       1/1
+
+Windows-PC / symbols / trace+circle-7 / create / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        5.864       37.718      0.155       1/1
+      1000 cairo/none          5.864       13.928      0.421       1/1
+     10000 cairo/default       18.238      174.931      0.104       1/1
+     10000 cairo/none         18.238       59.689      0.306       1/1
+    100000 cairo/default      135.448      893.029      0.152       1/1
+    100000 cairo/none        135.448      381.592      0.355       1/1
+
+Windows-PC / symbols / trace+circle-7 / redraw / 1920x1080
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        4.715       35.052      0.135       1/1
+      1000 cairo/none          4.715       13.705      0.344       1/1
+     10000 cairo/default       16.387      172.895      0.095       1/1
+     10000 cairo/none         16.387       56.706      0.289       1/1
+    100000 cairo/default      128.690      888.571      0.145       1/1
+    100000 cairo/none        128.690      377.207      0.341       1/1
+
+Windows-PC / symbols / trace+circle-7 / axis-remap / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.584       20.375      0.078       1/1
+      1000 cairo/none          1.584        6.608       0.24       1/1
+     10000 cairo/default       14.027      131.143      0.107       1/1
+     10000 cairo/none         14.027       45.534      0.308       1/1
+    100000 cairo/default      127.755      755.337      0.169       1/1
+    100000 cairo/none        127.755      356.664      0.358       1/1
+
+Windows-PC / symbols / trace+circle-7 / create / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        2.575       23.754      0.108       1/1
+      1000 cairo/none          2.575        6.711      0.384       1/1
+     10000 cairo/default       14.324      128.486      0.111       1/1
+     10000 cairo/none         14.324       49.805      0.288       1/1
+    100000 cairo/default      132.556      757.588      0.175       1/1
+    100000 cairo/none        132.556      361.800      0.366       1/1
+
+Windows-PC / symbols / trace+circle-7 / redraw / 640x480
+Environment: windows {Windows NT} 11.0 amd64 9.0.3 9.0.3 0.5.0 win32
+     count renderer        native-ms     cairo-ms      ratio  runs-n/c
+      1000 cairo/default        1.609       21.737      0.074       1/1
+      1000 cairo/none          1.609        6.576      0.245       1/1
+     10000 cairo/default       13.524      127.427      0.106       1/1
+     10000 cairo/none         13.524       44.719      0.302       1/1
+    100000 cairo/default      125.060      753.916      0.166       1/1
+    100000 cairo/none        125.060      352.308      0.355       1/1
