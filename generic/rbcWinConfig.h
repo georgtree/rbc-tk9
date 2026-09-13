@@ -64,7 +64,11 @@
 #define SIZEOF_LONG_LONG 8
 
 /* The number of bytes in a void *.  */
+#ifdef _WIN64
+#define SIZEOF_VOID_P 8
+#else
 #define SIZEOF_VOID_P 4
+#endif
 
 /* Define if you have the XExtendedMaxRequestSize function.  */
 #undef HAVE_XEXTENDEDMAXREQUESTSIZE
@@ -84,6 +88,10 @@
 #ifndef __BORLANDC__
 /* Define if you have the strcasecmp function.  */
 #define HAVE_STRCASECMP 1
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#endif
 
 /* Define if you have the strncasecmp function.  */
 #define HAVE_STRNCASECMP 1

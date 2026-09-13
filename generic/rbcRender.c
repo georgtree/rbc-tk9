@@ -6,8 +6,14 @@
 
 #ifdef RBC_HAVE_CAIRO
 #include <cairo.h>
+#if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 12, 0)
+#error RBC requires Cairo 1.12 or newer.
+#endif
 #ifdef WIN32
 #include <cairo-win32.h>
+#if !CAIRO_HAS_WIN32_SURFACE
+#error Cairo must be built with Win32 surface support.
+#endif
 #else
 #include <cairo-xlib.h>
 #endif

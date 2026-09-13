@@ -42,7 +42,7 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 - The Tcl [argparse package](https://github.com/georgtree/argparse).
 - A graphical environment supported by the Tk installation.
 
-The supported build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64. Tcl/Tk 8.x
+The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.
 
 The current package loader loads `graphtoolbar.tcl` as part of `package require rbc`, so `argparse` is required even
@@ -109,6 +109,14 @@ locations remain accessible.
 
 The selected Tcl/Tk shared libraries must also be discoverable by the system dynamic loader. The Makefile supplies the
 build-directory environment for its `test` and `shell` targets.
+
+### Windows with MSVC
+
+The Nmake build in `win` supports Tcl/Tk 9 and optional Cairo. It requires MSVC-built
+Tcl/Tk source trees and matching libraries; use MSVC Cairo libraries rather than
+MSYS2 import archives. See [the MSVC build instructions](win/README.md) for dependency
+setup, `CAIRO=1`, testing, and installation. Autoconf flags below apply to the
+Unix/MSYS2 build, not to Nmake.
 
 ### Windows with MSYS2/UCRT64
 

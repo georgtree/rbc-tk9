@@ -1,22 +1,6 @@
-#------------------------------------------------------------- -*- makefile -*-
-#
-# Makefile for rbc
-#
-# Basic build, test and install
-#   nmake /f makefile.vc INSTALLDIR=c:\tcl TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
-#   nmake /f makefile.vc INSTALLDIR=c:\tcl test TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
-#   nmake /f makefile.vc INSTALLDIR=c:\tcl install TCLDIR=c:\path\to\tcl\sources TKDIR=c:\path\to\tk\sources
-# Note this extension needs both Tcl and Tk *source* to build.
-#
-# For other build options (debug, static etc.),
-# See TIP 477 (https://core.tcl.tk/tips/doc/trunk/tip/477.md) for
-# detailed documentation.
-# 
-# See the file "license.terms" for information on usage and redistribution
-# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
-#
-#------------------------------------------------------------------------------
-
+# Nmake build for Tcl/Tk 9. Run from win in a Visual Studio developer prompt.
+# See README.md in this directory for prerequisites and examples.
+# See license.terms for redistribution terms.
 
 PROJECT = rbc
 NEED_TK = 1
@@ -25,59 +9,134 @@ NEED_TCL_SOURCE = 1
 
 !include "rules-ext.vc"
 
+!if $(TCL_MAJOR_VERSION) != 9 || $(TK_MAJOR_VERSION) != 9
+!error This build requires Tcl 9 and Tk 9 sources and libraries.
+!endif
+!if $(STATIC_BUILD)
+!error This makefile builds the loadable RBC DLL; omit OPTS=static.
+!endif
+
+!ifndef CAIRO
+CAIRO = 0
+!endif
+!if $(CAIRO) != 0 && $(CAIRO) != 1
+!error CAIRO must be 0 or 1.
+!endif
+
+# Separate native and Cairo objects and package directories.
+!if $(CAIRO)
+TMP_DIR = $(TMP_DIR)-cairo
+OUT_DIR = $(OUT_DIR)-cairo
+!endif
+
 PRJ_OBJS = \
-     $(TMP_DIR)\rbcAlloc.obj \
-     $(TMP_DIR)\rbcBind.obj \
-     $(TMP_DIR)\rbcCanvEps.obj \
-     $(TMP_DIR)\rbcChain.obj \
-     $(TMP_DIR)\rbcColor.obj \
-     $(TMP_DIR)\rbcConfig.obj \
-     $(TMP_DIR)\rbcGraph.obj \
-     $(TMP_DIR)\rbcGrAxis.obj \
-     $(TMP_DIR)\rbcGrBar.obj \
-     $(TMP_DIR)\rbcGrElem.obj \
-     $(TMP_DIR)\rbcGrGrid.obj \
-     $(TMP_DIR)\rbcGrHairs.obj \
-     $(TMP_DIR)\rbcGrLegd.obj \
-     $(TMP_DIR)\rbcGrLine.obj \
-     $(TMP_DIR)\rbcGrMarker.obj \
-     $(TMP_DIR)\rbcGrMisc.obj \
-     $(TMP_DIR)\rbcGrPen.obj \
-     $(TMP_DIR)\rbcGrPs.obj \
-     $(TMP_DIR)\rbcImage.obj \
-     $(TMP_DIR)\rbcInt.obj \
-     $(TMP_DIR)\rbcList.obj \
-     $(TMP_DIR)\rbcParse.obj \
-     $(TMP_DIR)\rbcPs.obj \
-     $(TMP_DIR)\rbcSpline.obj \
-     $(TMP_DIR)\rbcText.obj \
-     $(TMP_DIR)\rbcTile.obj \
-     $(TMP_DIR)\rbcUtil.obj \
-     $(TMP_DIR)\rbcVecMath.obj \
-     $(TMP_DIR)\rbcVecCmd.obj \
-     $(TMP_DIR)\rbcVector.obj \
-     $(TMP_DIR)\rbcWinDraw.obj \
-     $(TMP_DIR)\rbcWinImage.obj \
-     $(TMP_DIR)\rbcWindow.obj \
-     $(TMP_DIR)\rbcWinop.obj \
-     $(TMP_DIR)\rbcWinUtil.obj \
-     $(TMP_DIR)\rbcStubInit.obj \
-     $(TMP_DIR)\rbcStubLib.obj
+    $(TMP_DIR)\rbcRender.obj \
+    $(TMP_DIR)\rbcAlloc.obj \
+    $(TMP_DIR)\rbcBind.obj \
+    $(TMP_DIR)\rbcCanvEps.obj \
+    $(TMP_DIR)\rbcChain.obj \
+    $(TMP_DIR)\rbcConfig.obj \
+    $(TMP_DIR)\rbcGraph.obj \
+    $(TMP_DIR)\rbcGrAxis.obj \
+    $(TMP_DIR)\rbcGrBar.obj \
+    $(TMP_DIR)\rbcGrElem.obj \
+    $(TMP_DIR)\rbcGrGrid.obj \
+    $(TMP_DIR)\rbcGrHairs.obj \
+    $(TMP_DIR)\rbcGrLegd.obj \
+    $(TMP_DIR)\rbcGrLine.obj \
+    $(TMP_DIR)\rbcGrMarker.obj \
+    $(TMP_DIR)\rbcGrMisc.obj \
+    $(TMP_DIR)\rbcGrPen.obj \
+    $(TMP_DIR)\rbcGrPolar.obj \
+    $(TMP_DIR)\rbcGrPs.obj \
+    $(TMP_DIR)\rbcImage.obj \
+    $(TMP_DIR)\rbcInt.obj \
+    $(TMP_DIR)\rbcList.obj \
+    $(TMP_DIR)\rbcPs.obj \
+    $(TMP_DIR)\rbcSpline.obj \
+    $(TMP_DIR)\rbcText.obj \
+    $(TMP_DIR)\rbcTile.obj \
+    $(TMP_DIR)\rbcUtil.obj \
+    $(TMP_DIR)\rbcVecMath.obj \
+    $(TMP_DIR)\rbcVecCmd.obj \
+    $(TMP_DIR)\rbcVector.obj \
+    $(TMP_DIR)\rbcWindow.obj \
+    $(TMP_DIR)\rbcWinop.obj \
+    $(TMP_DIR)\rbcStubInit.obj \
+    $(TMP_DIR)\rbcWinDraw.obj \
+    $(TMP_DIR)\rbcWinImage.obj \
+    $(TMP_DIR)\rbcWinUtil.obj
 
 PRJ_STUBOBJS = $(TMP_DIR)\rbcStubLib.obj
+PRJ_HEADERS = $(GENERICDIR)\*.h
+PRJ_HEADERS_PUBLIC = "$(GENERICDIR)\rbc.h" "$(GENERICDIR)\rbcVector.h" "$(GENERICDIR)\rbcDecls.h"
 
-PRJ_DEFINES = -DRBCAPI=MODULE_SCOPE  -D_CRT_SECURE_NO_WARNINGS -DWIN32=1 -wd4244 -wd4267
+# C11 is needed for designated initializers and compound literals.
+PRJ_DEFINES = /std:c11 /utf-8 /DRBCAPI=MODULE_SCOPE /D_CRT_SECURE_NO_WARNINGS /DWIN32=1
+PRJ_LIBS = winspool.lib
 
+!if $(CAIRO)
+!ifndef CAIRODIR
+!error CAIRO=1 requires CAIRODIR (an MSVC Cairo installation prefix).
+!endif
+!ifndef CAIRO_INCLUDES
+CAIRO_INCLUDES = /I"$(CAIRODIR)\include\cairo" /I"$(CAIRODIR)\include"
+!endif
+!ifndef CAIRO_LIBS
+CAIRO_LIBS = "$(CAIRODIR)\lib\cairo.lib"
+!endif
+!ifndef CAIRO_BINDIR
+CAIRO_BINDIR = $(CAIRODIR)\bin
+!endif
+!if !exist("$(CAIRODIR)\include\cairo\cairo.h") && !exist("$(CAIRODIR)\include\cairo.h")
+!error Cannot find cairo.h under CAIRODIR\include.
+!endif
+PRJ_INCLUDES = $(CAIRO_INCLUDES)
+PRJ_DEFINES = $(PRJ_DEFINES) /DRBC_HAVE_CAIRO=1
+PRJ_LIBS = $(PRJ_LIBS) $(CAIRO_LIBS)
+!else
+CAIRO_BINDIR = .
+!endif
+
+DISABLE_TARGET_install = 1
+DISABLE_TARGET_test = 1
+DISABLE_TARGET_shell = 1
 !include "$(_RULESDIR)\targets.vc"
 
-install: default-install-docs-html install-demos
 pkgindex: default-pkgindex-tea
-default-install-libraries: install-prologues install-headers
-install-prologues:
-	@$(CPY) $(LIBDIR)\*.pro "$(SCRIPT_INSTALL_DIR)"
-install-headers:
-	echo "Installing headers to $(INCLUDE_INSTALL_DIR)"
-	@$(CPY) $(GENERICDIR)\rbcDecls.h "$(INCLUDE_INSTALL_DIR)"
-	@$(CPY) $(GENERICDIR)\rbcStubLib.c "$(INCLUDE_INSTALL_DIR)"
+$(PROJECT): runtime-files
+runtime-files: setup
+	@for %f in ("$(LIBDIR)\*.tcl" "$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm") do @$(COPY) %f "$(OUT_DIR)"
+
+# Headers and build choices invalidate all implementation objects.
+$(PRJ_OBJS): makefile.vc $(ROOT)\configure.ac
+
+default-install-libraries: install-resources
+install-resources: $(PROJECT)
+	@if not exist "$(SCRIPT_INSTALL_DIR)" mkdir "$(SCRIPT_INSTALL_DIR)"
+	@for %f in ("$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm") do @$(COPY) %f "$(SCRIPT_INSTALL_DIR)"
+	@$(COPY) "$(ROOT)\license.terms" "$(SCRIPT_INSTALL_DIR)"
+	@if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
+	@$(COPY) "$(GENERICDIR)\rbcStubLib.c" "$(INCLUDE_INSTALL_DIR)"
+default-install-headers: install-header-directory
+install-header-directory:
+	@if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
+install: $(PROJECT) default-install default-install-docs-html install-demos
 install-demos: default-install-demos
 
+# Build the C API consumer independently of the RBC implementation DLL.
+CAPI_DLL = $(OUT_DIR)\rbccapitest.dll
+CAPI_OBJS = $(TMP_DIR)\rbcVectorApiTest.obj $(TMP_DIR)\rbcCapiStubLib.obj
+$(TMP_DIR)\rbcVectorApiTest.obj: $(TESTDIR)\rbcVectorApiTest.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) /Fo"$@" "$(TESTDIR)\rbcVectorApiTest.c"
+$(TMP_DIR)\rbcCapiStubLib.obj: $(GENERICDIR)\rbcStubLib.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) /Fo"$@" "$(GENERICDIR)\rbcStubLib.c"
+$(CAPI_OBJS): makefile.vc
+$(CAPI_DLL): $(CAPI_OBJS)
+	$(link32) $(dlllflags) /out:"$@" $(CAPI_OBJS) "$(TCLSTUBLIB)" kernel32.lib
+
+test: $(PROJECT) $(CAPI_DLL)
+	@set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)
+
+shell: $(PROJECT)
+	@set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)"
