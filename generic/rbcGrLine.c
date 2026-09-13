@@ -9764,8 +9764,7 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
                 counter++;
             }
             if (draw) {
-                centers[count].x = (int)symbolPts[i].x;
-                centers[count].y = (int)symbolPts[i].y;
+                centers[count] = symbolPts[i];
                 count++;
                 if (count == 256) {
                     Rbc_RenderSymbols(ctx, &shape, centers, count, (pass == 0) ? fillColor : NULL, pass == 1);
