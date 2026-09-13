@@ -23,12 +23,6 @@ CAIRO = 0
 !error CAIRO must be 0 or 1.
 !endif
 
-# Separate native and Cairo objects and package directories.
-!if $(CAIRO)
-TMP_DIR = $(TMP_DIR)-cairo
-OUT_DIR = $(OUT_DIR)-cairo
-!endif
-
 PRJ_OBJS = \
     $(TMP_DIR)\rbcRender.obj \
     $(TMP_DIR)\rbcAlloc.obj \
@@ -69,7 +63,7 @@ PRJ_OBJS = \
 
 PRJ_STUBOBJS = $(TMP_DIR)\rbcStubLib.obj
 PRJ_HEADERS = $(GENERICDIR)\*.h
-PRJ_HEADERS_PUBLIC = "$(GENERICDIR)\rbc.h" "$(GENERICDIR)\rbcVector.h" "$(GENERICDIR)\rbcDecls.h"
+RBC_PUBLIC_HEADERS = "$(GENERICDIR)\rbc.h" "$(GENERICDIR)\rbcVector.h" "$(GENERICDIR)\rbcDecls.h"
 
 # C11 is needed for designated initializers and compound literals.
 PRJ_DEFINES = /std:c11 /utf-8 /DRBCAPI=MODULE_SCOPE /D_CRT_SECURE_NO_WARNINGS /DWIN32=1
@@ -117,6 +111,7 @@ install-resources: $(PROJECT)
 	@for %f in ("$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm") do @$(COPY) %f "$(SCRIPT_INSTALL_DIR)"
 	@$(COPY) "$(ROOT)\license.terms" "$(SCRIPT_INSTALL_DIR)"
 	@if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
+	@for %f in ($(RBC_PUBLIC_HEADERS)) do @$(COPY) %f "$(INCLUDE_INSTALL_DIR)"
 	@$(COPY) "$(GENERICDIR)\rbcStubLib.c" "$(INCLUDE_INSTALL_DIR)"
 default-install-headers: install-header-directory
 install-header-directory:
@@ -128,12 +123,12 @@ install-demos: default-install-demos
 CAPI_DLL = $(OUT_DIR)\rbccapitest.dll
 CAPI_OBJS = $(TMP_DIR)\rbcVectorApiTest.obj $(TMP_DIR)\rbcCapiStubLib.obj
 $(TMP_DIR)\rbcVectorApiTest.obj: $(TESTDIR)\rbcVectorApiTest.c $(PRJ_HEADERS)
-	$(cc32) $(appcflags) /Fo"$@" "$(TESTDIR)\rbcVectorApiTest.c"
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /Fo"$@" "$(TESTDIR)\rbcVectorApiTest.c"
 $(TMP_DIR)\rbcCapiStubLib.obj: $(GENERICDIR)\rbcStubLib.c $(PRJ_HEADERS)
 	$(cc32) $(appcflags) /Fo"$@" "$(GENERICDIR)\rbcStubLib.c"
 $(CAPI_OBJS): makefile.vc
 $(CAPI_DLL): $(CAPI_OBJS)
-	$(link32) $(dlllflags) /out:"$@" $(CAPI_OBJS) "$(TCLSTUBLIB)" kernel32.lib
+	$(link32) $(dlllflags) /out:"$@" $(CAPI_OBJS) "$(TCLSTUBLIB)" kernel32.lib ucrt.lib
 
 test: $(PROJECT) $(CAPI_DLL)
 	@set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)
