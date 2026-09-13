@@ -1,0 +1,170 @@
+# Element value-label placement. See license.terms for details.
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval ::valueoffsetTests {
+    proc Create {kind} {
+        ::rbc::$kind .offset -width 400 -height 300 -bufferelements no \
+            -title {} -borderwidth 0 -highlightthickness 0
+        .offset axis configure x -min 0 -max 10
+        .offset axis configure y -min -10 -max 10
+        .offset legend configure -hide yes
+        .offset element create signal -x {5} -y {3}
+        pack .offset
+        update idletasks
+    }
+
+    # Only labels are red. Retain color as well as position to detect clipping.
+    proc LabelBounds {photo background} {
+        set left [image width $photo]
+        set top [image height $photo]
+        set right -1
+        set bottom -1
+        for {set y 0} {$y < [image height $photo]} {incr y} {
+            for {set x 0} {$x < [image width $photo]} {incr x} {
+                if {[$photo get $x $y] ne [$background get $x $y]} {
+                    set left [expr {min($left, $x)}]
+                    set top [expr {min($top, $y)}]
+                    set right [expr {max($right, $x)}]
+                    set bottom [expr {max($bottom, $y)}]
+                }
+            }
+        }
+        if {$right < 0} {return {}}
+        return [list $left $top $right $bottom]
+    }
+
+    proc PsPosition {} {
+        set ps [.offset postscript output]
+        foreach block [split $ps \n] {
+            if {[regexp {^\d+ \d+ [-+0-9.eE]+ ([-+0-9.eE]+) ([-+0-9.eE]+) BeginText$} $block -> x y]} {
+                set position [list $x $y]
+            }
+            if {[string first OFFSET_LABEL $block] >= 0} {return $position}
+        }
+        error "label missing from PostScript"
+    }
+
+    foreach kind {graph stripchart polar barchart} {
+        test valueoffset-1-$kind {defaults, validation and transactional rollback on elements and pens} -setup {
+            Create $kind
+            set type [expr {$kind eq "barchart" ? "bar" : "line"}]
+            .offset pen create custom -type $type
+        } -body {
+            set result [list [.offset element cget signal -valueoffset] [.offset pen cget custom -valueoffset]]
+            set failures {}
+            foreach target {{element signal} {pen custom}} {
+                lassign $target command name
+                .offset $command configure $name -valueoffset {-7 11} -valueformat %.2f
+                foreach bad [list {} 1 {1 2 3} {1 no} {1 2.5} {1 999999999999999999999} [format %c 123]] {
+                    if {![catch {.offset $command configure $name -valueformat %.3f -valueoffset $bad}] ||
+                        [.offset $command cget $name -valueoffset] ne {-7 11} ||
+                        [.offset $command cget $name -valueformat] ne {%.2f}} {
+                        lappend failures [list $target $bad]
+                    }
+                }
+                # Failure after parsing the offset must also roll it back.
+                catch {.offset $command configure $name -valueoffset {9 4} -valueformat %s}
+                if {[.offset $command cget $name -valueoffset] ne {-7 11}} {lappend failures $target}
+            }
+            lappend result $failures
+        } -cleanup {
+            destroy .offset
+        } -result {{0 0} {0 0} {}}
+
+        foreach inverted {no yes} {
+            test valueoffset-2-$kind-$inverted {value offset moves labels and reset restores placement} -setup {
+                Create $kind
+                .offset configure -invertxy $inverted
+                .offset grid configure -hide yes
+                .offset element configure signal \
+                        -showvalues y -valuecolor red -valueshadow {} \
+                        -valuefont {Arial 12} -valueformat LABEL \
+                        -valueanchor center
+
+                set photo [image create photo]
+                set background [image create photo]
+            } -body {
+                .offset element configure signal -showvalues none
+                .offset snap $background -width 400 -height 300
+                .offset element configure signal -showvalues y
+
+                set failures {}
+                foreach angle {0 27 90} {
+                    .offset element configure signal \
+                            -valuerotate $angle -valueoffset {0 0}
+                    .offset snap $photo -width 400 -height 300
+                    set before [LabelBounds $photo $background]
+
+                    .offset element configure signal -valueoffset {9 -7}
+                    .offset snap $photo -width 400 -height 300
+                    set after [LabelBounds $photo $background]
+
+                    if {$before eq {} || $after eq {}} {
+                        lappend failures [list $angle missing]
+                    } else {
+                        lassign $before x0 y0 x1 y1
+                        lassign $after xx0 yy0 xx1 yy1
+                        if {abs($xx0-$x0-9) > 1 ||
+                            abs($xx1-$x1-9) > 1 ||
+                            abs($yy0-$y0+7) > 1 ||
+                            abs($yy1-$y1+7) > 1} {
+                            lappend failures [list $angle $before $after]
+                        }
+                    }
+
+                    .offset element configure signal -valueoffset {0 0}
+                    .offset snap $photo -width 400 -height 300
+                    if {[LabelBounds $photo $background] ne $before} {
+                        lappend failures [list $angle reset]
+                    }
+                }
+                set failures
+            } -cleanup {
+                image delete $photo $background
+                destroy .offset
+            } -result {}
+        }
+
+        test valueoffset-3-$kind {named, weighted and active pens move callback labels in PostScript} -setup {
+            Create $kind
+            set type [expr {$kind eq "barchart" ? "bar" : "line"}]
+            .offset pen create custom -type $type -showvalues y -valueanchor se -valuerotate 27 \
+                -valuecommand [list apply {{graph element index x y} {return OFFSET_LABEL}}]
+            .offset element configure signal -showvalues none
+        } -body {
+            set failures {}
+            foreach inverted {no yes} {
+                .offset configure -invertxy $inverted
+                foreach y {3 -3} {
+                    .offset element configure signal -y [list $y]
+                    foreach use {normal weighted active} {
+                        .offset element deactivate signal
+                        .offset element configure signal -pen {} -styles {} -weights {} -activepen {}
+                        switch $use {
+                            normal {.offset element configure signal -pen custom}
+                            weighted {.offset element configure signal -weights {1} -styles {{custom 0 2}}}
+                            active {
+                                .offset element configure signal -activepen custom
+                                .offset element activate signal 0
+                            }
+                        }
+                        .offset pen configure custom -valueoffset {0 0}
+                        lassign [PsPosition] x0 y0
+                        .offset pen configure custom -valueoffset {-8 6}
+                        lassign [PsPosition] x1 y1
+                        if {abs($x1-$x0+8) > 0.01 || abs($y1-$y0-6) > 0.01} {
+                            lappend failures [list $inverted $y $use]
+                        }
+                    }
+                }
+            }
+            set failures
+        } -cleanup {
+            destroy .offset
+        } -result {}
+    }
+}
+namespace delete ::valueoffsetTests
+cleanupTests

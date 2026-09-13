@@ -8,19 +8,12 @@ package require Tk
 package require rbc
 namespace import rbc::*
 
-
 ### The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
 
-# To use the demo's "PostScript Options" dialog, source the file
-# scripts/ps.tcl. If this is not done, the "Print" button will print to a
-# file without offering an options dialog.  See command CommonPrint in
-# scripts/common.tcl for choices, including the stock dialog
-# Rbc_PostScriptDialog which is not used in these demos.
-source $DemoDir/scripts/ps.tcl
 set HeaderText [MakeLine {
     |This is an example of displaying many waveforms curves but but as a monochrome curves.
 }]
@@ -43,7 +36,6 @@ option add *Graph.plotBackground black
 option add *Graph.x.hide yes
 option add *Graph.x.title {}
 option add *Graph.y.rotate 90
-#option add *Graph.y.stepSize 2.0
 option add *Graph.title {}
 option add *graph.Title {Example s27}
 option add *graph.x.hide no
@@ -53,18 +45,15 @@ option add *x.Title Time
 option add *y.Title Signals
 option add *Pixels 1
 option add *Reduce 0.5
-option add *bufferElements no
 option add *Element.color green4
 option add *Element.ScaleSymbols true
 option add *Element.Color grey70
 option add *Element.Symbol none
 option add *Element.LineWidth 1
-#option add *Element.Smooth natural
 option add *Element.Smooth catrom
 option add *activeLine.LineWidth 2
 option add *activeLine.Color white
 option add *activeLine.Color green1
-#option add *Legend.Hide yes
 option add *Legend.Position right
 option add *Legend.Relief flat
 option add *Legend.activeRelief sunken
@@ -91,5 +80,7 @@ grid .header -sticky ew
 grid .details -sticky ew -padx 15
 grid $graph .legend -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
 

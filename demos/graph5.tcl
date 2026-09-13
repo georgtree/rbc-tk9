@@ -33,7 +33,7 @@ option add *Graph.plotPadX .25i
 ### Define vectors x and y0 to y10; then create data.
 vector create x -variable {}
 x set {0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0}
-for {set i 0} {$i<11} {incr i} {
+for {set i 1} {$i<=11} {incr i} {
     set vecName y$i
     vector create ${vecName}
     $vecName length 11
@@ -43,22 +43,23 @@ for {set i 0} {$i<11} {incr i} {
 
 ### Define graph and its elements:
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
-                   -crosshairs -crosshairsmode current -scaletoggle all -activelegend -zoomwheel -pan]
+                   -crosshairs -crosshairsmode closest -crosshairsclosestopts {-interpolate no} -scaletoggle all\
+                   -activelegend -zoomwheel -pan]
 
 set Dem [file join $DemoDir bitmaps hobbes]
 set attributes [string map [list @ @$Dem] {
-    none     None     #264653 red4     y0
-    arrow    Arrow    #287271 brown4   y10
-    circle   Circle   #2a9d8f yellow4  y2
-    cross    Cross    #8ab17d cyan4    y6
-    diamond  Diamond  #babb74 green4   y3
-    plus     Plus     #e9c46a magenta4 y9
-    splus    Splus    #efb366 purple4  y7
-    scross   Scross   #f4a261 red4     y8
-    square   Square   #ee8959 orange4  y1
-    triangle Triangle #e76f51 blue4    y4
+    none     None     #264653 red4     y1
+    arrow    Arrow    #287271 brown4   y11
+    circle   Circle   #2a9d8f yellow4  y3
+    cross    Cross    #8ab17d cyan4    y7
+    diamond  Diamond  #babb74 green4   y4
+    plus     Plus     #e9c46a magenta4 y10
+    splus    Splus    #efb366 purple4  y8
+    scross   Scross   #f4a261 red4     y9
+    square   Square   #ee8959 orange4  y2
+    triangle Triangle #e76f51 blue4    y5
     {{@.xbm} {@_mask.xbm}}
-             Bitmap   yellow  black    y5
+             Bitmap   yellow  black    y6
 }]
 
 set count 0
@@ -71,4 +72,6 @@ $graph graph element configure line0 -dashes {2 4 2} -linewidth 2
 ### Map everything, add Rbc_* commands.
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 0 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1

@@ -45,10 +45,10 @@ proc CustomHeader {w graph} {
     } 
     ttk::label $w.normallabel -justify left -text {Bars are overlayed one on top of the next.}
     grid $w.title -columnspan 2 -sticky ew
-    grid $w.stacked $w.stackedlabel -sticky w
-    grid $w.aligned $w.alignedlabel -sticky w
-    grid $w.overlap $w.overlaplabel -sticky w
-    grid $w.normal $w.normallabel -sticky w -pady {0 20}
+    grid $w.stacked $w.stackedlabel -sticky w -padx 15
+    grid $w.aligned $w.alignedlabel -sticky w -padx 15
+    grid $w.overlap $w.overlaplabel -sticky w -padx 15
+    grid $w.normal $w.normallabel -sticky w -padx 15 -pady {0 10}
     grid configure $w.stackedlabel $w.alignedlabel $w.overlaplabel $w.normallabel -padx {20 0}
     return $w
 }
@@ -160,6 +160,8 @@ grid .header -sticky ew
 grid .details -sticky ew -padx 15
 grid $barchart -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
 
 

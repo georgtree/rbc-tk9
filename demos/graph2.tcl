@@ -80,6 +80,7 @@ $graph graph grid on
 
 #####  (2c) Configure graph size and PostScript properties
 $graph graph postscript configure -maxpect yes -landscape yes
+$graph graph configure -background white
 
 ####  (3) Define and compute the vectors
 set pi1_2 [expr {3.14159265358979323846/180.0}]
@@ -101,8 +102,8 @@ xl expr {x-$pct}
 ####  (4) Add elements to the graph
 set bitmap [file join $DemoDir bitmaps spiral.xbm]
 set mask [file join $DemoDir bitmaps spiral_mask.xbm]
-$graph graph element create line3 -color green4 -fill #90E07C -label cos(x) -mapx degrees -styles $styles -weights w -x x\
-        -y cosX -yhigh yh -ylow yl
+$graph graph element create line3 -color green4 -fill #90E07C -label cos(x) -mapx degrees -styles $styles -weights w\
+        -x x -y cosX -yhigh yh -ylow yl
 $graph graph element create line1 -color orange -outline black -fill orange -fill #7D7CE0 -label sin(x) -linewidth 3\
         -mapx degrees -pixels 6m -symbol [list @$bitmap @$mask] -x x -y sinX 
 

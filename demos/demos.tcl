@@ -101,7 +101,8 @@ proc MainWindow {win DemoDir} {
         |
         |demo graph3.tcl
         |
-        |Sine and cosine functions plotted as curves with different colored data points, and a bitmap image in the background.
+        |This is an example of graph in logariphmic scale with different functions plotted, each one has individual
+        |style.
     }]
     set Caption(graph4.tcl) [MakeLine {
         |graph widget
@@ -134,6 +135,13 @@ proc MainWindow {win DemoDir} {
         |demo graph7.tcl
         |
         |Zoomable scatter plot with 250,000 points.
+    }]
+    set Caption(graph8.tcl) [MakeLine {
+        |graph widget
+        |
+        |demo graph8.tcl
+        |
+        |Plot of periodic table elements, selected isotope density vs. number of nucleons.
     }]
     set Caption(barchart1.tcl) [MakeLine {
         |barchart widget
@@ -211,8 +219,8 @@ proc MainWindow {win DemoDir} {
     pack $win.c -expand yes -fill both -side top
     ttk::frame $win.c.targetFrame
     set i 0
-    foreach name {graph1 graph2 graph3 graph4 graph5 graph6 graph7 barchart1 barchart2 barchart3 barchart4 barchart5\
-                          stripchart1 winop1 winop2 spline1} {
+    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 barchart1 barchart2 barchart3 barchart4 barchart5\
+                          stripchart1 winop1 winop2 spline1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
         incr i

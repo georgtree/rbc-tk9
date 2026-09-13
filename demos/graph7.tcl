@@ -51,7 +51,9 @@ grid .header -sticky ew
 grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
 wm min . 0 0
 
 ### Warn of delay calculating and drawing points:
@@ -67,14 +69,6 @@ x sort y
 $graph graph element configure line3 -x x -y y
 
 ### Disable the GUI while the points are being drawn.
-
-### FIXME rbc - rbc::busy segfaults ...
-#::rbc::busy hold $graph
-#update
-#::rbc::busy release $graph
-
-### ... so instead use a grab.
-### Catch so the grab is always released.
 grab .lab7
 catch update
 grab release .lab7

@@ -126,7 +126,9 @@ grid .header -sticky ew
 grid .details -sticky ew -padx 15
 grid $graph -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
 $graph graph element bind all <Enter> {
     %W legend activate [%W element get current]
 }

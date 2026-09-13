@@ -85,6 +85,8 @@ grid .header -sticky ew -padx 15
 grid .details -sticky ew -padx 15
 grid $barchart -sticky news
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 1 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
 wm min . 0 0
 

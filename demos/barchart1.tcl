@@ -92,4 +92,6 @@ grid .header -columnspan 2 -sticky ew
 grid .details -sticky ew -padx 15
 grid $barchart -sticky nsew
 grid columnconfigure . 0 -weight 1
-grid rowconfigure . 0 -weight 1
+grid rowconfigure . 0 -weight 0
+grid rowconfigure . 1 -weight 0
+grid rowconfigure . 2 -weight 1
