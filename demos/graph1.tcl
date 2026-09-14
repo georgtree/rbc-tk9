@@ -86,7 +86,7 @@ $graph graph element configure line3
 # set explicit order of elements shown
 $graph graph element show {line3 line2 line1}
 
-### Map everything, add Rbc_* commands and bindings.
+### Map everything
 grid .header -columnspan 2 -sticky ew
 grid .details -sticky ew -padx 15
 grid $graph .ybar -sticky news
@@ -97,7 +97,7 @@ grid rowconfigure . 0 -weight 0
 grid rowconfigure . 1 -weight 0
 grid rowconfigure . 2 -weight 1
 
-#### add bindings that highlight element in the legend when hover mouse over it
+### add bindings that highlight element in the legend when hover mouse over it
 $graph graph element bind all <Enter> {
     %W legend activate [%W element get current]
 }

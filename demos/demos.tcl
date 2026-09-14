@@ -143,6 +143,13 @@ proc MainWindow {win DemoDir} {
         |
         |Plot of periodic table elements, selected isotope density vs. number of nucleons.
     }]
+    set Caption(polar1.tcl) [MakeLine {
+        |polar widget
+        |
+        |demo polar1.tcl
+        |
+        |Demonstration of the basic polar graph.
+    }]
     set Caption(barchart1.tcl) [MakeLine {
         |barchart widget
         |
@@ -219,7 +226,7 @@ proc MainWindow {win DemoDir} {
     pack $win.c -expand yes -fill both -side top
     ttk::frame $win.c.targetFrame
     set i 0
-    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 barchart1 barchart2 barchart3 barchart4 barchart5\
+    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 barchart1 barchart2 barchart3 barchart4 barchart5\
                           stripchart1 winop1 winop2 spline1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
@@ -229,6 +236,8 @@ proc MainWindow {win DemoDir} {
             set size [list 240 70]
         } elseif {$name eq {winop2}} {
             set size [list 240 57]
+        } elseif {$name eq {polar1}} {
+            set size [list 170 150]
         } else {
             set size [list 240 150]
         }
