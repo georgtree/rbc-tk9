@@ -23,6 +23,12 @@ proc rose {aName bName} {
     }
 }
 
+proc sin {thetaName radiusName} {
+    vector create $thetaName $radiusName
+    $thetaName seq 0.0 [expr {acos(-1.0)}] [expr {acos(-1.0)/180.0}]
+    $radiusName expr sin($thetaName)
+}
+
 # The script can be run from any location. It loads the files it needs from the demo directory.
 set DemoDir [file normalize [file dirname [info script]]]
 
@@ -30,7 +36,7 @@ set DemoDir [file normalize [file dirname [info script]]]
 source $DemoDir/scripts/common.tcl
 set HeaderText [MakeLine {
     |This is an example of the polar graph widget with context control mode. It displays complex vector data
-    |on a graph with polar coordinate system.
+    |on a graph with polar coordinate system, and demonstrate different form of provided coordinates for polar element.
 }]
 CommonHeader .header $HeaderText 6 $DemoDir
 ExpandableText .details 600 {Availible actions} {
@@ -47,10 +53,15 @@ set graph [graphtoolbar .g -width 700 -height 600 -type polar -controlmode conte
                    -crosshairs -crosshairsmode closest -activelegend -zoomwheel -pan]
 $graph graph grid on
 
+# coordinates provided in form of the complex vector
 spiral spiralVec
-rose roseAVec roseBVec
 $graph graph element create spiral -cdata spiralVec -symbol {} -color green -linewidth 2
+# coordinates provided in form of two real vectors representing a and b in a+b*i
+rose roseAVec roseBVec
 $graph graph element create rose -x roseAVec -y roseBVec -symbol {} -color purple -linewidth 2
+# coordinates provided in form of two real vectors representing radius and degree in radians
+sin thetaVec radiusVec
+$graph graph element create sin -datacoordinates polar -x thetaVec -y radiusVec -symbol {} -color blue -linewidth 2
 
 ### Map everything
 grid .header -columnspan 1 -sticky ew

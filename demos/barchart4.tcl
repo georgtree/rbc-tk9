@@ -47,7 +47,7 @@ option add *x.Font *Times-Medium-R*10*
 option add *y.Title {Y Axis}
 set visual [winfo screenvisual .]
 if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
-    option add *graph.background khaki
+    option add *graph.background #A0B9BF
 }
 
 ### Create and configure barchart.

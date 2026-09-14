@@ -106,7 +106,13 @@ set graph [\&.gtb subwidget graph]
 .PP
 -controlmode toolbar, the default, creates a visible toolbar\&.  Snapshot and PostScript buttons are always
 present\&.  Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&.  Enabling -crosshairs adds
-selectors for crosshair mode and closest-coordinate format\&.
+one \fBCrosshairs\fP menu button\&. Its \fBCrosshairs mode\fP submenu selects Current point, Closest point,
+No marker, or Disabled\&. Its \fBClosest crosshairs format\fP submenu is enabled only in Closest point mode\&.
+Formats follow the current graph representation, including Polar radians/degrees and configured Custom text\&.
+.PP
+Toolbar instances with -crosshairs expose crosshairsMenuButton and crosshairsMenu through subwidget\&.
+These replace the former crosshair comboboxes and their labels\&. Menu selections and configuration properties
+stay synchronized; changing representation updates the available formats when the menu is opened\&.
 .PP
 -controlmode contextmenu leaves the graph occupying the entire megawidget\&.  Right-clicking the graph displays the corresponding controls in a popup menu:
 .TP
@@ -449,7 +455,7 @@ Polar representation: axis, complex, polar, polardegrees
 \(bu
 Smith representation: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance
 .PP
-The toolbar combobox and context-menu submenu expose only the modes valid for the current representation\&.
+The toolbar menu and context-menu submenu expose only the modes valid for the current representation\&.
 .PP
 polar displays radius and angle in radians; polardegrees displays radius and angle in degrees\&.
 The selector labels are \fBPolar (radians)\fP and \fBPolar (degrees)\fP\&. Both modes use the same Cartesian
@@ -457,7 +463,7 @@ point\&. Custom closest callbacks receive angle in radians in the information di
 .SH "CUSTOM CLOSEST-POINT TEXT"
 .PP
 -closestcommand configures a Tcl command prefix for custom closest-point annotations\&.  A nonempty prefix adds
-\fBCustom\fP to the combobox and context menu\&. Select it with -coordclosestmark custom\&.
+\fBCustom\fP to the toolbar menu and context menu\&. Select it with -coordclosestmark custom\&.
 .PP
 .RS 4n
 .nf

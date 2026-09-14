@@ -609,9 +609,8 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
-    $widget names
-} -result {closestCoordComBox closestCoordLabel revertZoomBut crosshairsComBox makeSnapshotBut crosshairsModeLabel\
-                   postScriptDialogBut graph toolbarFrame resetZoomBut} -cleanup {
+    lsort [$widget names]
+} -result {crosshairsMenu crosshairsMenuButton graph makeSnapshotBut postScriptDialogBut resetZoomBut revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -744,42 +743,37 @@ test generalConfiguration-15 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-16 {crosshairs mode property and selector stay synchronized} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmode current]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-    set crosshairsCombo [$widget subwidget crosshairsComBox]
-    set closestCombo [$widget subwidget closestCoordComBox]
+test generalConfiguration-16 {crosshairs properties and menu stay synchronized} -setup {
+    set widget [graphtoolbar .gtb -crosshairs -crosshairsmode current]
+    set menu [$widget subwidget crosshairsMenu]
+    set crossMenu $menu.crosshairs
 } -body {
-    set actual [list]
-    foreach {mode label closestState} {current {Current point} disabled closest {Closest point} readonly none\
-                                                {No marker} disabled disabled Disabled disabled} {
+    set actual {}
+    foreach mode {current closest none disabled} {
         $widget configure -crosshairsmode $mode
-        update idletasks
-        lappend actual [list [$widget configure -crosshairsmode] [$crosshairsCombo get] [$closestCombo cget -state]]
+        uplevel #0 [$menu cget -postcommand]
+        lappend actual [list [$widget configure -crosshairsmode] \
+            [set [$crossMenu entrycget 0 -variable]] [$menu entrycget {Closest crosshairs format} -state]]
     }
-    $crosshairsCombo set {Current point}
-    event generate $crosshairsCombo <<ComboboxSelected>>
-    update
-    lappend actual [list [$widget configure -crosshairsmode] [$crosshairsCombo get] [$closestCombo cget -state]]
-    return $actual
-} -result {{current {Current point} disabled} {closest {Closest point} readonly} {none {No marker} disabled}\
-                   {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
+    $crossMenu invoke {Current point}
+    uplevel #0 [$menu cget -postcommand]
+    lappend actual [list [$widget configure -crosshairsmode] \
+        [set [$crossMenu entrycget 0 -variable]] [$menu entrycget {Closest crosshairs format} -state]]
+    set actual
+} -result {{current {Current point} disabled} {closest {Closest point} normal} {none {No marker} disabled}\
+    {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
     destroy $widget
 }
 
-test generalConfiguration-17 {toolbar crosshair controls have descriptive labels} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs]
-    grid .gtb -row 0 -column 0 -sticky nsew
-    grid columnconfigure . 0 -weight 1
-    grid rowconfigure . 0 -weight 1
-
-    set modeLabel [$widget subwidget crosshairsModeLabel]
-    set formatLabel [$widget subwidget closestCoordLabel]
+test generalConfiguration-17 {toolbar crosshair menu button replaces comboboxes} -setup {
+    set widget [graphtoolbar .gtb -crosshairs]
+    set button [$widget subwidget crosshairsMenuButton]
+    set menu [$widget subwidget crosshairsMenu]
 } -body {
-    list [$modeLabel cget -text] [$formatLabel cget -text]
-} -result {{Crosshairs mode:} {Closest crosshairs format:}} -cleanup {
+    list [winfo class $button] [$button cget -text] [expr {[$button cget -menu] eq $menu}] \
+        [MenuDescription $menu] [catch {$widget subwidget crosshairsComBox}] \
+        [catch {$widget subwidget closestCoordComBox}]
+} -result {TMenubutton Crosshairs 1 {{cascade {Crosshairs mode}} {cascade {Closest crosshairs format}}} 1 1} -cleanup {
     destroy $widget
 }
 
@@ -823,43 +817,50 @@ test generalConfiguration-19 {context menu contains only controls for enabled fe
     }
 }
 
-test generalConfiguration-20 {context-menu crosshair submenus expose correct modes} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -type polar -controlmode contextmenu -crosshairs\
-                        -crosshairsmode closest]
-    set graph [$widget subwidget graph]
-    set menu [$widget subwidget contextMenu]
-    set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
-    set closestMenu [$menu entrycget [$menu index {Closest crosshairs format}] -menu]
-} -body {
-    set crossEntries [MenuDescription $crossMenu]
-    # Populate the dynamic closest-format menu exactly as posting it
-    # would do, without displaying a native popup.
-    uplevel #0 [$closestMenu cget -postcommand]
-    set polarLabels [list]
-    foreach entry [MenuDescription $closestMenu] {
-        lappend polarLabels [lindex $entry 1]
+foreach control {toolbar contextmenu} {
+    test generalConfiguration-20-$control {crosshair menus expose representation-specific formats} -setup {
+        set widget [graphtoolbar .gtb -width 400 -height 400 -type polar -controlmode $control -crosshairs\
+                            -crosshairsmode closest]
+        set graph [$widget subwidget graph]
+        if {$control eq {toolbar}} {
+            set menu [$widget subwidget crosshairsMenu]
+        } else {
+            set menu [$widget subwidget contextMenu]
+        }
+        set crossMenu [$menu entrycget [$menu index {Crosshairs mode}] -menu]
+        set closestMenu [$menu entrycget [$menu index {Closest crosshairs format}] -menu]
+    } -body {
+        set crossEntries [MenuDescription $crossMenu]
+        # Populate the dynamic closest-format menu exactly as posting it
+        # would do, without displaying a native popup.
+        uplevel #0 [$closestMenu cget -postcommand]
+        set polarLabels [list]
+        foreach entry [MenuDescription $closestMenu] {
+            lappend polarLabels [lindex $entry 1]
+        }
+        # Select Complex through the menu itself.
+        $closestMenu invoke [$closestMenu index Complex]
+        set polarSelection [$widget configure -coordclosestmark]
+        # Changing to Smith changes the permitted coordinate formats.
+        # The old Complex selection is invalid and must be reset to the
+        # Smith default.
+        $graph configure -representation smith
+        uplevel #0 [$closestMenu cget -postcommand]
+        set smithLabels [list]
+        foreach entry [MenuDescription $closestMenu] {
+            lappend smithLabels [lindex $entry 1]
+        }
+        set smithDefault [$widget configure -coordclosestmark]
+        # And a Smith-specific format must be selectable through the menu.
+        $closestMenu invoke [$closestMenu index Admittance]
+        set smithSelection [$widget configure -coordclosestmark]
+        list $crossEntries $polarLabels $polarSelection $smithLabels $smithDefault $smithSelection
+    } -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}} {radiobutton\
+    Disabled}} {Axis Complex {Polar (radians)} {Polar (degrees)}} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
+    Admittance} normalizedimpedance admittance} -cleanup {
+        destroy $widget
     }
-    # Select Complex through the menu itself.
-    $closestMenu invoke [$closestMenu index Complex]
-    set polarSelection [$widget configure -coordclosestmark]
-    # Changing to Smith changes the permitted coordinate formats.
-    # The old Complex selection is invalid and must be reset to the
-    # Smith default.
-    $graph configure -representation smith
-    uplevel #0 [$closestMenu cget -postcommand]
-    set smithLabels [list]
-    foreach entry [MenuDescription $closestMenu] {
-        lappend smithLabels [lindex $entry 1]
-    }
-    set smithDefault [$widget configure -coordclosestmark]
-    # And a Smith-specific format must be selectable through the menu.
-    $closestMenu invoke [$closestMenu index Admittance]
-    set smithSelection [$widget configure -coordclosestmark]
-    list $crossEntries $polarLabels $polarSelection $smithLabels $smithDefault $smithSelection
-} -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}} {radiobutton\
-Disabled}} {Axis Complex {Polar (radians)} {Polar (degrees)}} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
-Admittance} normalizedimpedance admittance} -cleanup {
-    destroy $widget
+
 }
 
 ### interactive features tests
@@ -867,6 +868,7 @@ set winSize {-width 700 -height 400}
 set titleFont {-font {ArialNarrow 8}}
 
 #### zoom
+
 test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -3463,14 +3465,14 @@ test crosshairsInteractive-32 {closest coordinate selector chooses valid default
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest coordinate selector after representation change} {*}$titleFont
     set graph [$widget subwidget graph]
-    set combo [$widget subwidget closestCoordComBox]
+    set menu [$widget subwidget crosshairsMenu].closest
 } -body {
     WaitForWindow $graph
     $widget configure -coordclosestmark complex
     $graph configure -representation smith -smithgrid admittance
-    uplevel #0 [$combo cget -postcommand]
-    list [$widget configure -coordclosestmark] [$combo get]\
-            [expr {{Normalized admittance} in [$combo cget -values]}]
+    uplevel #0 [$menu cget -postcommand]
+    list [$widget configure -coordclosestmark] [set [$menu entrycget 0 -variable]] \
+        [expr {[$menu index {Normalized admittance}] ne {none}}]
 } -result {normalizedadmittance {Normalized admittance} 1} -cleanup {
     destroy $widget
 }
@@ -5180,26 +5182,20 @@ foreach control {toolbar contextmenu} {
         $widget configure -closestcommand $prefix
         set stored [$widget configure -closestcommand]
         if {$control eq {toolbar}} {
-            set combo [$widget subwidget closestCoordComBox]
-            set labels [$combo cget -values]
-            $combo set Custom
-            event generate $combo <<ComboboxSelected>>
+            set menu [$widget subwidget crosshairsMenu].closest
         } else {
             set menu [$widget subwidget contextMenu].closest
-            uplevel #0 [$menu cget -postcommand]
-            set labels {}
-            foreach entry [MenuDescription $menu] {
-                lappend labels [lindex $entry 1]
-            }
-            $menu invoke Custom
         }
+        uplevel #0 [$menu cget -postcommand]
+        set labels {}
+        foreach entry [MenuDescription $menu] {
+            lappend labels [lindex $entry 1]
+        }
+        $menu invoke Custom
         set selected [$widget configure -coordclosestmark]
         $widget configure -closestcommand {}
-        if {$control eq {toolbar}} {
-            set removed [expr {{Custom} ni [$combo cget -values]}]
-        } else {
-            set removed [catch {$menu index Custom}]
-        }
+        uplevel #0 [$menu cget -postcommand]
+        set removed [catch {$menu index Custom}]
         list $rejected [expr {$stored eq $prefix}] $labels $selected [$widget configure -closestcommand]\
                 [$widget configure -coordclosestmark] $removed
     } -cleanup {

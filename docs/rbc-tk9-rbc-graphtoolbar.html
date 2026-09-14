@@ -90,7 +90,12 @@ alternatively be obtained with:</p>
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar.  Snapshot and PostScript buttons are always
 present.  Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls.  Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
-selectors for crosshair mode and closest-coordinate format.</p>
+one <strong>Crosshairs</strong> menu button. Its <strong>Crosshairs mode</strong> submenu selects Current point, Closest point,
+No marker, or Disabled. Its <strong>Closest crosshairs format</strong> submenu is enabled only in Closest point mode.
+Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.</p>
+<p>Toolbar instances with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> expose <code class="docutils literal notranslate"><span class="pre">crosshairsMenuButton</span></code> and <code class="docutils literal notranslate"><span class="pre">crosshairsMenu</span></code> through <code class="docutils literal notranslate"><span class="pre">subwidget</span></code>.
+These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
+stay synchronized; changing representation updates the available formats when the menu is opened.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget.  Right-clicking the graph displays the corresponding controls in a popup menu:</p>
 <ul class="simple">
 <li><p><strong>Make snapshot…</strong></p></li>
@@ -309,7 +314,7 @@ representation:</p>
 <li><p>Polar representation: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">polardegrees</span></code></p></li>
 <li><p>Smith representation: <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>, <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code></p></li>
 </ul>
-<p>The toolbar combobox and context-menu submenu expose only the modes valid for the current representation.</p>
+<p>The toolbar menu and context-menu submenu expose only the modes valid for the current representation.</p>
 <p><code class="docutils literal notranslate"><span class="pre">polar</span></code> displays radius and angle in radians; <code class="docutils literal notranslate"><span class="pre">polardegrees</span></code> displays radius and angle in degrees.
 The selector labels are <strong>Polar (radians)</strong> and <strong>Polar (degrees)</strong>. Both modes use the same Cartesian
 point. Custom closest callbacks receive <code class="docutils literal notranslate"><span class="pre">angle</span></code> in radians in the information dictionary.</p>
@@ -317,7 +322,7 @@ point. Custom closest callbacks receive <code class="docutils literal notranslat
 <section id="custom-closest-point-text">
 <span id="r-rbc-graphtoolbar-custom-closest-point-text"></span><span id="r-3a3arbc3a3agraphtoolbarqzcustom20closest2dpoint20text"></span><h2>Custom closest-point text<a class="headerlink" href="#custom-closest-point-text" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-closestcommand</span></code> configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
-<strong>Custom</strong> to the combobox and context menu. Select it with <code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span> <span class="pre">custom</span></code>.</p>
+<strong>Custom</strong> to the toolbar menu and context menu. Select it with <code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span> <span class="pre">custom</span></code>.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>DescribePoint<span class="w"> </span><span class="k">{</span><span class="nv">element</span><span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>info<span class="k">}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;%s\nX: %.4g\nY: %.4g&quot;</span><span class="w"> </span><span class="nv">$element</span><span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="k">]</span>
 <span class="k">}</span>

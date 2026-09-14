@@ -63,7 +63,13 @@ namespace eval ::rbc::graphtoolbar {
         ## Control surfaces
         `-controlmode toolbar`, the default, creates a visible toolbar.  Snapshot and PostScript buttons are always
         present.  Enabling `-zoom` adds **Reset view** and **Previous view** controls.  Enabling `-crosshairs` adds
-        selectors for crosshair mode and closest-coordinate format.
+        one **Crosshairs** menu button. Its **Crosshairs mode** submenu selects Current point, Closest point,
+        No marker, or Disabled. Its **Closest crosshairs format** submenu is enabled only in Closest point mode.
+        Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.
+
+        Toolbar instances with `-crosshairs` expose `crosshairsMenuButton` and `crosshairsMenu` through `subwidget`.
+        These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
+        stay synchronized; changing representation updates the available formats when the menu is opened.
 
         `-controlmode contextmenu` leaves the graph occupying the entire megawidget.  Right-clicking the graph displays\
         the corresponding controls in a popup menu:
@@ -319,7 +325,7 @@ namespace eval ::rbc::graphtoolbar {
         - Smith representation: `axis`, `gamma`, `normalizedimpedance`, `impedance`, `normalizedadmittance`,
           `admittance`
 
-        The toolbar combobox and context-menu submenu expose only the modes valid for the current representation.
+        The toolbar menu and context-menu submenu expose only the modes valid for the current representation.
 
         `polar` displays radius and angle in radians; `polardegrees` displays radius and angle in degrees.
         The selector labels are **Polar (radians)** and **Polar (degrees)**. Both modes use the same Cartesian
@@ -327,7 +333,7 @@ namespace eval ::rbc::graphtoolbar {
 
         ## Custom closest-point text
         `-closestcommand` configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
-        **Custom** to the combobox and context menu. Select it with `-coordclosestmark custom`.
+        **Custom** to the toolbar menu and context menu. Select it with `-coordclosestmark custom`.
 
         ```tcl
         proc DescribePoint {element x y info} {
@@ -1530,43 +1536,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -crosshairsbarlineopts [dict get $arguments crosshairsbarlineopts]
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
             my configure -crosshairsmode [dict get $arguments crosshairsmode]
-            # The actual crosshair behaviour exists independently of its
-            # control surface. Only create the label/combobox widgets when
-            # the toolbar is visible.
+            # Crosshair behaviour is independent of its control surface.
             if {$ControlMode eq {toolbar}} {
-                set crosshairsModeWidths [list]
-                foreach label [my CrosshairsModeLabels] {
-                    lappend crosshairsModeWidths [string length $label]
-                }
-                set Subwidgets(crosshairsModeLabel)\
-                    [ttk::label $Subwidgets(toolbarFrame).crosshairsModeLabel -text {Crosshairs mode:}]
-                grid $Subwidgets(crosshairsModeLabel) -row 0 -column [incr butCount] -sticky e -padx {6 2}
-                set Subwidgets(crosshairsComBox)\
-                        [ttk::combobox $Subwidgets(toolbarFrame).crosshairsComBox -values [my CrosshairsModeLabels]\
-                                 -width [expr {[::tcl::mathfunc::max {*}$crosshairsModeWidths]}]\
-                                 -textvariable [self namespace]::CrosshairsSelector -state readonly\
-                                 -postcommand [namespace code {my UpdateCrosshairsModes}]]
-                bind $Subwidgets(crosshairsComBox) <<ComboboxSelected>> [namespace code {my SelectCrosshairsMode}]
-                grid $Subwidgets(crosshairsComBox) -row 0 -column [incr butCount] -sticky ns
-                set closestCoordWidths [list]
-                foreach mode $CoordClosestMarkModes {
-                    lappend closestCoordWidths [string length $mode]
-                }
-                set Subwidgets(closestCoordLabel) [ttk::label $Subwidgets(toolbarFrame).closestCoordLabel\
-                                                           -text {Closest crosshairs format:}]
-                grid $Subwidgets(closestCoordLabel) -row 0 -column [incr butCount] -sticky e -padx {6 2}
-                set Subwidgets(closestCoordComBox)\
-                        [ttk::combobox $Subwidgets(toolbarFrame).closestCoordComBox\
-                                 -values [my ClosestCoordinateLabels]\
-                                 -width [expr {[::tcl::mathfunc::max {*}$closestCoordWidths]}]\
-                                 -textvariable [self namespace]::ClosestCoordSelector -state disabled\
-                                 -postcommand [namespace code {my UpdateClosestCoordinateModes}]]
-                bind $Subwidgets(closestCoordComBox) <<ComboboxSelected>>\
-                        [namespace code {my SelectClosestCoordinateMode}]
-                grid $Subwidgets(closestCoordComBox) -row 0 -column [incr butCount] -sticky ns
+                set button $Subwidgets(toolbarFrame).crosshairsMenuButton
+                set menu $button.menu
+                set Subwidgets(crosshairsMenuButton) [ttk::menubutton $button -text Crosshairs -menu $menu]
+                set Subwidgets(crosshairsMenu) [menu $menu -tearoff no]
+                $menu configure -postcommand [namespace code [list my UpdateCrosshairsControlMenu $menu]]
+                my AddCrosshairsMenuEntries $menu
+                grid $button -row 0 -column [incr butCount] -sticky ns -padx {6 0}
             }
-            # These methods are valid in both toolbar and context-menu modes.
-            # They already tolerate the toolbar comboboxes not existing.
             my UpdateCrosshairsModes
             my UpdateClosestCoordinateModes
             my ApplyCrosshairsMode
@@ -1593,7 +1572,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Finish construction of the megawidget command.
         rename ::$frameName ::$frameName.fr
         rename [self] ::$frameName
-
         bind $frameName <Destroy> +[list [self] destroy]
     }
     destructor {
@@ -1718,18 +1696,38 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         if {$hasCrosshairs} {
             $menu add separator
-            set crossMenu $menu.crosshairs
-            menu $crossMenu -tearoff no
-            foreach mode [my CrosshairsModes] {
-                set label [my CrosshairsModeLabel $mode]
-                $crossMenu add radiobutton -label $label -variable [self namespace]::CrosshairsSelector -value $label\
-                        -command [namespace code {my SelectCrosshairsMode}]
-            }
-            $menu add cascade -label {Crosshairs mode} -menu $crossMenu
-            set closestMenu $menu.closest
-            menu $closestMenu -tearoff no -postcommand [namespace code {my UpdateClosestContextMenu}]
-            $menu add cascade -label {Closest crosshairs format} -menu $closestMenu
+            my AddCrosshairsMenuEntries $menu
         }
+    }
+    method AddCrosshairsMenuEntries {menu} {
+        # Adds mode and closest-format submenus to a control menu.
+        #  menu - parent menu pathname.
+        #
+        # Returns: Nothing.
+        set crossMenu $menu.crosshairs
+        menu $crossMenu -tearoff no
+        foreach mode [my CrosshairsModes] {
+            set label [my CrosshairsModeLabel $mode]
+            $crossMenu add radiobutton -label $label -variable [self namespace]::CrosshairsSelector -value $label\
+                    -command [namespace code {my SelectCrosshairsMode}]
+        }
+        $menu add cascade -label {Crosshairs mode} -menu $crossMenu
+        set closestMenu $menu.closest
+        menu $closestMenu -tearoff no -postcommand [namespace code [list my UpdateClosestContextMenu $closestMenu]]
+        $menu add cascade -label {Closest crosshairs format} -menu $closestMenu
+    }
+    method UpdateCrosshairsControlMenu {menu} {
+        # Synchronizes crosshair menu selections and format availability.
+        #  menu - parent menu pathname.
+        #
+        # Returns: Nothing.
+        my UpdateCrosshairsModes
+        my UpdateClosestContextMenu $menu.closest
+        set state disabled
+        if {[my configure -crosshairsmode] eq {closest}} {
+            set state normal
+        }
+        $menu entryconfigure {Closest crosshairs format} -state $state
     }
     method AddBitmapPoint {name xValue yValue {mapx {}} {mapy {}}} {
         # Creates a pointer bitmap marker at a graph-coordinate position.
@@ -3232,15 +3230,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my configure -crosshairsmode $mode
     }
     method UpdateCrosshairsModes {} {
-        # Synchronizes the toolbar crosshair-mode combobox with the property.
-        #
-        # Does nothing in context-menu mode where the combobox does not exist.
+        # Synchronizes the crosshair-mode menu selection with the property.
         #
         # Returns: Nothing.
-        if {![info exists Subwidgets(crosshairsComBox)]} {
-            return
-        }
-        $Subwidgets(crosshairsComBox) configure -values [my CrosshairsModeLabels]
         set CrosshairsSelector [my CrosshairsModeLabel [my configure -crosshairsmode]]
     }
     method ApplyCrosshairsMode {} {
@@ -3288,10 +3280,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # The closest-coordinate selector has meaning only in Closest
         # point mode.
         #
-        if {[info exists Subwidgets(closestCoordComBox)]} {
-            my UpdateClosestCoordinateModes
-            $Subwidgets(closestCoordComBox) configure -state disabled
-        }
+        my UpdateClosestCoordinateModes
         switch -- [my configure -crosshairsmode] {
             current {
                 $graph crosshairs on
@@ -3310,9 +3299,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             } 
             closest  {
                 dict with crosshairsclosestopts {}
-                if {[info exists Subwidgets(closestCoordComBox)]} {
-                    $Subwidgets(closestCoordComBox) configure -state readonly
-                }
                 if {!$hide} {
                     $graph crosshairs on
                     bind $tagCrosshairs <Leave> {
@@ -3424,7 +3410,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return $labels
     }
     method SelectClosestCoordinateMode {} {
-        # Applies the closest-coordinate format selected by the toolbar or context menu.
+        # Applies the closest-coordinate format selected by either control menu.
         #
         # Returns: Nothing.
         set mode [my ClosestCoordinateModeFromLabel $ClosestCoordSelector]
@@ -3473,30 +3459,28 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return normalizedimpedance
     }
     method UpdateClosestCoordinateModes {} {
-        # Rebuilds and synchronizes the toolbar closest-coordinate selector.
-        #
-        # If the currently selected format becomes invalid after changing graph representation, a valid default is
-        # selected automatically.
+        # Synchronizes the available closest-coordinate menu formats.
         #
         # Returns: Nothing.
-        if {![info exists Subwidgets(closestCoordComBox)]} {
-            return
-        }
         set modes [my ClosestCoordinateModes]
         if {$coordclosestmark ni $modes} {
             my configure -coordclosestmark [my DefaultClosestCoordinateMode]
         }
-        $Subwidgets(closestCoordComBox) configure -values [my ClosestCoordinateLabels]
         set ClosestCoordSelector [my ClosestCoordinateLabel $coordclosestmark]
+        if {[info exists Subwidgets(crosshairsMenu)]} {
+            my UpdateCrosshairsControlMenu $Subwidgets(crosshairsMenu)
+        }
     }
-    method UpdateClosestContextMenu {} {
-        # Rebuilds the dynamic closest-coordinate context submenu.
+    method UpdateClosestContextMenu {{menu {}}} {
+        # Rebuilds a closest-coordinate submenu before posting.
+        #  menu - submenu pathname; defaults to the context-menu submenu.
         #
-        # The submenu is reconstructed when posted because changing between Polar # and Smith representation changes
-        # the set of valid coordinate formats.
+        # Formats follow the graph representation and configured callback.
         #
         # Returns: Nothing.
-        set menu $Subwidgets(contextMenu).closest
+        if {$menu eq {}} {
+            set menu $Subwidgets(contextMenu).closest
+        }
         $menu delete 0 end
         set modes [my ClosestCoordinateModes]
         if {$coordclosestmark ni $modes} {
@@ -3520,12 +3504,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set menu $Subwidgets(contextMenu)
         if {[info exists CrosshairsSelector]} {
-            if {[my configure -crosshairsmode] eq {closest}} {
-                set state normal
-            } else {
-                set state disabled
-            }
-            $menu entryconfigure {Closest crosshairs format} -state $state
+            my UpdateCrosshairsControlMenu $menu
         }
     }
     method ClosestAxisFormattedValue {axis value formatSpec} {
