@@ -141,6 +141,35 @@ For example:
 .PP
 When more than one data-source option is supplied by the same configuration command, the explicit options are
 processed in caller order and the final data-source selection determines the active mode\&.
+.SH "REAL INPUT COORDINATES"
+.PP
+-datacoordinates cartesian (the default) interprets -xdata and -ydata as Cartesian X/Y\&.
+With -datacoordinates polar, -xdata supplies theta in radians and -ydata supplies radius\&.
+Both options accept real vectors or lists\&. Interleaved -data accepts theta/radius pairs in this mode\&.
+.PP
+.RS 4n
+.nf
+\&.p element create trace -xdata {0 1\&.5707963267948966} -ydata {1 2} -datacoordinates polar
+.fi
+.RE
+.PP
+Each pair is converted to x = radius*cos(theta), y = radius*sin(theta) before mapping\&. Source
+values are retained: cget returns the original input, and vector changes update the plotted points\&.
+The shorter source determines the number of points, as with Cartesian input\&. Angles need not be
+normalized\&. Negative radii follow the same conversion equations; non-finite pairs break the trace\&.
+In Smith representation, the resulting X/Y coordinates represent Gamma\&.
+.PP
+The active data source must be real pairs; complex -cdata requires -datacoordinates cartesian\&.
+Error-bar data options (-xerror, -yerror, -xhigh, -xlow, -yhigh, -ylow) must be empty in
+polar-coordinate mode\&. Angular/radial error bars are not supported\&. Invalid combinations leave the
+existing element configuration unchanged\&.
+.PP
+Closest results and value-formatting callbacks retain Cartesian X/Y coordinates\&. Closest dataFormat
+is polar for theta/radius input\&. Its radius is the geometric magnitude and its angle remains in
+degrees, normalized to [0,360), regardless of the input angle\&. At the origin, angle is zero\&.
+Interpolated results describe the selected point on the plotted Cartesian trace\&. For exact sample
+searches, use index to retrieve the original theta/radius, including any complete turns or radius sign\&.
+Smoothing, symbols, active points and PostScript all use the converted Cartesian geometry\&.
 .SH "PARAMETER MAPPING"
 .PP
 Polar elements support the line-element -param option with either ordinary X/Y data or -cdata\&. The
@@ -602,14 +631,14 @@ additions below\&.
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────┐
-│ Option                │ Database name │ Database class │ Description                                          │
-├───────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────┤
-│ -cdata vectorName     │ cData         │ CData          │ Complex Rbc vector used as the data source\&. An empty │
-│                       │               │                │ value selects ordinary X/Y data mode\&.                │
-│ -cdataformat format   │ cDataFormat   │ CDataFormat    │ gamma, impedance, or admittance\&. Default gamma\&.      │
-│ -z0 value             │ z0            │ Z0             │ Positive finite reference impedance\&. Default 50\&.0\&.   │
-└───────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────┘
+┌───────────────────────┬─────────────────┬─────────────────┬────────────────────────────────────────────────────┐
+│ Option                │ Database name   │ Database class  │ Description                                        │
+├───────────────────────┼─────────────────┼─────────────────┼────────────────────────────────────────────────────┤
+│ -datacoordinates mode │ dataCoordinates │ DataCoordinates │ cartesian (default), or polar (radians/radius)\&.    │
+│ -cdata vectorName     │ cData           │ CData           │ Complex vector; empty selects real pairs\&.          │
+│ -cdataformat format   │ cDataFormat     │ CDataFormat     │ gamma, impedance, or admittance\&. Default gamma\&.    │
+│ -z0 value             │ z0              │ Z0              │ Positive finite reference impedance\&. Default 50\&.0\&. │
+└───────────────────────┴─────────────────┴─────────────────┴────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

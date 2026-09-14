@@ -159,6 +159,9 @@ typedef struct {
 } ParsedSymbol;
 
 typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
+typedef enum { LINE_COORDINATES_CARTESIAN, LINE_COORDINATES_POLAR } LineDataCoordinates;
+
+static const char *lineDataCoordinateNames[] = {"cartesian", "polar", NULL};
 
 typedef struct {
     Rbc_Vector *vecPtr;
@@ -291,6 +294,7 @@ typedef struct {
     ElemVector param;
     LineDataMode dataMode;
     LineComplexDataFormat cDataFormat;
+    LineDataCoordinates dataCoordinates; /* Interpretation of real input pairs. */
     double z0;
     /* Line smoothing */
     Smoothing reqSmooth; /* Requested smoothing function to use
@@ -1233,6 +1237,8 @@ static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES
 static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_COLOR)};
 
 static const Tk_OptionSpec polarElemOptionSpecs[] = {
+    {TK_OPTION_STRING_TABLE, "-datacoordinates", "dataCoordinates", "DataCoordinates", "cartesian", -1,
+     offsetof(Line, dataCoordinates), 0, (ClientData)lineDataCoordinateNames, LINE_ELEM_MAP_ITEM_MASK},
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
     {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
@@ -1566,8 +1572,21 @@ static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double 
             (linePtr->core.y.valueArr == NULL)) {
             return FALSE;
         }
-        *xPtr = linePtr->core.x.valueArr[index];
-        *yPtr = linePtr->core.y.valueArr[index];
+        if (linePtr->dataCoordinates == LINE_COORDINATES_POLAR) {
+            double theta;
+            double radius;
+
+            theta = linePtr->core.x.valueArr[index];
+            radius = linePtr->core.y.valueArr[index];
+            if ((!FINITE(theta)) || (!FINITE(radius))) {
+                return FALSE;
+            }
+            *xPtr = radius * cos(theta);
+            *yPtr = radius * sin(theta);
+        } else {
+            *xPtr = linePtr->core.x.valueArr[index];
+            *yPtr = linePtr->core.y.valueArr[index];
+        }
         return TRUE;
     }
 }
@@ -7924,7 +7943,7 @@ static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
     if (nPoints < 1) {
         return;
     }
-    if (linePtr->dataMode == LINE_DATA_COMPLEX) {
+    if ((linePtr->dataMode == LINE_DATA_COMPLEX) || (linePtr->dataCoordinates == LINE_COORDINATES_POLAR)) {
         double radius;
         Tcl_Size i;
         int found;
@@ -8088,6 +8107,26 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
             goto error;
         }
         complexDataTransactionPrepared = TRUE;
+    }
+    if (linePtr->dataCoordinates == LINE_COORDINATES_POLAR) {
+        LineDataMode mode;
+        Tcl_Obj *errorObjects[] = {elemPtr->xErrorObjPtr, elemPtr->yErrorObjPtr, elemPtr->xHighObjPtr,
+                                  elemPtr->xLowObjPtr, elemPtr->yHighObjPtr, elemPtr->yLowObjPtr};
+        size_t i;
+
+        mode = complexDataTransactionPrepared ? complexDataTransaction.mode : linePtr->dataMode;
+        if (mode == LINE_DATA_COMPLEX) {
+            Tcl_SetObjResult(graphPtr->interp,
+                             Tcl_NewStringObj("-datacoordinates polar cannot be used with -cdata", -1));
+            goto error;
+        }
+        for (i = 0; i < sizeof(errorObjects) / sizeof(errorObjects[0]); i++) {
+            if ((errorObjects[i] != NULL) && (Tcl_GetCharLength(errorObjects[i]) > 0)) {
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("-datacoordinates polar requires empty error-bar data options", -1));
+                goto error;
+            }
+        }
     }
     /*
      * -param is available for graph line and Polar elements, but not
@@ -8455,7 +8494,8 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
             return TCL_ERROR;
         }
     } else {
-        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat", "xy") != TCL_OK) {
+        if (SetClosestInfoString(interp, varNameObjPtr, "dataFormat",
+                                 (linePtr->dataCoordinates == LINE_COORDINATES_POLAR) ? "polar" : "xy") != TCL_OK) {
             return TCL_ERROR;
         }
     }
