@@ -159,6 +159,9 @@ typedef struct {
 } ParsedSymbol;
 
 typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
+
+typedef enum { LINE_AREA_BASELINE, LINE_AREA_CHORD, LINE_AREA_ORIGIN } LineAreaClose;
+static const char *lineAreaCloseNames[] = {"baseline", "chord", "origin", NULL};
 typedef enum { LINE_COORDINATES_CARTESIAN, LINE_COORDINATES_POLAR } LineDataCoordinates;
 
 static const char *lineDataCoordinateNames[] = {"cartesian", "polar", NULL};
@@ -317,6 +320,7 @@ typedef struct {
     XColor *fillFgColor;
     XColor *fillBgColor;
     GC fillGC;
+    LineAreaClose areaClose; /* Closure of the mapped fill polygon. */
     Rbc_Tile fillTile;  /* Tile for fill area. */
     Pixmap fillStipple; /* Stipple for fill area. */
     Tcl_Size nFillPts;
@@ -500,6 +504,16 @@ typedef struct {
  * Options present only for graph line elements.
  */
 #define LINE_ELEMENT_AREA_OPTION_ENTRIES                                      \
+    {                                                                         \
+        TK_OPTION_STRING_TABLE,                                               \
+        "-areaclose", "areaClose", "AreaClose",                               \
+        "baseline",                                                           \
+        -1,                                                                   \
+        offsetof(Line, areaClose),                                            \
+        0,                                                                    \
+        (ClientData)lineAreaCloseNames,                                       \
+        LINE_ELEM_MAP_ITEM_MASK                                               \
+    },                                                                        \
     {                                                                         \
         TK_OPTION_STRING,                                                     \
         "-areapattern", "areaPattern", "AreaPattern",                         \
@@ -7145,6 +7159,8 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size clipCapacity;
     Tcl_Size n;
     Tcl_Size i;
+    Tcl_Size extraPoints;
+    Point2D origin;
 
     /*
      * Always discard the previous mapped polygon first.  The old code
@@ -7164,17 +7180,28 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (mapPtr->breakBefore != NULL) {
         return;
     }
-    if (mapPtr->nScreenPts < 3) {
+    if (mapPtr->nScreenPts < ((linePtr->areaClose == LINE_AREA_ORIGIN) ? 2 : 3)) {
         return;
     }
     /*
-     * Add two bottom vertices to close the fill polygon.
+     * Add the vertices required by the selected closure.
      * Rbc_PolyRectClip() now generates the closing edge internally.
      */
-    if (mapPtr->nScreenPts > TCL_SIZE_MAX - 2) {
+    extraPoints = (linePtr->areaClose == LINE_AREA_BASELINE) ? 2 :
+                  (linePtr->areaClose == LINE_AREA_ORIGIN) ? 1 : 0;
+    if (linePtr->areaClose == LINE_AREA_ORIGIN) {
+        if (linePtr->core.axes.x->logScale || linePtr->core.axes.y->logScale) {
+            return;
+        }
+        origin = Rbc_Map2D(graphPtr, 0.0, 0.0, &linePtr->core.axes);
+        if ((!FINITE(origin.x)) || (!FINITE(origin.y))) {
+            return;
+        }
+    }
+    if (mapPtr->nScreenPts > TCL_SIZE_MAX - extraPoints) {
         return;
     }
-    inputCount = mapPtr->nScreenPts + 2;
+    inputCount = mapPtr->nScreenPts + extraPoints;
     /*
      * The clipping routine can emit at most three vertices per input
      * edge, followed by one closing vertex.
@@ -7199,22 +7226,22 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Rbc_GraphExtents(graphPtr, &exts);
     maxY = (double)graphPtr->bottom;
     for (i = 0; i < mapPtr->nScreenPts; i++) {
-        origPts[i].x = mapPtr->screenPts[i].x + 1;
+        /* Preserve the historical offset only for baseline filling. */
+        origPts[i].x = mapPtr->screenPts[i].x + ((linePtr->areaClose == LINE_AREA_BASELINE) ? 1.0 : 0.0);
         origPts[i].y = mapPtr->screenPts[i].y;
         if (origPts[i].y > maxY) {
             maxY = origPts[i].y;
         }
     }
-    /*
-     * Add edges that extend the polygon to the bottom of the plotting
-     * area.
-     */
-    origPts[i].x = origPts[i - 1].x;
-    origPts[i].y = maxY;
-    i++;
-    origPts[i].x = origPts[0].x;
-    origPts[i].y = maxY;
-    i++;
+    if (linePtr->areaClose == LINE_AREA_BASELINE) {
+        origPts[i].x = origPts[i - 1].x;
+        origPts[i].y = maxY;
+        i++;
+        origPts[i].x = origPts[0].x;
+        origPts[i].y = maxY;
+    } else if (linePtr->areaClose == LINE_AREA_ORIGIN) {
+        origPts[i] = origin;
+    }
     n = Rbc_PolyRectClip(&exts, origPts, inputCount, clipPts, clipCapacity);
     ckfree(origPts);
     if (n < 3) {

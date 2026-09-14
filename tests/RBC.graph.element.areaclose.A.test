@@ -1,0 +1,130 @@
+# Area closure geometry. See license.terms for redistribution terms.
+package require rbc
+package require tcltest
+
+namespace eval areaClose {
+    namespace import ::rbc::*
+    namespace import ::tcltest::*
+
+    proc Ink {photo x y} {
+        lassign [.area transform $x $y] px py
+        expr {[$photo get $px $py] eq {0 0 0}}
+    }
+
+    foreach type {graph polar} {
+        foreach inverted {no yes} {
+            test areaClose-1-$type-$inverted {closure selects the intended interior and resets} -setup {
+                $type .area -width 400 -height 400 -invertxy $inverted -plotbackground white
+                pack .area
+                .area axis configure x -min -3 -max 3
+                .area axis configure y -min -3 -max 3
+                .area grid configure -hide yes
+                .area legend configure -hide yes
+                .area element create signal -data {2 0 2 2 0 2} -linewidth 0 -symbol none \
+                    -areapattern solid -areaforeground black
+                set photo [image create photo]
+                update idletasks
+            } -body {
+                set results {}
+                foreach mode {chord origin baseline chord} {
+                    .area element configure signal -areaclose $mode
+                    .area snap $photo
+                    # All modes fill the upper triangle. Origin also fills
+                    # the lower triangle; baseline extends below the trace.
+                    set below [expr {$inverted eq {yes} ? [Ink $photo -1 1] : [Ink $photo 1 -1]}]
+                    lappend results [list [Ink $photo 1.5 1.5] [Ink $photo 0.5 0.5] $below]
+                }
+                set results
+            } -cleanup {
+                destroy .area
+                image delete $photo
+            } -result {{1 0 0} {1 1 0} {1 1 1} {1 0 0}}
+        }
+    }
+
+    test areaClose-2 {invalid closure leaves configuration unchanged} -setup {
+        polar .area
+        .area element create signal -areaclose origin
+    } -body {
+        list [catch {.area element configure signal -areaclose invalid}] \
+            [.area element cget signal -areaclose]
+    } -cleanup {
+        destroy .area
+    } -result {1 origin}
+
+    test areaClose-3 {tiles use closure geometry too} -setup {
+        polar .area -width 400 -height 400 -plotbackground white
+        pack .area
+        .area axis configure x -min -3 -max 3
+        .area axis configure y -min -3 -max 3
+        .area grid configure -hide yes
+        .area legend configure -hide yes
+        set tile [image create photo -width 2 -height 2]
+        $tile put black -to 0 0 2 2
+        set photo [image create photo]
+        .area element create signal -data {2 0 2 2 0 2} -linewidth 0 -symbol none -areatile $tile
+        update idletasks
+    } -body {
+        set results {}
+        foreach mode {chord origin} {
+            .area element configure signal -areaclose $mode
+            .area snap $photo
+            lappend results [Ink $photo 0.5 0.5]
+        }
+        set results
+    } -cleanup {
+        destroy .area
+        image delete $photo $tile
+    } -result {0 1}
+
+    test areaClose-4 {origin can close a two-point trace} -setup {
+        polar .area -width 400 -height 400 -plotbackground white
+        pack .area
+        .area axis configure x -min -3 -max 3
+        .area axis configure y -min -3 -max 3
+        .area grid configure -hide yes
+        .area legend configure -hide yes
+        .area element create signal -data {2 0 0 2} -linewidth 0 -symbol none \
+            -areapattern solid -areaforeground black -areaclose origin
+        set photo [image create photo]
+        update idletasks
+    } -body {
+        .area snap $photo
+        set filled [Ink $photo 0.5 0.5]
+        .area element configure signal -areaclose chord
+        .area snap $photo
+        list $filled [Ink $photo 0.5 0.5]
+    } -cleanup {
+        destroy .area
+        image delete $photo
+    } -result {1 0}
+
+    test areaClose-5 {PostScript closure changes and reset restores geometry} -setup {
+        polar .area -width 400 -height 400
+        pack .area
+        .area axis configure x -min -3 -max 3
+        .area axis configure y -min -3 -max 3
+        .area element create signal -data {2 0 2 2 0 2} -linewidth 0 -symbol none \
+            -areapattern solid -areaforeground black
+        update idletasks
+    } -body {
+        set paths {}
+        foreach mode {baseline chord origin baseline} {
+            .area element configure signal -areaclose $mode
+            set lines {}
+            foreach line [split [.area postscript output] \n] {
+                if {[regexp { (moveto|lineto)$} $line]} {
+                    lappend lines $line
+                }
+            }
+            lappend paths $lines
+        }
+        lassign $paths baseline chord origin restored
+        list [expr {[llength $baseline] > 0}] [expr {$baseline ne $chord}] \
+            [expr {$chord ne $origin}] [expr {$baseline eq $restored}]
+    } -cleanup {
+        destroy .area
+    } -result {1 1 1 1}
+
+}
+::tcltest::cleanupTests

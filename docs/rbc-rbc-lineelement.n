@@ -728,6 +728,33 @@ traces, and error bars\&.
 .PP
 Line elements, unlike strip elements, may fill the area beneath the rendered trace\&.
 .PP
+-areaclose selects how the fill polygon closes an open trace:
+.TP
+\(bu
+baseline (default): extends both endpoints to the plot bottom, retaining historical behaviour\&.
+.TP
+\(bu
+chord: connects the last point directly to the first\&.
+.TP
+\(bu
+origin: connects the last point to Cartesian (0,0), then to the first, using the element's mapped axes\&.
+.PP
+Closure affects only the fill, not the visible trace\&. It applies to solid fills, stipples, tiles and
+PostScript\&. For an open polar arc, chord fills a segment and origin fills a sector\&. For example:
+.PP
+.RS 4n
+.nf
+\&.p element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.
+Origin closure needs at least two mapped points; other modes need at least three\&. Origin filling is
+omitted when either mapped axis is logarithmic, since zero has no logarithmic coordinate\&.
+Existing restrictions on discontinuous traces remain\&. Self-intersecting curves retain the renderer's
+fill rule; origin closure does not mean filling between successive turns of a spiral\&.
+Existing PostScript limitations for image tiles are unchanged\&.
+.PP
 Area filling is enabled by either -areapattern or -areatile\&.
 .PP
 -areapattern accepts:
@@ -786,6 +813,7 @@ The complete line-element option set is:
 │                         │                  │                  │ default is white\&.                                       │
 │ -areaforeground color   │ areaForeground   │ areaForeground   │ Sets the foreground color used by an area fill or       │
 │                         │                  │                  │ stipple\&. The default is black\&.                          │
+│ -areaclose mode         │ areaClose        │ AreaClose        │ Fill closure: baseline (default), chord, or origin\&.     │
 │ -areapattern pattern    │ areaPattern      │ AreaPattern      │ Enables area filling with solid or a Tk bitmap stipple\&. │
 │                         │                  │                  │ An empty value disables the pattern\&.                    │
 │ -areatile tile          │ areaTile         │ AreaTile         │ Enables area filling with the named Rbc tile/image\&. An  │

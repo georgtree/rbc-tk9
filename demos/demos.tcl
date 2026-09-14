@@ -215,6 +215,20 @@ proc MainWindow {win DemoDir} {
         |
         |Uses built-in spline command to demonstrate approximating data points
     }]
+    set Caption(cairoGraph1.tcl) [MakeLine {
+        |cairo renderer comparison
+        |
+        |demo cairoGraph1.tcl
+        |
+        |Compares native renderer with Cairo backend renderer for elements and markers on the graph.
+    }]
+    set Caption(cairoBar1.tcl) [MakeLine {
+        |cairo renderer comparison
+        |
+        |demo cairoBar1.tcl
+        |
+        |Compares native renderer with Cairo backend renderer for bar elements on the barchart.
+    }]
     # create canvas with scrollbars
     ttk::frame $win
     canvas $win.c -xscrollcommand [list $win.xscroll set] -yscrollcommand [list $win.yscroll set] -borderwidth 0\
@@ -227,19 +241,17 @@ proc MainWindow {win DemoDir} {
     ttk::frame $win.c.targetFrame
     set i 0
     foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 barchart1 barchart2 barchart3 barchart4 barchart5\
-                          stripchart1 winop1 winop2 spline1 graph6 graph7} {
+                          stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
         incr i
         ttk::labelframe $win.c.targetFrame.ins$i -text $name
         if {$name eq {winop1}} {
-            set size [list 240 70]
+            set size [list 70 240]
         } elseif {$name eq {winop2}} {
-            set size [list 240 57]
-        } elseif {$name eq {polar1}} {
-            set size [list 170 150]
+            set size [list 57 240]
         } else {
-            set size [list 240 150]
+            set size [list 150 {}]
         }
         set thumbnail [DemoThumbnail [file normalize [file join $DemoDir thumbnails $img]] {*}$size]
         ttk::button $win.c.targetFrame.ins$i.pic$i -image $thumbnail -command [list RunDemo $DemoDir $demo] 
@@ -268,6 +280,7 @@ proc MainWindow {win DemoDir} {
         $win.c configure -scrollregion \"0 0 \[winfo reqwidth \$w\] \[winfo reqheight \$w\]\"
     "
     EnableMouseWheelScrolling $win.c $win.c.targetFrame
+    bind $win.c <MouseWheel> [bind $win.c.targetFrame <MouseWheel>]
     return $win
 }
 

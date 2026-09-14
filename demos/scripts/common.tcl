@@ -281,11 +281,16 @@ proc ToggleExpandableText {win title} {
     }
 }
 
-proc DemoThumbnail {file width height} {
+proc DemoThumbnail {file height {width {}} } {
     # Creates a resized photo. The caller owns the returned image.
     set source [image create photo -file $file]
     set target {}
     try {
+        if {$width eq {}} {
+            set sourceHeight [image height $source]
+            set sourceWidth [image width $source]
+            set width [expr {int($sourceWidth/double($sourceHeight)*$height)}]
+        }
         set target [image create photo -width $width -height $height]
         rbc::winop image resample $source $target sinc
     } on error {message options} {
