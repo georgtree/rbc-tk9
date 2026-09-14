@@ -9,10 +9,10 @@
 
 package require rbc
 package require tcltest
+namespace import ::rbc::*
+namespace import ::tcltest::*
 
 namespace eval polar.coordinates {
-    namespace import ::rbc::*
-    namespace import ::tcltest::*
 
     proc MakeGraph {} {
         polar .polar1 -width 400 -height 400
@@ -96,14 +96,14 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {1 {0 1 1 polar}}
 
-    test polarCoordinates-6 {closest reports degrees and normalized geometry} -setup {
+    test polarCoordinates-6 {closest reports radians and normalized geometry} -setup {
         MakeGraph
         .polar1 element create signal -data [list [expr {5*acos(-1)/2}] 2] -datacoordinates polar
     } -body {
         update idletasks
         lassign [.polar1 transform 0 2] px py
         .polar1 element closest $px $py info -interpolate no -halo 3 signal
-        list [expr {abs($info(angle)-90) < 1e-10}] [expr {abs($info(radius)-2) < 1e-10}]
+        list [expr {abs($info(angle)-acos(-1)/2) < 1e-10}] [expr {abs($info(radius)-2) < 1e-10}]
     } -cleanup {
         destroy .polar1
         unset -nocomplain info

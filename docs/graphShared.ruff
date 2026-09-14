@@ -2841,8 +2841,8 @@ namespace eval ::rbc::POLARELEMENT {
         existing element configuration unchanged.
 
         Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest `dataFormat`
-        is `polar` for theta/radius input. Its `radius` is the geometric magnitude and its `angle` remains in
-        degrees, normalized to [0,360), regardless of the input angle. At the origin, angle is zero.
+        is `polar` for theta/radius input. Its `radius` is the geometric magnitude and its `angle` is in
+        radians, normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.
         Interpolated results describe the selected point on the plotted Cartesian trace. For exact sample
         searches, use `index` to retrieve the original theta/radius, including any complete turns or radius sign.
         Smoothing, symbols, active points and PostScript all use the converted Cartesian geometry.
@@ -3146,8 +3146,12 @@ namespace eval ::rbc::POLARELEMENT {
 
         `radius` is the magnitude of the selected Cartesian point.
 
-        `angle` is its angle in degrees, normalized from zero through less than 360 degrees. The angle at the origin is
+        `angle` is its angle in radians, normalized from zero through less than 2*pi. The angle at the origin is
         reported as zero.
+
+        This changes the earlier degree-valued closest result. Convert radians with `angle*180/acos(-1)` when
+        degrees are needed. Angular grid ticks and `-anglecommand` continue to use degrees.
+        Graphtoolbar offers `polar` (radians) and `polardegrees` (degrees) for polar annotations.
 
         In Smith representation, closest information additionally includes the plotted reflection coefficient and
         equivalent impedance and admittance quantities:

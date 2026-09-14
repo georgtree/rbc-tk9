@@ -301,7 +301,8 @@ namespace eval ::rbc::graphtoolbar {
         - `auto`
         - `axis`
         - `complex`
-        - `polar`
+        - `polar` (radians)
+        - `polardegrees` (degrees)
         - `gamma`
         - `normalizedimpedance`
         - `normalizedimpedanceri`
@@ -314,11 +315,15 @@ namespace eval ::rbc::graphtoolbar {
         `-coordclosestmark` controls closest-point annotation. The permitted formats depend on the graph
         representation:
         - ordinary graph, barchart, or stripchart: `axis`
-        - Polar representation: `axis`, `complex`, `polar`
+        - Polar representation: `axis`, `complex`, `polar`, `polardegrees`
         - Smith representation: `axis`, `gamma`, `normalizedimpedance`, `impedance`, `normalizedadmittance`,
           `admittance`
 
         The toolbar combobox and context-menu submenu expose only the modes valid for the current representation.
+
+        `polar` displays radius and angle in radians; `polardegrees` displays radius and angle in degrees.
+        The selector labels are **Polar (radians)** and **Polar (degrees)**. Both modes use the same Cartesian
+        point. Custom closest callbacks receive `angle` in radians in the information dictionary.
 
         ## Custom closest-point text
         `-closestcommand` configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
@@ -766,13 +771,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         const CrosshairsModeLabels [dict create current {Current point} closest {Closest point} none {No marker}\
                                             disabled Disabled]
         variable CoordMarkModes
-        const CoordMarkModes {auto axis complex polar gamma normalizedimpedance normalizedimpedanceri\
+        const CoordMarkModes {auto axis complex polar polardegrees gamma normalizedimpedance normalizedimpedanceri\
                                       normalizedadmittance normalizedadmittanceri}
         variable CoordClosestMarkModes
-        const CoordClosestMarkModes {axis complex polar gamma normalizedimpedance impedance normalizedadmittance\
+        const CoordClosestMarkModes {axis complex polar polardegrees gamma normalizedimpedance impedance normalizedadmittance\
                                              admittance custom}
         variable CoordClosestMarkLabels
-        const CoordClosestMarkLabels [dict create axis {Axis} complex {Complex} polar {Polar} gamma {Gamma}\
+        const CoordClosestMarkLabels [dict create axis {Axis} complex {Complex} polar {Polar (radians)}\
+                                              polardegrees {Polar (degrees)} gamma {Gamma}\
                                               normalizedimpedance {Normalized impedance} impedance {Impedance}\
                                               normalizedadmittance {Normalized admittance} admittance {Admittance}\
                                               custom {Custom}]
@@ -878,7 +884,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom
                     corner markers.
 
-                    Accepted values are `auto`, `axis`, `complex`, `polar`, `gamma`, `normalizedimpedance`,
+                    Accepted values are `auto`, `axis`, `complex`, `polar`, `polardegrees`, `gamma`, `normalizedimpedance`,
                     `normalizedimpedanceri`, `normalizedadmittance`, and `normalizedadmittanceri`.
 
                     `auto` uses ordinary axis values except on a Smith chart, where normalized impedance/admittance
@@ -895,7 +901,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
 
                     The valid values depend on the current graph representation:
                     - ordinary graph/barchart/stripchart: `axis`
-                    - Polar: `axis`, `complex`, `polar`
+                    - Polar: `axis`, `complex`, `polar`, `polardegrees`
                     - Smith: `axis`, `gamma`, `normalizedimpedance`, `impedance`, `normalizedadmittance`, `admittance`
 
                     `custom` is also available when `-closestcommand` is nonempty.
@@ -2389,34 +2395,40 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  xValue - Cartesian X component.
         #  yValue - Cartesian Y component.
         #
-        # The angle is returned in degrees in the range `[0,360)`. The zero vector is assigned angle zero.
+        # The angle is returned in radians in the range `[0,2*pi)`. The zero vector is assigned angle zero.
         #
         # Returns: `{radius angle}`.
         set radius [expr {hypot($xValue,$yValue)}]
         if {$radius==0.0} {
             set angle 0.0
         } else {
-            set angle [expr {atan2($yValue,$xValue)*180.0/acos(-1.0)}]
+            set angle [expr {atan2($yValue,$xValue)}]
             if {$angle < 0.0} {
-                set angle [expr {$angle+360.0}]
+                set angle [expr {$angle+2.0*acos(-1.0)}]
             }
-            if {$angle==0.0} {
+            if {$angle==0.0 || $angle>=2.0*acos(-1.0)} {
                 set angle 0.0
             }
         }
         return [list $radius $angle]
     }
-    method FormatPolarMarkerValue {radius angle formatRadius formatAngle} {
+    method FormatPolarMarkerValue {radius angle formatRadius formatAngle {mode polar}} {
         # Formats radius and angle as a two-line Polar annotation.
         #  radius - radius value.
-        #  angle - angle in degrees.
+        #  angle - angle in radians.
         #  formatRadius - radius format body.
         #  formatAngle - angle format body.
+        #  mode - `polar` for radians or `polardegrees` for degrees.
         #
         # Returns: Formatted marker text.
+        set unit rad
+        if {$mode eq {polardegrees}} {
+            set angle [expr {$angle*180.0/acos(-1.0)}]
+            set unit deg
+        }
         set radiusText [format "%$formatRadius" $radius]
         set angleText [format "%$formatAngle" $angle]
-        return "r=$radiusText\nangle=$angleText deg"
+        return "r=$radiusText\nangle=$angleText $unit"
     }
     method SmithGammaToNormalized {gammaReal gammaImag mode} {
         # Converts reflection coefficient Gamma to normalized impedance or normalized admittance.
@@ -2522,9 +2534,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             gamma {
                 set text [my FormatComplexMarkerValue Gamma [list $xValue $yValue] $formatx $formaty]
             }
-            polar {
+            polar -
+            polardegrees {
                 lassign [my CartesianPolarValues $xValue $yValue] radius angle
-                set text [my FormatPolarMarkerValue $radius $angle $formatx $formaty]
+                set text [my FormatPolarMarkerValue $radius $angle $formatx $formaty $mode]
             }
             normalizedimpedance -
             normalizedimpedanceri {
@@ -2642,38 +2655,30 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method RestoreContextMenuCrosshairs {} {
-        # Restores enhanced crosshairs after the context menu is dismissed.
+        # Restores crosshair bindings after the context menu is dismissed.
         #
-        # The current physical pointer position is converted back to graph-local coordinates. The RBC hotspot is
-        # updated while the XOR hairs are hidden, then the selected enhanced mode and any text marker are rebuilt.
-        #
-        # If crosshairs were not enabled for this instance, or the pointer is no longer over the graph, no annotation
-        # is recreated.
+        # Graphics are recreated only when the pointer is over the graph.
         #
         # Returns: Nothing.
         if {![info exists crosshairsopts]} {
             return
         }
+        if {[info exists ContextMenuPosted] && $ContextMenuPosted} {
+            return
+        }
         set graph $Subwidgets(graph)
-        # At this point the popup really is gone. Query the pointer now.
-        set rootX [winfo pointerx $graph]
-        set rootY [winfo pointery $graph]
+        lassign [winfo pointerxy $graph] rootX rootY
         set x [expr {$rootX-[winfo rootx $graph]}]
         set y [expr {$rootY-[winfo rooty $graph]}]
-        # The pointer may no longer be over the graph.
-        if {[winfo containing $rootX $rootY] ne $graph} {
+        $graph crosshairs off
+        $graph crosshairs configure -position @${x},$y
+        # Always restore interaction, even if the pointer is outside.
+        my ApplyCrosshairsMode
+        if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
             $graph crosshairs off
             my DeleteCrosshairsMarkers
             return
         }
-        # Keep the hairs hidden while updating RBC's stored hotspot.
-        $graph crosshairs off
-        $graph crosshairs configure -position @${x},$y
-        # Restore whatever mode is currently selected.  If that mode uses
-        # visible RBC hairs they are now first drawn at the NEW hotspot.
-        my ApplyCrosshairsMode
-        # Recreate current/closest marker information at exactly the same
-        # location.
         my RefreshCrosshairsMarker $x $y
     }
     method ElementDisplayLabel {element} {
@@ -3433,7 +3438,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$GraphType eq {polar}} {
             switch -- [$Subwidgets(graph) cget -representation] {
                 polar {
-                    set modes {axis complex polar}
+                    set modes {axis complex polar polardegrees}
                 }
                 smith {
                     set modes {axis gamma normalizedimpedance impedance normalizedadmittance admittance}
@@ -3673,12 +3678,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     # Complex Cartesian value of a Polar point.
                     set valueText [my FormatComplexMarkerValue z [list $xValue $yValue] $formatReal $formatImag]
                 }
-                polar {
+                polar -
+                polardegrees {
                     if {![dict exists $closestInfo radius] || ![dict exists $closestInfo angle]} {
                         return
                     }
                     set valueText [my FormatPolarMarkerValue [dict get $closestInfo radius]\
-                                           [dict get $closestInfo angle] $formatReal $formatImag]
+                                           [dict get $closestInfo angle] $formatReal $formatImag $mode]
                 }
                 gamma {
                     if {![dict exists $closestInfo gamma]} {

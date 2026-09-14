@@ -414,7 +414,10 @@ axis
 complex
 .TP
 \(bu
-polar
+polar (radians)
+.TP
+\(bu
+polardegrees (degrees)
 .TP
 \(bu
 gamma
@@ -441,12 +444,16 @@ representation:
 ordinary graph, barchart, or stripchart: axis
 .TP
 \(bu
-Polar representation: axis, complex, polar
+Polar representation: axis, complex, polar, polardegrees
 .TP
 \(bu
 Smith representation: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance
 .PP
 The toolbar combobox and context-menu submenu expose only the modes valid for the current representation\&.
+.PP
+polar displays radius and angle in radians; polardegrees displays radius and angle in degrees\&.
+The selector labels are \fBPolar (radians)\fP and \fBPolar (degrees)\fP\&. Both modes use the same Cartesian
+point\&. Custom closest callbacks receive angle in radians in the information dictionary\&.
 .SH "CUSTOM CLOSEST-POINT TEXT"
 .PP
 -closestcommand configures a Tcl command prefix for custom closest-point annotations\&.  A nonempty prefix adds
@@ -906,10 +913,10 @@ Enables hover activation and three-state Button-1 interaction on legend entries\
 Readable, writable\&. Tcl command prefix for Custom closest-point text\&. Receives element x y info and returns the complete annotation\&. An empty prefix removes Custom from the available formats\&. See the Custom closest-point text section for coordinate semantics\&.
 .TP
 -coordclosestmark
-Readable, writable\&. Selects the value representation used for closest-point annotations\&. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: axis - Polar: axis, complex, polar - Smith: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance custom is also available when -closestcommand is nonempty\&. The toolbar and context-menu selectors are synchronized with this property\&.
+Readable, writable\&. Selects the value representation used for closest-point annotations\&. The valid values depend on the current graph representation: - ordinary graph/barchart/stripchart: axis - Polar: axis, complex, polar, polardegrees - Smith: axis, gamma, normalizedimpedance, impedance, normalizedadmittance, admittance custom is also available when -closestcommand is nonempty\&. The toolbar and context-menu selectors are synchronized with this property\&.
 .TP
 -coordmark
-Readable, writable\&. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers\&. Accepted values are auto, axis, complex, polar, gamma, normalizedimpedance, normalizedimpedanceri, normalizedadmittance, and normalizedadmittanceri\&. auto uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid\&.
+Readable, writable\&. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers\&. Accepted values are auto, axis, complex, polar, polardegrees, gamma, normalizedimpedance, normalizedimpedanceri, normalizedadmittance, and normalizedadmittanceri\&. auto uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid\&.
 .TP
 -crosshairsbarlineopts
 Readable, writable\&. Dictionary configuring the dimension line used when the closest result is a bar\&. Recognized keys are -outline, -linewidth, and -arrowshape\&. -arrowshape contains the three screen distances used by an Rbc line-marker arrowhead\&. Initial values come from the gtbCrosshairsBarLine* Tk option-database resources\&.

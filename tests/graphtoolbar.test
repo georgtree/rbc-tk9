@@ -318,17 +318,22 @@ proc ExpectedComplexMarkerText {name real imag formatReal formatImag {unit {}}} 
     return $text
 }
 
-proc ExpectedPolarMarkerText {real imag formatRadius formatAngle} {
+proc ExpectedPolarMarkerText {real imag formatRadius formatAngle {mode polar}} {
     set radius [expr {hypot($real,$imag)}]
     if {$radius == 0.0} {
         set angle 0.0
     } else {
-        set angle [expr {atan2($imag,$real)*180.0/acos(-1.0)}]
+        set angle [expr {atan2($imag,$real)}]
         if {$angle < 0.0} {
-            set angle [expr {$angle+360.0}]
+            set angle [expr {$angle+2.0*acos(-1.0)}]
         }
     }
-    return [format "r=%${formatRadius}\nangle=%${formatAngle} deg" $radius $angle]
+    set unit rad
+    if {$mode eq {polardegrees}} {
+        set angle [expr {$angle*180.0/acos(-1.0)}]
+        set unit deg
+    }
+    return [format "r=%${formatRadius}\nangle=%${formatAngle} %s" $radius $angle $unit]
 }
 
 proc ExpectedRealImagMarkerText {real imag formatReal formatImag {invert no}} {
@@ -852,7 +857,7 @@ test generalConfiguration-20 {context-menu crosshair submenus expose correct mod
     set smithSelection [$widget configure -coordclosestmark]
     list $crossEntries $polarLabels $polarSelection $smithLabels $smithDefault $smithSelection
 } -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}} {radiobutton\
-Disabled}} {Axis Complex Polar} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
+Disabled}} {Axis Complex {Polar (radians)} {Polar (degrees)}} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
 Admittance} normalizedimpedance admittance} -cleanup {
     destroy $widget
 }
@@ -3272,9 +3277,10 @@ test crosshairsInteractive-27 {polar current marker supports axis, complex, and 
     set imag [$graph axis invtransform y $y]
     set axisText [ExpectedRealImagMarkerText $real $imag .6g .6g]
     set expected [list $axisText $axisText [ExpectedComplexMarkerText z $real $imag .6g .6g]\
-                          [ExpectedPolarMarkerText $real $imag .6g .6g]]
+                          [ExpectedPolarMarkerText $real $imag .6g .6g]\
+                          [ExpectedPolarMarkerText $real $imag .6g .6g polardegrees]]
     set actual [list]
-    foreach mode {auto axis complex polar} {
+    foreach mode {auto axis complex polar polardegrees} {
         $widget configure -coordmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
         if {![$graph marker exists gtbCrosshairsText]} {
@@ -3391,9 +3397,10 @@ test crosshairsInteractive-30 {polar closest marker supports axis, complex, and 
     lassign [$graph transform 3 4] x y
     set expected [list "Element1\n[ExpectedRealImagMarkerText 3 4 .6g .6g]"\
                           "Element1\n[ExpectedComplexMarkerText z 3 4 .6g .6g]"\
-                          "Element1\n[ExpectedPolarMarkerText 3 4 .6g .6g]"]
+                          "Element1\n[ExpectedPolarMarkerText 3 4 .6g .6g]"\
+                          "Element1\n[ExpectedPolarMarkerText 3 4 .6g .6g polardegrees]"]
     set actual [list]
-    foreach mode {axis complex polar} {
+    foreach mode {axis complex polar polardegrees} {
         $widget configure -coordclosestmark $mode
         GenerateGraphEvent $graph <Motion> $x $y 20
         if {![$graph marker exists gtbCrosshairsClosestText]} {
@@ -5334,7 +5341,7 @@ foreach {type representation} {
         $graph element create Signal -x {0.2} -y {0.4} -label {}
         set objectNs [info object namespace $widget]
         set options [dict create -formatx .6g -formaty .6g -formatparam .6g]
-        set closestInfo [dict create name Signal index 0 x 0.2 y 0.4 radius 0.4472135955 angle 63.43494882\
+        set closestInfo [dict create name Signal index 0 x 0.2 y 0.4 radius 0.4472135955 angle 1.1071487177940904\
                                  gamma {0.2 0.4} normalizedImpedance {1 1} impedance {50 50}\
                                  normalizedAdmittance {0.5 -0.5} admittance {0.01 -0.01} param 7]
     } -body {
@@ -5379,5 +5386,27 @@ test closestLabel-2 {custom callbacks retain element names and control their tex
 } -cleanup {
     destroy $widget
 } -result {Signal Signal CUSTOM}
+
+
+test polarAngleUnits-1 {closest selector and text support radians and degrees} -setup {
+    set widget [graphtoolbar .gtb -type polar -crosshairs -crosshairsmode closest]
+    set graph [$widget subwidget graph]
+    $graph element create Signal -data {0 -2} -label {}
+    set objectNs [info object namespace $widget]
+    set options [dict create -formatx .6g -formaty .6g]
+    set closestInfo [dict create name Signal index 0 x 0 y -2 radius 2 angle [expr {1.5*acos(-1.0)}]]
+} -body {
+    set results {}
+    foreach mode {polar polardegrees} label {{Polar (radians)} {Polar (degrees)}} {
+        $widget configure -coordclosestmark $mode
+        lappend results [expr {[namespace eval $objectNs [list my ClosestCoordinateLabel $mode]] eq $label}]
+        set actual [namespace eval $objectNs [list my ClosestMarkerText Signal 0 -2 $options $closestInfo]]
+        lappend results [expr {$actual eq "Signal\n[ExpectedPolarMarkerText 0 -2 .6g .6g $mode]"}]
+        lappend results [expr {[namespace eval $objectNs [list my ClosestCoordinateModeFromLabel $label]] eq $mode}]
+    }
+    set results
+} -cleanup {
+    destroy $widget
+} -result {1 1 1 1 1 1}
 
 cleanupTests

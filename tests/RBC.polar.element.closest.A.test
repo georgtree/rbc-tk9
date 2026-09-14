@@ -349,7 +349,7 @@ namespace eval polar.element {
         lassign [.polar1 transform 3 4] x y
         set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
         list $found $info(dataFormat) [expr {abs($info(radius) - 5.0) < 1e-12}]\
-                [expr {abs($info(angle) - 53.13010235415598) < 1e-10}]
+                [expr {abs($info(angle) - atan2(4.0,3.0)) < 1e-10}]
     } -cleanup {
         unset -nocomplain info
         destroy .polar1
@@ -357,7 +357,7 @@ namespace eval polar.element {
     } -result {1 gamma 1 1}
 
     test RBC.polar.element.closest.A.info.2 {
-        polar element closest: angle is normalized to 0..360 degrees
+        polar element closest: angle is normalized to [0,2*pi) radians
     } -setup {
         vector create z -type complex
         z set {{0 -2}}
@@ -370,12 +370,12 @@ namespace eval polar.element {
     } -body {
         lassign [.polar1 transform 0 -2] x y
         .polar1 element closest $x $y info -interpolate 0 -halo 2 Element1
-        list $info(radius) $info(angle)
+        list $info(radius) [expr {abs($info(angle)-1.5*acos(-1.0)) < 1e-12}]
     } -cleanup {
         unset -nocomplain info
         destroy .polar1
         vector destroy z
-    } -result {2.0 270.0}
+    } -result {2.0 1}
 
     test RBC.polar.element.closest.A.info.3 {
         smith closest: gamma, impedance, and admittance information
@@ -523,13 +523,13 @@ namespace eval polar.element {
         set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
         lassign $info(normalizedImpedance) r x
         lassign $info(impedance) R X
-        list $found $info(radius) $info(angle) [expr {$r == 0.0}] [expr {$x == 0.0}] [expr {$R == 0.0}]\
+        list $found $info(radius) [expr {abs($info(angle)-acos(-1.0)) < 1e-12}] [expr {$r == 0.0}] [expr {$x == 0.0}] [expr {$R == 0.0}]\
                 [expr {$X == 0.0}]
     } -cleanup {
         unset -nocomplain info
         destroy .polar1
         vector destroy gamma
-    } -result {1 1.0 180.0 1 1 1 1}
+    } -result {1 1.0 1 1 1 1 1}
 
     test RBC.polar.element.closest.A.impedance.singular.1 {
         smith impedance: Z=-Z0 singular point is skipped

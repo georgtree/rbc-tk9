@@ -1414,7 +1414,6 @@ static int ComplexDivide(double nr, double ni, double dr, double di, double *rea
 }
 
 #define LINE_PI 3.14159265358979323846264338327950288
-#define LINE_RAD_TO_DEG (180.0 / LINE_PI)
 
 static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *varNameObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
     Tcl_Obj *nameObjPtr;
@@ -8467,14 +8466,14 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
     if (radius == 0.0) {
         angle = 0.0;
     } else {
-        angle = atan2(imag, real) * LINE_RAD_TO_DEG;
+        angle = atan2(imag, real);
         if (angle < 0.0) {
-            angle += 360.0;
+            angle += 2.0 * LINE_PI;
         }
         /*
-         * Avoid exposing negative zero.
+         * Normalize negative zero and rounded full turns.
          */
-        if (angle == 0.0) {
+        if ((angle == 0.0) || (angle >= 2.0 * LINE_PI)) {
             angle = 0.0;
         }
     }

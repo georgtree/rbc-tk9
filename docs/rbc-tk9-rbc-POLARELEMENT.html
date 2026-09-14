@@ -151,8 +151,8 @@ Error-bar data options (<code class="docutils literal notranslate"><span class="
 polar-coordinate mode. Angular/radial error bars are not supported. Invalid combinations leave the
 existing element configuration unchanged.</p>
 <p>Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest <code class="docutils literal notranslate"><span class="pre">dataFormat</span></code>
-is <code class="docutils literal notranslate"><span class="pre">polar</span></code> for theta/radius input. Its <code class="docutils literal notranslate"><span class="pre">radius</span></code> is the geometric magnitude and its <code class="docutils literal notranslate"><span class="pre">angle</span></code> remains in
-degrees, normalized to [0,360), regardless of the input angle. At the origin, angle is zero.
+is <code class="docutils literal notranslate"><span class="pre">polar</span></code> for theta/radius input. Its <code class="docutils literal notranslate"><span class="pre">radius</span></code> is the geometric magnitude and its <code class="docutils literal notranslate"><span class="pre">angle</span></code> is in
+radians, normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.
 Interpolated results describe the selected point on the plotted Cartesian trace. For exact sample
 searches, use <code class="docutils literal notranslate"><span class="pre">index</span></code> to retrieve the original theta/radius, including any complete turns or radius sign.
 Smoothing, symbols, active points and PostScript all use the converted Cartesian geometry.</p>
@@ -409,8 +409,11 @@ info(angle)
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">radius</span></code> is the magnitude of the selected Cartesian point.</p>
-<p><code class="docutils literal notranslate"><span class="pre">angle</span></code> is its angle in degrees, normalized from zero through less than 360 degrees. The angle at the origin is
+<p><code class="docutils literal notranslate"><span class="pre">angle</span></code> is its angle in radians, normalized from zero through less than 2*pi. The angle at the origin is
 reported as zero.</p>
+<p>This changes the earlier degree-valued closest result. Convert radians with <code class="docutils literal notranslate"><span class="pre">angle*180/acos(-1)</span></code> when
+degrees are needed. Angular grid ticks and <code class="docutils literal notranslate"><span class="pre">-anglecommand</span></code> continue to use degrees.
+Graphtoolbar offers <code class="docutils literal notranslate"><span class="pre">polar</span></code> (radians) and <code class="docutils literal notranslate"><span class="pre">polardegrees</span></code> (degrees) for polar annotations.</p>
 <p>In Smith representation, closest information additionally includes the plotted reflection coefficient and
 equivalent impedance and admittance quantities:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>info(gamma)
