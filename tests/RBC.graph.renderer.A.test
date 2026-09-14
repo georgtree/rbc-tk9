@@ -2306,5 +2306,101 @@ namespace eval graph.renderer {
         }
     }
 
+    proc OpacityFixture {kind invert renderer} {
+        ::rbc::$kind .opacity -width 400 -height 400 -plotbackground blue \
+            -renderer $renderer -invertxy $invert
+        pack .opacity
+        .opacity axis configure x -min -3 -max 3
+        .opacity axis configure y -min -3 -max 3
+        .opacity grid configure -hide yes
+        .opacity legend configure -hide yes
+        .opacity element create signal -data {-2 -2 2 -2 2 2 -2 2 -2 -2} \
+            -linewidth 0 -symbol none -areaclose chord -areapattern solid -areaforeground red
+        update idletasks
+    }
+
+    proc OpacityPixel {photo x y expected} {
+        lassign [.opacity transform $x $y] px py
+        foreach actual [$photo get $px $py] target $expected {
+            if {abs($actual-$target) > 1} {
+                return 0
+            }
+        }
+        return 1
+    }
+
+    foreach kind {graph polar} {
+        foreach invert {no yes} {
+            test RBC.graph.renderer.A.22.1-$kind-$invert {solid opacity blends and survives renderer switching} \
+                    -constraints rbcCairo -setup {
+                OpacityFixture $kind $invert cairo
+                set photo [image create photo]
+                # Cross the plot boundaries to exercise the fill clip too.
+                .opacity element configure signal -data {-4 -4 4 -4 4 4 -4 4 -4 -4}
+            } -body {
+                set failures {}
+                foreach antialias {none gray} {
+                    .opacity configure -antialias $antialias
+                    foreach opacity {1 0.5 0 1} expected {{255 0 0} {128 0 127} {0 0 255} {255 0 0}} {
+                        .opacity element configure signal -areaopacity $opacity
+                        .opacity snap $photo
+                        if {![OpacityPixel $photo 1 1 $expected]} {
+                            lappend failures [list $antialias $opacity]
+                        }
+                    }
+                }
+                .opacity element configure signal -areaopacity 0.5
+                foreach renderer {native cairo native} expected {{255 0 0} {128 0 127} {255 0 0}} {
+                    .opacity configure -renderer $renderer
+                    .opacity snap $photo
+                    if {![OpacityPixel $photo 1 1 $expected]} {
+                        lappend failures $renderer
+                    }
+                }
+                set failures
+            } -cleanup {
+                destroy .opacity
+                image delete $photo
+            } -result {}
+        }
+    }
+
+    test RBC.graph.renderer.A.22.2 {native solid fills ignore opacity} -setup {
+        OpacityFixture graph no native
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach opacity {0 0.5 1} {
+            .opacity element configure signal -areaopacity $opacity
+            .opacity snap $photo
+            lappend results [OpacityPixel $photo 1 1 {255 0 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .opacity
+        image delete $photo
+    } -result {1 1 1}
+
+    test RBC.graph.renderer.A.22.3 {opacity leaves stipples and photo alpha unchanged} \
+            -constraints rbcCairo -setup {
+        OpacityFixture graph no cairo
+        set photo [image create photo]
+        set tile [image create photo -width 2 -height 2]
+        $tile put {#ff0000@0.5} -to 0 0 2 2
+    } -body {
+        .opacity element configure signal -areapattern gray50
+        .opacity snap $photo
+        set stipple [$photo data]
+        .opacity element configure signal -areaopacity 0
+        .opacity snap $photo
+        set same [expr {$stipple eq [$photo data]}]
+        .opacity element configure signal -areatile $tile
+        .opacity snap $photo
+        list $same [OpacityPixel $photo 1 1 {128 0 127}]
+    } -cleanup {
+        destroy .opacity
+        image delete $photo $tile
+    } -result {1 1}
+
     cleanupTests
 }

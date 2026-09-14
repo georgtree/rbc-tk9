@@ -321,6 +321,7 @@ typedef struct {
     XColor *fillBgColor;
     GC fillGC;
     LineAreaClose areaClose; /* Closure of the mapped fill polygon. */
+    double areaOpacity; /* Cairo solid fill opacity, from zero to one. */
     Rbc_Tile fillTile;  /* Tile for fill area. */
     Pixmap fillStipple; /* Stipple for fill area. */
     Tcl_Size nFillPts;
@@ -513,6 +514,16 @@ typedef struct {
         0,                                                                    \
         (ClientData)lineAreaCloseNames,                                       \
         LINE_ELEM_MAP_ITEM_MASK                                               \
+    },                                                                        \
+    {                                                                         \
+        TK_OPTION_DOUBLE,                                                     \
+        "-areaopacity", "areaOpacity", "AreaOpacity",                         \
+        "1.0",                                                                \
+        -1,                                                                   \
+        offsetof(Line, areaOpacity),                                         \
+        0,                                                                    \
+        NULL,                                                                 \
+        LINE_ELEM_AREA_MASK                                                   \
     },                                                                        \
     {                                                                         \
         TK_OPTION_STRING,                                                     \
@@ -8096,6 +8107,11 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int paramTransactionPrepared;    
 
     linePtr = LINE_FROM_CORE(elemPtr);
+    if ((!FINITE(linePtr->areaOpacity)) || (linePtr->areaOpacity < 0.0) || (linePtr->areaOpacity > 1.0)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_NewStringObj("-areaopacity must be a finite number between 0 and 1", -1));
+        return TCL_ERROR;
+    }
     memset(&dataTransaction, 0, sizeof(dataTransaction));
     memset(&penTransaction, 0, sizeof(penTransaction));
     memset(&axisTransaction, 0, sizeof(axisTransaction));
@@ -10977,8 +10993,10 @@ static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
             return FALSE;
         foreground = &gcColor;
     }
-    return Rbc_RenderArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, foreground, linePtr->fillBgColor,
-                          (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple);
+    return Rbc_RenderAreaOpacity(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, foreground,
+                                 linePtr->fillBgColor,
+                                 (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple,
+                                 linePtr->areaOpacity);
 }
 
 /*

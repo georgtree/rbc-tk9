@@ -38,6 +38,7 @@ In particular, the following LINEELEMENT options are not available for strip ele
 │ -areabackground     │ area-fill stipple background                            │
 │ -areaforeground     │ area-fill foreground                                    │
 │ -areapattern        │ area filling with a solid or stipple pattern            │
+│ -areaopacity        │ Cairo solid area fill opacity                           │
 │ -areatile           │ tiled area filling                                      │
 │ -param              │ per-point parameter mapping returned by ELEMENT closest │
 │ -reduce             │ screen-space trace reduction                            │

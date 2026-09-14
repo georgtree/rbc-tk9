@@ -40,6 +40,9 @@ void Rbc_RenderEnd(Rbc_RenderContext *ctx);
 /* None means a solid fill; FALSE requests native drawing. */
 int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                    const XColor *foreground, const XColor *background, Pixmap stipple);
+/* Opacity applies only to solid fills (stipple == None). */
+int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity);
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block);
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y);

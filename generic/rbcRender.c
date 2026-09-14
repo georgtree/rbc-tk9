@@ -719,8 +719,8 @@ int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectang
 }
 
 /* Fill one mapped polygon with the native even-odd rule and widget pattern origin. */
-int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
-                   const XColor *background, Pixmap stipple) {
+int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
 
@@ -739,6 +739,10 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
             cairo_pattern_destroy(pattern);
         }
         return FALSE;
+    }
+    if ((stipple == None) && (opacity != 1.0)) {
+        cairo_set_source_rgba(ctx->cr, foreground->red / 65535.0, foreground->green / 65535.0,
+                              foreground->blue / 65535.0, opacity);
     }
     FillRenderArea(ctx, points, count, pattern);
     if (pattern != NULL) {
@@ -1017,8 +1021,8 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
     return FALSE;
 }
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) { (void)ctx; }
-int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
-                   const XColor *background, Pixmap stipple) {
+int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
     (void)drawable;
     (void)points;
@@ -1026,6 +1030,7 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
     (void)foreground;
     (void)background;
     (void)stipple;
+    (void)opacity;
     return FALSE;
 }
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
@@ -1038,3 +1043,9 @@ int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points
     return FALSE;
 }
 #endif
+
+/* Existing area clients retain opaque fills. */
+int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
+                   const XColor *background, Pixmap stipple) {
+    return Rbc_RenderAreaOpacity(graphPtr, drawable, points, count, foreground, background, stipple, 1.0);
+}

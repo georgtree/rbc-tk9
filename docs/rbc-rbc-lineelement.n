@@ -778,6 +778,24 @@ For example:
 .fi
 .RE
 .PP
+-areaopacity controls solid area fills (-areapattern solid) with -renderer cairo\&.
+It accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&.
+Intermediate values blend the fill with the content already drawn beneath it\&. It does not
+change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha\&.
+An invisible fill remains configured and does not affect element data or closest searches\&.
+.PP
+.RS 4n
+.nf
+\&.g configure -renderer cairo
+\&.g element configure signal -areapattern solid -areaforeground blue -areaopacity 0\&.3
+.fi
+.RE
+.PP
+\fBNative renderer limitation:\fP -renderer native accepts but ignores -areaopacity;
+solid fills remain opaque, including at 0\&.0\&. Native image tiles use a binary transparency
+mask and do not provide full alpha blending\&. PostScript output also ignores -areaopacity
+and retains opaque solid fills\&. Switching to Cairo restores the configured opacity\&.
+.PP
 -areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
 .PP
 With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&.
@@ -790,7 +808,7 @@ the underlying pattern\&. Recreating the image with the same name restores the t
 Non-photo image tiles retain native rendering\&. Solid/stippled areas with an empty -areaforeground
 use Cairo with the native GC color\&. Native photo tiles retain their existing transparency-mask behavior\&.
 .PP
-The fill polygon follows the mapped line and is closed against the bottom of the plotting area\&.
+The fill polygon follows the mapped line and uses the closure selected by -areaclose\&.
 .PP
 Area filling uses the geometry after smoothing and point reduction\&.
 .PP
@@ -814,6 +832,8 @@ The complete line-element option set is:
 │ -areaforeground color   │ areaForeground   │ areaForeground   │ Sets the foreground color used by an area fill or       │
 │                         │                  │                  │ stipple\&. The default is black\&.                          │
 │ -areaclose mode         │ areaClose        │ AreaClose        │ Fill closure: baseline (default), chord, or origin\&.     │
+│ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0\&.0–1\&.0 (default 1\&.0), Cairo only\&.        │
+│                         │                  │                  │ Native rendering and PostScript ignore this option\&.    │
 │ -areapattern pattern    │ areaPattern      │ AreaPattern      │ Enables area filling with solid or a Tk bitmap stipple\&. │
 │                         │                  │                  │ An empty value disables the pattern\&.                    │
 │ -areatile tile          │ areaTile         │ AreaTile         │ Enables area filling with the named Rbc tile/image\&. An  │

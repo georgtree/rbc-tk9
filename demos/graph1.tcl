@@ -78,8 +78,8 @@ $graph graph configure -title [pwd] -font {TkFixedFont 10} -plotpady {0.1i 0}
 
 ####  Configure the "Fill" image for elements "line2"
 set areaTile1 [image create photo -width 8 -height 8]
-$areaTile1 put #e6eef8 -to 0 0 8 8
-$areaTile1 put #cedef0 -to 0 0 4 8
+$areaTile1 put #e6eef8@0.5 -to 0 0 8 8
+$areaTile1 put #cedef0@0.5 -to 0 0 4 8
 $graph graph element configure line1
 $graph graph element configure line2 -areatile $areaTile1 -areaclose baseline
 $graph graph element configure line3

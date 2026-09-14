@@ -1,0 +1,42 @@
+# Solid area opacity configuration. See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval areaOpacity {
+    namespace import ::tcltest::*
+
+    foreach type {graph polar} {
+        test areaOpacity-1-$type {default and accepted opacity values} -setup {
+            ::rbc::$type .area
+            .area element create signal
+        } -body {
+            set values [list [.area element cget signal -areaopacity]]
+            foreach opacity {0 0.25 1} {
+                .area element configure signal -areaopacity $opacity
+                lappend values [.area element cget signal -areaopacity]
+            }
+            set values
+        } -cleanup {
+            destroy .area
+        } -result {1.0 0.0 0.25 1.0}
+
+        test areaOpacity-2-$type {invalid opacity restores the complete configuration} -setup {
+            ::rbc::$type .area
+            .area element create signal -areaopacity 0.5 -label original
+        } -body {
+            set failures {}
+            foreach value {-0.1 1.1 Inf -Inf NaN invalid} {
+                set code [catch {.area element configure signal -label changed -areaopacity $value}]
+                if {!$code || [.area element cget signal -areaopacity] != 0.5 ||
+                        [.area element cget signal -label] ne {original}} {
+                    lappend failures $value
+                }
+            }
+            set failures
+        } -cleanup {
+            destroy .area
+        } -result {}
+    }
+
+    cleanupTests
+}
