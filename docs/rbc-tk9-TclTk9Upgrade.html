@@ -48,6 +48,13 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="msvc-builds-on-windows">
+<span id="r-tcltk9upgrade-msvc-builds-on-windows"></span><span id="r-3a3atcltk9upgradeqzmsvc20builds20on20windows"></span><h3>MSVC builds on Windows<a class="headerlink" href="#msvc-builds-on-windows" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">win/makefile.vc</span></code> build supports MSVC and Nmake with Tcl/Tk 9, including optional Cairo via
+<code class="docutils literal notranslate"><span class="pre">CAIRO=1</span></code> and <code class="docutils literal notranslate"><span class="pre">CAIRODIR</span></code>. It provides build, test, install and shell targets independently of the
+MSYS2 build. Matching MSVC-built Tcl/Tk source trees and libraries are required; Cairo runtime
+DLLs and their dependencies must be available when loading RBC. See <code class="docutils literal notranslate"><span class="pre">win/README.md</span></code> for commands.</p>
+</section>
 <section id="optional-cairo-rendering">
 <span id="r-tcltk9upgrade-optional-cairo-rendering"></span><span id="r-3a3atcltk9upgradeqzoptional20cairo20rendering"></span><h3>Optional Cairo rendering<a class="headerlink" href="#optional-cairo-rendering" title="Link to this heading">¶</a></h3>
 <p>Configure with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code> to build the antialiased renderer. Cairo-enabled builds default to
@@ -91,6 +98,19 @@ requests into an idle callback and respects temporary suspension during zooming,
 Windows crosshair motion was corrected to avoid flicker. Symbols crossing the plot boundary are clipped
 to the visible area instead of disappearing while still partially visible.</p>
 </section>
+<section id="custom-closest-point-annotations">
+<span id="r-tcltk9upgrade-custom-closest-point-annotations"></span><span id="r-3a3atcltk9upgradeqzcustom20closest2dpoint20annotations"></span><h3>Custom closest-point annotations<a class="headerlink" href="#custom-closest-point-annotations" title="Link to this heading">¶</a></h3>
+<p>The toolbar’s <code class="docutils literal notranslate"><span class="pre">-closestcommand</span></code> accepts a Tcl command prefix receiving <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">info</span></code> and returning
+annotation text. Configuring it adds Custom to the available formats; <code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span> <span class="pre">custom</span></code>
+selects it. Empty results suppress the annotation. Ordinary coordinates follow the element’s mapped
+axes; Polar coordinates are Cartesian components. Smith charts supply normalized admittance for an
+admittance grid, or normalized impedance for impedance and combined grids. The information dictionary
+retains the closest-search fields, including the source index.</p>
+<p>Built-in closest annotations display the element’s nonempty <code class="docutils literal notranslate"><span class="pre">-label</span></code>, falling back to its name.
+Toolbar control mode now uses a Crosshairs menu button instead of two comboboxes, with the same mode
+and format choices as context control mode. Polar formats include <code class="docutils literal notranslate"><span class="pre">polar</span></code> (radians) and <code class="docutils literal notranslate"><span class="pre">polardegrees</span></code>
+(degrees). Format changes refresh the annotation without requiring another pointer movement.</p>
+</section>
 <section id="complex-vectors">
 <span id="r-tcltk9upgrade-complex-vectors"></span><span id="r-3a3atcltk9upgradeqzcomplex20vectors"></span><h3>Complex vectors<a class="headerlink" href="#complex-vectors" title="Link to this heading">¶</a></h3>
 <p>The vector subsystem now supports both real and complex numeric vectors. Complex vectors are created explicitly
@@ -117,8 +137,11 @@ traditional Cartesian graph or scalar spline is required.</p>
 <span id="r-tcltk9upgrade-polar-and-smith-charts"></span><span id="r-3a3atcltk9upgradeqzpolar20and20smith20charts"></span><h3>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h3>
 <p>This fork adds the <code class="docutils literal notranslate"><span class="pre">polar</span></code> graph widget for plotting Cartesian complex-plane data with either a conventional
 Polar grid or a Smith-chart representation.</p>
-<p>Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
-use ordinary X/Y data or attach first-class complex vectors directly with <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>.</p>
+<p>Polar elements accept real lists or vectors through <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code>, paired lists through <code class="docutils literal notranslate"><span class="pre">-data</span></code>,
+or first-class complex vectors through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>. With the default <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code>, X and Y
+are real and imaginary components. With <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">polar</span></code>, X supplies angles in radians and Y
+supplies radii; conversion to Cartesian coordinates occurs internally. Source lists and vectors remain
+unchanged. Polar input coordinates cannot be combined with <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> or error-bar data options.</p>
 <p>Complex data can be interpreted as:</p>
 <ul class="simple">
 <li><p>reflection coefficient with <code class="docutils literal notranslate"><span class="pre">-cdataformat</span> <span class="pre">gamma</span></code>;</p></li>
@@ -149,10 +172,27 @@ instead of disappearing with their normal unit-circle label position.</p>
 non-monotonic-X paths and loops. Catmull-Rom smoothing remains parametric as well.</p>
 <p>Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
 continuous runs. Smoothing is performed independently on those runs and never bridges a gap.</p>
-<p><code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> on a Polar widget additionally reports radius and angle. In Smith representation it also
-reports Gamma together with normalized and physical impedance and admittance quantities.</p>
+<p><code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> on a Polar widget additionally reports radius and angle. The <code class="docutils literal notranslate"><span class="pre">angle</span></code> field now uses
+radians in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2*pi)</span></code>, including for Cartesian and complex-vector input; this deliberately replaces
+the previous degree result. The origin has angle zero, and returned X/Y coordinates remain Cartesian.
+Polar grid angular labels and their formatting callback continue to use degrees. In Smith representation,
+closest results also report Gamma and normalized and physical impedance and admittance quantities.</p>
 <p>Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
 PostScript output as well as on-screen drawing.</p>
+</section>
+<section id="area-closure-and-transparency">
+<span id="r-tcltk9upgrade-area-closure-and-transparency"></span><span id="r-3a3atcltk9upgradeqzarea20closure20and20transparency"></span><h3>Area closure and transparency<a class="headerlink" href="#area-closure-and-transparency" title="Link to this heading">¶</a></h3>
+<p>Line and Polar elements support <code class="docutils literal notranslate"><span class="pre">-areaclose</span> <span class="pre">baseline|chord|origin</span></code>. The default <code class="docutils literal notranslate"><span class="pre">baseline</span></code> retains the
+bottom-of-plot closure; <code class="docutils literal notranslate"><span class="pre">chord</span></code> joins the endpoints directly, and <code class="docutils literal notranslate"><span class="pre">origin</span></code> closes through Cartesian
+<code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. These choices control the fill polygon without adding segments to the visible trace. They apply
+to solid, stippled and tiled areas, and the same closure geometry is used in PostScript.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) in Cairo, from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>
+(opaque, the default). It does not change lines, symbols, stipples or image tiles. Photo tiles retain
+their own per-pixel alpha, including partial transparency.</p>
+<p>Native rendering accepts but ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>, and native image tiles use binary transparency
+masks. PostScript also ignores the option and retains opaque solid fills; standard PostScript cannot
+express general alpha blending. These area options are available on line and Polar elements, not bars
+or strip elements.</p>
 </section>
 <section id="plot-only-element-hiding">
 <span id="r-tcltk9upgrade-plot-only-element-hiding"></span><span id="r-3a3atcltk9upgradeqzplot2donly20element20hiding"></span><h3>Plot-only element hiding<a class="headerlink" href="#plot-only-element-hiding" title="Link to this heading">¶</a></h3>
@@ -200,15 +240,15 @@ physical X coordinates, while <code class="docutils literal notranslate"><span c
 <p>This makes <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> directly usable for bar highlighting, overlays, annotations, and interactive
 interfaces without requiring applications to reconstruct bar geometry themselves.</p>
 </section>
-</section>
 <section id="custom-element-value-labels">
-<span id="r-tcltk9upgrade-custom-element-value-labels"></span><span id="r-3a3atcltk9upgradeqzcustom20element20value20labels"></span><h2>Custom element value labels<a class="headerlink" href="#custom-element-value-labels" title="Link to this heading">¶</a></h2>
+<span id="r-tcltk9upgrade-custom-element-value-labels"></span><span id="r-3a3atcltk9upgradeqzcustom20element20value20labels"></span><h3>Custom element value labels<a class="headerlink" href="#custom-element-value-labels" title="Link to this heading">¶</a></h3>
 <p>Value labels accept <code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> on elements and pens. Signed integer pixel offsets move
 the label anchor right/down, independently of axis inversion and text rotation. The default <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>
 preserves existing placement in both renderers and PostScript.</p>
 <p>Elements and named pens now accept <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, a Tcl command prefix receiving the graph pathname,
 element name, source index, X and Y. Its result replaces the <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code> label on screen and in PostScript.
 Empty results hide individual labels; clearing the option restores <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code>.</p>
+</section>
 </section>
 <section id="implementation-modernization">
 <span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
@@ -614,17 +654,20 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>
 <li><a class="reference internal" href="#optional-cairo-rendering">Optional Cairo rendering</a></li>
 <li><a class="reference internal" href="#display-decimation-and-streaming-updates">Display decimation and streaming updates</a></li>
 <li><a class="reference internal" href="#graph-interaction-and-toolbar">Graph interaction and toolbar</a></li>
+<li><a class="reference internal" href="#custom-closest-point-annotations">Custom closest-point annotations</a></li>
 <li><a class="reference internal" href="#complex-vectors">Complex vectors</a></li>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a></li>
+<li><a class="reference internal" href="#area-closure-and-transparency">Area closure and transparency</a></li>
 <li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
 <li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
+<li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>
 <li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>

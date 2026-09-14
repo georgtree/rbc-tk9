@@ -12,6 +12,13 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
+        ### MSVC builds on Windows
+
+        The `win/makefile.vc` build supports MSVC and Nmake with Tcl/Tk 9, including optional Cairo via
+        `CAIRO=1` and `CAIRODIR`. It provides build, test, install and shell targets independently of the
+        MSYS2 build. Matching MSVC-built Tcl/Tk source trees and libraries are required; Cairo runtime
+        DLLs and their dependencies must be available when loading RBC. See `win/README.md` for commands.
+
         ### Optional Cairo rendering
 
         Configure with `--enable-cairo` to build the antialiased renderer. Cairo-enabled builds default to
@@ -62,6 +69,20 @@ namespace eval TclTk9Upgrade {
         Windows crosshair motion was corrected to avoid flicker. Symbols crossing the plot boundary are clipped
         to the visible area instead of disappearing while still partially visible.
 
+        ### Custom closest-point annotations
+
+        The toolbar's `-closestcommand` accepts a Tcl command prefix receiving `element x y info` and returning
+        annotation text. Configuring it adds Custom to the available formats; `-coordclosestmark custom`
+        selects it. Empty results suppress the annotation. Ordinary coordinates follow the element's mapped
+        axes; Polar coordinates are Cartesian components. Smith charts supply normalized admittance for an
+        admittance grid, or normalized impedance for impedance and combined grids. The information dictionary
+        retains the closest-search fields, including the source index.
+
+        Built-in closest annotations display the element's nonempty `-label`, falling back to its name.
+        Toolbar control mode now uses a Crosshairs menu button instead of two comboboxes, with the same mode
+        and format choices as context control mode. Polar formats include `polar` (radians) and `polardegrees`
+        (degrees). Format changes refresh the annotation without requiring another pointer movement.
+
         ### Complex vectors
 
         The vector subsystem now supports both real and complex numeric vectors. Complex vectors are created explicitly
@@ -94,8 +115,11 @@ namespace eval TclTk9Upgrade {
         This fork adds the `polar` graph widget for plotting Cartesian complex-plane data with either a conventional
         Polar grid or a Smith-chart representation.
 
-        Polar element data remain Cartesian: X is the real coordinate and Y is the imaginary coordinate. Elements may
-        use ordinary X/Y data or attach first-class complex vectors directly with `-cdata`.
+        Polar elements accept real lists or vectors through `-xdata` and `-ydata`, paired lists through `-data`,
+        or first-class complex vectors through `-cdata`. With the default `-datacoordinates cartesian`, X and Y
+        are real and imaginary components. With `-datacoordinates polar`, X supplies angles in radians and Y
+        supplies radii; conversion to Cartesian coordinates occurs internally. Source lists and vectors remain
+        unchanged. Polar input coordinates cannot be combined with `-cdata` or error-bar data options.
 
         Complex data can be interpreted as:
         - reflection coefficient with `-cdataformat gamma`;
@@ -137,11 +161,30 @@ namespace eval TclTk9Upgrade {
         Missing, non-finite, logarithmically invalid, or singular impedance/admittance points split a trace into
         continuous runs. Smoothing is performed independently on those runs and never bridges a gap.
 
-        `element closest` on a Polar widget additionally reports radius and angle. In Smith representation it also
-        reports Gamma together with normalized and physical impedance and admittance quantities.
+        `element closest` on a Polar widget additionally reports radius and angle. The `angle` field now uses
+        radians in `[0, 2*pi)`, including for Cartesian and complex-vector input; this deliberately replaces
+        the previous degree result. The origin has angle zero, and returned X/Y coordinates remain Cartesian.
+        Polar grid angular labels and their formatting callback continue to use degrees. In Smith representation,
+        closest results also report Gamma and normalized and physical impedance and admittance quantities.
 
         Polar/Smith grid rendering, labels, custom formatter callbacks and smoothed element traces are supported by
         PostScript output as well as on-screen drawing.
+
+        ### Area closure and transparency
+
+        Line and Polar elements support `-areaclose baseline|chord|origin`. The default `baseline` retains the
+        bottom-of-plot closure; `chord` joins the endpoints directly, and `origin` closes through Cartesian
+        `{0 0}`. These choices control the fill polygon without adding segments to the visible trace. They apply
+        to solid, stippled and tiled areas, and the same closure geometry is used in PostScript.
+
+        `-areaopacity` controls solid fills (`-areapattern solid`) in Cairo, from `0.0` (invisible) to `1.0`
+        (opaque, the default). It does not change lines, symbols, stipples or image tiles. Photo tiles retain
+        their own per-pixel alpha, including partial transparency.
+
+        Native rendering accepts but ignores `-areaopacity`, and native image tiles use binary transparency
+        masks. PostScript also ignores the option and retains opaque solid fills; standard PostScript cannot
+        express general alpha blending. These area options are available on line and Polar elements, not bars
+        or strip elements.
 
         ### Plot-only element hiding
         Line, stripchart, and bar elements now support the `-hideplot` option.
@@ -196,7 +239,7 @@ namespace eval TclTk9Upgrade {
         This makes `element closest` directly usable for bar highlighting, overlays, annotations, and interactive
         interfaces without requiring applications to reconstruct bar geometry themselves.
 
-        ## Custom element value labels
+        ### Custom element value labels
 
         Value labels accept `-valueoffset {dx dy}` on elements and pens. Signed integer pixel offsets move
         the label anchor right/down, independently of axis inversion and text rotation. The default `{0 0}`

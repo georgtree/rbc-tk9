@@ -56,20 +56,20 @@ $graph graph grid on
 set areaTile1 [image create photo -width 8 -height 8]
 $areaTile1 put #e6eef8@0.8 -to 0 0 8 8
 set areaTile2 [image create photo -width 8 -height 8]
-$areaTile2 put red@0.2 -to 0 0 8 8
-
-set areaTile3 [image create photo -width 8 -height 8]
-$areaTile3 put green@0.1 -to 0 0 8 8
+$areaTile2 put green@0.1 -to 0 0 8 8
 
 # coordinates provided in form of the complex vector
 spiral spiralVec
-$graph graph element create spiral -cdata spiralVec -symbol {} -color green -linewidth 2  -areatile $areaTile1 -areaclose origin
+$graph graph element create spiral -cdata spiralVec -symbol {} -color green -linewidth 2  -areatile $areaTile1\
+        -areaclose origin
 # coordinates provided in form of two real vectors representing a and b in a+b*i
 rose roseAVec roseBVec
-$graph graph element create rose -x roseAVec -y roseBVec -symbol {} -color purple -linewidth 2 -areatile $areaTile2 
+$graph graph element create rose -x roseAVec -y roseBVec -symbol {} -color purple -linewidth 2 -areapattern solid\
+        -areaforeground purple -areaopacity 0.1
 # coordinates provided in form of two real vectors representing radius and degree in radians
 sin thetaVec radiusVec
-$graph graph element create sin -datacoordinates polar -x thetaVec -y radiusVec -symbol {} -color blue -linewidth 2  -areatile $areaTile3
+$graph graph element create sin -datacoordinates polar -x thetaVec -y radiusVec -symbol {} -color blue -linewidth 2\
+        -areatile $areaTile2
 
 ### Map everything
 grid .header -columnspan 1 -sticky ew

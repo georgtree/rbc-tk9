@@ -97,7 +97,7 @@ foreach renderer {native cairo} {
     $g axis configure y -min -3 -max 3
     $g grid configure -hide no -color grey85 -dashes dot -linewidth 1 -minor no
     $g element create signal -label Signal -data $data -symbol none -linewidth 1 -color navy\
-        -areapattern [expr {$showAreas ? "solid" : ""}] -areaforeground #e6eef8
+        -areapattern [expr {$showAreas ? "solid" : ""}] -areaforeground #e6eef8 -areaopacity 0.1
     $g element create dashed -label Dashed -data $dashedData -symbol none -linewidth 2 -color firebrick -dashes {8 4}\
             -offdash steelblue -areapattern [expr {$showAreas ? "gray50" : ""}] -areaforeground #e3beb0\
             -areabackground {}
