@@ -54,6 +54,7 @@ ExpandableText .details 800 {Availible actions} {
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode toolbar -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode closest -crosshairsclosestopts {-interpolate no} -scaletoggle y\
                    -activelegend -zoomwheel -pan]
+$graph graph configure -renderer native
 $graph graph grid on
 $graph graph legend configure -hide yes
 $graph graph axis configure y -title {density, g/cm^3} -min -1 -max 25

@@ -1803,11 +1803,20 @@ static void MapBitmapMarker(Marker *markerPtr) {
         corner2.x = corner1.x + srcWidth - 1;
         corner2.y = corner1.y + srcHeight - 1;
     }
-    destWidth = (int)(corner2.x - corner1.x) + 1;
-    destHeight = (int)(corner2.y - corner1.y) + 1;
     if (bmPtr->core.nWorldPts == 1) {
-        anchorPos = Rbc_TranslatePoint(&corner1, destWidth, destHeight, bmPtr->anchor);
+        /* A single anchor retains the source bitmap dimensions. */
+        destWidth = srcWidth;
+        destHeight = srcHeight;
+        if ((bmPtr->anchor == TK_ANCHOR_CENTER) && (bmPtr->theta == 0.0)) {
+            /* Align the center pixel before applying integer offsets. */
+            anchorPos.x = floor(corner1.x + 0.5) - destWidth / 2;
+            anchorPos.y = floor(corner1.y + 0.5) - destHeight / 2;
+        } else {
+            anchorPos = Rbc_TranslatePoint(&corner1, destWidth, destHeight, bmPtr->anchor);
+        }
     } else {
+        destWidth = (int)(corner2.x - corner1.x) + 1;
+        destHeight = (int)(corner2.y - corner1.y) + 1;
         anchorPos = corner1;
     }
     anchorPos.x += bmPtr->core.xOffset;
