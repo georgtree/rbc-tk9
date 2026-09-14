@@ -136,7 +136,8 @@ AC_DEFUN([RBC_ADD_TCL_DEMOS], [
 ])
 
 RBC_ADD_TCL_DEMOS([
-demos/cairo1.tcl
+demos/cairoGraph1.tcl
+demos/cairoBar1.tcl
 demos/barchart1.tcl
 demos/barchart2.tcl
 demos/barchart3.tcl
@@ -145,6 +146,8 @@ demos/barchart5.tcl
 demos/bitmaps/bigBLT.xbm
 demos/bitmaps/BLT.xbm
 demos/bitmaps/face.xbm
+demos/bitmaps/spiral.xbm
+demos/bitmaps/spiral_mask.xbm
 demos/bitmaps/fish/left.xbm
 demos/bitmaps/fish/left1.xbm
 demos/bitmaps/fish/left1m.xbm
@@ -202,7 +205,10 @@ demos/graph4.tcl
 demos/graph5.tcl
 demos/graph6.tcl
 demos/graph7.tcl
+demos/graph8.tcl
 demos/spline1.tcl
+demos/polar1.tcl
+demos/mixed1.tcl
 demos/images/blt98.gif
 demos/images/flowers.png
 demos/images/buckskin.gif
@@ -314,12 +320,20 @@ demos/thumbnails/graph4.png
 demos/thumbnails/graph5.png
 demos/thumbnails/graph6.png
 demos/thumbnails/graph7.png
+demos/thumbnails/graph8.png
 demos/thumbnails/stripchart1.png
 demos/thumbnails/winop1.png
 demos/thumbnails/winop2.png
 demos/thumbnails/spline1.png
+demos/thumbnails/mixed1.png
+demos/thumbnails/polar1.png
+demos/thumbnails/cairoGraph1.png
+demos/thumbnails/cairoBar1.png
 demos/winop1.tcl
 demos/winop2.tcl
+demos/cairo-bitmap.xbm
+demos/data/periodic_elements.csv
+demos/data/bandwidth.csv
 ])
 
 #--------------------------------------------------------------------
