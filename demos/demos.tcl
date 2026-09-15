@@ -150,6 +150,13 @@ proc MainWindow {win DemoDir} {
         |
         |Demonstration of the basic polar graph.
     }]
+    set Caption(polar2.tcl) [MakeLine {
+        |polar widget
+        |
+        |demo polar2.tcl
+        |
+        |This is an example of the polar graph widget with Smith chart representation with impedance grid.
+    }]
     set Caption(barchart1.tcl) [MakeLine {
         |barchart widget
         |
@@ -236,6 +243,7 @@ proc MainWindow {win DemoDir} {
         |
         |Compares native renderer with Cairo backend renderer for bar elements on the barchart.
     }]
+
     # create canvas with scrollbars
     ttk::frame $win
     canvas $win.c -xscrollcommand [list $win.xscroll set] -yscrollcommand [list $win.yscroll set] -borderwidth 0\
@@ -247,8 +255,8 @@ proc MainWindow {win DemoDir} {
     pack $win.c -expand yes -fill both -side top
     ttk::frame $win.c.targetFrame
     set i 0
-    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 barchart1 barchart2 barchart3 barchart4 barchart5\
-                          mixed1 stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6 graph7} {
+    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 polar2 barchart1 barchart2 barchart3 barchart4\
+                          barchart5 mixed1 stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
         incr i

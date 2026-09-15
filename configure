@@ -5852,6 +5852,7 @@ demos/graph7.tcl
 demos/graph8.tcl
 demos/spline1.tcl
 demos/polar1.tcl
+demos/polar2.tcl
 demos/mixed1.tcl
 demos/images/blt98.gif
 demos/images/flowers.png
@@ -5971,6 +5972,7 @@ demos/thumbnails/winop2.png
 demos/thumbnails/spline1.png
 demos/thumbnails/mixed1.png
 demos/thumbnails/polar1.png
+demos/thumbnails/polar2.png
 demos/thumbnails/cairoGraph1.png
 demos/thumbnails/cairoBar1.png
 demos/winop1.tcl
@@ -5978,6 +5980,7 @@ demos/winop2.tcl
 demos/cairo-bitmap.xbm
 demos/data/periodic_elements.csv
 demos/data/bandwidth.csv
+demos/data/filter_s11.csv
 "
     for i in $vars; do
 	# check for existence, be strict because it is installed
