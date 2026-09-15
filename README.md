@@ -147,6 +147,8 @@ the intended destination.
 |---|---|
 | `--enable-cairo` | Builds Cairo support and makes `cairo` the default renderer. Requires `cairo-xlib` on Linux or `cairo-win32` on Windows. |
 | `--disable-cairo` | Builds without Cairo; `native` is the renderer default. This is also the configure default when neither flag is supplied. |
+| `--enable-cairo-static` | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options. |
+| `--disable-cairo-static` | Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by `--enable-cairo`. |
 | `--enable-symbols` | Builds with debugging symbols for crash diagnosis. |
 | `--with-tcl=DIR`, `--with-tk=DIR` | Select directories containing the matching Tcl/Tk configuration files. |
 | `--prefix=DIR` | Selects the installation prefix. |
@@ -173,6 +175,86 @@ foreach class {Graph Barchart Stripchart Polar} {
 Explicit widget options take precedence over the option database. `-renderer cairo` is unavailable in native-only
 builds. Cairo is not uniformly faster: dense traces, symbols and error bars may favour native rendering; image-heavy
 workloads may favour Cairo. Use the benchmark suite to compare the workloads relevant to your application.
+
+### Linking Cairo statically
+
+The Autoconf build supports linking Cairo and its non-system dependencies into the RBC DLL on MSYS2/UCRT64 or shared
+library on Linux:
+
+```sh
+./configure \
+    --with-tcl=/path/to/tcl/config-directory \
+    --with-tk=/path/to/tk/config-directory \
+    --enable-cairo-static
+
+make
+make test
+```
+
+`--enable-cairo-static` also enables Cairo support and makes it the default renderer. It cannot be combined with
+`--disable-cairo`. RBC itself remains a shared library; do not use `--disable-shared` for this purpose.
+
+Configure obtains the dependency list using `pkg-config --static` and selects exact static archive names for non-system
+libraries. Operating-system libraries remain dynamically linked. The link check verifies that the selected archives can
+be incorporated into a shared library.
+
+This option does not download or build dependencies. Missing archives or unresolved dependencies cause configuration to
+fail; inspect `config.log` for the linker diagnostics.
+
+#### MSYS2/UCRT64
+
+Use Cairo, its dependencies and GCC from the same UCRT64 environment as the RBC build. Static libraries must be genuine
+`.a` archives; `.dll.a` import libraries still require external DLLs.
+
+The build defines `CAIRO_WIN32_STATIC_BUILD`, links the C++ standard library and Iconv statically, and selects static
+GCC runtime support. These are needed by the MSYS2 Cairo dependency chain, including its DirectWrite and font libraries.
+
+The static-Cairo build has been compiled and tested on MSYS2/UCRT64. The resulting RBC DLL is larger because it contains
+code previously supplied by dependency DLLs.
+
+Inspect the DLL's direct imports after building:
+
+```sh
+objdump -p tcl9rbc050.dll | rg 'DLL Name:'
+```
+
+Cairo and the dependencies selected as static archives should no longer appear as DLL imports.  Windows system libraries
+and any remaining dynamically linked runtime libraries are still required.  A larger file alone does not establish that
+every dependency was linked statically.
+
+#### Linux
+
+Cairo and the non-system dependency archives must support incorporation into a shared library, normally by being built
+with `-fPIC`. Distribution-provided static archives are not necessarily suitable. The configure check attempts a
+shared-library link to detect incompatible archives.
+
+The static-Cairo build retains dynamic linking for standard system libraries, including X11/XCB and the C
+runtime. Tcl/Tk remains a runtime requirement.
+
+For a separately built Cairo dependency installation, select its pkg-config metadata:
+
+```sh
+PKG_CONFIG_PATH=/path/to/static-prefix/lib/pkgconfig \
+    ./configure \
+    --with-tcl=/path/to/tcl/config-directory \
+    --with-tk=/path/to/tk/config-directory \
+    --enable-cairo-static
+```
+
+Inspect the resulting shared library's direct dependencies:
+
+```sh
+readelf -d ./librbc*.so | rg NEEDED
+```
+
+#### Rebuilding and deployment
+
+Use a separate build directory, or run `make clean` after reconfiguring, when switching between shared and static Cairo
+dependencies. The Windows compilation flags differ between these modes.
+
+Updating a statically included dependency requires rebuilding RBC. Static linking changes packaging, not renderer
+behavior: applications can still select `-renderer native` or `-renderer cairo`. Required Tcl scripts and packages must
+still be installed.
 
 ### Installation locations
 

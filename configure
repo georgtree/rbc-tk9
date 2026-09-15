@@ -795,6 +795,7 @@ enable_stubs
 enable_64bit
 enable_64bit_vis
 enable_rpath
+enable_cairo_static
 enable_cairo
 enable_symbols
 '
@@ -1434,6 +1435,8 @@ Optional Features:
   --enable-64bit          enable 64bit support (default: off)
   --enable-64bit-vis      enable 64bit Sparc VIS support (default: off)
   --disable-rpath         disable rpath support (default: on)
+  --enable-cairo-static   link Cairo and its non-system dependencies
+                          statically into the shared RBC library
   --enable-cairo          build the optional Cairo renderer (default: no)
   --enable-symbols        build with debugging symbols (default: off)
 
@@ -9368,12 +9371,27 @@ printf "%s\n" "no" >&6; }
 
 
 # Optional Cairo support. Native builds have no Cairo dependency.
+# Check whether --enable-cairo-static was given.
+if test ${enable_cairo_static+y}
+then :
+  enableval=$enable_cairo_static;
+else $as_nop
+  enable_cairo_static=no
+fi
+
+case $enable_cairo_static in #(
+  yes|no) :
+     ;; #(
+  *) :
+    as_fn_error $? "--enable-cairo-static accepts only yes or no" "$LINENO" 5 ;;
+esac
+
 # Check whether --enable-cairo was given.
 if test ${enable_cairo+y}
 then :
   enableval=$enable_cairo;
 else $as_nop
-  enable_cairo=no
+  enable_cairo=$enable_cairo_static
 fi
 
 
@@ -9384,6 +9402,11 @@ case $enable_cairo in #(
   *) :
     as_fn_error $? "--enable-cairo accepts only yes or no" "$LINENO" 5 ;;
 esac
+
+if test "x$enable_cairo_static" = xyes && test "x$enable_cairo" = xno
+then :
+  as_fn_error $? "--enable-cairo-static cannot be combined with --disable-cairo" "$LINENO" 5
+fi
 
 if test "x$enable_cairo" = xyes
 then :
@@ -9521,16 +9544,107 @@ then :
 fi
         if test -z "$CAIRO_LIBS"
 then :
-  CAIRO_LIBS=`$PKG_CONFIG --libs "$rbc_cairo_module"`
+
+            rbc_cairo_pkg_flags=
+            if test "x$enable_cairo_static" = xyes
+then :
+  rbc_cairo_pkg_flags=--static
+fi
+            CAIRO_LIBS=`$PKG_CONFIG $rbc_cairo_pkg_flags --libs "$rbc_cairo_module"`
+            if test $? -ne 0
+then :
+  as_fn_error $? "cannot obtain Cairo linker flags from pkg-config" "$LINENO" 5
 fi
 
 fi
+
+fi
+    if test "x$enable_cairo_static" = xyes
+then :
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: selecting static Cairo dependency archives" >&5
+printf "%s\n" "$as_me: selecting static Cairo dependency archives" >&6;}
+        if test "x$TEA_PLATFORM" = xwindows
+then :
+
+            CAIRO_CFLAGS="$CAIRO_CFLAGS -DCAIRO_WIN32_STATIC_BUILD"
+
+fi
+        # Exact archive names prevent falling back to shared libraries.
+        # Operating-system and compiler runtime libraries remain dynamic.
+        rbc_cairo_static_libs=
+        for rbc_cairo_flag in $CAIRO_LIBS; do
+            case "$rbc_cairo_flag" in
+                -lc|-lm|-ldl|-lrt|-lpthread|-lgcc|-lgcc_s|-lstdc++)
+                    ;;
+                -lX11|-lXext|-lXrender|-lXau|-lXdmcp|\
+                -lxcb|-lxcb-render|-lxcb-shm)
+                    ;;
+                -lkernel32|-luser32|-lgdi32|-lmsimg32|-ladvapi32|\
+                -lshell32|-lshlwapi|-lole32|-loleaut32|-luuid|\
+                -lws2_32|-lwinspool|-lcomdlg32|-lcomctl32|\
+                -limm32|-lwinmm|-lversion|-lsetupapi|-luserenv|\
+                -lcrypt32|-lbcrypt|-lrpcrt4|-lsecur32|-lusp10|\
+                -ldwrite|-ld2d1|-ld3d11|-ldxgi|-lwindowscodecs|\
+                -lmsvcrt|-lucrt|-lucrtbase|-lmingw32|-lmingwex)
+                    ;;
+                *.dll.a|*.so|*.so.*|*.dylib|*.dll)
+                    as_fn_error $? "shared library in static Cairo flags: $rbc_cairo_flag" "$LINENO" 5
+                    ;;
+                -l:*.a)
+                    ;;
+                -l:*)
+                    as_fn_error $? "expected a static archive in Cairo flags: $rbc_cairo_flag" "$LINENO" 5
+                    ;;
+                -l*)
+                    rbc_cairo_name=${rbc_cairo_flag#-l}
+                    rbc_cairo_flag="-l:lib${rbc_cairo_name}.a"
+                    ;;
+            esac
+            rbc_cairo_static_libs="$rbc_cairo_static_libs $rbc_cairo_flag"
+        done
+
+        # Allow dependencies between static archives to be resolved
+        # without requiring a particular archive ordering.
+        rbc_cairo_runtime_flags=
+        if test "x$TEA_PLATFORM" = xwindows
+then :
+
+            # MSYS2 Cairo includes C++ code; static gettext also needs iconv.
+            rbc_cairo_static_libs="$rbc_cairo_static_libs -l:libstdc++.a -l:libiconv.a"
+            rbc_cairo_runtime_flags=-static-libgcc
+
+fi
+        CAIRO_LIBS="$rbc_cairo_runtime_flags -Wl,--start-group $rbc_cairo_static_libs -Wl,--end-group"
+
+fi
     rbc_saved_CPPFLAGS=$CPPFLAGS
+    rbc_saved_CFLAGS=$CFLAGS
+    rbc_saved_LDFLAGS=$LDFLAGS
     rbc_saved_LIBS=$LIBS
     CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
     LIBS="$CAIRO_LIBS $LIBS"
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the Cairo platform backend links" >&5
+
+    if test "x$enable_cairo_static" = xyes
+then :
+
+        # Test incorporation into a shared library, not just an
+        # executable. On Linux this also detects unsuitable non-PIC
+        # archives. No test program is executed.
+        if test "x$TEA_PLATFORM" != xwindows
+then :
+  CFLAGS="$CFLAGS -fPIC"
+fi
+        LDFLAGS="$LDFLAGS -shared -Wl,--no-undefined"
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether static Cairo links into a shared library" >&5
+printf %s "checking whether static Cairo links into a shared library... " >&6; }
+
+else $as_nop
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the Cairo platform backend links" >&5
 printf %s "checking whether the Cairo platform backend links... " >&6; }
+
+fi
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9577,13 +9691,27 @@ else $as_nop
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
+
     CPPFLAGS=$rbc_saved_CPPFLAGS
+    CFLAGS=$rbc_saved_CFLAGS
+    LDFLAGS=$rbc_saved_LDFLAGS
     LIBS=$rbc_saved_LIBS
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $rbc_cairo_link" >&5
 printf "%s\n" "$rbc_cairo_link" >&6; }
     if test "x$rbc_cairo_link" != xyes
 then :
-  as_fn_error $? "Cairo backend link failed; check CAIRO_CFLAGS, CAIRO_LIBS and config.log" "$LINENO" 5
+
+        if test "x$enable_cairo_static" = xyes
+then :
+
+            as_fn_error $? "static Cairo link failed; check config.log. Cairo and its non-system dependencies require genuine static archives; Linux archives must support linking into a shared library (normally built with -fPIC)." "$LINENO" 5
+
+else $as_nop
+
+            as_fn_error $? "Cairo backend link failed; check CAIRO_CFLAGS, CAIRO_LIBS and config.log" "$LINENO" 5
+
+fi
+
 fi
 
 printf "%s\n" "#define RBC_HAVE_CAIRO 1" >>confdefs.h

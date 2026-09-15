@@ -184,6 +184,12 @@ the intended destination.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo</span></code></p></td>
 <td><p>Builds without Cairo; <code class="docutils literal notranslate"><span class="pre">native</span></code> is the renderer default. This is also the configure default when neither flag is supplied.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-cairo-static</span></code></p></td>
+<td><p>Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo-static</span></code></p></td>
+<td><p>Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-symbols</span></code></p></td>
 <td><p>Builds with debugging symbols for crash diagnosis.</p></td>
 </tr>
@@ -213,6 +219,71 @@ After changing build features in an existing build directory, run <code class="d
 <p>Explicit widget options take precedence over the option database. <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> is unavailable in native-only
 builds. Cairo is not uniformly faster: dense traces, symbols and error bars may favour native rendering; image-heavy
 workloads may favour Cairo. Use the benchmark suite to compare the workloads relevant to your application.</p>
+</section>
+<section id="linking-cairo-statically">
+<span id="r-linking-cairo-statically"></span><span id="r-linking20cairo20statically"></span><h3>Linking Cairo statically<a class="headerlink" href="#linking-cairo-statically" title="Link to this heading">¶</a></h3>
+<p>The Autoconf build supports linking Cairo and its non-system dependencies into the RBC DLL on MSYS2/UCRT64 or shared
+library on Linux:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl/config-directory<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk/config-directory<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--enable-cairo-static
+
+make
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--enable-cairo-static</span></code> also enables Cairo support and makes it the default renderer. It cannot be combined with
+<code class="docutils literal notranslate"><span class="pre">--disable-cairo</span></code>. RBC itself remains a shared library; do not use <code class="docutils literal notranslate"><span class="pre">--disable-shared</span></code> for this purpose.</p>
+<p>Configure obtains the dependency list using <code class="docutils literal notranslate"><span class="pre">pkg-config</span> <span class="pre">--static</span></code> and selects exact static archive names for non-system
+libraries. Operating-system libraries remain dynamically linked. The link check verifies that the selected archives can
+be incorporated into a shared library.</p>
+<p>This option does not download or build dependencies. Missing archives or unresolved dependencies cause configuration to
+fail; inspect <code class="docutils literal notranslate"><span class="pre">config.log</span></code> for the linker diagnostics.</p>
+<section id="msys2-ucrt64">
+<span id="r-msys2-ucrt64"></span><span id="r-msys22fucrt64"></span><h4>MSYS2/UCRT64<a class="headerlink" href="#msys2-ucrt64" title="Link to this heading">¶</a></h4>
+<p>Use Cairo, its dependencies and GCC from the same UCRT64 environment as the RBC build. Static libraries must be genuine
+<code class="docutils literal notranslate"><span class="pre">.a</span></code> archives; <code class="docutils literal notranslate"><span class="pre">.dll.a</span></code> import libraries still require external DLLs.</p>
+<p>The build defines <code class="docutils literal notranslate"><span class="pre">CAIRO_WIN32_STATIC_BUILD</span></code>, links the C++ standard library and Iconv statically, and selects static
+GCC runtime support. These are needed by the MSYS2 Cairo dependency chain, including its DirectWrite and font libraries.</p>
+<p>The static-Cairo build has been compiled and tested on MSYS2/UCRT64. The resulting RBC DLL is larger because it contains
+code previously supplied by dependency DLLs.</p>
+<p>Inspect the DLL’s direct imports after building:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>objdump<span class="w"> </span>-p<span class="w"> </span>tcl9rbc050.dll<span class="w"> </span><span class="p">|</span><span class="w"> </span>rg<span class="w"> </span><span class="s1">&#39;DLL Name:&#39;</span>
+</pre></div>
+</div>
+<p>Cairo and the dependencies selected as static archives should no longer appear as DLL imports.  Windows system libraries
+and any remaining dynamically linked runtime libraries are still required.  A larger file alone does not establish that
+every dependency was linked statically.</p>
+</section>
+<section id="id1">
+<span id="id2"></span><h4>Linux<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<p>Cairo and the non-system dependency archives must support incorporation into a shared library, normally by being built
+with <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code>. Distribution-provided static archives are not necessarily suitable. The configure check attempts a
+shared-library link to detect incompatible archives.</p>
+<p>The static-Cairo build retains dynamic linking for standard system libraries, including X11/XCB and the C
+runtime. Tcl/Tk remains a runtime requirement.</p>
+<p>For a separately built Cairo dependency installation, select its pkg-config metadata:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span>/path/to/static-prefix/lib/pkgconfig<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>./configure<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tcl<span class="o">=</span>/path/to/tcl/config-directory<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--with-tk<span class="o">=</span>/path/to/tk/config-directory<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--enable-cairo-static
+</pre></div>
+</div>
+<p>Inspect the resulting shared library’s direct dependencies:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>readelf<span class="w"> </span>-d<span class="w"> </span>./librbc*.so<span class="w"> </span><span class="p">|</span><span class="w"> </span>rg<span class="w"> </span>NEEDED
+</pre></div>
+</div>
+</section>
+<section id="rebuilding-and-deployment">
+<span id="r-rebuilding-and-deployment"></span><span id="r-rebuilding20and20deployment"></span><h4>Rebuilding and deployment<a class="headerlink" href="#rebuilding-and-deployment" title="Link to this heading">¶</a></h4>
+<p>Use a separate build directory, or run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> after reconfiguring, when switching between shared and static Cairo
+dependencies. The Windows compilation flags differ between these modes.</p>
+<p>Updating a statically included dependency requires rebuilding RBC. Static linking changes packaging, not renderer
+behavior: applications can still select <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> or <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>. Required Tcl scripts and packages must
+still be installed.</p>
+</section>
 </section>
 <section id="installation-locations">
 <span id="r-installation-locations"></span><span id="r-installation20locations"></span><h3>Installation locations<a class="headerlink" href="#installation-locations" title="Link to this heading">¶</a></h3>
@@ -335,7 +406,7 @@ deliberately.</p>
 measurements and options, see the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README.md">benchmark README</a>.</p>
 </section>
 <section id="r-documentation">
-<span id="id1"></span><h2>Documentation<a class="headerlink" href="#r-documentation" title="Link to this heading">¶</a></h2>
+<span id="id3"></span><h2>Documentation<a class="headerlink" href="#r-documentation" title="Link to this heading">¶</a></h2>
 <p>The generated HTML documentation is available online:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation home</a></p></li>
@@ -460,6 +531,12 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
 <li><a class="reference internal" href="#windows-with-msvc">Windows with MSVC</a></li>
 <li><a class="reference internal" href="#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
 <li><a class="reference internal" href="#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
+<li><a class="reference internal" href="#linking-cairo-statically">Linking Cairo statically</a><ul>
+<li><a class="reference internal" href="#msys2-ucrt64">MSYS2/UCRT64</a></li>
+<li><a class="reference internal" href="#id1">Linux</a></li>
+<li><a class="reference internal" href="#rebuilding-and-deployment">Rebuilding and deployment</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#installation-locations">Installation locations</a></li>
 </ul>
 </li>

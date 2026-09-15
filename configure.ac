@@ -409,13 +409,23 @@ TEA_CONFIG_CFLAGS
 TEA_ADD_CFLAGS([-DRBCAPI=MODULE_SCOPE])
 
 # Optional Cairo support. Native builds have no Cairo dependency.
+AC_ARG_ENABLE([cairo-static],
+    [AS_HELP_STRING([--enable-cairo-static],
+        [link Cairo and its non-system dependencies statically into the shared RBC library])],
+    [], [enable_cairo_static=no])
+AS_CASE([$enable_cairo_static], [yes|no], [],
+    [AC_MSG_ERROR([--enable-cairo-static accepts only yes or no])])
+
 AC_ARG_ENABLE([cairo],
     [AS_HELP_STRING([--enable-cairo], [build the optional Cairo renderer (default: no)])],
-    [], [enable_cairo=no])
+    [], [enable_cairo=$enable_cairo_static])
 AC_ARG_VAR([CAIRO_CFLAGS], [compiler flags for Cairo])
 AC_ARG_VAR([CAIRO_LIBS], [linker flags for Cairo])
 AS_CASE([$enable_cairo], [yes|no], [],
     [AC_MSG_ERROR([--enable-cairo accepts only yes or no])])
+
+AS_IF([test "x$enable_cairo_static" = xyes && test "x$enable_cairo" = xno],
+    [AC_MSG_ERROR([--enable-cairo-static cannot be combined with --disable-cairo])])
 
 AS_IF([test "x$enable_cairo" = xyes], [
     AS_IF([test "x$TEA_PLATFORM" = xwindows],
@@ -428,14 +438,82 @@ AS_IF([test "x$enable_cairo" = xyes], [
             [AC_MSG_ERROR([Cairo >= 1.12 with $rbc_cairo_module support is required])])
         AS_IF([test -z "$CAIRO_CFLAGS"],
             [CAIRO_CFLAGS=`$PKG_CONFIG --cflags "$rbc_cairo_module"`])
-        AS_IF([test -z "$CAIRO_LIBS"],
-            [CAIRO_LIBS=`$PKG_CONFIG --libs "$rbc_cairo_module"`])
+        AS_IF([test -z "$CAIRO_LIBS"], [
+            rbc_cairo_pkg_flags=
+            AS_IF([test "x$enable_cairo_static" = xyes],
+                [rbc_cairo_pkg_flags=--static])
+            CAIRO_LIBS=`$PKG_CONFIG $rbc_cairo_pkg_flags --libs "$rbc_cairo_module"`
+            AS_IF([test $? -ne 0],
+                [AC_MSG_ERROR([cannot obtain Cairo linker flags from pkg-config])])
+        ])
+    ])
+    AS_IF([test "x$enable_cairo_static" = xyes], [
+        AC_MSG_NOTICE([selecting static Cairo dependency archives])
+        AS_IF([test "x$TEA_PLATFORM" = xwindows], [
+            CAIRO_CFLAGS="$CAIRO_CFLAGS -DCAIRO_WIN32_STATIC_BUILD"
+        ])
+        # Exact archive names prevent falling back to shared libraries.
+        # Operating-system and compiler runtime libraries remain dynamic.
+        rbc_cairo_static_libs=
+        for rbc_cairo_flag in $CAIRO_LIBS; do
+            case "$rbc_cairo_flag" in
+                -lc|-lm|-ldl|-lrt|-lpthread|-lgcc|-lgcc_s|-lstdc++)
+                    ;;
+                -lX11|-lXext|-lXrender|-lXau|-lXdmcp|\
+                -lxcb|-lxcb-render|-lxcb-shm)
+                    ;;
+                -lkernel32|-luser32|-lgdi32|-lmsimg32|-ladvapi32|\
+                -lshell32|-lshlwapi|-lole32|-loleaut32|-luuid|\
+                -lws2_32|-lwinspool|-lcomdlg32|-lcomctl32|\
+                -limm32|-lwinmm|-lversion|-lsetupapi|-luserenv|\
+                -lcrypt32|-lbcrypt|-lrpcrt4|-lsecur32|-lusp10|\
+                -ldwrite|-ld2d1|-ld3d11|-ldxgi|-lwindowscodecs|\
+                -lmsvcrt|-lucrt|-lucrtbase|-lmingw32|-lmingwex)
+                    ;;
+                *.dll.a|*.so|*.so.*|*.dylib|*.dll)
+                    AC_MSG_ERROR([shared library in static Cairo flags: $rbc_cairo_flag])
+                    ;;
+                -l:*.a)
+                    ;;
+                -l:*)
+                    AC_MSG_ERROR([expected a static archive in Cairo flags: $rbc_cairo_flag])
+                    ;;
+                -l*)
+                    rbc_cairo_name=${rbc_cairo_flag#-l}
+                    rbc_cairo_flag="-l:lib${rbc_cairo_name}.a"
+                    ;;
+            esac
+            rbc_cairo_static_libs="$rbc_cairo_static_libs $rbc_cairo_flag"
+        done
+
+        # Allow dependencies between static archives to be resolved
+        # without requiring a particular archive ordering.
+        rbc_cairo_runtime_flags=
+        AS_IF([test "x$TEA_PLATFORM" = xwindows], [
+            # MSYS2 Cairo includes C++ code; static gettext also needs iconv.
+            rbc_cairo_static_libs="$rbc_cairo_static_libs -l:libstdc++.a -l:libiconv.a"
+            rbc_cairo_runtime_flags=-static-libgcc
+        ])
+        CAIRO_LIBS="$rbc_cairo_runtime_flags -Wl,--start-group $rbc_cairo_static_libs -Wl,--end-group"
     ])
     rbc_saved_CPPFLAGS=$CPPFLAGS
+    rbc_saved_CFLAGS=$CFLAGS
+    rbc_saved_LDFLAGS=$LDFLAGS
     rbc_saved_LIBS=$LIBS
     CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
     LIBS="$CAIRO_LIBS $LIBS"
-    AC_MSG_CHECKING([whether the Cairo platform backend links])
+
+    AS_IF([test "x$enable_cairo_static" = xyes], [
+        # Test incorporation into a shared library, not just an
+        # executable. On Linux this also detects unsuitable non-PIC
+        # archives. No test program is executed.
+        AS_IF([test "x$TEA_PLATFORM" != xwindows],
+            [CFLAGS="$CFLAGS -fPIC"])
+        LDFLAGS="$LDFLAGS -shared -Wl,--no-undefined"
+        AC_MSG_CHECKING([whether static Cairo links into a shared library])
+    ], [
+        AC_MSG_CHECKING([whether the Cairo platform backend links])
+    ])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <cairo.h>
 #if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 12, 0)
@@ -464,11 +542,19 @@ AS_IF([test "x$enable_cairo" = xyes], [
         cairo_destroy(cr);
         cairo_surface_destroy(s);
     ]])], [rbc_cairo_link=yes], [rbc_cairo_link=no])
+
     CPPFLAGS=$rbc_saved_CPPFLAGS
+    CFLAGS=$rbc_saved_CFLAGS
+    LDFLAGS=$rbc_saved_LDFLAGS
     LIBS=$rbc_saved_LIBS
     AC_MSG_RESULT([$rbc_cairo_link])
-    AS_IF([test "x$rbc_cairo_link" != xyes],
-        [AC_MSG_ERROR([Cairo backend link failed; check CAIRO_CFLAGS, CAIRO_LIBS and config.log])])
+    AS_IF([test "x$rbc_cairo_link" != xyes], [
+        AS_IF([test "x$enable_cairo_static" = xyes], [
+            AC_MSG_ERROR([static Cairo link failed; check config.log. Cairo and its non-system dependencies require genuine static archives; Linux archives must support linking into a shared library (normally built with -fPIC).])
+        ], [
+            AC_MSG_ERROR([Cairo backend link failed; check CAIRO_CFLAGS, CAIRO_LIBS and config.log])
+        ])
+    ])
     AC_DEFINE([RBC_HAVE_CAIRO], [1], [Build the optional Cairo renderer])
     TEA_ADD_INCLUDES([$CAIRO_CFLAGS])
     TEA_ADD_LIBS([$CAIRO_LIBS])
