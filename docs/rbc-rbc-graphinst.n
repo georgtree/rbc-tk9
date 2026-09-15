@@ -181,6 +181,72 @@ already uses this notification to refresh its enhanced crosshair annotations\&.
 .PP
 Event handlers should avoid repeatedly changing axes or element data in response to the notification:
 such changes can schedule another display and another notification\&.
+.SH "AXIS CHANGE NOTIFICATIONS"
+.PP
+Graph, barchart, stripchart, and polar widgets provide two axis events:
+.TP
+\(bu
+<<RbcAxisChanged>> reports successful axis configuration and changes to effective numeric limits\&. Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands, titles, colors, visibility, and other axis options\&. Reapplying an option with the same value also counts as configuration; the event does not compare every option's old and new values\&.
+.TP
+\(bu
+<<RbcAxisLimitsChanged>> reports changes to the bounds returned by axis limits\&. These include zooming, panning, scrolling, and automatic limits derived from element data\&. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged\&.
+.SS "DELIVERY AND EVENT DATA"
+.PP
+Both events are queued on the graph after an on-screen display pass with a usable plotting area\&.
+An unmapped graph defers delivery until it can display\&. Each event combines all affected axes from that
+display pass; several commands before a redraw can therefore produce one event\&. Changes followed by a
+return to the previously displayed limits before redraw do not produce a limits-change event\&.
+.PP
+%W identifies the graph and %d is a Tcl list of axis names\&. Each name appears once; ordering is
+unspecified\&. Hidden axes and named axes outside the margins are included\&. Initial display, and the
+first display after creating an axis, announce its limits through both events\&. Deleted axes are skipped
+when building the notification; deletion itself is not an axis-change notification\&.
+.PP
+The payload identifies affected axes, not an old/new snapshot\&. Query the graph for current limits and
+configuration\&. Because delivery is asynchronous, the current state may be newer than the display that
+queued the event, and an axis may have been deleted in the meantime\&.
+.PP
+.RS 4n
+.nf
+proc RecordAxisState {graph axes} {
+    foreach axis $axes {
+        if {$axis ni [$graph axis names]} {
+            continue
+        }
+        dict set ::axisState $graph $axis [dict create  limits [$graph axis limits $axis]  logscale [$graph axis cget $axis -logscale]]
+    }
+}
+bind \&.g <<RbcAxisChanged>> [list RecordAxisState %W %d]
+.fi
+.RE
+.PP
+Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves
+generate these events\&. A later screen display compares the effective limits with the previous screen
+display\&. Data changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting
+do not generate axis events unless an axis is configured or its effective limits change\&.
+.PP
+These events do not report every change in tick-label placement or screen geometry\&. Use
+<<RbcGraphChanged>> for mapping and layout updates, including resizing without changed numeric limits\&.
+Log/linear switching is always covered by <<RbcAxisChanged>>, but only generates
+<<RbcAxisLimitsChanged>> if the resulting numeric bounds change\&. Logarithmic bounds are reported in
+data units, just as by axis limits\&.
+.SS "SYNCHRONIZING PLOTS"
+.PP
+Use <<RbcAxisLimitsChanged>> to follow numeric ranges, or <<RbcAxisChanged>> when scale mode and
+other configuration also matter\&. The events do not synchronize plots automatically and do not distinguish
+user interaction from application changes or autoscaling\&.
+.PP
+For axes with different units, synchronize fractional changes in the previous span instead of copying
+numeric limits\&. If the source changes from [a,b] to [c,d], apply (c-a)/(b-a) and (d-b)/(b-a)
+to the target's previous span at its lower and upper boundaries\&. For logarithmic axes, calculate in log
+coordinates and convert back afterward\&. Keep a previous-range baseline and reset it when changing scale
+mode; reject zero or invalid spans\&.
+.PP
+Bidirectional synchronization must recognize its own propagated updates\&. A busy flag cleared when the
+handler returns cannot suppress later queued events\&. Compare against remembered target states before
+propagating another update; this is especially important for the broader event, which also reports
+successful configuration with unchanged values\&. Relative synchronization must avoid applying the same
+source change twice\&.
 .SH "POLAR AND SMITH CHARTS"
 .PP
 A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized

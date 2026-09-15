@@ -664,6 +664,7 @@ void Rbc_LayoutGraph(Graph *graphPtr);
 void Rbc_LayoutMargins(Graph *graphPtr);
 void Rbc_EventuallyRedrawGraph(Graph *graphPtr);
 void Rbc_ResetAxes(Graph *graphPtr);
+void Rbc_NotifyAxisChanges(Graph *graphPtr);
 void Rbc_ResetStacks(Graph *graphPtr);
 void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr);
 void Rbc_DisableCrosshairs(Graph *graphPtr);

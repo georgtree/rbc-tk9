@@ -217,6 +217,64 @@ already uses this notification to refresh its enhanced crosshair annotations.</p
 such changes can schedule another display and another notification.</p>
 </section>
 </section>
+<section id="axis-change-notifications">
+<span id="r-rbc-graphinst-axis-change-notifications"></span><span id="r-3a3arbc3a3agraphinstqzaxis20change20notifications"></span><h2>Axis change notifications<a class="headerlink" href="#axis-change-notifications" title="Link to this heading">¶</a></h2>
+<p>Graph, barchart, stripchart, and polar widgets provide two axis events:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code> reports successful axis configuration and changes to effective numeric limits. Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands, titles, colors, visibility, and other axis options. Reapplying an option with the same value also counts as configuration; the event does not compare every option’s old and new values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> reports changes to the bounds returned by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>. These include zooming, panning, scrolling, and automatic limits derived from element data. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged.</p></li>
+</ul>
+<section id="id2">
+<span id="id1"></span><span id="id3"></span><h3>Delivery and event data<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>Both events are queued on the graph after an on-screen display pass with a usable plotting area.
+An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
+display pass; several commands before a redraw can therefore produce one event. Changes followed by a
+return to the previously displayed limits before redraw do not produce a limits-change event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">%W</span></code> identifies the graph and <code class="docutils literal notranslate"><span class="pre">%d</span></code> is a Tcl list of axis names. Each name appears once; ordering is
+unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
+first display after creating an axis, announce its limits through both events. Deleted axes are skipped
+when building the notification; deletion itself is not an axis-change notification.</p>
+<p>The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
+configuration. Because delivery is asynchronous, the current state may be newer than the display that
+queued the event, and an axis may have been deleted in the meantime.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>axes<span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">foreach</span><span class="w"> </span>axis<span class="w"> </span><span class="nv">$axes</span><span class="w"> </span><span class="k">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="k">{</span><span class="nv">$axis</span><span class="w"> </span><span class="nv">ni</span><span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>names<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">            </span><span class="k">continue</span>
+<span class="w">        </span><span class="k">}</span>
+<span class="w">        </span><span class="nb">dict</span><span class="w"> </span>set<span class="w"> </span><span class="o">::</span>axisState<span class="w"> </span><span class="nv">$graph</span><span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w">  </span>limits<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>limits<span class="w"> </span><span class="nv">$axis</span><span class="k">]</span><span class="w">  </span>logscale<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>cget<span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="o">-</span>logscale<span class="k">]]</span>
+<span class="w">    </span><span class="k">}</span>
+<span class="k">}</span>
+<span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcAxisChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="o">%</span>W<span class="w"> </span><span class="o">%</span>d<span class="k">]</span>
+</pre></div>
+</div>
+<p>Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves
+generate these events. A later screen display compares the effective limits with the previous screen
+display. Data changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting
+do not generate axis events unless an axis is configured or its effective limits change.</p>
+<p>These events do not report every change in tick-label placement or screen geometry. Use
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> for mapping and layout updates, including resizing without changed numeric limits.
+Log/linear switching is always covered by <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code>, but only generates
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> if the resulting numeric bounds change. Logarithmic bounds are reported in
+data units, just as by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>.</p>
+</section>
+<section id="synchronizing-plots">
+<span id="r-rbc-graphinst-synchronizing-plots"></span><span id="r-3a3arbc3a3agraphinstqzsynchronizing20plots"></span><h3>Synchronizing plots<a class="headerlink" href="#synchronizing-plots" title="Link to this heading">¶</a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> to follow numeric ranges, or <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code> when scale mode and
+other configuration also matter. The events do not synchronize plots automatically and do not distinguish
+user interaction from application changes or autoscaling.</p>
+<p>For axes with different units, synchronize fractional changes in the previous span instead of copying
+numeric limits. If the source changes from <code class="docutils literal notranslate"><span class="pre">[a,b]</span></code> to <code class="docutils literal notranslate"><span class="pre">[c,d]</span></code>, apply <code class="docutils literal notranslate"><span class="pre">(c-a)/(b-a)</span></code> and <code class="docutils literal notranslate"><span class="pre">(d-b)/(b-a)</span></code>
+to the target’s previous span at its lower and upper boundaries. For logarithmic axes, calculate in log
+coordinates and convert back afterward. Keep a previous-range baseline and reset it when changing scale
+mode; reject zero or invalid spans.</p>
+<p>Bidirectional synchronization must recognize its own propagated updates. A busy flag cleared when the
+handler returns cannot suppress later queued events. Compare against remembered target states before
+propagating another update; this is especially important for the broader event, which also reports
+successful configuration with unchanged values. Relative synchronization must avoid applying the same
+source change twice.</p>
+</section>
+</section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h2>
 <p>A widget created with <a class="reference internal" href="rbc-tk9-rbc.html#r-3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> uses the ordinary Rbc graph coordinate system but provides specialized
@@ -1217,6 +1275,11 @@ but the current graph core does not automatically execute it.</p>
 <li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>
 <li><a class="reference internal" href="#delivery-and-event-data">Delivery and event data</a></li>
 <li><a class="reference internal" href="#scope">Scope</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#axis-change-notifications">Axis change notifications</a><ul>
+<li><a class="reference internal" href="#id2">Delivery and event data</a></li>
+<li><a class="reference internal" href="#synchronizing-plots">Synchronizing plots</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a><ul>

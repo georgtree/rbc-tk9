@@ -67,6 +67,12 @@ Graph widgets emit <<RbcGraphChanged>> after relevant display changes\&. The too
 requests into an idle callback and respects temporary suspension during zooming, panning and menus\&.
 Windows crosshair motion was corrected to avoid flicker\&. Symbols crossing the plot boundary are clipped
 to the visible area instead of disappearing while still partially visible\&.
+.PP
+Graph widgets also provide <<RbcAxisChanged>> for successful axis configuration or changed effective
+limits, and <<RbcAxisLimitsChanged>> for numeric limit changes alone\&. Both queue one list of affected
+axis names in %d after display, including initial limits\&. Applications can use these events to synchronize
+plots or update controls without reacting to unrelated redraws\&. The broader event includes log/linear
+switching, tick configuration and styling; synchronization handlers must account for queued feedback\&.
 .SS "CUSTOM CLOSEST-POINT ANNOTATIONS"
 .PP
 The toolbar's -closestcommand accepts a Tcl command prefix receiving element x y info and returning

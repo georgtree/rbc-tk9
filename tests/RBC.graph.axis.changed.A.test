@@ -1,0 +1,250 @@
+# Axis change notifications. See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcAxisChangedTest {
+    namespace import ::tcltest::*
+    variable changes {}
+    variable limits {}
+    variable states {}
+
+    proc Record {kind graph names} {
+        variable changes
+        variable limits
+        variable states
+        if {$kind eq {changes}} {
+            lappend changes [lsort $names]
+        } else {
+            lappend limits [lsort $names]
+            foreach axis $names {
+                if {$axis in [$graph axis names]} {
+                    dict set states $axis [$graph axis limits $axis]
+                }
+            }
+        }
+    }
+
+    proc Clear {} {
+        variable changes {}
+        variable limits {}
+        variable states {}
+    }
+
+    proc Create {{type graph}} {
+        ::rbc::$type .axisChanged -width 400 -height 300
+        .axisChanged axis configure x -min 1 -max 100 -loose no
+        .axisChanged axis configure y -min 0 -max 10 -loose no
+        bind .axisChanged <<RbcAxisChanged>> [list ::rbcAxisChangedTest::Record changes %W %d]
+        bind .axisChanged <<RbcAxisLimitsChanged>> [list ::rbcAxisChangedTest::Record limits %W %d]
+        Clear
+        pack .axisChanged
+        update
+    }
+
+    proc Cleanup {} {
+        catch {destroy .axisChanged}
+        catch {destroy .axisFollower}
+        update
+        Clear
+    }
+
+    foreach type {graph barchart stripchart polar} {
+        test axisChanged-1-$type {initial display announces initialized axes} -setup {
+            Create $type
+        } -body {
+            list $changes $limits [dict get $states x] [dict get $states y]
+        } -cleanup {
+            Cleanup
+        } -result {{{x x2 y y2}} {{x x2 y y2}} {1.0 100.0} {0.0 10.0}}
+
+        test axisChanged-2-$type {changes coalesce and handlers can read final limits} -setup {
+            Create $type
+            Clear
+        } -body {
+            .axisChanged axis configure x -min 2 -max 20
+            .axisChanged axis configure x -min 3 -max 30
+            .axisChanged yaxis configure -min 2 -max 8
+            set immediate [list $changes $limits]
+            update
+            list $immediate $changes $limits [dict get $states x] [dict get $states y]
+        } -cleanup {
+            Cleanup
+        } -result {{{} {}} {{x y}} {{x y}} {3.0 30.0} {2.0 8.0}}
+    }
+
+    foreach {name options} {
+        color {-color red}
+        title {-title Voltage}
+        ticks {-majorticks {1 10 100}}
+        log {-logscale yes}
+        descending {-descending yes}
+        hidden {-hide yes}
+    } {
+        test axisChanged-3-$name {configuration notifies even when numeric limits stay fixed} -setup {
+            Create
+            Clear
+        } -body {
+            .axisChanged axis configure x {*}$options
+            update
+            list $changes $limits
+        } -cleanup {
+            Cleanup
+        } -result {x {}}
+    }
+
+    test axisChanged-4 {queries and unchanged data bounds do not notify} -setup {
+        Create
+        .axisChanged element create signal -data {2 3 4 5} -symbol none
+        update
+        Clear
+    } -body {
+        .axisChanged axis limits x
+        .axisChanged axis cget x -color
+        .axisChanged axis configure x
+        .axisChanged axis configure x -min
+        .axisChanged element configure signal -data {3 4 5 6}
+        .axisChanged marker create text -coords {5 5} -text annotation
+        .axisChanged configure -width 420
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {{} {}}
+
+    test axisChanged-5 {reapplying configuration does not report a limits change} -setup {
+        Create
+        Clear
+    } -body {
+        .axisChanged axis configure x -min 1 -max 100
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {x {}}
+
+    test axisChanged-6 {failed configuration produces no notification} -setup {
+        Create
+        Clear
+    } -body {
+        set code [catch {.axisChanged axis configure x -title changed -logscale invalid}]
+        update
+        list $code $changes $limits [.axisChanged axis cget x -title]
+    } -cleanup {
+        Cleanup
+    } -result {1 {} {} {}}
+
+    test axisChanged-7 {vector autoscaling notifies while a limits query preserves the display baseline} -setup {
+        Create
+        ::rbc::vector create ::axisChangedY
+        ::axisChangedY set {2 4}
+        .axisChanged element create signal -xdata {2 4} -ydata ::axisChangedY -symbol none
+        .axisChanged axis configure y -min {} -max {} -loose no
+        update
+        Clear
+    } -body {
+        ::axisChangedY set {3 8}
+        set queried [.axisChanged axis limits y]
+        update
+        list $changes $limits [expr {[dict get $states y] eq [.axisChanged axis limits y]}]
+    } -cleanup {
+        Cleanup
+        ::rbc::vector destroy ::axisChangedY
+    } -result {y y 1}
+
+    test axisChanged-8 {returning to displayed limits before redraw only reports configuration} -setup {
+        Create
+        Clear
+    } -body {
+        .axisChanged axis configure x -min 2 -max 20
+        .axisChanged axis limits x
+        .axisChanged axis configure x -min 1 -max 100
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {x {}}
+
+    test axisChanged-9 {axis names with spaces remain single list elements} -setup {
+        Create
+        .axisChanged axis create {extra axis} -min 0 -max 10
+        update
+        Clear
+    } -body {
+        .axisChanged axis configure {extra axis} -min 2 -max 8
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {{{{extra axis}}} {{{extra axis}}}}
+
+    test axisChanged-10 {deleted axes are excluded from pending notifications} -setup {
+        Create
+        .axisChanged axis create temporary
+        update
+        Clear
+    } -body {
+        .axisChanged axis configure temporary -min 2 -max 8
+        .axisChanged axis delete temporary
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {{} {}}
+
+    test axisChanged-11 {temporary export and snapshot layouts do not consume pending axis changes} -setup {
+        Create
+        set photo [image create photo]
+        Clear
+    } -body {
+        .axisChanged axis configure x -min 2 -max 20
+        .axisChanged postscript output
+        .axisChanged snap $photo
+        set before [list $changes $limits]
+        update
+        list $before $changes $limits
+    } -cleanup {
+        Cleanup
+        image delete $photo
+    } -result {{{} {}} x x}
+
+    test axisChanged-12 {destroyed graphs do not receive queued events} -setup {
+        Create
+        Clear
+    } -body {
+        .axisChanged axis configure x -min 2 -max 20
+        update idletasks
+        destroy .axisChanged
+        update
+        list $changes $limits
+    } -cleanup {
+        Cleanup
+    } -result {{} {}}
+
+    proc Follow {source target names} {
+        if {{x} ni $names} {
+            return
+        }
+        lassign [$source axis limits x] low high
+        if {[$target axis cget x -min] ne $low || [$target axis cget x -max] ne $high} {
+            $target axis configure x -min $low -max $high
+        }
+    }
+
+    test axisChanged-13 {an event handler can synchronize another graph without synchronous reentry} -setup {
+        Create
+        ::rbc::graph .axisFollower -width 400 -height 300
+        pack .axisFollower
+        .axisFollower axis configure x -min 1 -max 100 -loose no
+        update
+        bind .axisChanged <<RbcAxisLimitsChanged>> +[list ::rbcAxisChangedTest::Follow %W .axisFollower %d]
+        Clear
+    } -body {
+        .axisChanged axis configure x -min 2 -max 20
+        update
+        list $changes $limits [.axisFollower axis limits x]
+    } -cleanup {
+        Cleanup
+    } -result {x x {2.0 20.0}}
+}
+namespace delete ::rbcAxisChangedTest
+::tcltest::cleanupTests

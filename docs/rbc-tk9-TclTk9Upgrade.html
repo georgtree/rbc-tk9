@@ -97,6 +97,11 @@ Annotation boxes are recalculated after zooming, including with inverted axes.</
 requests into an idle callback and respects temporary suspension during zooming, panning and menus.
 Windows crosshair motion was corrected to avoid flicker. Symbols crossing the plot boundary are clipped
 to the visible area instead of disappearing while still partially visible.</p>
+<p>Graph widgets also provide <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code> for successful axis configuration or changed effective
+limits, and <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> for numeric limit changes alone. Both queue one list of affected
+axis names in <code class="docutils literal notranslate"><span class="pre">%d</span></code> after display, including initial limits. Applications can use these events to synchronize
+plots or update controls without reacting to unrelated redraws. The broader event includes log/linear
+switching, tick configuration and styling; synchronization handlers must account for queued feedback.</p>
 </section>
 <section id="custom-closest-point-annotations">
 <span id="r-tcltk9upgrade-custom-closest-point-annotations"></span><span id="r-3a3atcltk9upgradeqzcustom20closest2dpoint20annotations"></span><h3>Custom closest-point annotations<a class="headerlink" href="#custom-closest-point-annotations" title="Link to this heading">¶</a></h3>

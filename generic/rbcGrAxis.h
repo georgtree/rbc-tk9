@@ -200,6 +200,9 @@ typedef struct {
                           * the range of data values.  This is used to
                           * auto-scale the axis in "loose" mode. */
     double prevMin, prevMax;
+    double notifiedMin, notifiedMax; /* Last displayed limits, in data units. */
+    int notifiedLimitsValid;
+    int notifyConfigure; /* A successful configuration awaits display. */
     double reqStep; /* If > 0.0, overrides the computed major
                      * tick interval.  Otherwise a stepsize
                      * is automatically calculated, based

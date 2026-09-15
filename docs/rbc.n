@@ -182,15 +182,15 @@ the intended destination\&.
 .TS
 tab(|) box;
 l l.
-Option | Effect
+Option| Effect
 _
---enable-cairo | Builds Cairo support and makes cairo the default renderer\&. Requires cairo-xlib on Linux or cairo-win32 on Windows\&.
---disable-cairo | Builds without Cairo; native is the renderer default\&. This is also the configure default when neither flag is supplied\&.
---enable-cairo-static | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library\&. Requires GCC and GNU-compatible linker options\&.
---disable-cairo-static | Disables forced static linking of Cairo dependencies\&. This is the default; Cairo support is controlled separately by --enable-cairo\&.
---enable-symbols | Builds with debugging symbols for crash diagnosis\&.
+--enable-cairo| Builds Cairo support and makes cairo the default renderer\&. Requires cairo-xlib on Linux or cairo-win32 on Windows\&.
+--disable-cairo| Builds without Cairo; native is the renderer default\&. This is also the configure default when neither flag is supplied\&.
+--enable-cairo-static| Enables Cairo and links its non-system dependencies from static archives into the RBC shared library\&. Requires GCC and GNU-compatible linker options\&.
+--disable-cairo-static| Disables forced static linking of Cairo dependencies\&. This is the default; Cairo support is controlled separately by --enable-cairo\&.
+--enable-symbols| Builds with debugging symbols for crash diagnosis\&.
 --with-tcl=DIR, --with-tk=DIR | Select directories containing the matching Tcl/Tk configuration files\&.
---prefix=DIR | Selects the installation prefix\&.
+--prefix=DIR| Selects the installation prefix\&.
 .TE
 .PP
 The examples above enable Cairo\&. Omit --enable-cairo, or replace it with --disable-cairo, for a native-only build\&.

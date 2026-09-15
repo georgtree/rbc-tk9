@@ -1336,6 +1336,7 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
     }
     ResetAxisOptionContext(axisPtr);
     axisPtr->optionsConfigured = TRUE;
+    axisPtr->notifyConfigure = TRUE;
     Tk_FreeSavedOptions(&savedOptions);
     if (maskPtr != NULL) {
         *maskPtr = mask;
@@ -5435,6 +5436,7 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
             return NULL;
         }
         axisPtr->deletePending = FALSE;
+        axisPtr->notifiedLimitsValid = FALSE;
     } else {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
@@ -5827,6 +5829,66 @@ static int ConfigureOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
     return TCL_OK;
 }
 
+/* Read the same data-space bounds returned by the axis limits command. */
+static void GetAxisLimits(Axis *axisPtr, double *minPtr, double *maxPtr) {
+    if (axisPtr->logScale) {
+        *minPtr = LogAxisValue(axisPtr->axisRange.min);
+        *maxPtr = LogAxisValue(axisPtr->axisRange.max);
+    } else {
+        *minPtr = axisPtr->axisRange.min;
+        *maxPtr = axisPtr->axisRange.max;
+    }
+}
+
+/*
+ * Notify after screen display, never from temporary export mappings.
+ * Keep a separate baseline: axis queries may reset ranges before display.
+ */
+void Rbc_NotifyAxisChanges(Graph *graphPtr) {
+    Tcl_HashEntry *hPtr;
+    Tcl_HashSearch cursor;
+    Tcl_Obj *changedObjPtr = NULL, *limitsObjPtr = NULL;
+
+    for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+        Axis *axisPtr = (Axis *)Tcl_GetHashValue(hPtr);
+        double min, max;
+        int limitsChanged;
+
+        if (axisPtr->deletePending || !axisPtr->optionsConfigured) {
+            continue;
+        }
+        GetAxisLimits(axisPtr, &min, &max);
+        limitsChanged = !axisPtr->notifiedLimitsValid || (min != axisPtr->notifiedMin) ||
+                        (max != axisPtr->notifiedMax);
+        if (limitsChanged || axisPtr->notifyConfigure) {
+            if (changedObjPtr == NULL) {
+                changedObjPtr = Tcl_NewListObj(0, NULL);
+                Tcl_IncrRefCount(changedObjPtr);
+            }
+            Tcl_ListObjAppendElement(NULL, changedObjPtr, Tcl_NewStringObj(axisPtr->name, -1));
+        }
+        if (limitsChanged) {
+            if (limitsObjPtr == NULL) {
+                limitsObjPtr = Tcl_NewListObj(0, NULL);
+                Tcl_IncrRefCount(limitsObjPtr);
+            }
+            Tcl_ListObjAppendElement(NULL, limitsObjPtr, Tcl_NewStringObj(axisPtr->name, -1));
+        }
+        axisPtr->notifiedMin = min;
+        axisPtr->notifiedMax = max;
+        axisPtr->notifiedLimitsValid = TRUE;
+        axisPtr->notifyConfigure = FALSE;
+    }
+    if (changedObjPtr != NULL) {
+        Tk_SendVirtualEvent(graphPtr->tkwin, "RbcAxisChanged", changedObjPtr);
+        Tcl_DecrRefCount(changedObjPtr);
+    }
+    if (limitsObjPtr != NULL) {
+        Tk_SendVirtualEvent(graphPtr->tkwin, "RbcAxisLimitsChanged", limitsObjPtr);
+        Tcl_DecrRefCount(limitsObjPtr);
+    }
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -5859,13 +5921,7 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, T
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
-    if (axisPtr->logScale) {
-        min = LogAxisValue(axisPtr->axisRange.min);
-        max = LogAxisValue(axisPtr->axisRange.max);
-    } else {
-        min = axisPtr->axisRange.min;
-        max = axisPtr->axisRange.max;
-    }
+    GetAxisLimits(axisPtr, &min, &max);
     Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(min));
     Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewDoubleObj(max));
     Tcl_SetObjResult(interp, resultObj);

@@ -4089,6 +4089,9 @@ static void DisplayGraph(ClientData clientData) {
         graphPtr->flags &= ~GRAPH_CHANGED;
         Tk_SendVirtualEvent(graphPtr->tkwin, "RbcGraphChanged", NULL);
     }
+    if (!(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->hRange > 1) && (graphPtr->vRange > 1)) {
+        Rbc_NotifyAxisChanges(graphPtr);
+    }
     UpdateMarginTraces(graphPtr);
 }
 
