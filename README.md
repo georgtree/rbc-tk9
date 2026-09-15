@@ -143,15 +143,15 @@ the intended destination.
 
 ### Configure options and renderer defaults
 
-| Option | Effect |
-|---|---|
-| `--enable-cairo` | Builds Cairo support and makes `cairo` the default renderer. Requires `cairo-xlib` on Linux or `cairo-win32` on Windows. |
-| `--disable-cairo` | Builds without Cairo; `native` is the renderer default. This is also the configure default when neither flag is supplied. |
-| `--enable-cairo-static` | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options. |
-| `--disable-cairo-static` | Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by `--enable-cairo`. |
-| `--enable-symbols` | Builds with debugging symbols for crash diagnosis. |
-| `--with-tcl=DIR`, `--with-tk=DIR` | Select directories containing the matching Tcl/Tk configuration files. |
-| `--prefix=DIR` | Selects the installation prefix. |
+| Option                            | Effect                                                                                                                                                |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--enable-cairo`                  | Builds Cairo support and makes `cairo` the default renderer. Requires `cairo-xlib` on Linux or `cairo-win32` on Windows.                              |
+| `--disable-cairo`                 | Builds without Cairo; `native` is the renderer default. This is also the configure default when neither flag is supplied.                             |
+| `--enable-cairo-static`           | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options. |
+| `--disable-cairo-static`          | Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by `--enable-cairo`.                |
+| `--enable-symbols`                | Builds with debugging symbols for crash diagnosis.                                                                                                    |
+| `--with-tcl=DIR`, `--with-tk=DIR` | Select directories containing the matching Tcl/Tk configuration files.                                                                                |
+| `--prefix=DIR`                    | Selects the installation prefix.                                                                                                                      |
 
 The examples above enable Cairo. Omit `--enable-cairo`, or replace it with `--disable-cairo`, for a native-only build.
 If Cairo is requested but its headers or platform backend cannot be linked, configure fails rather than silently

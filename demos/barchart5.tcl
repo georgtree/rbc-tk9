@@ -46,7 +46,7 @@ set visual [winfo screenvisual .]
 if {($visual ne {staticgray}) && ($visual ne {grayscale})} {
     option add *graph.Element.Background white
     option add *graph.Legend.activeForeground pink
-    option add *graph.background khaki
+    option add *graph.background #EEF8FF
     option add *graph.plotBackground lightblue
 }
 
@@ -64,7 +64,7 @@ y expr sin(x)
 set barWidth 0.19
 
 ### Add barchart element.
-$barchart graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $barWidth
+$barchart graph element create sin -relief raised -bd 1 -x x -y y  -barwidth $barWidth -foreground #CF995F
 
 ### Map everything, add Rbc_* commands.
 grid .header -sticky ew

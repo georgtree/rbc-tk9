@@ -48,7 +48,12 @@ set argv0 $demo
 source $demo
 
 # Give initial layout and scheduled drawing time to complete.
-after 500 {
+if {[file tail $demo] eq {stripchart1.tcl}} {
+    set time 2000
+} else {
+    set time 500
+}
+after $time {
     if {[catch {saveSnapshots $demo $outputDir} message options]} {
         puts stderr [dict get $options -errorinfo]
         exit 1

@@ -23,7 +23,6 @@ proc ElementInfo {elementMapping element x y info} {
     return [format "Element: %s\nIsotope: %s\nProtons: %d\nNeutrons:\
                             %d\nDensity, g/cm^3: %.2f\nIsotope selection basis: %s"\
                     $elementName $isotope $protons $neutrons $density_g_cm3 $selection_basis]
-
 }
 
 ### The script can be run from any location. It loads the files it needs from the demo directory.

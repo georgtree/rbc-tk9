@@ -89,7 +89,7 @@ pack .traces -side top -fill both -expand yes
 
 foreach renderer {native cairo} {
     set g .$renderer
-    ::rbc::graph $g -renderer $renderer -width 500 -height 350 -title $renderer -plotbackground white
+    ::rbc::graph $g -renderer $renderer -width 560 -height 350 -title $renderer -plotbackground white
     pack $g -in .traces -side left -fill both -expand yes
     $g legend configure -hide no -position rightmargin -font {Arial 10}
     foreach axis {x y} {$g axis configure $axis -linewidth $axisWidth}

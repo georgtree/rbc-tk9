@@ -81,7 +81,7 @@ foreach stipple $bitmaps {
     set y [random -2 10]
     set yhigh [expr {$y+0.5}]
     set ylow [expr {$y-0.5}]
-    $barchart graph element create $label -y $y -x $count -fg brown -bg orange -stipple\
+    $barchart graph element create $label -y $y -x $count -fg brown -bg #4062BB -stipple\
             @$DemoDir/stipples/${stipple}.xbm -yhigh $yhigh -ylow $ylow
     set elemLabels($count) $label
     incr count

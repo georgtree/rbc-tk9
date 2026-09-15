@@ -40,7 +40,7 @@ ttk::label .description -text {Bar fills and error strokes use the selected rend
 pack .description -pady 4
 foreach renderer {native cairo} {
     set g .$renderer
-    ::rbc::barchart $g -renderer $renderer -width 500 -height 360 -title $renderer \
+    ::rbc::barchart $g -renderer $renderer -width 560 -height 360 -title $renderer \
         -plotbackground white -barmode aligned
     pack $g -side left -fill both -expand yes
     $g grid configure -hide yes
