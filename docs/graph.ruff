@@ -178,57 +178,16 @@ namespace eval ::rbc::GRAPHINST {
 
         ## SVG output
 
-        `svg` exports vector graphics without requiring Cairo. It is available on graph, stripchart,
-        barchart and polar widgets and has its own settings, separate from `postscript`.
+        The [SVG][::rbc::SVG] component exports the complete graph as SVG, independently of the screen renderer
+        and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.
 
         ```tcl
-        .g svg configure -width 1200 -height 800 -decorations yes
-        .g svg cget -width
+        .g svg configure -width 1200 -height 800
         set document [.g svg output]
         .g svg output plot.svg
-        .g svg output plot.svg -width 800 -height 600
         ```
 
-        `svg configure` returns option descriptions; `svg configure option` describes one option.
-        `svg cget option` returns its value. `svg output ?file? ?option value ...?` returns the XML
-        string when no filename is supplied, or writes UTF-8 SVG to the named file. Prefix a filename
-        starting with a dash with `./`. Successfully parsed output options remain configured, as for
-        PostScript. Invalid option/value lists leave all SVG settings unchanged.
-
-        - `-width` and `-height`: output dimensions in pixels (Tk screen-distance units are also accepted).
-          The default, zero, uses the widget dimension. Dimensions cannot be negative.
-        - `-decorations`: include configured graph/legend backgrounds and relief borders. Defaults to true.
-          False uses white backgrounds, as in PostScript. Axes, labels and symbols remain visible.
-
-        SVG export supports traces, error bars, grids, axes, solid areas and bars,
-        standard geometric symbols, line/polygon/text markers, legends, borders and editable text.
-        Polar/Smith labels use the same layout and formatting as PostScript. Export remaps full source
-        geometry rather than screen-decimated traces. Solid area fills preserve `-areaopacity`.
-        Fonts are referenced by family rather than embedded; text appearance depends on installed fonts
-        in the SVG viewer. Text rotation, baseline positions, measured widths and shadows are retained.
-
-        Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external
-        image files. Mapped scaling and plot clipping are retained. Bitmap markers (including rotation and
-        explicit masks) export as vector pixel shapes. Bitmap element, active-pen and legend symbols reuse
-        vector definitions within each symbol drawing pass; their colors, masks and aspect ratio are retained.
-
-        Stipple areas, polygon markers, bars and bar legend samples export as vector patterns. Stipples
-        retain foreground/background colors and transparent gaps. Photo area tiles embed a repeating PNG
-        with alpha and take precedence over stipples. Stipples align with graph pixels; photo tiles retain
-        the screen renderer's toplevel-relative phase. Bar legend patterns restart at each sample's corner.
-        Pattern sizes are in export pixels. `-areaopacity` affects solid fills only, not stipples or tiles.
-
-        Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG. Transparency is
-        recovered from black/white renders, which assumes stable source-over drawing; custom image types
-        whose output depends on destination contents may differ. No external image files are required.
-
-        Mapped window markers embed their current native window pixels as opaque PNG. Hidden or unmapped
-        window markers are omitted. Window contents are raster snapshots at their current widget size,
-        not vector drawings; native capture availability and visibility constraints apply. Export does not
-        run the event loop to refresh a window. Refresh pending display work before exporting when needed.
-
-        Capture failures and invalid XML text report an error before the output file is opened. PostScript printer options (paper size, landscape, preview, font/color
-        maps) are not SVG options. The SVG canvas uses pixel dimensions and a matching `viewBox`.
+        See [::rbc::SVG] for command syntax, options, examples and export limitations.
 
         ## Numeric values and expressions
 
@@ -1556,7 +1515,7 @@ namespace eval ::rbc::GRAPHINST {
     }
 
     proc svg {args} {
-        # Exports vector SVG. See the SVG output section for options, supported content and limitations.
+        # Performs an SVG output operation. See [::rbc::SVG] for options and export limitations.
         # Returns: Option information, an SVG XML string, or nothing when writing a file.
         # Synopsis: cget option
         # Synopsis: configure ?option? ?value ...?

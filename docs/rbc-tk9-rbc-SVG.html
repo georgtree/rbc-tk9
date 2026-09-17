@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph SVG SVG command &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vector command" href="rbc-tk9-rbc-vector.html" />
+    <link rel="prev" title="Graph PostScript POSTSCRIPT command" href="rbc-tk9-rbc-POSTSCRIPT.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-POSTSCRIPT.html" title="Graph PostScript POSTSCRIPT command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-svg-svg-command">
+<span id="r-graph-svg-svg-command"></span><span id="r-graph20svg2060svg6020command"></span><span id="r-3a3arbc3a3asvg"></span><h1>Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command<a class="headerlink" href="#graph-svg-svg-command" title="Link to this heading">¶</a></h1>
+<p>Commands in this namespace document graph SVG output.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SVG</span></code> is used below as a placeholder for:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>svg
+</pre></div>
+</div>
+<p>The SVG component exports the complete graph, including elements, axes, grid, markers, legend, title
+and margins. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo.
+There is one SVG configuration per widget, independent of PostScript and the screen renderer.
+There are no named SVG objects.</p>
+<section id="generating-svg">
+<span id="r-rbc-svg-generating-svg"></span><span id="r-3a3arbc3a3asvgqzgenerating20svg"></span><h2>Generating SVG<a class="headerlink" href="#generating-svg" title="Link to this heading">¶</a></h2>
+<p>Return the document as a Tcl string or write it directly to a file:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>document<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="k">]</span>
+<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg
+<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>decorations<span class="w"> </span>no
+</pre></div>
+</div>
+<p>File output uses UTF-8 with LF line endings. A filename starting with a dash must be prefixed with
+a directory, for example <code class="docutils literal notranslate"><span class="pre">./-plot.svg</span></code>. There is no <code class="docutils literal notranslate"><span class="pre">--</span></code> filename separator.</p>
+</section>
+<section id="svg-options">
+<span id="r-rbc-svg-svg-options"></span><span id="r-3a3arbc3a3asvgqzsvg20options"></span><h2>SVG options<a class="headerlink" href="#svg-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Non-negative output width. Zero uses the graph width.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Non-negative output height. Zero uses the graph height.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Include graph/legend backgrounds and relief borders. False uses white backgrounds; axes, labels and symbols remain visible.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Dimensions accept pixels or Tk screen distances, such as <code class="docutils literal notranslate"><span class="pre">6i</span></code> or <code class="docutils literal notranslate"><span class="pre">15c</span></code>, and are stored as integer
+pixels. Zero uses the current widget dimension, or its requested dimension before layout is available.
+The graph is laid out again for the export dimensions; the SVG canvas has a matching <code class="docutils literal notranslate"><span class="pre">viewBox</span></code>.
+Export does not resize the on-screen widget.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">6</span>i<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">4</span>i
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>width<span class="k">]</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>decorations<span class="k">]</span>
+<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>Configuration queries use five-element lists:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">{</span><span class="nv">option</span><span class="w"> </span>name<span class="w"> </span>class<span class="w"> </span>default<span class="w"> </span>current<span class="k">}</span>
+</pre></div>
+</div>
+<p>Names/classes are <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">Width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>/<code class="docutils literal notranslate"><span class="pre">Height</span></code>, and <code class="docutils literal notranslate"><span class="pre">decorations</span></code>/<code class="docutils literal notranslate"><span class="pre">Decorations</span></code>.
+These describe the query result only: SVG settings are not read from Tk’s option database.
+Set them with <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code> or <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span></code>.</p>
+<p>Invalid option/value lists leave all SVG settings unchanged. Once an output option list has been
+validated, its values remain configured even if subsequent rendering or file writing fails.</p>
+</section>
+<section id="supported-content-and-limitations">
+<span id="r-rbc-svg-supported-content-and-limitations"></span><span id="r-3a3arbc3a3asvgqzsupported20content20and20limitations"></span><h2>Supported content and limitations<a class="headerlink" href="#supported-content-and-limitations" title="Link to this heading">¶</a></h2>
+<p>SVG export supports traces, error bars, grids, axes, solid areas and bars,
+standard geometric symbols, line/polygon/text markers, legends, borders and editable text.
+Polar/Smith labels use the same layout and formatting as PostScript. Export remaps full source
+geometry rather than screen-decimated traces. Solid area fills preserve <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>.
+Fonts are referenced by family rather than embedded; text appearance depends on installed fonts
+in the SVG viewer. Text rotation, baseline positions, measured widths and shadows are retained.</p>
+<p>Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external
+image files. Mapped scaling and plot clipping are retained. Bitmap markers (including rotation and
+explicit masks) export as vector pixel shapes. Bitmap element, active-pen and legend symbols reuse
+vector definitions within each symbol drawing pass; their colors, masks and aspect ratio are retained.</p>
+<p>Stipple areas, polygon markers, bars and bar legend samples export as vector patterns. Stipples
+retain foreground/background colors and transparent gaps. Photo area tiles embed a repeating PNG
+with alpha and take precedence over stipples. Stipples align with graph pixels; photo tiles retain
+the screen renderer’s toplevel-relative phase. Bar legend patterns restart at each sample’s corner.
+Pattern sizes are in export pixels. <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> affects solid fills only, not stipples or tiles.</p>
+<p>Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG. Transparency is
+recovered from black/white renders, which assumes stable source-over drawing; custom image types
+whose output depends on destination contents may differ. No external image files are required.</p>
+<p>Mapped window markers embed their current native window pixels as opaque PNG. Hidden or unmapped
+window markers are omitted. Window contents are raster snapshots at their current widget size,
+not vector drawings; native capture availability and visibility constraints apply. Export does not
+run the event loop to refresh a window. Refresh pending display work before exporting when needed.</p>
+<p>Capture failures and invalid XML text report an error before the output file is opened. PostScript printer options (paper size, landscape, preview, font/color
+maps) are not SVG options. The SVG canvas uses pixel dimensions and a matching <code class="docutils literal notranslate"><span class="pre">viewBox</span></code>.</p>
+</section>
+<section id="commands">
+<span id="r-rbc-svg-commands"></span><span id="r-3a3arbc3a3asvgqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="cget">
+<span id="r-3a3arbc3a3asvg3a3acget"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">cget</span></code><a class="headerlink" href="#cget" title="Link to this heading">¶</a></h3>
+<p>Queries the current value of one SVG configuration option. See <a class="reference internal" href="#r-3a3arbc3a3asvgqzsvg20options"><span class="std std-ref">SVG options</span></a>.</p>
+<pre class="literal-block"><strong>cget</strong> <em>option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>SVG configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Current option value, as integer pixels for dimensions or 0/1 for decorations.</p>
+</section>
+<section id="configure">
+<span id="r-3a3arbc3a3asvg3a3aconfigure"></span><span id="index-1"></span><h3><code class="docutils literal notranslate"><span class="pre">configure</span></code><a class="headerlink" href="#configure" title="Link to this heading">¶</a></h3>
+<p>Queries or modifies SVG configuration options. With no arguments, returns a list of all option
+descriptions. With one option, returns its five-element description. Otherwise accepts option/value
+pairs and updates the settings after validating the entire list. See <a class="reference internal" href="#r-3a3arbc3a3asvgqzsvg20options"><span class="std std-ref">SVG options</span></a>.</p>
+<pre class="literal-block"><strong>configure</strong> <em>option</em>
+<strong>configure</strong> <em>option value ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>SVG configuration option.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>New value for the option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Configuration information when querying, otherwise nothing.</p>
+</section>
+<section id="output">
+<span id="r-3a3arbc3a3asvg3a3aoutput"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">output</span></code><a class="headerlink" href="#output" title="Link to this heading">¶</a></h3>
+<p>Generates the SVG document. Without a filename, returns its XML text. With a filename, writes the
+document to that file, replacing existing contents. Optional settings remain configured after their
+option/value list is validated, including when a later rendering or file operation fails.
+Rendering and XML validation complete before the file is opened; an I/O failure can still leave a
+partial file. See <a class="reference internal" href="#r-3a3arbc3a3asvgqzsupported20content20and20limitations"><span class="std std-ref">Supported content and limitations</span></a>.</p>
+<pre class="literal-block"><strong>output</strong> <em>?fileName? ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">fileName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional file to create or replace; prefix dash-leading names with ./.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional SVG configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value for the configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>SVG XML when no filename is supplied, otherwise nothing.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command</a><ul>
+<li><a class="reference internal" href="#generating-svg">Generating SVG</a></li>
+<li><a class="reference internal" href="#svg-options">SVG options</a></li>
+<li><a class="reference internal" href="#supported-content-and-limitations">Supported content and limitations</a></li>
+<li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-POSTSCRIPT.html"
+                          title="previous chapter">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-vector.html"
+                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-SVG.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-POSTSCRIPT.html" title="Graph PostScript POSTSCRIPT command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

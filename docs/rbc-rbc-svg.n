@@ -1,0 +1,254 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::SVG" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::SVG - Commands in namespace rbc::SVG
+.SH SYNOPSIS
+\fBcget\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+\fBoutput\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.SH "GRAPH SVG SVG COMMAND"
+.PP
+Commands in this namespace document graph SVG output\&.
+.PP
+SVG is used below as a placeholder for:
+.PP
+.RS 4n
+.nf
+GRAPHINST svg
+.fi
+.RE
+.PP
+The SVG component exports the complete graph, including elements, axes, grid, markers, legend, title
+and margins\&. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo\&.
+There is one SVG configuration per widget, independent of PostScript and the screen renderer\&.
+There are no named SVG objects\&.
+.SH "GENERATING SVG"
+.PP
+Return the document as a Tcl string or write it directly to a file:
+.PP
+.RS 4n
+.nf
+set document [\&.g svg output]
+\&.g svg output plot\&.svg
+\&.g svg output plot\&.svg -width 1200 -height 800 -decorations no
+.fi
+.RE
+.PP
+File output uses UTF-8 with LF line endings\&. A filename starting with a dash must be prefixed with
+a directory, for example \&./-plot\&.svg\&. There is no -- filename separator\&.
+.SH "SVG OPTIONS"
+.PP
+.RS 4n
+.nf
+┌──────────────────────┬─────────┬────────────────────────────────────────────────┐
+│ Option               │ Default │ Description                                    │
+├──────────────────────┼─────────┼────────────────────────────────────────────────┤
+│ -width distance      │ 0       │ Non-negative width; zero uses the graph width\&. │
+│ -height distance     │ 0       │ Non-negative height; zero uses graph height\&.   │
+│ -decorations boolean │ 1       │ Include backgrounds and relief borders\&. False │
+│                      │         │ uses white backgrounds\&. Axes, labels and      │
+│                      │         │ symbols remain visible\&.                       │
+└──────────────────────┴─────────┴────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+Dimensions accept pixels or Tk screen distances, such as 6i or 15c, and are stored as integer
+pixels\&. Zero uses the current widget dimension, or its requested dimension before layout is available\&.
+The graph is laid out again for the export dimensions; the SVG canvas has a matching viewBox\&.
+Export does not resize the on-screen widget\&.
+.PP
+.RS 4n
+.nf
+\&.g svg configure -width 6i -height 4i
+puts [\&.g svg cget -width]
+puts [\&.g svg configure -decorations]
+\&.g svg configure -width 0 -height 0
+.fi
+.RE
+.PP
+Configuration queries use five-element lists:
+.PP
+.RS 4n
+.nf
+{option name class default current}
+.fi
+.RE
+.PP
+Names/classes are width/Width, height/Height, and decorations/Decorations\&.
+These describe the query result only: SVG settings are not read from Tk's option database\&.
+Set them with svg configure or svg output\&.
+.PP
+Invalid option/value lists leave all SVG settings unchanged\&. Once an output option list has been
+validated, its values remain configured even if subsequent rendering or file writing fails\&.
+.SH "SUPPORTED CONTENT AND LIMITATIONS"
+.PP
+SVG export supports traces, error bars, grids, axes, solid areas and bars,
+standard geometric symbols, line/polygon/text markers, legends, borders and editable text\&.
+Polar/Smith labels use the same layout and formatting as PostScript\&. Export remaps full source
+geometry rather than screen-decimated traces\&. Solid area fills preserve -areaopacity\&.
+Fonts are referenced by family rather than embedded; text appearance depends on installed fonts
+in the SVG viewer\&. Text rotation, baseline positions, measured widths and shadows are retained\&.
+.PP
+Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external
+image files\&. Mapped scaling and plot clipping are retained\&. Bitmap markers (including rotation and
+explicit masks) export as vector pixel shapes\&. Bitmap element, active-pen and legend symbols reuse
+vector definitions within each symbol drawing pass; their colors, masks and aspect ratio are retained\&.
+.PP
+Stipple areas, polygon markers, bars and bar legend samples export as vector patterns\&. Stipples
+retain foreground/background colors and transparent gaps\&. Photo area tiles embed a repeating PNG
+with alpha and take precedence over stipples\&. Stipples align with graph pixels; photo tiles retain
+the screen renderer's toplevel-relative phase\&. Bar legend patterns restart at each sample's corner\&.
+Pattern sizes are in export pixels\&. -areaopacity affects solid fills only, not stipples or tiles\&.
+.PP
+Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG\&. Transparency is
+recovered from black/white renders, which assumes stable source-over drawing; custom image types
+whose output depends on destination contents may differ\&. No external image files are required\&.
+.PP
+Mapped window markers embed their current native window pixels as opaque PNG\&. Hidden or unmapped
+window markers are omitted\&. Window contents are raster snapshots at their current widget size,
+not vector drawings; native capture availability and visibility constraints apply\&. Export does not
+run the event loop to refresh a window\&. Refresh pending display work before exporting when needed\&.
+.PP
+Capture failures and invalid XML text report an error before the output file is opened\&. PostScript printer options (paper size, landscape, preview, font/color
+maps) are not SVG options\&. The SVG canvas uses pixel dimensions and a matching viewBox\&.
+.SH COMMANDS
+.PP
+.RS -4n
+\fBcget\fR (::rbc::SVG)
+.RE
+.PP
+Queries the current value of one SVG configuration option\&. See \fISVG options\fP\&.
+.RS 4n
+\fBcget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+SVG configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current option value, as integer pixels for dimensions or 0/1 for decorations\&.
+.PP
+.RS -4n
+\fBconfigure\fR (::rbc::SVG)
+.RE
+.PP
+Queries or modifies SVG configuration options\&. With no arguments, returns a list of all option
+descriptions\&. With one option, returns its five-element description\&. Otherwise accepts option/value
+pairs and updates the settings after validating the entire list\&. See \fISVG options\fP\&.
+.RS 4n
+\fBconfigure\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+SVG configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBoutput\fR (::rbc::SVG)
+.RE
+.PP
+Generates the SVG document\&. Without a filename, returns its XML text\&. With a filename, writes the
+document to that file, replacing existing contents\&. Optional settings remain configured after their
+option/value list is validated, including when a later rendering or file operation fails\&.
+Rendering and XML validation complete before the file is opened; an I/O failure can still leave a
+partial file\&. See \fISupported content and limitations\fP\&.
+.RS 4n
+\fBoutput\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+Optional file to create or replace; prefix dash-leading names with \&./\&.
+.TP
+option
+Optional SVG configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+SVG XML when no filename is supplied, otherwise nothing\&.
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphtoolbar(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-svg(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

@@ -255,6 +255,16 @@ rbc - Commands in namespace rbc
 .br
 \fBstripchart\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
+\fBSVG\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBSVG cget\fP \fIoption\fP
+.br
+\fBSVG configure\fP \fIoption\fP
+.br
+\fBSVG configure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+\fBSVG output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
 \fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBVECINST *\fP \fIlist\fP
@@ -1444,7 +1454,7 @@ Performs a PostScript output operation for the graph\&.
 Renders a snapshot of the graph\&. By default the snapshot is written to an existing Tk photo image\&. On Windows, snapshots can also be written as Windows Metafile (wmf) or Enhanced Metafile (emf) output\&.
 .TP
 \fIsvg\fP
-Exports vector SVG\&. See the SVG output section for options, supported content and limitations\&.
+Performs an SVG output operation\&. See \fI::rbc::SVG\fP for options and export limitations\&.
 .TP
 \fItransform\fP
 Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes\&. x and y may be Tcl expressions that evaluate to numeric values\&.
@@ -1828,7 +1838,7 @@ Nothing\&.
 \fBGRAPHINST svg\fR (::rbc)
 .RE
 .PP
-Exports vector SVG\&. See the SVG output section for options, supported content and limitations\&.
+Performs an SVG output operation\&. See \fI::rbc::SVG\fP for options and export limitations\&.
 .RS 4n
 \fBGRAPHINST svg\fP \fIcget option\fP
 .br
@@ -3350,6 +3360,115 @@ pack \&.s -fill both -expand yes
 \fBReturn value\fR
 .PP
 The pathname of the newly created stripchart widget\&.
+.PP
+.RS -4n
+\fBSVG\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBSVG\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Queries the current value of one SVG configuration option\&. See \fISVG options\fP\&.
+.TP
+\fIconfigure\fP
+Queries or modifies SVG configuration options\&. With no arguments, returns a list of all option descriptions\&. With one option, returns its five-element description\&. Otherwise accepts option/value pairs and updates the settings after validating the entire list\&. See \fISVG options\fP\&.
+.TP
+\fIoutput\fP
+Generates the SVG document\&. Without a filename, returns its XML text\&. With a filename, writes the document to that file, replacing existing contents\&. Optional settings remain configured after their option/value list is validated, including when a later rendering or file operation fails\&. Rendering and XML validation complete before the file is opened; an I/O failure can still leave a partial file\&. See \fISupported content and limitations\fP\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBSVG cget\fR (::rbc)
+.RE
+.PP
+Queries the current value of one SVG configuration option\&. See \fISVG options\fP\&.
+.RS 4n
+\fBSVG cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+SVG configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current option value, as integer pixels for dimensions or 0/1 for decorations\&.
+.PP
+.RS -4n
+\fBSVG configure\fR (::rbc)
+.RE
+.PP
+Queries or modifies SVG configuration options\&. With no arguments, returns a list of all option
+descriptions\&. With one option, returns its five-element description\&. Otherwise accepts option/value
+pairs and updates the settings after validating the entire list\&. See \fISVG options\fP\&.
+.RS 4n
+\fBSVG configure\fP \fIoption\fP
+.br
+\fBSVG configure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+SVG configuration option\&.
+.TP
+value
+New value for the option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Configuration information when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBSVG output\fR (::rbc)
+.RE
+.PP
+Generates the SVG document\&. Without a filename, returns its XML text\&. With a filename, writes the
+document to that file, replacing existing contents\&. Optional settings remain configured after their
+option/value list is validated, including when a later rendering or file operation fails\&.
+Rendering and XML validation complete before the file is opened; an I/O failure can still leave a
+partial file\&. See \fISupported content and limitations\fP\&.
+.RS 4n
+\fBSVG output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+Optional file to create or replace; prefix dash-leading names with \&./\&.
+.TP
+option
+Optional SVG configuration option\&.
+.TP
+value
+Value for the configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+SVG XML when no filename is supplied, otherwise nothing\&.
 .PP
 .RS -4n
 \fBVECINST\fR (::rbc)
@@ -5075,6 +5194,8 @@ rbc-rbc-grid(n)
 rbc-rbc-crosshairs(n)
 .br
 rbc-rbc-postscript(n)
+.br
+rbc-rbc-svg(n)
 .br
 rbc-rbc-vector(n)
 .br

@@ -527,7 +527,7 @@ namespace eval TclTk9Upgrade {
         bitmap markers and symbols use vector shapes. Stipple fills use vector patterns, and photo area tiles
         embed repeating PNG images with alpha. Non-photo Tk images are rasterized with recovered transparency;
         mapped window markers embed native pixel snapshots. Capture failures report an error before opening
-        a file. See the graph SVG output section for capture limitations.
+        a file. See [::rbc::SVG] for commands, options and capture limitations.
 
         ### PostScript output
 

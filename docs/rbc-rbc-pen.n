@@ -490,6 +490,8 @@ rbc-rbc-crosshairs(n)
 .br
 rbc-rbc-postscript(n)
 .br
+rbc-rbc-svg(n)
+.br
 rbc-rbc-vector(n)
 .br
 rbc-rbc-vecinst(n)

@@ -762,7 +762,7 @@ require Cairo\&. Solid area opacity and photo-marker alpha are preserved\&. Phot
 bitmap markers and symbols use vector shapes\&. Stipple fills use vector patterns, and photo area tiles
 embed repeating PNG images with alpha\&. Non-photo Tk images are rasterized with recovered transparency;
 mapped window markers embed native pixel snapshots\&. Capture failures report an error before opening
-a file\&. See the graph SVG output section for capture limitations\&.
+a file\&. See \fI::rbc::SVG\fP for commands, options and capture limitations\&.
 .SS "POSTSCRIPT OUTPUT"
 .PP
 The PostScript subsystem was modernized and hardened alongside the graph code\&.
@@ -1086,6 +1086,8 @@ rbc-rbc-grid(n)
 rbc-rbc-crosshairs(n)
 .br
 rbc-rbc-postscript(n)
+.br
+rbc-rbc-svg(n)
 .br
 rbc-rbc-vector(n)
 .br

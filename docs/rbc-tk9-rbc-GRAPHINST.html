@@ -130,48 +130,14 @@ element type used by the <code class="docutils literal notranslate"><span class=
 <p>These component interfaces are documented separately.</p>
 <section id="svg-output">
 <span id="r-rbc-graphinst-svg-output"></span><span id="r-3a3arbc3a3agraphinstqzsvg20output"></span><h2>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">svg</span></code> exports vector graphics without requiring Cairo. It is available on graph, stripchart,
-barchart and polar widgets and has its own settings, separate from <code class="docutils literal notranslate"><span class="pre">postscript</span></code>.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>decorations<span class="w"> </span>yes
-<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>width
+<p>The <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-3a3arbc3a3asvg"><span class="std std-ref">SVG</span></a> component exports the complete graph as SVG, independently of the screen renderer
+and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span>
 <span class="k">set</span><span class="w"> </span>document<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="k">]</span>
 <span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg
-<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">600</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code> returns option descriptions; <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span> <span class="pre">option</span></code> describes one option.
-<code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">cget</span> <span class="pre">option</span></code> returns its value. <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span> <span class="pre">?file?</span> <span class="pre">?option</span> <span class="pre">value</span> <span class="pre">...?</span></code> returns the XML
-string when no filename is supplied, or writes UTF-8 SVG to the named file. Prefix a filename
-starting with a dash with <code class="docutils literal notranslate"><span class="pre">./</span></code>. Successfully parsed output options remain configured, as for
-PostScript. Invalid option/value lists leave all SVG settings unchanged.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-width</span></code> and <code class="docutils literal notranslate"><span class="pre">-height</span></code>: output dimensions in pixels (Tk screen-distance units are also accepted). The default, zero, uses the widget dimension. Dimensions cannot be negative.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-decorations</span></code>: include configured graph/legend backgrounds and relief borders. Defaults to true. False uses white backgrounds, as in PostScript. Axes, labels and symbols remain visible.</p></li>
-</ul>
-<p>SVG export supports traces, error bars, grids, axes, solid areas and bars,
-standard geometric symbols, line/polygon/text markers, legends, borders and editable text.
-Polar/Smith labels use the same layout and formatting as PostScript. Export remaps full source
-geometry rather than screen-decimated traces. Solid area fills preserve <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>.
-Fonts are referenced by family rather than embedded; text appearance depends on installed fonts
-in the SVG viewer. Text rotation, baseline positions, measured widths and shadows are retained.</p>
-<p>Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external
-image files. Mapped scaling and plot clipping are retained. Bitmap markers (including rotation and
-explicit masks) export as vector pixel shapes. Bitmap element, active-pen and legend symbols reuse
-vector definitions within each symbol drawing pass; their colors, masks and aspect ratio are retained.</p>
-<p>Stipple areas, polygon markers, bars and bar legend samples export as vector patterns. Stipples
-retain foreground/background colors and transparent gaps. Photo area tiles embed a repeating PNG
-with alpha and take precedence over stipples. Stipples align with graph pixels; photo tiles retain
-the screen renderer’s toplevel-relative phase. Bar legend patterns restart at each sample’s corner.
-Pattern sizes are in export pixels. <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> affects solid fills only, not stipples or tiles.</p>
-<p>Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG. Transparency is
-recovered from black/white renders, which assumes stable source-over drawing; custom image types
-whose output depends on destination contents may differ. No external image files are required.</p>
-<p>Mapped window markers embed their current native window pixels as opaque PNG. Hidden or unmapped
-window markers are omitted. Window contents are raster snapshots at their current widget size,
-not vector drawings; native capture availability and visibility constraints apply. Export does not
-run the event loop to refresh a window. Refresh pending display work before exporting when needed.</p>
-<p>Capture failures and invalid XML text report an error before the output file is opened. PostScript printer options (paper size, landscape, preview, font/color
-maps) are not SVG options. The SVG canvas uses pixel dimensions and a matching <code class="docutils literal notranslate"><span class="pre">viewBox</span></code>.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> for command syntax, options, examples and export limitations.</p>
 </section>
 <section id="numeric-values-and-expressions">
 <span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
