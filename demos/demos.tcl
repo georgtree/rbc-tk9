@@ -269,14 +269,7 @@ proc MainWindow {win DemoDir} {
         set demo $name.tcl
         incr i
         ttk::labelframe $win.c.targetFrame.ins$i -text $name
-        if {$name eq {winop1}} {
-            set size [list 70 240]
-        } elseif {$name eq {winop2}} {
-            set size [list 57 240]
-        } else {
-            set size [list 150 {}]
-        }
-        set thumbnail [DemoThumbnail [file normalize [file join $DemoDir thumbnails $img]] {*}$size]
+        set thumbnail [image create photo -file [file normalize [file join $DemoDir thumbnails $img]]]
         ttk::button $win.c.targetFrame.ins$i.pic$i -image $thumbnail -command [list RunDemo $DemoDir $demo] 
         text $win.c.targetFrame.ins$i.caption$i -wrap word -width 20 -height 6 -relief flat -padx 15 -pady 5\
                 -highlightthickness 0
