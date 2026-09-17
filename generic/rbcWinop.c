@@ -1230,16 +1230,30 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     Tk_Window tkwin;
     int width, height, destWidth, destHeight;
     Window window;
-    
     const char *wname = Tcl_GetString(objv[2]);
+
     tkwin = Tk_MainWindow(interp);
-    window = StringToWindow(interp, wname);
-    if (window == None) {
-        return TCL_ERROR;
-    }
-    if (GetWindowSize(interp, window, &width, &height) != TCL_OK) {
-        Rbc_AppendResultStrings(interp, "can't get window geometry of \"", wname, "\"", (char *)NULL);
-        return TCL_ERROR;
+    if (wname[0] == '.') {
+        if (GetRealizedWindow(interp, wname, &tkwin) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        /*
+         * Capture the Tk client window, not its window-manager wrapper.
+         * On Windows Rbc_GetRealWindowId returns a raw HWND, which must
+         * not be passed to Tk drawable functions.
+         */
+        window = Tk_WindowId(tkwin);
+        width = Tk_Width(tkwin);
+        height = Tk_Height(tkwin);
+    } else {
+        window = StringToWindow(interp, wname);
+        if (window == None) {
+            return TCL_ERROR;
+        }
+        if (GetWindowSize(interp, window, &width, &height) != TCL_OK) {
+            Rbc_AppendResultStrings(interp, "can't get window geometry of \"", wname, "\"", (char *)NULL);
+            return TCL_ERROR;
+        }
     }
     destWidth = width, destHeight = height;
     if ((objc > 4) && (Rbc_GetPixelsFromObj(interp, tkwin, objv[4], PIXELS_POSITIVE, &destWidth) != TCL_OK)) {

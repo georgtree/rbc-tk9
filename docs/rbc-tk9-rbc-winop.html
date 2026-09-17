@@ -179,6 +179,9 @@ the pointer is required.</p>
 </pre></div>
 </div>
 <p>The destination photo must already exist.</p>
+<p>A Tk widget pathname (including <code class="docutils literal notranslate"><span class="pre">.</span></code> or another toplevel) captures its client area, without the
+window-manager title bar or outer frame. The default dimensions are <code class="docutils literal notranslate"><span class="pre">winfo</span> <span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">winfo</span> <span class="pre">height</span></code>
+for that widget. This also applies to the <code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span> <span class="pre">snap</span></code> compatibility form.</p>
 <p>An optional output width and height may be supplied:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>winop<span class="w"> </span>snap<span class="w"> </span>.g<span class="w"> </span>snapshot<span class="w"> </span><span class="mi">640</span><span class="w"> </span><span class="mi">480</span>
 </pre></div>

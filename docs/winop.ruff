@@ -140,6 +140,10 @@ namespace eval ::rbc::winop {
 
         The destination photo must already exist.
 
+        A Tk widget pathname (including `.` or another toplevel) captures its client area, without the
+        window-manager title bar or outer frame. The default dimensions are `winfo width` and `winfo height`
+        for that widget. This also applies to the `winop image snap` compatibility form.
+
         An optional output width and height may be supplied:
         ```tcl
         ::rbc::winop snap .g snapshot 640 480

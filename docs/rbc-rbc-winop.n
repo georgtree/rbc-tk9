@@ -162,6 +162,10 @@ image create photo snapshot
 .PP
 The destination photo must already exist\&.
 .PP
+A Tk widget pathname (including \&. or another toplevel) captures its client area, without the
+window-manager title bar or outer frame\&. The default dimensions are winfo width and winfo height
+for that widget\&. This also applies to the winop image snap compatibility form\&.
+.PP
 An optional output width and height may be supplied:
 .PP
 .RS 4n
