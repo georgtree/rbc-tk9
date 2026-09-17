@@ -237,11 +237,18 @@ proc MainWindow {win DemoDir} {
         |Compares native renderer with Cairo backend renderer for bar elements on the barchart.
     }]
     set Caption(mixed1.tcl) [MakeLine {
+        |mixed elements demonstration
+        |
+        |demo mixed1.tcl
+        |
+        |Example of the graph widget with mixed line and bar elements.
+    }]
+    set Caption(combined1.tcl) [MakeLine {
         |cairo renderer comparison
         |
-        |demo cairoBar1.tcl
+        |demo combined1.tcl
         |
-        |Compares native renderer with Cairo backend renderer for bar elements on the barchart.
+        |Example of a few graph widgets combined together.
     }]
 
     # create canvas with scrollbars
@@ -256,7 +263,8 @@ proc MainWindow {win DemoDir} {
     ttk::frame $win.c.targetFrame
     set i 0
     foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 polar2 barchart1 barchart2 barchart3 barchart4\
-                          barchart5 mixed1 stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6 graph7} {
+                          barchart5 mixed1 combined1 stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6\
+                          graph7} {
         set img $name.png
         set demo $name.tcl
         incr i

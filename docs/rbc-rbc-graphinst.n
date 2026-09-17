@@ -213,40 +213,22 @@ proc RecordAxisState {graph axes} {
         if {$axis ni [$graph axis names]} {
             continue
         }
-        dict set ::axisState $graph $axis [dict create  limits [$graph axis limits $axis]  logscale [$graph axis cget $axis -logscale]]
+        dict set ::axisState $graph $axis [dict create limits [$graph axis limits $axis] logscale [$graph axis cget $axis -logscale]]
     }
 }
 bind \&.g <<RbcAxisChanged>> [list RecordAxisState %W %d]
 .fi
 .RE
 .PP
-Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves
-generate these events\&. A later screen display compares the effective limits with the previous screen
-display\&. Data changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting
-do not generate axis events unless an axis is configured or its effective limits change\&.
+Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves generate
+these events\&. A later screen display compares the effective limits with the previous screen display\&. Data
+changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
+events unless an axis is configured or its effective limits change\&.
 .PP
-These events do not report every change in tick-label placement or screen geometry\&. Use
-<<RbcGraphChanged>> for mapping and layout updates, including resizing without changed numeric limits\&.
-Log/linear switching is always covered by <<RbcAxisChanged>>, but only generates
-<<RbcAxisLimitsChanged>> if the resulting numeric bounds change\&. Logarithmic bounds are reported in
-data units, just as by axis limits\&.
-.SS "SYNCHRONIZING PLOTS"
-.PP
-Use <<RbcAxisLimitsChanged>> to follow numeric ranges, or <<RbcAxisChanged>> when scale mode and
-other configuration also matter\&. The events do not synchronize plots automatically and do not distinguish
-user interaction from application changes or autoscaling\&.
-.PP
-For axes with different units, synchronize fractional changes in the previous span instead of copying
-numeric limits\&. If the source changes from [a,b] to [c,d], apply (c-a)/(b-a) and (d-b)/(b-a)
-to the target's previous span at its lower and upper boundaries\&. For logarithmic axes, calculate in log
-coordinates and convert back afterward\&. Keep a previous-range baseline and reset it when changing scale
-mode; reject zero or invalid spans\&.
-.PP
-Bidirectional synchronization must recognize its own propagated updates\&. A busy flag cleared when the
-handler returns cannot suppress later queued events\&. Compare against remembered target states before
-propagating another update; this is especially important for the broader event, which also reports
-successful configuration with unchanged values\&. Relative synchronization must avoid applying the same
-source change twice\&.
+These events do not report every change in tick-label placement or screen geometry\&. Use <<RbcGraphChanged>>
+for mapping and layout updates, including resizing without changed numeric limits\&.  Log/linear switching is
+always covered by <<RbcAxisChanged>>, but only generates <<RbcAxisLimitsChanged>> if the resulting numeric
+bounds change\&. Logarithmic bounds are reported in data units, just as by axis limits\&.
 .SH "POLAR AND SMITH CHARTS"
 .PP
 A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized
