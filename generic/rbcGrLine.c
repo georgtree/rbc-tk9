@@ -11397,6 +11397,9 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
             linePtr->areaOpacity, linePtr->fillTile != NULL};
         Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
 
+        if (linePtr->fillTile != NULL) {
+            Rbc_RenderSetFillTile(ctx, linePtr->fillTile);
+        }
         Rbc_RenderFillPolygon(ctx, linePtr->fillPts, linePtr->nFillPts);
         Rbc_RenderEnd(ctx);
     }

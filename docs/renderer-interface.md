@@ -28,8 +28,10 @@ are unavailable on screen contexts; screen text continues to use Tk.
 
 SVG supports vector geometry, editable text, solid fill opacity, clipping, vector bitmap masks and symbols,
 and embedded PNG photo markers with alpha. Document-local identifiers reuse bitmap geometry per symbol pass.
-PNG compression and checksums use Tcl zlib APIs; no extra build dependency is needed. Image tiles, non-photo
-image markers, windows and stipple fills currently report an error. The SVG command renders and validates before opening its output file.
+PNG compression and checksums use Tcl zlib APIs; no extra build dependency is needed. Stipple fills use vector patterns; photo
+area tiles reuse the PNG writer in repeating patterns. `Rbc_RenderSetFillTile` supplies the borrowed tile to
+an export fill context; the PostScript adapter retains its background-only fallback. Non-photo image
+tiles/markers and windows currently report an error. The SVG command renders and validates before opening its output file.
 PostScript limitations remain unchanged: area opacity is ignored, tiled areas export their configured background,
 and failed window capture uses the existing gray rectangle fallback. Font/color maps stay in the PS backend.
 

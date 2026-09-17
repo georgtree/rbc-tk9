@@ -66,6 +66,8 @@ struct Rbc_RenderContext {
     int svgBarSymbol;
     unsigned int svgBitmapId;
     int svgBitmapWidth, svgBitmapHeight;
+    unsigned int svgPatternId;
+    Rbc_Tile svgTile;
 #ifdef RBC_HAVE_CAIRO
     cairo_surface_t *surface;
     cairo_t *cr;
@@ -87,6 +89,7 @@ struct Rbc_RenderContext {
 
 static const Rbc_RenderOps svgOps;
 static void SvgError(Rbc_ExportContext *token, const char *message);
+static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foreground);
 
 #ifdef RBC_HAVE_CAIRO
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
@@ -1380,14 +1383,17 @@ Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext 
     ctx->fillStyle = *style;
     if (exportPtr->backend == RBC_EXPORT_SVG) {
         ctx->ops = &svgOps;
-        if (style->stipple != None) {
-            SvgError(exportPtr, "stipple fills are not supported by SVG yet");
-        }
-        if (style->backgroundOnly) {
-            SvgError(exportPtr, "image-tiled areas are not supported by SVG yet");
-        }
     }
     return ctx;
+}
+
+/* Tiles are borrowed for the lifetime of the fill context. The PS backend
+ * retains the configured background-only fallback. */
+void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile) {
+    if (ctx->exportPtr != NULL && ctx->exportPtr->backend == RBC_EXPORT_SVG) {
+        ctx->svgTile = tile;
+        ctx->svgPatternId = 0;
+    }
 }
 
 static int PostScriptSymbolRound(double value) { return (int)(value + ((value < 0.0) ? -0.5 : 0.5)); }
@@ -1713,10 +1719,24 @@ static void SvgPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size
 
 static void SvgFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     XColor black;
+    const XColor *foreground;
+    Tcl_Size i;
 
+    if (count < 3) { return; }
     memset(&black, 0, sizeof(black));
-    SvgPolygon(ctx->exportPtr, points, count, ctx->fillStyle.foreground ? ctx->fillStyle.foreground : &black,
-               ctx->fillStyle.opacity);
+    foreground = ctx->fillStyle.foreground ? ctx->fillStyle.foreground : &black;
+    if (ctx->fillStyle.stipple != None || ctx->fillStyle.backgroundOnly) {
+        unsigned int id = SvgFillPattern(ctx, foreground);
+
+        if (id == 0) { return; }
+        Rbc_ExportAppend(ctx->exportPtr, "<polygon points=\"", (char *)NULL);
+        for (i = 0; i < count; i++) {
+            Rbc_ExportFormat(ctx->exportPtr, "%g,%g ", points[i].x, points[i].y);
+        }
+        Rbc_ExportFormat(ctx->exportPtr, "\" fill=\"url(#rbcPattern%u)\" fill-rule=\"evenodd\"/>\n", id);
+    } else {
+        SvgPolygon(ctx->exportPtr, points, count, foreground, ctx->fillStyle.opacity);
+    }
 }
 
 static void SvgRectangle(Rbc_ExportContext *token, double x, double y, int width, int height, const XColor *color) {
@@ -1735,7 +1755,18 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
     for (i = 0; i < count; i++) {
         const Rbc_RenderRectangle *rect = rectangles + i;
 
-        SvgRectangle(ctx->exportPtr, rect->x, rect->y, rect->width, rect->height, ctx->fillStyle.foreground);
+        if (rect->width <= 0 || rect->height <= 0) { continue; }
+        if (ctx->fillStyle.stipple != None || ctx->fillStyle.backgroundOnly) {
+            const XColor *foreground = ctx->fillStyle.foreground ? ctx->fillStyle.foreground : ctx->fillStyle.background;
+            unsigned int id = SvgFillPattern(ctx, foreground);
+
+            if (id == 0) { return; }
+            Rbc_ExportFormat(ctx->exportPtr,
+                "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"url(#rbcPattern%u)\"/>\n",
+                rect->x, rect->y, rect->width, rect->height, id);
+        } else {
+            SvgRectangle(ctx->exportPtr, rect->x, rect->y, rect->width, rect->height, ctx->fillStyle.foreground);
+        }
     }
 }
 
@@ -1919,6 +1950,56 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
     Tcl_DStringFree(&png);
 }
 
+/* Stipples use graph pixels; photo tiles retain their toplevel-relative
+ * phase. A translated legend sample supplies its own local origin. */
+static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foreground) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+    Tk_PhotoImageBlock block;
+    XImage *bits = NULL;
+    int width, height;
+    double originX = 0.0, originY = 0.0;
+
+    if (ctx->svgPatternId != 0) { return ctx->svgPatternId; }
+    if (style->backgroundOnly) {
+        if (ctx->svgTile == NULL || !Rbc_GetTilePhoto(ctx->svgTile, &block)) {
+            SvgError(token, "non-photo image tiles are not supported by SVG yet");
+            return 0;
+        }
+        Tk_Window tkwin;
+
+        width = block.width;
+        height = block.height;
+        for (tkwin = ctx->graphPtr->tkwin; !Tk_IsTopLevel(tkwin); tkwin = Tk_Parent(tkwin)) {
+            originX -= Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;
+            originY -= Tk_Y(tkwin) + Tk_Changes(tkwin)->border_width;
+        }
+    } else {
+        Tk_SizeOfBitmap(ctx->graphPtr->display, style->stipple, &width, &height);
+        if (width > 0 && height > 0) {
+            bits = XGetImage(ctx->graphPtr->display, style->stipple, 0, 0, width, height, 1, XYPixmap);
+            if (bits == NULL) {
+                SvgError(token, "cannot read stipple for SVG pattern");
+                return 0;
+            }
+        }
+    }
+    if (width <= 0 || height <= 0) { return 0; }
+    ctx->svgPatternId = ++token->nextResourceId;
+    Rbc_ExportFormat(token,
+        "<defs><pattern id=\"rbcPattern%u\" patternUnits=\"userSpaceOnUse\" patternContentUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"%d\" height=\"%d\" patternTransform=\"translate(%g %g)\">\n",
+        ctx->svgPatternId, width, height, originX, originY);
+    if (style->backgroundOnly) {
+        SvgPhotoBlock(token, &block, 0, 0);
+    } else {
+        SvgRectangle(token, 0, 0, width, height, style->background);
+        SvgBitmapRuns(token, bits, NULL, foreground);
+        XDestroyImage(bits);
+    }
+    Rbc_ExportAppend(token, "</pattern></defs>\n", (char *)NULL);
+    return ctx->svgPatternId;
+}
+
 static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &ctx->svgSymbol;
     Tcl_Size i;
@@ -1926,8 +2007,12 @@ static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
 
     if (ctx->svgBarSymbol) {
         for (i = 0; i < count; i++) {
-            SvgRectangle(ctx->exportPtr, centers[i].x - ctx->symbolSize / 2, centers[i].y - ctx->symbolSize / 2,
-                          (int)ctx->symbolSize, (int)ctx->symbolSize, ctx->fillStyle.foreground);
+            Rbc_RenderRectangle rect = {0, 0, (int)ctx->symbolSize, (int)ctx->symbolSize};
+
+            Rbc_ExportFormat(ctx->exportPtr, "<g transform=\"translate(%g %g)\">\n",
+                centers[i].x - ctx->symbolSize / 2, centers[i].y - ctx->symbolSize / 2);
+            SvgFillRectangles(ctx, &rect, 1);
+            Rbc_ExportAppend(ctx->exportPtr, "</g>\n", (char *)NULL);
         }
         return;
     }

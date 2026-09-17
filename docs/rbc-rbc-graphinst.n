@@ -97,7 +97,14 @@ image files\&. Mapped scaling and plot clipping are retained\&. Bitmap markers (
 explicit masks) export as vector pixel shapes\&. Bitmap element, active-pen and legend symbols reuse
 vector definitions within each symbol drawing pass; their colors, masks and aspect ratio are retained\&.
 .PP
-Stipple fills, image-tiled areas, non-photo image markers and window markers are not supported yet\&. Visible unsupported content produces an error before the output file is opened;
+Stipple areas, polygon markers, bars and bar legend samples export as vector patterns\&. Stipples
+retain foreground/background colors and transparent gaps\&. Photo area tiles embed a repeating PNG
+with alpha and take precedence over stipples\&. Stipples align with graph pixels; photo tiles retain
+the screen renderer's toplevel-relative phase\&. Bar legend patterns restart at each sample's corner\&.
+Pattern sizes are in export pixels\&. -areaopacity affects solid fills only, not stipples or tiles\&.
+.PP
+Non-photo image tiles/markers and window markers are not supported yet\&.
+Visible unsupported content produces an error before the output file is opened;
 it is not silently omitted\&. PostScript printer options (paper size, landscape, preview, font/color
 maps) are not SVG options\&. The SVG canvas uses pixel dimensions and a matching viewBox\&.
 .SH "NUMERIC VALUES AND EXPRESSIONS"

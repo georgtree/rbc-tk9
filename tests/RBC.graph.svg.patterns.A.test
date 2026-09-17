@@ -1,0 +1,143 @@
+# SVG repeating fills. See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::svgPatternTest {
+    namespace import ::tcltest::*
+
+    proc Create {{kind graph}} {
+        ::rbc::$kind .pattern -width 400 -height 300
+        .pattern axis configure x -min -10 -max 10 -loose no
+        .pattern axis configure y -min -10 -max 10 -loose no
+        .pattern legend configure -hide yes
+        pack .pattern -padx 7 -pady 9
+        update idletasks
+    }
+
+    proc Area {} {
+        .pattern element create signal -data {-8 2 0 8 8 3} -symbol none -linewidth 0 \
+            -areapattern gray25 -areaforeground #112233 -areabackground #445566
+    }
+
+    proc Pattern {document} {
+        if {![regexp {(?s)<pattern\s[^>]*>.*?</pattern>} $document block]} {
+            error "SVG has no pattern definition"
+        }
+        return $block
+    }
+
+    proc TilePhoto {pattern} {
+        if {![regexp {href="data:image/png;base64,([A-Za-z0-9+/=]+)"} $pattern -> bytes]} {
+            error "SVG pattern has no embedded PNG"
+        }
+        return [image create photo -data [binary decode base64 $bytes] -format png]
+    }
+
+    foreach kind {graph polar} {
+        test svgPattern-1-$kind {stipple areas preserve both colors and explicit pixel coordinates} -setup {
+            Create $kind
+            Area
+        } -body {
+            set document [.pattern svg output]
+            set block [Pattern $document]
+            list [expr {[string first {patternUnits="userSpaceOnUse"} $block] >= 0}] \
+                [expr {[string first {fill="#112233"} $block] >= 0}] \
+                [expr {[string first {fill="#445566"} $block] >= 0}] \
+                [expr {[string first {fill="url(#rbcPattern} $document] >= 0}] \
+                [expr {[string first {patternTransform="translate(0 0)"} $block] >= 0}]
+        } -cleanup {
+            destroy .pattern
+        } -result {1 1 1 1 1}
+    }
+
+    test svgPattern-2 {transparent gaps and stipple origin survive remapping; solid opacity does not affect stipples} -setup {
+        Create
+        Area
+        .pattern element configure signal -areabackground {} -areaopacity 0.2
+    } -body {
+        set before [Pattern [.pattern svg output]]
+        .pattern axis configure x -min -11 -max 11
+        set document [.pattern svg output]
+        list [expr {$before eq [Pattern $document]}] \
+            [expr {[string first {fill="none"} $before] >= 0}] \
+            [expr {[string first {fill-opacity="0.2"} $document] < 0}]
+    } -cleanup {
+        destroy .pattern
+    } -result {1 1 1}
+
+    test svgPattern-3 {photo tiles take precedence, retain alpha, and update without stale data} -setup {
+        set tile {}
+        set decoded {}
+        Create
+        Area
+        set tile [image create photo -width 2 -height 2]
+        $tile put {{#ff0000 #008000} {#0000ff #ffff00}}
+        $tile transparency set 1 0 128 -alpha
+        .pattern element configure signal -areatile $tile -areaopacity 0.2
+    } -body {
+        set document [.pattern svg output]
+        set block [Pattern $document]
+        set decoded [TilePhoto $block]
+        set result [list [image width $decoded] [image height $decoded] \
+            [$decoded get 1 0 -withalpha] \
+            [expr {[string first {fill="#112233"} $block] < 0}] \
+            [expr {[string first {fill-opacity="0.2"} $document] < 0}]]
+        image delete $decoded
+        set decoded {}
+        $tile put magenta -to 0 0 1 1
+        set decoded [TilePhoto [Pattern [.pattern svg output]]]
+        lappend result [$decoded get 0 0]
+        set result
+    } -cleanup {
+        destroy .pattern
+        if {$tile ne {}} { image delete $tile }
+        if {$decoded ne {}} { image delete $decoded }
+    } -result {2 2 {0 128 0 128} 1 1 {255 0 255}}
+
+    test svgPattern-4 {tile phase includes the graph placement in its toplevel} -setup {
+        set tile {}
+        Create
+        Area
+        set tile [image create photo -width 2 -height 2]
+        $tile put red -to 0 0 2 2
+        .pattern element configure signal -areatile $tile
+    } -body {
+        set x [expr {[winfo rootx .] - [winfo rootx .pattern]}]
+        set y [expr {[winfo rooty .] - [winfo rooty .pattern]}]
+        set expected [format {patternTransform="translate(%s %s)"} $x $y]
+        expr {[string first $expected [Pattern [.pattern svg output]]] >= 0}
+    } -cleanup {
+        destroy .pattern
+        if {$tile ne {}} { image delete $tile }
+    } -result 1
+
+    test svgPattern-5 {bar and legend stipples use separate pattern definitions} -setup {
+        Create barchart
+        .pattern legend configure -hide no
+        .pattern element create bars -data {-5 2 0 6 5 4} -foreground #112233 \
+            -background #445566 -stipple gray50 -label Bars -relief flat
+    } -body {
+        set document [.pattern svg output]
+        set ids {}
+        foreach {all id} [regexp -all -inline {<pattern id="([^"]+)"} $document] { lappend ids $id }
+        list [expr {[llength $ids] == 2}] [expr {[llength [lsort -unique $ids]] == 2}] \
+            [expr {[string first {<rect x="0" y="0"} $document] >= 0}] \
+            [expr {[string first {fill="url(#rbcPattern} $document] >= 0}]
+    } -cleanup {
+        destroy .pattern
+    } -result {1 1 1 1}
+
+    test svgPattern-6 {polygon marker stipples preserve foreground and background} -setup {
+        Create
+        .pattern marker create polygon -coords {-5 -5 -5 5 5 5 5 -5} \
+            -fill {#112233 #445566} -outline {} -stipple gray75
+    } -body {
+        set block [Pattern [.pattern svg output]]
+        list [expr {[string first {fill="#112233"} $block] >= 0}] \
+            [expr {[string first {fill="#445566"} $block] >= 0}]
+    } -cleanup {
+        destroy .pattern
+    } -result {1 1}
+}
+namespace delete ::svgPatternTest
+::tcltest::cleanupTests

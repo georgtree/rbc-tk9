@@ -29,6 +29,8 @@ typedef struct {
 Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
 Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                 const Rbc_RenderFillStyle *style);
+/* Supply a tile after BeginExportFill; PostScript keeps its background fallback. */
+void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile);
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 

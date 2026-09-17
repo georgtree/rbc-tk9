@@ -759,8 +759,9 @@ Isolated native bitmap-handle access behind Rbc Windows helper functions\&.
 Graph widgets now provide svg cget, svg configure, and svg output, with independent width,
 height and decoration settings\&. SVG export uses vector geometry and editable text and does not
 require Cairo\&. Solid area opacity and photo-marker alpha are preserved\&. Photos are embedded as PNG;
-bitmap markers and symbols use vector shapes\&. Image tiles, non-photo images, windows and stipples
-remain unsupported and report an error before opening a file\&. See the graph SVG output section\&.
+bitmap markers and symbols use vector shapes\&. Stipple fills use vector patterns, and photo area tiles
+embed repeating PNG images with alpha\&. Non-photo image tiles/markers and window markers still
+report an error before opening a file\&. See the graph SVG output section\&.
 .SS "POSTSCRIPT OUTPUT"
 .PP
 The PostScript subsystem was modernized and hardened alongside the graph code\&.
