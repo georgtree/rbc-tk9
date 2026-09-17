@@ -523,7 +523,8 @@ namespace eval TclTk9Upgrade {
 
         The PostScript subsystem was modernized and hardened alongside the graph code.
 
-        Grid lines and axis lines/ticks now use the common stroke renderer interface for PostScript output.
+        Grid lines, axis lines/ticks, normal and active line/strip traces, and line/bar error bars now use the
+        common stroke renderer interface for PostScript output.
         The existing PostScript backend and command are retained, and exporting still works without Cairo.
         Other export components continue to use their existing drawing paths during this incremental migration.
 

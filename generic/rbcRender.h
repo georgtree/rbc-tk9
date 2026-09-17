@@ -30,7 +30,7 @@ typedef struct {
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
-/* Export stroke context: Polyline, Segments, LineStyle and End only.
+/* Export stroke context: Polyline, Segments, LineStyle, DashBackground and End only.
  * Available without Cairo; borrows the token and preserves legacy PS output. */
 Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
                                             const Rbc_Dashes *dashes, int capStyle, int joinStyle);
@@ -39,6 +39,7 @@ void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size co
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
+void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color);
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape,
                        const Point2D *centers, Tcl_Size count, const XColor *fillColor, int outline);
 void Rbc_RenderEnd(Rbc_RenderContext *ctx);

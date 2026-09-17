@@ -24,12 +24,14 @@ typedef struct {
     void (*polyline)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*segments)(Rbc_RenderContext *, const Segment2D *, Tcl_Size);
     void (*lineStyle)(Rbc_RenderContext *, int, int);
+    void (*dashBackground)(Rbc_RenderContext *, const XColor *);
     void (*end)(Rbc_RenderContext *);
 } Rbc_RenderStrokeOps;
 
 struct Rbc_RenderContext {
     const Rbc_RenderStrokeOps *strokeOps;
     PsToken psToken;
+    int postScriptDashed;
 #ifdef RBC_HAVE_CAIRO
     Graph *graphPtr;
     cairo_surface_t *surface;
@@ -54,10 +56,11 @@ struct Rbc_RenderContext {
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
 static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
+static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color);
 static void CairoEnd(Rbc_RenderContext *ctx);
 
 static const Rbc_RenderStrokeOps cairoStrokeOps = {
-    CairoPolyline, CairoSegments, CairoLineStyle, CairoEnd
+    CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground, CairoEnd
 };
 
 #ifdef WIN32
@@ -357,6 +360,14 @@ static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) 
     cairo_set_line_join(ctx->cr, (joinStyle == JoinRound)   ? CAIRO_LINE_JOIN_ROUND
                                  : (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL
                                                             : CAIRO_LINE_JOIN_MITER);
+}
+
+/* Change only the off-dash underlay; retain the configured dash pattern. */
+static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
+    ctx->doubleDash = (ctx->nDashes > 0) && (color != NULL);
+    if (ctx->doubleDash) {
+        ctx->offColor = *color;
+    }
 }
 
 /* Separate subpaths preserve strip-segment boundaries. Bound path storage. */
@@ -1061,10 +1072,25 @@ int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tc
 
 /* The existing PostScript emitter remains responsible for PS syntax and maps. */
 static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    Tcl_Size i;
+    int components;
+
     if (count < 2) {
         return;
     }
-    Rbc_PathToPostScript(ctx->psToken, (Point2D *)points, count);
+    Rbc_FormatToPostScript(ctx->psToken, " newpath %g %g moveto\n", points[0].x, points[0].y);
+    components = 1;
+    for (i = 1; i < count - 1; i++) {
+        Rbc_FormatToPostScript(ctx->psToken, " %g %g lineto\n", points[i].x, points[i].y);
+        components++;
+        /* Keep the legacy level-1 path limit and restart at the shared vertex. */
+        if (components >= 1500) {
+            Rbc_FormatToPostScript(ctx->psToken, "DashesProc stroke\n newpath %g %g moveto\n",
+                                    points[i].x, points[i].y);
+            components = 1;
+        }
+    }
+    Rbc_FormatToPostScript(ctx->psToken, " %g %g lineto\n", points[i].x, points[i].y);
     Rbc_AppendToPostScript(ctx->psToken, "DashesProc stroke\n", (char *)NULL);
 }
 
@@ -1079,13 +1105,25 @@ static void PostScriptLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinSt
     Rbc_JoinStyleToPostScript(ctx->psToken, joinStyle);
 }
 
+static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
+    if (ctx->postScriptDashed && (color != NULL)) {
+        Rbc_AppendToPostScript(ctx->psToken, "/DashesProc {\n  gsave\n    ", (char *)NULL);
+        Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)color);
+        Rbc_AppendToPostScript(ctx->psToken, "    ", (char *)NULL);
+        Rbc_LineDashesToPostScript(ctx->psToken, NULL);
+        Rbc_AppendToPostScript(ctx->psToken, "stroke\n  grestore\n} def\n", (char *)NULL);
+    } else {
+        Rbc_AppendToPostScript(ctx->psToken, "/DashesProc {} def\n", (char *)NULL);
+    }
+}
+
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
     ckfree(ctx);
 }
 
 static const Rbc_RenderStrokeOps postScriptStrokeOps = {
-    PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptEnd
+    PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptDashBackground, PostScriptEnd
 };
 
 Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
@@ -1095,6 +1133,7 @@ Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *colo
     memset(ctx, 0, sizeof(*ctx));
     ctx->strokeOps = &postScriptStrokeOps;
     ctx->psToken = psToken;
+    ctx->postScriptDashed = (dashes != NULL) && (dashes->values[0] != 0);
     Rbc_LineAttributesToPostScript(psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle, joinStyle);
     return ctx;
 }
@@ -1109,6 +1148,10 @@ void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
 
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     ctx->strokeOps->lineStyle(ctx, capStyle, joinStyle);
+}
+
+void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
+    ctx->strokeOps->dashBackground(ctx, color);
 }
 
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {

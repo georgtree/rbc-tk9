@@ -2649,12 +2649,18 @@ static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
             colorPtr = penPtr->fgColor;
         }
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-            Rbc_LineAttributesToPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-            Rbc_2DSegmentsToPostScript(psToken, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
+            Rbc_RenderContext *ctx;
+
+            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            Rbc_RenderSegments(ctx, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
+            Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-            Rbc_LineAttributesToPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-            Rbc_2DSegmentsToPostScript(psToken, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
+            Rbc_RenderContext *ctx;
+
+            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            Rbc_RenderSegments(ctx, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
+            Rbc_RenderEnd(ctx);
         }
         if (penPtr->valueShow != SHOW_NONE) {
             BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr, stylePtr->rectangles, stylePtr->nRects,

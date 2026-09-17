@@ -1,0 +1,135 @@
+# Shared-renderer trace and error-bar export regressions.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psStrokeTest {
+    namespace import ::tcltest::*
+
+    proc Create {type} {
+        ::rbc::$type .psStroke -width 400 -height 300
+        .psStroke legend configure -hide yes
+        .psStroke grid configure -hide yes
+        foreach axis [.psStroke axis names] {
+            .psStroke axis configure $axis -hide yes
+        }
+        foreach axis {x y} {
+            .psStroke axis configure $axis -min 0 -max 10 -loose no
+        }
+        pack .psStroke
+        update idletasks
+    }
+
+    proc ElementBody {{active 0}} {
+        set ps [.psStroke postscript output]
+        set tag [expr {$active ? {% Active Element "signal"} : {% Element "signal"}}]
+        set first [string first $tag $ps]
+        if {$first < 0} {
+            error "Missing PostScript element: $tag"
+        }
+        set last [string first {% Unset clipping} $ps $first]
+        return [string range $ps $first [expr {$last - 1}]]
+    }
+
+    foreach type {graph stripchart} {
+        test psStroke-1-$type {trace offdash underlay resets for solid strokes} -setup {
+            Create $type
+            .psStroke element create signal -data {1 2 4 6 9 3} -symbol none \
+                -linewidth 3 -color blue -dashes {3 5} -offdash red
+        } -body {
+            set dashed [ElementBody]
+            .psStroke element configure signal -dashes {}
+            set solid [ElementBody]
+            list [expr {[string first "/DashesProc \{\n  gsave" $dashed] >= 0}] \
+                [expr {[string first "\[  3 5\] 0 setdash" $dashed] >= 0}] \
+                [expr {[string first "/DashesProc \{\n  gsave" $solid] < 0}] \
+                [expr {[string first "3 setlinewidth" $solid] >= 0}]
+        } -cleanup {
+            destroy .psStroke
+        } -result {1 1 1 1}
+
+        test psStroke-2-$type {fully active traces retain their active pen and offdash} -setup {
+            Create $type
+            .psStroke element create signal -data {1 2 4 6 9 3} -symbol none
+            .psStroke pen create selected -type line -linewidth 7 -symbol none \
+                -color blue -dashes {4 6} -offdash red
+            .psStroke element configure signal -activepen selected
+            .psStroke element activate signal
+        } -body {
+            set ps [ElementBody 1]
+            list [expr {[string first "7 setlinewidth" $ps] >= 0}] \
+                [expr {[string first "\[  4 6\] 0 setdash" $ps] >= 0}] \
+                [expr {[string first "/DashesProc \{\n  gsave" $ps] >= 0}] \
+                [expr {[regexp -all -line {^DashesProc stroke$} $ps] > 0}]
+        } -cleanup {
+            destroy .psStroke
+        } -result {1 1 1 1}
+    }
+
+    test psStroke-3 {long connected traces retain every segment and share split endpoints} -setup {
+        Create graph
+        set x {}
+        set y {}
+        for {set i 1} {$i <= 3501} {incr i} {
+            lappend x $i
+            lappend y [expr {2 + ($i % 2)}]
+        }
+        .psStroke axis configure x -min 0 -max 3502
+        .psStroke element create signal -xdata $x -ydata $y -symbol none \
+            -linewidth 1 -reduce 0 -decimate auto
+    } -body {
+        set ps [ElementBody]
+        set paths 0
+        set segments 0
+        set components 0
+        set maxComponents 0
+        set last {}
+        set connected 1
+        foreach line [split $ps \n] {
+            if {[regexp {^ newpath (\S+) (\S+) moveto$} $line -> x y]} {
+                if {$paths && [list $x $y] ne $last} {
+                    set connected 0
+                }
+                incr paths
+                set components 1
+            } elseif {[regexp {^ (\S+) (\S+) lineto$} $line -> x y]} {
+                set last [list $x $y]
+                incr segments
+                incr components
+                set maxComponents [expr {max($components, $maxComponents)}]
+            }
+        }
+        list $paths $segments $connected [expr {$maxComponents <= 1500}]
+    } -cleanup {
+        destroy .psStroke
+    } -result {3 3500 1 1}
+
+    foreach type {graph stripchart barchart} {
+        test psStroke-4-$type {error-bar axes and hidden state retain their stroke counts} -setup {
+            Create $type
+            .psStroke element create signal -data {3 4 7 6} -xerror {1 1} -yerror {1 1} \
+                -errorbarwidth 5 -errorbarcap 10 -showerrorbars both
+            if {$type ne "barchart"} {
+                .psStroke element configure signal -symbol none -linewidth 0
+            }
+        } -body {
+            set both [ElementBody]
+            .psStroke element configure signal -showerrorbars x
+            set x [ElementBody]
+            .psStroke element configure signal -showerrorbars y
+            set y [ElementBody]
+            .psStroke element configure signal -showerrorbars none
+            set none [ElementBody]
+            set nb [regexp -all -line {^DashesProc stroke$} $both]
+            set nx [regexp -all -line {^DashesProc stroke$} $x]
+            set ny [regexp -all -line {^DashesProc stroke$} $y]
+            list [expr {$nx > 0 && $ny > 0 && $nb == $nx + $ny}] \
+                [regexp -all -line {^DashesProc stroke$} $none] \
+                [expr {[string first "5 setlinewidth" $both] >= 0}]
+        } -cleanup {
+            destroy .psStroke
+        } -result {1 0 1}
+    }
+}
+namespace delete ::psStrokeTest
+::tcltest::cleanupTests

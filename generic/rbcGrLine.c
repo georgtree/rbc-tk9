@@ -1348,7 +1348,7 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
 static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size);
 static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts);
-static void SetLineAttributes(PsToken psToken, LinePen *penPtr);
+static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr);
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr);
 static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData);
@@ -11302,35 +11302,20 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
 /*
  *----------------------------------------------------------------------
  *
- * SetLineAttributes --
+ * BeginLinePostScript --
  *
- *      TODO: Description
- *
- * Parameters:
- *      PsToken psToken
- *      LinePen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
+ *      Create a shared stroke context for a line pen, including its
+ *      optional off-dash background. The caller ends the context.
  *
  *----------------------------------------------------------------------
  */
-static void SetLineAttributes(PsToken psToken, LinePen *penPtr) {
-    /* Set the attributes of the line (color, dashes, linewidth) */
-    Rbc_LineAttributesToPostScript(psToken, penPtr->traceColor, penPtr->traceWidth, &(penPtr->traceDashes), CapButt,
-                                   JoinMiter);
-    if ((LineIsDashed(penPtr->traceDashes)) && (penPtr->traceOffColor != NULL)) {
-        Rbc_AppendToPostScript(psToken, "/DashesProc {\n  gsave\n    ", (char *)NULL);
-        Rbc_BackgroundToPostScript(psToken, penPtr->traceOffColor);
-        Rbc_AppendToPostScript(psToken, "    ", (char *)NULL);
-        Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
-        Rbc_AppendToPostScript(psToken, "stroke\n  grestore\n} def\n", (char *)NULL);
-    } else {
-        Rbc_AppendToPostScript(psToken, "/DashesProc {} def\n", (char *)NULL);
-    }
+static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr) {
+    Rbc_RenderContext *ctx;
+
+    ctx = Rbc_RenderBeginPostScript(psToken, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+                                    CapButt, JoinMiter);
+    Rbc_RenderDashBackground(ctx, penPtr->traceOffColor);
+    return ctx;
 }
 
 /*
@@ -11355,49 +11340,14 @@ static void SetLineAttributes(PsToken psToken, LinePen *penPtr) {
  */
 static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) {
     Rbc_ChainLink *linkPtr;
-    LineTrace *tracePtr;
-    register Point2D *pointPtr;
-    register Point2D *endPtr;
-    int count;
+    Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
 
-#define PS_MAXPATH 1500
-    /*
-     * Maximum number of components in a PostScript level-1 path.
-     */
-    SetLineAttributes(psToken, penPtr);
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        tracePtr = Rbc_ChainGetValue(linkPtr);
-        if (tracePtr->nScreenPts <= 0) {
-            continue;
-        }
-        pointPtr = tracePtr->screenPts;
-        Rbc_FormatToPostScript(psToken, " newpath %g %g moveto\n", pointPtr->x, pointPtr->y);
-        pointPtr++;
-        /*
-         * Count path components, including the initial moveto.
-         */
-        count = 1;
-        endPtr = tracePtr->screenPts + (tracePtr->nScreenPts - 1);
-        for (; pointPtr < endPtr; pointPtr++) {
-            Rbc_FormatToPostScript(psToken, " %g %g lineto\n", pointPtr->x, pointPtr->y);
-            count++;
-            /*
-             * Finish the current path only after it has reached the
-             * maximum size.  Restart at the current point so that the
-             * following segment remains connected.
-             */
-            if (count >= PS_MAXPATH) {
-                Rbc_FormatToPostScript(psToken,
-                                       "DashesProc stroke\n"
-                                       " newpath %g %g moveto\n",
-                                       pointPtr->x, pointPtr->y);
-                count = 1;
-            }
-        }
-        Rbc_FormatToPostScript(psToken, " %g %g lineto\n", pointPtr->x, pointPtr->y);
-        Rbc_AppendToPostScript(psToken, "DashesProc stroke\n", (char *)NULL);
+        LineTrace *tracePtr = Rbc_ChainGetValue(linkPtr);
+
+        Rbc_RenderPolyline(ctx, tracePtr->screenPts, tracePtr->nScreenPts);
     }
-#undef PS_MAXPATH
+    Rbc_RenderEnd(ctx);
 }
 
 /*
@@ -11504,8 +11454,10 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
-                SetLineAttributes(psToken, penPtr);
-                Rbc_2DSegmentsToPostScript(psToken, linePtr->strips, linePtr->nStrips);
+                Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
+
+                Rbc_RenderSegments(ctx, linePtr->strips, linePtr->nStrips);
+                Rbc_RenderEnd(ctx);
             }
             if (Rbc_ChainGetLength(linePtr->traces) > 0) {
                 TracesToPostScript(psToken, linePtr, penPtr);
@@ -11578,8 +11530,10 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->traceWidth > 0)) {
-                SetLineAttributes(psToken, penPtr);
-                Rbc_2DSegmentsToPostScript(psToken, stylePtr->strips, stylePtr->nStrips);
+                Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
+
+                Rbc_RenderSegments(ctx, stylePtr->strips, stylePtr->nStrips);
+                Rbc_RenderEnd(ctx);
             }
         }
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
@@ -11595,12 +11549,18 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
             colorPtr = penPtr->traceColor;
         }
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
-            Rbc_LineAttributesToPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-            Rbc_2DSegmentsToPostScript(psToken, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
+            Rbc_RenderContext *ctx;
+
+            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            Rbc_RenderSegments(ctx, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
+            Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
-            Rbc_LineAttributesToPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
-            Rbc_2DSegmentsToPostScript(psToken, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
+            Rbc_RenderContext *ctx;
+
+            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            Rbc_RenderSegments(ctx, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
+            Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->nSymbolPts > 0) && (stylePtr->penPtr->symbol.type != SYMBOL_NONE)) {
             SymbolsToPostScript(graphPtr, psToken, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
