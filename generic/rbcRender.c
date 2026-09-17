@@ -1,5 +1,5 @@
 /*
- * rbcRender.c -- Optional renderer for mapped graph geometry.
+ * rbcRender.c -- Screen and export rendering for mapped graph geometry.
  * See license.terms for details.
  */
 #include "rbcRender.h"
@@ -17,6 +17,48 @@
 #else
 #include <cairo-xlib.h>
 #endif
+#endif /* RBC_HAVE_CAIRO: headers */
+
+/* Stroke dispatch is shared by screen and export contexts. */
+typedef struct {
+    void (*polyline)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
+    void (*segments)(Rbc_RenderContext *, const Segment2D *, Tcl_Size);
+    void (*lineStyle)(Rbc_RenderContext *, int, int);
+    void (*end)(Rbc_RenderContext *);
+} Rbc_RenderStrokeOps;
+
+struct Rbc_RenderContext {
+    const Rbc_RenderStrokeOps *strokeOps;
+    PsToken psToken;
+#ifdef RBC_HAVE_CAIRO
+    Graph *graphPtr;
+    cairo_surface_t *surface;
+    cairo_t *cr;
+    cairo_pattern_t *bitmapPattern;
+    int bitmapWidth, bitmapHeight;
+    XColor foreground;
+    XColor offColor;
+    int doubleDash;
+    int nDashes;
+    double dashes[RBC_MAX_DASH_VALUES];
+    double dashOffset;
+#ifdef WIN32
+    Rbc_WinDrawableDC *dcState;
+    HDC dc;
+    int savedDC;
+#endif
+#endif
+};
+
+#ifdef RBC_HAVE_CAIRO
+static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
+static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
+static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
+static void CairoEnd(Rbc_RenderContext *ctx);
+
+static const Rbc_RenderStrokeOps cairoStrokeOps = {
+    CairoPolyline, CairoSegments, CairoLineStyle, CairoEnd
+};
 
 #ifdef WIN32
 struct Rbc_RenderTarget {
@@ -111,24 +153,6 @@ Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawableP
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
 #endif
 
-struct Rbc_RenderContext {
-    Graph *graphPtr;
-    cairo_surface_t *surface;
-    cairo_t *cr;
-    cairo_pattern_t *bitmapPattern;
-    int bitmapWidth, bitmapHeight;
-    XColor foreground;
-    XColor offColor;
-    int doubleDash;
-    int nDashes;
-    double dashes[RBC_MAX_DASH_VALUES];
-    double dashOffset;
-#ifdef WIN32
-    Rbc_WinDrawableDC *dcState;
-    HDC dc;
-    int savedDC;
-#endif
-};
 
 static void FreeRenderContext(Rbc_RenderContext *ctx) {
     if (ctx->bitmapPattern != NULL) {
@@ -220,6 +244,7 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable, 
         return NULL;
     }
     memset(ctx, 0, sizeof(*ctx));
+    ctx->strokeOps = &cairoStrokeOps;
     ctx->graphPtr = graphPtr;
     ctx->foreground = *colorPtr;
     if (dashesPtr != NULL) {
@@ -311,7 +336,7 @@ Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, i
 }
 
 /* Each call is a separate trace; preserve joins within that trace. */
-void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Tcl_Size i;
 
     if (count < 2) {
@@ -325,7 +350,7 @@ void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
 }
 
 /* Marker options use X cap/join constants; keep them out of Cairo callers. */
-void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
+static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     cairo_set_line_cap(ctx->cr, (capStyle == CapRound)        ? CAIRO_LINE_CAP_ROUND
                                 : (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE
                                                               : CAIRO_LINE_CAP_BUTT);
@@ -335,7 +360,7 @@ void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
 }
 
 /* Separate subpaths preserve strip-segment boundaries. Bound path storage. */
-void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
 
     for (i = 0; i < count; i++) {
@@ -874,7 +899,7 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
 }
 
 /* Flush before any native drawing resumes on the same drawable. */
-void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
+static void CairoEnd(Rbc_RenderContext *ctx) {
     cairo_status_t status;
     Tcl_Interp *interp = ctx->graphPtr->interp;
 
@@ -932,21 +957,6 @@ Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XCo
     (void)dashesPtr;
     (void)offColorPtr;
     return NULL;
-}
-void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
-    (void)ctx;
-    (void)points;
-    (void)count;
-}
-void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
-    (void)ctx;
-    (void)segments;
-    (void)count;
-}
-void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
-    (void)ctx;
-    (void)capStyle;
-    (void)joinStyle;
 }
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
     (void)graphPtr;
@@ -1020,7 +1030,6 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
     (void)y;
     return FALSE;
 }
-void Rbc_RenderEnd(Rbc_RenderContext *ctx) { (void)ctx; }
 int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                           const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
@@ -1048,4 +1057,60 @@ int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points
 int Rbc_RenderArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count, const XColor *foreground,
                    const XColor *background, Pixmap stipple) {
     return Rbc_RenderAreaOpacity(graphPtr, drawable, points, count, foreground, background, stipple, 1.0);
+}
+
+/* The existing PostScript emitter remains responsible for PS syntax and maps. */
+static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    if (count < 2) {
+        return;
+    }
+    Rbc_PathToPostScript(ctx->psToken, (Point2D *)points, count);
+    Rbc_AppendToPostScript(ctx->psToken, "DashesProc stroke\n", (char *)NULL);
+}
+
+static void PostScriptSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+    if (count > 0) {
+        Rbc_2DSegmentsToPostScript(ctx->psToken, (Segment2D *)segments, count);
+    }
+}
+
+static void PostScriptLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
+    Rbc_CapStyleToPostScript(ctx->psToken, capStyle);
+    Rbc_JoinStyleToPostScript(ctx->psToken, joinStyle);
+}
+
+static void PostScriptEnd(Rbc_RenderContext *ctx) {
+    /* The export owns its token and clipping/page state. */
+    ckfree(ctx);
+}
+
+static const Rbc_RenderStrokeOps postScriptStrokeOps = {
+    PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptEnd
+};
+
+Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
+                                            const Rbc_Dashes *dashes, int capStyle, int joinStyle) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->strokeOps = &postScriptStrokeOps;
+    ctx->psToken = psToken;
+    Rbc_LineAttributesToPostScript(psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle, joinStyle);
+    return ctx;
+}
+
+void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    ctx->strokeOps->polyline(ctx, points, count);
+}
+
+void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+    ctx->strokeOps->segments(ctx, segments, count);
+}
+
+void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
+    ctx->strokeOps->lineStyle(ctx, capStyle, joinStyle);
+}
+
+void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
+    ctx->strokeOps->end(ctx);
 }

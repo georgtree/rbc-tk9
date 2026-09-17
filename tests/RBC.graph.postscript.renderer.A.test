@@ -1,0 +1,89 @@
+# Shared renderer strokes must retain the existing PostScript behavior.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psRendererTest {
+    namespace import ::tcltest::*
+
+    proc Create {type} {
+        ::rbc::$type .psRender -width 400 -height 300
+        .psRender legend configure -hide yes
+        foreach axis [.psRender axis names] {
+            .psRender axis configure $axis -hide yes
+        }
+        foreach axis {x y} {
+            .psRender axis configure $axis -min 0 -max 10 -loose no -majorticks {0 5 10}
+        }
+        .psRender grid configure -hide yes -minor no -mapx x -mapy y
+        pack .psRender
+        update idletasks
+    }
+
+    proc Body {} {
+        set ps [.psRender postscript output]
+        set start [string first {%%EndSetup} $ps]
+        if {$start < 0} {
+            error "Missing PostScript setup boundary"
+        }
+        return [string range $ps $start end]
+    }
+
+    proc Strokes {ps} {
+        return [regexp -all -line {^DashesProc stroke$} $ps]
+    }
+
+    foreach type {graph stripchart barchart} {
+        test psRenderer-1-$type {grid strokes retain widths and dashes and disappear when hidden} -setup {
+            Create $type
+        } -body {
+            set empty [Strokes [Body]]
+            .psRender grid configure -hide no -linewidth 7 -dashes {3 5}
+            set dashed [Body]
+            .psRender grid configure -dashes {}
+            set solid [Body]
+            .psRender grid configure -hide yes
+            list $empty [expr {[Strokes $dashed] > 0}] \
+                [expr {[Strokes $solid] == [Strokes $dashed]}] \
+                [expr {[string first "7 setlinewidth\n" $dashed] >= 0}] \
+                [expr {[string first "\[  3 5\] 0 setdash\n" $dashed] >= 0}] \
+                [expr {[string first "\[ \] 0 setdash\n" $solid] >= 0}] \
+                [Strokes [Body]]
+        } -cleanup {
+            destroy .psRender
+        } -result {0 1 1 1 1 1 0}
+
+        test psRenderer-2-$type {axis baseline and ticks retain visibility rules} -setup {
+            Create $type
+            .psRender axis configure x -hide no -linewidth 9 -showticks yes
+        } -body {
+            set ticks [Body]
+            .psRender axis configure x -showticks no
+            set baseline [Body]
+            .psRender axis configure x -linewidth 0
+            set zero [Body]
+            list [expr {[Strokes $ticks] > [Strokes $baseline]}] \
+                [expr {[Strokes $baseline] > 0}] [Strokes $zero] \
+                [expr {[string first "9 setlinewidth\n" $ticks] >= 0}]
+        } -cleanup {
+            destroy .psRender
+        } -result {1 1 0 1}
+
+        test psRenderer-3-$type {grid remains clipped and axes are drawn after plot clipping ends} -setup {
+            Create $type
+            .psRender grid configure -hide no -linewidth 7
+            .psRender axis configure x -hide no -linewidth 9
+        } -body {
+            set ps [Body]
+            set clip [string first "gsave clip" $ps]
+            set grid [string first "7 setlinewidth\n" $ps]
+            set unclip [string first {% Unset clipping} $ps]
+            set axis [string first "9 setlinewidth\n" $ps]
+            expr {$clip >= 0 && $clip < $grid && $grid < $unclip && $unclip < $axis}
+        } -cleanup {
+            destroy .psRender
+        } -result 1
+    }
+}
+namespace delete ::psRendererTest
+::tcltest::cleanupTests

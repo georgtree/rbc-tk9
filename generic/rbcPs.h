@@ -70,6 +70,8 @@ void Rbc_RectanglesToPostScript(PsToken psToken, XRectangle *rectArr, int nRects
 void Rbc_BitmapToPostScript(PsToken psToken, Display *display, Pixmap bitmap, double scaleX, double scaleY);
 void Rbc_SegmentsToPostScript(PsToken psToken, XSegment *segArr, int nSegs);
 void Rbc_StippleToPostScript(PsToken psToken, Display *display, Pixmap bitmap);
+void Rbc_CapStyleToPostScript(PsToken psToken, int capStyle);
+void Rbc_JoinStyleToPostScript(PsToken psToken, int joinStyle);
 void Rbc_LineAttributesToPostScript(PsToken psToken, XColor *colorPtr, int lineWidth, Rbc_Dashes *dashesPtr,
                                     int capStyle, int joinStyle);
 int Rbc_FileToPostScript(PsToken psToken, char *fileName);

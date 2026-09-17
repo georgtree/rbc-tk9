@@ -3,6 +3,7 @@
 #define RBC_RENDER_H
 
 #include "rbcGraph.h"
+#include "rbcPs.h"
 
 typedef struct Rbc_RenderContext Rbc_RenderContext;
 typedef struct Rbc_RenderTarget Rbc_RenderTarget;
@@ -29,6 +30,10 @@ typedef struct {
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
+/* Export stroke context: Polyline, Segments, LineStyle and End only.
+ * Available without Cairo; borrows the token and preserves legacy PS output. */
+Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
+                                            const Rbc_Dashes *dashes, int capStyle, int joinStyle);
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color);
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);

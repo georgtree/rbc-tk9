@@ -4447,9 +4447,12 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
         }
     }
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
-        Rbc_LineAttributesToPostScript(psToken, axisPtr->tickTextStyle.color, axisPtr->lineWidth, (Rbc_Dashes *)NULL,
-                                       CapButt, JoinMiter);
-        Rbc_2DSegmentsToPostScript(psToken, axisPtr->segments, axisPtr->nSegments);
+        Rbc_RenderContext *ctx;
+
+        ctx = Rbc_RenderBeginPostScript(psToken, axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL,
+                                        CapButt, JoinMiter);
+        Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
+        Rbc_RenderEnd(ctx);
     }
 }
 

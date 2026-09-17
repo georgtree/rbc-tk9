@@ -757,6 +757,10 @@ Isolated native bitmap-handle access behind Rbc Windows helper functions\&.
 .SS "POSTSCRIPT OUTPUT"
 .PP
 The PostScript subsystem was modernized and hardened alongside the graph code\&.
+.PP
+Grid lines and axis lines/ticks now use the common stroke renderer interface for PostScript output\&.
+The existing PostScript backend and command are retained, and exporting still works without Cairo\&.
+Other export components continue to use their existing drawing paths during this incremental migration\&.
 .TP
 \(bu
 Updated PostScript option handling\&.

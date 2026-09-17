@@ -301,18 +301,16 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
  */
 void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
+    Rbc_RenderContext *ctx;
 
     if (gridPtr->hidden) {
         return;
     }
-    Rbc_LineAttributesToPostScript(psToken, gridPtr->colorPtr, gridPtr->lineWidth, &(gridPtr->dashes), CapButt,
-                                   JoinMiter);
-    if (gridPtr->x.nSegments > 0) {
-        Rbc_2DSegmentsToPostScript(psToken, gridPtr->x.segments, gridPtr->x.nSegments);
-    }
-    if (gridPtr->y.nSegments > 0) {
-        Rbc_2DSegmentsToPostScript(psToken, gridPtr->y.segments, gridPtr->y.nSegments);
-    }
+    ctx = Rbc_RenderBeginPostScript(psToken, gridPtr->colorPtr, gridPtr->lineWidth, &gridPtr->dashes,
+                                    CapButt, JoinMiter);
+    Rbc_RenderSegments(ctx, gridPtr->x.segments, gridPtr->x.nSegments);
+    Rbc_RenderSegments(ctx, gridPtr->y.segments, gridPtr->y.nSegments);
+    Rbc_RenderEnd(ctx);
 }
 
 /*
