@@ -2464,37 +2464,32 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
 static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects) {
     BarRectangle *endPtr;
+    Rbc_RenderFillStyle style;
+    Rbc_RenderContext *ctx;
 
     if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
         return;
     }
+    style.foreground = penPtr->fgColor;
+    style.background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
+    style.stipple = penPtr->stipple;
+    style.opacity = 1.0;
+    style.backgroundOnly = FALSE;
+    ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
     for (endPtr = rectPtr + nRects; rectPtr < endPtr; rectPtr++) {
         if ((rectPtr->width < 1) || (rectPtr->height < 1)) {
             continue;
         }
-        if (penPtr->stipple != None) {
-            Rbc_RegionToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, rectPtr->width - 1,
-                                   rectPtr->height - 1);
-            if (penPtr->border != NULL) {
-                Rbc_BackgroundToPostScript(psToken, Tk_3DBorderColor(penPtr->border));
-                Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-            }
-            if (penPtr->fgColor != NULL) {
-                Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
-            } else {
-                Rbc_ForegroundToPostScript(psToken, Tk_3DBorderColor(penPtr->border));
-            }
-            Rbc_StippleToPostScript(psToken, graphPtr->display, penPtr->stipple);
-        } else if (penPtr->fgColor != NULL) {
-            Rbc_ForegroundToPostScript(psToken, penPtr->fgColor);
-            Rbc_RectangleToPostScript(psToken, (double)rectPtr->x, (double)rectPtr->y, rectPtr->width - 1,
-                                      rectPtr->height - 1);
-        }
+        /* Preserve the historical PostScript one-pixel inset. */
+        Rbc_RenderRectangle fill = {rectPtr->x, rectPtr->y, rectPtr->width - 1, rectPtr->height - 1};
+
+        Rbc_RenderFillRectangles(ctx, &fill, 1);
         if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
             Rbc_Draw3DRectangleToPostScript(psToken, penPtr->border, (double)rectPtr->x, (double)rectPtr->y,
                                             rectPtr->width, rectPtr->height, penPtr->borderWidth, penPtr->relief);
         }
     }
+    Rbc_RenderEnd(ctx);
 }
 
 /*

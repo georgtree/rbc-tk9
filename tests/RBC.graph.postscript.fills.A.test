@@ -1,0 +1,108 @@
+# Shared-renderer filled geometry export regressions.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psFillTest {
+    namespace import ::tcltest::*
+
+    proc Create {type} {
+        ::rbc::$type .psFill -width 400 -height 300
+        .psFill legend configure -hide yes
+        .psFill grid configure -hide yes
+        foreach axis [.psFill axis names] {
+            .psFill axis configure $axis -hide yes
+        }
+        foreach axis {x y} {
+            .psFill axis configure $axis -min 0 -max 10 -loose no
+        }
+        pack .psFill
+        update idletasks
+    }
+
+    proc Body {{tag {% Element "signal"}}} {
+        set ps [.psFill postscript output]
+        set first [string first $tag $ps]
+        if {$first < 0} {
+            error "Missing PostScript component: $tag"
+        }
+        set last [string first {% Unset clipping} $ps $first]
+        return [string range $ps $first [expr {$last - 1}]]
+    }
+
+    foreach pattern {solid gray25} {
+        test psFill-1-$pattern {area background and foreground preserve fill policy} -setup {
+            Create graph
+            .psFill element create signal -data {1 2 4 8 9 3} -symbol none -linewidth 0 \
+                -areapattern $pattern -areaforeground red -areabackground blue
+        } -body {
+            set ps [Body]
+            list [regexp -all -line {^closepath$} $ps] \
+                [regexp -all -line {^Fill$} $ps] \
+                [expr {[string first StippleFill $ps] >= 0}]
+        } -cleanup {
+            destroy .psFill
+        } -result [expr {$pattern eq "solid" ? {1 2 0} : {1 1 1}}]
+    }
+
+    test psFill-2 {PostScript area opacity remains ignored} -setup {
+        Create graph
+        .psFill element create signal -data {1 2 4 8 9 3} -symbol none -linewidth 0 \
+            -areapattern solid -areaforeground red
+    } -body {
+        set results {}
+        foreach opacity {0 0.4 1} {
+            .psFill element configure signal -areaopacity $opacity
+            lappend results [Body]
+        }
+        expr {[lindex $results 0] eq [lindex $results 1] &&
+              [lindex $results 1] eq [lindex $results 2]}
+    } -cleanup {
+        destroy .psFill
+    } -result 1
+
+    test psFill-3 {image-tiled areas retain background-only export} -setup {
+        Create graph
+        set tile [image create photo -width 2 -height 2]
+        $tile put red -to 0 0 2 2
+        .psFill element create signal -data {1 2 4 8 9 3} -symbol none -linewidth 0 \
+            -areatile $tile -areapattern gray25 -areaforeground red -areabackground blue
+    } -body {
+        set ps [Body]
+        list [regexp -all -line {^Fill$} $ps] \
+            [expr {[string first StippleFill $ps] < 0}]
+    } -cleanup {
+        destroy .psFill
+        image delete $tile
+    } -result {1 1}
+
+    test psFill-4 {polygon fill precedes dashed outline with an offdash background} -setup {
+        Create graph
+        .psFill marker create polygon -name m -coords {1 2 4 8 9 3} \
+            -fill {red blue} -stipple gray25 -outline {black green} -dashes {3 5} -linewidth 2
+    } -body {
+        set ps [Body {% Marker "m"}]
+        set fill [string first StippleFill $ps]
+        set stroke [string first {DashesProc stroke} $ps]
+        list [expr {$fill >= 0 && $stroke > $fill}] \
+            [regexp -all -line {^Fill$} $ps] \
+            [expr {[string first "/DashesProc \{\n  gsave" $ps] >= 0}]
+    } -cleanup {
+        destroy .psFill
+    } -result {1 1 1}
+
+    foreach stipple {{} gray25} {
+        test psFill-5-$stipple {bar faces retain solid and stippled export} -setup {
+            Create barchart
+            .psFill element create signal -data {3 4 7 6} -foreground red \
+                -background blue -borderwidth 0 -stipple $stipple
+        } -body {
+            set ps [Body]
+            list [regexp -all {Box fill} $ps] [regexp -all {StippleFill} $ps]
+        } -cleanup {
+            destroy .psFill
+        } -result [expr {$stipple eq {} ? {2 0} : {0 2}}]
+    }
+}
+namespace delete ::psFillTest
+::tcltest::cleanupTests

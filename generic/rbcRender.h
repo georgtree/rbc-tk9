@@ -15,6 +15,23 @@ typedef struct {
     int x, y, width, height;
 } Rbc_RenderRectangle;
 
+/* Fill policy shared by screen and export. backgroundOnly preserves the
+ * legacy PostScript fallback for image-tiled areas. */
+typedef struct {
+    const XColor *foreground, *background;
+    Pixmap stipple;
+    double opacity; /* Solid polygon opacity; PostScript ignores it. */
+    int backgroundOnly;
+} Rbc_RenderFillStyle;
+
+/* Fill contexts support FillPolygon/FillRectangles and End. Screen creation
+ * may return NULL for native fallback; PostScript does not require Cairo. */
+Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
+Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToken,
+                                                const Rbc_RenderFillStyle *style);
+void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
+void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
+
 /* Screen-space symbol template; segment vertices are endpoint pairs. */
 typedef enum {
     RBC_RENDER_CIRCLE, RBC_RENDER_POLYGON, RBC_RENDER_SEGMENTS

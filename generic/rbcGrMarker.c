@@ -4956,50 +4956,19 @@ static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     Graph *graphPtr = markerPtr->graphPtr;
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
-        /*
-         * Options:  fg bg
-         *            Draw outline only.
-         *         x          Draw solid or stipple.
-         *         x  x       Draw solid or stipple.
-         */
-        /* Create a path to use for both the polygon and its outline. */
-        Rbc_PathToPostScript(psToken, pmPtr->fillPts, pmPtr->nFillPts);
-        Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
-        /* If the background fill color was specified, draw the
-         * polygon in a solid fashion with that color.  */
-        if (pmPtr->fill.bgColor != NULL) {
-            Rbc_BackgroundToPostScript(psToken, pmPtr->fill.bgColor);
-            Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-        }
-        Rbc_ForegroundToPostScript(psToken, pmPtr->fill.fgColor);
-        if (pmPtr->stipple != None) {
-            /* Draw the stipple in the foreground color. */
-            Rbc_StippleToPostScript(psToken, graphPtr->display, pmPtr->stipple);
-        } else {
-            Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-        }
+        Rbc_RenderFillStyle style = {pmPtr->fill.fgColor, pmPtr->fill.bgColor, pmPtr->stipple, 1.0, FALSE};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
+
+        Rbc_RenderFillPolygon(ctx, pmPtr->fillPts, pmPtr->nFillPts);
+        Rbc_RenderEnd(ctx);
     }
-    /* Draw the outline in the foreground color.  */
     if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
-        /*  Set up the line attributes.  */
-        Rbc_LineAttributesToPostScript(psToken, pmPtr->outline.fgColor, pmPtr->lineWidth, &pmPtr->dashes,
-                                       pmPtr->capStyle, pmPtr->joinStyle);
-        /*
-         * Define on-the-fly a PostScript macro "DashesProc" that
-         * will be executed for each call to the Polygon drawing
-         * routine.  If the line isn't dashed, simply make this an
-         * empty definition.
-         */
-        if ((pmPtr->outline.bgColor != NULL) && (LineIsDashed(pmPtr->dashes))) {
-            Rbc_AppendToPostScript(psToken, "/DashesProc {\n", "gsave\n    ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, pmPtr->outline.bgColor);
-            Rbc_AppendToPostScript(psToken, "    ", (char *)NULL);
-            Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
-            Rbc_AppendToPostScript(psToken, "stroke\n", "  grestore\n", "} def\n", (char *)NULL);
-        } else {
-            Rbc_AppendToPostScript(psToken, "/DashesProc {} def\n", (char *)NULL);
-        }
-        Rbc_2DSegmentsToPostScript(psToken, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, pmPtr->outline.fgColor, pmPtr->lineWidth,
+                                                          &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle);
+
+        Rbc_RenderDashBackground(ctx, pmPtr->outline.bgColor);
+        Rbc_RenderSegments(ctx, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        Rbc_RenderEnd(ctx);
     }
 }
 

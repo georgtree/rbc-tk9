@@ -11503,26 +11503,15 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     Tcl_Size count;
     XColor *colorPtr;
 
-    /* Draw fill area */
+    /* Draw fill area; PostScript retains its opaque/tile-background policy. */
     if (linePtr->fillPts != NULL) {
-        /* Create a path to use for both the polygon and its outline. */
-        Rbc_PathToPostScript(psToken, linePtr->fillPts, linePtr->nFillPts);
-        Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
-        /* If the background fill color was specified, draw the
-         * polygon in a solid fashion with that color.  */
-        if (linePtr->fillBgColor != NULL) {
-            Rbc_BackgroundToPostScript(psToken, linePtr->fillBgColor);
-            Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-        }
-        Rbc_ForegroundToPostScript(psToken, linePtr->fillFgColor);
-        if (linePtr->fillTile != NULL) {
-            /* TBA: Transparent tiling is the hard part. */
-        } else if ((linePtr->fillStipple != None) && (linePtr->fillStipple != PATTERN_SOLID)) {
-            /* Draw the stipple in the foreground color. */
-            Rbc_StippleToPostScript(psToken, graphPtr->display, linePtr->fillStipple);
-        } else {
-            Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-        }
+        Rbc_RenderFillStyle style = {linePtr->fillFgColor, linePtr->fillBgColor,
+            (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple,
+            1.0, linePtr->fillTile != NULL};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
+
+        Rbc_RenderFillPolygon(ctx, linePtr->fillPts, linePtr->nFillPts);
+        Rbc_RenderEnd(ctx);
     }
     /* Draw lines */
     if (linePtr->nStrips > 0) {

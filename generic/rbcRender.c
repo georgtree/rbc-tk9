@@ -19,21 +19,24 @@
 #endif
 #endif /* RBC_HAVE_CAIRO: headers */
 
-/* Stroke dispatch is shared by screen and export contexts. */
+/* Geometry dispatch is shared by screen and export contexts. */
 typedef struct {
     void (*polyline)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*segments)(Rbc_RenderContext *, const Segment2D *, Tcl_Size);
     void (*lineStyle)(Rbc_RenderContext *, int, int);
     void (*dashBackground)(Rbc_RenderContext *, const XColor *);
+    void (*fillPolygon)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
+    void (*fillRectangles)(Rbc_RenderContext *, const Rbc_RenderRectangle *, Tcl_Size);
     void (*end)(Rbc_RenderContext *);
-} Rbc_RenderStrokeOps;
+} Rbc_RenderOps;
 
 struct Rbc_RenderContext {
-    const Rbc_RenderStrokeOps *strokeOps;
+    const Rbc_RenderOps *ops;
     PsToken psToken;
     int postScriptDashed;
-#ifdef RBC_HAVE_CAIRO
     Graph *graphPtr;
+    Rbc_RenderFillStyle fillStyle;
+#ifdef RBC_HAVE_CAIRO
     cairo_surface_t *surface;
     cairo_t *cr;
     cairo_pattern_t *bitmapPattern;
@@ -57,10 +60,13 @@ static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Siz
 static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
 static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle);
 static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color);
+static void CairoFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
+static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 static void CairoEnd(Rbc_RenderContext *ctx);
 
-static const Rbc_RenderStrokeOps cairoStrokeOps = {
-    CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground, CairoEnd
+static const Rbc_RenderOps cairoOps = {
+    CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground,
+    CairoFillPolygon, CairoFillRectangles, CairoEnd
 };
 
 #ifdef WIN32
@@ -247,7 +253,7 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable, 
         return NULL;
     }
     memset(ctx, 0, sizeof(*ctx));
-    ctx->strokeOps = &cairoStrokeOps;
+    ctx->ops = &cairoOps;
     ctx->graphPtr = graphPtr;
     ctx->foreground = *colorPtr;
     if (dashesPtr != NULL) {
@@ -552,30 +558,29 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
 /* Integer bar edges stay sharp; bound path storage independently of bar count. */
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
                          const XColor *foreground, const XColor *background, Pixmap stipple) {
+    Rbc_RenderFillStyle style = {foreground, background, stipple, 1.0, FALSE};
     Rbc_RenderContext *ctx;
-    cairo_pattern_t *pattern = NULL;
+
+    if (count <= 0) {
+        return FALSE;
+    }
+    ctx = Rbc_RenderBeginFill(graphPtr, drawable, &style);
+    if (ctx == NULL) {
+        return FALSE;
+    }
+    Rbc_RenderFillRectangles(ctx, rectangles, count);
+    Rbc_RenderEnd(ctx);
+    return TRUE;
+}
+
+static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL) || (count <= 0)) {
-        return FALSE;
-    }
-    if (stipple != None) {
-        pattern = CreateRenderStipple(graphPtr, stipple, foreground, background);
-        if (pattern == NULL) {
-            return FALSE;
-        }
-    }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
-    if (ctx == NULL) {
-        if (pattern != NULL) {
-            cairo_pattern_destroy(pattern);
-        }
-        return FALSE;
-    }
+    cairo_save(ctx->cr);
     cairo_translate(ctx->cr, -0.5, -0.5);
     cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
-    if (pattern != NULL) {
-        cairo_set_source(ctx->cr, pattern);
+    if (ctx->bitmapPattern != NULL) {
+        cairo_set_source(ctx->cr, ctx->bitmapPattern);
     }
     for (i = 0; i < count; i++) {
         const Rbc_RenderRectangle *r = rectangles + i;
@@ -587,11 +592,7 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
         }
     }
     cairo_fill(ctx->cr);
-    if (pattern != NULL) {
-        cairo_pattern_destroy(pattern);
-    }
-    Rbc_RenderEnd(ctx);
-    return TRUE;
+    cairo_restore(ctx->cr);
 }
 
 /* Area vertices are boundaries, not the pixel centers used by strokes. */
@@ -755,35 +756,58 @@ int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectang
 }
 
 /* Fill one mapped polygon with the native even-odd rule and widget pattern origin. */
-int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
-                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
+Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
 
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (foreground == NULL) || (count < 3)) {
-        return FALSE;
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) || (style->foreground == NULL) || style->backgroundOnly) {
+        return NULL;
     }
-    if (stipple != None) {
-        pattern = CreateRenderStipple(graphPtr, stipple, foreground, background);
+    /* Read native stipple bits before acquiring the destination context. */
+    if (style->stipple != None) {
+        pattern = CreateRenderStipple(graphPtr, style->stipple, style->foreground, style->background);
         if (pattern == NULL) {
-            return FALSE;
+            return NULL;
         }
     }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, foreground, 1.0, NULL, NULL);
+    ctx = Rbc_RenderBegin(graphPtr, drawable, style->foreground, 1.0, NULL, NULL);
     if (ctx == NULL) {
         if (pattern != NULL) {
             cairo_pattern_destroy(pattern);
         }
+        return NULL;
+    }
+    ctx->fillStyle = *style;
+    ctx->bitmapPattern = pattern;
+    return ctx;
+}
+
+static void CairoFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+    const XColor *foreground = style->foreground;
+
+    cairo_save(ctx->cr);
+    if ((style->stipple == None) && (style->opacity != 1.0)) {
+        cairo_set_source_rgba(ctx->cr, foreground->red / 65535.0, foreground->green / 65535.0,
+                              foreground->blue / 65535.0, style->opacity);
+    }
+    FillRenderArea(ctx, points, count, ctx->bitmapPattern);
+    cairo_restore(ctx->cr);
+}
+
+int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
+    Rbc_RenderFillStyle style = {foreground, background, stipple, opacity, FALSE};
+    Rbc_RenderContext *ctx;
+
+    if (count < 3) {
         return FALSE;
     }
-    if ((stipple == None) && (opacity != 1.0)) {
-        cairo_set_source_rgba(ctx->cr, foreground->red / 65535.0, foreground->green / 65535.0,
-                              foreground->blue / 65535.0, opacity);
+    ctx = Rbc_RenderBeginFill(graphPtr, drawable, &style);
+    if (ctx == NULL) {
+        return FALSE;
     }
-    FillRenderArea(ctx, points, count, pattern);
-    if (pattern != NULL) {
-        cairo_pattern_destroy(pattern);
-    }
+    Rbc_RenderFillPolygon(ctx, points, count);
     Rbc_RenderEnd(ctx);
     return TRUE;
 }
@@ -928,6 +952,12 @@ static void CairoEnd(Rbc_RenderContext *ctx) {
     }
 }
 #else
+Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)style;
+    return NULL;
+}
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                            const XColor *color, double lineWidth, const Rbc_Dashes *dashes,
                                            const XColor *offColor) {
@@ -1117,13 +1147,57 @@ static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color
     }
 }
 
+static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+
+    Rbc_PathToPostScript(ctx->psToken, (Point2D *)points, count);
+    Rbc_AppendToPostScript(ctx->psToken, "closepath\n", (char *)NULL);
+    if (style->background != NULL) {
+        Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)style->background);
+        Rbc_AppendToPostScript(ctx->psToken, "Fill\n", (char *)NULL);
+    }
+    Rbc_ForegroundToPostScript(ctx->psToken, (XColor *)style->foreground);
+    if (style->backgroundOnly) {
+        return;
+    }
+    if (style->stipple != None) {
+        Rbc_StippleToPostScript(ctx->psToken, ctx->graphPtr->display, style->stipple);
+    } else {
+        Rbc_AppendToPostScript(ctx->psToken, "Fill\n", (char *)NULL);
+    }
+}
+
+static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+    Tcl_Size i;
+
+    for (i = 0; i < count; i++) {
+        const Rbc_RenderRectangle *r = rectangles + i;
+
+        if (style->stipple != None) {
+            Rbc_RegionToPostScript(ctx->psToken, (double)r->x, (double)r->y, r->width, r->height);
+            if (style->background != NULL) {
+                Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)style->background);
+                Rbc_AppendToPostScript(ctx->psToken, "Fill\n", (char *)NULL);
+            }
+            Rbc_ForegroundToPostScript(ctx->psToken,
+                (XColor *)((style->foreground != NULL) ? style->foreground : style->background));
+            Rbc_StippleToPostScript(ctx->psToken, ctx->graphPtr->display, style->stipple);
+        } else if (style->foreground != NULL) {
+            Rbc_ForegroundToPostScript(ctx->psToken, (XColor *)style->foreground);
+            Rbc_RectangleToPostScript(ctx->psToken, (double)r->x, (double)r->y, r->width, r->height);
+        }
+    }
+}
+
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
     ckfree(ctx);
 }
 
-static const Rbc_RenderStrokeOps postScriptStrokeOps = {
-    PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptDashBackground, PostScriptEnd
+static const Rbc_RenderOps postScriptOps = {
+    PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptDashBackground,
+    PostScriptFillPolygon, PostScriptFillRectangles, PostScriptEnd
 };
 
 Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
@@ -1131,29 +1205,53 @@ Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *colo
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
 
     memset(ctx, 0, sizeof(*ctx));
-    ctx->strokeOps = &postScriptStrokeOps;
+    ctx->ops = &postScriptOps;
     ctx->psToken = psToken;
     ctx->postScriptDashed = (dashes != NULL) && (dashes->values[0] != 0);
     Rbc_LineAttributesToPostScript(psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle, joinStyle);
     return ctx;
 }
 
+Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToken,
+                                                const Rbc_RenderFillStyle *style) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &postScriptOps;
+    ctx->psToken = psToken;
+    ctx->graphPtr = graphPtr;
+    ctx->fillStyle = *style;
+    return ctx;
+}
+
+void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    if (count >= 3) {
+        ctx->ops->fillPolygon(ctx, points, count);
+    }
+}
+
+void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    if (count > 0) {
+        ctx->ops->fillRectangles(ctx, rectangles, count);
+    }
+}
+
 void Rbc_RenderPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
-    ctx->strokeOps->polyline(ctx, points, count);
+    ctx->ops->polyline(ctx, points, count);
 }
 
 void Rbc_RenderSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
-    ctx->strokeOps->segments(ctx, segments, count);
+    ctx->ops->segments(ctx, segments, count);
 }
 
 void Rbc_RenderLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
-    ctx->strokeOps->lineStyle(ctx, capStyle, joinStyle);
+    ctx->ops->lineStyle(ctx, capStyle, joinStyle);
 }
 
 void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
-    ctx->strokeOps->dashBackground(ctx, color);
+    ctx->ops->dashBackground(ctx, color);
 }
 
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
-    ctx->strokeOps->end(ctx);
+    ctx->ops->end(ctx);
 }
