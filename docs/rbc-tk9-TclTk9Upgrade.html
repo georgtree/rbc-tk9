@@ -500,6 +500,15 @@ when calling APIs that inherently require integer coordinates.</p>
 <section id="postscript-output">
 <span id="r-tcltk9upgrade-postscript-output"></span><span id="r-3a3atcltk9upgradeqzpostscript20output"></span><h3>PostScript output<a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h3>
 <p>The PostScript subsystem was modernized and hardened alongside the graph code.</p>
+<p>PostScript drawing now passes through the common renderer interface: strokes, fills, symbols,
+text, images, bitmap masks, window snapshots, relief borders, plot backgrounds and clipping.
+This includes normal/active elements, markers, legends, axis labels, and polar/Smith labels.
+The existing PostScript backend, prolog, font/color mapping and public command are retained;
+export does not require Cairo. Page setup, orientation, EPS metadata and file output remain
+in the PostScript subsystem. Screen text rendering is unchanged.</p>
+<p>This is an internal refactoring, not a new export format. PostScript still ignores area opacity;
+image-tiled line areas export only their configured background. Existing bitmap masks,
+drawing order and window-snapshot fallback behavior are preserved.</p>
 <ul class="simple">
 <li><p>Updated PostScript option handling.</p></li>
 <li><p>Updated image generation and bitmap handling.</p></li>

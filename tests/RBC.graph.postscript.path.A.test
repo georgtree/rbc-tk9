@@ -1,0 +1,41 @@
+# Segment batches must not stroke paths retained by filled decorations.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psPathTest {
+    namespace import ::tcltest::*
+
+    foreach decorations {yes no} {
+        foreach dashes {{} {3 5}} {
+            test psPath-1-$decorations-$dashes {legend strokes start a fresh path after decorations} -setup {
+                ::rbc::graph .psPath -width 400 -height 300
+                .psPath grid configure -hide yes
+                foreach axis [.psPath axis names] {
+                    .psPath axis configure $axis -hide yes
+                }
+                .psPath axis configure x -min 0 -max 10
+                .psPath axis configure y -min 0 -max 10
+                .psPath legend configure -hide no -position right -background white \
+                    -borderwidth 3 -relief raised
+                # One source point leaves the legend as the only line segment.
+                .psPath element create signal -data {5 5} -symbol circle -label Signal \
+                    -color green -linewidth 2 -dashes $dashes
+                .psPath postscript configure -decorations $decorations
+                pack .psPath
+                update idletasks
+            } -body {
+                set ps [.psPath postscript output]
+                set ps [string range $ps [string first %%EndSetup $ps] end]
+                set stroke [string first "DashesProc stroke\n" $ps]
+                set prefix [string range $ps 0 [expr {$stroke - 1}]]
+                list [expr {$stroke >= 0}] \
+                    [regexp {newpath\n[-0-9.e+]+ [-0-9.e+]+ moveto\n [-0-9.e+]+ [-0-9.e+]+ lineto\n$} $prefix]
+            } -cleanup {
+                destroy .psPath
+            } -result {1 1}
+        }
+    }
+}
+namespace delete ::psPathTest
+::tcltest::cleanupTests

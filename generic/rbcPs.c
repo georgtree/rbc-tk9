@@ -1896,6 +1896,11 @@ void Rbc_BitmapToPostScript(struct PsTokenStruct *tokenPtr, Display *display, Pi
 void Rbc_2DSegmentsToPostScript(PsToken psToken, register Segment2D *segPtr, Tcl_Size nSegments) {
     register Segment2D *endPtr;
 
+    if (nSegments <= 0) {
+        return;
+    }
+    /* Fill preserves its path; do not stroke a preceding border or polygon. */
+    Rbc_AppendToPostScript(psToken, "newpath\n", (char *)NULL);
     for (endPtr = segPtr + nSegments; segPtr < endPtr; segPtr++) {
         Rbc_FormatToPostScript(psToken, "%g %g moveto\n", segPtr->p.x, segPtr->p.y);
         Rbc_FormatToPostScript(psToken, " %g %g lineto\n", segPtr->q.x, segPtr->q.y);
