@@ -17,7 +17,9 @@ set packageVersion [package versions rbc]
 puts $packageVersion
 set title "Upgraded Tcl/Tk9.0-ready RBC package"
 
-set commonSphinx [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
+# Image paths are relative to each output's source directory.
+set startPageSphinx [string map {docs/images/ ../images/} $startPage]
+set commonSphinx [list -title $title -sortnamespaces false -preamble $startPageSphinx -pagesplit namespace -recurse false\
                     -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
                     -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                     -copyright "George Yashin" {*}$::argv]

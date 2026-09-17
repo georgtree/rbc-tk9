@@ -1,5 +1,7 @@
 # Rbc — Refactored BLT Components for Tcl/Tk 9
 
+![RBC preview](docs/images/preview.png)
+
 Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change.
 
