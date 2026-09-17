@@ -413,9 +413,9 @@ static ElementDrawProc DrawActiveBar;
 static ElementDrawProc DrawNormalBar;
 static ElementDrawSymbolProc DrawSymbol;
 static ElementExtentsProc GetBarExtents;
-static ElementToPostScriptProc ActiveBarToPostScript;
-static ElementToPostScriptProc NormalBarToPostScript;
-static ElementSymbolToPostScriptProc SymbolToPostScript;
+static ElementExportProc ActiveBarExport;
+static ElementExportProc NormalBarExport;
+static ElementSymbolExportProc SymbolExport;
 static ElementMapProc MapBar;
 
 static int Round(register double x);
@@ -429,9 +429,9 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
                             Tcl_Size nRects);
 static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPen *penPtr, BarRectangle *rectangles,
                           Tcl_Size nRects, const Tcl_Size *rectToData);
-static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, BarRectangle *rectPtr,
+static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects);
-static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr,
+static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *barPtr, BarPen *penPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData);
 
 static int IsBarPenPrefix(const char *string, Tcl_Size length, const char *fullName) {
@@ -2385,7 +2385,7 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
 /*
  * -----------------------------------------------------------------
  *
- * SymbolToPostScript --
+ * SymbolExport --
  *
  *      Draw a symbol centered at the given x,y window coordinate
  *      based upon the element symbol type and size.
@@ -2395,7 +2395,7 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr
  *      double x
  *      double y
@@ -2409,7 +2409,7 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
  *
  * -----------------------------------------------------------------
  */
-static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
+static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y, int size) {
     BarPen *bpPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
     Rbc_RenderFillStyle style;
     Rbc_RenderContext *ctx;
@@ -2423,7 +2423,7 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
     style.stipple = bpPtr->stipple;
     style.opacity = 1.0;
     style.backgroundOnly = FALSE;
-    ctx = Rbc_RenderBeginPostScriptBarSymbol(graphPtr, psToken, &style, size);
+    ctx = Rbc_RenderBeginExportBarSymbol(graphPtr, exportPtr, &style, size);
     Rbc_RenderSymbolPoints(ctx, &center, 1);
     Rbc_RenderEnd(ctx);
 }
@@ -2431,13 +2431,13 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
 /*
  *----------------------------------------------------------------------
  *
- * SegmentsToPostScript --
+ * SegmentsExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      BarPen *penPtr
  *      BarRectangle *rectPtr
  *      int nRects
@@ -2450,7 +2450,7 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
  *
  *----------------------------------------------------------------------
  */
-static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPtr, BarRectangle *rectPtr,
+static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen *penPtr, BarRectangle *rectPtr,
                                  Tcl_Size nRects) {
     BarRectangle *endPtr;
     Rbc_RenderFillStyle style;
@@ -2464,7 +2464,7 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
     style.stipple = penPtr->stipple;
     style.opacity = 1.0;
     style.backgroundOnly = FALSE;
-    ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
+    ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
     for (endPtr = rectPtr + nRects; rectPtr < endPtr; rectPtr++) {
         if ((rectPtr->width < 1) || (rectPtr->height < 1)) {
             continue;
@@ -2484,13 +2484,13 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
 /*
  *----------------------------------------------------------------------
  *
- * BarValuesToPostScript --
+ * BarValuesExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Bar *barPtr
  *      BarPen *penPtr
  *      BarRectangle *rectangles
@@ -2505,9 +2505,9 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  *
  *----------------------------------------------------------------------
  */
-static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr,
+static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *barPtr, BarPen *penPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     BarRectangle *rectPtr, *endPtr;
     Tcl_Size count;
     Tcl_Obj *labelObjPtr;
@@ -2549,15 +2549,15 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
 /*
  * ----------------------------------------------------------------------
  *
- * ActiveBarToPostScript --
+ * ActiveBarExport --
  *
- *      Similar to the NormalBarToPostScript procedure, generates
+ *      Similar to the NormalBarExport procedure, generates
  *      PostScript commands to display the rectangles representing the
  *      active bar segments of the element.
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr
  *
  * Results:
@@ -2568,7 +2568,7 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
  *
  * ----------------------------------------------------------------------
  */
-static void ActiveBarToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
+static void ActiveBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Bar *barPtr;
 
     barPtr = BAR_FROM_CORE(elemPtr);
@@ -2579,15 +2579,15 @@ static void ActiveBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
             if (elemPtr->flags & ACTIVE_PENDING) {
                 MapActiveBars(barPtr);
             }
-            SegmentsToPostScript(graphPtr, psToken, penPtr, barPtr->activeRects, barPtr->nActive);
+            SegmentsExport(graphPtr, exportPtr, penPtr, barPtr->activeRects, barPtr->nActive);
             if (penPtr->valueShow != SHOW_NONE) {
-                BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr, barPtr->activeRects, barPtr->nActive,
+                BarValuesExport(graphPtr, exportPtr, barPtr, penPtr, barPtr->activeRects, barPtr->nActive,
                                       barPtr->activeToData);
             }
         } else if (elemPtr->nActiveIndices < 0) {
-            SegmentsToPostScript(graphPtr, psToken, penPtr, barPtr->rectangles, barPtr->nRects);
+            SegmentsExport(graphPtr, exportPtr, penPtr, barPtr->rectangles, barPtr->nRects);
             if (penPtr->valueShow != SHOW_NONE) {
-                BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr, barPtr->rectangles, barPtr->nRects,
+                BarValuesExport(graphPtr, exportPtr, barPtr, penPtr, barPtr->rectangles, barPtr->nRects,
                                       barPtr->rectToData);
             }
         }
@@ -2597,14 +2597,14 @@ static void ActiveBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
 /*
  * ----------------------------------------------------------------------
  *
- * NormalBarToPostScript --
+ * NormalBarExport --
  *
  *      Generates PostScript commands to form the rectangles
  *      representing the segments of the bar element.
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr
  *
  * Results:
@@ -2615,7 +2615,7 @@ static void ActiveBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
  *
  * ----------------------------------------------------------------------
  */
-static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
+static void NormalBarExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     Rbc_ChainLink *linkPtr;
     register BarPenStyle *stylePtr;
@@ -2628,7 +2628,7 @@ static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
         stylePtr = Rbc_ChainGetValue(linkPtr);
         penPtr = stylePtr->penPtr;
         if (stylePtr->nRects > 0) {
-            SegmentsToPostScript(graphPtr, psToken, penPtr, stylePtr->rectangles, stylePtr->nRects);
+            SegmentsExport(graphPtr, exportPtr, penPtr, stylePtr->rectangles, stylePtr->nRects);
         }
         colorPtr = penPtr->errorBarColor;
         if (colorPtr == COLOR_DEFAULT) {
@@ -2637,19 +2637,19 @@ static void NormalBarToPostScript(Graph *graphPtr, PsToken psToken, Element *ele
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
             Rbc_RenderContext *ctx;
 
-            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            ctx = Rbc_RenderBeginExport(exportPtr, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
             Rbc_RenderSegments(ctx, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
             Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
             Rbc_RenderContext *ctx;
 
-            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            ctx = Rbc_RenderBeginExport(exportPtr, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
             Rbc_RenderSegments(ctx, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
             Rbc_RenderEnd(ctx);
         }
         if (penPtr->valueShow != SHOW_NONE) {
-            BarValuesToPostScript(graphPtr, psToken, barPtr, penPtr, stylePtr->rectangles, stylePtr->nRects,
+            BarValuesExport(graphPtr, exportPtr, barPtr, penPtr, stylePtr->rectangles, stylePtr->nRects,
                                   barPtr->rectToData + count);
         }
         count += stylePtr->nRects;
@@ -2724,9 +2724,9 @@ static ElementProcs barProcs = {
     DrawNormalBar,
     DrawSymbol,
     GetBarExtents,
-    ActiveBarToPostScript,
-    NormalBarToPostScript,
-    SymbolToPostScript,
+    ActiveBarExport,
+    NormalBarExport,
+    SymbolExport,
     MapBar,
     NULL /* Uses ordinary X/Y point count. */
 };

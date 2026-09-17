@@ -1,35 +1,35 @@
 # Graph renderer interface
 
-The private interface is declared in `generic/rbcRender.h`. The PostScript backend retains the emitters in
-`generic/rbcPs.c` and shapes in `library/rbcGraph.pro`; it does not depend on Cairo.
+`generic/rbcRender.h` declares drawing operations. `generic/rbcExport.h` declares the private document context,
+`Rbc_ExportContext`, with an explicit PostScript or SVG backend, output buffer, error state and decoration policy.
+Screen rendering and document export use separate constructors.
 
-Graph components keep responsibility for mapping, clipping geometry, pen selection, label formatting and drawing
-order. Drawing operations pass through renderer contexts. Screen native fallbacks remain in the components.
+| File | Responsibility |
+|------|----------------|
+| `rbcGrExport.c` | Shared export setup/cleanup, drawing order, plot clipping and margins |
+| `rbcGrPs.c` | PostScript command/options, page layout, EPS preamble/trailer, preview and file output |
+| `rbcGrSvg.c` | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output |
+| `rbcRender.c` | Drawing dispatch and backend primitive implementations |
+| `rbcPs.c`, `rbcGraph.pro` | Existing PostScript emitters and symbol procedures |
 
-| Context           | Operations                                                                                                  |
-|-------------------|-------------------------------------------------------------------------------------------------------------|
-| PostScript stroke | Polyline, segments, line style, dash background                                                             |
-| PostScript fill   | Polygon and rectangle fills                                                                                 |
-| PostScript symbol | Symbol instances, including bitmap masks                                                                    |
-| PostScript output | Text, photos, window snapshots, mapped bitmap masks, background polygons/rectangles, borders, plot clipping |
-| Cairo screen      | Existing strokes, fills, shape batches and image operations                                                 |
+Graph components retain mapping, pen selection, label formatting and geometry preparation. Their `...Export`
+entry points receive a generic document context and call `Rbc_RenderBeginExport*` constructors. The shared
+traversal does not create document headers or select printer/canvas dimensions. `GRAPH_EXPORT` suppresses
+screen-density decimation and temporary-layout change notifications for both export formats.
 
-Call `Rbc_RenderEnd` for every context. Contexts borrow the PostScript token, colors and Tk resources. Ending a context
-releases its memory; it does not close the page or undo clipping. Pair `Rbc_RenderPlotBegin` with
-`Rbc_RenderPlotEnd`. Finish a symbol batch before initializing another because the legacy prolog shares its symbol
-procedure.
+The PostScript adapter borrows its legacy `PsToken` through backend-private state. The SVG writer allocates no
+PostScript token and emits XML directly; there is no conversion from PostScript and no Cairo dependency.
+The public `.g postscript ...` and `.g svg ...` commands keep independent settings.
 
-Export presentation operations are available on PostScript contexts, not on Cairo screen contexts. Screen text continues
-to use Tk. The distinct interfaces preserve screen batching and avoid routing window redraws through export code.
+Call `Rbc_RenderEnd` for every drawing context. These contexts borrow document/color/Tk resources; ending one
+does not close the document. Pair `Rbc_RenderPlotBegin` with `Rbc_RenderPlotEnd`. Finish each symbol batch before
+starting another because the PostScript prolog shares its symbol procedure. Export presentation operations
+are unavailable on screen contexts; screen text continues to use Tk.
 
-`rbcGrPs.c` still owns the public command, layout/remapping pass, EPS preamble, page transforms, trailer, file output
-and error handling. Graph traversal and component export entry points still carry `PsToken`; they are not yet a
-backend-neutral document API. A future SVG implementation needs its own presentation capabilities and document
-lifecycle, plus context propagation through that traversal. This migration centralizes the drawing primitives first.
+SVG supports vector geometry, editable text, solid fill opacity and clipping. Bitmap/image/window content and
+stipple fills currently report an error. The SVG command renders and validates before opening its output file.
+PostScript limitations remain unchanged: area opacity is ignored, tiled areas export their configured background,
+and failed window capture uses the existing gray rectangle fallback. Font/color maps stay in the PS backend.
 
-PostScript limitations remain unchanged: area opacity is ignored, image-tiled line areas export only their configured
-background, and failed window capture uses the existing gray rectangle fallback. Font/color maps and monochrome
-foreground/background distinctions remain in the existing emitter.
-
-Regression tests are in `tests/RBC.graph.postscript.*.test`. The existing bitmap-mask, polygon-clipping and arrow tests
-cover those specialized paths; renderer tests separately exercise screen output.
+Tests are in `tests/RBC.graph.svg.A.test` and `tests/RBC.graph.postscript.*.test`. The SVG tests also exercise
+alternating exports and recovery after an unsupported-feature error. Screen renderer tests remain separate.

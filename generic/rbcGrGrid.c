@@ -283,13 +283,13 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_GridToPostScript --
+ * Rbc_GridExport --
  *
  *      Prints the grid lines associated with each axis.
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      None.
@@ -299,14 +299,14 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Rbc_RenderContext *ctx;
 
     if (gridPtr->hidden) {
         return;
     }
-    ctx = Rbc_RenderBeginPostScript(psToken, gridPtr->colorPtr, gridPtr->lineWidth, &gridPtr->dashes,
+    ctx = Rbc_RenderBeginExport(exportPtr, gridPtr->colorPtr, gridPtr->lineWidth, &gridPtr->dashes,
                                     CapButt, JoinMiter);
     Rbc_RenderSegments(ctx, gridPtr->x.segments, gridPtr->x.nSegments);
     Rbc_RenderSegments(ctx, gridPtr->y.segments, gridPtr->y.nSegments);

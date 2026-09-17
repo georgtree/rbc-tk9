@@ -54,11 +54,48 @@ Graph widgets contain several components with their own command interfaces:
 │ grid                                 │ graph grid                            │
 │ crosshairs                           │ interactive crosshairs                │
 │ postscript                           │ PostScript output                     │
+│ svg                                  │ SVG output                            │
 └──────────────────────────────────────┴───────────────────────────────────────┘
 .fi
 .RE
 .PP
 These component interfaces are documented separately\&.
+.SH "SVG OUTPUT"
+.PP
+svg exports vector graphics without requiring Cairo\&. It is available on graph, stripchart,
+barchart and polar widgets and has its own settings, separate from postscript\&.
+.PP
+.nf
+\&.g svg configure -width 1200 -height 800 -decorations yes
+\&.g svg cget -width
+set document [\&.g svg output]
+\&.g svg output plot\&.svg
+\&.g svg output plot\&.svg -width 800 -height 600
+.fi
+.PP
+.PP
+svg configure returns option descriptions; svg configure option describes one option\&.
+svg cget option returns its value\&. svg output ?file? ?option value \&.\&.\&.? returns the XML
+string when no filename is supplied, or writes UTF-8 SVG to the named file\&. Prefix a filename
+starting with a dash with \&./\&. Successfully parsed output options remain configured, as for
+PostScript\&. Invalid option/value lists leave all SVG settings unchanged\&.
+.PP
+- -width and -height: output dimensions in pixels (Tk screen-distance units are also accepted)\&.
+  The default, zero, uses the widget dimension\&. Dimensions cannot be negative\&.
+- -decorations: include configured graph/legend backgrounds and relief borders\&. Defaults to true\&.
+  False uses white backgrounds, as in PostScript\&. Axes, labels and symbols remain visible\&.
+.PP
+This first SVG implementation supports traces, error bars, grids, axes, solid areas and bars,
+standard geometric symbols, line/polygon/text markers, legends, borders and editable text\&.
+Polar/Smith labels use the same layout and formatting as PostScript\&. Export remaps full source
+geometry rather than screen-decimated traces\&. Solid area fills preserve -areaopacity\&.
+Fonts are referenced by family rather than embedded; text appearance depends on installed fonts
+in the SVG viewer\&. Text rotation, baseline positions, measured widths and shadows are retained\&.
+.PP
+Stipple fills, image-tiled areas, bitmap symbols/markers, image markers and window markers are
+not supported yet\&. Visible unsupported content produces an error before the output file is opened;
+it is not silently omitted\&. PostScript printer options (paper size, landscape, preview, font/color
+maps) are not SVG options\&. The SVG canvas uses pixel dimensions and a matching viewBox\&.
 .SH "NUMERIC VALUES AND EXPRESSIONS"
 .PP
 Expression support is option-specific\&. The option tables say when a value accepts a Tcl numeric

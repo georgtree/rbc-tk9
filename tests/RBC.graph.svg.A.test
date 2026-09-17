@@ -1,0 +1,190 @@
+# Initial vector SVG exporter. See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::svgTest {
+    namespace import ::tcltest::*
+
+    proc Create {} {
+        ::rbc::graph .svg -width 400 -height 300
+        .svg axis configure x -min 0 -max 10 -loose no
+        .svg axis configure y -min 0 -max 10 -loose no
+        .svg element create signal -data {1 2 4 8 9 3} -symbol circle -color red
+        pack .svg
+        update idletasks
+    }
+
+    test svg-1 {options are independent and invalid configurations roll back} -setup {
+        Create
+    } -body {
+        set ps [.svg postscript cget -width]
+        set defaults [list [.svg svg cget -width] [.svg svg cget -height] [.svg svg cget -decorations]]
+        .svg svg configure -width 500 -height 350
+        set failed [catch {.svg svg configure -width 600 -height -1}]
+        list $defaults $failed [.svg svg cget -width] [.svg svg cget -height] \
+            [expr {$ps eq [.svg postscript cget -width]}] [llength [.svg svg configure]]
+    } -cleanup {
+        destroy .svg
+    } -result {{0 0 1} 1 500 350 1 3}
+
+    test svg-2 {document has XML, clipping, escaped text and no PostScript syntax} -setup {
+        Create
+        .svg configure -title {A & B < C}
+        .svg marker create text -coords {5 5} -text {α & β} -rotate 27
+    } -body {
+        set data [.svg svg output]
+        list [string match {<?xml*} $data] \
+            [expr {[string first {xmlns="http://www.w3.org/2000/svg"} $data] >= 0}] \
+            [expr {[string first {A &amp; B &lt; C} $data] >= 0}] \
+            [expr {[string first {α &amp; β} $data] >= 0}] \
+            [expr {[string first {clip-path="url(#rbcPlot)"} $data] >= 0}] \
+            [expr {[string first {%%} $data] < 0 && [string first {setlinewidth} $data] < 0}] \
+            [string match *</svg>\n $data]
+    } -cleanup {
+        destroy .svg
+    } -result {1 1 1 1 1 1 1}
+
+    foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+        test svg-3-$symbol {standard symbol exports without a screen-renderer dependency} -setup {
+            Create
+            .svg element configure signal -symbol $symbol
+        } -body {
+            set data [.svg svg output]
+            expr {[string first {<g transform="translate(} $data] >= 0 &&
+                  [string first {stroke="#ff0000"} $data] >= 0}
+        } -cleanup {
+            destroy .svg
+        } -result 1
+    }
+
+    test svg-4 {solid area opacity is exported} -setup {
+        Create
+        .svg element configure signal -areapattern solid -areaforeground blue -areaopacity 0.35
+    } -body {
+        expr {[string first {fill-opacity="0.35"} [.svg svg output]] >= 0}
+    } -cleanup {
+        destroy .svg
+    } -result 1
+
+    test svg-5 {unsupported content does not truncate an existing output file} -setup {
+        Create
+        .svg element configure signal -areapattern gray25
+        set path [makeFile KEEP svg-preserve.svg]
+    } -body {
+        set failed [catch {.svg svg output $path} message]
+        set f [open $path r]
+        set data [read $f]
+        close $f
+        list $failed [string match {*stipple*not supported*} $message] [string trim $data]
+    } -cleanup {
+        destroy .svg
+        removeFile svg-preserve.svg
+    } -result {1 1 KEEP}
+
+    test svg-6 {output size persists as an SVG option and screen mapping is restored} -setup {
+        Create
+        set before [.svg transform 5 5]
+    } -body {
+        set data [.svg svg output -width 500 -height 350]
+        update idletasks
+        list [expr {[string first {viewBox="0 0 500 350"} $data] >= 0}] \
+            [.svg svg cget -width] [expr {$before eq [.svg transform 5 5]}] \
+            [string match {%!PS-Adobe*} [.svg postscript output]]
+    } -cleanup {
+        destroy .svg
+    } -result {1 500 1 1}
+
+    test svg-7 {UTF-8 file output matches returned document} -setup {
+        Create
+        .svg configure -title {α & β}
+        set path [makeFile {} svg-output.svg]
+    } -body {
+        set expected [.svg svg output]
+        .svg svg output $path
+        set f [open $path r]
+        fconfigure $f -encoding utf-8 -translation lf
+        set actual [read $f]
+        close $f
+        expr {$expected eq $actual}
+    } -cleanup {
+        destroy .svg
+        removeFile svg-output.svg
+    } -result 1
+
+    test svg-8 {bitmap symbols report the unsupported feature} -setup {
+        Create
+        .svg element configure signal -symbol warning
+    } -body {
+        catch {.svg svg output} message
+        string match {*bitmap symbols*not supported*} $message
+    } -cleanup {
+        destroy .svg
+    } -result 1
+    foreach type {stripchart barchart polar} {
+        test svg-9-$type {other graph types use the SVG export traversal} -setup {
+            ::rbc::$type .svg -width 400 -height 300
+            .svg element create signal -data {1 2 4 8 9 3}
+            pack .svg
+            update idletasks
+        } -body {
+            set data [.svg svg output]
+            list [string match {<?xml*} $data] [string match *</svg>\n $data]
+        } -cleanup {
+            destroy .svg
+        } -result {1 1}
+    }
+
+    test svg-10 {XML-incompatible text reports an error} -setup {
+        Create
+        .svg configure -title "invalid\u0001text"
+    } -body {
+        set failed [catch {.svg svg output} message]
+        list $failed [string match {*XML cannot represent*} $message]
+    } -cleanup {
+        destroy .svg
+    } -result {1 1}
+
+    test svg-11 {image markers report unsupported content} -setup {
+        Create
+        set image [image create photo -width 8 -height 8]
+        $image put red -to 0 0 8 8
+        .svg marker create image -coords {5 5} -image $image
+    } -body {
+        set failed [catch {.svg svg output} message]
+        list $failed [string match {*image markers*not supported*} $message]
+    } -cleanup {
+        destroy .svg
+        image delete $image
+    } -result {1 1}
+
+    test svg-12 {alternating exports preserve independent state and PostScript geometry} -setup {
+        Create
+        .svg postscript configure -decorations yes
+        set before [.svg postscript output]
+        set before [string range $before [string first {% Transform coordinate system} $before] end]
+    } -body {
+        .svg svg output -width 700 -height 450 -decorations no
+        set after [.svg postscript output]
+        set after [string range $after [string first {% Transform coordinate system} $after] end]
+        list [expr {$before eq $after}] [.svg postscript cget -decorations] \
+            [.svg svg cget -decorations] [.svg svg cget -width]
+    } -cleanup {
+        destroy .svg
+    } -result {1 1 0 700}
+
+    test svg-13 {failed SVG export does not poison later PostScript or SVG exports} -setup {
+        Create
+        .svg element configure signal -areapattern gray25
+    } -body {
+        set failed [catch {.svg svg output}]
+        set ps [.svg postscript output]
+        .svg element configure signal -areapattern {}
+        set svg [.svg svg output]
+        list $failed [string match {%!PS-Adobe*} $ps] [string match {<?xml*} $svg]
+    } -cleanup {
+        destroy .svg
+    } -result {1 1 1}
+
+}
+namespace delete ::svgTest
+::tcltest::cleanupTests

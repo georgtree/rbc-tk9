@@ -16,6 +16,7 @@
 #include "rbcBind.h"
 #include "rbcChain.h"
 #include "rbcPs.h"
+#include "rbcExport.h"
 #include "rbcTile.h"
 #include "rbcVector.h"
 /*#include "rbcWin.h"*/
@@ -419,7 +420,7 @@ struct GraphStruct {
     TextStyle titleTextStyle; /* Graph title */
     char *takeFocus;
     int reqWidth, reqHeight; /* Requested size of graph window */
-    int width, height;       /* Size of graph window or PostScript
+    int width, height;       /* Size of graph window or exported
                               * page */
     Tcl_HashTable penTable;  /* Table of pens */
     struct Component {
@@ -437,6 +438,7 @@ struct GraphStruct {
                               * switching chain pointers.
                               */
     Margin margins[4];
+    int svgWidth, svgHeight, svgDecorations; /* Independent SVG output options. */
     PostScript *postscript; /* PostScript options: see rbcGrPS.c */
     Legend *legend;         /* Legend information: see rbcGrLegd.c */
     Crosshairs *crosshairs; /* Crosshairs information: see rbcGrHairs.c */
@@ -605,7 +607,7 @@ struct GraphStruct {
 #define REDRAW_BACKING_STORE (1 << 11) /* 0x0800 */
 #define GRAPH_FOCUS (1 << 12)  /* 0x1000 */
 #define DATA_CHANGED (1 << 13) /* 0x2000 */
-#define GRAPH_POSTSCRIPT (1 << 14) /* 0x4000 */
+#define GRAPH_EXPORT (1 << 14) /* 0x4000 */
 /*
  * Native view or element geometry changed. Retained until the next
  * completed on-screen display queues <<RbcGraphChanged>>.
@@ -656,7 +658,7 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
-void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken);
+void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
 void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments);
 void Rbc_InitFreqTable(Graph *graphPtr);
@@ -679,7 +681,7 @@ void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr);
 void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr);
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable);
-void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken);
+void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_UpdateCrosshairs(Graph *graphPtr);
 void Rbc_DestroyPens(Graph *graphPtr);
 void Rbc_ReleasePenTkResources(Graph *graphPtr);
@@ -732,5 +734,18 @@ extern Rbc_Uid rbcPolygonMarkerUid;
 extern Rbc_Uid rbcWindowMarkerUid;
 extern Rbc_Uid rbcXAxisUid;
 extern Rbc_Uid rbcYAxisUid;
+
+int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+
+void Rbc_ExportBeginGraph(Graph *graphPtr);
+void Rbc_ExportEndGraph(Graph *graphPtr);
+int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under);
+void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr);
+void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 
 #endif /* _RBCGRAPH */

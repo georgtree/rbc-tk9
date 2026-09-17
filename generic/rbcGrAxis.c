@@ -326,7 +326,7 @@ static double AdjustViewport(double offset, double windowSize);
 static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
                              double windowSize, double scrollUnits);
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr);
-static void AxisToPostScript(PsToken psToken, Axis *axisPtr);
+static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr);
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr);
 static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr);
 static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr);
@@ -4411,7 +4411,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
 /*
  * -----------------------------------------------------------------
  *
- * AxisToPostScript --
+ * AxisExport --
  *
  *      Generates PostScript output to draw the axis, ticks, and
  *      labels.
@@ -4420,7 +4420,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
  *      TextStyle structure.
  *
  * Parameters:
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Axis *axisPtr
  *
  * Results:
@@ -4431,8 +4431,8 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
  *
  * -----------------------------------------------------------------
  */
-static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
 
     if (axisPtr->title != NULL) {
         Rbc_RenderText(output, axisPtr->title, &axisPtr->titleTextStyle, axisPtr->titlePos.x,
@@ -4451,7 +4451,7 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
     if ((axisPtr->nSegments > 0) && (axisPtr->lineWidth > 0)) {
         Rbc_RenderContext *ctx;
 
-        ctx = Rbc_RenderBeginPostScript(psToken, axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL,
+        ctx = Rbc_RenderBeginExport(exportPtr, axisPtr->tickTextStyle.color, axisPtr->lineWidth, NULL,
                                         CapButt, JoinMiter);
         Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
         Rbc_RenderEnd(ctx);
@@ -6800,13 +6800,13 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_AxesToPostScript --
+ * Rbc_AxesExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -6816,7 +6816,7 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Axis *axisPtr;
     Rbc_ChainLink *linkPtr;
     int i;
@@ -6826,7 +6826,7 @@ void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken) {
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-                AxisToPostScript(psToken, axisPtr);
+                AxisExport(exportPtr, axisPtr);
             }
         }
     }
@@ -6928,13 +6928,13 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_AxisLimitsToPostScript --
+ * Rbc_AxisLimitsExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -6944,8 +6944,8 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;

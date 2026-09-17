@@ -2573,6 +2573,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         return NULL;
     }
     graphPtr = RbcCalloc(1, sizeof(Graph));
+    graphPtr->svgDecorations = TRUE;
     assert(graphPtr);
     /*
      * Initialize the graph data structure.
@@ -3490,6 +3491,7 @@ static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_Virtu
                                        {{"pen", 2, 0, "oper ?args?"}, Rbc_PenOp},
                                        {{"postscript", 2, 0, "oper ?args?"}, Rbc_PostScriptOp},
                                        {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
+                                       {{"svg", 3, 0, "oper ?args?"}, Rbc_SvgOp},
                                        {{"transform", 4, 4, "x y"}, TransformOp},
                                        {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
                                        {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},
@@ -3841,10 +3843,10 @@ void Rbc_LayoutGraph(Graph *graphPtr) {
      * Layout may also be requested by a transform or picking operation,
      * so retain this state until DisplayGraph completes.
      *
-     * PostScript uses a temporary export layout and must not announce
+     * Document export uses a temporary layout and must not announce
      * that layout as an on-screen view change.
      */
-    if (!(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->flags & (MAP_WORLD | LAYOUT_NEEDED))) {
+    if (!(graphPtr->flags & GRAPH_EXPORT) && (graphPtr->flags & (MAP_WORLD | LAYOUT_NEEDED))) {
         graphPtr->flags |= GRAPH_CHANGED;
     }
     if (graphPtr->flags & RESET_AXES) {
@@ -4084,12 +4086,12 @@ static void DisplayGraph(ClientData clientData) {
      *
      * Keep GRAPH_CHANGED pending while the plot is too small to map.
      */
-    if ((graphPtr->flags & GRAPH_CHANGED) && !(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->hRange > 1) &&
+    if ((graphPtr->flags & GRAPH_CHANGED) && !(graphPtr->flags & GRAPH_EXPORT) && (graphPtr->hRange > 1) &&
         (graphPtr->vRange > 1)) {
         graphPtr->flags &= ~GRAPH_CHANGED;
         Tk_SendVirtualEvent(graphPtr->tkwin, "RbcGraphChanged", NULL);
     }
-    if (!(graphPtr->flags & GRAPH_POSTSCRIPT) && (graphPtr->hRange > 1) && (graphPtr->vRange > 1)) {
+    if (!(graphPtr->flags & GRAPH_EXPORT) && (graphPtr->hRange > 1) && (graphPtr->vRange > 1)) {
         Rbc_NotifyAxisChanges(graphPtr);
     }
     UpdateMarginTraces(graphPtr);

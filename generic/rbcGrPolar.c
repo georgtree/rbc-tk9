@@ -918,8 +918,8 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     }
 }
 
-static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void PolarRadialLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
     TextStyle style;
     Ticks *ticksPtr;
@@ -962,8 +962,8 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
     Rbc_RenderEnd(output);
 }
 
-static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double completeRadius) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void PolarAngularLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, double completeRadius) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
@@ -996,7 +996,7 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
     Rbc_RenderEnd(output);
 }
 
-void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr;
     double completeRadius;
 
@@ -1004,9 +1004,9 @@ void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
     if (gridPtr == NULL) {
         return;
     }
-    PolarRadialLabelsToPostScript(graphPtr, psToken, gridPtr);
+    PolarRadialLabelsExport(graphPtr, exportPtr, gridPtr);
     completeRadius = PolarCompleteCircleRadius(gridPtr);
-    PolarAngularLabelsToPostScript(graphPtr, psToken, gridPtr, completeRadius);
+    PolarAngularLabelsExport(graphPtr, exportPtr, gridPtr, completeRadius);
 }
 
 static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resistance, int admittance,
@@ -1495,8 +1495,8 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
     MapSmithReactanceGrid(graphPtr, gridPtr);
 }
 
-static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, int admittance) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
@@ -1553,8 +1553,8 @@ static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *
     Rbc_RenderEnd(output);
 }
 
-static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void SmithReactiveLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr, int admittance) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
@@ -1593,7 +1593,7 @@ static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gr
     Rbc_RenderEnd(output);
 }
 
-void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr;
 
     gridPtr = graphPtr->gridPtr;
@@ -1601,11 +1601,11 @@ void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
         return;
     }
     if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
-        SmithRealLabelsToPostScript(graphPtr, psToken, gridPtr, FALSE);
-        SmithReactiveLabelsToPostScript(graphPtr, psToken, gridPtr, FALSE);
+        SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
+        SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
     }
     if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
-        SmithRealLabelsToPostScript(graphPtr, psToken, gridPtr, TRUE);
-        SmithReactiveLabelsToPostScript(graphPtr, psToken, gridPtr, TRUE);
+        SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
+        SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
     }
 }

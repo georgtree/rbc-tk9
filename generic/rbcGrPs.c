@@ -79,14 +79,6 @@ static const Tk_OptionSpec postScriptOptionSpecs[] = {
      offsetof(PostScript, reqWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/* TODO: These do not belong here */
-extern void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under);
-extern void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken);
-extern void Rbc_ActiveElementsToPostScript(Graph *graphPtr, PsToken psToken);
-extern void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken);
-extern void Rbc_GridToPostScript(Graph *graphPtr, PsToken psToken);
-extern void Rbc_AxesToPostScript(Graph *graphPtr, PsToken psToken);
-extern void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken);
 
 typedef int RbcGrPsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
@@ -102,7 +94,6 @@ static RbcGrPsOp OutputOp;
 static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr);
 static void PreviewImage(Graph *graphPtr, PsToken psToken);
 static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psToken);
-static void MarginsToPostScript(Graph *graphPtr, PsToken psToken);
 static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken);
 
 #ifdef WIN32
@@ -793,69 +784,6 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
 /*
  *--------------------------------------------------------------
  *
- * MarginsToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      PsToken psToken
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
-    PostScript *psPtr = (PostScript *)graphPtr->postscript;
-    Rbc_RenderRectangle margin[4];
-
-    margin[0].x = margin[0].y = margin[3].x = margin[1].x = 0;
-    margin[0].width = margin[3].width = graphPtr->width;
-    margin[0].height = graphPtr->top;
-    margin[3].y = graphPtr->bottom;
-    margin[3].height = graphPtr->height - graphPtr->bottom;
-    margin[2].y = margin[1].y = graphPtr->top;
-    margin[1].width = graphPtr->left;
-    margin[2].height = margin[1].height = graphPtr->bottom - graphPtr->top;
-    margin[2].x = graphPtr->right;
-    margin[2].width = graphPtr->width - graphPtr->right;
-    /* Clear the surrounding margins and clip the plotting surface */
-    Rbc_RenderBackgroundRectangles(output,
-        psPtr->decorations ? Tk_3DBorderColor(graphPtr->border) : NULL, margin, 4);
-    /* Interior 3D border */
-    if ((psPtr->decorations) && (graphPtr->plotBorderWidth > 0)) {
-        int x, y, width, height;
-
-        x = graphPtr->left - graphPtr->plotBorderWidth;
-        y = graphPtr->top - graphPtr->plotBorderWidth;
-        width = (graphPtr->right - graphPtr->left) + (2 * graphPtr->plotBorderWidth);
-        height = (graphPtr->bottom - graphPtr->top) + (2 * graphPtr->plotBorderWidth);
-        Rbc_RenderBorder(output, graphPtr->border, (double)x, (double)y, width, height,
-                                        graphPtr->plotBorderWidth, graphPtr->plotRelief, FALSE);
-    }
-    if (Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_MARGIN) {
-        /*
-         * Print the legend if we're using a site which lies in one
-         * of the margins (left, right, top, or bottom) of the graph.
-         */
-        Rbc_LegendToPostScript(graphPtr->legend, psToken);
-    }
-    if (graphPtr->title != NULL) {
-        Rbc_RenderText(output, graphPtr->title, &graphPtr->titleTextStyle, (double)graphPtr->titleX,
-                             (double)graphPtr->titleY);
-    }
-    Rbc_AxesToPostScript(graphPtr, psToken);
-    Rbc_RenderEnd(output);
-}
-
-/*
- *--------------------------------------------------------------
- *
  * GraphToPostScript --
  *
  *      TODO: Description
@@ -874,81 +802,23 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
  *--------------------------------------------------------------
  */
 static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken) {
-    int x, y, width, height;
+    Rbc_ExportContext export;
     int result;
-    Rbc_RenderContext *output = NULL;
 
-    /*
-     * We need to know how big a graph to print.  If the graph hasn't
-     * been drawn yet, the width and height will be 1.  Instead use
-     * the requested size of the widget.  The user can still override
-     * this with the -width and -height postscript options.
-     */
-    if (graphPtr->height <= 1) {
-        graphPtr->height = Tk_ReqHeight(graphPtr->tkwin);
-    }
-    if (graphPtr->width <= 1) {
-        graphPtr->width = Tk_ReqWidth(graphPtr->tkwin);
-    }
-    /*
-     * PostScript has its own layout/remapping pass.  Disable
-     * screen-density element decimation during that pass.
-     */
-    graphPtr->flags |= GRAPH_POSTSCRIPT;
+    Rbc_ExportInit(&export, RBC_EXPORT_POSTSCRIPT, graphPtr->interp, graphPtr->tkwin,
+                   graphPtr->postscript->decorations);
+    export.backendData = psToken;
+    export.buffer = &psToken->dString;
+    Rbc_ExportBeginGraph(graphPtr);
     result = PostScriptPreamble(graphPtr, ident, psToken);
-    if (result != TCL_OK) {
-        goto error;
-    }
-    /*
-     * Determine rectangle of the plotting area for the graph window
-     */
-    x = graphPtr->left - graphPtr->plotBorderWidth;
-    y = graphPtr->top - graphPtr->plotBorderWidth;
-    width = (graphPtr->right - graphPtr->left + 1) + (2 * graphPtr->plotBorderWidth);
-    height = (graphPtr->bottom - graphPtr->top + 1) + (2 * graphPtr->plotBorderWidth);
-    output = Rbc_RenderBeginPostScriptOutput(psToken);
-    Rbc_RenderPlotBegin(output, graphPtr->titleTextStyle.font, (double)x, (double)y, width, height,
-        graphPtr->postscript->decorations ? graphPtr->plotBg : NULL);
-    /* Draw the grid, elements, and markers in the plotting area. */
-    if (!graphPtr->gridPtr->hidden) {
-        Rbc_GridToPostScript(graphPtr, psToken);
-    }
-    if (graphPtr->classUid == rbcPolarElementUid) {
-        switch (graphPtr->representation) {
-        case POLAR_REPRESENTATION_POLAR:
-            Rbc_PolarLabelsToPostScript(graphPtr, psToken);
-            break;
-        case POLAR_REPRESENTATION_SMITH:
-            Rbc_SmithLabelsToPostScript(graphPtr, psToken);
-            break;
+    if (result == TCL_OK) {
+        result = Rbc_ExportGraph(graphPtr, &export);
+        if (result == TCL_OK) {
+            Rbc_AppendToPostScript(psToken, "showpage\n", "%Trailer\n", "grestore\n", "end\n", "%EOF\n", (char *)NULL);
         }
     }
-    Rbc_MarkersToPostScript(graphPtr, psToken, TRUE);
-    if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {
-        /* Print legend underneath elements and markers */
-        Rbc_LegendToPostScript(graphPtr->legend, psToken);
-    }
-    Rbc_AxisLimitsToPostScript(graphPtr, psToken);
-    Rbc_ElementsToPostScript(graphPtr, psToken);
-    if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (Rbc_LegendIsRaised(graphPtr->legend))) {
-        /* Print legend above elements (but not markers) */
-        Rbc_LegendToPostScript(graphPtr->legend, psToken);
-    }
-    Rbc_MarkersToPostScript(graphPtr, psToken, FALSE);
-    Rbc_ActiveElementsToPostScript(graphPtr, psToken);
-    Rbc_RenderPlotEnd(output);
-    MarginsToPostScript(graphPtr, psToken);
-    Rbc_AppendToPostScript(psToken, "showpage\n", "%Trailer\n", "grestore\n", "end\n", "%EOF\n", (char *)NULL);
-
-error:
-    if (output != NULL) {
-        Rbc_RenderEnd(output);
-    }
-    graphPtr->flags &= ~GRAPH_POSTSCRIPT;
-    graphPtr->width = Tk_Width(graphPtr->tkwin);
-    graphPtr->height = Tk_Height(graphPtr->tkwin);
-    graphPtr->flags = MAP_WORLD;
-    Rbc_EventuallyRedrawGraph(graphPtr);
+    Rbc_ExportEndGraph(graphPtr);
+    Rbc_ExportFree(&export);
     return result;
 }
 

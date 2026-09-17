@@ -118,7 +118,7 @@ typedef struct {
 } ClosestSearch;
 
 typedef void(ElementDrawProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr);
-typedef void(ElementToPostScriptProc)(Graph *graphPtr, PsToken psToken, Element *elemPtr);
+typedef void(ElementExportProc)(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr);
 typedef void(ElementDestroyProc)(Graph *graphPtr, Element *elemPtr);
 typedef int(ElementConfigProc)(Graph *graphPtr, Element *elemPtr);
 typedef void(ElementMapProc)(Graph *graphPtr, Element *elemPtr);
@@ -126,7 +126,7 @@ typedef void(ElementExtentsProc)(Element *elemPtr, Extents2D *extsPtr);
 typedef void(ElementClosestProc)(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr);
 typedef void(ElementDrawSymbolProc)(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int symbolSize,
                                     int width, int height);
-typedef void(ElementSymbolToPostScriptProc)(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y,
+typedef void(ElementSymbolExportProc)(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y,
                                             int symSize);
 typedef Tcl_Size(ElementPointCountProc)(Element *elemPtr);
 typedef int(ElementClosestInfoProc)(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr,
@@ -140,9 +140,9 @@ typedef struct {
     ElementDrawProc *drawNormalProc;
     ElementDrawSymbolProc *drawSymbolProc;
     ElementExtentsProc *extentsProc;
-    ElementToPostScriptProc *printActiveProc;
-    ElementToPostScriptProc *printNormalProc;
-    ElementSymbolToPostScriptProc *printSymbolProc;
+    ElementExportProc *exportActiveProc;
+    ElementExportProc *exportNormalProc;
+    ElementSymbolExportProc *exportSymbolProc;
     ElementMapProc *mapProc;
     ElementPointCountProc *pointCountProc;
     ElementClosestInfoProc *closestInfoProc;    

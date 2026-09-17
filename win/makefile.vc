@@ -43,6 +43,8 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcGrPen.obj \
     $(TMP_DIR)\rbcGrPolar.obj \
     $(TMP_DIR)\rbcGrPs.obj \
+    $(TMP_DIR)\rbcGrExport.obj \
+    $(TMP_DIR)\rbcGrSvg.obj \
     $(TMP_DIR)\rbcImage.obj \
     $(TMP_DIR)\rbcInt.obj \
     $(TMP_DIR)\rbcList.obj \

@@ -778,7 +778,7 @@ For example:
 .fi
 .RE
 .PP
--areaopacity controls solid area fills (-areapattern solid) with -renderer cairo\&.
+-areaopacity controls solid area fills (-areapattern solid) with -renderer cairo and in SVG output\&.
 It accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&.
 Intermediate values blend the fill with the content already drawn beneath it\&. It does not
 change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha\&.
@@ -832,7 +832,7 @@ The complete line-element option set is:
 │ -areaforeground color   │ areaForeground   │ areaForeground   │ Sets the foreground color used by an area fill or       │
 │                         │                  │                  │ stipple\&. The default is black\&.                          │
 │ -areaclose mode         │ areaClose        │ AreaClose        │ Fill closure: baseline (default), chord, or origin\&.     │
-│ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0\&.0–1\&.0 (default 1\&.0), Cairo only\&.        │
+│ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0\&.0–1\&.0 (default 1\&.0), Cairo and SVG\&.        │
 │                         │                  │                  │ Native rendering and PostScript ignore this option\&.    │
 │ -areapattern pattern    │ areaPattern      │ AreaPattern      │ Enables area filling with solid or a Tk bitmap stipple\&. │
 │                         │                  │                  │ An empty value disables the pattern\&.                    │

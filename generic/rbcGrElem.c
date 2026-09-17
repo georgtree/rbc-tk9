@@ -3764,7 +3764,7 @@ void Rbc_MapElements(Graph *graphPtr) {
              * remain fixed. Record native element remapping separately
              * from marker-only redraws.
              */
-            if (!(graphPtr->flags & GRAPH_POSTSCRIPT)) {
+            if (!(graphPtr->flags & GRAPH_EXPORT)) {
                 graphPtr->flags |= GRAPH_CHANGED;
             }
             (*elemPtr->procsPtr->mapProc)(graphPtr, elemPtr);
@@ -3844,14 +3844,14 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
 /*
  * -----------------------------------------------------------------
  *
- * Rbc_ElementsToPostScript --
+ * Rbc_ElementsExport --
  *
  *      Generates PostScript output for each graph element in the
  *      element display list.
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -3861,7 +3861,7 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
  *
  * -----------------------------------------------------------------
  */
-void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
     Element *elemPtr;
 
@@ -3870,8 +3870,10 @@ void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
             /* Comment the PostScript to indicate the start of the element */
-            Rbc_FormatToPostScript(psToken, "\n%% Element \"%s\"\n\n", elemPtr->name);
-            (*elemPtr->procsPtr->printNormalProc)(graphPtr, psToken, elemPtr);
+            if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
+                Rbc_ExportFormat(exportPtr, "\n%% Element \"%s\"\n\n", elemPtr->name);
+            }
+            (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
         }
     }
 }
@@ -3879,13 +3881,13 @@ void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_ActiveElementsToPostScript --
+ * Rbc_ActiveElementsExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -3895,7 +3897,7 @@ void Rbc_ElementsToPostScript(Graph *graphPtr, PsToken psToken) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_ActiveElementsToPostScript(Graph *graphPtr, PsToken psToken) {
+void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_ChainLink *linkPtr;
     Element *elemPtr;
 
@@ -3903,8 +3905,10 @@ void Rbc_ActiveElementsToPostScript(Graph *graphPtr, PsToken psToken) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
-            Rbc_FormatToPostScript(psToken, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
-            (*elemPtr->procsPtr->printActiveProc)(graphPtr, psToken, elemPtr);
+            if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
+                Rbc_ExportFormat(exportPtr, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
+            }
+            (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
         }
     }
 }

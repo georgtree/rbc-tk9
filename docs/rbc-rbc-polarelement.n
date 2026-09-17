@@ -27,7 +27,7 @@ show are documented in \fIELEMENT\fP\&.
 Polar elements use the same underlying line-rendering machinery as \fILINEELEMENT\fP\&. Consequently they support
 the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
 area filling, and smoothing options\&.
-In particular, -areaopacity controls solid fill opacity in Cairo; native rendering and
+In particular, -areaopacity controls solid fill opacity in Cairo and SVG; native rendering and
 PostScript ignore it\&. See \fILINEELEMENT\fP for the area options and renderer limitations\&.
 .PP
 Polar elements additionally support direct complex-vector data through -cdata and can interpret complex

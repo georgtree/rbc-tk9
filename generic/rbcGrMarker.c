@@ -76,7 +76,7 @@ typedef void(MarkerDrawProc)(Marker *markerPtr, Drawable drawable);
 typedef void(MarkerFreeProc)(Graph *graphPtr, Marker *markerPtr);
 typedef int(MarkerConfigProc)(Marker *markerPtr);
 typedef void(MarkerMapProc)(Marker *markerPtr);
-typedef void(MarkerPostScriptProc)(Marker *markerPtr, PsToken psToken);
+typedef void(MarkerExportProc)(Marker *markerPtr, Rbc_ExportContext *exportPtr);
 typedef int(MarkerPointProc)(Marker *markerPtr, Point2D *samplePtr);
 typedef int(MarkerRegionProc)(Marker *markerPtr, Extents2D *extsPtr, int enclosed);
 
@@ -89,7 +89,7 @@ typedef struct {
     MarkerMapProc *mapProc;
     MarkerPointProc *pointProc;
     MarkerRegionProc *regionProc;
-    MarkerPostScriptProc *postscriptProc;
+    MarkerExportProc *exportProc;
 } MarkerClass;
 
 /*
@@ -661,8 +661,8 @@ static MarkerFreeProc FreeBitmapMarker, FreeLineMarker, FreeImageMarker, FreePol
 static MarkerConfigProc ConfigureBitmapMarker, ConfigureLineMarker, ConfigureImageMarker, ConfigurePolygonMarker,
     ConfigureTextMarker, ConfigureWindowMarker;
 static MarkerMapProc MapBitmapMarker, MapLineMarker, MapImageMarker, MapPolygonMarker, MapTextMarker, MapWindowMarker;
-static MarkerPostScriptProc BitmapMarkerToPostScript, LineMarkerToPostScript, ImageMarkerToPostScript,
-    PolygonMarkerToPostScript, TextMarkerToPostScript, WindowMarkerToPostScript;
+static MarkerExportProc BitmapMarkerExport, LineMarkerExport, ImageMarkerExport,
+    PolygonMarkerExport, TextMarkerExport, WindowMarkerExport;
 static MarkerPointProc PointInBitmapMarker, PointInLineMarker, PointInImageMarker, PointInPolygonMarker,
     PointInTextMarker, PointInWindowMarker;
 static MarkerRegionProc RegionInBitmapMarker, RegionInLineMarker, RegionInImageMarker, RegionInPolygonMarker,
@@ -710,7 +710,7 @@ static MarkerClass bitmapMarkerClass = {
     .mapProc = MapBitmapMarker,
     .pointProc = PointInBitmapMarker,
     .regionProc = RegionInBitmapMarker,
-    .postscriptProc = BitmapMarkerToPostScript,
+    .exportProc = BitmapMarkerExport,
 };
 
 static MarkerClass imageMarkerClass = {
@@ -722,7 +722,7 @@ static MarkerClass imageMarkerClass = {
     .mapProc = MapImageMarker,
     .pointProc = PointInImageMarker,
     .regionProc = RegionInImageMarker,
-    .postscriptProc = ImageMarkerToPostScript,
+    .exportProc = ImageMarkerExport,
 };
 
 static MarkerClass lineMarkerClass = {
@@ -734,7 +734,7 @@ static MarkerClass lineMarkerClass = {
     .mapProc = MapLineMarker,
     .pointProc = PointInLineMarker,
     .regionProc = RegionInLineMarker,
-    .postscriptProc = LineMarkerToPostScript,
+    .exportProc = LineMarkerExport,
 };
 
 static MarkerClass polygonMarkerClass = {
@@ -746,7 +746,7 @@ static MarkerClass polygonMarkerClass = {
     .mapProc = MapPolygonMarker,
     .pointProc = PointInPolygonMarker,
     .regionProc = RegionInPolygonMarker,
-    .postscriptProc = PolygonMarkerToPostScript,
+    .exportProc = PolygonMarkerExport,
 };
 
 static MarkerClass textMarkerClass = {
@@ -758,7 +758,7 @@ static MarkerClass textMarkerClass = {
     .mapProc = MapTextMarker,
     .pointProc = PointInTextMarker,
     .regionProc = RegionInTextMarker,
-    .postscriptProc = TextMarkerToPostScript,
+    .exportProc = TextMarkerExport,
 };
 
 static MarkerClass windowMarkerClass = {
@@ -770,7 +770,7 @@ static MarkerClass windowMarkerClass = {
     .mapProc = MapWindowMarker,
     .pointProc = PointInWindowMarker,
     .regionProc = RegionInWindowMarker,
-    .postscriptProc = WindowMarkerToPostScript,
+    .exportProc = WindowMarkerExport,
 };
 
 static int InitMarkerOptions(Marker *markerPtr) {
@@ -2135,13 +2135,13 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
 /*
  * ----------------------------------------------------------------------
  *
- * BitmapMarkerToPostScript --
+ * BitmapMarkerExport --
  *
  *      Generates PostScript to print a bitmap marker.
  *
  * Parameters:
  *      Marker *markerPtr - Marker to be printed
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      None.
@@ -2151,8 +2151,8 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
  *
  * ----------------------------------------------------------------------
  */
-static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void BitmapMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Graph *graphPtr;
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     Pixmap foregroundMask;
@@ -2789,13 +2789,13 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
 /*
  * ----------------------------------------------------------------------
  *
- * ImageMarkerToPostScript --
+ * ImageMarkerExport --
  *
  *      This procedure is invoked to print a image marker.
  *
  * Parameters:
  *      Marker *markerPtr - Marker to be printed
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      None.
@@ -2805,8 +2805,8 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
  *
  * ----------------------------------------------------------------------
  */
-static void ImageMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     const char *imageName;
     Tk_PhotoHandle photo;
@@ -2817,10 +2817,6 @@ static void ImageMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
     }
     imageName = (imPtr->tmpImage == NULL) ? Rbc_NameOfImage(imPtr->tkImage) : Rbc_NameOfImage(imPtr->tmpImage);
     photo = Tk_FindPhoto(markerPtr->graphPtr->interp, imageName);
-    if (photo == NULL) {
-        Rbc_RenderEnd(output);
-        return; /* Image isn't a photo image */
-    }
     Rbc_RenderPhotoImage(output, photo, imPtr->anchorPos.x, imPtr->anchorPos.y);
     Rbc_RenderEnd(output);
 }
@@ -3290,14 +3286,14 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
 /*
  * ----------------------------------------------------------------------
  *
- * TextMarkerToPostScript --
+ * TextMarkerExport --
  *
  *      Outputs PostScript commands to draw a text marker at a given
  *      x,y coordinate, rotation, anchor, and font.
  *
  * Parameters:
  *      Marker *markerPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      None.
@@ -3307,8 +3303,8 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
  *
  * ----------------------------------------------------------------------
  */
-static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void TextMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
     if (tmPtr->string == NULL) {
@@ -3675,13 +3671,13 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * WindowMarkerToPostScript --
+ * WindowMarkerExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Marker *markerPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -3691,8 +3687,8 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-static void WindowMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+static void WindowMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
     if (wmPtr->tkwin == NULL) {
         Rbc_RenderEnd(output);
@@ -4494,7 +4490,7 @@ error:
 /*
  * ----------------------------------------------------------------------
  *
- * ArrowHeadToPostScript --
+ * ArrowHeadExport --
  *
  *      Emits PostScript commands for a filled line-marker arrowhead.
  *      The arrowhead uses the marker's outline color.
@@ -4504,12 +4500,12 @@ error:
  *
  * ----------------------------------------------------------------------
  */
-static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *arrow) {
+static void ArrowHeadExport(LineMarker *lmPtr, Rbc_ExportContext *exportPtr, Point2D *arrow) {
     if (lmPtr->outlineColor == NULL) {
         return;
     }
     Rbc_RenderFillStyle style = {lmPtr->outlineColor, NULL, None, 1.0, FALSE};
-    Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(lmPtr->core.graphPtr, psToken, &style);
+    Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(lmPtr->core.graphPtr, exportPtr, &style);
 
     Rbc_RenderFillPolygon(ctx, arrow, PTS_IN_ARROW - 1);
     Rbc_RenderEnd(ctx);
@@ -4518,7 +4514,7 @@ static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *a
 /*
  * ----------------------------------------------------------------------
  *
- * LineMarkerToPostScript --
+ * LineMarkerExport --
  *
  *      Prints postscript commands to display the connect line.
  *      Dashed lines need to be handled specially, especially if a
@@ -4526,7 +4522,7 @@ static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *a
  *
  * Parameters:
  *      Marker *markerPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      None.
@@ -4537,13 +4533,13 @@ static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *a
  *
  * ----------------------------------------------------------------------
  */
-static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+static void LineMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
     /*
      * Draw the line shaft.
      */
     if (lmPtr->nSegments > 0) {
-        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, lmPtr->outlineColor, lmPtr->lineWidth,
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExport(exportPtr, lmPtr->outlineColor, lmPtr->lineWidth,
                                                           &lmPtr->dashes, lmPtr->capStyle, lmPtr->joinStyle);
 
         Rbc_RenderDashBackground(ctx, lmPtr->fillColor);
@@ -4556,10 +4552,10 @@ static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
      * at the neck of the arrowhead.
      */
     if (lmPtr->hasFirstArrow) {
-        ArrowHeadToPostScript(lmPtr, psToken, lmPtr->firstArrow);
+        ArrowHeadExport(lmPtr, exportPtr, lmPtr->firstArrow);
     }
     if (lmPtr->hasLastArrow) {
-        ArrowHeadToPostScript(lmPtr, psToken, lmPtr->lastArrow);
+        ArrowHeadExport(lmPtr, exportPtr, lmPtr->lastArrow);
     }
 }
 
@@ -4899,13 +4895,13 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * PolygonMarkerToPostScript --
+ * PolygonMarkerExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Marker *markerPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -4915,18 +4911,18 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-static void PolygonMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+static void PolygonMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL)) {
         Rbc_RenderFillStyle style = {pmPtr->fill.fgColor, pmPtr->fill.bgColor, pmPtr->stipple, 1.0, FALSE};
-        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
 
         Rbc_RenderFillPolygon(ctx, pmPtr->fillPts, pmPtr->nFillPts);
         Rbc_RenderEnd(ctx);
     }
     if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
-        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, pmPtr->outline.fgColor, pmPtr->lineWidth,
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExport(exportPtr, pmPtr->outline.fgColor, pmPtr->lineWidth,
                                                           &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle);
 
         Rbc_RenderDashBackground(ctx, pmPtr->outline.bgColor);
@@ -6013,13 +6009,13 @@ int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_MarkersToPostScript --
+ * Rbc_MarkersExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      int under
  *
  * Results:
@@ -6030,14 +6026,14 @@ int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  *
  *----------------------------------------------------------------------
  */
-void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under) {
+void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
 
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->markers.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
-        if ((markerPtr->classPtr->postscriptProc == NULL) || (markerPtr->nWorldPts == 0)) {
+        if ((markerPtr->classPtr->exportProc == NULL) || (markerPtr->nWorldPts == 0)) {
             continue;
         }
         if (markerPtr->drawUnder != under) {
@@ -6059,9 +6055,11 @@ void Rbc_MarkersToPostScript(Graph *graphPtr, PsToken psToken, int under) {
                 }
             }
         }
-        Rbc_AppendToPostScript(psToken, "\n% Marker \"", markerPtr->name, "\" is a ", markerPtr->classUid, " marker\n",
+        if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
+            Rbc_ExportAppend(exportPtr, "\n% Marker \"", markerPtr->name, "\" is a ", markerPtr->classUid, " marker\n",
                                (char *)NULL);
-        (*markerPtr->classPtr->postscriptProc)(markerPtr, psToken);
+        }
+        (*markerPtr->classPtr->exportProc)(markerPtr, exportPtr);
     }
 }
 

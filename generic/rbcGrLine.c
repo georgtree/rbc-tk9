@@ -1291,9 +1291,9 @@ static ElementDrawProc DrawActiveLine;
 static ElementDrawProc DrawNormalLine;
 static ElementDrawSymbolProc DrawSymbol;
 static ElementExtentsProc GetLineExtents;
-static ElementToPostScriptProc ActiveLineToPostScript;
-static ElementToPostScriptProc NormalLineToPostScript;
-static ElementSymbolToPostScriptProc SymbolToPostScript;
+static ElementExportProc ActiveLineExport;
+static ElementExportProc NormalLineExport;
+static ElementSymbolExportProc SymbolExport;
 static ElementMapProc MapLine;
 static DistanceProc DistanceToY;
 static DistanceProc DistanceToX;
@@ -1345,12 +1345,11 @@ static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr);
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData);
-static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size);
-static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
+static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts);
-static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr);
-static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr);
-static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
+static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr);
+static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr);
+static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData);
 static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
@@ -3453,11 +3452,11 @@ INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
  */
 static int CanPixelDecimateLine(Line *linePtr) {
     /*
-     * Screen-density decimation is a display optimization.  PostScript
+     * Screen-density decimation is a display optimization.  Export
      * output remaps the graph for its own layout and must retain the
      * full line geometry.
      */
-    if (linePtr->core.graphPtr->flags & GRAPH_POSTSCRIPT) {
+    if (linePtr->core.graphPtr->flags & GRAPH_EXPORT) {
         return FALSE;
     }
     if (linePtr->decimate != LINE_DECIMATE_AUTO) {
@@ -11108,14 +11107,14 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
 /*
  *----------------------------------------------------------------------
  *
- * SymbolsToPostScript --
+ * SymbolsExport --
  *
  *      Resolve pen colors and export symbols through the renderer.
  *      Normal, active and legend symbols share this path.
  *
  *----------------------------------------------------------------------
  */
-static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
+static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts) {
     static const Rbc_RenderSymbolType types[] = {
         RBC_RENDER_SYMBOL_CIRCLE, /* SYMBOL_NONE is not drawn here. */
@@ -11139,7 +11138,7 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
         penPtr->traceColor : penPtr->symbol.fillColor;
     style.bitmap = penPtr->symbol.bitmap;
     style.mask = penPtr->symbol.mask;
-    ctx = Rbc_RenderBeginPostScriptSymbol(graphPtr, psToken, &style);
+    ctx = Rbc_RenderBeginExportSymbol(graphPtr, exportPtr, &style);
     Rbc_RenderSymbolPoints(ctx, symbolPts, nSymbolPts);
     Rbc_RenderEnd(ctx);
 }
@@ -11147,13 +11146,13 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
 /*
  * -----------------------------------------------------------------
  *
- * SymbolToPostScript --
+ * SymbolExport --
  *
  *      Draw the symbol centered at the each given x,y coordinate.
  *
  * Parameters:
  *      Graph *graphPtr - Graph widget record
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr - Line element information
  *      double x - Center position of symbol
  *      double y - Center position of symbol
@@ -11167,12 +11166,12 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
  *
  * -----------------------------------------------------------------
  */
-static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
+static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y, int size) {
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     if (penPtr->traceWidth > 0) {
         /* The legend sample is twice the symbol width and uses a thicker stroke. */
         Segment2D segment = {{x - size, y}, {x + size, y}};
-        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, penPtr->traceColor, penPtr->traceWidth + 2,
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExport(exportPtr, penPtr->traceColor, penPtr->traceWidth + 2,
                                                           &penPtr->traceDashes, CapButt, JoinMiter);
 
         Rbc_RenderSegments(ctx, &segment, 1);
@@ -11181,24 +11180,24 @@ static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPt
     if (penPtr->symbol.type != SYMBOL_NONE) {
         Point2D point;
         point.x = x, point.y = y;
-        SymbolsToPostScript(graphPtr, psToken, penPtr, size, 1, &point);
+        SymbolsExport(graphPtr, exportPtr, penPtr, size, 1, &point);
     }
 }
 
 /*
  *----------------------------------------------------------------------
  *
- * BeginLinePostScript --
+ * BeginLineExport --
  *
  *      Create a shared stroke context for a line pen, including its
  *      optional off-dash background. The caller ends the context.
  *
  *----------------------------------------------------------------------
  */
-static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr) {
+static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
 
-    ctx = Rbc_RenderBeginPostScript(psToken, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+    ctx = Rbc_RenderBeginExport(exportPtr, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
                                     CapButt, JoinMiter);
     Rbc_RenderDashBackground(ctx, penPtr->traceOffColor);
     return ctx;
@@ -11207,12 +11206,12 @@ static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr) 
 /*
  *----------------------------------------------------------------------
  *
- * TracesToPostScript --
+ * TracesExport --
  *
  *      TODO: Description
  *
  * Parameters:
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Line *linePtr
  *      LinePen *penPtr
  *
@@ -11224,9 +11223,9 @@ static Rbc_RenderContext *BeginLinePostScript(PsToken psToken, LinePen *penPtr) 
  *
  *----------------------------------------------------------------------
  */
-static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) {
+static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr) {
     Rbc_ChainLink *linkPtr;
-    Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
+    Rbc_RenderContext *ctx = BeginLineExport(exportPtr, penPtr);
 
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         LineTrace *tracePtr = Rbc_ChainGetValue(linkPtr);
@@ -11239,12 +11238,12 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
 /*
  *----------------------------------------------------------------------
  *
- * ValuesToPostScript --
+ * ValuesExport --
  *
  *      TODO: Description
  *
  * Parameters:
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Line *linePtr
  *      LinePen *penPtr
  *      int nSymbolPts
@@ -11259,9 +11258,9 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
  *
  *----------------------------------------------------------------------
  */
-static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
+static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
@@ -11298,7 +11297,7 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
 /*
  *----------------------------------------------------------------------
  *
- * ActiveLineToPostScript --
+ * ActiveLineExport --
  *
  *      Generates PostScript commands to draw as "active" the points
  *      (symbols) and or line segments (trace) representing the
@@ -11306,7 +11305,7 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr
  *
  * Results:
@@ -11317,7 +11316,7 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
  *
  *----------------------------------------------------------------------
  */
-static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
+static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr;
     LinePen *penPtr;
     int symbolSize;
@@ -11333,29 +11332,29 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
             MapActiveSymbols(graphPtr, linePtr);
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
-            SymbolsToPostScript(graphPtr, psToken, penPtr, symbolSize, linePtr->nActivePts, linePtr->activePts);
+            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nActivePts, linePtr->activePts);
         }
         if (penPtr->valueShow != SHOW_NONE) {
-            ValuesToPostScript(psToken, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
+            ValuesExport(exportPtr, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
                                linePtr->activeToData);
         }
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
             if (linePtr->nStrips > 0) {
-                Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
+                Rbc_RenderContext *ctx = BeginLineExport(exportPtr, penPtr);
 
                 Rbc_RenderSegments(ctx, linePtr->strips, linePtr->nStrips);
                 Rbc_RenderEnd(ctx);
             }
             if (Rbc_ChainGetLength(linePtr->traces) > 0) {
-                TracesToPostScript(psToken, linePtr, penPtr);
+                TracesExport(exportPtr, linePtr, penPtr);
             }
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
-            SymbolsToPostScript(graphPtr, psToken, penPtr, symbolSize, linePtr->nSymbolPts, linePtr->symbolPts);
+            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nSymbolPts, linePtr->symbolPts);
         }
         if (penPtr->valueShow != SHOW_NONE) {
-            ValuesToPostScript(psToken, linePtr, penPtr, linePtr->nSymbolPts, linePtr->symbolPts,
+            ValuesExport(exportPtr, linePtr, penPtr, linePtr->nSymbolPts, linePtr->symbolPts,
                                linePtr->symbolToData);
         }
     }
@@ -11364,14 +11363,14 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
 /*
  *----------------------------------------------------------------------
  *
- * NormalLineToPostScript --
+ * NormalLineExport --
  *
  *      Similar to the DrawLine procedure, prints PostScript related
  *      commands to form the connected line(s) representing the element.
  *
  * Parameters:
  *      Graph *graphPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *      Element *elemPtr
  *
  * Results:
@@ -11382,7 +11381,7 @@ static void ActiveLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
  *
  *----------------------------------------------------------------------
  */
-static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr) {
+static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
     LinePen *normalPenPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     register LinePenStyle *stylePtr;
@@ -11395,8 +11394,8 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
     if (linePtr->fillPts != NULL) {
         Rbc_RenderFillStyle style = {linePtr->fillFgColor, linePtr->fillBgColor,
             (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple,
-            1.0, linePtr->fillTile != NULL};
-        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, &style);
+            linePtr->areaOpacity, linePtr->fillTile != NULL};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
 
         Rbc_RenderFillPolygon(ctx, linePtr->fillPts, linePtr->nFillPts);
         Rbc_RenderEnd(ctx);
@@ -11407,14 +11406,14 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
             if ((stylePtr->nStrips > 0) && (penPtr->traceWidth > 0)) {
-                Rbc_RenderContext *ctx = BeginLinePostScript(psToken, penPtr);
+                Rbc_RenderContext *ctx = BeginLineExport(exportPtr, penPtr);
 
                 Rbc_RenderSegments(ctx, stylePtr->strips, stylePtr->nStrips);
                 Rbc_RenderEnd(ctx);
             }
         }
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
-        TracesToPostScript(psToken, linePtr, normalPenPtr);
+        TracesExport(exportPtr, linePtr, normalPenPtr);
     }
     /* Draw symbols, error bars, values. */
     count = 0;
@@ -11428,23 +11427,23 @@ static void NormalLineToPostScript(Graph *graphPtr, PsToken psToken, Element *el
         if ((stylePtr->xErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_X)) {
             Rbc_RenderContext *ctx;
 
-            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            ctx = Rbc_RenderBeginExport(exportPtr, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
             Rbc_RenderSegments(ctx, stylePtr->xErrorBars, stylePtr->xErrorBarCnt);
             Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->yErrorBarCnt > 0) && (penPtr->errorBarShow & SHOW_Y)) {
             Rbc_RenderContext *ctx;
 
-            ctx = Rbc_RenderBeginPostScript(psToken, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
+            ctx = Rbc_RenderBeginExport(exportPtr, colorPtr, penPtr->errorBarLineWidth, NULL, CapButt, JoinMiter);
             Rbc_RenderSegments(ctx, stylePtr->yErrorBars, stylePtr->yErrorBarCnt);
             Rbc_RenderEnd(ctx);
         }
         if ((stylePtr->nSymbolPts > 0) && (stylePtr->penPtr->symbol.type != SYMBOL_NONE)) {
-            SymbolsToPostScript(graphPtr, psToken, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
+            SymbolsExport(graphPtr, exportPtr, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
                                 stylePtr->symbolPts);
         }
         if (penPtr->valueShow != SHOW_NONE) {
-            ValuesToPostScript(psToken, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,
+            ValuesExport(exportPtr, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,
                                linePtr->symbolToData + count);
         }
         count += stylePtr->nSymbolPts;
@@ -11534,9 +11533,9 @@ static ElementProcs lineProcs = {
     DrawNormalLine,         /* Draws normal element */
     DrawSymbol,             /* Draws the element symbol. */
     GetLineExtents,         /* Find the extents of the element's data. */
-    ActiveLineToPostScript, /* Prints active element. */
-    NormalLineToPostScript, /* Prints normal element. */
-    SymbolToPostScript,     /* Prints the line's symbol. */
+    ActiveLineExport, /* Prints active element. */
+    NormalLineExport, /* Prints normal element. */
+    SymbolExport,     /* Prints the line's symbol. */
     MapLine,                /* Compute element's screen coordinates. */
     NULL,                   /* Ordinary X/Y point count. */
     LineClosestInfo         /* Optional parameter information. */
@@ -11550,9 +11549,9 @@ static ElementProcs polarLineProcs = {
     DrawNormalLine,
     DrawSymbol,
     GetLineExtents,
-    ActiveLineToPostScript,
-    NormalLineToPostScript,
-    SymbolToPostScript,
+    ActiveLineExport,
+    NormalLineExport,
+    SymbolExport,
     MapLine,
     LinePointCount,  /* X/Y or complex data. */
     PolarClosestInfo /* Polar/Smith closest information. */

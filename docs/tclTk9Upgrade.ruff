@@ -183,7 +183,7 @@ namespace eval TclTk9Upgrade {
         `{0 0}`. These choices control the fill polygon without adding segments to the visible trace. They apply
         to solid, stippled and tiled areas, and the same closure geometry is used in PostScript.
 
-        `-areaopacity` controls solid fills (`-areapattern solid`) in Cairo, from `0.0` (invisible) to `1.0`
+        `-areaopacity` controls solid fills (`-areapattern solid`) in Cairo and SVG, from `0.0` (invisible) to `1.0`
         (opaque, the default). It does not change lines, symbols, stipples or image tiles. Photo tiles retain
         their own per-pixel alpha, including partial transparency.
 
@@ -518,6 +518,13 @@ namespace eval TclTk9Upgrade {
         - Corrected Windows bitmap representation and mask generation.
         - Hardened bitmap allocation and size calculations.
         - Isolated native bitmap-handle access behind Rbc Windows helper functions.
+
+        ### SVG output
+
+        Graph widgets now provide `svg cget`, `svg configure`, and `svg output`, with independent width,
+        height and decoration settings. SVG export uses vector geometry and editable text and does not
+        require Cairo. Solid area opacity is preserved. The initial version rejects unsupported bitmap,
+        image, window and stipple content before opening an output file. See the graph SVG output section.
 
         ### PostScript output
 

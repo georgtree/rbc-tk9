@@ -2080,7 +2080,7 @@ namespace eval ::rbc::LINEELEMENT {
         .g element configure signal -areapattern solid -areaforeground lightblue
         ```
 
-        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo`.
+        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo` and in SVG output.
         It accepts a finite number from `0.0` (invisible) to `1.0` (opaque, the default).
         Intermediate values blend the fill with the content already drawn beneath it. It does not
         change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha.
@@ -2126,7 +2126,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-areabackground color` | `areaBackground` | `areaBackground` | Sets the background color used by an area stipple. The default is white.                                                                                                                                          |
         | `-areaforeground color` | `areaForeground` | `areaForeground` | Sets the foreground color used by an area fill or stipple. The default is black.                                                                                                                                  |
         | `-areaclose mode` | `areaClose` | `AreaClose` | Fill closure: `baseline` (default), `chord`, or `origin`. |
-        | `-areaopacity value` | `areaOpacity` | `AreaOpacity` | Solid fill opacity from `0.0` to `1.0` (default); Cairo only. Native and PostScript ignore it. |
+        | `-areaopacity value` | `areaOpacity` | `AreaOpacity` | Solid fill opacity from `0.0` to `1.0` (default); Cairo and SVG. Native and PostScript ignore it. |
         | `-areapattern pattern`  | `areaPattern`    | `AreaPattern`    | Enables area filling with `solid` or a Tk bitmap stipple. An empty value disables the pattern.                                                                                                                    |
         | `-areatile tile`        | `areaTile`       | `AreaTile`       | Enables area filling with the named Rbc tile/image. An empty value disables the tile.                                                                                                                             |
         | `-bindtags tags`        | `bindTags`       | `BindTags`       | Specifies additional graph binding tags for the element. The default is `all`.                                                                                                                                    |
@@ -2194,7 +2194,7 @@ namespace eval ::rbc::LINEELEMENT {
         │ -areaforeground color   │ areaForeground   │ areaForeground   │ Sets the foreground color used by an area fill or       │
         │                         │                  │                  │ stipple. The default is black.                          │
         │ -areaclose mode         │ areaClose        │ AreaClose        │ Fill closure: baseline (default), chord, or origin.     │
-        │ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0.0–1.0 (default 1.0), Cairo only.        │
+        │ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0.0–1.0 (default 1.0), Cairo and SVG.        │
         │                         │                  │                  │ Native rendering and PostScript ignore this option.    │
         │ -areapattern pattern    │ areaPattern      │ AreaPattern      │ Enables area filling with solid or a Tk bitmap stipple. │
         │                         │                  │                  │ An empty value disables the pattern.                    │
@@ -2375,7 +2375,7 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-areaforeground` | area-fill foreground                                  |
         | `-areapattern`    | area filling with a solid or stipple pattern          |
         | `-areaclose`      | area fill closure                                     |
-        | `-areaopacity`    | Cairo solid area fill opacity                         |
+        | `-areaopacity`    | Cairo/SVG solid area fill opacity                         |
         | `-areatile`       | tiled area filling                                    |
         | `-param`          | per-point parameter mapping returned by `ELEMENT closest` |
         | `-reduce`         | screen-space trace reduction                          |
@@ -2390,7 +2390,7 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -areabackground     │ area-fill stipple background                            │
         │ -areaforeground     │ area-fill foreground                                    │
         │ -areapattern        │ area filling with a solid or stipple pattern            │
-        │ -areaopacity        │ Cairo solid area fill opacity                           │
+        │ -areaopacity        │ Cairo/SVG solid area fill opacity                           │
         │ -areatile           │ tiled area filling                                      │
         │ -param              │ per-point parameter mapping returned by ELEMENT closest │
         │ -reduce             │ screen-space trace reduction                            │
@@ -2773,7 +2773,7 @@ namespace eval ::rbc::POLARELEMENT {
         Polar elements use the same underlying line-rendering machinery as [LINEELEMENT]. Consequently they support
         the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
         area filling, and smoothing options.
-        In particular, `-areaopacity` controls solid fill opacity in Cairo; native rendering and
+        In particular, `-areaopacity` controls solid fill opacity in Cairo and SVG; native rendering and
         PostScript ignore it. See [LINEELEMENT] for the area options and renderer limitations.
 
         Polar elements additionally support direct complex-vector data through `-cdata` and can interpret complex

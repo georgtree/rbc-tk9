@@ -53,11 +53,17 @@ typedef struct {
 struct Rbc_RenderContext {
     const Rbc_RenderOps *ops;
     PsToken psToken;
+    Rbc_ExportContext *exportPtr;
     int postScriptDashed;
     Graph *graphPtr;
     Rbc_RenderFillStyle fillStyle;
     const char *symbolMacro;
     double symbolSize;
+    XColor svgColor, svgOffColor;
+    int svgHasColor, svgHasOffColor, svgWidth, svgCap, svgJoin;
+    Rbc_Dashes svgDashes;
+    Rbc_RenderSymbolStyle svgSymbol;
+    int svgBarSymbol;
 #ifdef RBC_HAVE_CAIRO
     cairo_surface_t *surface;
     cairo_t *cr;
@@ -76,6 +82,9 @@ struct Rbc_RenderContext {
 #endif
 #endif
 };
+
+static const Rbc_RenderOps svgOps;
+static void SvgError(Rbc_ExportContext *token, const char *message);
 
 #ifdef RBC_HAVE_CAIRO
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
@@ -1226,7 +1235,9 @@ static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *styl
 }
 
 static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
-    Rbc_PhotoToPostScript(ctx->psToken, photo, x, y);
+    if (photo != NULL) {
+        Rbc_PhotoToPostScript(ctx->psToken, photo, x, y);
+    }
 }
 
 static void PostScriptWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y) {
@@ -1328,34 +1339,59 @@ static const Rbc_RenderOps postScriptOps = {
     PostScriptFillPolygon, PostScriptFillRectangles, PostScriptSymbolPoints, &postScriptOutputOps, PostScriptEnd
 };
 
-Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
+Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                             const Rbc_Dashes *dashes, int capStyle, int joinStyle) {
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
 
     memset(ctx, 0, sizeof(*ctx));
     ctx->ops = &postScriptOps;
-    ctx->psToken = psToken;
+    ctx->exportPtr = exportPtr;
+    ctx->psToken = (PsToken)exportPtr->backendData;
+    if (exportPtr->backend == RBC_EXPORT_SVG) {
+        ctx->ops = &svgOps;
+        ctx->svgHasColor = color != NULL;
+        if (color != NULL) {
+            ctx->svgColor = *color;
+        }
+        ctx->svgWidth = MAX(1, lineWidth);
+        ctx->svgCap = capStyle;
+        ctx->svgJoin = joinStyle;
+        if (dashes != NULL) {
+            ctx->svgDashes = *dashes;
+        }
+        return ctx;
+    }
     ctx->postScriptDashed = (dashes != NULL) && (dashes->values[0] != 0);
-    Rbc_LineAttributesToPostScript(psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle, joinStyle);
+    Rbc_LineAttributesToPostScript(ctx->psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle, joinStyle);
     return ctx;
 }
 
-Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                 const Rbc_RenderFillStyle *style) {
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
 
     memset(ctx, 0, sizeof(*ctx));
     ctx->ops = &postScriptOps;
-    ctx->psToken = psToken;
+    ctx->exportPtr = exportPtr;
+    ctx->psToken = (PsToken)exportPtr->backendData;
     ctx->graphPtr = graphPtr;
     ctx->fillStyle = *style;
+    if (exportPtr->backend == RBC_EXPORT_SVG) {
+        ctx->ops = &svgOps;
+        if (style->stipple != None) {
+            SvgError(exportPtr, "stipple fills are not supported by SVG yet");
+        }
+        if (style->backgroundOnly) {
+            SvgError(exportPtr, "image-tiled areas are not supported by SVG yet");
+        }
+    }
     return ctx;
 }
 
 static int PostScriptSymbolRound(double value) { return (int)(value + ((value < 0.0) ? -0.5 : 0.5)); }
 
 /* Retain the legacy prolog shapes and size corrections, including bitmap masks. */
-Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                   const Rbc_RenderSymbolStyle *style) {
     static const char *macros[] = {"Sq", "Ci", "Di", "Pl", "Cr", "Sp", "Sc", "Tr", "Ar", "Bm"};
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
@@ -1364,7 +1400,16 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psTo
 
     memset(ctx, 0, sizeof(*ctx));
     ctx->ops = &postScriptOps;
-    ctx->psToken = psToken;
+    ctx->exportPtr = exportPtr;
+    ctx->psToken = (PsToken)exportPtr->backendData;
+    if (exportPtr->backend == RBC_EXPORT_SVG) {
+        ctx->ops = &svgOps;
+        ctx->svgSymbol = *style;
+        if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
+            SvgError(exportPtr, "bitmap symbols are not supported by SVG yet");
+        }
+        return ctx;
+    }
     ctx->symbolMacro = macros[style->type];
     ctx->symbolSize = (double)style->size;
     switch (style->type) {
@@ -1385,9 +1430,9 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psTo
     default:
         break;
     }
-    Rbc_LineWidthToPostScript(psToken, style->outlineWidth);
-    Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
-    Rbc_AppendToPostScript(psToken, "\n/DrawSymbolProc {\n", (char *)NULL);
+    Rbc_LineWidthToPostScript(ctx->psToken, style->outlineWidth);
+    Rbc_LineDashesToPostScript(ctx->psToken, (Rbc_Dashes *)NULL);
+    Rbc_AppendToPostScript(ctx->psToken, "\n/DrawSymbolProc {\n", (char *)NULL);
     if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
         int width, height;
         double sx, sy, scale;
@@ -1397,53 +1442,58 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psTo
         sy = (double)style->size / (double)height;
         scale = MIN(sx, sy);
         if ((style->mask != None) && (fillColor != NULL)) {
-            Rbc_AppendToPostScript(psToken, "\n  % Bitmap mask is \"",
+            Rbc_AppendToPostScript(ctx->psToken, "\n  % Bitmap mask is \"",
                                    Tk_NameOfBitmap(graphPtr->display, style->mask), "\"\n\n  ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, fillColor);
-            Rbc_BitmapToPostScript(psToken, graphPtr->display, style->mask, scale, scale);
+            Rbc_BackgroundToPostScript(ctx->psToken, fillColor);
+            Rbc_BitmapToPostScript(ctx->psToken, graphPtr->display, style->mask, scale, scale);
         }
-        Rbc_AppendToPostScript(psToken, "\n  % Bitmap symbol is \"",
+        Rbc_AppendToPostScript(ctx->psToken, "\n  % Bitmap symbol is \"",
                                Tk_NameOfBitmap(graphPtr->display, style->bitmap), "\"\n\n  ", (char *)NULL);
-        Rbc_ForegroundToPostScript(psToken, outlineColor);
-        Rbc_BitmapToPostScript(psToken, graphPtr->display, style->bitmap, scale, scale);
+        Rbc_ForegroundToPostScript(ctx->psToken, outlineColor);
+        Rbc_BitmapToPostScript(ctx->psToken, graphPtr->display, style->bitmap, scale, scale);
     } else {
         if (fillColor != NULL) {
-            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, fillColor);
-            Rbc_AppendToPostScript(psToken, "  Fill\n", (char *)NULL);
+            Rbc_AppendToPostScript(ctx->psToken, "  ", (char *)NULL);
+            Rbc_BackgroundToPostScript(ctx->psToken, fillColor);
+            Rbc_AppendToPostScript(ctx->psToken, "  Fill\n", (char *)NULL);
         }
         if ((outlineColor != NULL) && (style->outlineWidth > 0)) {
-            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
-            Rbc_ForegroundToPostScript(psToken, outlineColor);
-            Rbc_AppendToPostScript(psToken, "  stroke\n", (char *)NULL);
+            Rbc_AppendToPostScript(ctx->psToken, "  ", (char *)NULL);
+            Rbc_ForegroundToPostScript(ctx->psToken, outlineColor);
+            Rbc_AppendToPostScript(ctx->psToken, "  stroke\n", (char *)NULL);
         }
     }
-    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
+    Rbc_AppendToPostScript(ctx->psToken, "} def\n\n", (char *)NULL);
     return ctx;
 }
 
 /* Legend bar swatches use the unscaled square prolog shape. */
-Rbc_RenderContext *Rbc_RenderBeginPostScriptBarSymbol(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                      const Rbc_RenderFillStyle *style, int size) {
-    Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, style);
+    Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, style);
 
+    if (exportPtr->backend == RBC_EXPORT_SVG) {
+        ctx->svgBarSymbol = TRUE;
+        ctx->symbolSize = size;
+        return ctx;
+    }
     ctx->symbolMacro = "Sq";
     ctx->symbolSize = (double)size;
-    Rbc_AppendToPostScript(psToken, "\n", "/DrawSymbolProc {\n", "  gsave\n    ", (char *)NULL);
+    Rbc_AppendToPostScript(ctx->psToken, "\n", "/DrawSymbolProc {\n", "  gsave\n    ", (char *)NULL);
     if (style->stipple != None) {
         if (style->background != NULL) {
-            Rbc_BackgroundToPostScript(psToken, (XColor *)style->background);
-            Rbc_AppendToPostScript(psToken, "    Fill\n    ", (char *)NULL);
+            Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)style->background);
+            Rbc_AppendToPostScript(ctx->psToken, "    Fill\n    ", (char *)NULL);
         }
-        Rbc_ForegroundToPostScript(psToken,
+        Rbc_ForegroundToPostScript(ctx->psToken,
             (XColor *)((style->foreground != NULL) ? style->foreground : style->background));
-        Rbc_StippleToPostScript(psToken, graphPtr->display, style->stipple);
+        Rbc_StippleToPostScript(ctx->psToken, graphPtr->display, style->stipple);
     } else if (style->foreground != NULL) {
-        Rbc_ForegroundToPostScript(psToken, (XColor *)style->foreground);
-        Rbc_AppendToPostScript(psToken, "    fill\n", (char *)NULL);
+        Rbc_ForegroundToPostScript(ctx->psToken, (XColor *)style->foreground);
+        Rbc_AppendToPostScript(ctx->psToken, "    fill\n", (char *)NULL);
     }
-    Rbc_AppendToPostScript(psToken, "  grestore\n", (char *)NULL);
-    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
+    Rbc_AppendToPostScript(ctx->psToken, "  grestore\n", (char *)NULL);
+    Rbc_AppendToPostScript(ctx->psToken, "} def\n\n", (char *)NULL);
     return ctx;
 }
 
@@ -1485,12 +1535,13 @@ void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     ctx->ops->end(ctx);
 }
 
-Rbc_RenderContext *Rbc_RenderBeginPostScriptOutput(PsToken psToken) {
+Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr) {
     Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
 
     memset(ctx, 0, sizeof(*ctx));
-    ctx->ops = &postScriptOps;
-    ctx->psToken = psToken;
+    ctx->ops = exportPtr->backend == RBC_EXPORT_SVG ? &svgOps : &postScriptOps;
+    ctx->exportPtr = exportPtr;
+    ctx->psToken = (PsToken)exportPtr->backendData;
     return ctx;
 }
 
@@ -1537,3 +1588,393 @@ void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
                                    int height, const XColor *color, int background) {
     ctx->ops->output->bitmapMask(ctx, display, bitmap, x, y, width, height, color, background);
 }
+
+/* SVG writes mapped geometry directly; it is independent of the screen backend. */
+static void SvgError(Rbc_ExportContext *token, const char *message) {
+    if (token->error == NULL) {
+        token->error = message;
+    }
+}
+
+static void SvgString(Rbc_ExportContext *token, const char *string, Tcl_Size length) {
+    Tcl_Size i;
+
+    if (length < 0) {
+        length = (Tcl_Size)strlen(string);
+    }
+    for (i = 0; i < length; i++) {
+        unsigned char ch = (unsigned char)string[i];
+
+        switch (ch) {
+        case '&': Rbc_ExportAppend(token, "&amp;", (char *)NULL); break;
+        case '<': Rbc_ExportAppend(token, "&lt;", (char *)NULL); break;
+        case '>': Rbc_ExportAppend(token, "&gt;", (char *)NULL); break;
+        case '"': Rbc_ExportAppend(token, "&quot;", (char *)NULL); break;
+        case '\'': Rbc_ExportAppend(token, "&apos;", (char *)NULL); break;
+        default:
+            {
+                Tcl_UniChar codepoint;
+                int bytes = Tcl_UtfToUniChar(string + i, &codepoint);
+
+                if (bytes > length - i ||
+                    (codepoint < 32 && codepoint != '\n' && codepoint != '\r' && codepoint != '\t') ||
+                    (codepoint >= 0xd800 && codepoint <= 0xdfff) || codepoint == 0xfffe || codepoint == 0xffff) {
+                    SvgError(token, "text contains a character that XML cannot represent");
+                } else {
+                    Tcl_DStringAppend(token->buffer, string + i, bytes);
+                }
+                i += bytes - 1;
+            }
+            break;
+        }
+    }
+}
+
+static void SvgColor(Rbc_ExportContext *token, const XColor *color) {
+    if (color == NULL) {
+        Rbc_ExportAppend(token, "none", (char *)NULL);
+    } else {
+        Rbc_ExportFormat(token, "#%02x%02x%02x", color->red >> 8, color->green >> 8, color->blue >> 8);
+    }
+}
+
+static void SvgStrokeAttributes(Rbc_RenderContext *ctx, int underlay) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    int i;
+
+    Rbc_ExportAppend(token, " fill=\"none\" stroke=\"", (char *)NULL);
+    SvgColor(token, underlay ? &ctx->svgOffColor : (ctx->svgHasColor ? &ctx->svgColor : NULL));
+    Rbc_ExportFormat(token, "\" stroke-width=\"%d\" stroke-linecap=\"%s\" stroke-linejoin=\"%s\"",
+        ctx->svgWidth, ctx->svgCap == CapRound ? "round" : (ctx->svgCap == CapProjecting ? "square" : "butt"),
+        ctx->svgJoin == JoinRound ? "round" : (ctx->svgJoin == JoinBevel ? "bevel" : "miter"));
+    if (!underlay && ctx->svgDashes.values[0] != 0) {
+        Rbc_ExportAppend(token, " stroke-dasharray=\"", (char *)NULL);
+        for (i = 0; i < RBC_MAX_DASH_VALUES && ctx->svgDashes.values[i] != 0; i++) {
+            Rbc_ExportFormat(token, "%s%d", i ? " " : "", ctx->svgDashes.values[i]);
+        }
+        Rbc_ExportAppend(token, "\"", (char *)NULL);
+    }
+}
+
+static void SvgPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    int pass, first = ctx->svgHasOffColor && ctx->svgDashes.values[0] ? 0 : 1;
+    Tcl_Size i;
+
+    if (count < 2) {
+        return;
+    }
+    for (pass = first; pass < 2; pass++) {
+        Rbc_ExportAppend(ctx->exportPtr, "<polyline points=\"", (char *)NULL);
+        for (i = 0; i < count; i++) {
+            Rbc_ExportFormat(ctx->exportPtr, "%g,%g ", points[i].x, points[i].y);
+        }
+        Rbc_ExportAppend(ctx->exportPtr, "\"", (char *)NULL);
+        SvgStrokeAttributes(ctx, pass == 0);
+        Rbc_ExportAppend(ctx->exportPtr, "/>\n", (char *)NULL);
+    }
+}
+
+static void SvgSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+    Tcl_Size i;
+
+    for (i = 0; i < count; i++) {
+        Point2D points[2] = {segments[i].p, segments[i].q};
+
+        SvgPolyline(ctx, points, 2);
+    }
+}
+
+static void SvgLineStyle(Rbc_RenderContext *ctx, int cap, int join) {
+    ctx->svgCap = cap;
+    ctx->svgJoin = join;
+}
+
+static void SvgDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
+    ctx->svgHasOffColor = color != NULL;
+    if (color != NULL) {
+        ctx->svgOffColor = *color;
+    }
+}
+
+static void SvgPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, const XColor *color, double opacity) {
+    Tcl_Size i;
+
+    if (count < 3) {
+        return;
+    }
+    Rbc_ExportAppend(token, "<polygon points=\"", (char *)NULL);
+    for (i = 0; i < count; i++) {
+        Rbc_ExportFormat(token, "%g,%g ", points[i].x, points[i].y);
+    }
+    Rbc_ExportAppend(token, "\" fill=\"", (char *)NULL);
+    SvgColor(token, color);
+    Rbc_ExportFormat(token, "\" fill-opacity=\"%g\" fill-rule=\"evenodd\"/>\n", opacity);
+}
+
+static void SvgFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    XColor black;
+
+    memset(&black, 0, sizeof(black));
+    SvgPolygon(ctx->exportPtr, points, count, ctx->fillStyle.foreground ? ctx->fillStyle.foreground : &black,
+               ctx->fillStyle.opacity);
+}
+
+static void SvgRectangle(Rbc_ExportContext *token, double x, double y, int width, int height, const XColor *color) {
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+    Rbc_ExportFormat(token, "<rect x=\"%g\" y=\"%g\" width=\"%d\" height=\"%d\" fill=\"",
+                           x, y, width, height);
+    SvgColor(token, color);
+    Rbc_ExportAppend(token, "\"/>\n", (char *)NULL);
+}
+
+static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    Tcl_Size i;
+
+    for (i = 0; i < count; i++) {
+        const Rbc_RenderRectangle *rect = rectangles + i;
+
+        SvgRectangle(ctx->exportPtr, rect->x, rect->y, rect->width, rect->height, ctx->fillStyle.foreground);
+    }
+}
+
+static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
+    const Rbc_RenderSymbolStyle *style = &ctx->svgSymbol;
+    Tcl_Size i;
+    double size = style->size;
+
+    if (ctx->svgBarSymbol) {
+        for (i = 0; i < count; i++) {
+            SvgRectangle(ctx->exportPtr, centers[i].x - ctx->symbolSize / 2, centers[i].y - ctx->symbolSize / 2,
+                          (int)ctx->symbolSize, (int)ctx->symbolSize, ctx->fillStyle.foreground);
+        }
+        return;
+    }
+    if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
+        return; /* Constructor recorded the unsupported feature. */
+    }
+    for (i = 0; i < count; i++) {
+        double r = size / 2.0;
+        int skinny = style->type == RBC_RENDER_SYMBOL_SPLUS || style->type == RBC_RENDER_SYMBOL_SCROSS;
+        int cross = style->type == RBC_RENDER_SYMBOL_CROSS || style->type == RBC_RENDER_SYMBOL_SCROSS;
+        Rbc_ExportContext *token = ctx->exportPtr;
+
+        Rbc_ExportFormat(token, "<g transform=\"translate(%g %g)%s\">", centers[i].x, centers[i].y,
+                               cross ? " rotate(45)" : "");
+        if (style->type == RBC_RENDER_SYMBOL_CIRCLE) {
+            Rbc_ExportFormat(token, "<circle r=\"%g\"", r);
+        } else {
+            Rbc_ExportAppend(token, "<path d=\"", (char *)NULL);
+            switch (style->type) {
+            case RBC_RENDER_SYMBOL_SQUARE:
+                r = PostScriptSymbolRound(size * 0.886226925452758) / 2.0;
+                Rbc_ExportFormat(token, "M%g %gH%gV%gH%gZ", -r, -r, r, r, -r);
+                break;
+            case RBC_RENDER_SYMBOL_DIAMOND:
+                r = PostScriptSymbolRound(size * M_SQRT1_2) * M_SQRT1_2;
+                Rbc_ExportFormat(token, "M0 %gL%g 0 0 %g %g 0Z", -r, r, r, -r);
+                break;
+            case RBC_RENDER_SYMBOL_TRIANGLE:
+            case RBC_RENDER_SYMBOL_ARROW: {
+                double b = PostScriptSymbolRound(size * 0.7) * 1.3467736870885982 * 0.5;
+                double h = b * 0.86602540378443871;
+                double sign = style->type == RBC_RENDER_SYMBOL_ARROW ? -1.0 : 1.0;
+
+                Rbc_ExportFormat(token, "M0 %gL%g %g %g %gZ", -h * sign,
+                                       b, b * 0.57735026918962573 * sign, -b, b * 0.57735026918962573 * sign);
+                break;
+            }
+            default: {
+                double s = PostScriptSymbolRound(size * 0.886226925452758);
+                double w = (int)s / 6;
+
+                r = (int)s / 2;
+                if (skinny) {
+                    Rbc_ExportFormat(token, "M%g 0H%gM0 %gV%g", -r, r, -r, r);
+                } else {
+                    Rbc_ExportFormat(token,
+                        "M%g %gH%gV%gH%gV%gH%gV%gH%gV%gH%gV%gH%gZ",
+                        -r, -w, -w, -r, w, -w, r, w, w, r, -w, w, -r);
+                }
+                break;
+            }
+            }
+            Rbc_ExportAppend(token, "\"", (char *)NULL);
+        }
+        Rbc_ExportAppend(token, " fill=\"", (char *)NULL);
+        SvgColor(token, skinny ? NULL : style->fillColor);
+        Rbc_ExportAppend(token, "\" stroke=\"", (char *)NULL);
+        SvgColor(token, style->outlineWidth > 0 ? style->outlineColor : NULL);
+        Rbc_ExportFormat(token, "\" stroke-width=\"%d\"/></g>\n", MAX(1, style->outlineWidth));
+    }
+}
+
+/* Preserve Tk layout and baseline positions while keeping SVG text editable. */
+static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    Tcl_InterpState saved;
+    Tcl_Obj *args[5], *attributes;
+    Tcl_Obj **values;
+    Tcl_Size n, i;
+    const char *family = "sans-serif", *weight = "normal", *slant = "normal";
+    int size = 12, pass;
+    double pixelSize, width, height;
+    TextLayout *layout;
+    Point2D anchor = {x, y};
+
+    if (string == NULL || *string == '\0') {
+        return;
+    }
+    args[0] = Tcl_NewStringObj("font", -1);
+    args[1] = Tcl_NewStringObj("actual", -1);
+    args[2] = Tcl_NewStringObj(Tk_NameOfFont(style->font), -1);
+    args[3] = Tcl_NewStringObj("-displayof", -1);
+    args[4] = Tcl_NewStringObj(Tk_PathName(token->tkwin), -1);
+    saved = Tcl_SaveInterpState(token->interp, TCL_OK);
+    for (i = 0; i < 5; i++) {
+        Tcl_IncrRefCount(args[i]);
+    }
+    if (Tcl_EvalObjv(token->interp, 5, args, TCL_EVAL_GLOBAL) != TCL_OK) {
+        SvgError(token, "cannot resolve Tk font attributes for SVG");
+        for (i = 0; i < 5; i++) { Tcl_DecrRefCount(args[i]); }
+        Tcl_RestoreInterpState(token->interp, saved);
+        return;
+    }
+    attributes = Tcl_GetObjResult(token->interp);
+    Tcl_IncrRefCount(attributes);
+    for (i = 0; i < 5; i++) { Tcl_DecrRefCount(args[i]); }
+    Tcl_RestoreInterpState(token->interp, saved);
+    if (Tcl_ListObjGetElements(NULL, attributes, &n, &values) != TCL_OK) {
+        SvgError(token, "invalid Tk font attributes for SVG");
+        Tcl_DecrRefCount(attributes);
+        return;
+    }
+    for (i = 0; i + 1 < n; i += 2) {
+        const char *key = Tcl_GetString(values[i]);
+        if (strcmp(key, "-family") == 0) { family = Tcl_GetString(values[i + 1]); }
+        if (strcmp(key, "-weight") == 0) { weight = Tcl_GetString(values[i + 1]); }
+        if (strcmp(key, "-slant") == 0 && strcmp(Tcl_GetString(values[i + 1]), "italic") == 0) { slant = "italic"; }
+        if (strcmp(key, "-size") == 0) { Tcl_GetIntFromObj(NULL, values[i + 1], &size); }
+    }
+    pixelSize = size < 0 ? -(double)size : size * 25.4 / 72.0 *
+        HeightOfScreen(Tk_Screen(token->tkwin)) / HeightMMOfScreen(Tk_Screen(token->tkwin));
+    layout = Rbc_GetTextLayout(string, style);
+    Rbc_GetBoundingBox(layout->width, layout->height, style->theta, &width, &height, NULL);
+    anchor = Rbc_TranslatePoint(&anchor, ROUND(width), ROUND(height), style->anchor);
+    Rbc_ExportFormat(token, "<g transform=\"translate(%g %g) rotate(%g) translate(%g %g)\"",
+        anchor.x + width / 2, anchor.y + height / 2, -style->theta, -layout->width / 2.0, -layout->height / 2.0);
+    Rbc_ExportAppend(token, " font-family=\"", (char *)NULL);
+    SvgString(token, family, -1);
+    Rbc_ExportFormat(token, "\" font-size=\"%g\" font-weight=\"%s\" font-style=\"%s\">\n",
+                           pixelSize, strcmp(weight, "bold") == 0 ? "bold" : "normal", slant);
+    for (pass = 0; pass < 2; pass++) {
+        const XColor *color = pass == 0 ? style->shadow.color :
+            ((style->state & STATE_ACTIVE) ? style->activeColor : style->color);
+        int offset = pass == 0 ? style->shadow.offset : 0;
+
+        if (color == NULL || (pass == 0 && offset <= 0)) { continue; }
+        for (i = 0; i < layout->nFrags; i++) {
+            TextFragment *fragment = layout->fragArr + i;
+            if (fragment->count <= 0) { continue; }
+            Rbc_ExportFormat(token, "<text xml:space=\"preserve\" x=\"%d\" y=\"%d\" textLength=\"%d\" lengthAdjust=\"spacingAndGlyphs\" fill=\"",
+                                   fragment->x + offset, fragment->y + offset,
+                                   Tk_TextWidth(style->font, fragment->text, fragment->count));
+            SvgColor(token, color);
+            Rbc_ExportAppend(token, "\">", (char *)NULL);
+            SvgString(token, fragment->text, fragment->count);
+            Rbc_ExportAppend(token, "</text>\n", (char *)NULL);
+        }
+    }
+    Rbc_ExportAppend(token, "</g>\n", (char *)NULL);
+    ckfree(layout);
+    Tcl_DecrRefCount(attributes);
+}
+
+static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
+    (void)photo; (void)x; (void)y;
+    SvgError(ctx->exportPtr, "image markers are not supported by SVG yet");
+}
+
+static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
+    (void)window; (void)x; (void)y;
+    SvgError(ctx->exportPtr, "window markers are not supported by SVG yet");
+}
+
+static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y,
+                           int width, int height, const XColor *color, int background) {
+    (void)display; (void)bitmap; (void)x; (void)y; (void)width; (void)height; (void)color; (void)background;
+    SvgError(ctx->exportPtr, "bitmap markers are not supported by SVG yet");
+}
+
+static void SvgBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {
+    SvgPolygon(ctx->exportPtr, points, count, color, 1.0);
+}
+
+static void SvgBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
+                       int borderWidth, int relief, int fill) {
+    XColor bg, dark, light;
+    const XColor *top, *bottom;
+    Point2D points[6];
+
+    Tk_Get3DBorderColors(border, &bg, &dark, &light);
+    if (fill) { SvgRectangle(ctx->exportPtr, x, y, width, height, &bg); }
+    if (borderWidth <= 0 || width < 2 * borderWidth || height < 2 * borderWidth || relief == TK_RELIEF_FLAT) { return; }
+    if (relief == TK_RELIEF_GROOVE || relief == TK_RELIEF_RIDGE) {
+        int half = borderWidth / 2, offset = borderWidth - half;
+        SvgBorder(ctx, border, x, y, width, height, half,
+                   relief == TK_RELIEF_GROOVE ? TK_RELIEF_SUNKEN : TK_RELIEF_RAISED, FALSE);
+        SvgBorder(ctx, border, x + offset, y + offset, width - 2 * offset, height - 2 * offset, half,
+                   relief == TK_RELIEF_GROOVE ? TK_RELIEF_RAISED : TK_RELIEF_SUNKEN, FALSE);
+        return;
+    }
+    if (relief == TK_RELIEF_SOLID) { memset(&dark, 0, sizeof(dark)); light = dark; }
+    top = relief == TK_RELIEF_RAISED ? &light : &dark;
+    bottom = relief == TK_RELIEF_RAISED ? &dark : &light;
+    SvgRectangle(ctx->exportPtr, x, y + height - borderWidth, width, borderWidth, bottom);
+    SvgRectangle(ctx->exportPtr, x + width - borderWidth, y, borderWidth, height, bottom);
+    points[0] = (Point2D){x, y + height}; points[1] = (Point2D){x, y};
+    points[2] = (Point2D){x + width, y}; points[3] = (Point2D){x + width - borderWidth, y + borderWidth};
+    points[4] = (Point2D){x + borderWidth, y + borderWidth}; points[5] = (Point2D){x + borderWidth, y + height - borderWidth};
+    SvgPolygon(ctx->exportPtr, points, 6, top, 1.0);
+}
+
+static void SvgClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
+    XColor white;
+    memset(&white, 0, sizeof(white)); white.red = white.green = white.blue = 65535;
+    SvgRectangle(ctx->exportPtr, x, y, width, height, &white);
+}
+
+static void SvgBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
+                                     const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    Tcl_Size i;
+    for (i = 0; i < count; i++) {
+        const Rbc_RenderRectangle *r = rectangles + i;
+        if (color == NULL) { SvgClearRectangle(ctx, r->x, r->y, r->width, r->height); }
+        else { SvgRectangle(ctx->exportPtr, r->x, r->y, r->width, r->height, color); }
+    }
+}
+
+static void SvgPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
+                          const XColor *background) {
+    (void)font;
+    if (background == NULL) { SvgClearRectangle(ctx, x, y, width, height); }
+    else { SvgRectangle(ctx->exportPtr, x, y, width, height, background); }
+    Rbc_ExportFormat(ctx->exportPtr,
+        "<defs><clipPath id=\"rbcPlot\" clipPathUnits=\"userSpaceOnUse\"><rect x=\"%g\" y=\"%g\" width=\"%d\" height=\"%d\"/></clipPath></defs>\n<g clip-path=\"url(#rbcPlot)\">\n",
+        x, y, width, height);
+}
+
+static void SvgPlotEnd(Rbc_RenderContext *ctx) {
+    Rbc_ExportAppend(ctx->exportPtr, "</g>\n", (char *)NULL);
+}
+
+static const Rbc_RenderOutputOps svgOutputOps = {
+    SvgText, SvgPhoto, SvgWindow, SvgBackgroundPolygon, SvgBorder, SvgClearRectangle,
+    SvgBackgroundRectangles, SvgPlotBegin, SvgPlotEnd, SvgBitmapMask
+};
+
+static const Rbc_RenderOps svgOps = {
+    SvgPolyline, SvgSegments, SvgLineStyle, SvgDashBackground, SvgFillPolygon, SvgFillRectangles,
+    SvgSymbolPoints, &svgOutputOps, PostScriptEnd
+};

@@ -1047,13 +1047,13 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_LegendToPostScript --
+ * Rbc_LegendExport --
  *
  *      TODO: Description
  *
  * Parameters:
  *      Legend *legendPtr
- *      PsToken psToken
+ *      Rbc_ExportContext *exportPtr
  *
  * Results:
  *      TODO: Results
@@ -1063,8 +1063,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
-    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Graph *graphPtr;
     double x, y, startY;
     Element *elemPtr;
@@ -1088,7 +1088,7 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
         return;
     }
     graphPtr = legendPtr->graphPtr;
-    if (graphPtr->postscript->decorations) {
+    if (exportPtr->decorations) {
         if (legendPtr->border != NULL) {
             Rbc_RenderBorder(output, legendPtr->border, x, y, width, height, legendPtr->borderWidth,
                                             legendPtr->relief, TRUE);
@@ -1130,7 +1130,7 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
                                                 elemPtr->labelRelief, FALSE);
             }
         }
-        (*elemPtr->procsPtr->printSymbolProc)(graphPtr, psToken, elemPtr, x + symbolX, y + symbolY, symbolSize);
+        (*elemPtr->procsPtr->exportSymbolProc)(graphPtr, exportPtr, elemPtr, x + symbolX, y + symbolY, symbolSize);
         Rbc_RenderText(output, elemPtr->label, &(legendPtr->style), x + labelX,
                              y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;

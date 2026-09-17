@@ -25,9 +25,9 @@ typedef struct {
 } Rbc_RenderFillStyle;
 
 /* Fill contexts support FillPolygon/FillRectangles and End. Screen creation
- * may return NULL for native fallback; PostScript does not require Cairo. */
+ * may return NULL for native fallback; export does not require Cairo. */
 Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
-Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                 const Rbc_RenderFillStyle *style);
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
@@ -50,16 +50,16 @@ typedef struct {
 /* Export symbol contexts support SymbolPoints and End. Screen shape batching
  * retains its existing interface. Contexts borrow bitmap/color resources.
  * Finish each symbol batch before starting another (the prolog is shared). */
-Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                   const Rbc_RenderSymbolStyle *style);
-Rbc_RenderContext *Rbc_RenderBeginPostScriptBarSymbol(Graph *graphPtr, PsToken psToken,
+Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportContext *exportPtr,
                                                      const Rbc_RenderFillStyle *style, int size);
 void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
 
-/* Export presentation primitives. Output contexts borrow the token and Tk
+/* Export presentation primitives. Output contexts borrow the export state and Tk
  * resources. PlotBegin/PlotEnd must be paired; End releases only the context.
- * Page setup, trailers and I/O remain with the PostScript command. */
-Rbc_RenderContext *Rbc_RenderBeginPostScriptOutput(PsToken psToken);
+ * Document setup, trailers and I/O remain with each backend command. */
+Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr);
 void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y);
 void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y);
 void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y);
@@ -91,8 +91,8 @@ Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
 /* Export stroke context: Polyline, Segments, LineStyle, DashBackground and End only.
- * Available without Cairo; borrows the token and preserves legacy PS output. */
-Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
+ * Available without Cairo; borrows export state and dispatches to its backend. */
+Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                             const Rbc_Dashes *dashes, int capStyle, int joinStyle);
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color);
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
