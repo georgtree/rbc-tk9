@@ -1,4 +1,4 @@
-# Initial vector SVG exporter. See license.terms for details.
+# SVG export commands and vector geometry. See license.terms for details.
 package require rbc
 package require tcltest
 
@@ -111,12 +111,11 @@ namespace eval ::svgTest {
         removeFile svg-output.svg
     } -result 1
 
-    test svg-8 {bitmap symbols report the unsupported feature} -setup {
+    test svg-8 {bitmap symbols export as reusable vector geometry} -setup {
         Create
         .svg element configure signal -symbol warning
     } -body {
-        catch {.svg svg output} message
-        string match {*bitmap symbols*not supported*} $message
+        expr {[string first {<use href="#rbcBitmap} [.svg svg output]] >= 0}
     } -cleanup {
         destroy .svg
     } -result 1
@@ -144,18 +143,17 @@ namespace eval ::svgTest {
         destroy .svg
     } -result {1 1}
 
-    test svg-11 {image markers report unsupported content} -setup {
+    test svg-11 {photo markers embed PNG data} -setup {
         Create
         set image [image create photo -width 8 -height 8]
         $image put red -to 0 0 8 8
         .svg marker create image -coords {5 5} -image $image
     } -body {
-        set failed [catch {.svg svg output} message]
-        list $failed [string match {*image markers*not supported*} $message]
+        expr {[string first {href="data:image/png;base64,} [.svg svg output]] >= 0}
     } -cleanup {
         destroy .svg
         image delete $image
-    } -result {1 1}
+    } -result 1
 
     test svg-12 {alternating exports preserve independent state and PostScript geometry} -setup {
         Create

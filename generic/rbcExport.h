@@ -11,6 +11,7 @@ typedef struct {
     Tcl_DString storage;
     Tcl_DString *buffer;
     void *backendData; /* Borrowed backend state; PostScript uses its legacy token. */
+    unsigned int nextResourceId; /* Document-local SVG definition identifiers. */
     int decorations;
     const char *error; /* First export error, static message. */
 } Rbc_ExportContext;

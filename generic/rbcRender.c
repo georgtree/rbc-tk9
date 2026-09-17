@@ -64,6 +64,8 @@ struct Rbc_RenderContext {
     Rbc_Dashes svgDashes;
     Rbc_RenderSymbolStyle svgSymbol;
     int svgBarSymbol;
+    unsigned int svgBitmapId;
+    int svgBitmapWidth, svgBitmapHeight;
 #ifdef RBC_HAVE_CAIRO
     cairo_surface_t *surface;
     cairo_t *cr;
@@ -1405,9 +1407,7 @@ Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContex
     if (exportPtr->backend == RBC_EXPORT_SVG) {
         ctx->ops = &svgOps;
         ctx->svgSymbol = *style;
-        if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
-            SvgError(exportPtr, "bitmap symbols are not supported by SVG yet");
-        }
+        ctx->graphPtr = graphPtr;
         return ctx;
     }
     ctx->symbolMacro = macros[style->type];
@@ -1739,6 +1739,186 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
     }
 }
 
+/* Store bitmap rows as vector runs, preserving mapped masks without screenshots. */
+static void SvgBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, const XColor *color) {
+    int x, y;
+
+    if (color == NULL) { return; }
+    Rbc_ExportAppend(token, "<path fill=\"", (char *)NULL);
+    SvgColor(token, color);
+    Rbc_ExportAppend(token, "\" stroke=\"none\" d=\"", (char *)NULL);
+    for (y = 0; y < bits->height; y++) {
+        x = 0;
+        while (x < bits->width) {
+            int start;
+
+            while (x < bits->width && (!XGetPixel(bits, x, y) ||
+                (mask != NULL && !XGetPixel(mask, x, y)))) { x++; }
+            start = x;
+            while (x < bits->width && XGetPixel(bits, x, y) &&
+                (mask == NULL || XGetPixel(mask, x, y))) { x++; }
+            if (x > start) {
+                Rbc_ExportFormat(token, "M%d %dh%dv1h%dZ", start, y, x - start, start - x);
+            }
+        }
+    }
+    Rbc_ExportAppend(token, "\"/>\n", (char *)NULL);
+}
+
+static int SvgDefineBitmapSymbol(Rbc_RenderContext *ctx) {
+    const Rbc_RenderSymbolStyle *style = &ctx->svgSymbol;
+    Rbc_ExportContext *token = ctx->exportPtr;
+    Display *display = ctx->graphPtr->display;
+    XImage *bits, *mask = NULL;
+    int width, height;
+
+    Tk_SizeOfBitmap(display, style->bitmap, &width, &height);
+    if (width <= 0 || height <= 0) { return FALSE; }
+    bits = XGetImage(display, style->bitmap, 0, 0, width, height, 1, XYPixmap);
+    if (bits == NULL) {
+        SvgError(token, "cannot read bitmap symbol for SVG");
+        return FALSE;
+    }
+    /* A transparent symbol uses its own bits as the native clipping mask. */
+    if (style->mask != None && style->fillColor != NULL) {
+        int maskWidth, maskHeight;
+
+        Tk_SizeOfBitmap(display, style->mask, &maskWidth, &maskHeight);
+        if (maskWidth != width || maskHeight != height) {
+            SvgError(token, "SVG bitmap symbol and mask dimensions differ");
+            XDestroyImage(bits);
+            return FALSE;
+        }
+        mask = XGetImage(display, style->mask, 0, 0, width, height, 1, XYPixmap);
+        if (mask == NULL) {
+            SvgError(token, "cannot read bitmap symbol mask for SVG");
+            XDestroyImage(bits);
+            return FALSE;
+        }
+    }
+    ctx->svgBitmapId = ++token->nextResourceId;
+    ctx->svgBitmapWidth = width;
+    ctx->svgBitmapHeight = height;
+    Rbc_ExportFormat(token, "<defs><g id=\"rbcBitmap%u\">\n", ctx->svgBitmapId);
+    if (mask != NULL) {
+        SvgBitmapRuns(token, mask, NULL, style->fillColor);
+    } else {
+        SvgRectangle(token, 0, 0, width, height, style->fillColor);
+    }
+    SvgBitmapRuns(token, bits, mask, style->outlineColor);
+    Rbc_ExportAppend(token, "</g></defs>\n", (char *)NULL);
+    if (mask != NULL) { XDestroyImage(mask); }
+    XDestroyImage(bits);
+    return TRUE;
+}
+
+/* PNG uses Tcl's built-in zlib; no Cairo or additional image library is needed. */
+static void SvgPngWord(unsigned char *bytes, unsigned int value) {
+    bytes[0] = (unsigned char)(value >> 24);
+    bytes[1] = (unsigned char)(value >> 16);
+    bytes[2] = (unsigned char)(value >> 8);
+    bytes[3] = (unsigned char)value;
+}
+
+static void SvgPngChunk(Tcl_DString *png, const char *type, const unsigned char *data, Tcl_Size length) {
+    unsigned char word[4];
+    unsigned int crc;
+
+    SvgPngWord(word, (unsigned int)length);
+    Tcl_DStringAppend(png, (const char *)word, 4);
+    Tcl_DStringAppend(png, type, 4);
+    if (length > 0) { Tcl_DStringAppend(png, (const char *)data, length); }
+    crc = Tcl_ZlibCRC32(0, (const unsigned char *)type, 4);
+    if (length > 0) { crc = Tcl_ZlibCRC32(crc, data, length); }
+    SvgPngWord(word, crc);
+    Tcl_DStringAppend(png, (const char *)word, 4);
+}
+
+static void SvgBase64(Rbc_ExportContext *token, const unsigned char *bytes, Tcl_Size length) {
+    static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    Tcl_Size i;
+
+    for (i = 0; i < length; i += 3) {
+        unsigned int value = (unsigned int)bytes[i] << 16;
+        char encoded[4];
+
+        if (i + 1 < length) { value |= (unsigned int)bytes[i + 1] << 8; }
+        if (i + 2 < length) { value |= bytes[i + 2]; }
+        encoded[0] = alphabet[(value >> 18) & 63];
+        encoded[1] = alphabet[(value >> 12) & 63];
+        encoded[2] = i + 1 < length ? alphabet[(value >> 6) & 63] : '=';
+        encoded[3] = i + 2 < length ? alphabet[value & 63] : '=';
+        Tcl_DStringAppend(token->buffer, encoded, 4);
+    }
+}
+
+static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *block, double x, double y) {
+    Tcl_Obj *raw, *compressed;
+    Tcl_InterpState saved;
+    Tcl_DString png;
+    unsigned char header[13], *target, *data;
+    Tcl_Size rowSize, length;
+    int row, column, alpha, result;
+
+    if (block->width <= 0 || block->height <= 0) { return; }
+    if (block->pixelSize <= 0 || block->pixelPtr == NULL ||
+        (Tcl_WideInt)block->width * 4 + 1 > INT_MAX ||
+        ((Tcl_WideInt)block->width * 4 + 1) * block->height > INT_MAX) {
+        SvgError(token, "photo is too large or invalid for SVG PNG encoding");
+        return;
+    }
+    rowSize = (Tcl_Size)block->width * 4 + 1;
+    alpha = block->offset[3];
+    if (alpha < 0 || alpha >= block->pixelSize || alpha == block->offset[0] ||
+        alpha == block->offset[1] || alpha == block->offset[2]) { alpha = -1; }
+    raw = Tcl_NewObj();
+    Tcl_IncrRefCount(raw);
+    target = Tcl_SetByteArrayLength(raw, rowSize * block->height);
+    for (row = 0; row < block->height; row++) {
+        const unsigned char *source = block->pixelPtr + (ptrdiff_t)row * block->pitch;
+
+        *target++ = 0; /* PNG filter: none. */
+        for (column = 0; column < block->width; column++, source += block->pixelSize) {
+            *target++ = source[block->offset[0]];
+            *target++ = source[block->offset[1]];
+            *target++ = source[block->offset[2]];
+            *target++ = alpha < 0 ? 255 : source[alpha];
+        }
+    }
+    saved = Tcl_SaveInterpState(token->interp, TCL_OK);
+    result = Tcl_ZlibDeflate(token->interp, TCL_ZLIB_FORMAT_ZLIB, raw, -1, NULL);
+    Tcl_DecrRefCount(raw);
+    if (result != TCL_OK) {
+        SvgError(token, "cannot compress photo for SVG PNG encoding");
+        Tcl_RestoreInterpState(token->interp, saved);
+        return;
+    }
+    compressed = Tcl_GetObjResult(token->interp);
+    Tcl_IncrRefCount(compressed);
+    Tcl_RestoreInterpState(token->interp, saved);
+    data = Tcl_GetByteArrayFromObj(compressed, &length);
+    if (length > INT_MAX) {
+        SvgError(token, "compressed photo is too large for SVG PNG encoding");
+        Tcl_DecrRefCount(compressed);
+        return;
+    }
+    Tcl_DStringInit(&png);
+    Tcl_DStringAppend(&png, "\211PNG\r\n\032\n", 8);
+    SvgPngWord(header, (unsigned int)block->width);
+    SvgPngWord(header + 4, (unsigned int)block->height);
+    header[8] = 8; header[9] = 6; /* Eight-bit, straight-alpha RGBA. */
+    header[10] = header[11] = header[12] = 0;
+    SvgPngChunk(&png, "IHDR", header, 13);
+    SvgPngChunk(&png, "IDAT", data, length);
+    SvgPngChunk(&png, "IEND", NULL, 0);
+    Tcl_DecrRefCount(compressed);
+    Rbc_ExportFormat(token, "<image x=\"%g\" y=\"%g\" width=\"%d\" height=\"%d\" preserveAspectRatio=\"none\" href=\"data:image/png;base64,",
+                     x, y, block->width, block->height);
+    SvgBase64(token, (const unsigned char *)Tcl_DStringValue(&png), Tcl_DStringLength(&png));
+    Rbc_ExportAppend(token, "\"/>\n", (char *)NULL);
+    Tcl_DStringFree(&png);
+}
+
 static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &ctx->svgSymbol;
     Tcl_Size i;
@@ -1752,7 +1932,18 @@ static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
         return;
     }
     if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
-        return; /* Constructor recorded the unsupported feature. */
+        double scale;
+
+        if (count <= 0 || style->size <= 0) { return; }
+        if (ctx->svgBitmapId == 0 && !SvgDefineBitmapSymbol(ctx)) { return; }
+        scale = MIN(size / ctx->svgBitmapWidth, size / ctx->svgBitmapHeight);
+        for (i = 0; i < count; i++) {
+            Rbc_ExportFormat(ctx->exportPtr,
+                "<use href=\"#rbcBitmap%u\" transform=\"translate(%g %g) scale(%g) translate(%g %g)\"/>\n",
+                ctx->svgBitmapId, centers[i].x, centers[i].y, scale,
+                -ctx->svgBitmapWidth / 2.0, -ctx->svgBitmapHeight / 2.0);
+        }
+        return;
     }
     for (i = 0; i < count; i++) {
         double r = size / 2.0;
@@ -1892,8 +2083,17 @@ static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
 }
 
 static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
-    (void)photo; (void)x; (void)y;
-    SvgError(ctx->exportPtr, "image markers are not supported by SVG yet");
+    Tk_PhotoImageBlock block;
+
+    if (photo == NULL) {
+        SvgError(ctx->exportPtr, "non-photo image markers are not supported by SVG yet");
+        return;
+    }
+    if (!Tk_PhotoGetImage(photo, &block)) {
+        SvgError(ctx->exportPtr, "cannot read photo image for SVG");
+        return;
+    }
+    SvgPhotoBlock(ctx->exportPtr, &block, x, y);
 }
 
 static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
@@ -1903,8 +2103,19 @@ static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
 
 static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y,
                            int width, int height, const XColor *color, int background) {
-    (void)display; (void)bitmap; (void)x; (void)y; (void)width; (void)height; (void)color; (void)background;
-    SvgError(ctx->exportPtr, "bitmap markers are not supported by SVG yet");
+    XImage *bits;
+
+    (void)background;
+    if (bitmap == None || color == NULL || width <= 0 || height <= 0) { return; }
+    bits = XGetImage(display, bitmap, 0, 0, width, height, 1, XYPixmap);
+    if (bits == NULL) {
+        SvgError(ctx->exportPtr, "cannot read bitmap marker mask for SVG");
+        return;
+    }
+    Rbc_ExportFormat(ctx->exportPtr, "<g transform=\"translate(%g %g)\">\n", x, y);
+    SvgBitmapRuns(ctx->exportPtr, bits, NULL, color);
+    Rbc_ExportAppend(ctx->exportPtr, "</g>\n", (char *)NULL);
+    XDestroyImage(bits);
 }
 
 static void SvgBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {

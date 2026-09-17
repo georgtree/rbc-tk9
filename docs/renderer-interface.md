@@ -26,8 +26,10 @@ does not close the document. Pair `Rbc_RenderPlotBegin` with `Rbc_RenderPlotEnd`
 starting another because the PostScript prolog shares its symbol procedure. Export presentation operations
 are unavailable on screen contexts; screen text continues to use Tk.
 
-SVG supports vector geometry, editable text, solid fill opacity and clipping. Bitmap/image/window content and
-stipple fills currently report an error. The SVG command renders and validates before opening its output file.
+SVG supports vector geometry, editable text, solid fill opacity, clipping, vector bitmap masks and symbols,
+and embedded PNG photo markers with alpha. Document-local identifiers reuse bitmap geometry per symbol pass.
+PNG compression and checksums use Tcl zlib APIs; no extra build dependency is needed. Image tiles, non-photo
+image markers, windows and stipple fills currently report an error. The SVG command renders and validates before opening its output file.
 PostScript limitations remain unchanged: area opacity is ignored, tiled areas export their configured background,
 and failed window capture uses the existing gray rectangle fallback. Font/color maps stay in the PS backend.
 
