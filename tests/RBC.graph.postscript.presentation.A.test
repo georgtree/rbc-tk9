@@ -1,0 +1,130 @@
+# Export presentation primitives behind the renderer interface.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psPresentationTest {
+    namespace import ::tcltest::*
+
+    proc Create {{type graph}} {
+        ::rbc::$type .psFinal -width 400 -height 300
+        .psFinal legend configure -hide yes
+        .psFinal grid configure -hide yes
+        foreach axis [.psFinal axis names] {
+            .psFinal axis configure $axis -hide yes
+        }
+        foreach axis {x y} {
+            .psFinal axis configure $axis -min 0 -max 10 -loose no
+        }
+        pack .psFinal
+        update idletasks
+    }
+
+    proc MarkerBody {ps} {
+        set start [string first {% Marker "m"} $ps]
+        set end [string first {% Unset clipping} $ps $start]
+        if {$start < 0 || $end < 0} {
+            error "Missing marker export block"
+        }
+        string range $ps $start [expr {$end - 1}]
+    }
+
+    foreach angle {0 27 90} {
+        test psPresentation-1-$angle {text marker background precedes anchored rotated text} -setup {
+            Create
+            .psFinal marker create text -name m -coords {5 5} -text MarkerText \
+                -background blue -foreground red -rotate $angle -anchor center
+        } -body {
+            set ps [MarkerBody [.psFinal postscript output]]
+            set fill [string first {lineto closepath Fill} $ps]
+            set text [string first BeginText $ps]
+            regexp -line {^[0-9]+ [0-9]+ ([-0-9.]+) [-0-9.e+]+ [-0-9.e+]+ BeginText$} $ps -> rotation
+            list [expr {$fill >= 0 && $text > $fill}] [expr {$rotation == $angle}] \
+                [expr {[string first {(MarkerText)} $ps] >= 0}]
+        } -cleanup {
+            destroy .psFinal
+        } -result {1 1 1}
+    }
+
+    test psPresentation-2 {graph, axis and legend labels retain text export} -setup {
+        Create
+        .psFinal configure -title GraphTitle
+        .psFinal axis configure x -hide no -title XTitle
+        .psFinal axis configure y -hide no -title YTitle
+        .psFinal element create signal -data {2 3 8 7} -label LegendText
+        .psFinal legend configure -hide no
+    } -body {
+        set ps [.psFinal postscript output]
+        set result {}
+        foreach text {GraphTitle XTitle YTitle LegendText} {
+            lappend result [expr {[string first "($text)" $ps] >= 0}]
+        }
+        set result
+    } -cleanup {
+        destroy .psFinal
+    } -result {1 1 1 1}
+
+    foreach type {graph barchart} {
+        test psPresentation-3-$type {element value labels retain formatting} -setup {
+            Create $type
+            .psFinal element create signal -data {2 3 8 7} -showvalues y -valueformat {VALUE:%g}
+        } -body {
+            set ps [.psFinal postscript output]
+            list [expr {[string first {(VALUE:3)} $ps] >= 0}] \
+                [expr {[string first {(VALUE:7)} $ps] >= 0}]
+        } -cleanup {
+            destroy .psFinal
+        } -result {1 1}
+    }
+
+    test psPresentation-4 {photo marker export survives repeated rendering} -setup {
+        Create
+        set photo [image create photo -width 8 -height 8]
+        $photo put red -to 0 0 8 8
+        .psFinal marker create image -name m -coords {5 5} -image $photo
+    } -body {
+        set first [MarkerBody [.psFinal postscript output]]
+        set second [MarkerBody [.psFinal postscript output]]
+        list [expr {[string first {false 3 colorimage} $first] >= 0}] \
+            [expr {$first eq $second}]
+    } -cleanup {
+        destroy .psFinal
+        image delete $photo
+    } -result {1 1}
+
+    test psPresentation-5 {mapped window marker retains snapshot or legacy fallback} -setup {
+        Create
+        label .psFinal.child -text Child -background red
+        .psFinal marker create window -name m -coords {5 5} -window .psFinal.child
+        update idletasks
+    } -body {
+        set ps [MarkerBody [.psFinal postscript output]]
+        list [winfo ismapped .psFinal.child] \
+            [expr {[string first {false 3 colorimage} $ps] >= 0 ||
+                   [string first {0.5 0.5 0.5 SetBgColor} $ps] >= 0}]
+    } -cleanup {
+        destroy .psFinal
+    } -result {1 1}
+
+    foreach decorations {yes no} {
+        test psPresentation-6-$decorations {plot clipping ends before margin text and page trailer} -setup {
+            Create
+            .psFinal configure -title MarginTitle -plotborderwidth 3 -plotrelief sunken
+            .psFinal marker create text -name m -coords {5 5} -text InsideText
+            .psFinal postscript configure -decorations $decorations
+        } -body {
+            set ps [.psFinal postscript output]
+            set begin [string first "gsave clip\n" $ps]
+            set inside [string first {(InsideText)} $ps]
+            set end [string first {% Unset clipping} $ps]
+            set title [string first {(MarginTitle)} $ps]
+            set trailer [string first "\nshowpage\n" $ps]
+            expr {$begin >= 0 && $inside > $begin && $end > $inside &&
+                  $title > $end && $trailer > $title}
+        } -cleanup {
+            destroy .psFinal
+        } -result 1
+    }
+}
+namespace delete ::psPresentationTest
+::tcltest::cleanupTests

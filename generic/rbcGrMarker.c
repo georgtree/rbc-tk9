@@ -2133,46 +2133,6 @@ static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
 }
 
 /*
- *----------------------------------------------------------------------
- *
- * BitmapMaskToPostScript --
- *
- *      Emits a one-bit pixmap as a PostScript imagemask at the
- *      specified marker position and size. Bits set to one are
- *      painted using the current PostScript colour; zero bits leave
- *      the destination unchanged.
- *
- * Parameters:
- *      PsToken psToken - PostScript output token.
- *      Display *display - Display owning the pixmap.
- *      Pixmap bitmap - One-bit pixmap to emit.
- *      double x, y - Top-left destination position.
- *      int width, height - Destination dimensions.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Appends PostScript commands and bitmap data to psToken.
- *
- *----------------------------------------------------------------------
- */
-static void BitmapMaskToPostScript(PsToken psToken, Display *display, Pixmap bitmap, double x, double y, int width,
-                                   int height) {
-    if ((bitmap == None) || (width < 1) || (height < 1)) {
-        return;
-    }
-    Rbc_FormatToPostScript(psToken,
-                           " gsave\n"
-                           " %g %g translate\n"
-                           " %d %d scale\n",
-                           x, y + height, width, -height);
-    Rbc_FormatToPostScript(psToken, " %d %d true [%d 0 0 %d 0 %d] {", width, height, width, -height, height);
-    Rbc_BitmapDataToPostScript(psToken, display, bitmap, width, height);
-    Rbc_AppendToPostScript(psToken, " } imagemask\n", " grestore\n", (char *)NULL);
-}
-
-/*
  * ----------------------------------------------------------------------
  *
  * BitmapMarkerToPostScript --
@@ -2192,6 +2152,7 @@ static void BitmapMaskToPostScript(PsToken psToken, Display *display, Pixmap bit
  * ----------------------------------------------------------------------
  */
 static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Graph *graphPtr;
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
     Pixmap foregroundMask;
@@ -2199,6 +2160,7 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
 
     graphPtr = markerPtr->graphPtr;
     if ((bmPtr->destBitmap == None) || (bmPtr->destWidth < 1) || (bmPtr->destHeight < 1)) {
+        Rbc_RenderEnd(output);
         return;
     }
     foregroundMask = bmPtr->destBitmap;
@@ -2219,10 +2181,8 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
              * user-provided mask, rather than the rotated bitmap
              * bounding polygon, defines the visible region.
              */
-            Rbc_BackgroundToPostScript(psToken, bmPtr->fillColor);
-
-            BitmapMaskToPostScript(psToken, graphPtr->display, bmPtr->destMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
-                                   bmPtr->destWidth, bmPtr->destHeight);
+            Rbc_RenderBitmapMask(output, graphPtr->display, bmPtr->destMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
+                                   bmPtr->destWidth, bmPtr->destHeight, bmPtr->fillColor, TRUE);
             /*
              * The foreground is visible only where both the source
              * bitmap and the explicit mask contain set bits.
@@ -2249,17 +2209,16 @@ static void BitmapMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
          * Preserve the original behaviour when there is no explicit
          * mask: paint the entire rotated bitmap background polygon.
          */
-        Rbc_BackgroundToPostScript(psToken, bmPtr->fillColor);
-        Rbc_PolygonToPostScript(psToken, bmPtr->outline, bmPtr->nOutlinePts);
+        Rbc_RenderBackgroundPolygon(output, bmPtr->fillColor, bmPtr->outline, bmPtr->nOutlinePts);
     }
     if ((bmPtr->outlineColor != NULL) && (foregroundMask != None)) {
-        Rbc_ForegroundToPostScript(psToken, bmPtr->outlineColor);
-        BitmapMaskToPostScript(psToken, graphPtr->display, foregroundMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
-                               bmPtr->destWidth, bmPtr->destHeight);
+        Rbc_RenderBitmapMask(output, graphPtr->display, foregroundMask, bmPtr->anchorPos.x, bmPtr->anchorPos.y,
+                               bmPtr->destWidth, bmPtr->destHeight, bmPtr->outlineColor, FALSE);
     }
     if (foregroundMaskOwned) {
         Tk_FreePixmap(graphPtr->display, foregroundMask);
     }
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -2847,19 +2806,23 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static void ImageMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     const char *imageName;
     Tk_PhotoHandle photo;
 
     if ((imPtr->tkImage == NULL) || (Tk_ImageIsDeleted(imPtr->tkImage))) {
+        Rbc_RenderEnd(output);
         return; /* Image doesn't exist anymore */
     }
     imageName = (imPtr->tmpImage == NULL) ? Rbc_NameOfImage(imPtr->tkImage) : Rbc_NameOfImage(imPtr->tmpImage);
     photo = Tk_FindPhoto(markerPtr->graphPtr->interp, imageName);
     if (photo == NULL) {
+        Rbc_RenderEnd(output);
         return; /* Image isn't a photo image */
     }
-    Rbc_PhotoToPostScript(psToken, photo, imPtr->anchorPos.x, imPtr->anchorPos.y);
+    Rbc_RenderPhotoImage(output, photo, imPtr->anchorPos.x, imPtr->anchorPos.y);
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -3345,9 +3308,11 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
  * ----------------------------------------------------------------------
  */
 static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     TextMarker *tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
 
     if (tmPtr->string == NULL) {
+        Rbc_RenderEnd(output);
         return;
     }
     if (tmPtr->fillGC != NULL) {
@@ -3362,10 +3327,10 @@ static void TextMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
             polygon[i].x = tmPtr->outline[i].x + tmPtr->anchorPos.x;
             polygon[i].y = tmPtr->outline[i].y + tmPtr->anchorPos.y;
         }
-        Rbc_BackgroundToPostScript(psToken, tmPtr->fillColor);
-        Rbc_PolygonToPostScript(psToken, polygon, 4);
+        Rbc_RenderBackgroundPolygon(output, tmPtr->fillColor, polygon, 4);
     }
-    Rbc_TextToPostScript(psToken, tmPtr->string, &tmPtr->style, tmPtr->anchorPos.x, tmPtr->anchorPos.y);
+    Rbc_RenderText(output, tmPtr->string, &tmPtr->style, tmPtr->anchorPos.x, tmPtr->anchorPos.y);
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -3727,13 +3692,16 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
  *----------------------------------------------------------------------
  */
 static void WindowMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     WindowMarker *wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
     if (wmPtr->tkwin == NULL) {
+        Rbc_RenderEnd(output);
         return;
     }
     if (Tk_IsMapped(wmPtr->tkwin)) {
-        Rbc_WindowToPostScript(psToken, wmPtr->tkwin, wmPtr->anchorPos.x, wmPtr->anchorPos.y);
+        Rbc_RenderWindow(output, wmPtr->tkwin, wmPtr->anchorPos.x, wmPtr->anchorPos.y);
     }
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -4540,10 +4508,11 @@ static void ArrowHeadToPostScript(LineMarker *lmPtr, PsToken psToken, Point2D *a
     if (lmPtr->outlineColor == NULL) {
         return;
     }
-    Rbc_PathToPostScript(psToken, arrow, PTS_IN_ARROW - 1);
-    Rbc_AppendToPostScript(psToken, "closepath\n", (char *)NULL);
-    Rbc_ForegroundToPostScript(psToken, lmPtr->outlineColor);
-    Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
+    Rbc_RenderFillStyle style = {lmPtr->outlineColor, NULL, None, 1.0, FALSE};
+    Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(lmPtr->core.graphPtr, psToken, &style);
+
+    Rbc_RenderFillPolygon(ctx, arrow, PTS_IN_ARROW - 1);
+    Rbc_RenderEnd(ctx);
 }
 
 /*
@@ -4574,18 +4543,12 @@ static void LineMarkerToPostScript(Marker *markerPtr, PsToken psToken) {
      * Draw the line shaft.
      */
     if (lmPtr->nSegments > 0) {
-        Rbc_LineAttributesToPostScript(psToken, lmPtr->outlineColor, lmPtr->lineWidth, &lmPtr->dashes, lmPtr->capStyle,
-                                       lmPtr->joinStyle);
-        if ((LineIsDashed(lmPtr->dashes)) && (lmPtr->fillColor != NULL)) {
-            Rbc_AppendToPostScript(psToken, "/DashesProc {\n  gsave\n    ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, lmPtr->fillColor);
-            Rbc_AppendToPostScript(psToken, "    ", (char *)NULL);
-            Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
-            Rbc_AppendToPostScript(psToken, "stroke\n", "  grestore\n", "} def\n", (char *)NULL);
-        } else {
-            Rbc_AppendToPostScript(psToken, "/DashesProc {} def\n", (char *)NULL);
-        }
-        Rbc_2DSegmentsToPostScript(psToken, lmPtr->segments, lmPtr->nSegments);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, lmPtr->outlineColor, lmPtr->lineWidth,
+                                                          &lmPtr->dashes, lmPtr->capStyle, lmPtr->joinStyle);
+
+        Rbc_RenderDashBackground(ctx, lmPtr->fillColor);
+        Rbc_RenderSegments(ctx, lmPtr->segments, lmPtr->nSegments);
+        Rbc_RenderEnd(ctx);
     }
     /*
      * Draw arrowheads after the shaft.  The shaft endpoints have

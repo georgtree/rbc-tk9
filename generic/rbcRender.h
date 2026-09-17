@@ -56,6 +56,25 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptBarSymbol(Graph *graphPtr, PsToken p
                                                      const Rbc_RenderFillStyle *style, int size);
 void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
 
+/* Export presentation primitives. Output contexts borrow the token and Tk
+ * resources. PlotBegin/PlotEnd must be paired; End releases only the context.
+ * Page setup, trailers and I/O remain with the PostScript command. */
+Rbc_RenderContext *Rbc_RenderBeginPostScriptOutput(PsToken psToken);
+void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y);
+void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y);
+void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y);
+void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count);
+void Rbc_RenderBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
+                                   int borderWidth, int relief, int fill);
+void Rbc_RenderClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height);
+void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
+                                   const Rbc_RenderRectangle *rectangles, Tcl_Size count);
+void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
+                                   const XColor *background);
+void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
+void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
+                                   int height, const XColor *color, int background);
+
 /* Screen-space symbol template; segment vertices are endpoint pairs. */
 typedef enum {
     RBC_RENDER_CIRCLE, RBC_RENDER_POLYGON, RBC_RENDER_SEGMENTS

@@ -11,6 +11,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 #include <X11/Xutil.h>
 #include <stdarg.h>
 #ifdef WIN32
@@ -809,8 +810,9 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
  *--------------------------------------------------------------
  */
 static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     PostScript *psPtr = (PostScript *)graphPtr->postscript;
-    XRectangle margin[4];
+    Rbc_RenderRectangle margin[4];
 
     margin[0].x = margin[0].y = margin[3].x = margin[1].x = 0;
     margin[0].width = margin[3].width = graphPtr->width;
@@ -823,12 +825,8 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
     margin[2].x = graphPtr->right;
     margin[2].width = graphPtr->width - graphPtr->right;
     /* Clear the surrounding margins and clip the plotting surface */
-    if (psPtr->decorations) {
-        Rbc_BackgroundToPostScript(psToken, Tk_3DBorderColor(graphPtr->border));
-    } else {
-        Rbc_ClearBackgroundToPostScript(psToken);
-    }
-    Rbc_RectanglesToPostScript(psToken, margin, 4);
+    Rbc_RenderBackgroundRectangles(output,
+        psPtr->decorations ? Tk_3DBorderColor(graphPtr->border) : NULL, margin, 4);
     /* Interior 3D border */
     if ((psPtr->decorations) && (graphPtr->plotBorderWidth > 0)) {
         int x, y, width, height;
@@ -837,8 +835,8 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
         y = graphPtr->top - graphPtr->plotBorderWidth;
         width = (graphPtr->right - graphPtr->left) + (2 * graphPtr->plotBorderWidth);
         height = (graphPtr->bottom - graphPtr->top) + (2 * graphPtr->plotBorderWidth);
-        Rbc_Draw3DRectangleToPostScript(psToken, graphPtr->border, (double)x, (double)y, width, height,
-                                        graphPtr->plotBorderWidth, graphPtr->plotRelief);
+        Rbc_RenderBorder(output, graphPtr->border, (double)x, (double)y, width, height,
+                                        graphPtr->plotBorderWidth, graphPtr->plotRelief, FALSE);
     }
     if (Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_MARGIN) {
         /*
@@ -848,10 +846,11 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
         Rbc_LegendToPostScript(graphPtr->legend, psToken);
     }
     if (graphPtr->title != NULL) {
-        Rbc_TextToPostScript(psToken, graphPtr->title, &graphPtr->titleTextStyle, (double)graphPtr->titleX,
+        Rbc_RenderText(output, graphPtr->title, &graphPtr->titleTextStyle, (double)graphPtr->titleX,
                              (double)graphPtr->titleY);
     }
     Rbc_AxesToPostScript(graphPtr, psToken);
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -877,6 +876,7 @@ static void MarginsToPostScript(Graph *graphPtr, PsToken psToken) {
 static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken) {
     int x, y, width, height;
     int result;
+    Rbc_RenderContext *output = NULL;
 
     /*
      * We need to know how big a graph to print.  If the graph hasn't
@@ -906,15 +906,9 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     y = graphPtr->top - graphPtr->plotBorderWidth;
     width = (graphPtr->right - graphPtr->left + 1) + (2 * graphPtr->plotBorderWidth);
     height = (graphPtr->bottom - graphPtr->top + 1) + (2 * graphPtr->plotBorderWidth);
-    Rbc_FontToPostScript(psToken, graphPtr->titleTextStyle.font);
-    Rbc_RegionToPostScript(psToken, (double)x, (double)y, width, height);
-    if (graphPtr->postscript->decorations) {
-        Rbc_BackgroundToPostScript(psToken, graphPtr->plotBg);
-    } else {
-        Rbc_ClearBackgroundToPostScript(psToken);
-    }
-    Rbc_AppendToPostScript(psToken, "Fill\n", (char *)NULL);
-    Rbc_AppendToPostScript(psToken, "gsave clip\n\n", (char *)NULL);
+    output = Rbc_RenderBeginPostScriptOutput(psToken);
+    Rbc_RenderPlotBegin(output, graphPtr->titleTextStyle.font, (double)x, (double)y, width, height,
+        graphPtr->postscript->decorations ? graphPtr->plotBg : NULL);
     /* Draw the grid, elements, and markers in the plotting area. */
     if (!graphPtr->gridPtr->hidden) {
         Rbc_GridToPostScript(graphPtr, psToken);
@@ -942,11 +936,14 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
     }
     Rbc_MarkersToPostScript(graphPtr, psToken, FALSE);
     Rbc_ActiveElementsToPostScript(graphPtr, psToken);
-    Rbc_AppendToPostScript(psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
+    Rbc_RenderPlotEnd(output);
     MarginsToPostScript(graphPtr, psToken);
     Rbc_AppendToPostScript(psToken, "showpage\n", "%Trailer\n", "grestore\n", "end\n", "%EOF\n", (char *)NULL);
 
 error:
+    if (output != NULL) {
+        Rbc_RenderEnd(output);
+    }
     graphPtr->flags &= ~GRAPH_POSTSCRIPT;
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);

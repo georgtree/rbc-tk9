@@ -2474,8 +2474,8 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
 
         Rbc_RenderFillRectangles(ctx, &fill, 1);
         if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
-            Rbc_Draw3DRectangleToPostScript(psToken, penPtr->border, (double)rectPtr->x, (double)rectPtr->y,
-                                            rectPtr->width, rectPtr->height, penPtr->borderWidth, penPtr->relief);
+            Rbc_RenderBorder(ctx, penPtr->border, (double)rectPtr->x, (double)rectPtr->y,
+                                            rectPtr->width, rectPtr->height, penPtr->borderWidth, penPtr->relief, FALSE);
         }
     }
     Rbc_RenderEnd(ctx);
@@ -2507,6 +2507,7 @@ static void SegmentsToPostScript(Graph *graphPtr, PsToken psToken, BarPen *penPt
  */
 static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr, BarPen *penPtr,
                                   BarRectangle *rectangles, Tcl_Size nRects, const Tcl_Size *rectToData) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     BarRectangle *rectPtr, *endPtr;
     Tcl_Size count;
     Tcl_Obj *labelObjPtr;
@@ -2538,10 +2539,11 @@ static void BarValuesToPostScript(Graph *graphPtr, PsToken psToken, Bar *barPtr,
                 anchorPos.y += rectPtr->height;
             }
         }
-        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+        Rbc_RenderText(output, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
                              anchorPos.x + penPtr->valueOffset.x, anchorPos.y + penPtr->valueOffset.y);
         Tcl_DecrRefCount(labelObjPtr);
     }
+    Rbc_RenderEnd(output);
 }
 
 /*

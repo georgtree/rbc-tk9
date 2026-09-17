@@ -10,6 +10,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 #include "rbcGrElem.h"
 
 /*
@@ -1063,6 +1064,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
  *----------------------------------------------------------------------
  */
 void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Graph *graphPtr;
     double x, y, startY;
     Element *elemPtr;
@@ -1074,6 +1076,7 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
     Tk_FontMetrics fontMetrics;
 
     if ((legendPtr->hidden) || (legendPtr->nEntries == 0)) {
+        Rbc_RenderEnd(output);
         return;
     }
     SetLegendOrigin(legendPtr);
@@ -1081,20 +1084,20 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
     width = LegendLayoutSize((Tcl_WideInt)legendPtr->width - PADDING(legendPtr->padX));
     height = LegendLayoutSize((Tcl_WideInt)legendPtr->height - PADDING(legendPtr->padY));
     if ((width <= 0) || (height <= 0)) {
+        Rbc_RenderEnd(output);
         return;
     }
     graphPtr = legendPtr->graphPtr;
     if (graphPtr->postscript->decorations) {
         if (legendPtr->border != NULL) {
-            Rbc_Fill3DRectangleToPostScript(psToken, legendPtr->border, x, y, width, height, legendPtr->borderWidth,
-                                            legendPtr->relief);
+            Rbc_RenderBorder(output, legendPtr->border, x, y, width, height, legendPtr->borderWidth,
+                                            legendPtr->relief, TRUE);
         } else {
-            Rbc_Draw3DRectangleToPostScript(psToken, graphPtr->border, x, y, width, height, legendPtr->borderWidth,
-                                            legendPtr->relief);
+            Rbc_RenderBorder(output, graphPtr->border, x, y, width, height, legendPtr->borderWidth,
+                                            legendPtr->relief, FALSE);
         }
     } else {
-        Rbc_ClearBackgroundToPostScript(psToken);
-        Rbc_RectangleToPostScript(psToken, x, y, width, height);
+        Rbc_RenderClearRectangle(output, x, y, width, height);
     }
     x += legendPtr->borderWidth;
     y += legendPtr->borderWidth;
@@ -1116,19 +1119,19 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
         }
         if (elemPtr->flags & LABEL_ACTIVE) {
             legendPtr->style.state |= STATE_ACTIVE;
-            Rbc_Fill3DRectangleToPostScript(psToken, legendPtr->activeBorder, x, y, legendPtr->style.width,
+            Rbc_RenderBorder(output, legendPtr->activeBorder, x, y, legendPtr->style.width,
                                             legendPtr->style.height, legendPtr->entryBorderWidth,
-                                            legendPtr->activeRelief);
+                                            legendPtr->activeRelief, TRUE);
         } else {
             legendPtr->style.state &= ~STATE_ACTIVE;
             if (elemPtr->labelRelief != TK_RELIEF_FLAT) {
-                Rbc_Draw3DRectangleToPostScript(psToken, graphPtr->border, x, y, legendPtr->style.width,
+                Rbc_RenderBorder(output, graphPtr->border, x, y, legendPtr->style.width,
                                                 legendPtr->style.height, legendPtr->entryBorderWidth,
-                                                elemPtr->labelRelief);
+                                                elemPtr->labelRelief, FALSE);
             }
         }
         (*elemPtr->procsPtr->printSymbolProc)(graphPtr, psToken, elemPtr, x + symbolX, y + symbolY, symbolSize);
-        Rbc_TextToPostScript(psToken, elemPtr->label, &(legendPtr->style), x + labelX,
+        Rbc_RenderText(output, elemPtr->label, &(legendPtr->style), x + labelX,
                              y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;
         if ((count % legendPtr->nRows) > 0) {
@@ -1138,6 +1141,7 @@ void Rbc_LegendToPostScript(Legend *legendPtr, PsToken psToken) {
             y = startY;
         }
     }
+    Rbc_RenderEnd(output);
 }
 
 /*

@@ -11261,6 +11261,7 @@ static void TracesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr) 
  */
 static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
@@ -11287,10 +11288,11 @@ static void ValuesToPostScript(PsToken psToken, Line *linePtr, LinePen *penPtr, 
             Tcl_DecrRefCount(labelObjPtr);
             continue;
         }
-        Rbc_TextToPostScript(psToken, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+        Rbc_RenderText(output, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
                              pointPtr->x + penPtr->valueOffset.x, pointPtr->y + penPtr->valueOffset.y);
         Tcl_DecrRefCount(labelObjPtr);
     }
+    Rbc_RenderEnd(output);
 }
 
 /*

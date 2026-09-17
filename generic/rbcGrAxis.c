@@ -4432,8 +4432,10 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
  * -----------------------------------------------------------------
  */
 static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
+
     if (axisPtr->title != NULL) {
-        Rbc_TextToPostScript(psToken, axisPtr->title, &axisPtr->titleTextStyle, axisPtr->titlePos.x,
+        Rbc_RenderText(output, axisPtr->title, &axisPtr->titleTextStyle, axisPtr->titlePos.x,
                              axisPtr->titlePos.y);
     }
     if (axisPtr->showTicks) {
@@ -4442,7 +4444,7 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
 
         for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             labelPtr = Rbc_ChainGetValue(linkPtr);
-            Rbc_TextToPostScript(psToken, labelPtr->string, &axisPtr->tickTextStyle, labelPtr->anchorPos.x,
+            Rbc_RenderText(output, labelPtr->string, &axisPtr->tickTextStyle, labelPtr->anchorPos.x,
                                  labelPtr->anchorPos.y);
         }
     }
@@ -4454,6 +4456,7 @@ static void AxisToPostScript(PsToken psToken, Axis *axisPtr) {
         Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
         Rbc_RenderEnd(ctx);
     }
+    Rbc_RenderEnd(output);
 }
 
 /*
@@ -6942,6 +6945,7 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
  *----------------------------------------------------------------------
  */
 void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Axis *axisPtr;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;
@@ -6969,12 +6973,12 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
                 if (axisPtr->classUid == rbcXAxisUid) {
                     axisPtr->limitsTextStyle.theta = 90.0;
                     axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
-                    Rbc_TextToPostScript(psToken, string, &axisPtr->limitsTextStyle, (double)graphPtr->right, hMax);
+                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, (double)graphPtr->right, hMax);
                     hMax -= (textWidth + SPACING);
                 } else {
                     axisPtr->limitsTextStyle.theta = 0.0;
                     axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
-                    Rbc_TextToPostScript(psToken, string, &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
+                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, vMax, (double)graphPtr->top);
                     vMax += (textWidth + SPACING);
                 }
             }
@@ -6986,16 +6990,17 @@ void Rbc_AxisLimitsToPostScript(Graph *graphPtr, PsToken psToken) {
                 axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
                 if (axisPtr->classUid == rbcXAxisUid) {
                     axisPtr->limitsTextStyle.theta = 90.0;
-                    Rbc_TextToPostScript(psToken, string, &axisPtr->limitsTextStyle, (double)graphPtr->left, hMin);
+                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, (double)graphPtr->left, hMin);
                     hMin -= (textWidth + SPACING);
                 } else {
                     axisPtr->limitsTextStyle.theta = 0.0;
-                    Rbc_TextToPostScript(psToken, string, &axisPtr->limitsTextStyle, vMin, (double)graphPtr->bottom);
+                    Rbc_RenderText(output, string, &axisPtr->limitsTextStyle, vMin, (double)graphPtr->bottom);
                     vMin += (textWidth + SPACING);
                 }
             }
         }
     }
+    Rbc_RenderEnd(output);
 }
 
 /*

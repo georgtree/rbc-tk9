@@ -758,14 +758,16 @@ Isolated native bitmap-handle access behind Rbc Windows helper functions\&.
 .PP
 The PostScript subsystem was modernized and hardened alongside the graph code\&.
 .PP
-Grid lines, axis lines/ticks, normal and active line/strip traces, and line/bar error bars now use the
-common renderer interface for PostScript output\&. Line-area fills, polygon-marker fills and outlines,
-and bar faces use the same interface\&. Stipple backgrounds and drawing order are preserved\&.
-The existing PostScript backend and command are retained, and exporting still works without Cairo\&.
-PostScript still ignores area opacity; image-tiled line areas export only their configured background\&.
-Normal and active element symbols (including bitmaps and masks) and line/bar legend samples also use
-the interface\&. Their existing PostScript shapes, sizes and colors are retained\&.
-Text, marker images/bitmaps, and bar relief borders retain their existing export paths\&.
+PostScript drawing now passes through the common renderer interface: strokes, fills, symbols,
+text, images, bitmap masks, window snapshots, relief borders, plot backgrounds and clipping\&.
+This includes normal/active elements, markers, legends, axis labels, and polar/Smith labels\&.
+The existing PostScript backend, prolog, font/color mapping and public command are retained;
+export does not require Cairo\&. Page setup, orientation, EPS metadata and file output remain
+in the PostScript subsystem\&. Screen text rendering is unchanged\&.
+.PP
+This is an internal refactoring, not a new export format\&. PostScript still ignores area opacity;
+image-tiled line areas export only their configured background\&. Existing bitmap masks,
+drawing order and window-snapshot fallback behavior are preserved\&.
 .TP
 \(bu
 Updated PostScript option handling\&.

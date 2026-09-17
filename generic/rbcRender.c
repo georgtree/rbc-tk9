@@ -19,6 +19,24 @@
 #endif
 #endif /* RBC_HAVE_CAIRO: headers */
 
+/* Presentation capabilities used by export contexts. */
+typedef struct {
+    void (*text)(Rbc_RenderContext *, char *string, TextStyle *style, double x, double y);
+    void (*photo)(Rbc_RenderContext *, Tk_PhotoHandle photo, double x, double y);
+    void (*window)(Rbc_RenderContext *, Tk_Window tkwin, double x, double y);
+    void (*backgroundPolygon)(Rbc_RenderContext *, const XColor *color, const Point2D *points, Tcl_Size count);
+    void (*border)(Rbc_RenderContext *, Tk_3DBorder border, double x, double y, int width, int height,
+                                   int borderWidth, int relief, int fill);
+    void (*clearRectangle)(Rbc_RenderContext *, double x, double y, int width, int height);
+    void (*backgroundRectangles)(Rbc_RenderContext *, const XColor *color, const Rbc_RenderRectangle *rectangles,
+                                   Tcl_Size count);
+    void (*plotBegin)(Rbc_RenderContext *, Tk_Font font, double x, double y, int width, int height,
+                                   const XColor *background);
+    void (*plotEnd)(Rbc_RenderContext *);
+    void (*bitmapMask)(Rbc_RenderContext *, Display *display, Pixmap bitmap, double x, double y, int width,
+                                   int height, const XColor *color, int background);
+} Rbc_RenderOutputOps;
+
 /* Geometry dispatch is shared by screen and export contexts. */
 typedef struct {
     void (*polyline)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
@@ -28,6 +46,7 @@ typedef struct {
     void (*fillPolygon)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*fillRectangles)(Rbc_RenderContext *, const Rbc_RenderRectangle *, Tcl_Size);
     void (*symbolPoints)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
+    const Rbc_RenderOutputOps *output;
     void (*end)(Rbc_RenderContext *);
 } Rbc_RenderOps;
 
@@ -69,7 +88,7 @@ static void CairoEnd(Rbc_RenderContext *ctx);
 
 static const Rbc_RenderOps cairoOps = {
     CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground,
-    CairoFillPolygon, CairoFillRectangles, NULL, CairoEnd
+    CairoFillPolygon, CairoFillRectangles, NULL, NULL, CairoEnd
 };
 
 #ifdef WIN32
@@ -1202,6 +1221,103 @@ static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *center
     }
 }
 
+static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
+    Rbc_TextToPostScript(ctx->psToken, string, style, x, y);
+}
+
+static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
+    Rbc_PhotoToPostScript(ctx->psToken, photo, x, y);
+}
+
+static void PostScriptWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y) {
+    Rbc_WindowToPostScript(ctx->psToken, tkwin, x, y);
+}
+
+static void PostScriptBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points,
+                                   Tcl_Size count) {
+    Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)color);
+    Rbc_PolygonToPostScript(ctx->psToken, (Point2D *)points, count);
+}
+
+static void PostScriptBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
+                                   int borderWidth, int relief, int fill) {
+    if (fill) {
+        Rbc_Fill3DRectangleToPostScript(ctx->psToken, border, x, y, width, height, borderWidth, relief);
+    } else {
+        Rbc_Draw3DRectangleToPostScript(ctx->psToken, border, x, y, width, height, borderWidth, relief);
+    }
+}
+
+static void PostScriptClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
+    Rbc_ClearBackgroundToPostScript(ctx->psToken);
+    Rbc_RectangleToPostScript(ctx->psToken, x, y, width, height);
+}
+
+static void PostScriptBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
+                                   const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    Tcl_Size i;
+
+    if (color != NULL) {
+        Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)color);
+    } else {
+        Rbc_ClearBackgroundToPostScript(ctx->psToken);
+    }
+    for (i = 0; i < count; i++) {
+        const Rbc_RenderRectangle *rect = rectangles + i;
+
+        Rbc_RectangleToPostScript(ctx->psToken, rect->x, rect->y, rect->width, rect->height);
+    }
+}
+
+static void PostScriptPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
+                                   const XColor *background) {
+    Rbc_FontToPostScript(ctx->psToken, font);
+    Rbc_RegionToPostScript(ctx->psToken, x, y, width, height);
+    if (background != NULL) {
+        Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)background);
+    } else {
+        Rbc_ClearBackgroundToPostScript(ctx->psToken);
+    }
+    Rbc_AppendToPostScript(ctx->psToken, "Fill\n", "gsave clip\n\n", (char *)NULL);
+}
+
+static void PostScriptPlotEnd(Rbc_RenderContext *ctx) {
+    Rbc_AppendToPostScript(ctx->psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
+}
+
+static void PostScriptBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y,
+                                   int width, int height, const XColor *color, int background) {
+    if ((bitmap == None) || (width < 1) || (height < 1)) {
+        return;
+    }
+    if (background) {
+        Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)color);
+    } else {
+        Rbc_ForegroundToPostScript(ctx->psToken, (XColor *)color);
+    }
+    Rbc_FormatToPostScript(ctx->psToken,
+                           " gsave\n"
+                           " %g %g translate\n"
+                           " %d %d scale\n",
+                           x, y + height, width, -height);
+    Rbc_FormatToPostScript(ctx->psToken, " %d %d true [%d 0 0 %d 0 %d] {", width, height, width, -height, height);
+    Rbc_BitmapDataToPostScript(ctx->psToken, display, bitmap, width, height);
+    Rbc_AppendToPostScript(ctx->psToken, " } imagemask\n", " grestore\n", (char *)NULL);
+}
+
+static const Rbc_RenderOutputOps postScriptOutputOps = {
+    PostScriptText,
+    PostScriptPhoto,
+    PostScriptWindow,
+    PostScriptBackgroundPolygon,
+    PostScriptBorder,
+    PostScriptClearRectangle,
+    PostScriptBackgroundRectangles,
+    PostScriptPlotBegin,
+    PostScriptPlotEnd,
+    PostScriptBitmapMask
+};
+
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
     ckfree(ctx);
@@ -1209,7 +1325,7 @@ static void PostScriptEnd(Rbc_RenderContext *ctx) {
 
 static const Rbc_RenderOps postScriptOps = {
     PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptDashBackground,
-    PostScriptFillPolygon, PostScriptFillRectangles, PostScriptSymbolPoints, PostScriptEnd
+    PostScriptFillPolygon, PostScriptFillRectangles, PostScriptSymbolPoints, &postScriptOutputOps, PostScriptEnd
 };
 
 Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
@@ -1367,4 +1483,57 @@ void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
 
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
     ctx->ops->end(ctx);
+}
+
+Rbc_RenderContext *Rbc_RenderBeginPostScriptOutput(PsToken psToken) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &postScriptOps;
+    ctx->psToken = psToken;
+    return ctx;
+}
+
+void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
+    ctx->ops->output->text(ctx, string, style, x, y);
+}
+
+void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
+    ctx->ops->output->photo(ctx, photo, x, y);
+}
+
+void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y) {
+    ctx->ops->output->window(ctx, tkwin, x, y);
+}
+
+void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {
+    ctx->ops->output->backgroundPolygon(ctx, color, points, count);
+}
+
+void Rbc_RenderBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
+                                   int borderWidth, int relief, int fill) {
+    ctx->ops->output->border(ctx, border, x, y, width, height, borderWidth, relief, fill);
+}
+
+void Rbc_RenderClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
+    ctx->ops->output->clearRectangle(ctx, x, y, width, height);
+}
+
+void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
+                                   const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    ctx->ops->output->backgroundRectangles(ctx, color, rectangles, count);
+}
+
+void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
+                                   const XColor *background) {
+    ctx->ops->output->plotBegin(ctx, font, x, y, width, height, background);
+}
+
+void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx) {
+    ctx->ops->output->plotEnd(ctx);
+}
+
+void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
+                                   int height, const XColor *color, int background) {
+    ctx->ops->output->bitmapMask(ctx, display, bitmap, x, y, width, height, color, background);
 }

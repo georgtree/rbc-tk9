@@ -12,6 +12,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 
 #define POLAR_PI 3.14159265358979323846264338327950288
 #define POLAR_DEG_TO_RAD (POLAR_PI / 180.0)
@@ -918,6 +919,7 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
 }
 
 static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Axis *axisPtr;
     TextStyle style;
     Ticks *ticksPtr;
@@ -925,10 +927,12 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
 
     axisPtr = gridPtr->axes.x;
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        Rbc_RenderEnd(output);
         return;
     }
     ticksPtr = Rbc_AllocAxisMajorTicks(axisPtr);
     if (ticksPtr == NULL) {
+        Rbc_RenderEnd(output);
         return;
     }
     style = axisPtr->tickTextStyle;
@@ -950,20 +954,23 @@ static void PolarRadialLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid
         if (labelPtr == NULL) {
             continue;
         }
-        Rbc_TextToPostScript(psToken, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
+        Rbc_RenderText(output, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
                              point.y - POLAR_RADIAL_LABEL_OFFSET);
         ckfree(labelPtr);
     }
     ckfree(ticksPtr);
+    Rbc_RenderEnd(output);
 }
 
 static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, double completeRadius) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
 
     axisPtr = gridPtr->axes.y;
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        Rbc_RenderEnd(output);
         return;
     }
     style = axisPtr->tickTextStyle;
@@ -982,10 +989,11 @@ static void PolarAngularLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gri
         style.anchor = anchor;
         string = FormatPolarAngleLabel(graphPtr, degrees, &label);
         if (string[0] != '\0') {
-            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+            Rbc_RenderText(output, string, &style, point.x, point.y);
         }
         Tcl_DStringFree(&label);
     }
+    Rbc_RenderEnd(output);
 }
 
 void Rbc_PolarLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
@@ -1488,12 +1496,14 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr) {
 }
 
 static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
 
     axisPtr = gridPtr->axes.x;
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        Rbc_RenderEnd(output);
         return;
     }
     style = axisPtr->tickTextStyle;
@@ -1523,32 +1533,35 @@ static void SmithRealLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *
                  * g=0 -> Gamma=+1.
                  */
                 style.anchor = TK_ANCHOR_E;
-                Rbc_TextToPostScript(psToken, string, &style, point.x - SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+                Rbc_RenderText(output, string, &style, point.x - SMITH_RESISTANCE_LABEL_OFFSET, point.y);
             } else {
                 /*
                  * r=0 -> Gamma=-1.
                  */
                 style.anchor = TK_ANCHOR_W;
-                Rbc_TextToPostScript(psToken, string, &style, point.x + SMITH_RESISTANCE_LABEL_OFFSET, point.y);
+                Rbc_RenderText(output, string, &style, point.x + SMITH_RESISTANCE_LABEL_OFFSET, point.y);
             }
         } else if (admittance) {
             style.anchor = TK_ANCHOR_N;
-            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y + SMITH_RESISTANCE_LABEL_OFFSET);
+            Rbc_RenderText(output, string, &style, point.x, point.y + SMITH_RESISTANCE_LABEL_OFFSET);
         } else {
             style.anchor = TK_ANCHOR_S;
-            Rbc_TextToPostScript(psToken, string, &style, point.x, point.y - SMITH_RESISTANCE_LABEL_OFFSET);
+            Rbc_RenderText(output, string, &style, point.x, point.y - SMITH_RESISTANCE_LABEL_OFFSET);
         }
         Tcl_DStringFree(&label);
     }
+    Rbc_RenderEnd(output);
 }
 
 static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Grid *gridPtr, int admittance) {
+    Rbc_RenderContext *output = Rbc_RenderBeginPostScriptOutput(psToken);
     Axis *axisPtr;
     TextStyle style;
     Tcl_Size i;
 
     axisPtr = gridPtr->axes.y;
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
+        Rbc_RenderEnd(output);
         return;
     }
     style = axisPtr->tickTextStyle;
@@ -1572,11 +1585,12 @@ static void SmithReactiveLabelsToPostScript(Graph *graphPtr, PsToken psToken, Gr
             style.anchor = anchor;
             string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
             if (string[0] != '\0') {
-                Rbc_TextToPostScript(psToken, string, &style, point.x, point.y);
+                Rbc_RenderText(output, string, &style, point.x, point.y);
             }
             Tcl_DStringFree(&label);
         }
     }
+    Rbc_RenderEnd(output);
 }
 
 void Rbc_SmithLabelsToPostScript(Graph *graphPtr, PsToken psToken) {
