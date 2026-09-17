@@ -32,6 +32,30 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToke
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 
+/* Semantic symbol descriptions for export; colors are resolved by the caller. */
+typedef enum {
+    RBC_RENDER_SYMBOL_SQUARE, RBC_RENDER_SYMBOL_CIRCLE, RBC_RENDER_SYMBOL_DIAMOND,
+    RBC_RENDER_SYMBOL_PLUS, RBC_RENDER_SYMBOL_CROSS, RBC_RENDER_SYMBOL_SPLUS,
+    RBC_RENDER_SYMBOL_SCROSS, RBC_RENDER_SYMBOL_TRIANGLE, RBC_RENDER_SYMBOL_ARROW,
+    RBC_RENDER_SYMBOL_BITMAP
+} Rbc_RenderSymbolType;
+
+typedef struct {
+    Rbc_RenderSymbolType type;
+    int size, outlineWidth;
+    const XColor *outlineColor, *fillColor;
+    Pixmap bitmap, mask;
+} Rbc_RenderSymbolStyle;
+
+/* Export symbol contexts support SymbolPoints and End. Screen shape batching
+ * retains its existing interface. Contexts borrow bitmap/color resources.
+ * Finish each symbol batch before starting another (the prolog is shared). */
+Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psToken,
+                                                  const Rbc_RenderSymbolStyle *style);
+Rbc_RenderContext *Rbc_RenderBeginPostScriptBarSymbol(Graph *graphPtr, PsToken psToken,
+                                                     const Rbc_RenderFillStyle *style, int size);
+void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count);
+
 /* Screen-space symbol template; segment vertices are endpoint pairs. */
 typedef enum {
     RBC_RENDER_CIRCLE, RBC_RENDER_POLYGON, RBC_RENDER_SEGMENTS

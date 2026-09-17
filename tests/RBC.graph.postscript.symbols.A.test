@@ -1,0 +1,144 @@
+# Shared-renderer symbol export regressions.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::psSymbolTest {
+    namespace import ::tcltest::*
+
+    proc Create {type} {
+        ::rbc::$type .psSymbol -width 400 -height 300
+        .psSymbol legend configure -hide yes
+        .psSymbol grid configure -hide yes
+        foreach axis [.psSymbol axis names] {
+            .psSymbol axis configure $axis -hide yes
+        }
+        foreach axis {x y} {
+            .psSymbol axis configure $axis -min 0 -max 10 -loose no
+        }
+        pack .psSymbol
+        update idletasks
+    }
+
+    proc Body {{active 0}} {
+        set ps [.psSymbol postscript output]
+        set tag [expr {$active ? {% Active Element "signal"} : {% Element "signal"}}]
+        set first [string first $tag $ps]
+        if {$first < 0} {
+            error "Missing PostScript element: $tag"
+        }
+        set last [string first "\n% " $ps [expr {$first + [string length $tag]}]]
+        if {$last < 0} {
+            error "Missing end of PostScript element"
+        }
+        return [string range $ps $first [expr {$last - 1}]]
+    }
+
+    proc Count {ps macro} {
+        regexp -all -line -- [format {^[-0-9.e+]+ [-0-9.e+]+ [-0-9.e+]+ %s$} $macro] $ps
+    }
+
+    foreach type {graph stripchart} {
+        foreach {symbol macro} {
+            square Sq circle Ci diamond Di plus Pl cross Cr
+            splus Sp scross Sc triangle Tr arrow Ar
+        } {
+            test psSymbol-1-$type-$symbol {normal symbols retain prolog shapes and source count} -setup {
+                Create $type
+                .psSymbol element create signal -data {2 3 5 7 8 4} -linewidth 0 \
+                    -symbol $symbol -pixels 13 -fill red -outline blue -outlinewidth 2
+            } -body {
+                set ps [Body]
+                list [Count $ps $macro] \
+                    [expr {[string first "  Fill\n" $ps] >= 0}] \
+                    [expr {[string first "  stroke\n" $ps] >= 0}] \
+                    [expr {[string first "2 setlinewidth\n" $ps] >= 0}]
+            } -cleanup {
+                destroy .psSymbol
+            } -result {3 1 1 1}
+        }
+
+        test psSymbol-2-$type {selected and fully active symbols use the active pen} -setup {
+            Create $type
+            .psSymbol element create signal -data {2 3 5 7 8 4} -linewidth 0 -symbol circle
+            .psSymbol pen create selected -type line -linewidth 0 -symbol triangle \
+                -fill red -outline blue -outlinewidth 4
+            .psSymbol element configure signal -activepen selected
+        } -body {
+            .psSymbol element activate signal 1
+            set subset [Body 1]
+            .psSymbol element activate signal
+            set all [Body 1]
+            list [Count $subset Tr] [Count $all Tr] \
+                [expr {[string first "4 setlinewidth\n" $all] >= 0}]
+        } -cleanup {
+            destroy .psSymbol
+        } -result {1 3 1}
+    }
+
+    test psSymbol-3 {default colors match explicit pen colors and disabled paint stays disabled} -setup {
+        Create graph
+        .psSymbol element create signal -data {2 3 5 7} -linewidth 0 -symbol circle \
+            -color red -fill defcolor -outline defcolor -outlinewidth 2
+    } -body {
+        set default [Body]
+        .psSymbol element configure signal -fill red -outline red
+        set explicit [Body]
+        .psSymbol element configure signal -fill {} -outlinewidth 0
+        set empty [Body]
+        list [expr {$default eq $explicit}] [Count $empty Ci] \
+            [expr {[string first "  Fill\n" $empty] < 0}] \
+            [expr {[string first "  stroke\n" $empty] < 0}]
+    } -cleanup {
+        destroy .psSymbol
+    } -result {1 2 1 1}
+
+    test psSymbol-4 {bitmap symbols retain optional background masks} -setup {
+        Create graph
+        .psSymbol element create signal -data {2 3 5 7} -linewidth 0 \
+            -symbol {warning warning} -pixels 17 -fill red -outline blue
+    } -body {
+        set masked [Body]
+        .psSymbol element configure signal -fill {}
+        set unfilled [Body]
+        list [Count $masked Bm] [Count $unfilled Bm] \
+            [expr {[string first {% Bitmap mask is} $masked] >= 0}] \
+            [expr {[string first {% Bitmap mask is} $unfilled] < 0}] \
+            [expr {[string first {% Bitmap symbol is} $unfilled] >= 0}]
+    } -cleanup {
+        destroy .psSymbol
+    } -result {2 2 1 1 1}
+
+    test psSymbol-5 {line legend retains its symbol and thickened trace sample} -setup {
+        Create graph
+        .psSymbol element create signal -data {2 3 5 7} -linewidth 2 \
+            -symbol circle -label Signal
+    } -body {
+        set hidden [.psSymbol postscript output]
+        .psSymbol legend configure -hide no
+        set shown [.psSymbol postscript output]
+        list [Count $hidden Ci] [Count $shown Ci] \
+            [expr {[string first "4 setlinewidth\n" $shown] >= 0}]
+    } -cleanup {
+        destroy .psSymbol
+    } -result {2 3 1}
+
+    foreach stipple {{} gray25} {
+        test psSymbol-6-$stipple {bar legend retains its square and stippled background} -setup {
+            Create barchart
+            .psSymbol element create signal -data {2 3 5 7} -foreground red \
+                -background blue -borderwidth 0 -stipple $stipple -label Signal
+        } -body {
+            set hidden [.psSymbol postscript output]
+            .psSymbol legend configure -hide no
+            set shown [.psSymbol postscript output]
+            list [expr {[Count $shown Sq] == [Count $hidden Sq] + 1}] \
+                [expr {[regexp -all {  StippleFill} $shown] -
+                       [regexp -all {  StippleFill} $hidden] == ($stipple ne {})}]
+        } -cleanup {
+            destroy .psSymbol
+        } -result {1 1}
+    }
+}
+namespace delete ::psSymbolTest
+::tcltest::cleanupTests

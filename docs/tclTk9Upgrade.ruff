@@ -528,7 +528,9 @@ namespace eval TclTk9Upgrade {
         and bar faces use the same interface. Stipple backgrounds and drawing order are preserved.
         The existing PostScript backend and command are retained, and exporting still works without Cairo.
         PostScript still ignores area opacity; image-tiled line areas export only their configured background.
-        Symbols, text, images, and bar relief borders retain their existing export paths.
+        Normal and active element symbols (including bitmaps and masks) and line/bar legend samples also use
+        the interface. Their existing PostScript shapes, sizes and colors are retained.
+        Text, marker images/bitmaps, and bar relief borders retain their existing export paths.
 
         - Updated PostScript option handling.
         - Updated image generation and bitmap handling.

@@ -27,6 +27,7 @@ typedef struct {
     void (*dashBackground)(Rbc_RenderContext *, const XColor *);
     void (*fillPolygon)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*fillRectangles)(Rbc_RenderContext *, const Rbc_RenderRectangle *, Tcl_Size);
+    void (*symbolPoints)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*end)(Rbc_RenderContext *);
 } Rbc_RenderOps;
 
@@ -36,6 +37,8 @@ struct Rbc_RenderContext {
     int postScriptDashed;
     Graph *graphPtr;
     Rbc_RenderFillStyle fillStyle;
+    const char *symbolMacro;
+    double symbolSize;
 #ifdef RBC_HAVE_CAIRO
     cairo_surface_t *surface;
     cairo_t *cr;
@@ -66,7 +69,7 @@ static void CairoEnd(Rbc_RenderContext *ctx);
 
 static const Rbc_RenderOps cairoOps = {
     CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground,
-    CairoFillPolygon, CairoFillRectangles, CairoEnd
+    CairoFillPolygon, CairoFillRectangles, NULL, CairoEnd
 };
 
 #ifdef WIN32
@@ -1190,6 +1193,15 @@ static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRec
     }
 }
 
+static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
+    Tcl_Size i;
+
+    for (i = 0; i < count; i++) {
+        Rbc_FormatToPostScript(ctx->psToken, "%g %g %g %s\n", centers[i].x, centers[i].y,
+                               ctx->symbolSize, ctx->symbolMacro);
+    }
+}
+
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
     ckfree(ctx);
@@ -1197,7 +1209,7 @@ static void PostScriptEnd(Rbc_RenderContext *ctx) {
 
 static const Rbc_RenderOps postScriptOps = {
     PostScriptPolyline, PostScriptSegments, PostScriptLineStyle, PostScriptDashBackground,
-    PostScriptFillPolygon, PostScriptFillRectangles, PostScriptEnd
+    PostScriptFillPolygon, PostScriptFillRectangles, PostScriptSymbolPoints, PostScriptEnd
 };
 
 Rbc_RenderContext *Rbc_RenderBeginPostScript(PsToken psToken, const XColor *color, int lineWidth,
@@ -1222,6 +1234,107 @@ Rbc_RenderContext *Rbc_RenderBeginPostScriptFill(Graph *graphPtr, PsToken psToke
     ctx->graphPtr = graphPtr;
     ctx->fillStyle = *style;
     return ctx;
+}
+
+static int PostScriptSymbolRound(double value) { return (int)(value + ((value < 0.0) ? -0.5 : 0.5)); }
+
+/* Retain the legacy prolog shapes and size corrections, including bitmap masks. */
+Rbc_RenderContext *Rbc_RenderBeginPostScriptSymbol(Graph *graphPtr, PsToken psToken,
+                                                  const Rbc_RenderSymbolStyle *style) {
+    static const char *macros[] = {"Sq", "Ci", "Di", "Pl", "Cr", "Sp", "Sc", "Tr", "Ar", "Bm"};
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+    XColor *outlineColor = (XColor *)style->outlineColor;
+    XColor *fillColor = (XColor *)style->fillColor;
+
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &postScriptOps;
+    ctx->psToken = psToken;
+    ctx->symbolMacro = macros[style->type];
+    ctx->symbolSize = (double)style->size;
+    switch (style->type) {
+    case RBC_RENDER_SYMBOL_SQUARE:
+    case RBC_RENDER_SYMBOL_CROSS:
+    case RBC_RENDER_SYMBOL_PLUS:
+    case RBC_RENDER_SYMBOL_SCROSS:
+    case RBC_RENDER_SYMBOL_SPLUS:
+        ctx->symbolSize = (double)PostScriptSymbolRound(style->size * 0.886226925452758);
+        break;
+    case RBC_RENDER_SYMBOL_TRIANGLE:
+    case RBC_RENDER_SYMBOL_ARROW:
+        ctx->symbolSize = (double)PostScriptSymbolRound(style->size * 0.7);
+        break;
+    case RBC_RENDER_SYMBOL_DIAMOND:
+        ctx->symbolSize = (double)PostScriptSymbolRound(style->size * M_SQRT1_2);
+        break;
+    default:
+        break;
+    }
+    Rbc_LineWidthToPostScript(psToken, style->outlineWidth);
+    Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
+    Rbc_AppendToPostScript(psToken, "\n/DrawSymbolProc {\n", (char *)NULL);
+    if (style->type == RBC_RENDER_SYMBOL_BITMAP) {
+        int width, height;
+        double sx, sy, scale;
+
+        Tk_SizeOfBitmap(graphPtr->display, style->bitmap, &width, &height);
+        sx = (double)style->size / (double)width;
+        sy = (double)style->size / (double)height;
+        scale = MIN(sx, sy);
+        if ((style->mask != None) && (fillColor != NULL)) {
+            Rbc_AppendToPostScript(psToken, "\n  % Bitmap mask is \"",
+                                   Tk_NameOfBitmap(graphPtr->display, style->mask), "\"\n\n  ", (char *)NULL);
+            Rbc_BackgroundToPostScript(psToken, fillColor);
+            Rbc_BitmapToPostScript(psToken, graphPtr->display, style->mask, scale, scale);
+        }
+        Rbc_AppendToPostScript(psToken, "\n  % Bitmap symbol is \"",
+                               Tk_NameOfBitmap(graphPtr->display, style->bitmap), "\"\n\n  ", (char *)NULL);
+        Rbc_ForegroundToPostScript(psToken, outlineColor);
+        Rbc_BitmapToPostScript(psToken, graphPtr->display, style->bitmap, scale, scale);
+    } else {
+        if (fillColor != NULL) {
+            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
+            Rbc_BackgroundToPostScript(psToken, fillColor);
+            Rbc_AppendToPostScript(psToken, "  Fill\n", (char *)NULL);
+        }
+        if ((outlineColor != NULL) && (style->outlineWidth > 0)) {
+            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
+            Rbc_ForegroundToPostScript(psToken, outlineColor);
+            Rbc_AppendToPostScript(psToken, "  stroke\n", (char *)NULL);
+        }
+    }
+    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
+    return ctx;
+}
+
+/* Legend bar swatches use the unscaled square prolog shape. */
+Rbc_RenderContext *Rbc_RenderBeginPostScriptBarSymbol(Graph *graphPtr, PsToken psToken,
+                                                     const Rbc_RenderFillStyle *style, int size) {
+    Rbc_RenderContext *ctx = Rbc_RenderBeginPostScriptFill(graphPtr, psToken, style);
+
+    ctx->symbolMacro = "Sq";
+    ctx->symbolSize = (double)size;
+    Rbc_AppendToPostScript(psToken, "\n", "/DrawSymbolProc {\n", "  gsave\n    ", (char *)NULL);
+    if (style->stipple != None) {
+        if (style->background != NULL) {
+            Rbc_BackgroundToPostScript(psToken, (XColor *)style->background);
+            Rbc_AppendToPostScript(psToken, "    Fill\n    ", (char *)NULL);
+        }
+        Rbc_ForegroundToPostScript(psToken,
+            (XColor *)((style->foreground != NULL) ? style->foreground : style->background));
+        Rbc_StippleToPostScript(psToken, graphPtr->display, style->stipple);
+    } else if (style->foreground != NULL) {
+        Rbc_ForegroundToPostScript(psToken, (XColor *)style->foreground);
+        Rbc_AppendToPostScript(psToken, "    fill\n", (char *)NULL);
+    }
+    Rbc_AppendToPostScript(psToken, "  grestore\n", (char *)NULL);
+    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
+    return ctx;
+}
+
+void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
+    if (count > 0) {
+        ctx->ops->symbolPoints(ctx, centers, count);
+    }
 }
 
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {

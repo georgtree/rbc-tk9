@@ -2411,32 +2411,21 @@ static void DrawActiveBar(Graph *graphPtr, Drawable drawable, Element *elemPtr) 
  */
 static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
     BarPen *bpPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
+    Rbc_RenderFillStyle style;
+    Rbc_RenderContext *ctx;
+    Point2D center = {x, y};
+
     if ((bpPtr->border == NULL) && (bpPtr->fgColor == NULL)) {
         return;
     }
-    /*
-     * Build a PostScript procedure to draw the fill and outline of
-     * the symbol after the path of the symbol shape has been formed
-     */
-    Rbc_AppendToPostScript(psToken, "\n", "/DrawSymbolProc {\n", "  gsave\n    ", (char *)NULL);
-    if (bpPtr->stipple != None) {
-        if (bpPtr->border != NULL) {
-            Rbc_BackgroundToPostScript(psToken, Tk_3DBorderColor(bpPtr->border));
-            Rbc_AppendToPostScript(psToken, "    Fill\n    ", (char *)NULL);
-        }
-        if (bpPtr->fgColor != NULL) {
-            Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
-        } else {
-            Rbc_ForegroundToPostScript(psToken, Tk_3DBorderColor(bpPtr->border));
-        }
-        Rbc_StippleToPostScript(psToken, graphPtr->display, bpPtr->stipple);
-    } else if (bpPtr->fgColor != NULL) {
-        Rbc_ForegroundToPostScript(psToken, bpPtr->fgColor);
-        Rbc_AppendToPostScript(psToken, "    fill\n", (char *)NULL);
-    }
-    Rbc_AppendToPostScript(psToken, "  grestore\n", (char *)NULL);
-    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
-    Rbc_FormatToPostScript(psToken, "%g %g %d Sq\n", x, y, size);
+    style.foreground = bpPtr->fgColor;
+    style.background = (bpPtr->border != NULL) ? Tk_3DBorderColor(bpPtr->border) : NULL;
+    style.stipple = bpPtr->stipple;
+    style.opacity = 1.0;
+    style.backgroundOnly = FALSE;
+    ctx = Rbc_RenderBeginPostScriptBarSymbol(graphPtr, psToken, &style, size);
+    Rbc_RenderSymbolPoints(ctx, &center, 1);
+    Rbc_RenderEnd(ctx);
 }
 
 /*

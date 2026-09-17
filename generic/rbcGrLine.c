@@ -11106,154 +11106,42 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
 }
 
 /*
- * -----------------------------------------------------------------
- *
- * GetSymbolPostScriptInfo --
- *
- *      Set up the PostScript environment with the macros and
- *      attributes needed to draw the symbols of the element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      PsToken psToken
- *      LinePen *penPtr
- *      int size
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
- */
-static void GetSymbolPostScriptInfo(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size) {
-    XColor *outlineColor, *fillColor, *defaultColor;
-
-    /* Set line and foreground attributes */
-    outlineColor = penPtr->symbol.outlineColor;
-    fillColor = penPtr->symbol.fillColor;
-    defaultColor = penPtr->traceColor;
-    if (fillColor == COLOR_DEFAULT) {
-        fillColor = defaultColor;
-    }
-    if (outlineColor == COLOR_DEFAULT) {
-        outlineColor = defaultColor;
-    }
-    if (penPtr->symbol.type == SYMBOL_NONE) {
-        Rbc_LineAttributesToPostScript(psToken, defaultColor, penPtr->traceWidth + 2, &(penPtr->traceDashes), CapButt,
-                                       JoinMiter);
-    } else {
-        Rbc_LineWidthToPostScript(psToken, penPtr->symbol.outlineWidth);
-        Rbc_LineDashesToPostScript(psToken, (Rbc_Dashes *)NULL);
-    }
-    /*
-     * Build a PostScript procedure to draw the symbols.  For bitmaps,
-     * paint both the bitmap and its mask. Otherwise fill and stroke
-     * the path formed already.
-     */
-    Rbc_AppendToPostScript(psToken, "\n/DrawSymbolProc {\n", (char *)NULL);
-    switch (penPtr->symbol.type) {
-    case SYMBOL_NONE:
-        break; /* Do nothing */
-    case SYMBOL_BITMAP: {
-        int width, height;
-        double sx, sy, scale;
-
-        /*
-         * Compute how much to scale the bitmap.  Don't let the
-         * scaled bitmap exceed the bounding square for the
-         * symbol.
-         */
-        Tk_SizeOfBitmap(graphPtr->display, penPtr->symbol.bitmap, &width, &height);
-        sx = (double)size / (double)width;
-        sy = (double)size / (double)height;
-        scale = MIN(sx, sy);
-        if ((penPtr->symbol.mask != None) && (fillColor != NULL)) {
-            Rbc_AppendToPostScript(psToken, "\n  % Bitmap mask is \"",
-                                   Tk_NameOfBitmap(graphPtr->display, penPtr->symbol.mask), "\"\n\n  ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, fillColor);
-            Rbc_BitmapToPostScript(psToken, graphPtr->display, penPtr->symbol.mask, scale, scale);
-        }
-        Rbc_AppendToPostScript(psToken, "\n  % Bitmap symbol is \"",
-                               Tk_NameOfBitmap(graphPtr->display, penPtr->symbol.bitmap), "\"\n\n  ", (char *)NULL);
-        Rbc_ForegroundToPostScript(psToken, outlineColor);
-        Rbc_BitmapToPostScript(psToken, graphPtr->display, penPtr->symbol.bitmap, scale, scale);
-    } break;
-    default:
-        if (fillColor != NULL) {
-            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
-            Rbc_BackgroundToPostScript(psToken, fillColor);
-            Rbc_AppendToPostScript(psToken, "  Fill\n", (char *)NULL);
-        }
-        if ((outlineColor != NULL) && (penPtr->symbol.outlineWidth > 0)) {
-            Rbc_AppendToPostScript(psToken, "  ", (char *)NULL);
-            Rbc_ForegroundToPostScript(psToken, outlineColor);
-            Rbc_AppendToPostScript(psToken, "  stroke\n", (char *)NULL);
-        }
-        break;
-    }
-    Rbc_AppendToPostScript(psToken, "} def\n\n", (char *)NULL);
-}
-
-/*
- * -----------------------------------------------------------------
+ *----------------------------------------------------------------------
  *
  * SymbolsToPostScript --
  *
- *      Draw a symbol centered at the given x,y window coordinate
- *      based upon the element symbol type and size.
+ *      Resolve pen colors and export symbols through the renderer.
+ *      Normal, active and legend symbols share this path.
  *
- *      Most notable problem is the round-off errors generated when
- *      calculating the centered position of the symbol.
- *
- * Parameters:
- *      Graph *graphPtr
- *      PsToken psToken
- *      LinePen *penPtr
- *      int size
- *      int nSymbolPts
- *      Point2D *symbolPts
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ *----------------------------------------------------------------------
  */
 static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts) {
-    double symbolSize;
-    register Point2D *pointPtr, *endPtr;
-    static char *symbolMacros[] = {
-        "Li", "Sq", "Ci", "Di", "Pl", "Cr", "Sp", "Sc", "Tr", "Ar", "Bm", (char *)NULL,
+    static const Rbc_RenderSymbolType types[] = {
+        RBC_RENDER_SYMBOL_CIRCLE, /* SYMBOL_NONE is not drawn here. */
+        RBC_RENDER_SYMBOL_SQUARE, RBC_RENDER_SYMBOL_CIRCLE, RBC_RENDER_SYMBOL_DIAMOND,
+        RBC_RENDER_SYMBOL_PLUS, RBC_RENDER_SYMBOL_CROSS, RBC_RENDER_SYMBOL_SPLUS,
+        RBC_RENDER_SYMBOL_SCROSS, RBC_RENDER_SYMBOL_TRIANGLE, RBC_RENDER_SYMBOL_ARROW,
+        RBC_RENDER_SYMBOL_BITMAP
     };
-    GetSymbolPostScriptInfo(graphPtr, psToken, penPtr, size);
-    symbolSize = (double)size;
-    switch (penPtr->symbol.type) {
-    case SYMBOL_SQUARE:
-    case SYMBOL_CROSS:
-    case SYMBOL_PLUS:
-    case SYMBOL_SCROSS:
-    case SYMBOL_SPLUS:
-        symbolSize = (double)Round(size * S_RATIO);
-        break;
-    case SYMBOL_TRIANGLE:
-    case SYMBOL_ARROW:
-        symbolSize = (double)Round(size * 0.7);
-        break;
-    case SYMBOL_DIAMOND:
-        symbolSize = (double)Round(size * M_SQRT1_2);
-        break;
-    default:
-        break;
+    Rbc_RenderSymbolStyle style;
+    Rbc_RenderContext *ctx;
+
+    if ((penPtr->symbol.type == SYMBOL_NONE) || (nSymbolPts <= 0)) {
+        return;
     }
-    for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
-        Rbc_FormatToPostScript(psToken, "%g %g %g %s\n", pointPtr->x, pointPtr->y, symbolSize,
-                               symbolMacros[penPtr->symbol.type]);
-    }
+    style.type = types[penPtr->symbol.type];
+    style.size = size;
+    style.outlineWidth = penPtr->symbol.outlineWidth;
+    style.outlineColor = (penPtr->symbol.outlineColor == COLOR_DEFAULT) ?
+        penPtr->traceColor : penPtr->symbol.outlineColor;
+    style.fillColor = (penPtr->symbol.fillColor == COLOR_DEFAULT) ?
+        penPtr->traceColor : penPtr->symbol.fillColor;
+    style.bitmap = penPtr->symbol.bitmap;
+    style.mask = penPtr->symbol.mask;
+    ctx = Rbc_RenderBeginPostScriptSymbol(graphPtr, psToken, &style);
+    Rbc_RenderSymbolPoints(ctx, symbolPts, nSymbolPts);
+    Rbc_RenderEnd(ctx);
 }
 
 /*
@@ -11282,15 +11170,13 @@ static void SymbolsToPostScript(Graph *graphPtr, PsToken psToken, LinePen *penPt
 static void SymbolToPostScript(Graph *graphPtr, PsToken psToken, Element *elemPtr, double x, double y, int size) {
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
     if (penPtr->traceWidth > 0) {
-        /*
-         * Draw an extra line offset by one pixel from the previous to
-         * give a thicker appearance.  This is only for the legend
-         * entry.  This routine is never called for drawing the actual
-         * line segments.
-         */
-        Rbc_LineAttributesToPostScript(psToken, penPtr->traceColor, penPtr->traceWidth + 2, &(penPtr->traceDashes),
-                                       CapButt, JoinMiter);
-        Rbc_FormatToPostScript(psToken, "%g %g %d Li\n", x, y, size + size);
+        /* The legend sample is twice the symbol width and uses a thicker stroke. */
+        Segment2D segment = {{x - size, y}, {x + size, y}};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginPostScript(psToken, penPtr->traceColor, penPtr->traceWidth + 2,
+                                                          &penPtr->traceDashes, CapButt, JoinMiter);
+
+        Rbc_RenderSegments(ctx, &segment, 1);
+        Rbc_RenderEnd(ctx);
     }
     if (penPtr->symbol.type != SYMBOL_NONE) {
         Point2D point;
