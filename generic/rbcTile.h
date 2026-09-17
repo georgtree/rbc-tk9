@@ -28,6 +28,7 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XRect
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XPoint *pointArr, int nPoints);
 Pixmap Rbc_PixmapOfTile(Rbc_Tile tile);
 void Rbc_SizeOfTile(Rbc_Tile tile, int *widthPtr, int *heightPtr);
+Tk_Image Rbc_ImageOfTile(Rbc_Tile tile);
 int Rbc_GetTilePhoto(Rbc_Tile tile, Tk_PhotoImageBlock *blockPtr);
 void Rbc_SetTileOrigin(Tk_Window tkwin, Rbc_Tile tile, int x, int y);
 void Rbc_SetTSOrigin(Tk_Window tkwin, Rbc_Tile tile, int x, int y);

@@ -14,15 +14,6 @@ namespace eval ::svgTest {
         update idletasks
     }
 
-    proc UnsupportedTile {} {
-        return [image create bitmap -data {#define tile_width 8
-#define tile_height 1
-static unsigned char tile_bits[] = {
-    0x55
-};
-}]
-    }
-
     test svg-1 {options are independent and invalid configurations roll back} -setup {
         Create
     } -body {
@@ -75,21 +66,18 @@ static unsigned char tile_bits[] = {
         destroy .svg
     } -result 1
 
-    test svg-5 {unsupported content does not truncate an existing output file} -setup {
-        set tile {}
+    test svg-5 {invalid XML text does not truncate an existing output file} -setup {
         Create
-        set tile [UnsupportedTile]
-        .svg element configure signal -areatile $tile
+        .svg configure -title "invalid\u0001text"
         set path [makeFile KEEP svg-preserve.svg]
     } -body {
         set failed [catch {.svg svg output $path} message]
         set f [open $path r]
         set data [read $f]
         close $f
-        list $failed [string match {*non-photo image tiles*not supported*} $message] [string trim $data]
+        list $failed [string match {*XML cannot represent*} $message] [string trim $data]
     } -cleanup {
         destroy .svg
-        if {$tile ne {}} { image delete $tile }
         removeFile svg-preserve.svg
     } -result {1 1 KEEP}
 
@@ -183,19 +171,16 @@ static unsigned char tile_bits[] = {
     } -result {1 1 0 700}
 
     test svg-13 {failed SVG export does not poison later PostScript or SVG exports} -setup {
-        set tile {}
         Create
-        set tile [UnsupportedTile]
-        .svg element configure signal -areatile $tile
+        .svg configure -title "invalid\u0001text"
     } -body {
         set failed [catch {.svg svg output}]
         set ps [.svg postscript output]
-        .svg element configure signal -areatile {} -areapattern {}
+        .svg configure -title {}
         set svg [.svg svg output]
         list $failed [string match {%!PS-Adobe*} $ps] [string match {<?xml*} $svg]
     } -cleanup {
         destroy .svg
-        if {$tile ne {}} { image delete $tile }
     } -result {1 1 1}
 
 }

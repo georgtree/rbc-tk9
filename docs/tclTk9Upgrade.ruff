@@ -525,8 +525,9 @@ namespace eval TclTk9Upgrade {
         height and decoration settings. SVG export uses vector geometry and editable text and does not
         require Cairo. Solid area opacity and photo-marker alpha are preserved. Photos are embedded as PNG;
         bitmap markers and symbols use vector shapes. Stipple fills use vector patterns, and photo area tiles
-        embed repeating PNG images with alpha. Non-photo image tiles/markers and window markers still
-        report an error before opening a file. See the graph SVG output section.
+        embed repeating PNG images with alpha. Non-photo Tk images are rasterized with recovered transparency;
+        mapped window markers embed native pixel snapshots. Capture failures report an error before opening
+        a file. See the graph SVG output section for capture limitations.
 
         ### PostScript output
 

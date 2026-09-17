@@ -63,6 +63,8 @@ void Rbc_RenderSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
  * Document setup, trailers and I/O remain with each backend command. */
 Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr);
 void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y);
+/* Non-photo image fallback; the legacy PostScript backend omits these images. */
+void Rbc_RenderTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y);
 void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y);
 void Rbc_RenderWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y);
 void Rbc_RenderBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count);

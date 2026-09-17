@@ -35,6 +35,7 @@ typedef struct {
     void (*plotEnd)(Rbc_RenderContext *);
     void (*bitmapMask)(Rbc_RenderContext *, Display *display, Pixmap bitmap, double x, double y, int width,
                                    int height, const XColor *color, int background);
+    void (*image)(Rbc_RenderContext *, Tk_Image image, double x, double y);
 } Rbc_RenderOutputOps;
 
 /* Geometry dispatch is shared by screen and export contexts. */
@@ -1239,6 +1240,11 @@ static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *styl
     Rbc_TextToPostScript(ctx->psToken, string, style, x, y);
 }
 
+/* Legacy PostScript silently omits non-photo image markers. */
+static void PostScriptTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
+    (void)ctx; (void)image; (void)x; (void)y;
+}
+
 static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     if (photo != NULL) {
         Rbc_PhotoToPostScript(ctx->psToken, photo, x, y);
@@ -1331,7 +1337,8 @@ static const Rbc_RenderOutputOps postScriptOutputOps = {
     PostScriptBackgroundRectangles,
     PostScriptPlotBegin,
     PostScriptPlotEnd,
-    PostScriptBitmapMask
+    PostScriptBitmapMask,
+    PostScriptTkImage
 };
 
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
@@ -1553,6 +1560,10 @@ Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr) {
 
 void Rbc_RenderText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     ctx->ops->output->text(ctx, string, style, x, y);
+}
+
+void Rbc_RenderTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
+    ctx->ops->output->image(ctx, image, x, y);
 }
 
 void Rbc_RenderPhotoImage(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
@@ -1950,6 +1961,97 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
     Tcl_DStringFree(&png);
 }
 
+/* Tk image types expose drawing rather than a common pixel buffer. Render
+ * conventional source-over images on two mattes to recover RGB and alpha. */
+static Rbc_ColorImage SvgRasterImage(Rbc_ExportContext *token, Tk_Image image) {
+    Tk_Window tkwin = token->tkwin;
+    Display *display = Tk_Display(tkwin);
+    Rbc_ColorImage black = NULL, white = NULL;
+    Pixmap pixmap;
+    GC gc;
+    XGCValues values;
+    int width, height, pass;
+    size_t i, count;
+
+    if (image == NULL || Tk_ImageIsDeleted(image)) { return NULL; }
+    Tk_SizeOfImage(image, &width, &height);
+    if (width <= 0 || height <= 0) { return NULL; }
+    Tk_MakeWindowExist(tkwin);
+    pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, Tk_Depth(tkwin));
+    if (pixmap == None) {
+        SvgError(token, "cannot allocate SVG image capture pixmap");
+        return NULL;
+    }
+    values.foreground = BlackPixelOfScreen(Tk_Screen(tkwin));
+    gc = Tk_GetGC(tkwin, GCForeground, &values);
+    for (pass = 0; pass < 2; pass++) {
+        Rbc_ColorImage captured;
+
+        if (pass == 1) {
+            Tk_FreeGC(display, gc);
+            values.foreground = WhitePixelOfScreen(Tk_Screen(tkwin));
+            gc = Tk_GetGC(tkwin, GCForeground, &values);
+        }
+        XFillRectangle(display, pixmap, gc, 0, 0, width, height);
+        Tk_RedrawImage(image, 0, 0, width, height, pixmap, 0, 0);
+        captured = Rbc_DrawableToColorImage(tkwin, pixmap, 0, 0, width, height, GAMMA);
+        if (captured == NULL) {
+            SvgError(token, "cannot capture Tk image for SVG");
+            break;
+        }
+        if (pass == 0) { black = captured; }
+        else { white = captured; }
+    }
+    Tk_FreeGC(display, gc);
+    Tk_FreePixmap(display, pixmap);
+    if (white == NULL) {
+        if (black != NULL) { Rbc_FreeColorImage(black); }
+        return NULL;
+    }
+    count = (size_t)width * height;
+    for (i = 0; i < count; i++) {
+        Pix32 *b = Rbc_ColorImageBits(black) + i;
+        const Pix32 *w = Rbc_ColorImageBits(white) + i;
+        int difference = MAX((int)w->Red - b->Red, MAX((int)w->Green - b->Green, (int)w->Blue - b->Blue));
+        int alpha = 255 - MIN(255, MAX(0, difference));
+
+        b->Red = alpha ? (unsigned char)MIN(255, ((int)b->Red * 255 + alpha / 2) / alpha) : 0;
+        b->Green = alpha ? (unsigned char)MIN(255, ((int)b->Green * 255 + alpha / 2) / alpha) : 0;
+        b->Blue = alpha ? (unsigned char)MIN(255, ((int)b->Blue * 255 + alpha / 2) / alpha) : 0;
+        b->Alpha = (unsigned char)alpha;
+    }
+    Rbc_FreeColorImage(white);
+    return black;
+}
+
+static void SvgColorImage(Rbc_ExportContext *token, Rbc_ColorImage image, double x, double y) {
+    Tk_PhotoImageBlock block;
+
+    if ((size_t)Rbc_ColorImageWidth(image) > (size_t)INT_MAX / sizeof(Pix32)) {
+        SvgError(token, "captured image is too large for SVG");
+        return;
+    }
+    block.width = Rbc_ColorImageWidth(image);
+    block.height = Rbc_ColorImageHeight(image);
+    block.pixelSize = sizeof(Pix32);
+    block.pitch = block.width * block.pixelSize;
+    block.pixelPtr = (unsigned char *)Rbc_ColorImageBits(image);
+    block.offset[0] = offsetof(Pix32, Red);
+    block.offset[1] = offsetof(Pix32, Green);
+    block.offset[2] = offsetof(Pix32, Blue);
+    block.offset[3] = offsetof(Pix32, Alpha);
+    SvgPhotoBlock(token, &block, x, y);
+}
+
+static void SvgTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
+    Rbc_ColorImage captured = SvgRasterImage(ctx->exportPtr, image);
+
+    if (captured != NULL) {
+        SvgColorImage(ctx->exportPtr, captured, x, y);
+        Rbc_FreeColorImage(captured);
+    }
+}
+
 /* Stipples use graph pixels; photo tiles retain their toplevel-relative
  * phase. A translated legend sample supplies its own local origin. */
 static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foreground) {
@@ -1957,19 +2059,27 @@ static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foregro
     const Rbc_RenderFillStyle *style = &ctx->fillStyle;
     Tk_PhotoImageBlock block;
     XImage *bits = NULL;
+    Rbc_ColorImage captured = NULL;
     int width, height;
     double originX = 0.0, originY = 0.0;
 
     if (ctx->svgPatternId != 0) { return ctx->svgPatternId; }
     if (style->backgroundOnly) {
-        if (ctx->svgTile == NULL || !Rbc_GetTilePhoto(ctx->svgTile, &block)) {
-            SvgError(token, "non-photo image tiles are not supported by SVG yet");
-            return 0;
-        }
         Tk_Window tkwin;
 
-        width = block.width;
-        height = block.height;
+        if (ctx->svgTile == NULL) {
+            SvgError(token, "missing tile image for SVG");
+            return 0;
+        }
+        if (Rbc_GetTilePhoto(ctx->svgTile, &block)) {
+            width = block.width;
+            height = block.height;
+        } else {
+            captured = SvgRasterImage(token, Rbc_ImageOfTile(ctx->svgTile));
+            if (captured == NULL) { return 0; }
+            width = Rbc_ColorImageWidth(captured);
+            height = Rbc_ColorImageHeight(captured);
+        }
         for (tkwin = ctx->graphPtr->tkwin; !Tk_IsTopLevel(tkwin); tkwin = Tk_Parent(tkwin)) {
             originX -= Tk_X(tkwin) + Tk_Changes(tkwin)->border_width;
             originY -= Tk_Y(tkwin) + Tk_Changes(tkwin)->border_width;
@@ -1990,7 +2100,12 @@ static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foregro
         "<defs><pattern id=\"rbcPattern%u\" patternUnits=\"userSpaceOnUse\" patternContentUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"%d\" height=\"%d\" patternTransform=\"translate(%g %g)\">\n",
         ctx->svgPatternId, width, height, originX, originY);
     if (style->backgroundOnly) {
-        SvgPhotoBlock(token, &block, 0, 0);
+        if (captured != NULL) {
+            SvgColorImage(token, captured, 0, 0);
+            Rbc_FreeColorImage(captured);
+        } else {
+            SvgPhotoBlock(token, &block, 0, 0);
+        }
     } else {
         SvgRectangle(token, 0, 0, width, height, style->background);
         SvgBitmapRuns(token, bits, NULL, foreground);
@@ -2171,7 +2286,7 @@ static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
     Tk_PhotoImageBlock block;
 
     if (photo == NULL) {
-        SvgError(ctx->exportPtr, "non-photo image markers are not supported by SVG yet");
+        SvgError(ctx->exportPtr, "missing photo image for SVG");
         return;
     }
     if (!Tk_PhotoGetImage(photo, &block)) {
@@ -2182,8 +2297,17 @@ static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
 }
 
 static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
-    (void)window; (void)x; (void)y;
-    SvgError(ctx->exportPtr, "window markers are not supported by SVG yet");
+    Rbc_ColorImage captured;
+
+    if (!Tk_IsMapped(window) || Tk_Width(window) <= 0 || Tk_Height(window) <= 0) { return; }
+    captured = Rbc_DrawableToColorImage(window, Tk_WindowId(window), 0, 0,
+                                       Tk_Width(window), Tk_Height(window), GAMMA);
+    if (captured == NULL) {
+        SvgError(ctx->exportPtr, "cannot capture window marker for SVG");
+        return;
+    }
+    SvgColorImage(ctx->exportPtr, captured, x, y);
+    Rbc_FreeColorImage(captured);
 }
 
 static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y,
@@ -2267,7 +2391,7 @@ static void SvgPlotEnd(Rbc_RenderContext *ctx) {
 
 static const Rbc_RenderOutputOps svgOutputOps = {
     SvgText, SvgPhoto, SvgWindow, SvgBackgroundPolygon, SvgBorder, SvgClearRectangle,
-    SvgBackgroundRectangles, SvgPlotBegin, SvgPlotEnd, SvgBitmapMask
+    SvgBackgroundRectangles, SvgPlotBegin, SvgPlotEnd, SvgBitmapMask, SvgTkImage
 };
 
 static const Rbc_RenderOps svgOps = {

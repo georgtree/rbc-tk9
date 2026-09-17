@@ -2817,7 +2817,12 @@ static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     }
     imageName = (imPtr->tmpImage == NULL) ? Rbc_NameOfImage(imPtr->tkImage) : Rbc_NameOfImage(imPtr->tmpImage);
     photo = Tk_FindPhoto(markerPtr->graphPtr->interp, imageName);
-    Rbc_RenderPhotoImage(output, photo, imPtr->anchorPos.x, imPtr->anchorPos.y);
+    if (photo != NULL) {
+        Rbc_RenderPhotoImage(output, photo, imPtr->anchorPos.x, imPtr->anchorPos.y);
+    } else {
+        Rbc_RenderTkImage(output, (imPtr->tmpImage == NULL) ? imPtr->tkImage : imPtr->tmpImage,
+                             imPtr->anchorPos.x, imPtr->anchorPos.y);
+    }
     Rbc_RenderEnd(output);
 }
 

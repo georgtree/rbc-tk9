@@ -191,7 +191,7 @@ PostScript output as well as on-screen drawing.</p>
 bottom-of-plot closure; <code class="docutils literal notranslate"><span class="pre">chord</span></code> joins the endpoints directly, and <code class="docutils literal notranslate"><span class="pre">origin</span></code> closes through Cartesian
 <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. These choices control the fill polygon without adding segments to the visible trace. They apply
 to solid, stippled and tiled areas, and the same closure geometry is used in PostScript.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) in Cairo, from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>
+<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) in Cairo and SVG, from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code>
 (opaque, the default). It does not change lines, symbols, stipples or image tiles. Photo tiles retain
 their own per-pixel alpha, including partial transparency.</p>
 <p>Native rendering accepts but ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>, and native image tiles use binary transparency
@@ -497,6 +497,16 @@ when calling APIs that inherently require integer coordinates.</p>
 <li><p>Isolated native bitmap-handle access behind Rbc Windows helper functions.</p></li>
 </ul>
 </section>
+<section id="svg-output">
+<span id="r-tcltk9upgrade-svg-output"></span><span id="r-3a3atcltk9upgradeqzsvg20output"></span><h3>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h3>
+<p>Graph widgets now provide <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code>, and <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span></code>, with independent width,
+height and decoration settings. SVG export uses vector geometry and editable text and does not
+require Cairo. Solid area opacity and photo-marker alpha are preserved. Photos are embedded as PNG;
+bitmap markers and symbols use vector shapes. Stipple fills use vector patterns, and photo area tiles
+embed repeating PNG images with alpha. Non-photo Tk images are rasterized with recovered transparency;
+mapped window markers embed native pixel snapshots. Capture failures report an error before opening
+a file. See the graph SVG output section for capture limitations.</p>
+</section>
 <section id="postscript-output">
 <span id="r-tcltk9upgrade-postscript-output"></span><span id="r-3a3atcltk9upgradeqzpostscript20output"></span><h3>PostScript output<a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h3>
 <p>The PostScript subsystem was modernized and hardened alongside the graph code.</p>
@@ -694,6 +704,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#vector-subsystem">Vector subsystem</a></li>
 <li><a class="reference internal" href="#geometry-text-and-drawing">Geometry, text and drawing</a></li>
 <li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
+<li><a class="reference internal" href="#svg-output">SVG output</a></li>
 <li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
 <li><a class="reference internal" href="#windows-drawing-backend">Windows drawing backend</a></li>
 <li><a class="reference internal" href="#windows-rendering-performance">Windows rendering performance</a></li>

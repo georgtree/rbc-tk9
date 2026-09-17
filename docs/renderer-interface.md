@@ -31,9 +31,11 @@ and embedded PNG photo markers with alpha. Document-local identifiers reuse bitm
 PNG compression and checksums use Tcl zlib APIs; no extra build dependency is needed. Stipple fills use vector patterns; photo
 area tiles reuse the PNG writer in repeating patterns. `Rbc_RenderSetFillTile` supplies the borrowed tile to
 an export fill context; the PostScript adapter retains its background-only fallback. Non-photo image
-tiles/markers and windows currently report an error. The SVG command renders and validates before opening its output file.
+tiles/markers render to black and white pixmaps and recover alpha for conventional source-over image types.
+Window markers use the native drawable capture and embed opaque PNG. Capture errors fail the export before
+opening the file. These raster paths reuse the PNG writer and require no additional dependency. The SVG command renders and validates before opening its output file.
 PostScript limitations remain unchanged: area opacity is ignored, tiled areas export their configured background,
 and failed window capture uses the existing gray rectangle fallback. Font/color maps stay in the PS backend.
 
 Tests are in `tests/RBC.graph.svg.A.test` and `tests/RBC.graph.postscript.*.test`. The SVG tests also exercise
-alternating exports and recovery after an unsupported-feature error. Screen renderer tests remain separate.
+alternating exports and recovery after an export error. Screen renderer tests remain separate.

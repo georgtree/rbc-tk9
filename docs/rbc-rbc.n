@@ -133,6 +133,12 @@ rbc - Commands in namespace rbc
 .br
 \fBGRAPHINST snap\fP \fIname ?-format format? ?-height height? ?-width width?\fP
 .br
+\fBGRAPHINST svg\fP \fIcget option\fP
+.br
+\fBGRAPHINST svg\fP \fIconfigure ?option? ?value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST svg\fP \fIoutput ?file? ?option value \&.\&.\&.?\fP
+.br
 \fBGRAPHINST transform\fP \fIx y\fP
 .br
 \fBGRAPHINST x2axis\fP \fIoperation ?args \&.\&.\&.?\fP
@@ -1437,6 +1443,9 @@ Performs a PostScript output operation for the graph\&.
 \fIsnap\fP
 Renders a snapshot of the graph\&. By default the snapshot is written to an existing Tk photo image\&. On Windows, snapshots can also be written as Windows Metafile (wmf) or Enhanced Metafile (emf) output\&.
 .TP
+\fIsvg\fP
+Exports vector SVG\&. See the SVG output section for options, supported content and limitations\&.
+.TP
 \fItransform\fP
 Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes\&. x and y may be Tcl expressions that evaluate to numeric values\&.
 .TP
@@ -1814,6 +1823,28 @@ image create photo graphImage
 \fBReturn value\fR
 .PP
 Nothing\&.
+.PP
+.RS -4n
+\fBGRAPHINST svg\fR (::rbc)
+.RE
+.PP
+Exports vector SVG\&. See the SVG output section for options, supported content and limitations\&.
+.RS 4n
+\fBGRAPHINST svg\fP \fIcget option\fP
+.br
+\fBGRAPHINST svg\fP \fIconfigure ?option? ?value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST svg\fP \fIoutput ?file? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Option information, an SVG XML string, or nothing when writing a file\&.
 .PP
 .RS -4n
 \fBGRAPHINST transform\fR (::rbc)

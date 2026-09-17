@@ -65,6 +65,7 @@ These component interfaces are documented separately\&.
 svg exports vector graphics without requiring Cairo\&. It is available on graph, stripchart,
 barchart and polar widgets and has its own settings, separate from postscript\&.
 .PP
+.RS 4n
 .nf
 \&.g svg configure -width 1200 -height 800 -decorations yes
 \&.g svg cget -width
@@ -72,18 +73,19 @@ set document [\&.g svg output]
 \&.g svg output plot\&.svg
 \&.g svg output plot\&.svg -width 800 -height 600
 .fi
-.PP
+.RE
 .PP
 svg configure returns option descriptions; svg configure option describes one option\&.
 svg cget option returns its value\&. svg output ?file? ?option value \&.\&.\&.? returns the XML
 string when no filename is supplied, or writes UTF-8 SVG to the named file\&. Prefix a filename
 starting with a dash with \&./\&. Successfully parsed output options remain configured, as for
 PostScript\&. Invalid option/value lists leave all SVG settings unchanged\&.
-.PP
-- -width and -height: output dimensions in pixels (Tk screen-distance units are also accepted)\&.
-  The default, zero, uses the widget dimension\&. Dimensions cannot be negative\&.
-- -decorations: include configured graph/legend backgrounds and relief borders\&. Defaults to true\&.
-  False uses white backgrounds, as in PostScript\&. Axes, labels and symbols remain visible\&.
+.TP
+\(bu
+-width and -height: output dimensions in pixels (Tk screen-distance units are also accepted)\&. The default, zero, uses the widget dimension\&. Dimensions cannot be negative\&.
+.TP
+\(bu
+-decorations: include configured graph/legend backgrounds and relief borders\&. Defaults to true\&. False uses white backgrounds, as in PostScript\&. Axes, labels and symbols remain visible\&.
 .PP
 SVG export supports traces, error bars, grids, axes, solid areas and bars,
 standard geometric symbols, line/polygon/text markers, legends, borders and editable text\&.
@@ -103,9 +105,16 @@ with alpha and take precedence over stipples\&. Stipples align with graph pixels
 the screen renderer's toplevel-relative phase\&. Bar legend patterns restart at each sample's corner\&.
 Pattern sizes are in export pixels\&. -areaopacity affects solid fills only, not stipples or tiles\&.
 .PP
-Non-photo image tiles/markers and window markers are not supported yet\&.
-Visible unsupported content produces an error before the output file is opened;
-it is not silently omitted\&. PostScript printer options (paper size, landscape, preview, font/color
+Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG\&. Transparency is
+recovered from black/white renders, which assumes stable source-over drawing; custom image types
+whose output depends on destination contents may differ\&. No external image files are required\&.
+.PP
+Mapped window markers embed their current native window pixels as opaque PNG\&. Hidden or unmapped
+window markers are omitted\&. Window contents are raster snapshots at their current widget size,
+not vector drawings; native capture availability and visibility constraints apply\&. Export does not
+run the event loop to refresh a window\&. Refresh pending display work before exporting when needed\&.
+.PP
+Capture failures and invalid XML text report an error before the output file is opened\&. PostScript printer options (paper size, landscape, preview, font/color
 maps) are not SVG options\&. The SVG canvas uses pixel dimensions and a matching viewBox\&.
 .SH "NUMERIC VALUES AND EXPRESSIONS"
 .PP

@@ -697,7 +697,7 @@ Existing PostScript limitations for image tiles are unchanged.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>.
+<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> and in SVG output.
 It accepts a finite number from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).
 Intermediate values blend the fill with the content already drawn beneath it. It does not
 change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha.
@@ -766,7 +766,7 @@ runs.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">areaOpacity</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AreaOpacity</span></code></p></td>
-<td><p>Solid fill opacity from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (default); Cairo only. Native and PostScript ignore it.</p></td>
+<td><p>Solid fill opacity from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (default); Cairo and SVG. Native and PostScript ignore it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">pattern</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">areaPattern</span></code></p></td>

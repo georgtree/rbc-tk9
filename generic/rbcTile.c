@@ -629,6 +629,15 @@ Pixmap Rbc_PixmapOfTile(TileClient *clientPtr) {
     return clientPtr->tilePtr->pixmap;
 }
 
+/* Borrow the image until the next tile change; the caller must not free it. */
+Tk_Image Rbc_ImageOfTile(TileClient *clientPtr) {
+    if (clientPtr == NULL || clientPtr->magic != TILE_MAGIC ||
+        Tk_ImageIsDeleted(clientPtr->tilePtr->tkImage)) {
+        return NULL;
+    }
+    return clientPtr->tilePtr->tkImage;
+}
+
 /* Borrow photo pixels until the next image change. Deleted images are empty. */
 int Rbc_GetTilePhoto(TileClient *clientPtr, Tk_PhotoImageBlock *blockPtr) {
     Tile *tilePtr;

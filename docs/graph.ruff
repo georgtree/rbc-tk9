@@ -218,9 +218,16 @@ namespace eval ::rbc::GRAPHINST {
         the screen renderer's toplevel-relative phase. Bar legend patterns restart at each sample's corner.
         Pattern sizes are in export pixels. `-areaopacity` affects solid fills only, not stipples or tiles.
 
-        Non-photo image tiles/markers and window markers are not supported yet.
-        Visible unsupported content produces an error before the output file is opened;
-        it is not silently omitted. PostScript printer options (paper size, landscape, preview, font/color
+        Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG. Transparency is
+        recovered from black/white renders, which assumes stable source-over drawing; custom image types
+        whose output depends on destination contents may differ. No external image files are required.
+
+        Mapped window markers embed their current native window pixels as opaque PNG. Hidden or unmapped
+        window markers are omitted. Window contents are raster snapshots at their current widget size,
+        not vector drawings; native capture availability and visibility constraints apply. Export does not
+        run the event loop to refresh a window. Refresh pending display work before exporting when needed.
+
+        Capture failures and invalid XML text report an error before the output file is opened. PostScript printer options (paper size, landscape, preview, font/color
         maps) are not SVG options. The SVG canvas uses pixel dimensions and a matching `viewBox`.
 
         ## Numeric values and expressions
