@@ -3,7 +3,8 @@
 ![RBC preview](docs/images/preview.png)
 
 Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
-and window and image utilities. Graphs update automatically when their attached vectors change.
+and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
+and graphical elements support SVG and PostScript export.
 
 This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.5.0**.
 

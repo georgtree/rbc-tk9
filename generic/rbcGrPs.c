@@ -79,7 +79,6 @@ static const Tk_OptionSpec postScriptOptionSpecs[] = {
      offsetof(PostScript, reqWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-
 typedef int RbcGrPsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 typedef struct {

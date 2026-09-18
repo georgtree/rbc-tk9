@@ -1,9 +1,13 @@
 # SVG photo and bitmap export. See license.terms for details.
-package require rbc
-package require tcltest
+package provide graph.svg
 
-namespace eval ::svgImageTest {
-    namespace import ::tcltest::*
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.svg.images {
 
     proc Create {} {
         ::rbc::graph .svgImage -width 400 -height 300
@@ -39,7 +43,9 @@ static unsigned char mask_bits[] = {
 
     proc ColorPath {document color} {
         set pattern [format {<path fill="%s" stroke="none" d="([^"]*)"} $color]
-        if {![regexp $pattern $document -> path]} { error "Missing SVG path for $color" }
+        if {![regexp $pattern $document -> path]} {
+            error "Missing SVG path for $color"
+        }
         return $path
     }
 
@@ -56,14 +62,18 @@ static unsigned char mask_bits[] = {
         set decoded [EmbeddedPhoto $document]
         set equal 1
         foreach {x y} {0 0 1 0 0 1 1 1} {
-            if {[$source get $x $y -withalpha] ne [$decoded get $x $y -withalpha]} { set equal 0 }
+            if {[$source get $x $y -withalpha] ne [$decoded get $x $y -withalpha]} {
+                set equal 0
+            }
         }
-        list [image width $decoded] [image height $decoded] $equal \
-            [expr {[string first {<image } $document] > [string first {clip-path="url(#rbcPlot)"} $document]}]
+        list [image width $decoded] [image height $decoded] $equal\
+                [expr {[string first {<image } $document] > [string first {clip-path="url(#rbcPlot)"} $document]}]
     } -cleanup {
         destroy .svgImage
         image delete $source
-        if {$decoded ne {}} { image delete $decoded }
+        if {$decoded ne {}} {
+            image delete $decoded
+        }
     } -result {2 2 1 1}
 
     test svgImage-2 {photo changes are captured on every export} -setup {
@@ -81,19 +91,20 @@ static unsigned char mask_bits[] = {
     } -cleanup {
         destroy .svgImage
         image delete $source
-        if {$decoded ne {}} { image delete $decoded }
+        if {$decoded ne {}} {
+            image delete $decoded
+        }
     } -result {1 {0 0 255}}
 
     test svgImage-3 {bitmap symbols share geometry and apply foreground and background masks} -setup {
         Create
         lassign [BitmapFiles] bitmap mask
-        .svgImage element create signal -data {2 3 5 7 8 4} -linewidth 0 \
-            -symbol [list @$bitmap @$mask] -pixels 20 -outline #112233 -fill #445566
+        .svgImage element create signal -data {2 3 5 7 8 4} -linewidth 0 -symbol [list @$bitmap @$mask] -pixels 20\
+                -outline #112233 -fill #445566
     } -body {
         set document [.svgImage svg output]
-        list [regexp -all {<defs><g id="rbcBitmap} $document] \
-            [regexp -all {<use href="#rbcBitmap} $document] \
-            [ColorPath $document #112233] [ColorPath $document #445566]
+        list [regexp -all {<defs><g id="rbcBitmap} $document] [regexp -all {<use href="#rbcBitmap} $document]\
+                [ColorPath $document #112233] [ColorPath $document #445566]
     } -cleanup {
         destroy .svgImage
         removeFile $bitmap
@@ -103,8 +114,8 @@ static unsigned char mask_bits[] = {
     test svgImage-4 {mapped bitmap marker preserves foreground intersection and background mask} -setup {
         Create
         lassign [BitmapFiles] bitmap mask
-        .svgImage marker create bitmap -bitmap @$bitmap -mask @$mask -coords {5 5} \
-            -foreground #112233 -background #445566 -anchor nw
+        .svgImage marker create bitmap -bitmap @$bitmap -mask @$mask -coords {5 5} -foreground #112233\
+                 -background #445566 -anchor nw
     } -body {
         set document [.svgImage svg output]
         list [ColorPath $document #112233] [ColorPath $document #445566]
@@ -118,12 +129,12 @@ static unsigned char mask_bits[] = {
         test svgImage-5-$angle {rotated bitmap masks export through their mapped geometry} -setup {
             Create
             lassign [BitmapFiles] bitmap mask
-            .svgImage marker create bitmap -bitmap warning -mask warning -coords {5 5} \
-                -foreground #112233 -background #445566 -rotate $angle
+            .svgImage marker create bitmap -bitmap warning -mask warning -coords {5 5} -foreground #112233\
+                     -background #445566 -rotate $angle
         } -body {
             set document [.svgImage svg output]
             expr {[string length [ColorPath $document #112233]] > 0 &&
-                  [string length [ColorPath $document #445566]] > 0}
+                    [string length [ColorPath $document #445566]] > 0}
         } -cleanup {
             destroy .svgImage
             removeFile $bitmap
@@ -140,20 +151,25 @@ static unsigned char mask_bits[] = {
         .svgImage marker create image -image $source -coords {5 5}
     } -body {
         set decoded [EmbeddedPhoto [.svgImage svg output]]
-        list [image width $decoded] [image height $decoded] [$decoded get 0 0 -withalpha] \
-            [$decoded transparency get 1 0 -alpha]
+        list [image width $decoded] [image height $decoded] [$decoded get 0 0 -withalpha]\
+                [$decoded transparency get 1 0 -alpha]
     } -cleanup {
         destroy .svgImage
-        if {$source ne {}} { image delete $source }
-        if {$decoded ne {}} { image delete $decoded }
+        if {$source ne {}} {
+             image delete $source
+         }
+        if {$decoded ne {}} {
+             image delete $decoded
+         }
         removeFile $bitmap
         removeFile $mask
     } -result {4 2 {17 34 51 255} 0}
+
     test svgImage-7 {transparent bitmap symbols retain native foreground-only semantics} -setup {
         Create
         lassign [BitmapFiles] bitmap mask
-        .svgImage element create signal -data {2 3} -linewidth 0 \
-            -symbol [list @$bitmap @$mask] -pixels 20 -outline #112233 -fill {}
+        .svgImage element create signal -data {2 3} -linewidth 0 -symbol [list @$bitmap @$mask] -pixels 20\
+                -outline #112233 -fill {}
     } -body {
         ColorPath [.svgImage svg output] #112233
     } -cleanup {
@@ -169,10 +185,14 @@ static unsigned char mask_bits[] = {
     } -body {
         set document [.svgImage svg output]
         set ids {}
-        foreach {all id} [regexp -all -inline {id="(rbcBitmap[0-9]+)"} $document] { lappend ids $id }
+        foreach {all id} [regexp -all -inline {id="(rbcBitmap[0-9]+)"} $document] {
+            lappend ids $id 
+        }
         set valid 1
         foreach {all id} [regexp -all -inline {href="#(rbcBitmap[0-9]+)"} $document] {
-            if {$id ni $ids} { set valid 0 }
+            if {$id ni $ids} {
+                set valid 0
+            }
         }
         list [expr {[llength $ids] >= 2}] [expr {[llength $ids] == [llength [lsort -unique $ids]]}] $valid
     } -cleanup {
@@ -180,5 +200,5 @@ static unsigned char mask_bits[] = {
     } -result {1 1 1}
 
 }
-namespace delete ::svgImageTest
-::tcltest::cleanupTests
+
+cleanupTests

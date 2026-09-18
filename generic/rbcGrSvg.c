@@ -32,9 +32,13 @@ static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
             return TCL_ERROR;
         }
         if (index == 2) {
-            if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &value) != TCL_OK) { return TCL_ERROR; }
+            if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &value) != TCL_OK) {
+                return TCL_ERROR;
+            }
         } else {
-            if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[i + 1], &value) != TCL_OK) { return TCL_ERROR; }
+            if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[i + 1], &value) != TCL_OK) {
+                return TCL_ERROR;
+            }
             if (value < 0) {
                 Tcl_SetObjResult(interp, Tcl_NewStringObj("SVG dimensions must be zero or positive", -1));
                 return TCL_ERROR;
@@ -77,7 +81,9 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     if (command == 1) {
         if (objc == 3) {
             Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-            for (index = 0; index < 3; index++) { Tcl_ListObjAppendElement(interp, list, SvgOptionInfo(graphPtr, index)); }
+            for (index = 0; index < 3; index++) {
+                Tcl_ListObjAppendElement(interp, list, SvgOptionInfo(graphPtr, index));
+            }
             Tcl_SetObjResult(interp, list);
             return TCL_OK;
         }
@@ -93,14 +99,18 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     }
     Rbc_ExportInit(token, RBC_EXPORT_SVG, interp, graphPtr->tkwin, graphPtr->svgDecorations);
     Rbc_ExportBeginGraph(graphPtr);
-    if (graphPtr->svgWidth > 0) { graphPtr->width = graphPtr->svgWidth; }
-    if (graphPtr->svgHeight > 0) { graphPtr->height = graphPtr->svgHeight; }
+    if (graphPtr->svgWidth > 0) {
+        graphPtr->width = graphPtr->svgWidth;
+    }
+    if (graphPtr->svgHeight > 0) {
+        graphPtr->height = graphPtr->svgHeight;
+    }
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
     Rbc_LayoutGraph(graphPtr);
     Rbc_ExportFormat(token,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">\n",
-        graphPtr->width, graphPtr->height, graphPtr->width, graphPtr->height);
+                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                     "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">\n",
+                     graphPtr->width, graphPtr->height, graphPtr->width, graphPtr->height);
     result = Rbc_ExportGraph(graphPtr, token);
     Rbc_ExportAppend(token, "</svg>\n", (char *)NULL);
     Rbc_ExportEndGraph(graphPtr);
@@ -131,7 +141,9 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
                 Tcl_RestoreInterpState(interp, saved);
             } else {
                 result = Tcl_Close(interp, channel);
-                if (result == TCL_OK) { Tcl_ResetResult(interp); }
+                if (result == TCL_OK) {
+                    Tcl_ResetResult(interp);
+                }
             }
         }
     }

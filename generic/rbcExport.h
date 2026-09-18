@@ -10,14 +10,14 @@ typedef struct {
     Tk_Window tkwin;
     Tcl_DString storage;
     Tcl_DString *buffer;
-    void *backendData; /* Borrowed backend state; PostScript uses its legacy token. */
+    void *backendData;           /* Borrowed backend state; PostScript uses its legacy token. */
     unsigned int nextResourceId; /* Document-local SVG definition identifiers. */
     int decorations;
     const char *error; /* First export error, static message. */
 } Rbc_ExportContext;
 
-void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp,
-                      Tk_Window tkwin, int decorations);
+void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,
+                    int decorations);
 void Rbc_ExportFree(Rbc_ExportContext *exportPtr);
 void Rbc_ExportAppend(Rbc_ExportContext *exportPtr, ...);
 void Rbc_ExportFormat(Rbc_ExportContext *exportPtr, const char *format, ...);

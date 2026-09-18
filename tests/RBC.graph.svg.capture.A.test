@@ -1,9 +1,13 @@
 # SVG native image/window capture. See license.terms for details.
-package require rbc
-package require tcltest
+package provide graph.svg
 
-namespace eval ::svgCaptureTest {
-    namespace import ::tcltest::*
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.svg.capture {
 
     proc Create {} {
         ::rbc::graph .capture -width 400 -height 300
@@ -40,8 +44,8 @@ static unsigned char bits_bits[] = {
     } -body {
         set first [.capture svg output]
         set decoded [Photo $first]
-        set result [list [$decoded get 0 0 -withalpha] [$decoded transparency get 1 0 -alpha] \
-            [expr {[string first {<pattern } $first] >= 0}]]
+        set result [list [$decoded get 0 0 -withalpha] [$decoded transparency get 1 0 -alpha]\
+                           [expr {[string first {<pattern } $first] >= 0}]]
         image delete $decoded
         set decoded {}
         $source configure -foreground #445566 -background #778899
@@ -50,8 +54,12 @@ static unsigned char bits_bits[] = {
         set result
     } -cleanup {
         destroy .capture
-        if {$source ne {}} { image delete $source }
-        if {$decoded ne {}} { image delete $decoded }
+        if {$source ne {}} {
+            image delete $source 
+        }
+        if {$decoded ne {}} {
+            image delete $decoded
+        }
     } -result {{17 34 51 255} 0 1 {68 85 102 255} {119 136 153 255}}
 
     test svgCapture-2 {window markers embed current pixels and omit hidden content} -setup {
@@ -75,7 +83,9 @@ static unsigned char bits_bits[] = {
         set result
     } -cleanup {
         destroy .capture
-        if {$decoded ne {}} { image delete $decoded }
+        if {$decoded ne {}} {
+            image delete $decoded
+        }
     } -result {24 16 {17 34 51 255} {68 85 102 255} 1}
 
     test svgCapture-3 {SVG capture leaves the legacy non-photo PostScript behavior unchanged} -setup {
@@ -92,8 +102,10 @@ static unsigned char bits_bits[] = {
         expr {$before eq $after}
     } -cleanup {
         destroy .capture
-        if {$source ne {}} { image delete $source }
+        if {$source ne {}} {
+            image delete $source
+        }
     } -result 1
 }
-namespace delete ::svgCaptureTest
+
 ::tcltest::cleanupTests

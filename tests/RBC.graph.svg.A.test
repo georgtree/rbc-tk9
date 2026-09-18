@@ -1,9 +1,13 @@
 # SVG export commands and vector geometry. See license.terms for details.
-package require rbc
-package require tcltest
+package provide graph.svg
 
-namespace eval ::svgTest {
-    namespace import ::tcltest::*
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.svg {
 
     proc Create {} {
         ::rbc::graph .svg -width 400 -height 300
@@ -21,8 +25,8 @@ namespace eval ::svgTest {
         set defaults [list [.svg svg cget -width] [.svg svg cget -height] [.svg svg cget -decorations]]
         .svg svg configure -width 500 -height 350
         set failed [catch {.svg svg configure -width 600 -height -1}]
-        list $defaults $failed [.svg svg cget -width] [.svg svg cget -height] \
-            [expr {$ps eq [.svg postscript cget -width]}] [llength [.svg svg configure]]
+        list $defaults $failed [.svg svg cget -width] [.svg svg cget -height]\
+                [expr {$ps eq [.svg postscript cget -width]}] [llength [.svg svg configure]]
     } -cleanup {
         destroy .svg
     } -result {{0 0 1} 1 500 350 1 3}
@@ -33,13 +37,13 @@ namespace eval ::svgTest {
         .svg marker create text -coords {5 5} -text {α & β} -rotate 27
     } -body {
         set data [.svg svg output]
-        list [string match {<?xml*} $data] \
-            [expr {[string first {xmlns="http://www.w3.org/2000/svg"} $data] >= 0}] \
-            [expr {[string first {A &amp; B &lt; C} $data] >= 0}] \
-            [expr {[string first {α &amp; β} $data] >= 0}] \
-            [expr {[string first {clip-path="url(#rbcPlot)"} $data] >= 0}] \
-            [expr {[string first {%%} $data] < 0 && [string first {setlinewidth} $data] < 0}] \
-            [string match *</svg>\n $data]
+        list [string match {<?xml*} $data]\
+                [expr {[string first {xmlns="http://www.w3.org/2000/svg"} $data] >= 0}]\
+                [expr {[string first {A &amp; B &lt; C} $data] >= 0}]\
+                [expr {[string first {α &amp; β} $data] >= 0}]\
+                [expr {[string first {clip-path="url(#rbcPlot)"} $data] >= 0}]\
+                [expr {[string first {%%} $data] < 0 && [string first {setlinewidth} $data] < 0}]\
+                [string match *</svg>\n $data]
     } -cleanup {
         destroy .svg
     } -result {1 1 1 1 1 1 1}
@@ -50,8 +54,7 @@ namespace eval ::svgTest {
             .svg element configure signal -symbol $symbol
         } -body {
             set data [.svg svg output]
-            expr {[string first {<g transform="translate(} $data] >= 0 &&
-                  [string first {stroke="#ff0000"} $data] >= 0}
+            expr {[string first {<g transform="translate(} $data] >= 0 && [string first {stroke="#ff0000"} $data] >= 0}
         } -cleanup {
             destroy .svg
         } -result 1
@@ -87,9 +90,8 @@ namespace eval ::svgTest {
     } -body {
         set data [.svg svg output -width 500 -height 350]
         update idletasks
-        list [expr {[string first {viewBox="0 0 500 350"} $data] >= 0}] \
-            [.svg svg cget -width] [expr {$before eq [.svg transform 5 5]}] \
-            [string match {%!PS-Adobe*} [.svg postscript output]]
+        list [expr {[string first {viewBox="0 0 500 350"} $data] >= 0}] [.svg svg cget -width]\
+                [expr {$before eq [.svg transform 5 5]}] [string match {%!PS-Adobe*} [.svg postscript output]]
     } -cleanup {
         destroy .svg
     } -result {1 500 1 1}
@@ -119,6 +121,7 @@ namespace eval ::svgTest {
     } -cleanup {
         destroy .svg
     } -result 1
+
     foreach type {stripchart barchart polar} {
         test svg-9-$type {other graph types use the SVG export traversal} -setup {
             ::rbc::$type .svg -width 400 -height 300
@@ -164,8 +167,8 @@ namespace eval ::svgTest {
         .svg svg output -width 700 -height 450 -decorations no
         set after [.svg postscript output]
         set after [string range $after [string first {% Transform coordinate system} $after] end]
-        list [expr {$before eq $after}] [.svg postscript cget -decorations] \
-            [.svg svg cget -decorations] [.svg svg cget -width]
+        list [expr {$before eq $after}] [.svg postscript cget -decorations] [.svg svg cget -decorations]\
+                [.svg svg cget -width]
     } -cleanup {
         destroy .svg
     } -result {1 1 0 700}
@@ -184,5 +187,5 @@ namespace eval ::svgTest {
     } -result {1 1 1}
 
 }
-namespace delete ::svgTest
-::tcltest::cleanupTests
+
+cleanupTests
