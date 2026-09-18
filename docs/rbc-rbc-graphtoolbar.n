@@ -55,7 +55,7 @@ Interactive linear/logarithmic axis toggling\&.
 Interactive three-state legend entries\&.
 .TP
 \(bu
-PNG snapshots and PostScript output\&.
+PNG snapshots, PostScript and SVG output\&.
 .TP
 \(bu
 Either a permanently visible toolbar or a right-click context menu\&.
@@ -104,7 +104,7 @@ set graph [\&.gtb subwidget graph]
 .RE
 .SH "CONTROL SURFACES"
 .PP
--controlmode toolbar, the default, creates a visible toolbar\&.  Snapshot and PostScript buttons are always
+-controlmode toolbar, the default, creates a visible toolbar\&.  Snapshot, PostScript and SVG buttons are always
 present\&.  Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&.  Enabling -crosshairs adds
 one \fBCrosshairs\fP menu button\&. Its \fBCrosshairs mode\fP submenu selects Current point, Closest point,
 No marker, or Disabled\&. Its \fBClosest crosshairs format\fP submenu is enabled only in Closest point mode\&.
@@ -121,6 +121,9 @@ stay synchronized; changing representation updates the available formats when th
 .TP
 \(bu
 \fBPostScript\&.\&.\&.\fP
+.TP
+\(bu
+\fBSVG\&.\&.\&.\fP
 .TP
 \(bu
 \fBReset view\fP, when -zoom is enabled\&.
@@ -1131,7 +1134,7 @@ Subwidget name as returned by \fInames\fP\&.
 \fBDescription\fR
 .PP
 Common names include graph, toolbarFrame, and, in context-menu mode, contextMenu\&. Toolbar mode may
-additionally create snapshot, PostScript, zoom, and crosshair control widgets\&.
+additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets\&.
 .PP
 \fBReturn value\fR
 .PP

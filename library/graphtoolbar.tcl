@@ -24,7 +24,7 @@ namespace eval ::rbc::graphtoolbar {
         - Polar and Smith-chart coordinate displays.
         - Interactive linear/logarithmic axis toggling.
         - Interactive three-state legend entries.
-        - PNG snapshots and PostScript output.
+        - PNG snapshots, PostScript and SVG output.
         - Either a permanently visible toolbar or a right-click context menu.
 
         The command is exported from the `::rbc` namespace and may normally be used as:
@@ -61,7 +61,7 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Control surfaces
-        `-controlmode toolbar`, the default, creates a visible toolbar.  Snapshot and PostScript buttons are always
+        `-controlmode toolbar`, the default, creates a visible toolbar.  Snapshot, PostScript and SVG buttons are always
         present.  Enabling `-zoom` adds **Reset view** and **Previous view** controls.  Enabling `-crosshairs` adds
         one **Crosshairs** menu button. Its **Crosshairs mode** submenu selects Current point, Closest point,
         No marker, or Disabled. Its **Closest crosshairs format** submenu is enabled only in Closest point mode.
@@ -75,6 +75,7 @@ namespace eval ::rbc::graphtoolbar {
         the corresponding controls in a popup menu:
         - **Make snapshot...**
         - **PostScript...**
+        - **SVG...**
         - **Reset view**, when `-zoom` is enabled.
         - **Previous view**, when `-zoom` is enabled.
         - **Crosshairs mode**, when `-crosshairs` is enabled.
@@ -735,6 +736,18 @@ namespace eval ::rbc::graphtoolbar::icons {
         Sqp3iN9DAAAAEGRlQkdENUI2Mzk2QjM2MjhGMjJEQ8kP+QAAAABJRU5ErkJg
         gg==
     }
+    image create photo [namespace current]::svgDialogIcon -data {
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABD0lEQVQ4T63S
+        vSvFURzH8dcdlNmiKBPFQBaDxWBVBoVsNimbTQpJGBRZPGxMihKLRcjmL7CQ
+        DIrJQykTnTpO53eTbpfP9H18n4fvt+SPKiWLeownr6hnrOEzRaJywDTmk1fU
+        B3YwVg7JATOYTV5Ri+jGPUZzSKWAEF/CSTkkB4SiAPlJFzhHLSYxgc2QqBRQ
+        rrnv2+aAHvQm73ed4jIYOaAq5YBh7KIGLfHN7ZjCDa5ivhGduAtNOWAP11jB
+        K45wHP+lH/sYxDtu424UAE1YjvMODW1YxQtaI7QBZ9jGVmjKAV3oix8Zkgd4
+        ivNfwAbq4kGHMV4AdGAAj7E4LMpI3IGHWDOEZqzjLQT+dQpV6QuyJzoR6rKh
+        wAAAABBkZUJHOEQ2RDAxQUNCNUM0MTJFMhieOQEAAAAASUVORK5CYII=
+    }
+
+
 }
 
 # x / y                 physical widget pixels, exactly like Tk %x / %y
@@ -1323,7 +1336,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode\
+            SvgData
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
     variable CrosshairsSelector ClosestCoordSelector
@@ -1448,6 +1462,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                                                          -style Toolbutton\
                                                          -command [namespace code {my PostScriptDialog}]]
             grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
+            set Subwidgets(svgDialogBut) [ttk::button $Subwidgets(toolbarFrame).svgDialogBut -width 14\
+                                                         -image ::rbc::graphtoolbar::icons::svgDialogIcon\
+                                                         -style Toolbutton\
+                                                         -command [namespace code {my SvgDialog}]]
+            grid $Subwidgets(svgDialogBut) -row 0 -column [incr butCount] -sticky ns
         }
         ##### zoom activation
         if {[dict exists $arguments zoom]} {
@@ -1601,7 +1620,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  name - subwidget name as returned by [names].
         #
         # Common names include `graph`, `toolbarFrame`, and, in context-menu mode, `contextMenu`. Toolbar mode may
-        # additionally create snapshot, PostScript, zoom, and crosshair control widgets.
+        # additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets.
         #
         # Returns: Tk pathname of the requested subwidget.
         if {[info exists Subwidgets($name)]} {
@@ -1648,8 +1667,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  hasZoom - true when zoom/navigation controls were enabled.
         #  hasCrosshairs - true when enhanced crosshair controls were enabled.
         #
-        # The menu always contains snapshot and PostScript commands. Zoom and # crosshair-related entries are added
-        # only when the corresponding # facilities were enabled at construction time.
+        # The menu always contains snapshot, PostScript and SVG commands. Zoom and # crosshair-related entries are
+        # added only when the corresponding # facilities were enabled at construction time.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
@@ -1663,6 +1682,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }]
         $menu add command -label {Make snapshot...}  -command [namespace code {my MakeSnapshot}]
         $menu add command -label {PostScript...}  -command [namespace code {my PostScriptDialog}]
+        $menu add command -label {SVG...}  -command [namespace code {my SvgDialog}]
         if {$hasZoom} {
             $menu add separator
             $menu add command -label {Reset view} -command [namespace code {my ResetAllZoom}]
@@ -5406,68 +5426,113 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method PostScriptDialog {} {
         # Opens the graphtoolbar PostScript configuration dialog.
         #
-        # The dialog mirrors the supported Rbc postscript configuration values and allows them to be edited before
-        # writing output.
+        # The dialog is modal with respect to the application. While it is open, interaction with the parent window
+        # is blocked.
         #
         # Returns: Nothing.
-        set graph $Subwidgets(graph)
         variable PsData
+        set graph $Subwidgets(graph)
         set top $Subwidgets(toolbarFrame).top
+        set parent [winfo toplevel $graph]
+        # Do not create a second copy if the dialog is already open.
+        if {[winfo exists $top]} {
+            raise $top
+            focus $top
+            return
+        }
+        set oldFocus [focus]
         toplevel $top
         wm title $top {Postscript dialog}
-        foreach var {center landscape maxpect preview decorations padx pady paperwidth paperheight width height\
-                             colormode} {
+        wm transient $top $parent
+        wm protocol $top WM_DELETE_WINDOW [list destroy $top]
+        foreach var {center landscape maxpect decorations padx pady paperwidth paperheight width height colormode} {
             set PsData($graph.$var) [$graph postscript cget -$var]
         }
         set var [namespace current]::PsData
+        # title frame
+        ttk::label $top.title -text {PostScript options}
+        grid $top.title -row 0 -columnspan 4
+        # radiobutton options frame
+        set radioButsFrame [ttk::frame $top.radiobuts]
+        grid $radioButsFrame -row 1 -column 1
         set row 1
-        set col 0
-        ttk::label $top.title -text {PostScript Options}
-        grid $top.title -columnspan 7
-        foreach bool {center landscape maxpect preview decorations} {
-            set w $top.$bool-label
-            ttk::label $w -text -$bool -font {Courier 12}
-            grid $w -row $row -column $col -sticky e -pady {2 0} -padx {0 4}
-            set w $top.$bool-yes
+        foreach bool {center landscape maxpect decorations} {
+            set w $radioButsFrame.$bool-label
+            ttk::label $w -text -$bool
+            grid $w -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
+            set w $radioButsFrame.$bool-yes
             ttk::radiobutton $w -text yes -variable ${var}($graph.$bool) -value 1
-            grid $w -row $row -column [expr {$col+1}] -sticky w
-            set w $top.$bool-no
+            grid $w -row $row -column 1 -sticky w
+            set w $radioButsFrame.$bool-no
             ttk::radiobutton $w -text no -variable ${var}($graph.$bool) -value 0
-            grid $w -row $row -column [expr {$col+2}] -sticky w
+            grid $w -row $row -column 2 -sticky w
             incr row
         }
-        ttk::label $top.modes -text -colormode -font {Courier 12}
-        grid $top.modes -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
+        ttk::label $radioButsFrame.modes -text -colormode
+        grid $radioButsFrame.modes -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
         set col 1
         foreach m {color greyscale} {
-            set w $top.$m
+            set w $radioButsFrame.$m
             ttk::radiobutton $w -text $m -variable ${var}($graph.colormode) -value $m
             grid $w -row $row -column $col -sticky w
             incr col
         }
-        set row 1
-        ttk::frame $top.sep -width 2
-        grid $top.sep -row $row -column 3 -sticky ns -rowspan 6
-        set col 4
+        ttk::separator $top.sep -orient vertical
+        grid $top.sep -row 1 -column 2 -sticky ns
+        # entries options frame
+        set entryOptsFrame [ttk::frame $top.entryoptions]
+        grid $entryOptsFrame -row 1 -column 3 -sticky ew
         foreach value {padx pady paperwidth paperheight width height} {
-            set w $top.$value-label
-            ttk::label $w -text -$value -font {Courier 12}
-            grid $w -row $row -column $col -sticky e -pady {2 0} -padx {0 4}
-            set w $top.$value-entry
-            #global $graph.$value
+            set w $entryOptsFrame.$value-label
+            ttk::label $w -text -$value
+            grid $w -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
+            set w $entryOptsFrame.$value-entry
             ttk::entry $w -textvariable ${var}($graph.$value) -width 8
-            grid $w -row $row -column [expr {$col+1}] -columnspan 2 -sticky w -padx 8
+            grid $w -row $row -column 1 -sticky ew -padx 8
             incr row
         }
-        grid columnconfigure $top 3 -minsize .125i
-        ttk::button $top.cancel -text Cancel -command [list destroy $top]
-        grid $top.cancel -row $row -column 0 -pady 2 -columnspan 3
-        ttk::button $top.reset -text Reset -command [list destroy $top]
-        ttk::button $top.print -text Print -command [namespace code {my ResetPostScript}]
-        grid $top.print -row $row -column 4 -pady 2 -columnspan 2
-        bind $top.print <Destroy> [list array unset $var $graph*]
+        grid columnconfigure $entryOptsFrame 0 -weight 0
+        grid columnconfigure $entryOptsFrame 1 -weight 1
+        # buttons frame
+        set buttonsFrame [ttk::frame $top.buttons]
+        grid $buttonsFrame -row 2 -columnspan 4 
+        ttk::button $buttonsFrame.cancel -text Cancel -command [list destroy $top]
+        ttk::button $buttonsFrame.reset -text Reset -command [namespace code {my ResetPostScript}]
+        ttk::button $buttonsFrame.print -text Print -command [namespace code {my PrintPostScript}]
+        grid $buttonsFrame.cancel -row 0 -column 0 -pady 2 -padx 10 -sticky ew
+        grid $buttonsFrame.reset -row 0 -column 1 -pady 2 -padx 10 -sticky ew
+        grid $buttonsFrame.print -row 0 -column 2 -pady 2 -padx 10 -sticky ew
+        bind $buttonsFrame.print <Destroy> [list array unset $var $graph*]
+        # configure top layout
+        grid columnconfigure $top 0 -weight 0
+        grid columnconfigure $top 1 -weight 0
+        grid columnconfigure $top 2 -weight 0
+        grid columnconfigure $top 3 -weight 1
+        # Make the dialog modal.
+        update idletasks
+        set w [winfo reqwidth $top]
+        set h [winfo reqheight $top]
+        wm minsize $top $w $h
+        wm maxsize $top 10000 $h
+        grab set $top
+        focus $top.buttons.print
+        # Keep this method active until the dialog is closed. Tk's event loop continues running normally while waiting.
+        tkwait window $top
+        # Restore keyboard focus after the dialog closes.
+        if {($oldFocus ne {}) && [winfo exists $oldFocus]} {
+            focus $oldFocus
+        }
     }
     method ResetPostScript {} {
+        # Reset PostScript graph options to last saved ones.
+        #
+        # Returns: Nothing.
+        set graph $Subwidgets(graph)
+        foreach var {center landscape maxpect decorations padx pady paperwidth paperheight width height colormode} {
+            set PsData($graph.$var) [$graph postscript cget -$var]
+        }
+    }
+    method PrintPostScript {} {
         # Applies values from the PostScript dialog and writes PostScript output.
         #
         # Individual invalid option values are rolled back to their previous Rbc value. A save-file dialog selects
@@ -5475,16 +5540,140 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        foreach var {center landscape maxpect preview decorations padx pady paperwidth paperheight width height\
-                             colormode} {
+        set top $Subwidgets(toolbarFrame).top
+        foreach var {center landscape maxpect decorations padx pady paperwidth paperheight width height colormode} {
             set old [$graph postscript cget -$var]
             if {[catch {$graph postscript configure -$var [set PsData($graph.$var)]} errorStr]} {
                 $graph postscript configure -$var $old
                 set PsData($graph.$var) $old
             }
         }
-        if {![catch {set savePath [tk_getSaveFile -initialfile snapshot.ps]} errorStr] && ($savePath ne {})} {
+        if {![catch {set savePath [tk_getSaveFile -parent $top -initialfile snapshot.eps]} errorStr] &&\
+                    ($savePath ne {})} {
             $graph postscript output $savePath
+        } else {
+            return
+        }
+    }
+    method SvgDialog {} {
+        # Opens the graphtoolbar SVG configuration dialog.
+        #
+        # The dialog is modal with respect to the application. While it is open, interaction with the parent window
+        # is blocked.
+        #
+        # Returns: Nothing.
+        variable SvgData
+        set graph $Subwidgets(graph)
+        set top $Subwidgets(toolbarFrame).top
+        set parent [winfo toplevel $graph]
+        # Do not create a second copy if the dialog is already open.
+        if {[winfo exists $top]} {
+            raise $top
+            focus $top
+            return
+        }
+        set oldFocus [focus]
+        toplevel $top
+        wm title $top {SVG dialog}
+        wm transient $top $parent
+        wm protocol $top WM_DELETE_WINDOW [list destroy $top]
+        foreach var {decorations width height} {
+            set SvgData($graph.$var) [$graph svg cget -$var]
+        }
+        set var [namespace current]::SvgData
+        # title frame
+        ttk::label $top.title -text {SVG options}
+        grid $top.title -row 0 -columnspan 4
+        # radiobutton options frame
+        set radioButsFrame [ttk::frame $top.radiobuts]
+        grid $radioButsFrame -row 1 -column 1
+        set row 1
+        foreach bool {decorations} {
+            set w $radioButsFrame.$bool-label
+            ttk::label $w -text -$bool
+            grid $w -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
+            set w $radioButsFrame.$bool-yes
+            ttk::radiobutton $w -text yes -variable ${var}($graph.$bool) -value 1
+            grid $w -row $row -column 1 -sticky w
+            set w $radioButsFrame.$bool-no
+            ttk::radiobutton $w -text no -variable ${var}($graph.$bool) -value 0
+            grid $w -row $row -column 2 -sticky w
+            incr row
+        }
+        ttk::separator $top.sep -orient vertical
+        grid $top.sep -row 1 -column 2 -sticky ns
+        # entries options frame
+        set entryOptsFrame [ttk::frame $top.entryoptions]
+        grid $entryOptsFrame -row 1 -column 3 -sticky ew
+        foreach value {width height} {
+            set w $entryOptsFrame.$value-label
+            ttk::label $w -text -$value
+            grid $w -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
+            set w $entryOptsFrame.$value-entry
+            ttk::entry $w -textvariable ${var}($graph.$value) -width 8
+            grid $w -row $row -column 1 -sticky ew -padx 8
+            incr row
+        }
+        grid columnconfigure $entryOptsFrame 0 -weight 0
+        grid columnconfigure $entryOptsFrame 1 -weight 1
+        # buttons frame
+        set buttonsFrame [ttk::frame $top.buttons]
+        grid $buttonsFrame -row 2 -columnspan 4 
+        ttk::button $buttonsFrame.cancel -text Cancel -command [list destroy $top]
+        ttk::button $buttonsFrame.reset -text Reset -command [namespace code {my ResetSvg}]
+        ttk::button $buttonsFrame.print -text Print -command [namespace code {my PrintSvg}]
+        grid $buttonsFrame.cancel -row 0 -column 0 -pady 2 -padx 10 -sticky ew
+        grid $buttonsFrame.reset -row 0 -column 1 -pady 2 -padx 10 -sticky ew
+        grid $buttonsFrame.print -row 0 -column 2 -pady 2 -padx 10 -sticky ew
+        bind $buttonsFrame.print <Destroy> [list array unset $var $graph*]
+        # configure top layout
+        grid columnconfigure $top 0 -weight 0
+        grid columnconfigure $top 1 -weight 0
+        grid columnconfigure $top 2 -weight 0
+        grid columnconfigure $top 3 -weight 1
+        # Make the dialog modal.
+        update idletasks
+        set w [winfo reqwidth $top]
+        set h [winfo reqheight $top]
+        wm minsize $top $w $h
+        wm maxsize $top 10000 $h
+        grab set $top
+        focus $top.buttons.print
+        # Keep this method active until the dialog is closed. Tk's event loop continues running normally while waiting.
+        tkwait window $top
+        # Restore keyboard focus after the dialog closes.
+        if {($oldFocus ne {}) && [winfo exists $oldFocus]} {
+            focus $oldFocus
+        }
+    }
+    method ResetSvg {} {
+        # Reset SVG graph options to last saved ones.
+        #
+        # Returns: Nothing.
+        set graph $Subwidgets(graph)
+        foreach var {decorations width height} {
+            set SvgData($graph.$var) [$graph svg cget -$var]
+        }
+    }
+    method PrintSvg {} {
+        # Applies values from the SVG dialog and writes PostScript output.
+        #
+        # Individual invalid option values are rolled back to their previous Rbc value. A save-file dialog selects
+        # the final destination.
+        #
+        # Returns: Nothing.
+        set graph $Subwidgets(graph)
+        set top $Subwidgets(toolbarFrame).top
+        foreach var {decorations width height} {
+            set old [$graph svg cget -$var]
+            if {[catch {$graph svg configure -$var [set SvgData($graph.$var)]} errorStr]} {
+                $graph svg configure -$var $old
+                set SvgData($graph.$var) $old
+            }
+        }
+        if {![catch {set savePath [tk_getSaveFile -parent $top -initialfile snapshot.svg]} errorStr] &&\
+                    ($savePath ne {})} {
+            $graph svg output $savePath
         } else {
             return
         }

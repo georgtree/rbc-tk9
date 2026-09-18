@@ -16,6 +16,9 @@ configure~
 /graphtoolbar.tcl
 /rbcCanvEps.pro
 /rbcGraph.pro
-/circle.xbm
-/circle_mask.xbm
+/pointer.xbm
+/pointer_mask.xbm
 /autom4te.cache
+/*.svg
+/*.ps
+/*.eps

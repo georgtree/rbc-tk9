@@ -54,7 +54,7 @@ surface and a set of coordinated interactive graph-navigation facilities.</p>
 <li><p>Polar and Smith-chart coordinate displays.</p></li>
 <li><p>Interactive linear/logarithmic axis toggling.</p></li>
 <li><p>Interactive three-state legend entries.</p></li>
-<li><p>PNG snapshots and PostScript output.</p></li>
+<li><p>PNG snapshots, PostScript and SVG output.</p></li>
 <li><p>Either a permanently visible toolbar or a right-click context menu.</p></li>
 </ul>
 <p>The command is exported from the <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> namespace and may normally be used as:</p>
@@ -88,7 +88,7 @@ alternatively be obtained with:</p>
 </section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar.  Snapshot and PostScript buttons are always
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar.  Snapshot, PostScript and SVG buttons are always
 present.  Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls.  Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
 one <strong>Crosshairs</strong> menu button. Its <strong>Crosshairs mode</strong> submenu selects Current point, Closest point,
 No marker, or Disabled. Its <strong>Closest crosshairs format</strong> submenu is enabled only in Closest point mode.
@@ -100,6 +100,7 @@ stay synchronized; changing representation updates the available formats when th
 <ul class="simple">
 <li><p><strong>Make snapshot…</strong></p></li>
 <li><p><strong>PostScript…</strong></p></li>
+<li><p><strong>SVG…</strong></p></li>
 <li><p><strong>Reset view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
 <li><p><strong>Previous view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
 <li><p><strong>Crosshairs mode</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
@@ -1073,7 +1074,7 @@ Tk pathname of the requested subwidget.</p>
 </dl>
 <p class="rubric">Description</p>
 <p>Common names include <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code>, and, in context-menu mode, <code class="docutils literal notranslate"><span class="pre">contextMenu</span></code>. Toolbar mode may
-additionally create snapshot, PostScript, zoom, and crosshair control widgets.</p>
+additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets.</p>
 <p class="rubric">Return value</p>
 <p>Returns the Tk pathname of a named subwidget.
 Tk pathname of the requested subwidget.</p>
