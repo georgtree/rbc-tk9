@@ -2406,6 +2406,8 @@ static void SvgBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, doub
     const XColor *top, *bottom;
     Point2D points[6];
 
+    /* Shadow colors are allocated lazily, possibly after the first export. */
+    (void)Tk_3DBorderGC(ctx->exportPtr->tkwin, border, TK_3D_LIGHT_GC);
     Tk_Get3DBorderColors(border, &bg, &dark, &light);
     if (fill) {
         SvgRectangle(ctx->exportPtr, x, y, width, height, &bg);

@@ -128,70 +128,6 @@ element type used by the <code class="docutils literal notranslate"><span class=
 </tbody>
 </table>
 <p>These component interfaces are documented separately.</p>
-<section id="svg-output">
-<span id="r-rbc-graphinst-svg-output"></span><span id="r-3a3arbc3a3agraphinstqzsvg20output"></span><h2>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">SVG</span></a> component exports the complete graph as SVG, independently of the screen renderer
-and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span>
-<span class="k">set</span><span class="w"> </span>document<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="k">]</span>
-<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg
-</pre></div>
-</div>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> for command syntax, options, examples and export limitations.</p>
-</section>
-<section id="named-fonts-and-display-scaling">
-<span id="r-rbc-graphinst-named-fonts-and-display-scaling"></span><span id="r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"></span><h2>Named fonts and display scaling<a class="headerlink" href="#named-fonts-and-display-scaling" title="Link to this heading">¶</a></h2>
-<p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>,
-pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
-text-marker geometry and element value labels. This includes named pens and active pens. No explicit
-graph or component reconfiguration is needed.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">font</span><span class="w"> </span>create<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>family<span class="w"> </span>Helvetica<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">10</span>
-<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>tickfont<span class="w"> </span>PlotFont
-<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>font<span class="w"> </span>PlotFont
-<span class="nv">font</span><span class="w"> </span>configure<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">16</span>
-<span class="k">update</span><span class="w"> </span>idletasks
-</pre></div>
-</div>
-<p>Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
-configured axis limits. Automatic tick placement can change to fit the new text dimensions.</p>
-<p>This notification handles font resources, not automatic resizing of every pixel-valued option.
-Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
-changing <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">scaling</span></code> does not promise to rescale every existing graph option. Configure application
-scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.</p>
-</section>
-<section id="numeric-values-and-expressions">
-<span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
-<p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
-expression, or when each list item accepts one. Integer expressions must produce integer results;
-numeric expressions may produce floating-point results. The option’s range and domain rules still apply.</p>
-<p>Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
-lists, and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically
-evaluate arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair
-<code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk pixel distances rather than the legend’s integer expressions.</p>
-<p>Brace an expression to pass it to Rbc without Tcl substituting it first:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>acos<span class="k">(</span><span class="nv">-1</span><span class="k">)}</span>
-<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{</span>@10<span class="o">+</span><span class="nv">5</span>,20<span class="o">+</span><span class="mi">10</span><span class="k">}</span>
-</pre></div>
-</div>
-<p>For list options, each expression must be one list item. Use inner braces around expressions containing
-spaces; the outer braces delimit the entire list:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="k">{</span><span class="nv">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
-<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}}</span>
-</pre></div>
-</div>
-<p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division,
-while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code> produces a fraction. Tcl expression functions and substitutions follow normal Tcl
-expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
-<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
-Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
-An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
-not an expression; vector notifications provide its automatic updates.</p>
-<p>For an option that does not evaluate expressions, calculate the value explicitly:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>gap<span class="w"> </span><span class="mi">8</span>
-<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">-$gap</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">4</span><span class="k">}]]</span>
-</pre></div>
-</div>
-</section>
 <section id="coordinate-systems">
 <span id="r-rbc-graphinst-coordinate-systems"></span><span id="r-3a3arbc3a3agraphinstqzcoordinate20systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Link to this heading">¶</a></h2>
 <p>Graph widgets use two coordinate systems:</p>
@@ -203,94 +139,6 @@ not an expression; vector notifications provide its automatic updates.</p>
 reverse conversion.</p>
 <p>The general <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operations use the graph’s primary X and Y axes. To transform a
 value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.</p>
-</section>
-<section id="graph-change-notification">
-<span id="r-rbc-graphinst-graph-change-notification"></span><span id="r-3a3arbc3a3agraphinstqzgraph20change20notification"></span><h2>Graph change notification<a class="headerlink" href="#graph-change-notification" title="Link to this heading">¶</a></h2>
-<p>Graph, barchart, stripchart, and polar widgets generate <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> when changes to the
-on-screen coordinate mapping or plotted element geometry have been processed for display.</p>
-<p>Applications can use this event to refresh information that depends on the displayed graph without
-waiting for pointer motion. Typical causes include:</p>
-<ul class="simple">
-<li><p>Axis range changes, including zooming, panning, and stripchart automatic scrolling.</p></li>
-<li><p>Widget resizing or layout changes that alter the plotting area.</p></li>
-<li><p>Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.</p></li>
-</ul>
-<p>The event is also generated for the initial mapped display. It is a notification that mapping work
-occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
-when the resulting axis limits or geometry are unchanged.</p>
-<section id="geometry-event-delivery-and-data">
-<span id="r-rbc-graphinst-geometry-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzgeometry20event20delivery20and20data"></span><h3>Geometry event delivery and data<a class="headerlink" href="#geometry-event-delivery-and-data" title="Link to this heading">¶</a></h3>
-<p>The event is queued on the graph widget after its on-screen display pass completes. Delivery is
-asynchronous; it does not occur immediately inside the command that changes an axis or element.</p>
-<p>Several changes handled by one display pass are combined into one notification. Changes requiring
-further display passes can produce further notifications. Applications must not assume one event
-per configuration command or data update.</p>
-<p>An unmapped widget defers notification until it can complete an on-screen display with a usable
-plotting area.</p>
-<p>No application data payload is attached to the event. Use <code class="docutils literal notranslate"><span class="pre">%W</span></code> to identify the graph and query its
-current state. Because delivery is queued, that state may include changes made after the display
-pass that queued the event.</p>
-<p>For example, this binding records the current primary axis limits:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcGraphChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="k">set</span><span class="w"> </span><span class="o">::</span>graphView<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>x<span class="k">]</span><span class="w"> </span>y<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>y<span class="k">]]</span>
-<span class="k">}</span>
-</pre></div>
-</div>
-</section>
-<section id="scope">
-<span id="r-rbc-graphinst-scope"></span><span id="r-3a3arbc3a3agraphinstqzscope"></span><h3>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> is not a notification for every repaint. Exposure or focus redraws and
-marker-only updates do not generate it unless coordinate mapping or element remapping is also
-required.</p>
-<p>Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
-display that restores or changes the screen mapping can generate it normally.</p>
-<p>The event does not reposition ordinary graph markers or change the configured crosshair position.
-Applications implement any additional tracking behavior in their bindings. The graphtoolbar
-already uses this notification to refresh its enhanced crosshair annotations.</p>
-<p>Event handlers should avoid repeatedly changing axes or element data in response to the notification:
-such changes can schedule another display and another notification.</p>
-</section>
-</section>
-<section id="axis-change-notifications">
-<span id="r-rbc-graphinst-axis-change-notifications"></span><span id="r-3a3arbc3a3agraphinstqzaxis20change20notifications"></span><h2>Axis change notifications<a class="headerlink" href="#axis-change-notifications" title="Link to this heading">¶</a></h2>
-<p>Graph, barchart, stripchart, and polar widgets provide two axis events:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code> reports successful axis configuration and changes to effective numeric limits. Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands, titles, colors, visibility, and other axis options. Reapplying an option with the same value also counts as configuration; the event does not compare every option’s old and new values.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> reports changes to the bounds returned by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>. These include zooming, panning, scrolling, and automatic limits derived from element data. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged.</p></li>
-</ul>
-<section id="axis-event-delivery-and-data">
-<span id="r-rbc-graphinst-axis-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzaxis20event20delivery20and20data"></span><h3>Axis event delivery and data<a class="headerlink" href="#axis-event-delivery-and-data" title="Link to this heading">¶</a></h3>
-<p>Both events are queued on the graph after an on-screen display pass with a usable plotting area.
-An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
-display pass; several commands before a redraw can therefore produce one event. Changes followed by a
-return to the previously displayed limits before redraw do not produce a limits-change event.</p>
-<p><code class="docutils literal notranslate"><span class="pre">%W</span></code> identifies the graph and <code class="docutils literal notranslate"><span class="pre">%d</span></code> is a Tcl list of axis names. Each name appears once; ordering is
-unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
-first display after creating an axis, announce its limits through both events. Deleted axes are skipped
-when building the notification; deletion itself is not an axis-change notification.</p>
-<p>The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
-configuration. Because delivery is asynchronous, the current state may be newer than the display that
-queued the event, and an axis may have been deleted in the meantime.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>axes<span class="k">}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="k">foreach</span><span class="w"> </span>axis<span class="w"> </span><span class="nv">$axes</span><span class="w"> </span><span class="k">{</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="k">{</span><span class="nv">$axis</span><span class="w"> </span><span class="nv">ni</span><span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>names<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">            </span><span class="k">continue</span>
-<span class="w">        </span><span class="k">}</span>
-<span class="w">        </span><span class="nb">dict</span><span class="w"> </span>set<span class="w"> </span><span class="o">::</span>axisState<span class="w"> </span><span class="nv">$graph</span><span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>limits<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>limits<span class="w"> </span><span class="nv">$axis</span><span class="k">]</span><span class="w"> </span>logscale<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>cget<span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="o">-</span>logscale<span class="k">]]</span>
-<span class="w">    </span><span class="k">}</span>
-<span class="k">}</span>
-<span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcAxisChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="o">%</span>W<span class="w"> </span><span class="o">%</span>d<span class="k">]</span>
-</pre></div>
-</div>
-<p>Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves generate
-these events. A later screen display compares the effective limits with the previous screen display. Data
-changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
-events unless an axis is configured or its effective limits change.</p>
-<p>These events do not report every change in tick-label placement or screen geometry. Use <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code>
-for mapping and layout updates, including resizing without changed numeric limits.  Log/linear switching is
-always covered by <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code>, but only generates <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> if the resulting numeric
-bounds change. Logarithmic bounds are reported in data units, just as by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>.</p>
-</section>
 </section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h2>
@@ -306,7 +154,7 @@ element data as radius/angle pairs.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>polar
 
-<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w">  </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">0</span><span class="w">  </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w">  </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
 </pre></div>
 </div>
 <p>The same Cartesian coordinates may be displayed with a Smith grid:</p>
@@ -671,7 +519,8 @@ Existing bar modes, baselines, axes, and selection mapping are shared with nativ
 Mapped rectangles retain crisp integer edges. Stipples retain their widget origin and transparent or
 colored gaps. Tk relief borders and value labels remain native.</p>
 <p>Legend line/strip samples, geometric symbols, and bar swatches also use Cairo, including external
-legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native drawing. Samples use the normal pen and do not consume plot symbol limits.</p>
+legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native
+drawing. Samples use the normal pen and do not consume plot symbol limits.</p>
 <p>Axis lines and tick marks use Cairo with the existing color, width, and projecting caps.
 They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
 backgrounds remain native. A zero axis <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes, as with native rendering.</p>
@@ -1138,8 +987,9 @@ itself.</p>
 <p>Some options intentionally have no option-database name or class. Such options can be set only through the
 component command. For example, a marker’s <code class="docutils literal notranslate"><span class="pre">-name</span></code> option is not read from the option database.</p>
 </section>
+</section>
 <section id="bar-modes">
-<span id="r-rbc-graphinst-bar-modes"></span><span id="r-3a3arbc3a3agraphinstqzbar20modes"></span><h3>Bar modes<a class="headerlink" href="#bar-modes" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-bar-modes"></span><span id="r-3a3arbc3a3agraphinstqzbar20modes"></span><h2>Bar modes<a class="headerlink" href="#bar-modes" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">-barmode</span></code> option determines how bars from different elements are arranged when they use the same X
 coordinate.</p>
 <table class="docutils align-default">
@@ -1179,7 +1029,7 @@ coordinate.</p>
 in the graph.</p>
 </section>
 <section id="margins">
-<span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h3>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h2>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h2>
 <p>The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
 from axes, axis titles, tick labels, the graph title, and the legend.</p>
 <p>The margin options:</p>
@@ -1212,7 +1062,7 @@ size of each configured margin to the specified global Tcl variable.</p>
 </div>
 </section>
 <section id="plotting-area">
-<span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h3>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h2>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h2>
 <p>The outer graph background and the plotting-area background are configured independently.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w"> </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w"> </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w"> </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
 </pre></div>
@@ -1229,7 +1079,7 @@ distance:</p>
 </div>
 </section>
 <section id="aspect-ratio">
-<span id="r-rbc-graphinst-aspect-ratio"></span><span id="r-3a3arbc3a3agraphinstqzaspect20ratio"></span><h3>Aspect ratio<a class="headerlink" href="#aspect-ratio" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-aspect-ratio"></span><span id="r-3a3arbc3a3agraphinstqzaspect20ratio"></span><h2>Aspect ratio<a class="headerlink" href="#aspect-ratio" title="Link to this heading">¶</a></h2>
 <p>A positive <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> value constrains the plotting area to a requested width-to-height ratio.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.0</span>
@@ -1244,7 +1094,7 @@ distance:</p>
 enlarge the widget. Set <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code> to disable the constraint.</p>
 </section>
 <section id="buffering">
-<span id="r-rbc-graphinst-buffering"></span><span id="r-3a3arbc3a3agraphinstqzbuffering"></span><h3>Buffering<a class="headerlink" href="#buffering" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-buffering"></span><span id="r-3a3arbc3a3agraphinstqzbuffering"></span><h2>Buffering<a class="headerlink" href="#buffering" title="Link to this heading">¶</a></h2>
 <p>Two separate buffering mechanisms are available.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span></code> controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
 graph to an off-screen pixmap and copies the completed image to the window.</p>
@@ -1259,8 +1109,72 @@ a cache that cannot be reused.</p>
 </pre></div>
 </div>
 </section>
+<section id="svg-output">
+<span id="r-rbc-graphinst-svg-output"></span><span id="r-3a3arbc3a3agraphinstqzsvg20output"></span><h2>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">SVG</span></a> component exports the complete graph as SVG, independently of the screen renderer
+and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span>
+<span class="k">set</span><span class="w"> </span>document<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="k">]</span>
+<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> for command syntax, options, examples and export limitations.</p>
+</section>
+<section id="named-fonts-and-display-scaling">
+<span id="r-rbc-graphinst-named-fonts-and-display-scaling"></span><span id="r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"></span><h2>Named fonts and display scaling<a class="headerlink" href="#named-fonts-and-display-scaling" title="Link to this heading">¶</a></h2>
+<p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>,
+pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
+text-marker geometry and element value labels. This includes named pens and active pens. No explicit
+graph or component reconfiguration is needed.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">font</span><span class="w"> </span>create<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>family<span class="w"> </span>Helvetica<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">10</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>tickfont<span class="w"> </span>PlotFont
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>font<span class="w"> </span>PlotFont
+<span class="nv">font</span><span class="w"> </span>configure<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">16</span>
+<span class="k">update</span><span class="w"> </span>idletasks
+</pre></div>
+</div>
+<p>Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
+configured axis limits. Automatic tick placement can change to fit the new text dimensions.</p>
+<p>This notification handles font resources, not automatic resizing of every pixel-valued option.
+Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
+changing <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">scaling</span></code> does not promise to rescale every existing graph option. Configure application
+scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.</p>
+</section>
+<section id="numeric-values-and-expressions">
+<span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
+<p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
+expression, or when each list item accepts one. Integer expressions must produce integer results;
+numeric expressions may produce floating-point results. The option’s range and domain rules still apply.</p>
+<p>Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
+lists, and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically
+evaluate arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair
+<code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk pixel distances rather than the legend’s integer expressions.</p>
+<p>Brace an expression to pass it to Rbc without Tcl substituting it first:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>acos<span class="k">(</span><span class="nv">-1</span><span class="k">)}</span>
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{</span>@10<span class="o">+</span><span class="nv">5</span>,20<span class="o">+</span><span class="mi">10</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>For list options, each expression must be one list item. Use inner braces around expressions containing
+spaces; the outer braces delimit the entire list:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="k">{</span><span class="nv">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}}</span>
+</pre></div>
+</div>
+<p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division,
+while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code> produces a fraction. Tcl expression functions and substitutions follow normal Tcl
+expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
+<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
+Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
+An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
+not an expression; vector notifications provide its automatic updates.</p>
+<p>For an option that does not evaluate expressions, calculate the value explicitly:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>gap<span class="w"> </span><span class="mi">8</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">-$gap</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">4</span><span class="k">}]]</span>
+</pre></div>
+</div>
+</section>
 <section id="application-data">
-<span id="r-rbc-graphinst-application-data"></span><span id="r-3a3arbc3a3agraphinstqzapplication20data"></span><h3>Application data<a class="headerlink" href="#application-data" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-graphinst-application-data"></span><span id="r-3a3arbc3a3agraphinstqzapplication20data"></span><h2>Application data<a class="headerlink" href="#application-data" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">-data</span></code> option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
 it in the C graph implementation.</p>
 <p>For example:</p>
@@ -1270,6 +1184,93 @@ it in the C graph implementation.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-datacommand</span></code> similarly stores a command string. It is retained as part of the graph configuration interface,
 but the current graph core does not automatically execute it.</p>
+</section>
+<section id="graph-change-notification">
+<span id="r-rbc-graphinst-graph-change-notification"></span><span id="r-3a3arbc3a3agraphinstqzgraph20change20notification"></span><h2>Graph change notification<a class="headerlink" href="#graph-change-notification" title="Link to this heading">¶</a></h2>
+<p>Graph, barchart, stripchart, and polar widgets generate <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> when changes to the
+on-screen coordinate mapping or plotted element geometry have been processed for display.</p>
+<p>Applications can use this event to refresh information that depends on the displayed graph without
+waiting for pointer motion. Typical causes include:</p>
+<ul class="simple">
+<li><p>Axis range changes, including zooming, panning, and stripchart automatic scrolling.</p></li>
+<li><p>Widget resizing or layout changes that alter the plotting area.</p></li>
+<li><p>Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.</p></li>
+</ul>
+<p>The event is also generated for the initial mapped display. It is a notification that mapping work
+occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
+when the resulting axis limits or geometry are unchanged.</p>
+<section id="geometry-event-delivery-and-data">
+<span id="r-rbc-graphinst-geometry-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzgeometry20event20delivery20and20data"></span><h3>Geometry event delivery and data<a class="headerlink" href="#geometry-event-delivery-and-data" title="Link to this heading">¶</a></h3>
+<p>The event is queued on the graph widget after its on-screen display pass completes. Delivery is
+asynchronous; it does not occur immediately inside the command that changes an axis or element.</p>
+<p>Several changes handled by one display pass are combined into one notification. Changes requiring
+further display passes can produce further notifications. Applications must not assume one event
+per configuration command or data update.</p>
+<p>An unmapped widget defers notification until it can complete an on-screen display with a usable
+plotting area.</p>
+<p>No application data payload is attached to the event. Use <code class="docutils literal notranslate"><span class="pre">%W</span></code> to identify the graph and query its
+current state. Because delivery is queued, that state may include changes made after the display
+pass that queued the event.</p>
+<p>For example, this binding records the current primary axis limits:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcGraphChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">set</span><span class="w"> </span><span class="o">::</span>graphView<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>x<span class="k">]</span><span class="w"> </span>y<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>y<span class="k">]]</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="scope">
+<span id="r-rbc-graphinst-scope"></span><span id="r-3a3arbc3a3agraphinstqzscope"></span><h3>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> is not a notification for every repaint. Exposure or focus redraws and
+marker-only updates do not generate it unless coordinate mapping or element remapping is also
+required.</p>
+<p>Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
+display that restores or changes the screen mapping can generate it normally.</p>
+<p>The event does not reposition ordinary graph markers or change the configured crosshair position.
+Applications implement any additional tracking behavior in their bindings. The graphtoolbar
+already uses this notification to refresh its enhanced crosshair annotations.</p>
+<p>Event handlers should avoid repeatedly changing axes or element data in response to the notification:
+such changes can schedule another display and another notification.</p>
+</section>
+</section>
+<section id="axis-change-notifications">
+<span id="r-rbc-graphinst-axis-change-notifications"></span><span id="r-3a3arbc3a3agraphinstqzaxis20change20notifications"></span><h2>Axis change notifications<a class="headerlink" href="#axis-change-notifications" title="Link to this heading">¶</a></h2>
+<p>Graph, barchart, stripchart, and polar widgets provide two axis events:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code> reports successful axis configuration and changes to effective numeric limits. Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands, titles, colors, visibility, and other axis options. Reapplying an option with the same value also counts as configuration; the event does not compare every option’s old and new values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> reports changes to the bounds returned by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>. These include zooming, panning, scrolling, and automatic limits derived from element data. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged.</p></li>
+</ul>
+<section id="axis-event-delivery-and-data">
+<span id="r-rbc-graphinst-axis-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzaxis20event20delivery20and20data"></span><h3>Axis event delivery and data<a class="headerlink" href="#axis-event-delivery-and-data" title="Link to this heading">¶</a></h3>
+<p>Both events are queued on the graph after an on-screen display pass with a usable plotting area.
+An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
+display pass; several commands before a redraw can therefore produce one event. Changes followed by a
+return to the previously displayed limits before redraw do not produce a limits-change event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">%W</span></code> identifies the graph and <code class="docutils literal notranslate"><span class="pre">%d</span></code> is a Tcl list of axis names. Each name appears once; ordering is
+unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
+first display after creating an axis, announce its limits through both events. Deleted axes are skipped
+when building the notification; deletion itself is not an axis-change notification.</p>
+<p>The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
+configuration. Because delivery is asynchronous, the current state may be newer than the display that
+queued the event, and an axis may have been deleted in the meantime.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>axes<span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">foreach</span><span class="w"> </span>axis<span class="w"> </span><span class="nv">$axes</span><span class="w"> </span><span class="k">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="k">{</span><span class="nv">$axis</span><span class="w"> </span><span class="nv">ni</span><span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>names<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">            </span><span class="k">continue</span>
+<span class="w">        </span><span class="k">}</span>
+<span class="w">        </span><span class="nb">dict</span><span class="w"> </span>set<span class="w"> </span><span class="o">::</span>axisState<span class="w"> </span><span class="nv">$graph</span><span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>limits<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>limits<span class="w"> </span><span class="nv">$axis</span><span class="k">]</span><span class="w"> </span>logscale<span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>cget<span class="w"> </span><span class="nv">$axis</span><span class="w"> </span><span class="o">-</span>logscale<span class="k">]]</span>
+<span class="w">    </span><span class="k">}</span>
+<span class="k">}</span>
+<span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcAxisChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="o">%</span>W<span class="w"> </span><span class="o">%</span>d<span class="k">]</span>
+</pre></div>
+</div>
+<p>Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves generate
+these events. A later screen display compares the effective limits with the previous screen display. Data
+changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
+events unless an axis is configured or its effective limits change.</p>
+<p>These events do not report every change in tick-label placement or screen geometry. Use <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code>
+for mapping and layout updates, including resizing without changed numeric limits.  Log/linear switching is
+always covered by <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code>, but only generates <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> if the resulting numeric
+bounds change. Logarithmic bounds are reported in data units, just as by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -1287,19 +1288,7 @@ but the current graph core does not automatically execute it.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
-<li><a class="reference internal" href="#svg-output">SVG output</a></li>
-<li><a class="reference internal" href="#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
-<li><a class="reference internal" href="#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
-<li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>
-<li><a class="reference internal" href="#geometry-event-delivery-and-data">Geometry event delivery and data</a></li>
-<li><a class="reference internal" href="#scope">Scope</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#axis-change-notifications">Axis change notifications</a><ul>
-<li><a class="reference internal" href="#axis-event-delivery-and-data">Axis event delivery and data</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a><ul>
 <li><a class="reference internal" href="#automatic-equal-unit-aspect">Automatic equal-unit aspect</a></li>
 <li><a class="reference internal" href="#polar-grid">Polar grid</a></li>
@@ -1318,12 +1307,24 @@ but the current graph core does not automatically execute it.</p>
 <li><a class="reference internal" href="#component-resource-names-and-classes">Component resource names and classes</a></li>
 <li><a class="reference internal" href="#when-option-database-values-are-applied">When option database values are applied</a></li>
 <li><a class="reference internal" href="#discovering-database-names-and-classes">Discovering database names and classes</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
 <li><a class="reference internal" href="#margins">Margins</a></li>
 <li><a class="reference internal" href="#plotting-area">Plotting area</a></li>
 <li><a class="reference internal" href="#aspect-ratio">Aspect ratio</a></li>
 <li><a class="reference internal" href="#buffering">Buffering</a></li>
+<li><a class="reference internal" href="#svg-output">SVG output</a></li>
+<li><a class="reference internal" href="#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
+<li><a class="reference internal" href="#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li><a class="reference internal" href="#application-data">Application data</a></li>
+<li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>
+<li><a class="reference internal" href="#geometry-event-delivery-and-data">Geometry event delivery and data</a></li>
+<li><a class="reference internal" href="#scope">Scope</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#axis-change-notifications">Axis change notifications</a><ul>
+<li><a class="reference internal" href="#axis-event-delivery-and-data">Axis event delivery and data</a></li>
 </ul>
 </li>
 </ul>

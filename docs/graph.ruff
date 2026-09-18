@@ -176,81 +176,6 @@ namespace eval ::rbc::GRAPHINST {
 
         These component interfaces are documented separately.
 
-        ## SVG output
-
-        The [SVG][::rbc::SVG] component exports the complete graph as SVG, independently of the screen renderer
-        and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.
-
-        ```tcl
-        .g svg configure -width 1200 -height 800
-        set document [.g svg output]
-        .g svg output plot.svg
-        ```
-
-        See [::rbc::SVG] for command syntax, options, examples and export limitations.
-
-        ## Named fonts and display scaling
-
-        Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After `font configure`,
-        pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
-        text-marker geometry and element value labels. This includes named pens and active pens. No explicit
-        graph or component reconfiguration is needed.
-
-        ```tcl
-        font create PlotFont -family Helvetica -size 10
-        .g axis configure x -tickfont PlotFont
-        .g legend configure -font PlotFont
-        font configure PlotFont -size 16
-        update idletasks
-        ```
-
-        Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
-        configured axis limits. Automatic tick placement can change to fit the new text dimensions.
-
-        This notification handles font resources, not automatic resizing of every pixel-valued option.
-        Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
-        changing `tk scaling` does not promise to rescale every existing graph option. Configure application
-        scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.
-
-        ## Numeric values and expressions
-
-        Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
-        expression, or when each list item accepts one. Integer expressions must produce integer results;
-        numeric expressions may produce floating-point results. The option's range and domain rules still apply.
-
-        Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
-        lists, and the legend's `@x,y` position support expressions. Other numeric options do not automatically
-        evaluate arithmetic. For example, `-valueoffset` requires two integer pixel values, and crosshair
-        `-position` accepts Tk pixel distances rather than the legend's integer expressions.
-
-        Brace an expression to pass it to Rbc without Tcl substituting it first:
-        ```tcl
-        .g axis configure x -max {2 * acos(-1)}
-        .g legend configure -position {@10+5,20+10}
-        ```
-
-        For list options, each expression must be one list item. Use inner braces around expressions containing
-        spaces; the outer braces delimit the entire list:
-        ```tcl
-        .g element configure signal -x {0 {1.0 / 3} {2.0 / 3} 1}
-        .g grid configure -dashes {{2 * 3} {1 + 1}}
-        ```
-
-        Use floating-point operands when a fractional result is needed: `1 / 3` is integer division,
-        while `1.0 / 3` produces a fraction. Tcl expression functions and substitutions follow normal Tcl
-        expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.
-
-        Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
-        Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
-        An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
-        not an expression; vector notifications provide its automatic updates.
-
-        For an option that does not evaluate expressions, calculate the value explicitly:
-        ```tcl
-        set gap 8
-        .g element configure signal -valueoffset [list 0 [expr {-$gap - 4}]]
-        ```
-
         ## Coordinate systems
         Graph widgets use two coordinate systems:
 
@@ -263,115 +188,11 @@ namespace eval ::rbc::GRAPHINST {
         The general `transform` and `invtransform` operations use the graph's primary X and Y axes. To transform a
         value using a particular axis, use that axis's `transform` or `invtransform` operation.
 
-        ## Graph change notification
-        Graph, barchart, stripchart, and polar widgets generate `<<RbcGraphChanged>>` when changes to the
-        on-screen coordinate mapping or plotted element geometry have been processed for display.
-
-        Applications can use this event to refresh information that depends on the displayed graph without
-        waiting for pointer motion. Typical causes include:
-
-        * Axis range changes, including zooming, panning, and stripchart automatic scrolling.
-        * Widget resizing or layout changes that alter the plotting area.
-        * Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.
-
-        The event is also generated for the initial mapped display. It is a notification that mapping work
-        occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
-        when the resulting axis limits or geometry are unchanged.
-
-        ### Geometry event delivery and data
-        The event is queued on the graph widget after its on-screen display pass completes. Delivery is
-        asynchronous; it does not occur immediately inside the command that changes an axis or element.
-
-        Several changes handled by one display pass are combined into one notification. Changes requiring
-        further display passes can produce further notifications. Applications must not assume one event
-        per configuration command or data update.
-
-        An unmapped widget defers notification until it can complete an on-screen display with a usable
-        plotting area.
-
-        No application data payload is attached to the event. Use `%W` to identify the graph and query its
-        current state. Because delivery is queued, that state may include changes made after the display
-        pass that queued the event.
-
-        For example, this binding records the current primary axis limits:
-
-        ```tcl
-        bind .g <<RbcGraphChanged>> {
-            set ::graphView [dict create x [%W axis limits x] y [%W axis limits y]]
-        }
-        ```
-
-        ### Scope
-        `<<RbcGraphChanged>>` is not a notification for every repaint. Exposure or focus redraws and
-        marker-only updates do not generate it unless coordinate mapping or element remapping is also
-        required.
-
-        Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
-        display that restores or changes the screen mapping can generate it normally.
-
-        The event does not reposition ordinary graph markers or change the configured crosshair position.
-        Applications implement any additional tracking behavior in their bindings. The graphtoolbar
-        already uses this notification to refresh its enhanced crosshair annotations.
-
-        Event handlers should avoid repeatedly changing axes or element data in response to the notification:
-        such changes can schedule another display and another notification.
-
-        ## Axis change notifications
-
-        Graph, barchart, stripchart, and polar widgets provide two axis events:
-
-        * `<<RbcAxisChanged>>` reports successful axis configuration and changes to effective numeric limits.
-          Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands,
-          titles, colors, visibility, and other axis options. Reapplying an option with the same value also counts
-          as configuration; the event does not compare every option's old and new values.
-        * `<<RbcAxisLimitsChanged>>` reports changes to the bounds returned by `axis limits`. These include
-          zooming, panning, scrolling, and automatic limits derived from element data. Cosmetic configuration
-          does not generate this event when the resulting numeric limits are unchanged.
-
-        ### Axis event delivery and data
-        Both events are queued on the graph after an on-screen display pass with a usable plotting area.
-        An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
-        display pass; several commands before a redraw can therefore produce one event. Changes followed by a
-        return to the previously displayed limits before redraw do not produce a limits-change event.
-
-        `%W` identifies the graph and `%d` is a Tcl list of axis names. Each name appears once; ordering is
-        unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
-        first display after creating an axis, announce its limits through both events. Deleted axes are skipped
-        when building the notification; deletion itself is not an axis-change notification.
-
-        The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
-        configuration. Because delivery is asynchronous, the current state may be newer than the display that
-        queued the event, and an axis may have been deleted in the meantime.
-
-        ```tcl
-        proc RecordAxisState {graph axes} {
-            foreach axis $axes {
-                if {$axis ni [$graph axis names]} {
-                    continue
-                }
-                dict set ::axisState $graph $axis [dict create limits [$graph axis limits $axis] logscale\
-                                                           [$graph axis cget $axis -logscale]]
-            }
-        }
-        bind .g <<RbcAxisChanged>> [list RecordAxisState %W %d]
-        ```
-
-        Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves generate
-        these events. A later screen display compares the effective limits with the previous screen display. Data
-        changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
-        events unless an axis is configured or its effective limits change.
-
-        These events do not report every change in tick-label placement or screen geometry. Use `<<RbcGraphChanged>>`
-        for mapping and layout updates, including resizing without changed numeric limits.  Log/linear switching is
-        always covered by `<<RbcAxisChanged>>`, but only generates `<<RbcAxisLimitsChanged>>` if the resulting numeric
-        bounds change. Logarithmic bounds are reported in data units, just as by `axis limits`.
-
         ## Polar and Smith charts
         A widget created with [::rbc::polar] uses the ordinary Rbc graph coordinate system but provides specialized
         Polar and Smith-chart grid representations.
 
         Polar data are always represented internally as Cartesian coordinates:
-
         ```text
         x = real
         y = imaginary
@@ -381,22 +202,18 @@ namespace eval ::rbc::GRAPHINST {
         element data as radius/angle pairs.
 
         For example:
-
         ```tcl
         polar .p -representation polar
 
-        .p element create trace \
-            -data {1 0  0.5 0.5  0 1  -0.5 0.5}
+        .p element create trace -data {1 0 0.5 0.5 0 1 -0.5 0.5}
         ```
 
         The same Cartesian coordinates may be displayed with a Smith grid:
-
         ```tcl
         .p configure -representation smith
         ```
 
         ### Automatic equal-unit aspect
-
         Polar and Smith geometry requires equal physical scaling of the Cartesian X and Y dimensions. Otherwise a
         circle in the complex plane would be displayed as an ellipse.
 
@@ -698,7 +515,6 @@ namespace eval ::rbc::GRAPHINST {
         Smoothing is applied independently to valid continuous runs and never bridges such a gap.
 
         ### Polar/Smith widget options
-
         These options are meaningful for widgets created with [::rbc::polar].
 
         #ruffopt excludedformats nroff
@@ -751,7 +567,6 @@ namespace eval ::rbc::GRAPHINST {
         #ruffopt excludedformats {}
 
         ## Rendering backend
-
         `-renderer native|cairo` selects the screen renderer. Builds configured with `--enable-cairo` default to
         `cairo`; builds without Cairo default to `native`. Explicit options override option-database defaults.
         Its option-database name is `renderer` and its class is `Renderer`.
@@ -795,7 +610,8 @@ namespace eval ::rbc::GRAPHINST {
         colored gaps. Tk relief borders and value labels remain native.
 
         Legend line/strip samples, geometric symbols, and bar swatches also use Cairo, including external
-        legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native drawing. Samples use the normal pen and do not consume plot symbol limits.
+        legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native
+        drawing. Samples use the normal pen and do not consume plot symbol limits.
 
         Axis lines and tick marks use Cairo with the existing color, width, and projecting caps.
         They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
@@ -1281,7 +1097,7 @@ namespace eval ::rbc::GRAPHINST {
         Some options intentionally have no option-database name or class. Such options can be set only through the
         component command. For example, a marker's `-name` option is not read from the option database.
 
-        ### Bar modes
+        ## Bar modes
         The `-barmode` option determines how bars from different elements are arranged when they use the same X
         coordinate.
 
@@ -1317,7 +1133,7 @@ namespace eval ::rbc::GRAPHINST {
         The `-barmode`, `-barwidth`, and `-baseline` options have no significant effect unless bar elements are present
         in the graph.
 
-        ### Margins
+        ## Margins
         The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
         from axes, axis titles, tick labels, the graph title, and the legend.
 
@@ -1354,7 +1170,7 @@ namespace eval ::rbc::GRAPHINST {
         puts "bottom margin: $bottomSize"
         ```
 
-        ### Plotting area
+        ## Plotting area
         The outer graph background and the plotting-area background are configured independently.
 
         ```tcl
@@ -1373,7 +1189,7 @@ namespace eval ::rbc::GRAPHINST {
         .g configure -plotpady {10 20}
         ```
 
-        ### Aspect ratio
+        ## Aspect ratio
         A positive `-aspect` value constrains the plotting area to a requested width-to-height ratio.
 
         For example:
@@ -1391,7 +1207,7 @@ namespace eval ::rbc::GRAPHINST {
         Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
         enlarge the widget. Set `-aspect` to `0` to disable the constraint.
 
-        ### Buffering
+        ## Buffering
         Two separate buffering mechanisms are available.
 
         `-buffergraph` controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
@@ -1411,7 +1227,79 @@ namespace eval ::rbc::GRAPHINST {
         .g configure -buffergraph yes -bufferelements no
         ```
 
-        ### Application data
+        ## SVG output
+        The [SVG][::rbc::SVG] component exports the complete graph as SVG, independently of the screen renderer
+        and without requiring Cairo. It is available on graph, stripchart, barchart and polar widgets.
+
+        ```tcl
+        .g svg configure -width 1200 -height 800
+        set document [.g svg output]
+        .g svg output plot.svg
+        ```
+
+        See [::rbc::SVG] for command syntax, options, examples and export limitations.
+
+        ## Named fonts and display scaling
+        Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After `font configure`,
+        pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
+        text-marker geometry and element value labels. This includes named pens and active pens. No explicit
+        graph or component reconfiguration is needed.
+
+        ```tcl
+        font create PlotFont -family Helvetica -size 10
+        .g axis configure x -tickfont PlotFont
+        .g legend configure -font PlotFont
+        font configure PlotFont -size 16
+        update idletasks
+        ```
+
+        Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
+        configured axis limits. Automatic tick placement can change to fit the new text dimensions.
+
+        This notification handles font resources, not automatic resizing of every pixel-valued option.
+        Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
+        changing `tk scaling` does not promise to rescale every existing graph option. Configure application
+        scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.
+
+        ## Numeric values and expressions
+        Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
+        expression, or when each list item accepts one. Integer expressions must produce integer results;
+        numeric expressions may produce floating-point results. The option's range and domain rules still apply.
+
+        Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
+        lists, and the legend's `@x,y` position support expressions. Other numeric options do not automatically
+        evaluate arithmetic. For example, `-valueoffset` requires two integer pixel values, and crosshair
+        `-position` accepts Tk pixel distances rather than the legend's integer expressions.
+
+        Brace an expression to pass it to Rbc without Tcl substituting it first:
+        ```tcl
+        .g axis configure x -max {2 * acos(-1)}
+        .g legend configure -position {@10+5,20+10}
+        ```
+
+        For list options, each expression must be one list item. Use inner braces around expressions containing
+        spaces; the outer braces delimit the entire list:
+        ```tcl
+        .g element configure signal -x {0 {1.0 / 3} {2.0 / 3} 1}
+        .g grid configure -dashes {{2 * 3} {1 + 1}}
+        ```
+
+        Use floating-point operands when a fractional result is needed: `1 / 3` is integer division,
+        while `1.0 / 3` produces a fraction. Tcl expression functions and substitutions follow normal Tcl
+        expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.
+
+        Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
+        Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
+        An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
+        not an expression; vector notifications provide its automatic updates.
+
+        For an option that does not evaluate expressions, calculate the value explicitly:
+        ```tcl
+        set gap 8
+        .g element configure signal -valueoffset [list 0 [expr {-$gap - 4}]]
+        ```
+
+        ## Application data
         The `-data` option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
         it in the C graph implementation.
 
@@ -1423,6 +1311,108 @@ namespace eval ::rbc::GRAPHINST {
 
         `-datacommand` similarly stores a command string. It is retained as part of the graph configuration interface,
         but the current graph core does not automatically execute it.
+
+        ## Graph change notification
+        Graph, barchart, stripchart, and polar widgets generate `<<RbcGraphChanged>>` when changes to the
+        on-screen coordinate mapping or plotted element geometry have been processed for display.
+
+        Applications can use this event to refresh information that depends on the displayed graph without
+        waiting for pointer motion. Typical causes include:
+
+        * Axis range changes, including zooming, panning, and stripchart automatic scrolling.
+        * Widget resizing or layout changes that alter the plotting area.
+        * Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.
+
+        The event is also generated for the initial mapped display. It is a notification that mapping work
+        occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
+        when the resulting axis limits or geometry are unchanged.
+
+        ### Geometry event delivery and data
+        The event is queued on the graph widget after its on-screen display pass completes. Delivery is
+        asynchronous; it does not occur immediately inside the command that changes an axis or element.
+
+        Several changes handled by one display pass are combined into one notification. Changes requiring
+        further display passes can produce further notifications. Applications must not assume one event
+        per configuration command or data update.
+
+        An unmapped widget defers notification until it can complete an on-screen display with a usable
+        plotting area.
+
+        No application data payload is attached to the event. Use `%W` to identify the graph and query its
+        current state. Because delivery is queued, that state may include changes made after the display
+        pass that queued the event.
+
+        For example, this binding records the current primary axis limits:
+
+        ```tcl
+        bind .g <<RbcGraphChanged>> {
+            set ::graphView [dict create x [%W axis limits x] y [%W axis limits y]]
+        }
+        ```
+
+        ### Scope
+        `<<RbcGraphChanged>>` is not a notification for every repaint. Exposure or focus redraws and
+        marker-only updates do not generate it unless coordinate mapping or element remapping is also
+        required.
+
+        Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
+        display that restores or changes the screen mapping can generate it normally.
+
+        The event does not reposition ordinary graph markers or change the configured crosshair position.
+        Applications implement any additional tracking behavior in their bindings. The graphtoolbar
+        already uses this notification to refresh its enhanced crosshair annotations.
+
+        Event handlers should avoid repeatedly changing axes or element data in response to the notification:
+        such changes can schedule another display and another notification.
+
+        ## Axis change notifications
+        Graph, barchart, stripchart, and polar widgets provide two axis events:
+
+        * `<<RbcAxisChanged>>` reports successful axis configuration and changes to effective numeric limits.
+          Configuration includes log/linear mode, descending direction, major/minor ticks, formatting commands,
+          titles, colors, visibility, and other axis options. Reapplying an option with the same value also counts
+          as configuration; the event does not compare every option's old and new values.
+        * `<<RbcAxisLimitsChanged>>` reports changes to the bounds returned by `axis limits`. These include
+          zooming, panning, scrolling, and automatic limits derived from element data. Cosmetic configuration
+          does not generate this event when the resulting numeric limits are unchanged.
+
+        ### Axis event delivery and data
+        Both events are queued on the graph after an on-screen display pass with a usable plotting area.
+        An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
+        display pass; several commands before a redraw can therefore produce one event. Changes followed by a
+        return to the previously displayed limits before redraw do not produce a limits-change event.
+
+        `%W` identifies the graph and `%d` is a Tcl list of axis names. Each name appears once; ordering is
+        unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
+        first display after creating an axis, announce its limits through both events. Deleted axes are skipped
+        when building the notification; deletion itself is not an axis-change notification.
+
+        The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
+        configuration. Because delivery is asynchronous, the current state may be newer than the display that
+        queued the event, and an axis may have been deleted in the meantime.
+
+        ```tcl
+        proc RecordAxisState {graph axes} {
+            foreach axis $axes {
+                if {$axis ni [$graph axis names]} {
+                    continue
+                }
+                dict set ::axisState $graph $axis [dict create limits [$graph axis limits $axis] logscale\
+                                                           [$graph axis cget $axis -logscale]]
+            }
+        }
+        bind .g <<RbcAxisChanged>> [list RecordAxisState %W %d]
+        ```
+
+        Axis queries, failed configuration, and temporary PostScript or snapshot mappings do not themselves generate
+        these events. A later screen display compares the effective limits with the previous screen display. Data
+        changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
+        events unless an axis is configured or its effective limits change.
+
+        These events do not report every change in tick-label placement or screen geometry. Use `<<RbcGraphChanged>>`
+        for mapping and layout updates, including resizing without changed numeric limits.  Log/linear switching is
+        always covered by `<<RbcAxisChanged>>`, but only generates `<<RbcAxisLimitsChanged>>` if the resulting numeric
+        bounds change. Logarithmic bounds are reported in data units, just as by `axis limits`.
     }
 
     proc axis {args} {

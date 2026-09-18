@@ -1316,6 +1316,8 @@ void Rbc_Draw3DRectangleToPostScript(struct PsTokenStruct *tokenPtr, Tk_3DBorder
     if ((width < twiceWidth) || (height < twiceWidth)) {
         return;
     }
+    /* Export can precede the first screen draw that initializes shadows. */
+    (void)Tk_3DBorderGC(tokenPtr->tkwin, border, TK_3D_LIGHT_GC);
     Tk_Get3DBorderColors(border, &bdBgColor, &bdDarkColor, &bdLightColor);
     if (relief == TK_RELIEF_SOLID) {
         if (bdBgColor.pixel == bdDarkColor.pixel && bdBgColor.pixel == bdLightColor.pixel) {

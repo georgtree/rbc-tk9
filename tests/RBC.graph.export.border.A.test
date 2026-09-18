@@ -1,0 +1,54 @@
+# Export must initialize 3D shades even before a widget is mapped.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcExportBorderTest {
+    namespace import ::tcltest::*
+
+    proc Colors {format document} {
+        if {$format eq {svg}} {
+            set pattern {fill="(#[[:xdigit:]]{6})"}
+        } else {
+            set pattern {([0-9.]+ [0-9.]+ [0-9.]+) SetBgColor}
+        }
+        set colors {}
+        foreach {match color} [regexp -all -inline $pattern $document] {
+            lappend colors $color
+        }
+        return [lsort -unique $colors]
+    }
+
+    set index 0
+    foreach type {graph stripchart barchart polar} {
+        foreach format {svg postscript} {
+            foreach relief {sunken raised} {
+                test exportBorder-1-$type-$format-$relief {unmapped export has the same border shades as mapped export} -setup {
+                    # A fresh color prevents earlier tests initializing a shared
+                    # Tk border and masking the missing shadow allocation.
+                    incr index
+                    set background [format {#7182%02x} [expr {128 + $index}]]
+                    ::rbc::$type .exportBorder -width 400 -height 300 \
+                        -background $background -plotbackground white \
+                        -plotborderwidth 5 -plotrelief $relief -title {}
+                    foreach axis {x y x2 y2} {
+                        .exportBorder axis configure $axis -hide yes -showticks no
+                    }
+                    .exportBorder grid configure -hide yes
+                    .exportBorder legend configure -hide yes
+                } -body {
+                    set unmapped [expr {![winfo ismapped .exportBorder]}]
+                    set cold [Colors $format [.exportBorder $format output -decorations yes]]
+                    pack .exportBorder
+                    update idletasks
+                    set warm [Colors $format [.exportBorder $format output -decorations yes]]
+                    # White plot, background, light shade, and dark shade.
+                    list $unmapped [expr {[llength $cold] == 4}] [expr {$cold eq $warm}]
+                } -cleanup {
+                    catch {destroy .exportBorder}
+                    update idletasks
+                } -result {1 1 1}
+            }
+        }
+    }
+}
+::tcltest::cleanupTests
