@@ -258,8 +258,8 @@ code previously supplied by dependency DLLs.</p>
 and any remaining dynamically linked runtime libraries are still required.  A larger file alone does not establish that
 every dependency was linked statically.</p>
 </section>
-<section id="id1">
-<span id="id2"></span><h4>Linux<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<section id="static-cairo-on-linux">
+<span id="r-static-cairo-on-linux"></span><span id="r-static20cairo20on20linux"></span><h4>Static Cairo on Linux<a class="headerlink" href="#static-cairo-on-linux" title="Link to this heading">¶</a></h4>
 <p>Cairo and the non-system dependency archives must support incorporation into a shared library, normally by being built
 with <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code>. Distribution-provided static archives are not necessarily suitable. The configure check attempts a
 shared-library link to detect incompatible archives.</p>
@@ -408,7 +408,7 @@ deliberately.</p>
 measurements and options, see the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/tests/benchmark/README.md">benchmark README</a>.</p>
 </section>
 <section id="r-documentation">
-<span id="id3"></span><h2>Documentation<a class="headerlink" href="#r-documentation" title="Link to this heading">¶</a></h2>
+<span id="id1"></span><h2>Documentation<a class="headerlink" href="#r-documentation" title="Link to this heading">¶</a></h2>
 <p>The generated HTML documentation is available online:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation home</a></p></li>
@@ -535,7 +535,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
 <li><a class="reference internal" href="#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
 <li><a class="reference internal" href="#linking-cairo-statically">Linking Cairo statically</a><ul>
 <li><a class="reference internal" href="#msys2-ucrt64">MSYS2/UCRT64</a></li>
-<li><a class="reference internal" href="#id1">Linux</a></li>
+<li><a class="reference internal" href="#static-cairo-on-linux">Static Cairo on Linux</a></li>
 <li><a class="reference internal" href="#rebuilding-and-deployment">Rebuilding and deployment</a></li>
 </ul>
 </li>

@@ -4294,7 +4294,7 @@ Creates one or more vectors\&.
 Destroys one or more vectors\&. Destroying a vector removes its associated vector instance command and Tcl array variable and notifies clients that use the vector\&.
 .TP
 \fIexpr\fP
-Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance \fIVECINST::expr\fP operation, this command does not store the result in an existing vector\&.
+Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance \fIVECINST expr\fP operation, this command does not store the result in an existing vector\&.
 .TP
 \fInames\fP
 Gives back the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob pattern are returned\&.
@@ -4383,7 +4383,7 @@ Nothing\&.
 .PP
 Evaluates a vector expression\&. expression may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in \fIVector expressions\fP\&. Unlike the instance
-\fIVECINST::expr\fP operation, this command does not store the result in an existing vector\&.
+\fIVECINST expr\fP operation, this command does not store the result in an existing vector\&.
 .RS 4n
 \fBvector expr\fP \fIexpression\fP
 .br
@@ -4914,25 +4914,25 @@ The ensemble supports the following subcommands:
 .RS 4n
 .TP
 \fIconvolve\fP
-Applies a two-dimensional convolution kernel to a Tk photo image\&. This is the grouped form of \fI::rbc::winop::convolve\fP\&.
+Applies a two-dimensional convolution kernel to a Tk photo image\&. This is the grouped form of \fI::rbc::winop convolve\fP\&.
 .TP
 \fIgradient\fP
 Generates a gradient directly into an existing Tk photo image\&. left and right are Tk colors\&. type may be linear, radial, rectangular, or blank\&. The current dimensions of photo determine the generated image size\&.
 .TP
 \fIreadjpeg\fP
-Reads a JPEG file into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::readjpeg\fP\&.
+Reads a JPEG file into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop readjpeg\fP\&.
 .TP
 \fIresample\fP
-Copies or resamples a source photo into a destination photo\&. This is the grouped form of \fI::rbc::winop::resample\fP\&.
+Copies or resamples a source photo into a destination photo\&. This is the grouped form of \fI::rbc::winop resample\fP\&.
 .TP
 \fIrotate\fP
 Rotates a Tk photo image by a finite angle expressed in degrees\&. angle may be a Tcl numeric expression\&. The destination photo is resized to contain the rotated result\&.
 .TP
 \fIsnap\fP
-Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::snap\fP\&.
+Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop snap\fP\&.
 .TP
 \fIsubsample\fP
-Extracts and optionally resamples a rectangular region of a source photo\&. This is the grouped form of \fI::rbc::winop::subsample\fP\&.
+Extracts and optionally resamples a rectangular region of a source photo\&. This is the grouped form of \fI::rbc::winop subsample\fP\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -4942,7 +4942,7 @@ Refer to the documentation of each subcommand for details\&.
 .RE
 .PP
 Applies a two-dimensional convolution kernel to a Tk photo image\&. This is the grouped form of
-\fI::rbc::winop::convolve\fP\&.
+\fI::rbc::winop convolve\fP\&.
 .RS 4n
 \fBWINOPIMAGE convolve\fP \fIsrcPhoto destPhoto filter\fP
 .br
@@ -5002,7 +5002,7 @@ Nothing\&.
 .RE
 .PP
 Reads a JPEG file into an existing Tk photo image\&. This is the grouped form of
-\fI::rbc::winop::readjpeg\fP\&.
+\fI::rbc::winop readjpeg\fP\&.
 .RS 4n
 \fBWINOPIMAGE readjpeg\fP \fIfileName photoName\fP
 .br
@@ -5027,7 +5027,7 @@ Nothing\&.
 .RE
 .PP
 Copies or resamples a source photo into a destination photo\&. This is the grouped form of
-\fI::rbc::winop::resample\fP\&.
+\fI::rbc::winop resample\fP\&.
 .RS 4n
 \fBWINOPIMAGE resample\fP \fIsrcPhoto destPhoto ?horzFilter? ?vertFilter?\fP
 .br
@@ -5085,7 +5085,7 @@ Nothing\&.
 \fBWINOPIMAGE snap\fR (::rbc)
 .RE
 .PP
-Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop::snap\fP\&.
+Captures a window into an existing Tk photo image\&. This is the grouped form of \fI::rbc::winop snap\fP\&.
 .RS 4n
 \fBWINOPIMAGE snap\fP \fIwindow photoName ?width? ?height?\fP
 .br
@@ -5116,7 +5116,7 @@ Nothing\&.
 .RE
 .PP
 Extracts and optionally resamples a rectangular region of a source photo\&. This is the grouped form of
-\fI::rbc::winop::subsample\fP\&.
+\fI::rbc::winop subsample\fP\&.
 .RS 4n
 \fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
 .br

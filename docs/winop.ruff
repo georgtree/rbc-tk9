@@ -561,7 +561,7 @@ namespace eval ::rbc::WINOPIMAGE {
 
     proc convolve {srcPhoto destPhoto filter} {
         # Applies a two-dimensional convolution kernel to a Tk photo image. This is the grouped form of
-        # [::rbc::winop::convolve].
+        # [::rbc::winop convolve].
         # srcPhoto - source Tk photo image.
         # destPhoto - destination Tk photo image.
         # filter - square list of convolution-kernel values.
@@ -583,7 +583,7 @@ namespace eval ::rbc::WINOPIMAGE {
 
     proc readjpeg {fileName photoName} {
         # Reads a JPEG file into an existing Tk photo image. This is the grouped form of
-        # [::rbc::winop::readjpeg].
+        # [::rbc::winop readjpeg].
         # fileName - JPEG file to read.
         # photoName - destination Tk photo image.
         # Returns: Nothing.
@@ -592,7 +592,7 @@ namespace eval ::rbc::WINOPIMAGE {
 
     proc resample {srcPhoto destPhoto args} {
         # Copies or resamples a source photo into a destination photo. This is the grouped form of
-        # [::rbc::winop::resample].
+        # [::rbc::winop resample].
         # srcPhoto - source Tk photo image.
         # destPhoto - destination Tk photo image.
         # horzFilter - optional horizontal resampling filter.
@@ -612,7 +612,7 @@ namespace eval ::rbc::WINOPIMAGE {
     }
 
     proc snap {window photoName args} {
-        # Captures a window into an existing Tk photo image. This is the grouped form of [::rbc::winop::snap].
+        # Captures a window into an existing Tk photo image. This is the grouped form of [::rbc::winop snap].
         # window - window to capture.
         # photoName - destination Tk photo image.
         # width - optional positive output width.
@@ -623,7 +623,7 @@ namespace eval ::rbc::WINOPIMAGE {
 
     proc subsample {srcPhoto destPhoto x y width height args} {
         # Extracts and optionally resamples a rectangular region of a source photo. This is the grouped form of
-        # [::rbc::winop::subsample].
+        # [::rbc::winop subsample].
         # srcPhoto - source Tk photo image.
         # destPhoto - destination Tk photo image.
         # x - horizontal source-region origin.

@@ -1,6 +1,86 @@
 package require ruff
 package require fileutil
+package require textutil::adjust
 package require rbc
+
+proc readmeTableCells {line} {
+    set cells {}
+    foreach cell [split [string trim [string trim $line] |] |] {
+        lappend cells [string trim $cell]
+    }
+    return $cells
+}
+
+proc readmeTableBorder {widths left middle right} {
+    set parts {}
+    foreach width $widths {
+        lappend parts [string repeat ─ [expr {$width + 2}]]
+    }
+    return "$left[join $parts $middle]$right"
+}
+
+proc readmeTablesForNroff {markdown {widths {32 81}}} {
+    set lines [split $markdown \n]
+    set result {}
+    set fence {}
+    for {set i 0} {$i < [llength $lines]} {incr i} {
+        set line [lindex $lines $i]
+        # Leave fenced code blocks unchanged.
+        if {[regexp {^\s*(`{3,}|~{3,})} $line -> marker]} {
+            if {$fence eq {}} {
+                set fence $marker
+            } elseif {[string index $marker 0] eq [string index $fence 0] &&\
+                              [string length $marker] >= [string length $fence]} {
+                set fence {}
+            }
+            lappend result $line
+            continue
+        }
+        set next [lindex $lines [expr {$i + 1}]]
+        if {$fence ne {} || ![string match {|*|} [string trim $line]] ||\
+                    ![regexp {^\s*\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|\s*$} $next]} {
+            lappend result $line
+            continue
+        }
+        set rows [list [readmeTableCells $line]]
+        incr i
+        while {$i + 1 < [llength $lines] && [string match {|*|} [string trim [lindex $lines [expr {$i + 1}]]]]} {
+            incr i
+            lappend rows [readmeTableCells [lindex $lines $i]]
+        }
+        lappend result {} {```}
+        lappend result [readmeTableBorder $widths ┌ ┬ ┐]
+        set rowIndex 0
+        foreach row $rows {
+            if {[llength $row] != [llength $widths]} {
+                error "Table column count does not match widths: $row"
+            }
+            set columns {}
+            set height 1
+            foreach cell $row width $widths {
+                # Inline code becomes plain text in the literal block.
+                set cell [string map [list ` {}] $cell]
+                set wrapped [split [::textutil::adjust::adjust $cell -length $width -strictlength 1 -justify left] \n]
+                lappend columns $wrapped
+                set height [expr {max($height, [llength $wrapped])}]
+            }
+            for {set n 0} {$n < $height} {incr n} {
+                set rendered │
+                foreach column $columns width $widths {
+                    append rendered " " [format "%-*s" $width [lindex $column $n]] " │"
+                }
+                lappend result $rendered
+            }
+            if {$rowIndex == 0} {
+                lappend result [readmeTableBorder $widths ├ ┼ ┤]
+            }
+            incr rowIndex
+        }
+        lappend result [readmeTableBorder $widths └ ┴ ┘] {```} {}
+    }
+    return [join $result \n]
+}
+
 
 set docDir [file dirname [file normalize [info script]]]
 set sourceDir [file join $docDir ..]
@@ -12,18 +92,18 @@ source [file join $docDir vector.ruff]
 source [file join $docDir spline.ruff]
 source [file join $docDir winop.ruff]
 
-
 set packageVersion [package versions rbc]
 puts $packageVersion
 set title "Upgraded Tcl/Tk9.0-ready RBC package"
 
 # Image paths are relative to each output's source directory.
 set startPageSphinx [string map {docs/images/ images/} $startPage]
+set startPageNroff [readmeTablesForNroff $startPage]
 set commonSphinx [list -title $title -sortnamespaces false -preamble $startPageSphinx -pagesplit namespace -recurse false\
                     -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
                     -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                     -copyright "George Yashin" {*}$::argv]
-set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
+set commonNroff [list -title $title -sortnamespaces false -preamble $startPageNroff -pagesplit namespace -recurse false\
                          -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
                          -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                          -copyright "George Yashin" {*}$::argv]
@@ -52,6 +132,9 @@ try {
 extensions = [
     "sphinx.ext.githubpages",
 ]
+suppress_warnings = [
+    "image.not_readable",
+]
 from pygments.lexers.tcl import TclLexer
 from pygments.token import Operator
 
@@ -68,7 +151,7 @@ def setup(app):
     lexers["tcl"] = MyTclLexer()
 }
 
-catch {exec sphinx-build -b html [file join $docDir sphinx] [file join $docDir]} errorStr
+catch {exec sphinx-build -E -a -b html [file join $docDir sphinx] [file join $docDir]} errorStr
 puts $errorStr
 
 # nroff pages names processing

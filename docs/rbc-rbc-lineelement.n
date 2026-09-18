@@ -174,7 +174,7 @@ The element contains a built-in normal line pen\&. The following options configu
 │ -dashes dashes   │ Specifies the dash pattern for the trace\&. An empty value draws a solid line\&.         │
 │                  │ Each numeric list item accepts a Tcl integer expression\&.                             │
 │ -offdash color   │ Specifies the color used for the gaps of a dashed line\&. An empty value leaves dash   │
-│                  │ gaps transparent\&. defcolor selects the normal trace color\&.                            │
+│                  │ gaps transparent\&. defcolor selects the normal trace color\&.                           │
 └──────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
@@ -832,8 +832,8 @@ The complete line-element option set is:
 │ -areaforeground color   │ areaForeground   │ areaForeground   │ Sets the foreground color used by an area fill or       │
 │                         │                  │                  │ stipple\&. The default is black\&.                          │
 │ -areaclose mode         │ areaClose        │ AreaClose        │ Fill closure: baseline (default), chord, or origin\&.     │
-│ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0\&.0–1\&.0 (default 1\&.0), Cairo and SVG\&.        │
-│                         │                  │                  │ Native rendering and PostScript ignore this option\&.    │
+│ -areaopacity value      │ areaOpacity      │ AreaOpacity      │ Solid opacity 0\&.0–1\&.0 (default 1\&.0), Cairo and SVG\&.     │
+│                         │                  │                  │ Native rendering and PostScript ignore this option\&.     │
 │ -areapattern pattern    │ areaPattern      │ AreaPattern      │ Enables area filling with solid or a Tk bitmap stipple\&. │
 │                         │                  │                  │ An empty value disables the pattern\&.                    │
 │ -areatile tile          │ areaTile         │ AreaTile         │ Enables area filling with the named Rbc tile/image\&. An  │

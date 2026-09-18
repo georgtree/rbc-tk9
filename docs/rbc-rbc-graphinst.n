@@ -156,7 +156,7 @@ Element data changes that require plotted geometry to be remapped, even when axi
 The event is also generated for the initial mapped display\&. It is a notification that mapping work
 occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
 when the resulting axis limits or geometry are unchanged\&.
-.SS "DELIVERY AND EVENT DATA"
+.SS "GEOMETRY EVENT DELIVERY AND DATA"
 .PP
 The event is queued on the graph widget after its on-screen display pass completes\&. Delivery is
 asynchronous; it does not occur immediately inside the command that changes an axis or element\&.
@@ -205,7 +205,7 @@ Graph, barchart, stripchart, and polar widgets provide two axis events:
 .TP
 \(bu
 <<RbcAxisLimitsChanged>> reports changes to the bounds returned by axis limits\&. These include zooming, panning, scrolling, and automatic limits derived from element data\&. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged\&.
-.SS "DELIVERY AND EVENT DATA"
+.SS "AXIS EVENT DELIVERY AND DATA"
 .PP
 Both events are queued on the graph after an on-screen display pass with a usable plotting area\&.
 An unmapped graph defers delivery until it can display\&. Each event combines all affected axes from that

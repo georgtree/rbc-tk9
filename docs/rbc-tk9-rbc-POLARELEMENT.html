@@ -41,10 +41,10 @@
           <div class="body" role="main">
             
   <section id="polar-element-polarelement-options">
-<span id="r-polar-element-polarelement-options"></span><span id="r-polar20element2060polarelement6020options"></span><span id="r-3a3arbc3a3apolarelement"></span><h1>Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options<a class="headerlink" href="#polar-element-polarelement-options" title="Link to this heading">¶</a></h1>
+<span id="r-polar-element-polarelement-options"></span><span id="r-polar20element2060polarelement6020options"></span><span id="r-namespaceqz3a3arbc3a3apolarelement"></span><h1>Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options<a class="headerlink" href="#polar-element-polarelement-options" title="Link to this heading">¶</a></h1>
 <p>This page documents the configuration and behavior of polar elements.</p>
 <p><code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>. Polar elements are the default
-element type of a <a class="reference internal" href="rbc-tk9-rbc.html#r-3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> widget:</p>
+element type of a <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> widget:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">polar</span><span class="w"> </span>.p
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace
 
@@ -53,12 +53,12 @@ element type of a <a class="reference internal" href="rbc-tk9-rbc.html#r-3a3arbc
 </pre></div>
 </div>
 <p>The common element operations such as <code class="docutils literal notranslate"><span class="pre">create</span></code>, <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">bind</span></code>, <code class="docutils literal notranslate"><span class="pre">delete</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">show</span></code> are documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
-<p>Polar elements use the same underlying line-rendering machinery as <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Consequently they support
+<code class="docutils literal notranslate"><span class="pre">show</span></code> are documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-namespaceqz3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
+<p>Polar elements use the same underlying line-rendering machinery as <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Consequently they support
 the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
 area filling, and smoothing options.
 In particular, <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fill opacity in Cairo and SVG; native rendering and
-PostScript ignore it. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the area options and renderer limitations.</p>
+PostScript ignore it. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the area options and renderer limitations.</p>
 <p>Polar elements additionally support direct complex-vector data through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> and can interpret complex
 values as reflection coefficient, impedance, or admittance.</p>
 <section id="creating-a-polar-element">
@@ -179,7 +179,7 @@ parameter is independent of the coordinate representation and is not used when m
 <span class="k">}</span>
 </pre></div>
 </div>
-<p>The same length and transactional rules described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> apply. During element creation or
+<p>The same length and transactional rules described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> apply. During element creation or
 configuration, the parameter count must equal the final data-point count. If attached vectors are subsequently
 resized independently and temporarily have different lengths, plotting continues but <code class="docutils literal notranslate"><span class="pre">info(param)</span></code> is omitted
 until the counts match again.</p>
@@ -404,7 +404,7 @@ info(dist)
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">param</span></code> is the parameter value associated with info(index). It uses the same source-index semantics described
-for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>; it is not interpolated when <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">yes</span></code> selects a point between source samples.</p>
+for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>; it is not interpolated when <code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">yes</span></code> selects a point between source samples.</p>
 <p>For a Polar element, the result additionally contains:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>info(radius)
 info(angle)
@@ -454,7 +454,7 @@ attributes therefore apply to PostScript output as well as on-screen drawing.</p
 </section>
 <section id="polar-element-options">
 <span id="r-rbc-polarelement-polar-element-options"></span><span id="r-3a3arbc3a3apolarelementqzpolar20element20options"></span><h2>Polar element options<a class="headerlink" href="#polar-element-options" title="Link to this heading">¶</a></h2>
-<p>Polar elements support the configuration options documented for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>, except for <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>, which
+<p>Polar elements support the configuration options documented for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>, except for <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>, which
 is currently available only on ordinary <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> objects. Polar elements also provide the Polar-specific
 additions below.</p>
 <table class="docutils align-default">
@@ -495,7 +495,7 @@ additions below.</p>
 </tbody>
 </table>
 <p>Except for <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>, the remaining options have the same database names, classes, defaults, and basic
-drawing semantics described in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+drawing semantics described in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
 <p>Where Polar behavior intentionally differs from ordinary line behavior, in particular parametric smoothing
 and complex-data mapping, the differences are described above.</p>
 <hr class="docutils" />

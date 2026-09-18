@@ -41,7 +41,7 @@
           <div class="body" role="main">
             
   <section id="strip-element-stripelement-options">
-<span id="r-strip-element-stripelement-options"></span><span id="r-strip20element2060stripelement6020options"></span><span id="r-3a3arbc3a3astripelement"></span><h1>Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options<a class="headerlink" href="#strip-element-stripelement-options" title="Link to this heading">¶</a></h1>
+<span id="r-strip-element-stripelement-options"></span><span id="r-strip20element2060stripelement6020options"></span><span id="r-namespaceqz3a3arbc3a3astripelement"></span><h1>Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options<a class="headerlink" href="#strip-element-stripelement-options" title="Link to this heading">¶</a></h1>
 <p>This page documents the configuration and behavior of strip elements.</p>
 <p><code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">StripElement</span></code>. Strip elements are the default
 element type of a <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> widget:</p>
@@ -50,10 +50,10 @@ element type of a <code class="docutils literal notranslate"><span class="pre">s
 </pre></div>
 </div>
 <p>The common element operations such as <code class="docutils literal notranslate"><span class="pre">create</span></code>, <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">bind</span></code>, and <code class="docutils literal notranslate"><span class="pre">delete</span></code> are
-documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
+documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-namespaceqz3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
 <p>Strip elements use the same underlying line-rendering machinery as line elements. Their data handling, axis
 mapping, pens, smoothing, symbols, error bars, value labels, weights, and styles therefore have the same
-semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
 <section id="differences-from-line-elements">
 <span id="r-rbc-stripelement-differences-from-line-elements"></span><span id="r-3a3arbc3a3astripelementqzdifferences20from20line20elements"></span><h2>Differences from line elements<a class="headerlink" href="#differences-from-line-elements" title="Link to this heading">¶</a></h2>
 <p>A strip element exposes a restricted line-element option set intended for stripchart use.</p>
@@ -101,7 +101,7 @@ semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEEL
 </tr>
 </tbody>
 </table>
-<p>All other options listed below use the same interpretation as the corresponding option on <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+<p>All other options listed below use the same interpretation as the corresponding option on <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
 </section>
 <section id="data">
 <span id="r-rbc-stripelement-data"></span><span id="r-3a3arbc3a3astripelementqzdata"></span><h2>Data<a class="headerlink" href="#data" title="Link to this heading">¶</a></h2>
@@ -126,14 +126,14 @@ semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEEL
 <span class="nv">.s</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>voltage
 </pre></div>
 </div>
-<p>The same transactional and left-to-right data-option semantics described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> apply.</p>
+<p>The same transactional and left-to-right data-option semantics described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> apply.</p>
 <p>Non-finite data values and values outside the domain of a logarithmic axis form discontinuities in the
 rendered trace. Points on opposite sides of such a discontinuity are not connected.</p>
 </section>
 <section id="display-decimation">
 <span id="r-rbc-stripelement-display-decimation"></span><span id="r-3a3arbc3a3astripelementqzdisplay20decimation"></span><h2>Display decimation<a class="headerlink" href="#display-decimation" title="Link to this heading">¶</a></h2>
 <p>Strip elements support <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">none|auto</span></code> with the same screen-density decimation semantics described for
-<a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+<a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code>, dense eligible strip data can be reduced before full world-to-screen mapping. The
 persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached Rbc
 vectors.</p>
@@ -189,7 +189,7 @@ linear trace segments.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-activepen</span></code> selects the pen used when the element or individual data points are active.</p>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for detailed descriptions of line pens, symbols, symbol scaling, and symbol-density control.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for detailed descriptions of line pens, symbols, symbol scaling, and symbol-density control.</p>
 </section>
 <section id="error-bars-of-strip-elements">
 <span id="r-rbc-stripelement-error-bars-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzerror20bars20of20strip20elements"></span><h2>Error bars of strip elements<a class="headerlink" href="#error-bars-of-strip-elements" title="Link to this heading">¶</a></h2>
@@ -209,7 +209,7 @@ linear trace segments.</p>
 -errorbarcap
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the complete error-bar semantics.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the complete error-bar semantics.</p>
 </section>
 <section id="value-labels-of-strip-elements">
 <span id="r-rbc-stripelement-value-labels-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzvalue20labels20of20strip20elements"></span><h2>Value labels of strip elements<a class="headerlink" href="#value-labels-of-strip-elements" title="Link to this heading">¶</a></h2>
@@ -227,12 +227,12 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 -valueshadow
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for value-selection and formatting behavior.</p>
+<p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for value-selection and formatting behavior.</p>
 </section>
 <section id="weights-and-styles">
 <span id="r-rbc-stripelement-weights-and-styles"></span><span id="r-3a3arbc3a3astripelementqzweights20and20styles"></span><h2>Weights and styles<a class="headerlink" href="#weights-and-styles" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-weights</span></code> supplies a numeric weight for each data point and <code class="docutils literal notranslate"><span class="pre">-styles</span></code> maps weight ranges to named line pens.</p>
-<p>The syntax and precedence rules are identical to those described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
+<p>The syntax and precedence rules are identical to those described for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>.</p>
 </section>
 <section id="strip-element-options">
 <span id="r-rbc-stripelement-strip-element-options"></span><span id="r-3a3arbc3a3astripelementqzstrip20element20options"></span><h2>Strip element options<a class="headerlink" href="#strip-element-options" title="Link to this heading">¶</a></h2>

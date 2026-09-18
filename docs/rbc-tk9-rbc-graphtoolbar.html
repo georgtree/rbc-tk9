@@ -41,7 +41,7 @@
           <div class="body" role="main">
             
   <section id="graphtoolbar">
-<span id="r-graphtoolbar"></span><span id="r-3a3arbc3a3agraphtoolbar"></span><h1>graphtoolbar<a class="headerlink" href="#graphtoolbar" title="Link to this heading">¶</a></h1>
+<span id="r-graphtoolbar"></span><span id="r-namespaceqz3a3arbc3a3agraphtoolbar"></span><h1>graphtoolbar<a class="headerlink" href="#graphtoolbar" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> command creates an Rbc graph megawidget with an optional toolbar or context-menu control
 surface and a set of coordinated interactive graph-navigation facilities.</p>
 <p>The graph itself is a normal Rbc <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget.  The megawidget adds:</p>
@@ -763,8 +763,8 @@ while retaining the other current values. Unknown dictionary keys are rejected.<
 </section>
 <section id="classes">
 <span id="r-rbc-graphtoolbar-classes"></span><span id="r-3a3arbc3a3agraphtoolbarqzclasses"></span><h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
-<section id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar">
-<span id="index-1"></span><span id="index-0"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code><a class="headerlink" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar" title="Link to this heading">¶</a></h3>
+<section id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar">
+<span id="index-1"></span><span id="index-0"></span><span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code><a class="headerlink" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar" title="Link to this heading">¶</a></h3>
 <p>Configurable TclOO class implementing the <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget.</p>
 <p>A widget is normally created through the exported class command:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
@@ -784,23 +784,23 @@ use the reserved <code class="docutils literal notranslate"><span class="pre">gt
 the embedded graph.</p>
 <p class="rubric">Method summary</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"><span class="std std-ref">constructor</span></a></dt><dd><p>Constructor for the class.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"><span class="std std-ref">constructor</span></a></dt><dd><p>Constructor for the class.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"><span class="std std-ref">destructor</span></a></dt><dd><p>Destructor for the class.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"><span class="std std-ref">destructor</span></a></dt><dd><p>Destructor for the class.</p>
 </dd>
 <dt><a class="reference external" href="https://www.tcl-lang.org/man/tcl9.0/TclCmd/index.html">configure</a></dt><dd><p>Configure properties. See <a class="reference external" href="https://www.tcl-lang.org/man/tcl9.0/TclCmd/index.html">::oo::configuresupport::configurable</a>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"><span class="std std-ref">getAxisActiveScale</span></a></dt><dd><p>Returns axes currently enabled for interactive scale toggling. List of axis names carrying the graphtoolbar active-scale binding tag.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"><span class="std std-ref">getAxisActiveScale</span></a></dt><dd><p>Returns axes currently enabled for interactive scale toggling. List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"><span class="std std-ref">graph</span></a></dt><dd><p>Forwards a command directly to the embedded Rbc graph widget.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"><span class="std std-ref">graph</span></a></dt><dd><p>Forwards a command directly to the embedded Rbc graph widget.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of all subwidgets created for this instance. List of subwidget names.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of all subwidgets created for this instance. List of subwidget names.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"><span class="std std-ref">setAxisActiveScale</span></a></dt><dd><p>Configures interactive linear/logarithmic scale toggling for axes.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"><span class="std std-ref">setAxisActiveScale</span></a></dt><dd><p>Configures interactive linear/logarithmic scale toggling for axes.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"><span class="std std-ref">subwidget</span></a></dt><dd><p>Returns the Tk pathname of a named subwidget. Tk pathname of the requested subwidget.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"><span class="std std-ref">subwidget</span></a></dt><dd><p>Returns the Tk pathname of a named subwidget. Tk pathname of the requested subwidget.</p>
 </dd>
-<dt><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"><span class="std std-ref">widgetcommand</span></a></dt><dd><p>Invokes a command on a named graphtoolbar subwidget.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"><span class="std std-ref">widgetcommand</span></a></dt><dd><p>Invokes a command on a named graphtoolbar subwidget.</p>
 </dd>
 </dl>
 <p class="rubric">Options</p>
@@ -969,7 +969,7 @@ the embedded graph.</p>
 </dd>
 </dl>
 <section id="constructor">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"></span><span id="index-3"></span><span id="index-2"></span><h4><code class="docutils literal notranslate"><span class="pre">constructor</span></code><a class="headerlink" href="#constructor" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3aconstructor"></span><span id="index-3"></span><span id="index-2"></span><h4><code class="docutils literal notranslate"><span class="pre">constructor</span></code><a class="headerlink" href="#constructor" title="Link to this heading">¶</a></h4>
 <p>Creates a graphtoolbar megawidget.</p>
 <pre class="literal-block"><strong>graphtoolbar create OBJNAME</strong> <em>path ?option ...?</em>
 <strong>graphtoolbar new</strong> <em>path ?option ...?</em></pre>
@@ -987,12 +987,12 @@ crosshairs, control mode, graph type, and active legend interaction are selected
 with a pathname, the command result is the widget pathname.</p>
 </section>
 <section id="destructor">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"></span><span id="index-5"></span><span id="index-4"></span><h4><code class="docutils literal notranslate"><span class="pre">destructor</span></code><a class="headerlink" href="#destructor" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3adestructor"></span><span id="index-5"></span><span id="index-4"></span><h4><code class="docutils literal notranslate"><span class="pre">destructor</span></code><a class="headerlink" href="#destructor" title="Link to this heading">¶</a></h4>
 <p>Cancel asynchronous work before the object namespace disappears.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ destroy</strong></pre>
 </section>
 <section id="getaxisactivescale">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"></span><span id="index-7"></span><span id="index-6"></span><h4><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code><a class="headerlink" href="#getaxisactivescale" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"></span><span id="index-7"></span><span id="index-6"></span><h4><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code><a class="headerlink" href="#getaxisactivescale" title="Link to this heading">¶</a></h4>
 <p>Returns axes currently enabled for interactive scale toggling.
 List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ getAxisActiveScale</strong></pre>
@@ -1001,7 +1001,7 @@ List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 </section>
 <section id="graph">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"></span><span id="index-8"></span><h4><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"></span><span id="index-8"></span><h4><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading">¶</a></h4>
 <p>Forwards a command directly to the embedded Rbc graph widget.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ graph</strong> <em>?graphCommand ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -1020,7 +1020,7 @@ List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 <p>Result returned by the embedded graph command.</p>
 </section>
 <section id="names">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"></span><span id="index-9"></span><h4><code class="docutils literal notranslate"><span class="pre">names</span></code><a class="headerlink" href="#names" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"></span><span id="index-9"></span><h4><code class="docutils literal notranslate"><span class="pre">names</span></code><a class="headerlink" href="#names" title="Link to this heading">¶</a></h4>
 <p>Returns the names of all subwidgets created for this instance.
 List of subwidget names.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ names</strong></pre>
@@ -1032,7 +1032,7 @@ and <code class="docutils literal notranslate"><span class="pre">toolbarFrame</s
 List of subwidget names.</p>
 </section>
 <section id="setaxisactivescale">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"></span><span id="index-11"></span><span id="index-10"></span><h4><code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code><a class="headerlink" href="#setaxisactivescale" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asetaxisactivescale"></span><span id="index-11"></span><span id="index-10"></span><h4><code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code><a class="headerlink" href="#setaxisactivescale" title="Link to this heading">¶</a></h4>
 <p>Configures interactive linear/logarithmic scale toggling for axes.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ setAxisActiveScale</strong> <em>axes ?-disabled? ?-event event? ?-background color?</em></pre>
 <p class="rubric">Parameters</p>
@@ -1061,14 +1061,14 @@ finishes.</p>
 <p>Nothing.</p>
 </section>
 <section id="subwidget">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"></span><span id="index-13"></span><span id="index-12"></span><h4><code class="docutils literal notranslate"><span class="pre">subwidget</span></code><a class="headerlink" href="#subwidget" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3asubwidget"></span><span id="index-13"></span><span id="index-12"></span><h4><code class="docutils literal notranslate"><span class="pre">subwidget</span></code><a class="headerlink" href="#subwidget" title="Link to this heading">¶</a></h4>
 <p>Returns the Tk pathname of a named subwidget.
 Tk pathname of the requested subwidget.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ subwidget</strong> <em>name</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Subwidget name as returned by <a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a>.</p>
+<dd class="field-odd"><p>Subwidget name as returned by <a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a>.</p>
 </dd>
 </dl>
 <p class="rubric">Description</p>
@@ -1079,7 +1079,7 @@ additionally create snapshot, PostScript, zoom, and crosshair control widgets.</
 Tk pathname of the requested subwidget.</p>
 </section>
 <section id="widgetcommand">
-<span id="r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"></span><span id="index-15"></span><span id="index-14"></span><h4><code class="docutils literal notranslate"><span class="pre">widgetcommand</span></code><a class="headerlink" href="#widgetcommand" title="Link to this heading">¶</a></h4>
+<span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3awidgetcommand"></span><span id="index-15"></span><span id="index-14"></span><h4><code class="docutils literal notranslate"><span class="pre">widgetcommand</span></code><a class="headerlink" href="#widgetcommand" title="Link to this heading">¶</a></h4>
 <p>Invokes a command on a named graphtoolbar subwidget.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ widgetcommand</strong> <em>subwidgetName ?command ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -1138,7 +1138,7 @@ Tk pathname of the requested subwidget.</p>
 </li>
 <li><a class="reference internal" href="#styling-example">Styling example</a></li>
 <li><a class="reference internal" href="#classes">Classes</a><ul>
-<li><a class="reference internal" href="#r-3a3arbc3a3agraphtoolbar3a3agraphtoolbar"><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code></a><ul>
+<li><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar"><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code></a><ul>
 <li><a class="reference internal" href="#constructor"><code class="docutils literal notranslate"><span class="pre">constructor</span></code></a></li>
 <li><a class="reference internal" href="#destructor"><code class="docutils literal notranslate"><span class="pre">destructor</span></code></a></li>
 <li><a class="reference internal" href="#getaxisactivescale"><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code></a></li>

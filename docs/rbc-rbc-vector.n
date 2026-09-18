@@ -37,7 +37,7 @@ The type is selected when the vector is created:
 .fi
 .RE
 .PP
-The \fIVECINST::type\fP operation returns the type of an existing vector\&.
+The \fIVECINST type\fP operation returns the type of an existing vector\&.
 .PP
 Complex values are represented at the Tcl level as two-element lists:
 .PP
@@ -67,7 +67,7 @@ when the requested type is the same as its current type\&. Omitting -type when r
 preserves its current type\&.
 .PP
 Real vectors retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
-array mapping, but one may be requested explicitly with -variable or later with \fIVECINST::variable\fP\&.
+array mapping, but one may be requested explicitly with -variable or later with \fIVECINST variable\fP\&.
 .SH "GRAPH AND SPLINE INTEGRATION"
 .PP
 Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation\&.

@@ -26,7 +26,7 @@ namespace eval ::rbc::vector {
         ::rbc::vector create z -type complex
         ```
 
-        The [VECINST::type] operation returns the type of an existing vector.
+        The [VECINST type][::rbc::VECINST type] operation returns the type of an existing vector.
 
         Complex values are represented at the Tcl level as two-element lists:
         ```tcl
@@ -50,7 +50,7 @@ namespace eval ::rbc::vector {
         preserves its current type.
 
         Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
-        array mapping, but one may be requested explicitly with `-variable` or later with [VECINST::variable].
+        array mapping, but one may be requested explicitly with `-variable` or later with [VECINST variable][::rbc::VECINST variable].
 
         ## Graph and spline integration
         Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation.
@@ -183,7 +183,7 @@ namespace eval ::rbc::vector {
     proc expr {expression} {
         # Evaluates a vector expression. `expression` may contain scalars, vectors, vector ranges, arithmetic
         # operators, and the vector mathematical functions described in [Vector expressions]. Unlike the instance
-        # [VECINST::expr] operation, this command does not store the result in an existing vector.
+        # [VECINST expr][::rbc::VECINST expr] operation, this command does not store the result in an existing vector.
         # expression - vector expression to evaluate.
         # Returns: The scalar value or list of vector values produced by the expression.
     }
@@ -221,7 +221,7 @@ namespace eval ::rbc::VECINST {
         ```
 
         ## Vector indices
-        Vector indices are Tcl-sized integer values adjusted by the vector's current [offset].
+        Vector indices are Tcl-sized integer values adjusted by the vector's current [offset][::rbc::VECINST offset].
 
         The index `end` refers to the last value. Tcl index expressions based on `end` are supported, for example:
         ```tcl
@@ -247,7 +247,7 @@ namespace eval ::rbc::VECINST {
         x index :
         ```
 
-        For real vectors, the associated Tcl array additionally supports the special calculated indices `min`, `max`, 
+        For real vectors, the associated Tcl array additionally supports the special calculated indices `min`, `max`,
         `mean`, `sum`, and `prod`. These calculated indices are not available for complex vectors.
 
         ## Complex vector operations
@@ -360,7 +360,7 @@ namespace eval ::rbc::VECINST {
         ```
 
         ### Scalars and vectors
-        A numeric scalar is treated as a single value. When one operand is a scalar and the other is a vector, the 
+        A numeric scalar is treated as a single value. When one operand is a scalar and the other is a vector, the
         scalar operation is applied to every component of the vector.
 
         For example:
@@ -1568,23 +1568,23 @@ namespace eval ::rbc::VECINST {
         append append
         binread binread
         clear clear
-        delete delete 
-        dup dup 
-        expr expr 
-        index index 
-        length length 
-        merge merge 
-        normalize normalize 
-        offset offset 
-        populate populate 
-        random random 
-        range range 
-        search search 
-        seq seq 
-        set set 
-        sort sort 
-        split split 
+        delete delete
+        dup dup
+        expr expr
+        index index
+        length length
+        merge merge
+        normalize normalize
+        offset offset
+        populate populate
+        random random
+        range range
+        search search
+        seq seq
+        set set
+        sort sort
+        split split
         type type
-        variable variable 
+        variable variable
     }
 }

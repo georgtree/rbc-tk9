@@ -225,7 +225,7 @@ Cairo and the dependencies selected as static archives should no longer appear a
 and any remaining dynamically linked runtime libraries are still required.  A larger file alone does not establish that
 every dependency was linked statically.
 
-#### Linux
+#### Static Cairo on Linux
 
 Cairo and the non-system dependency archives must support incorporation into a shared library, normally by being built
 with `-fPIC`. Distribution-provided static archives are not necessarily suitable. The configure check attempts a
