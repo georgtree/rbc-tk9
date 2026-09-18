@@ -11625,3 +11625,35 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     linePtr->dataMode = LINE_DATA_XY;
     return elemPtr;
 }
+
+/* Refresh named pens (including active/style pens) and private element pens. */
+void Rbc_LineFontsChanged(Graph *graphPtr) {
+    Tcl_HashSearch iter;
+    Tcl_HashEntry *entryPtr;
+
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->penTable, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Pen *penPtr = Tcl_GetHashValue(entryPtr);
+
+        if (penPtr->classUid == rbcLineElementUid) {
+            LinePen *typedPtr = LINE_PEN_FROM_CORE(penPtr);
+
+            if (typedPtr->valueStyle.font != NULL) {
+                Rbc_ResetTextStyle(graphPtr->tkwin, &typedPtr->valueStyle);
+            }
+        }
+    }
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Element *elemPtr = Tcl_GetHashValue(entryPtr);
+
+        if ((elemPtr->classUid == rbcLineElementUid) || (elemPtr->classUid == rbcStripElementUid) ||
+            (elemPtr->classUid == rbcPolarElementUid)) {
+            Line *typedPtr = LINE_FROM_CORE(elemPtr);
+
+            if (typedPtr->builtinPen.valueStyle.font != NULL) {
+                Rbc_ResetTextStyle(graphPtr->tkwin, &typedPtr->builtinPen.valueStyle);
+            }
+        }
+    }
+}

@@ -754,6 +754,13 @@ Hardened bitmap allocation and size calculations\&.
 .TP
 \(bu
 Isolated native bitmap-handle access behind Rbc Windows helper functions\&.
+.SS "NAMED-FONT CHANGES"
+.PP
+Graph widgets now register Tk's world-change callback\&. Reconfiguring a named font refreshes cached
+text-marker geometry, title and axis layout, legends and value-label drawing resources, including
+external legends and named/active pens\&. Redraws are scheduled through the normal idle mechanism\&.
+Explicit pixel sizes and configured axis limits are preserved\&. See
+\fINamed fonts and display scaling\fP\&.
 .SS "SVG OUTPUT"
 .PP
 Graph widgets now provide svg cget, svg configure, and svg output, with independent width,

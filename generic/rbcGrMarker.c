@@ -7104,3 +7104,44 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
     }
     return NULL;
 }
+
+/* Include hidden markers: their cached layouts must be current when shown. */
+void Rbc_MarkerFontsChanged(Graph *graphPtr) {
+    Tcl_HashSearch iter;
+    Tcl_HashEntry *entryPtr;
+
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->markers.table, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Marker *markerPtr = Tcl_GetHashValue(entryPtr);
+        TextMarker *tmPtr;
+
+        if (markerPtr->classUid != rbcTextMarkerUid) {
+            continue;
+        }
+        tmPtr = TEXT_MARKER_FROM_CORE(markerPtr);
+        if (tmPtr->style.font == NULL) {
+            continue;
+        }
+        Rbc_ResetTextStyle(graphPtr->tkwin, &tmPtr->style);
+        if (tmPtr->textPtr != NULL) {
+            ckfree(tmPtr->textPtr);
+            tmPtr->textPtr = NULL;
+        }
+        if (tmPtr->string != NULL) {
+            double width, height;
+            int i;
+
+            tmPtr->textPtr = Rbc_GetTextLayout(tmPtr->string, &tmPtr->style);
+            Rbc_GetBoundingBox(tmPtr->textPtr->width, tmPtr->textPtr->height, tmPtr->style.theta,
+                              &width, &height, tmPtr->outline);
+            tmPtr->width = ROUND(width);
+            tmPtr->height = ROUND(height);
+            for (i = 0; i < 4; i++) {
+                tmPtr->outline[i].x += ROUND(width * 0.5);
+                tmPtr->outline[i].y += ROUND(height * 0.5);
+            }
+            tmPtr->outline[4] = tmPtr->outline[0];
+        }
+        markerPtr->flags |= MAP_ITEM;
+    }
+}

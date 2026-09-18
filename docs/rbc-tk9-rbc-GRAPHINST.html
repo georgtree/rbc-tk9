@@ -139,6 +139,26 @@ and without requiring Cairo. It is available on graph, stripchart, barchart and 
 </div>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> for command syntax, options, examples and export limitations.</p>
 </section>
+<section id="named-fonts-and-display-scaling">
+<span id="r-rbc-graphinst-named-fonts-and-display-scaling"></span><span id="r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"></span><h2>Named fonts and display scaling<a class="headerlink" href="#named-fonts-and-display-scaling" title="Link to this heading">¶</a></h2>
+<p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>,
+pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
+text-marker geometry and element value labels. This includes named pens and active pens. No explicit
+graph or component reconfiguration is needed.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">font</span><span class="w"> </span>create<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>family<span class="w"> </span>Helvetica<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">10</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>tickfont<span class="w"> </span>PlotFont
+<span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>font<span class="w"> </span>PlotFont
+<span class="nv">font</span><span class="w"> </span>configure<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">16</span>
+<span class="k">update</span><span class="w"> </span>idletasks
+</pre></div>
+</div>
+<p>Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
+configured axis limits. Automatic tick placement can change to fit the new text dimensions.</p>
+<p>This notification handles font resources, not automatic resizing of every pixel-valued option.
+Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
+changing <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">scaling</span></code> does not promise to rescale every existing graph option. Configure application
+scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.</p>
+</section>
 <section id="numeric-values-and-expressions">
 <span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
 <p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
@@ -1268,6 +1288,7 @@ but the current graph core does not automatically execute it.</p>
     <ul>
 <li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
+<li><a class="reference internal" href="#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
 <li><a class="reference internal" href="#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
 <li><a class="reference internal" href="#graph-change-notification">Graph change notification</a><ul>

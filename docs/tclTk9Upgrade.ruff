@@ -519,6 +519,14 @@ namespace eval TclTk9Upgrade {
         - Hardened bitmap allocation and size calculations.
         - Isolated native bitmap-handle access behind Rbc Windows helper functions.
 
+        ### Named-font changes
+
+        Graph widgets now register Tk's world-change callback. Reconfiguring a named font refreshes cached
+        text-marker geometry, title and axis layout, legends and value-label drawing resources, including
+        external legends and named/active pens. Redraws are scheduled through the normal idle mechanism.
+        Explicit pixel sizes and configured axis limits are preserved. See
+        [Named fonts and display scaling][::rbc::GRAPHINST::Named fonts and display scaling].
+
         ### SVG output
 
         Graph widgets now provide `svg cget`, `svg configure`, and `svg output`, with independent width,

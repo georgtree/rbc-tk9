@@ -3038,3 +3038,34 @@ void Rbc_ResetStacks(Graph *graphPtr) {
         infoPtr->count = 0;
     }
 }
+
+/* Refresh named pens (including active/style pens) and private element pens. */
+void Rbc_BarFontsChanged(Graph *graphPtr) {
+    Tcl_HashSearch iter;
+    Tcl_HashEntry *entryPtr;
+
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->penTable, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Pen *penPtr = Tcl_GetHashValue(entryPtr);
+
+        if (penPtr->classUid == rbcBarElementUid) {
+            BarPen *typedPtr = BAR_PEN_FROM_CORE(penPtr);
+
+            if (typedPtr->valueStyle.font != NULL) {
+                Rbc_ResetTextStyle(graphPtr->tkwin, &typedPtr->valueStyle);
+            }
+        }
+    }
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Element *elemPtr = Tcl_GetHashValue(entryPtr);
+
+        if (elemPtr->classUid == rbcBarElementUid) {
+            Bar *typedPtr = BAR_FROM_CORE(elemPtr);
+
+            if (typedPtr->builtinPen.valueStyle.font != NULL) {
+                Rbc_ResetTextStyle(graphPtr->tkwin, &typedPtr->builtinPen.valueStyle);
+            }
+        }
+    }
+}

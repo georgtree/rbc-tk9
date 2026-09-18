@@ -7155,3 +7155,24 @@ void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
         Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, *p), 0);
     }
 }
+
+/* Refresh cached title dimensions and GCs after Tk changes a named font. */
+void Rbc_AxisFontsChanged(Graph *graphPtr) {
+    Tcl_HashSearch iter;
+    Tcl_HashEntry *entryPtr;
+
+    for (entryPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &iter); entryPtr != NULL;
+         entryPtr = Tcl_NextHashEntry(&iter)) {
+        Axis *axisPtr = Tcl_GetHashValue(entryPtr);
+
+        if (!axisPtr->optionsConfigured) {
+            continue;
+        }
+        ResetTextStyles(graphPtr, axisPtr);
+        if (axisPtr->title != NULL) {
+            Rbc_GetTextExtents(&axisPtr->titleTextStyle, axisPtr->title,
+                               &axisPtr->titleWidth, &axisPtr->titleHeight);
+        }
+        axisPtr->flags |= AXIS_DIRTY;
+    }
+}

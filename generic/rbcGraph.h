@@ -643,6 +643,11 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
 void Rbc_RedrawExternalLegend(Graph *graphPtr);
 void Rbc_ComputeStacks(Graph *graphPtr);
+void Rbc_AxisFontsChanged(Graph *graphPtr);
+void Rbc_LegendFontsChanged(Graph *graphPtr);
+void Rbc_MarkerFontsChanged(Graph *graphPtr);
+void Rbc_LineFontsChanged(Graph *graphPtr);
+void Rbc_BarFontsChanged(Graph *graphPtr);
 void Rbc_ConfigureCrosshairs(Graph *graphPtr);
 void Rbc_DestroyAxes(Graph *graphPtr);
 void Rbc_DestroyCrosshairs(Graph *graphPtr);

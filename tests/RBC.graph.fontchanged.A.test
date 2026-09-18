@@ -1,0 +1,211 @@
+# Named-font changes refresh graph resources without widget reconfiguration.
+package provide graph.fontchanged
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.fontchanged {
+
+    proc Create {type} {
+        font create rbcWorldFont -family Helvetica -size 8
+        ::rbc::$type .world -width 560 -height 400 -background white -plotbackground white -borderwidth 0\
+                -plotborderwidth 0 -highlightthickness 0
+        .world axis configure x -min 0 -max 10 -loose no
+        .world axis configure y -min 0 -max 10 -loose no
+        .world grid configure -hide yes
+        pack .world
+        update idletasks
+    }
+
+    proc Cleanup {} {
+        catch {destroy .world}
+        catch {destroy .worldLegend}
+        catch {image delete rbcWorldPhoto}
+        catch {font delete rbcWorldFont}
+        update idletasks
+    }
+
+    proc Ink {} {
+        if {{rbcWorldPhoto} ni [image names]} {
+            image create photo rbcWorldPhoto
+        }
+        .world snap rbcWorldPhoto
+        set count 0
+        foreach row [rbcWorldPhoto data] {
+            foreach pixel $row {
+                if {[scan $pixel {#%2x%2x%2x} r g b] == 3 && $r > $g + 30 && $r > $b + 30} {
+                    incr count
+                }
+            }
+        }
+        return $count
+    }
+
+    foreach type {graph stripchart barchart polar} {
+        foreach role {title ticks axisTitle legend} {
+            test fontChanged-1-$type-$role {named-font resize updates layout and restoring size restores layout}\
+                    -setup {
+                Create $type
+                .world element create signal -data {2 3 8 7} -label {Wide legend WWWWWW}
+                # Test Cartesian margin layout explicitly. Polar defaults to
+                # hidden Cartesian axes and an aspect-constrained plot area.
+                if {$type eq {polar}} {
+                    .world configure -aspect 0
+                }
+                .world axis configure y -hide no
+                switch $role {
+                    title {.world configure -title {Graph title} -font rbcWorldFont}
+                    ticks {.world axis configure y -tickfont rbcWorldFont}
+                    axisTitle {.world axis configure y -title {Axis title} -titlefont rbcWorldFont}
+                    legend {.world legend configure -font rbcWorldFont -hide no -position right}
+                }
+                update idletasks
+                set before [.world extents plotarea]
+                set limits [list [.world axis limits x] [.world axis limits y]]
+            } -body {
+                font configure rbcWorldFont -size 20
+                update idletasks
+                set large [.world extents plotarea]
+                font configure rbcWorldFont -size 8
+                update idletasks
+                list [expr {$large ne $before}] [expr {[.world extents plotarea] eq $before}]\
+                        [expr {$limits eq [list [.world axis limits x] [.world axis limits y]]}] [.world cget -width]
+            } -cleanup {
+                Cleanup
+            } -result {1 1 1 560}
+        }
+
+        test fontChanged-2-$type {text marker hit geometry follows a named-font change} -setup {
+            Create $type
+            foreach axis {x y} { .world axis configure $axis -hide yes }
+            .world legend configure -hide yes
+            .world marker create text -name label -coords {2 5} -anchor nw -text WWWWWW -font rbcWorldFont -padx 0\
+                    -pady 0
+            update idletasks
+            lassign [.world transform 2 5] x y
+            set probeX [expr {int($x) + [font measure rbcWorldFont WWWWWW] + 12}]
+            set probeY [expr {int($y) + 3}]
+        } -body {
+            set before [.world marker find overlapping $probeX $probeY [expr {$probeX+1}] [expr {$probeY+1}]]
+            font configure rbcWorldFont -size 24
+            update idletasks
+            set after [.world marker find overlapping $probeX $probeY [expr {$probeX+1}] [expr {$probeY+1}]]
+            font configure rbcWorldFont -size 8
+            update idletasks
+            set restored [.world marker find overlapping $probeX $probeY [expr {$probeX+1}] [expr {$probeY+1}]]
+            list $before $after $restored
+        } -cleanup {
+            Cleanup
+        } -result {{} label {}}
+
+        foreach penMode {builtin named active} {
+            test fontChanged-3-$type-$penMode {value-label drawing follows named-font changes} -setup {
+                Create $type
+                foreach axis {x y} {
+                    .world axis configure $axis -hide yes
+                }
+                .world legend configure -hide yes
+                .world element create signal -data {5 5}
+                if {$type eq {barchart}} {
+                    set penOptions {-foreground {} -background {} -borderwidth 0}
+                    set penType bar
+                } else {
+                    set penOptions {-symbol none -linewidth 0}
+                    set penType line
+                }
+                .world element configure signal {*}$penOptions -showvalues none
+                if {$penMode eq {builtin}} {
+                    .world element configure signal -showvalues y -valuefont rbcWorldFont -valuecolor red
+                } else {
+                    .world pen create labelPen -type $penType {*}$penOptions -showvalues y -valuefont rbcWorldFont\
+                            -valuecolor red
+                    if {$penMode eq {active}} {
+                        .world element configure signal -activepen labelPen
+                        .world element activate signal
+                    } else {
+                        .world element configure signal -pen labelPen
+                    }
+                }
+                update idletasks
+                set small [Ink]
+                set smallPixels [rbcWorldPhoto data]
+            } -body {
+                font configure rbcWorldFont -size 24
+                update idletasks
+                Ink
+                set largePixels [rbcWorldPhoto data]
+                # Compare automatic refresh with explicit pen reconfiguration.
+                # An ink-area ratio depends on glyph rasterization and clipping.
+                if {$penMode eq {builtin}} {
+                    .world element configure signal -valuefont rbcWorldFont
+                } else {
+                    .world pen configure labelPen -valuefont rbcWorldFont
+                }
+                update idletasks
+                Ink
+                set referencePixels [rbcWorldPhoto data]
+                font configure rbcWorldFont -size 8
+                update idletasks
+                Ink
+                list [expr {$small>0}] [expr {$largePixels ne $smallPixels}] [expr {$largePixels eq $referencePixels}]\
+                        [expr {[rbcWorldPhoto data] eq $smallPixels}]
+            } -cleanup {
+                Cleanup
+            } -result {1 1 1 1}
+        }
+    }
+
+    test fontChanged-4 {external legend requests new geometry after font changes} -setup {
+        Create graph
+        .world element create signal -data {2 3 8 7} -label WWWWWW
+        .world legend configure -font rbcWorldFont -position .worldLegend -rows 1 -hide no
+        pack .worldLegend
+        update idletasks
+        set before [list [winfo reqwidth .worldLegend] [winfo reqheight .worldLegend]]
+    } -body {
+        font configure rbcWorldFont -size 24
+        update idletasks
+        set large [list [winfo reqwidth .worldLegend] [winfo reqheight .worldLegend]]
+        font configure rbcWorldFont -size 8
+        update idletasks
+        list [expr {[lindex $large 0] > [lindex $before 0]}] [expr {[lindex $large 1] > [lindex $before 1]}]\
+                [expr {$before eq [list [winfo reqwidth .worldLegend] [winfo reqheight .worldLegend]]}]
+    } -cleanup {
+        Cleanup
+    } -result {1 1 1}
+
+    test fontChanged-5 {hidden text marker is refreshed before it is shown} -setup {
+        Create graph
+        foreach axis {x y} {
+            .world axis configure $axis -hide yes
+        }
+        .world marker create text -name hidden -coords {5 5} -font rbcWorldFont -foreground red -text WWWWWW -hide yes
+    } -body {
+        font configure rbcWorldFont -size 24
+        update idletasks
+        .world marker configure hidden -hide no
+        update idletasks
+        set large [Ink]
+        font configure rbcWorldFont -size 8
+        update idletasks
+        expr {$large > 2*[Ink]}
+    } -cleanup {
+        Cleanup
+    } -result 1
+
+    test fontChanged-6 {destroying a graph with a pending font notification is safe} -setup {
+        Create graph
+        .world configure -font rbcWorldFont -title Title
+    } -body {
+        font configure rbcWorldFont -size 24
+        destroy .world
+        update idletasks
+        winfo exists .world
+    } -cleanup {
+        Cleanup
+    } -result 0
+}
+cleanupTests

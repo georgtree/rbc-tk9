@@ -1933,3 +1933,16 @@ int Rbc_LegendY(Legend *legendPtr) { return legendPtr->y; }
  *----------------------------------------------------------------------
  */
 void Rbc_LegendRemoveElement(Legend *legendPtr, Element *elemPtr) { Rbc_DeleteBindings(legendPtr->bindTable, elemPtr); }
+
+/* External legends need their own redisplay as well as graph layout. */
+void Rbc_LegendFontsChanged(Graph *graphPtr) {
+    Legend *legendPtr = graphPtr->legend;
+
+    if ((legendPtr == NULL) || (legendPtr->tkwin == NULL) || (legendPtr->style.font == NULL)) {
+        return;
+    }
+    Rbc_ResetTextStyle(legendPtr->tkwin, &legendPtr->style);
+    if (legendPtr->site == LEGEND_WINDOW) {
+        EventuallyRedrawLegend(legendPtr);
+    }
+}

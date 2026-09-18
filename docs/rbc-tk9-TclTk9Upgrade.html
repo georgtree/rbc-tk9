@@ -497,6 +497,14 @@ when calling APIs that inherently require integer coordinates.</p>
 <li><p>Isolated native bitmap-handle access behind Rbc Windows helper functions.</p></li>
 </ul>
 </section>
+<section id="named-font-changes">
+<span id="r-tcltk9upgrade-named-font-changes"></span><span id="r-3a3atcltk9upgradeqznamed2dfont20changes"></span><h3>Named-font changes<a class="headerlink" href="#named-font-changes" title="Link to this heading">¶</a></h3>
+<p>Graph widgets now register Tk’s world-change callback. Reconfiguring a named font refreshes cached
+text-marker geometry, title and axis layout, legends and value-label drawing resources, including
+external legends and named/active pens. Redraws are scheduled through the normal idle mechanism.
+Explicit pixel sizes and configured axis limits are preserved. See
+<a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"><span class="std std-ref">Named fonts and display scaling</span></a>.</p>
+</section>
 <section id="svg-output">
 <span id="r-tcltk9upgrade-svg-output"></span><span id="r-3a3atcltk9upgradeqzsvg20output"></span><h3>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h3>
 <p>Graph widgets now provide <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code>, and <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span></code>, with independent width,
@@ -704,6 +712,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#vector-subsystem">Vector subsystem</a></li>
 <li><a class="reference internal" href="#geometry-text-and-drawing">Geometry, text and drawing</a></li>
 <li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
+<li><a class="reference internal" href="#named-font-changes">Named-font changes</a></li>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
 <li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
 <li><a class="reference internal" href="#windows-drawing-backend">Windows drawing backend</a></li>

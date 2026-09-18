@@ -74,6 +74,30 @@ set document [\&.g svg output]
 .RE
 .PP
 See \fI::rbc::SVG\fP for command syntax, options, examples and export limitations\&.
+.SH "NAMED FONTS AND DISPLAY SCALING"
+.PP
+Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts\&. After font configure,
+pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
+text-marker geometry and element value labels\&. This includes named pens and active pens\&. No explicit
+graph or component reconfiguration is needed\&.
+.PP
+.RS 4n
+.nf
+font create PlotFont -family Helvetica -size 10
+\&.g axis configure x -tickfont PlotFont
+\&.g legend configure -font PlotFont
+font configure PlotFont -size 16
+update idletasks
+.fi
+.RE
+.PP
+Font changes invalidate graph layout and buffered drawing\&. They do not change data or explicitly
+configured axis limits\&. Automatic tick placement can change to fit the new text dimensions\&.
+.PP
+This notification handles font resources, not automatic resizing of every pixel-valued option\&.
+Explicit pixel sizes remain pixels\&. Physical screen distances are converted through Tk when configured;
+changing tk scaling does not promise to rescale every existing graph option\&. Configure application
+scaling before creating widgets\&. Toolbar icon and spacing adaptation is separate from this core behavior\&.
 .SH "NUMERIC VALUES AND EXPRESSIONS"
 .PP
 Expression support is option-specific\&. The option tables say when a value accepts a Tcl numeric

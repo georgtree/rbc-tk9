@@ -1532,6 +1532,34 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
  *
  *--------------------------------------------------------------
  */
+/* Tk invokes this after changing a named font. Refresh derived resources
+ * without reparsing options or evaluating application callbacks. */
+static void GraphWorldChanged(ClientData clientData) {
+    Graph *graphPtr = clientData;
+
+    if ((graphPtr->tkwin == NULL) || !graphPtr->optionsConfigured) {
+        return;
+    }
+    Rbc_ResetTextStyle(graphPtr->tkwin, &graphPtr->titleTextStyle);
+    if (graphPtr->title != NULL) {
+        int width, height;
+
+        Rbc_GetTextExtents(&graphPtr->titleTextStyle, graphPtr->title, &width, &height);
+        graphPtr->titleTextStyle.height = GraphLayoutInt((Tcl_WideInt)height + 10);
+    }
+    Rbc_AxisFontsChanged(graphPtr);
+    Rbc_LegendFontsChanged(graphPtr);
+    Rbc_MarkerFontsChanged(graphPtr);
+    Rbc_LineFontsChanged(graphPtr);
+    Rbc_BarFontsChanged(graphPtr);
+    graphPtr->flags |= RESET_WORLD | REDRAW_WORLD | REDRAW_BACKING_STORE;
+    Rbc_EventuallyRedrawGraph(graphPtr);
+}
+
+static const Tk_ClassProcs graphClassProcs = {
+    sizeof(Tk_ClassProcs), GraphWorldChanged, NULL, NULL
+};
+
 static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
     Graph *graphPtr = clientData;
 
@@ -2629,6 +2657,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         goto error;
     }
     Rbc_SetWindowInstanceData(tkwin, graphPtr);
+    Tk_SetClassProcs(tkwin, &graphClassProcs, graphPtr);
     /*
      * Establish the normal Tk widget lifecycle before performing any
      * initialization that may fail.  In particular, initial configuration
