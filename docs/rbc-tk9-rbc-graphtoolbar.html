@@ -44,7 +44,7 @@
 <span id="r-graphtoolbar"></span><span id="r-namespaceqz3a3arbc3a3agraphtoolbar"></span><h1>graphtoolbar<a class="headerlink" href="#graphtoolbar" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> command creates an Rbc graph megawidget with an optional toolbar or context-menu control
 surface and a set of coordinated interactive graph-navigation facilities.</p>
-<p>The graph itself is a normal Rbc <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget.  The megawidget adds:</p>
+<p>The graph itself is a normal Rbc <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget. The megawidget adds:</p>
 <ul class="simple">
 <li><p>Drag-selection zoom.</p></li>
 <li><p>Mouse-wheel zoom.</p></li>
@@ -88,15 +88,15 @@ alternatively be obtained with:</p>
 </section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar.  Snapshot, PostScript and SVG buttons are always
-present.  Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls.  Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. Snapshot, PostScript and SVG buttons are always
+present. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
 one <strong>Crosshairs</strong> menu button. Its <strong>Crosshairs mode</strong> submenu selects Current point, Closest point,
 No marker, or Disabled. Its <strong>Closest crosshairs format</strong> submenu is enabled only in Closest point mode.
 Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.</p>
 <p>Toolbar instances with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> expose <code class="docutils literal notranslate"><span class="pre">crosshairsMenuButton</span></code> and <code class="docutils literal notranslate"><span class="pre">crosshairsMenu</span></code> through <code class="docutils literal notranslate"><span class="pre">subwidget</span></code>.
 These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
 stay synchronized; changing representation updates the available formats when the menu is opened.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget.  Right-clicking the graph displays the corresponding controls in a popup menu:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget. Right-clicking the graph displays the corresponding controls in a popup menu:</p>
 <ul class="simple">
 <li><p><strong>Make snapshot…</strong></p></li>
 <li><p><strong>PostScript…</strong></p></li>
@@ -123,7 +123,7 @@ the modifier is released before the mouse button.</p>
 <p>The final release position is always used as the second zoom corner, even if no final Motion event occurred.</p>
 <p>Dragging outside the plot area clamps the selected corner to the plot boundary.</p>
 <p>Each completed rectangle zoom saves the preceding limits and scale type of every axis participating in the
-displayed coordinate system.  Previous view restores the latest saved state. Reset view restores the oldest
+displayed coordinate system. Previous view restores the latest saved state. Reset view restores the oldest
 state and clears the navigation history.</p>
 <p>Automatic axis limits are saved as their actual configured value <code class="docutils literal notranslate"><span class="pre">{}</span></code>, rather than as the temporary numerical
 limits calculated from the data, so undoing a navigation operation correctly restores autoscaling.</p>
@@ -179,11 +179,11 @@ explicitly with <code class="docutils literal notranslate"><span class="pre">-sc
 <p>With data occupying only part of that range, the viewport may then be panned through the additional empty
 region while preserving its scale.</p>
 <p>All axes actually participating in the displayed coordinate system are moved together. This includes axes
-installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
+installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid. Completely
 unused axes are not changed.</p>
 <p>Panning and zooming therefore operate correctly with multiple axes and with graph <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>.</p>
 <p>A completed pan creates one normal navigation-history entry. Pressing and releasing without movement creates
-no history entry.  Moving away and returning exactly to the starting position is also treated as a no-op.</p>
+no history entry. Moving away and returning exactly to the starting position is also treated as a no-op.</p>
 </section>
 <section id="cross-interactions">
 <span id="r-rbc-graphtoolbar-cross-interactions"></span><span id="r-3a3arbc3a3agraphtoolbarqzcross2dinteractions"></span><h2>Cross-interactions<a class="headerlink" href="#cross-interactions" title="Link to this heading">¶</a></h2>
@@ -239,10 +239,10 @@ changes are suppressed. Normal legend interaction resumes when the transient ope
 with arrowheads spanning the displayed bar. Very short bars use external arrowheads when two internal heads
 would overlap.</p>
 <p>When an element has a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the parameter value reported by <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> is appended to
-the closest annotation.  Its format is controlled by <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>.</p>
-<p>In axis-format closest mode, an axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> formatter is honoured.  If the formatter fails, the
+the closest annotation. Its format is controlled by <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>.</p>
+<p>In axis-format closest mode, an axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> formatter is honoured. If the formatter fails, the
 graphtoolbar numeric format is used as a fallback.</p>
-<p>Posting the context menu temporarily removes crosshair graphics.  After the menu is dismissed, the selected
+<p>Posting the context menu temporarily removes crosshair graphics. After the menu is dismissed, the selected
 crosshair mode is restored at the pointer’s current location rather than at the old popup location.</p>
 <section id="refreshing-beneath-a-stationary-pointer">
 <span id="r-rbc-graphtoolbar-refreshing-beneath-a-stationary-pointer"></span><span id="r-3a3arbc3a3agraphtoolbarqzrefreshing20beneath20a20stationary20pointer"></span><h3>Refreshing beneath a stationary pointer<a class="headerlink" href="#refreshing-beneath-a-stationary-pointer" title="Link to this heading">¶</a></h3>
@@ -258,7 +258,7 @@ beneath a stationary pointer.</p>
 </ul>
 <p>In <code class="docutils literal notranslate"><span class="pre">closest</span></code> mode, <code class="docutils literal notranslate"><span class="pre">-crosshairsclosestopts</span> <span class="pre">{-hide</span> <span class="pre">yes}</span></code> continues to hide the ordinary crosshair lines during
 automatic refreshes.</p>
-<p>Annotation positions and background boxes are recalculated using the current coordinate mapping.  This prevents
+<p>Annotation positions and background boxes are recalculated using the current coordinate mapping. This prevents
 axis scrolling or scaling from carrying a current-position annotation away from the pointer. Box dimensions
 follow the newly formatted text.</p>
 </section>
@@ -322,7 +322,7 @@ point. Custom closest callbacks receive <code class="docutils literal notranslat
 </section>
 <section id="custom-closest-point-text">
 <span id="r-rbc-graphtoolbar-custom-closest-point-text"></span><span id="r-3a3arbc3a3agraphtoolbarqzcustom20closest2dpoint20text"></span><h2>Custom closest-point text<a class="headerlink" href="#custom-closest-point-text" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-closestcommand</span></code> configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
+<p><code class="docutils literal notranslate"><span class="pre">-closestcommand</span></code> configures a Tcl command prefix for custom closest-point annotations. A nonempty prefix adds
 <strong>Custom</strong> to the toolbar menu and context menu. Select it with <code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span> <span class="pre">custom</span></code>.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>DescribePoint<span class="w"> </span><span class="k">{</span><span class="nv">element</span><span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>info<span class="k">}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;%s\nX: %.4g\nY: %.4g&quot;</span><span class="w"> </span><span class="nv">$element</span><span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="k">]</span>
@@ -336,18 +336,18 @@ point. Custom closest callbacks receive <code class="docutils literal notranslat
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">element</span></code>: selected element name.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>: numeric values on the element’s mapped axes. Polar elements receive Cartesian real/imaginary components. In Smith representation, Polar elements receive normalized admittance components when <code class="docutils literal notranslate"><span class="pre">-smithgrid</span> <span class="pre">admittance</span></code> is selected, and normalized impedance components for <code class="docutils literal notranslate"><span class="pre">-smithgrid</span> <span class="pre">impedance</span></code> or <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: the public <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> result, including <code class="docutils literal notranslate"><span class="pre">index</span></code> and optional <code class="docutils literal notranslate"><span class="pre">param</span></code>, extended with <code class="docutils literal notranslate"><span class="pre">mapx</span></code>, <code class="docutils literal notranslate"><span class="pre">mapy</span></code>, and <code class="docutils literal notranslate"><span class="pre">coordinateSystem</span></code>.  The coordinate system is <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, or <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>. Original <code class="docutils literal notranslate"><span class="pre">info(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">info(y)</span></code> are preserved; for Smith elements these are Gamma components.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: the public <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> result, including <code class="docutils literal notranslate"><span class="pre">index</span></code> and optional <code class="docutils literal notranslate"><span class="pre">param</span></code>, extended with <code class="docutils literal notranslate"><span class="pre">mapx</span></code>, <code class="docutils literal notranslate"><span class="pre">mapy</span></code>, and <code class="docutils literal notranslate"><span class="pre">coordinateSystem</span></code>. The coordinate system is <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, or <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>. Original <code class="docutils literal notranslate"><span class="pre">info(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">info(y)</span></code> are preserved; for Smith elements these are Gamma components.</p></li>
 </ul>
 <p>Values are independent of axis label formatting and <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>. Interpolated searches can supply interpolated
 values. Smith singularities may produce <code class="docutils literal notranslate"><span class="pre">Inf</span></code>.</p>
 <p>The returned string replaces the complete annotation. Neither the element name nor parameter value is appended
 automatically. Returning an empty string suppresses that result’s annotation and pointer or bar dimension line.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code>, the callback runs separately for each matching element.  Normal marker styling and placement
+<p>With <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code>, the callback runs separately for each matching element. Normal marker styling and placement
 still apply.</p>
 <p>Registration leaves the selected format unchanged. Setting <code class="docutils literal notranslate"><span class="pre">-closestcommand</span> <span class="pre">{}</span></code> removes Custom and restores the
 representation’s default format if Custom was selected. Callback and format changes refresh annotations at
 idle.</p>
-<p>Use qualified command names or <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">code</span></code> for namespace-local callbacks.  Command prefixes may include
+<p>Use qualified command names or <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">code</span></code> for namespace-local callbacks. Command prefixes may include
 bound arguments. Keep callbacks short and avoid graph modifications, widget destruction, or nested <code class="docutils literal notranslate"><span class="pre">update</span></code>
 calls. Errors propagate to Tk’s background error handling when invoked from an event.</p>
 </section>
@@ -359,7 +359,7 @@ display, and navigation history.</p>
 <p>Rectangle zoom preserves the physical plot-area aspect ratio. This keeps equal X and Y data units at equal
 physical scales and prevents Polar or Smith circles from becoming elliptical.</p>
 <p>When wheel zoom is performed over one of the Polar/Smith grid axes, both grid axes are scaled by the same
-factor.  Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
+factor. Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
 area.</p>
 <p>A visible Polar/Smith grid requires linear Cartesian grid axes. Interactive scale toggling therefore refuses
 to change a visible grid axis from linear to logarithmic. Auxiliary axes may still be logarithmic.</p>
@@ -771,7 +771,7 @@ while retaining the other current values. Unknown dictionary keys are rejected.<
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
 </pre></div>
 </div>
-<p>The Tk pathname becomes the megawidget command.  Properties documented below may subsequently be read
+<p>The Tk pathname becomes the megawidget command. Properties documented below may subsequently be read
 or changed through the <code class="docutils literal notranslate"><span class="pre">oo::configurable</span></code> interface:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>crosshairsmode
 <span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>current
@@ -855,10 +855,10 @@ the embedded graph.</p>
 <dd class="field-even"><p>Enables mouse-wheel zoom. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
 <dt class="field-odd">-zoomwheelscale factor<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Multiplicative wheel-zoom step.  Must be a finite number greater than <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
+<dd class="field-odd"><p>Multiplicative wheel-zoom step. Must be a finite number greater than <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
 </dd>
 <dt class="field-even">-zoomwheelmod modifier<span class="colon">:</span></dt>
-<dd class="field-even"><p>Modifier prefix for MouseWheel zoom.  The default is <code class="docutils literal notranslate"><span class="pre">Control-</span></code>.</p>
+<dd class="field-even"><p>Modifier prefix for MouseWheel zoom. The default is <code class="docutils literal notranslate"><span class="pre">Control-</span></code>.</p>
 </dd>
 <dt class="field-odd">-zoomtitle<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Enables the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> marker. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
@@ -888,7 +888,7 @@ the embedded graph.</p>
 <dd class="field-odd"><p>Event component which finishes a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. It is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-panmod</span></code>.</p>
 </dd>
 <dt class="field-even">-panmod modifier<span class="colon">:</span></dt>
-<dd class="field-even"><p>Modifier prefix required to start panning.  The default is <code class="docutils literal notranslate"><span class="pre">Shift-</span></code>.</p>
+<dd class="field-even"><p>Modifier prefix required to start panning. The default is <code class="docutils literal notranslate"><span class="pre">Shift-</span></code>.</p>
 </dd>
 <dt class="field-odd">-crosshairs<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Enables enhanced crosshair interaction.</p>

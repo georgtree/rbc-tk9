@@ -146,8 +146,8 @@ When more than one data-source option is supplied by the same configuration comm
 processed in caller order and the final data-source selection determines the active mode\&.
 .SH "REAL INPUT COORDINATES"
 .PP
--datacoordinates cartesian (the default) interprets -xdata and -ydata as Cartesian X/Y\&.  With
--datacoordinates polar, -xdata supplies theta in radians and -ydata supplies radius\&.  Both options accept
+-datacoordinates cartesian (the default) interprets -xdata and -ydata as Cartesian X/Y\&. With
+-datacoordinates polar, -xdata supplies theta in radians and -ydata supplies radius\&. Both options accept
 real vectors or lists\&. Interleaved -data accepts theta/radius pairs in this mode\&.
 .PP
 .RS 4n
@@ -157,21 +157,21 @@ real vectors or lists\&. Interleaved -data accepts theta/radius pairs in this mo
 .RE
 .PP
 Each pair is converted to x = radius*cos(theta), y = radius*sin(theta) before mapping\&. Source values are
-retained: cget returns the original input, and vector changes update the plotted points\&.  The shorter source
+retained: cget returns the original input, and vector changes update the plotted points\&. The shorter source
 determines the number of points, as with Cartesian input\&. Angles need not be normalized\&. Negative radii follow
-the same conversion equations; non-finite pairs break the trace\&.  In Smith representation, the resulting X/Y
+the same conversion equations; non-finite pairs break the trace\&. In Smith representation, the resulting X/Y
 coordinates represent Gamma\&.
 .PP
-The active data source must be real pairs; complex -cdata requires -datacoordinates cartesian\&.  Error-bar
+The active data source must be real pairs; complex -cdata requires -datacoordinates cartesian\&. Error-bar
 data options (-xerror, -yerror, -xhigh, -xlow, -yhigh, -ylow) must be empty in polar-coordinate
 mode\&. Angular/radial error bars are not supported\&. Invalid combinations leave the existing element
 configuration unchanged\&.
 .PP
 Closest results and value-formatting callbacks retain Cartesian X/Y coordinates\&. Closest dataFormat is
 polar for theta/radius input\&. Its radius is the geometric magnitude and its angle is in radians,
-normalized to [0,2*pi), regardless of the input angle\&. At the origin, angle is zero\&.  Interpolated results
+normalized to [0,2*pi), regardless of the input angle\&. At the origin, angle is zero\&. Interpolated results
 describe the selected point on the plotted Cartesian trace\&. For exact sample searches, use index to retrieve
-the original theta/radius, including any complete turns or radius sign\&.  Smoothing, symbols, active points and
+the original theta/radius, including any complete turns or radius sign\&. Smoothing, symbols, active points and
 PostScript all use the converted Cartesian geometry\&.
 .SH "PARAMETER MAPPING"
 .PP

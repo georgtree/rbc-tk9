@@ -14,7 +14,7 @@ namespace eval ::rbc::graphtoolbar {
         The `graphtoolbar` command creates an Rbc graph megawidget with an optional toolbar or context-menu control
         surface and a set of coordinated interactive graph-navigation facilities.
 
-        The graph itself is a normal Rbc `graph`, `barchart`, `stripchart`, or `polar` widget.  The megawidget adds:
+        The graph itself is a normal Rbc `graph`, `barchart`, `stripchart`, or `polar` widget. The megawidget adds:
 
         - Drag-selection zoom.
         - Mouse-wheel zoom.
@@ -61,8 +61,8 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Control surfaces
-        `-controlmode toolbar`, the default, creates a visible toolbar.  Snapshot, PostScript and SVG buttons are always
-        present.  Enabling `-zoom` adds **Reset view** and **Previous view** controls.  Enabling `-crosshairs` adds
+        `-controlmode toolbar`, the default, creates a visible toolbar. Snapshot, PostScript and SVG buttons are always
+        present. Enabling `-zoom` adds **Reset view** and **Previous view** controls. Enabling `-crosshairs` adds
         one **Crosshairs** menu button. Its **Crosshairs mode** submenu selects Current point, Closest point,
         No marker, or Disabled. Its **Closest crosshairs format** submenu is enabled only in Closest point mode.
         Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.
@@ -71,7 +71,7 @@ namespace eval ::rbc::graphtoolbar {
         These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
         stay synchronized; changing representation updates the available formats when the menu is opened.
 
-        `-controlmode contextmenu` leaves the graph occupying the entire megawidget.  Right-clicking the graph displays\
+        `-controlmode contextmenu` leaves the graph occupying the entire megawidget. Right-clicking the graph displays\
         the corresponding controls in a popup menu:
         - **Make snapshot...**
         - **PostScript...**
@@ -103,7 +103,7 @@ namespace eval ::rbc::graphtoolbar {
         Dragging outside the plot area clamps the selected corner to the plot boundary.
 
         Each completed rectangle zoom saves the preceding limits and scale type of every axis participating in the
-        displayed coordinate system.  Previous view restores the latest saved state. Reset view restores the oldest
+        displayed coordinate system. Previous view restores the latest saved state. Reset view restores the oldest
         state and clears the navigation history.
 
         Automatic axis limits are saved as their actual configured value `{}`, rather than as the temporary numerical
@@ -174,13 +174,13 @@ namespace eval ::rbc::graphtoolbar {
         region while preserving its scale.
 
         All axes actually participating in the displayed coordinate system are moved together. This includes axes
-        installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid.  Completely
+        installed in margins, hidden axes mapped by elements, and the axes mapped by a Polar or Smith grid. Completely
         unused axes are not changed.
 
         Panning and zooming therefore operate correctly with multiple axes and with graph `-invertxy`.
 
         A completed pan creates one normal navigation-history entry. Pressing and releasing without movement creates
-        no history entry.  Moving away and returning exactly to the starting position is also treated as a no-op.
+        no history entry. Moving away and returning exactly to the starting position is also treated as a no-op.
 
         ## Cross-interactions
         The navigation facilities deliberately suspend conflicting interactions while a transient operation is active.
@@ -240,12 +240,12 @@ namespace eval ::rbc::graphtoolbar {
         would overlap.
 
         When an element has a valid `-param` mapping, the parameter value reported by `element closest` is appended to
-        the closest annotation.  Its format is controlled by `-formatparam`.
+        the closest annotation. Its format is controlled by `-formatparam`.
 
-        In axis-format closest mode, an axis `-command` formatter is honoured.  If the formatter fails, the
+        In axis-format closest mode, an axis `-command` formatter is honoured. If the formatter fails, the
         graphtoolbar numeric format is used as a fallback.
 
-        Posting the context menu temporarily removes crosshair graphics.  After the menu is dismissed, the selected
+        Posting the context menu temporarily removes crosshair graphics. After the menu is dismissed, the selected
         crosshair mode is restored at the pointer's current location rather than at the old popup location.
 
         ### Refreshing beneath a stationary pointer
@@ -267,7 +267,7 @@ namespace eval ::rbc::graphtoolbar {
         In `closest` mode, `-crosshairsclosestopts {-hide yes}` continues to hide the ordinary crosshair lines during
         automatic refreshes.
 
-        Annotation positions and background boxes are recalculated using the current coordinate mapping.  This prevents
+        Annotation positions and background boxes are recalculated using the current coordinate mapping. This prevents
         axis scrolling or scaling from carrying a current-position annotation away from the pointer. Box dimensions
         follow the newly formatted text.
 
@@ -333,7 +333,7 @@ namespace eval ::rbc::graphtoolbar {
         point. Custom closest callbacks receive `angle` in radians in the information dictionary.
 
         ## Custom closest-point text
-        `-closestcommand` configures a Tcl command prefix for custom closest-point annotations.  A nonempty prefix adds
+        `-closestcommand` configures a Tcl command prefix for custom closest-point annotations. A nonempty prefix adds
         **Custom** to the toolbar menu and context menu. Select it with `-coordclosestmark custom`.
 
         ```tcl
@@ -351,7 +351,7 @@ namespace eval ::rbc::graphtoolbar {
           components. In Smith representation, Polar elements receive normalized admittance components when `-smithgrid
           admittance` is selected, and normalized impedance components for `-smithgrid impedance` or `both`.
         - `info`: the public `element closest` result, including `index` and optional `param`, extended with `mapx`,
-          `mapy`, and `coordinateSystem`.  The coordinate system is `axis`, `complex`, or `normalizedimpedance`.
+          `mapy`, and `coordinateSystem`. The coordinate system is `axis`, `complex`, or `normalizedimpedance`.
           Original `info(x)` and `info(y)` are preserved; for Smith elements these are Gamma components.
 
         Values are independent of axis label formatting and `-invertxy`. Interpolated searches can supply interpolated
@@ -360,14 +360,14 @@ namespace eval ::rbc::graphtoolbar {
         The returned string replaces the complete annotation. Neither the element name nor parameter value is appended
         automatically. Returning an empty string suppresses that result's annotation and pointer or bar dimension line.
 
-        With `-single no`, the callback runs separately for each matching element.  Normal marker styling and placement
+        With `-single no`, the callback runs separately for each matching element. Normal marker styling and placement
         still apply.
 
         Registration leaves the selected format unchanged. Setting `-closestcommand {}` removes Custom and restores the
         representation's default format if Custom was selected. Callback and format changes refresh annotations at
         idle.
 
-        Use qualified command names or `namespace code` for namespace-local callbacks.  Command prefixes may include
+        Use qualified command names or `namespace code` for namespace-local callbacks. Command prefixes may include
         bound arguments. Keep callbacks short and avoid graph modifications, widget destruction, or nested `update`
         calls. Errors propagate to Tk's background error handling when invoked from an event.
 
@@ -380,7 +380,7 @@ namespace eval ::rbc::graphtoolbar {
         physical scales and prevents Polar or Smith circles from becoming elliptical.
 
         When wheel zoom is performed over one of the Polar/Smith grid axes, both grid axes are scaled by the same
-        factor.  Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
+        factor. Scaling only one grid axis would otherwise force the automatic-aspect layout to resize the plotting
         area.
 
         A visible Polar/Smith grid requires linear Cartesian grid axes. Interactive scale toggling therefore refuses
@@ -786,7 +786,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 ::rbc::graphtoolbar .gtb ?option ...?
                 ```
 
-                The Tk pathname becomes the megawidget command.  Properties documented below may subsequently be read
+                The Tk pathname becomes the megawidget command. Properties documented below may subsequently be read
                 or changed through the `oo::configurable` interface:
                 ```tcl
                 .gtb configure -crosshairsmode
@@ -830,9 +830,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -zoommod modifier - Tk event modifier prefix used for the zoom start and previous-view bindings. The
                  default is `Any-`.
                 -zoomwheel - Enables mouse-wheel zoom. Requires `-zoom`.
-                -zoomwheelscale factor - Multiplicative wheel-zoom step.  Must be a finite number greater than
+                -zoomwheelscale factor - Multiplicative wheel-zoom step. Must be a finite number greater than
                  `1.0`. The default is `1.1`.
-                -zoomwheelmod modifier - Modifier prefix for MouseWheel zoom.  The default is `Control-`.
+                -zoomwheelmod modifier - Modifier prefix for MouseWheel zoom. The default is `Control-`.
                 -zoomtitle - Enables the transient `Zoom #n` marker. Requires `-zoom`.
                 -zoomtitleopts dictionary - Initial `-zoomtitleopts` property. Requires `-zoom`.
                 -zoomboxopts dictionary - Initial `-zoomboxopts` property. Requires `-zoom`.
@@ -843,7 +843,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -panstartbut event - Event component which starts a pan. The default is `ButtonPress-1`.
                 -panendbut event - Event component which finishes a pan. The default is `ButtonRelease-1`. It is
                  intentionally not combined with `-panmod`.
-                -panmod modifier - Modifier prefix required to start panning.  The default is `Shift-`.
+                -panmod modifier - Modifier prefix required to start panning. The default is `Shift-`.
                 -crosshairs - Enables enhanced crosshair interaction.
                 -pointeropts dictionary - Initial `-pointeropts` property. Configures the bitmap pointer used to mark
                  closest line, strip, and Polar points. Recognized keys are `-outline` and `-rotate`.
@@ -1419,8 +1419,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set currentNamespace [namespace current]
         set frameName [dict get $arguments path]
         ttk::frame $frameName
-        # The toolbar frame exists in both control modes.  In context-menu
-        # mode it is simply not populated or managed.  Keeping the frame
+        # The toolbar frame exists in both control modes. In context-menu
+        # mode it is simply not populated or managed. Keeping the frame
         # available means general toolbar-state code does not need special
         # cases for the selected control surface.
         set Subwidgets(toolbarFrame) [ttk::frame $frameName.toolbarFr]
@@ -1560,7 +1560,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Right-click is installed in BOTH modes.
         #
         # During a transient zoom/pan operation it cancels that operation
-        # and consumes the event.  Otherwise, in context-menu mode, it posts
+        # and consumes the event. Otherwise, in context-menu mode, it posts
         # the context menu.
         my EnableRightClick
         # Finish construction of the megawidget command.
@@ -2101,7 +2101,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         #
         # A Polar/Smith grid can use an axis that is neither installed in
-        # a margin nor mapped by an element.  It still participates in
+        # a margin nor mapped by an element. It still participates in
         # the displayed coordinate system and in Polar automatic aspect
         # calculation, so it must participate in zoom/reset operations.
         #
@@ -2621,21 +2621,21 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my DeleteCrosshairsMarkers
             $graph crosshairs off
             # Do not let the old crosshair mode process Enter/Motion events
-            # while the popup is being dismissed.  The selected mode is
+            # while the popup is being dismissed. The selected mode is
             # rebuilt by RestoreContextMenuCrosshairs.
             my RemoveBindTag $graph [my BindTagName crosshairs-marker]
             my RemoveBindTag $graph [my BindTagName crosshairs]
         }
         my UpdateContextMenu
         if {[tk windowingsystem] eq {win32}} {
-            # On Windows tk_popup is synchronous.  It returns only after
+            # On Windows tk_popup is synchronous. It returns only after
             # the popup has disappeared, so this is the reliable place to
             # restore the crosshair state.
             tk_popup $menu $rootX $rootY
             set ContextMenuPosted false
             my RestoreContextMenuCrosshairs
         } else {
-            # On X11 tk_popup returns immediately.  There we need to wait
+            # On X11 tk_popup returns immediately. There we need to wait
             # for the menu to be unmapped.
             bind $menu <Unmap> [namespace code {
                 bind %W <Unmap> {}
@@ -2704,7 +2704,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Polar and Smith grids require linear Cartesian grid axes.
         #
         # Prevent the toolbar from switching a visible Polar/Smith grid
-        # axis from linear to logarithmic.  Auxiliary axes remain free
+        # axis from linear to logarithmic. Auxiliary axes remain free
         # to use logarithmic scaling.
         #
         # Always allow logarithmic -> linear so that a grid which was
@@ -3086,7 +3086,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$mode eq {current}} {
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
             #
-            # -coordmark is read at drawing time.  "axis" preserves the
+            # -coordmark is read at drawing time. "axis" preserves the
             # normal current-marker behaviour: all visible axes plus, for
             # Polar/Smith, any additional axes mapped by the grid.
             #
@@ -3111,7 +3111,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set boxOptions [my configure -crosshairsmarkboxopts]
         if {$single} {
             #
-            # pointVar may contain Polar/Smith-specific fields.  Always
+            # pointVar may contain Polar/Smith-specific fields. Always
             # clear it before a new search so stale fields can never
             # survive from a previous element.
             #
@@ -3143,7 +3143,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
             #
             # Each element search starts with a completely fresh result
-            # array.  This is important when ordinary and PolarElements
+            # array. This is important when ordinary and PolarElements
             # are mixed in the same graph.
             #
             unset -nocomplain pointVar
@@ -3233,7 +3233,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method ApplyCrosshairsMode {} {
         # Rebuilds crosshair bindings and graphics for the current mode.
         #
-        # Existing marker artifacts and mode-specific bindtags are removed first.  # The selected mode then installs
+        # Existing marker artifacts and mode-specific bindtags are removed first. # The selected mode then installs
         # only the bindings it requires.
         #
         # `CrosshairsMarkerInfo` stores the canonical argument tuple used by both # normal Motion handling and explicit
@@ -3244,15 +3244,15 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set tagCrosshairs [my BindTagName crosshairs]
         set tagCrosshairsMarker [my BindTagName crosshairs-marker]
         # A mode change invalidates any marker representation produced by
-        # the previous mode.  This is especially important when changing
+        # the previous mode. This is especially important when changing
         # from current/closest to none or disabled.
         my DeleteCrosshairsMarkers
         my RemoveBindTag $graph $tagCrosshairs
         my RemoveBindTag $graph $tagCrosshairsMarker
         #
-        # The bindtags are reused by all crosshair modes.  Removing a tag
+        # The bindtags are reused by all crosshair modes. Removing a tag
         # from the widget does not remove the binding scripts stored on the
-        # tag itself.  Clear the previous mode's scripts before installing
+        # tag itself. Clear the previous mode's scripts before installing
         # the new mode so, for example, a current-mode <Enter> binding cannot
         # survive into closest mode with -hide yes.
         #
@@ -3544,7 +3544,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set defaultLabel [format %.15g $value]
         }
         #
-        # -command is a command prefix.  Append the same two arguments
+        # -command is a command prefix. Append the same two arguments
         # as the axis formatter:
         #
         #     widgetPath defaultLabel
@@ -3872,7 +3872,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign $shape a b c
         #
         # Match the screen-distance interpretation used by the RBC line
-        # marker.  c controls the transverse width of the arrowhead;
+        # marker. c controls the transverse width of the arrowhead;
         # a and b determine how far it extends along the dimension line.
         #
         set a [winfo pixels $graph $a]
@@ -3932,7 +3932,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set lineOptions [my configure -crosshairsbarlineopts]
         #
         # The normal dimension marker uses arrowheads at both ends of
-        # the bar.  Each arrowhead extends inward from its endpoint.
+        # the bar. Each arrowhead extends inward from its endpoint.
         #
         # For a short displayed bar those two heads would overlap.
         # In that case leave the central dimension line unarrowed and
@@ -4120,7 +4120,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 break
             }
         }]
-        # Deliberately do not include $modifier here.  Otherwise releasing
+        # Deliberately do not include $modifier here. Otherwise releasing
         # Shift before Button-1 could leave the pan operation active.
         bind [my BindTagName pan] <$end> [namespace code {
             if {[my FinishPan %x %y]} {
@@ -4368,7 +4368,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Every wheel step is a normal reversible zoom operation.
         set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
         # The crosshairs text boxes are pixel-sized objects represented
-        # internally by graph coordinates.  Remove them before changing the
+        # internally by graph coordinates. Remove them before changing the
         # axis transform so they cannot be drawn using the new scale.
         if {$refreshCrosshairs} {
             my DeleteCrosshairsMarkers
@@ -4433,7 +4433,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set cmds [lindex $zoomStack 0]
                 set ZoomInfo(stack) [lrange $zoomStack 1 end]
                 # A pop happens while the pointer is still in the
-                # plot area.  Remove the old graph-coordinate representation of
+                # plot area. Remove the old graph-coordinate representation of
                 # the pixel-sized crosshair marker before changing the transform.
                 set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
                 if {$refreshCrosshairs} {
@@ -4459,7 +4459,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set cmds [lindex $zoomStack end]
                 set ZoomInfo(stack) {}
                 # A pop happens while the pointer is still in the
-                # plot area.  Remove the old graph-coordinate representation of
+                # plot area. Remove the old graph-coordinate representation of
                 # the pixel-sized crosshair marker before changing the transform.
                 set refreshCrosshairs [my CanRefreshCrosshairsMarker $x $y]
                 if {$refreshCrosshairs} {
@@ -4779,7 +4779,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set boxAspect [expr {$absDx/$absDy}]
         if {$boxAspect > $aspect} {
             #
-            # The dragged box is too wide.  Prefer extending its height
+            # The dragged box is too wide. Prefer extending its height
             # while retaining the user's horizontal selection.
             #
             set wantedDy [expr {$absDx/$aspect}]
@@ -4792,7 +4792,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set absDy $wantedDy
             } else {
                 #
-                # The required height does not fit.  Use all available
+                # The required height does not fit. Use all available
                 # height and reduce the width instead.
                 #
                 set absDy $availableDy
@@ -4800,7 +4800,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
         } else {
             #
-            # The dragged box is too tall.  Prefer extending its width
+            # The dragged box is too tall. Prefer extending its width
             # while retaining the user's vertical selection.
             #
             set wantedDx [expr {$absDy*$aspect}]
@@ -4851,13 +4851,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {![$graph inside $x $y]} {
             return
         }
-        # Do not start zoom on an internally drawn legend.  The press is
+        # Do not start zoom on an internally drawn legend. The press is
         # left available to the normal legend interaction machinery.
         if {[my ZoomPointInLegend $x $y]} {
             return
         }
         my SaveZoomPoint $x $y A
-        # During the drag, ordinary Motion events update corner B.  The
+        # During the drag, ordinary Motion events update corner B. The
         # select-region tag exists only until ButtonRelease.
         set modifier $ZoomMod
         bind [my BindTagName select-region] <${modifier}Motion> [namespace code {my DragZoom %x %y}]
@@ -5020,7 +5020,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
         set xPixel [expr {round($xPixel)}]
         set yPixel [expr {round($yPixel)}]
-        # Capture the ORIGINAL mapping for every axis.  DragPan always
+        # Capture the ORIGINAL mapping for every axis. DragPan always
         # calculates from this state rather than incrementally from the
         # previous Motion event.
         #
@@ -5323,14 +5323,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set refreshCrosshairs true
         }
         my ChangeToolbarState restore
-        # The graph transform is now stable.  Recreate any fixed-pixel
+        # The graph transform is now stable. Recreate any fixed-pixel
         # marker geometry at the release/cancel pointer position.
         if {$refreshCrosshairs} {
             update idletasks
             my RefreshCrosshairsMarker $x $y
         }
         # Restore the RBC crosshair display state which existed before
-        # panning.  Do this last so the hairs are drawn using the final
+        # panning. Do this last so the hairs are drawn using the final
         # plot geometry.
         if {[info exists PanTransientChecks(crosshairsHidden)] && !$PanTransientChecks(crosshairsHidden)} {
             $graph crosshairs on
@@ -5354,7 +5354,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set changed $PanInfo(changed)
         set PanInfo(active) false
         # If the user moved away and then returned exactly to the starting
-        # point, the resulting operation is a no-op.  Remove the temporary
+        # point, the resulting operation is a no-op. Remove the temporary
         # history entry again.
         if {$historySaved && !$changed} {
             set ZoomInfo(stack) [lrange $ZoomInfo(stack) 1 end]

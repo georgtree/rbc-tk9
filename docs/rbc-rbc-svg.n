@@ -26,9 +26,12 @@ GRAPHINST svg
 .RE
 .PP
 The SVG component exports the complete graph, including elements, axes, grid, markers, legend, title and
-margins\&. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo\&.  There is
-one SVG configuration per widget, independent of PostScript and the screen renderer\&.  There are no named SVG
+margins\&. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo\&. There is
+one SVG configuration per widget, independent of PostScript and the screen renderer\&. There are no named SVG
 objects\&.
+.PP
+Most of the embedded images in current documentation are generated as an \&.svg images and could be found under
+docs/images\&.
 .SH "GENERATING SVG"
 .PP
 Return the document as a Tcl string or write it directly to a file:
@@ -60,8 +63,8 @@ for example \&./-plot\&.svg\&. There is no -- filename separator\&.
 .RE
 .PP
 Dimensions accept pixels or Tk screen distances, such as 6i or 15c, and are stored as integer pixels\&. Zero
-uses the current widget dimension, or its requested dimension before layout is available\&.  The graph is laid
-out again for the export dimensions; the SVG canvas has a matching viewBox\&.  Export does not resize the
+uses the current widget dimension, or its requested dimension before layout is available\&. The graph is laid
+out again for the export dimensions; the SVG canvas has a matching viewBox\&. Export does not resize the
 on-screen widget\&.
 .PP
 .RS 4n
@@ -81,18 +84,18 @@ Configuration queries use five-element lists:
 .fi
 .RE
 .PP
-Names/classes are width/Width, height/Height, and decorations/Decorations\&.
-These describe the query result only: SVG settings are not read from Tk's option database\&.
-Set them with svg configure or svg output\&.
+Names/classes are width/Width, height/Height, and decorations/Decorations\&. These describe the
+query result only: SVG settings are not read from Tk's option database\&. Set them with svg configure or svg
+output\&.
 .PP
 Invalid option/value lists leave all SVG settings unchanged\&. Once an output option list has been
 validated, its values remain configured even if subsequent rendering or file writing fails\&.
 .SH "SUPPORTED CONTENT AND LIMITATIONS"
 .PP
 SVG export supports traces, error bars, grids, axes, solid areas and bars, standard geometric symbols,
-line/polygon/text markers, legends, borders and editable text\&.  Polar/Smith labels use the same layout and
+line/polygon/text markers, legends, borders and editable text\&. Polar/Smith labels use the same layout and
 formatting as PostScript\&. Export remaps full source geometry rather than screen-decimated traces\&. Solid area
-fills preserve -areaopacity\&.  Fonts are referenced by family rather than embedded; text appearance depends on
+fills preserve -areaopacity\&. Fonts are referenced by family rather than embedded; text appearance depends on
 installed fonts in the SVG viewer\&. Text rotation, baseline positions, measured widths and shadows are retained\&.
 .PP
 Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image
@@ -103,7 +106,7 @@ each symbol drawing pass; their colors, masks and aspect ratio are retained\&.
 Stipple areas, polygon markers, bars and bar legend samples export as vector patterns\&. Stipples retain
 foreground/background colors and transparent gaps\&. Photo area tiles embed a repeating PNG with alpha and take
 precedence over stipples\&. Stipples align with graph pixels; photo tiles retain the screen renderer's
-toplevel-relative phase\&. Bar legend patterns restart at each sample's corner\&.  Pattern sizes are in export
+toplevel-relative phase\&. Bar legend patterns restart at each sample's corner\&. Pattern sizes are in export
 pixels\&. -areaopacity affects solid fills only, not stipples or tiles\&.
 .PP
 Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG\&. Transparency is recovered from

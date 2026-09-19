@@ -51,7 +51,6 @@ ExpandableText .details 600 {Availible actions} {
 ### Create the graph and configure its options
 set graph [graphtoolbar .g -width 700 -height 600 -type polar -controlmode context -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode closest -activelegend -zoomwheel -pan]
-$graph graph grid on
 
 set areaTile1 [image create photo -width 8 -height 8]
 $areaTile1 put #e6eef8@0.8 -to 0 0 8 8

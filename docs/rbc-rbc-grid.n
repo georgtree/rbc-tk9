@@ -32,8 +32,164 @@ The grid is a single component of the graph\&. Unlike elements, markers, or pens
 objects\&.
 .PP
 The grid follows the graph's -renderer and -antialias settings\&. Cairo preserves its axis mappings,
-major/minor tick selection, dash pattern, and color\&. A zero -linewidth remains a one-pixel hairline\&.  Grid
+major/minor tick selection, dash pattern, and color\&. A zero -linewidth remains a one-pixel hairline\&. Grid
 labels and all other text remain native\&.
+.SH "GRID AXES"
+.PP
+-mapx and -mapy select the axes whose tick positions are used to generate the grid\&.
+.PP
+-mapx controls the vertical grid lines:
+.PP
+.RS 4n
+.nf
+\&.g grid configure -mapx x
+.fi
+.RE
+.PP
+-mapy controls the horizontal grid lines:
+.PP
+.RS 4n
+.nf
+\&.g grid configure -mapy y
+.fi
+.RE
+.PP
+Either mapping may be empty to disable grid lines for that direction:
+.PP
+.RS 4n
+.nf
+\&.g grid configure -mapx {}
+.fi
+.RE
+.PP
+This is especially useful for bar charts, where the default grid uses only the Y axis\&.
+.PP
+The axis names refer to graph axes documented by \fIAXIS\fP\&.
+.SH "MAJOR AND MINOR GRID LINES"
+.PP
+Grid lines normally follow both major and minor axis ticks\&.
+.PP
+The -minor option controls whether lines are also drawn at minor tick positions:
+.PP
+.RS 4n
+.nf
+\&.g grid configure -minor no
+.fi
+.RE
+.PP
+With -minor no, only major tick positions generate grid lines\&. With -minor yes, minor tick positions are
+included as well\&.
+.PP
+The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes\&.
+.SH "SHOWING AND HIDING THE GRID"
+.PP
+The -hide option controls grid visibility:
+.PP
+.RS 4n
+.nf
+\&.g grid configure -hide no
+.fi
+.RE
+.PP
+The GRID on, GRID off, and GRID toggle operations provide convenient alternatives:
+.PP
+.RS 4n
+.nf
+\&.g grid on
+\&.g grid off
+\&.g grid toggle
+.fi
+.RE
+.PP
+These operations change the same state represented by -hide\&. For example, after:
+.PP
+.RS 4n
+.nf
+\&.g grid off
+.fi
+.RE
+.PP
+querying:
+.PP
+.RS 4n
+.nf
+\&.g grid cget -hide
+.fi
+.RE
+.PP
+returns a true value\&.
+.PP
+For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels\&.
+This applies to screen drawing, snapshots, SVG, and PostScript\&. When the grid is visible, the mapped axes'
+-showticks options and major tick lists still control which labels appear\&.
+-minor controls minor grid lines only; minor ticks do not receive labels\&.
+.SH "WIDGET-SPECIFIC DEFAULTS"
+.PP
+The initial grid configuration depends on the graph widget type\&.
+.PP
+.RS 4n
+.nf
+┌────────────┬───────┬───────┬───────┐
+│ Widget     │ -hide │ -mapx │ -mapy │
+├────────────┼───────┼───────┼───────┤
+│ graph      │ yes   │ x     │ y     │
+│ stripchart │ yes   │ x     │ y     │
+│ polar      │ no    │ x     │ y     │
+│ barchart   │ no    │ empty │ y     │
+└────────────┴───────┴───────┴───────┘
+.fi
+.RE
+.PP
+Thus a graph or stripchart does not initially display its grid, while a barchart initially displays
+horizontal grid lines associated with its Y axis\&. Polar widgets initially display their grid and labels,
+including when -representation smith is selected\&. The option database can override these defaults\&.
+.PP
+The remaining grid defaults are common to all graph widget types\&.
+.SH "GRID OPTIONS"
+.PP
+.RS 4n
+.nf
+┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────┐
+│ Option                │ Database name │ Database class │ Description                                             │
+├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────┤
+│ -color color          │ color         │ Color          │ Sets the color used to draw grid lines\&. The default is  │
+│                       │               │                │ grey64, or black on monochrome displays\&.                │
+│ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines\&. An empty │
+│                       │               │                │ value selects solid lines\&. The default is dot\&.          │
+│                       │               │                │ Each numeric list item accepts a Tcl integer            │
+│                       │               │                │ expression\&.                                             │
+│ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is  │
+│                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
+│                       │               │                │ barchart widgets\&.                                       │
+│ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines\&. Values 0 and │
+│                       │               │                │ 1 use the native thin-line width\&. The default is 0\&.     │
+│ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
+│                       │               │                │ lines\&. The axis must exist and must be an X axis\&. An    │
+│                       │               │                │ empty value disables X grid lines\&. The default is x for │
+│                       │               │                │ graph, stripchart, and polar widgets and empty for      │
+│                       │               │                │ barchart widgets\&.                                       │
+│ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
+│                       │               │                │ grid lines\&. The axis must exist and must be a Y axis\&.   │
+│                       │               │                │ An empty value disables Y grid lines\&. The default is y\&. │
+│ -minor boolean        │ minor         │ Minor          │ Controls whether grid lines are also generated at minor │
+│                       │               │                │ tick positions\&. The default is yes\&.                     │
+└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+Grid configuration options may also be supplied through Tk's option database\&. The resource name is grid and
+the resource class is Grid\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+option add *Graph\&.grid\&.Color grey70
+option add *Graph\&.Grid\&.Linewidth 1
+option add *Polar\&.grid\&.AngleMajorTicks {0 90 180 270}
+option add *Polar\&.Grid\&.SmithGrid admittance
+.fi
+.RE
 .SH "POLAR GRID"
 .PP
 In polar representation, circular radial grid lines are derived from positive ticks of the X axis selected by
@@ -345,162 +501,6 @@ polar \&.p -representation smith
 │ -smithimagmajorticks list    │ smithImagMajorTicks   │ SmithImagMajorTicks   │ Major imaginary contours\&.     │
 │ -smithimagminorticks list    │ smithImagMinorTicks   │ SmithImagMinorTicks   │ Minor imaginary contours\&.     │
 └──────────────────────────────┴───────────────────────┴───────────────────────┴───────────────────────────────┘
-.fi
-.RE
-.SH "GRID AXES"
-.PP
--mapx and -mapy select the axes whose tick positions are used to generate the grid\&.
-.PP
--mapx controls the vertical grid lines:
-.PP
-.RS 4n
-.nf
-\&.g grid configure -mapx x
-.fi
-.RE
-.PP
--mapy controls the horizontal grid lines:
-.PP
-.RS 4n
-.nf
-\&.g grid configure -mapy y
-.fi
-.RE
-.PP
-Either mapping may be empty to disable grid lines for that direction:
-.PP
-.RS 4n
-.nf
-\&.g grid configure -mapx {}
-.fi
-.RE
-.PP
-This is especially useful for bar charts, where the default grid uses only the Y axis\&.
-.PP
-The axis names refer to graph axes documented by \fIAXIS\fP\&.
-.SH "MAJOR AND MINOR GRID LINES"
-.PP
-Grid lines normally follow both major and minor axis ticks\&.
-.PP
-The -minor option controls whether lines are also drawn at minor tick positions:
-.PP
-.RS 4n
-.nf
-\&.g grid configure -minor no
-.fi
-.RE
-.PP
-With -minor no, only major tick positions generate grid lines\&. With -minor yes, minor tick positions are
-included as well\&.
-.PP
-The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes\&.
-.SH "SHOWING AND HIDING THE GRID"
-.PP
-The -hide option controls grid visibility:
-.PP
-.RS 4n
-.nf
-\&.g grid configure -hide no
-.fi
-.RE
-.PP
-The GRID on, GRID off, and GRID toggle operations provide convenient alternatives:
-.PP
-.RS 4n
-.nf
-\&.g grid on
-\&.g grid off
-\&.g grid toggle
-.fi
-.RE
-.PP
-These operations change the same state represented by -hide\&. For example, after:
-.PP
-.RS 4n
-.nf
-\&.g grid off
-.fi
-.RE
-.PP
-querying:
-.PP
-.RS 4n
-.nf
-\&.g grid cget -hide
-.fi
-.RE
-.PP
-returns a true value\&.
-.PP
-For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels\&.
-This applies to screen drawing, snapshots, SVG, and PostScript\&. When the grid is visible, the mapped axes'
--showticks options and major tick lists still control which labels appear\&.
--minor controls minor grid lines only; minor ticks do not receive labels\&.
-.SH "WIDGET-SPECIFIC DEFAULTS"
-.PP
-The initial grid configuration depends on the graph widget type\&.
-.PP
-.RS 4n
-.nf
-┌────────────┬───────┬───────┬───────┐
-│ Widget     │ -hide │ -mapx │ -mapy │
-├────────────┼───────┼───────┼───────┤
-│ graph      │ yes   │ x     │ y     │
-│ stripchart │ yes   │ x     │ y     │
-│ polar      │ no    │ x     │ y     │
-│ barchart   │ no    │ empty │ y     │
-└────────────┴───────┴───────┴───────┘
-.fi
-.RE
-.PP
-Thus a graph or stripchart does not initially display its grid, while a barchart initially displays
-horizontal grid lines associated with its Y axis\&. Polar widgets initially display their grid and labels,
-including when -representation smith is selected\&. The option database can override these defaults\&.
-.PP
-The remaining grid defaults are common to all graph widget types\&.
-.SH "GRID OPTIONS"
-.PP
-.RS 4n
-.nf
-┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────┐
-│ Option                │ Database name │ Database class │ Description                                             │
-├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────┤
-│ -color color          │ color         │ Color          │ Sets the color used to draw grid lines\&. The default is  │
-│                       │               │                │ grey64, or black on monochrome displays\&.                │
-│ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines\&. An empty │
-│                       │               │                │ value selects solid lines\&. The default is dot\&.          │
-│                       │               │                │ Each numeric list item accepts a Tcl integer            │
-│                       │               │                │ expression\&.                                             │
-│ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is  │
-│                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
-│                       │               │                │ barchart widgets\&.                                       │
-│ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines\&. Values 0 and │
-│                       │               │                │ 1 use the native thin-line width\&. The default is 0\&.     │
-│ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
-│                       │               │                │ lines\&. The axis must exist and must be an X axis\&. An    │
-│                       │               │                │ empty value disables X grid lines\&. The default is x for │
-│                       │               │                │ graph, stripchart, and polar widgets and empty for      │
-│                       │               │                │ barchart widgets\&.                                       │
-│ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
-│                       │               │                │ grid lines\&. The axis must exist and must be a Y axis\&.   │
-│                       │               │                │ An empty value disables Y grid lines\&. The default is y\&. │
-│ -minor boolean        │ minor         │ Minor          │ Controls whether grid lines are also generated at minor │
-│                       │               │                │ tick positions\&. The default is yes\&.                     │
-└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────┘
-.fi
-.RE
-.PP
-Grid configuration options may also be supplied through Tk's option database\&. The resource name is grid and
-the resource class is Grid\&.
-.PP
-For example:
-.PP
-.RS 4n
-.nf
-option add *Graph\&.grid\&.Color grey70
-option add *Graph\&.Grid\&.Linewidth 1
-option add *Polar\&.grid\&.AngleMajorTicks {0 90 180 270}
-option add *Polar\&.Grid\&.SmithGrid admittance
 .fi
 .RE
 

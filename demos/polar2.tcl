@@ -24,7 +24,6 @@ ExpandableText .details 600 {Availible actions} {
 ### Create the graph and configure its options
 set graph [graphtoolbar .g -width 700 -height 600 -type polar -representation smith -controlmode context -zoom\
                    -zoomtitle -zoommark -crosshairs -crosshairsmode closest -activelegend -zoomwheel -pan]
-$graph graph grid on
 
 ### read data from file
 set data [ReadCsv [file join $DemoDir data filter_s11.csv]]
@@ -45,7 +44,6 @@ frequencyVec set [frequencyVec range $startIndex $endIndex]
 s11Vec set [s11Vec range $startIndex $endIndex]
 
 $graph graph element create s11 -cdata s11Vec -symbol {}  -linewidth 2 -param frequencyVec
-
 
 ### Map everything
 grid .header -columnspan 1 -sticky ew

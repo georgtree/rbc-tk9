@@ -57,8 +57,172 @@ it controls the Polar/Smith contours, tick lists, label placement, and label for
 <p>The grid is a single component of the graph. Unlike elements, markers, or pens, there are no named grid
 objects.</p>
 <p>The grid follows the graph’s <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings. Cairo preserves its axis mappings,
-major/minor tick selection, dash pattern, and color. A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> remains a one-pixel hairline.  Grid
+major/minor tick selection, dash pattern, and color. A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> remains a one-pixel hairline. Grid
 labels and all other text remain native.</p>
+<section id="grid-axes">
+<span id="r-rbc-grid-grid-axes"></span><span id="r-3a3arbc3a3agridqzgrid20axes"></span><h2>Grid axes<a class="headerlink" href="#grid-axes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> select the axes whose tick positions are used to generate the grid.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> controls the vertical grid lines:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span>x
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-mapy</span></code> controls the horizontal grid lines:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>y
+</pre></div>
+</div>
+<p>Either mapping may be empty to disable grid lines for that direction:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span><span class="k">{}</span>
+</pre></div>
+</div>
+<p>This is especially useful for bar charts, where the default grid uses only the Y axis.</p>
+<p>The axis names refer to graph axes documented by <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-namespaceqz3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>.</p>
+</section>
+<section id="major-and-minor-grid-lines">
+<span id="r-rbc-grid-major-and-minor-grid-lines"></span><span id="r-3a3arbc3a3agridqzmajor20and20minor20grid20lines"></span><h2>Major and minor grid lines<a class="headerlink" href="#major-and-minor-grid-lines" title="Link to this heading">¶</a></h2>
+<p>Grid lines normally follow both major and minor axis ticks.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">-minor</span></code> option controls whether lines are also drawn at minor tick positions:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>minor<span class="w"> </span>no
+</pre></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">no</span></code>, only major tick positions generate grid lines. With <code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">yes</span></code>, minor tick positions are
+included as well.</p>
+<p>The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes.</p>
+</section>
+<section id="showing-and-hiding-the-grid">
+<span id="r-rbc-grid-showing-and-hiding-the-grid"></span><span id="r-3a3arbc3a3agridqzshowing20and20hiding20the20grid"></span><h2>Showing and hiding the grid<a class="headerlink" href="#showing-and-hiding-the-grid" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option controls grid visibility:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">off</span></code>, and <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">toggle</span></code> operations provide convenient alternatives:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>on
+<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>off
+<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>toggle
+</pre></div>
+</div>
+<p>These operations change the same state represented by <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. For example, after:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>off
+</pre></div>
+</div>
+<p>querying:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>hide
+</pre></div>
+</div>
+<p>returns a true value.</p>
+<p>For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
+This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes’
+<code class="docutils literal notranslate"><span class="pre">-showticks</span></code> options and major tick lists still control which labels appear.
+<code class="docutils literal notranslate"><span class="pre">-minor</span></code> controls minor grid lines only; minor ticks do not receive labels.</p>
+</section>
+<section id="widget-specific-defaults">
+<span id="r-rbc-grid-widget-specific-defaults"></span><span id="r-3a3arbc3a3agridqzwidget2dspecific20defaults"></span><h2>Widget-specific defaults<a class="headerlink" href="#widget-specific-defaults" title="Link to this heading">¶</a></h2>
+<p>The initial grid configuration depends on the graph widget type.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Widget</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-hide</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-mapy</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graph</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
+<td><p>empty</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Thus a <code class="docutils literal notranslate"><span class="pre">graph</span></code> or <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> does not initially display its grid, while a <code class="docutils literal notranslate"><span class="pre">barchart</span></code> initially displays
+horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
+including when <code class="docutils literal notranslate"><span class="pre">-representation</span> <span class="pre">smith</span></code> is selected. The option database can override these defaults.</p>
+<p>The remaining grid defaults are common to all graph widget types.</p>
+</section>
+<section id="grid-options">
+<span id="r-rbc-grid-grid-options"></span><span id="r-3a3arbc3a3agridqzgrid20options"></span><h2>Grid options<a class="headerlink" href="#grid-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Database name</p></th>
+<th class="head"><p>Database class</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
+<td><p>Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
+<td><p>Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is <code class="docutils literal notranslate"><span class="pre">dot</span></code>. Each numeric list item accepts a Tcl integer expression.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
+<td><p>Controls whether the grid is displayed. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code> for graph and stripchart widgets and <code class="docutils literal notranslate"><span class="pre">no</span></code> for polar and barchart widgets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Linewidth</span></code></p></td>
+<td><p>Sets the non-negative width of grid lines. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mapX</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MapX</span></code></p></td>
+<td><p>Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code> for graph and stripchart widgets and empty for barchart widgets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
+<td><p>Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">minor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Minor</span></code></p></td>
+<td><p>Controls whether grid lines are also generated at minor tick positions. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Grid configuration options may also be supplied through Tk’s option database. The resource name is <code class="docutils literal notranslate"><span class="pre">grid</span></code> and
+the resource class is <code class="docutils literal notranslate"><span class="pre">Grid</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.grid.Color<span class="w"> </span>grey70
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.Grid.Linewidth<span class="w"> </span><span class="mi">1</span>
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Polar.grid.AngleMajorTicks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="mi">270</span><span class="k">}</span>
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Polar.Grid.SmithGrid<span class="w"> </span>admittance
+</pre></div>
+</div>
+</section>
 <section id="polar-grid">
 <span id="r-rbc-grid-polar-grid"></span><span id="r-3a3arbc3a3agridqzpolar20grid"></span><h2>Polar grid<a class="headerlink" href="#polar-grid" title="Link to this heading">¶</a></h2>
 <p>In <code class="docutils literal notranslate"><span class="pre">polar</span></code> representation, circular radial grid lines are derived from positive ticks of the X axis selected by
@@ -328,170 +492,6 @@ no longer accepted. For example:</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="grid-axes">
-<span id="r-rbc-grid-grid-axes"></span><span id="r-3a3arbc3a3agridqzgrid20axes"></span><h2>Grid axes<a class="headerlink" href="#grid-axes" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> select the axes whose tick positions are used to generate the grid.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> controls the vertical grid lines:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span>x
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">-mapy</span></code> controls the horizontal grid lines:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>y
-</pre></div>
-</div>
-<p>Either mapping may be empty to disable grid lines for that direction:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span><span class="k">{}</span>
-</pre></div>
-</div>
-<p>This is especially useful for bar charts, where the default grid uses only the Y axis.</p>
-<p>The axis names refer to graph axes documented by <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-namespaceqz3a3arbc3a3aaxis"><span class="std std-ref">AXIS</span></a>.</p>
-</section>
-<section id="major-and-minor-grid-lines">
-<span id="r-rbc-grid-major-and-minor-grid-lines"></span><span id="r-3a3arbc3a3agridqzmajor20and20minor20grid20lines"></span><h2>Major and minor grid lines<a class="headerlink" href="#major-and-minor-grid-lines" title="Link to this heading">¶</a></h2>
-<p>Grid lines normally follow both major and minor axis ticks.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">-minor</span></code> option controls whether lines are also drawn at minor tick positions:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>minor<span class="w"> </span>no
-</pre></div>
-</div>
-<p>With <code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">no</span></code>, only major tick positions generate grid lines. With <code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">yes</span></code>, minor tick positions are
-included as well.</p>
-<p>The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes.</p>
-</section>
-<section id="showing-and-hiding-the-grid">
-<span id="r-rbc-grid-showing-and-hiding-the-grid"></span><span id="r-3a3arbc3a3agridqzshowing20and20hiding20the20grid"></span><h2>Showing and hiding the grid<a class="headerlink" href="#showing-and-hiding-the-grid" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option controls grid visibility:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">off</span></code>, and <code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">toggle</span></code> operations provide convenient alternatives:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>on
-<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>off
-<span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>toggle
-</pre></div>
-</div>
-<p>These operations change the same state represented by <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. For example, after:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>off
-</pre></div>
-</div>
-<p>querying:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>hide
-</pre></div>
-</div>
-<p>returns a true value.</p>
-<p>For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
-This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes’
-<code class="docutils literal notranslate"><span class="pre">-showticks</span></code> options and major tick lists still control which labels appear.
-<code class="docutils literal notranslate"><span class="pre">-minor</span></code> controls minor grid lines only; minor ticks do not receive labels.</p>
-</section>
-<section id="widget-specific-defaults">
-<span id="r-rbc-grid-widget-specific-defaults"></span><span id="r-3a3arbc3a3agridqzwidget2dspecific20defaults"></span><h2>Widget-specific defaults<a class="headerlink" href="#widget-specific-defaults" title="Link to this heading">¶</a></h2>
-<p>The initial grid configuration depends on the graph widget type.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Widget</p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-hide</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">-mapy</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graph</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
-<td><p>empty</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
-</tr>
-</tbody>
-</table>
-<p>Thus a <code class="docutils literal notranslate"><span class="pre">graph</span></code> or <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> does not initially display its grid, while a <code class="docutils literal notranslate"><span class="pre">barchart</span></code> initially displays
-horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
-including when <code class="docutils literal notranslate"><span class="pre">-representation</span> <span class="pre">smith</span></code> is selected. The option database can override these defaults.</p>
-<p>The remaining grid defaults are common to all graph widget types.</p>
-</section>
-<section id="grid-options">
-<span id="r-rbc-grid-grid-options"></span><span id="r-3a3arbc3a3agridqzgrid20options"></span><h2>Grid options<a class="headerlink" href="#grid-options" title="Link to this heading">¶</a></h2>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-<col style="width: 25.0%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Option</p></th>
-<th class="head"><p>Database name</p></th>
-<th class="head"><p>Database class</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-color</span> <span class="pre">color</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Color</span></code></p></td>
-<td><p>Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-dashes</span> <span class="pre">dashes</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">dashes</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Dashes</span></code></p></td>
-<td><p>Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is <code class="docutils literal notranslate"><span class="pre">dot</span></code>. Each numeric list item accepts a Tcl integer expression.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
-<td><p>Controls whether the grid is displayed. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code> for graph and stripchart widgets and <code class="docutils literal notranslate"><span class="pre">no</span></code> for polar and barchart widgets.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Linewidth</span></code></p></td>
-<td><p>Sets the non-negative width of grid lines. Values <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code> use the native thin-line width. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mapX</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">MapX</span></code></p></td>
-<td><p>Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code> for graph and stripchart widgets and empty for barchart widgets.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
-<td><p>Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-minor</span> <span class="pre">boolean</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">minor</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Minor</span></code></p></td>
-<td><p>Controls whether grid lines are also generated at minor tick positions. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p></td>
-</tr>
-</tbody>
-</table>
-<p>Grid configuration options may also be supplied through Tk’s option database. The resource name is <code class="docutils literal notranslate"><span class="pre">grid</span></code> and
-the resource class is <code class="docutils literal notranslate"><span class="pre">Grid</span></code>.</p>
-<p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.grid.Color<span class="w"> </span>grey70
-<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Graph.Grid.Linewidth<span class="w"> </span><span class="mi">1</span>
-<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Polar.grid.AngleMajorTicks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="mi">270</span><span class="k">}</span>
-<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Polar.Grid.SmithGrid<span class="w"> </span>admittance
-</pre></div>
-</div>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -508,17 +508,17 @@ the resource class is <code class="docutils literal notranslate"><span class="pr
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph grid <code class="docutils literal notranslate"><span class="pre">GRID</span></code> command</a><ul>
+<li><a class="reference internal" href="#grid-axes">Grid axes</a></li>
+<li><a class="reference internal" href="#major-and-minor-grid-lines">Major and minor grid lines</a></li>
+<li><a class="reference internal" href="#showing-and-hiding-the-grid">Showing and hiding the grid</a></li>
+<li><a class="reference internal" href="#widget-specific-defaults">Widget-specific defaults</a></li>
+<li><a class="reference internal" href="#grid-options">Grid options</a></li>
 <li><a class="reference internal" href="#polar-grid">Polar grid</a></li>
 <li><a class="reference internal" href="#smith-representation">Smith representation</a></li>
 <li><a class="reference internal" href="#smith-labels-during-zooming">Smith labels during zooming</a></li>
 <li><a class="reference internal" href="#custom-smith-labels">Custom Smith labels</a></li>
 <li><a class="reference internal" href="#polar-smith-mapped-axes">Polar/Smith mapped axes</a></li>
 <li><a class="reference internal" href="#polar-smith-grid-options">Polar/Smith grid options</a></li>
-<li><a class="reference internal" href="#grid-axes">Grid axes</a></li>
-<li><a class="reference internal" href="#major-and-minor-grid-lines">Major and minor grid lines</a></li>
-<li><a class="reference internal" href="#showing-and-hiding-the-grid">Showing and hiding the grid</a></li>
-<li><a class="reference internal" href="#widget-specific-defaults">Widget-specific defaults</a></li>
-<li><a class="reference internal" href="#grid-options">Grid options</a></li>
 </ul>
 </li>
 </ul>

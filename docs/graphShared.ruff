@@ -6,8 +6,8 @@ namespace eval ::rbc::AXIS {
     }
 
     variable _ruff_preamble {
-        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings.  Cairo preserves their
-        mapped geometry, color, width, and projecting caps, including axes in margins.  A zero `-linewidth` hides
+        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings. Cairo preserves their
+        mapped geometry, color, width, and projecting caps, including axes in margins. A zero `-linewidth` hides
         strokes. Tick labels, titles, and relief backgrounds remain native.
 
         Commands in this namespace document operations accepted by the `axis` component of a graph, barchart,
@@ -2866,8 +2866,8 @@ namespace eval ::rbc::POLARELEMENT {
         processed in caller order and the final data-source selection determines the active mode.
 
         ## Real input coordinates
-        `-datacoordinates cartesian` (the default) interprets `-xdata` and `-ydata` as Cartesian X/Y.  With
-        `-datacoordinates polar`, `-xdata` supplies theta in radians and `-ydata` supplies radius.  Both options accept
+        `-datacoordinates cartesian` (the default) interprets `-xdata` and `-ydata` as Cartesian X/Y. With
+        `-datacoordinates polar`, `-xdata` supplies theta in radians and `-ydata` supplies radius. Both options accept
         real vectors or lists. Interleaved `-data` accepts theta/radius pairs in this mode.
 
         ```tcl
@@ -2875,21 +2875,21 @@ namespace eval ::rbc::POLARELEMENT {
         ```
 
         Each pair is converted to `x = radius*cos(theta)`, `y = radius*sin(theta)` before mapping. Source values are
-        retained: `cget` returns the original input, and vector changes update the plotted points.  The shorter source
+        retained: `cget` returns the original input, and vector changes update the plotted points. The shorter source
         determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radii follow
-        the same conversion equations; non-finite pairs break the trace.  In Smith representation, the resulting X/Y
+        the same conversion equations; non-finite pairs break the trace. In Smith representation, the resulting X/Y
         coordinates represent Gamma.
 
-        The active data source must be real pairs; complex `-cdata` requires `-datacoordinates cartesian`.  Error-bar
+        The active data source must be real pairs; complex `-cdata` requires `-datacoordinates cartesian`. Error-bar
         data options (`-xerror`, `-yerror`, `-xhigh`, `-xlow`, `-yhigh`, `-ylow`) must be empty in polar-coordinate
         mode. Angular/radial error bars are not supported. Invalid combinations leave the existing element
         configuration unchanged.
 
         Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest `dataFormat` is
         `polar` for theta/radius input. Its `radius` is the geometric magnitude and its `angle` is in radians,
-        normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.  Interpolated results
+        normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero. Interpolated results
         describe the selected point on the plotted Cartesian trace. For exact sample searches, use `index` to retrieve
-        the original theta/radius, including any complete turns or radius sign.  Smoothing, symbols, active points and
+        the original theta/radius, including any complete turns or radius sign. Smoothing, symbols, active points and
         PostScript all use the converted Cartesian geometry.
 
         ## Parameter mapping
@@ -3282,7 +3282,7 @@ namespace eval ::rbc::BARELEMENT {
         This page documents the configuration and behavior of bar elements.
 
         With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and named
-        pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes.  Bar
+        pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes. Bar
         layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
         native rendering.
 
@@ -4427,14 +4427,14 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
-        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`.  Solid and
-        stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported.  Mapped outline
-        segments remain independent, as in native drawing. XOR markers remain native.  Photo image markers use Cairo
+        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`. Solid and
+        stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported. Mapped outline
+        segments remain independent, as in native drawing. XOR markers remain native. Photo image markers use Cairo
         alpha compositing with existing placement and scaling. They clip to the plot; `-antialias` does not resample
-        their pixels. Source image changes refresh the marker.  Bitmap markers use Cairo with existing scaling,
+        their pixels. Source image changes refresh the marker. Bitmap markers use Cairo with existing scaling,
         rotation, and masks. Their mapped pixels stay sharp; `-antialias` affects rotated background polygons. An empty
-        foreground uses Cairo with the native GC color.  Text-marker backgrounds use Cairo, including rotated edges,
-        and clip to the plot. Text itself stays native.  Window and non-photo image markers keep their Tk rendering;
+        foreground uses Cairo with the native GC color. Text-marker backgrounds use Cairo, including rotated edges,
+        and clip to the plot. Text itself stays native. Window and non-photo image markers keep their Tk rendering;
         line markers with an empty `-outline` use Cairo with the native GC color.
 
         Rbc provides six marker types:
@@ -5475,10 +5475,159 @@ namespace eval ::rbc::GRID {
         objects.
 
         The grid follows the graph's `-renderer` and `-antialias` settings. Cairo preserves its axis mappings,
-        major/minor tick selection, dash pattern, and color. A zero `-linewidth` remains a one-pixel hairline.  Grid
+        major/minor tick selection, dash pattern, and color. A zero `-linewidth` remains a one-pixel hairline. Grid
         labels and all other text remain native.
 
-        ## Polar grid
+        ## Grid axes
+        `-mapx` and `-mapy` select the axes whose tick positions are used to generate the grid.
+
+        `-mapx` controls the vertical grid lines:
+        ```tcl
+        .g grid configure -mapx x
+        ```
+
+        `-mapy` controls the horizontal grid lines:
+        ```tcl
+        .g grid configure -mapy y
+        ```
+
+        Either mapping may be empty to disable grid lines for that direction:
+        ```tcl
+        .g grid configure -mapx {}
+        ```
+
+        This is especially useful for bar charts, where the default grid uses only the Y axis.
+
+        The axis names refer to graph axes documented by [AXIS].
+
+        ## Major and minor grid lines
+        Grid lines normally follow both major and minor axis ticks.
+
+        The `-minor` option controls whether lines are also drawn at minor tick positions:
+        ```tcl
+        .g grid configure -minor no
+        ```
+
+        With `-minor no`, only major tick positions generate grid lines. With `-minor yes`, minor tick positions are
+        included as well.
+
+        The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes.
+
+        ## Showing and hiding the grid
+        The `-hide` option controls grid visibility:
+        ```tcl
+        .g grid configure -hide no
+        ```
+
+        The `GRID on`, `GRID off`, and `GRID toggle` operations provide convenient alternatives:
+        ```tcl
+        .g grid on
+        .g grid off
+        .g grid toggle
+        ```
+
+        These operations change the same state represented by `-hide`. For example, after:
+        ```tcl
+        .g grid off
+        ```
+
+        querying:
+        ```tcl
+        .g grid cget -hide
+        ```
+
+        returns a true value.
+
+        For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
+        This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes'
+        `-showticks` options and major tick lists still control which labels appear.
+        `-minor` controls minor grid lines only; minor ticks do not receive labels.
+
+        ## Widget-specific defaults
+        The initial grid configuration depends on the graph widget type.
+
+        #ruffopt excludedformats nroff
+        | Widget       | `-hide` | `-mapx` | `-mapy` |
+        |--------------|---------|---------|---------|
+        | `graph`      | `yes`   | `x`     | `y`     |
+        | `stripchart` | `yes`   | `x`     | `y`     |
+        | `polar`      | `no`    | `x`     | `y`     |
+        | `barchart`   | `no`    | empty   | `y`     |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌────────────┬───────┬───────┬───────┐
+        │ Widget     │ -hide │ -mapx │ -mapy │
+        ├────────────┼───────┼───────┼───────┤
+        │ graph      │ yes   │ x     │ y     │
+        │ stripchart │ yes   │ x     │ y     │
+        │ polar      │ no    │ x     │ y     │
+        │ barchart   │ no    │ empty │ y     │
+        └────────────┴───────┴───────┴───────┘
+        ```
+        #ruffopt excludedformats {}
+
+        Thus a `graph` or `stripchart` does not initially display its grid, while a `barchart` initially displays
+        horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
+        including when `-representation smith` is selected. The option database can override these defaults.
+
+        The remaining grid defaults are common to all graph widget types.
+
+        ## Grid options
+
+        #ruffopt excludedformats nroff
+        | Option                | Database name | Database class | Description                                                                                                                                                                                                                         |
+        |-----------------------|---------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-color color`        | `color`       | `Color`        | Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.                                                                                                                                     |
+        | `-dashes dashes`      | `dashes`      | `Dashes`       | Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is `dot`. Each numeric list item accepts a Tcl integer expression. |
+        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph and stripchart widgets and `no` for polar and barchart widgets.                                                                                                        |
+        | `-linewidth distance` | `lineWidth`   | `Linewidth`    | Sets the non-negative width of grid lines. Values `0` and `1` use the native thin-line width. The default is `0`.                                                                                                                   |
+        | `-mapx axisName`      | `mapX`        | `MapX`         | Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is `x` for graph and stripchart widgets and empty for barchart widgets. |
+        | `-mapy axisName`      | `mapY`        | `MapY`         | Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is `y`.                                                                |
+        | `-minor boolean`      | `minor`       | `Minor`        | Controls whether grid lines are also generated at minor tick positions. The default is `yes`.                                                                                                                                       |
+
+        #ruffopt includedformats nroff
+        ```
+        ┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────┐
+        │ Option                │ Database name │ Database class │ Description                                             │
+        ├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────┤
+        │ -color color          │ color         │ Color          │ Sets the color used to draw grid lines. The default is  │
+        │                       │               │                │ grey64, or black on monochrome displays.                │
+        │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines. An empty │
+        │                       │               │                │ value selects solid lines. The default is dot.          │
+        │                       │               │                │ Each numeric list item accepts a Tcl integer            │
+        │                       │               │                │ expression.                                             │
+        │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed. The default is  │
+        │                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
+        │                       │               │                │ barchart widgets.                                       │
+        │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines. Values 0 and │
+        │                       │               │                │ 1 use the native thin-line width. The default is 0.     │
+        │ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
+        │                       │               │                │ lines. The axis must exist and must be an X axis. An    │
+        │                       │               │                │ empty value disables X grid lines. The default is x for │
+        │                       │               │                │ graph, stripchart, and polar widgets and empty for      │
+        │                       │               │                │ barchart widgets.                                       │
+        │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
+        │                       │               │                │ grid lines. The axis must exist and must be a Y axis.   │
+        │                       │               │                │ An empty value disables Y grid lines. The default is y. │
+        │ -minor boolean        │ minor         │ Minor          │ Controls whether grid lines are also generated at minor │
+        │                       │               │                │ tick positions. The default is yes.                     │
+        └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────┘
+        ```
+        #ruffopt excludedformats {}
+
+        Grid configuration options may also be supplied through Tk's option database. The resource name is `grid` and
+        the resource class is `Grid`.
+
+        For example:
+        ```tcl
+        option add *Graph.grid.Color grey70
+        option add *Graph.Grid.Linewidth 1
+        option add *Polar.grid.AngleMajorTicks {0 90 180 270}
+        option add *Polar.Grid.SmithGrid admittance
+        ```
+
+## Polar grid
         In `polar` representation, circular radial grid lines are derived from positive ticks of the X axis selected by
         `grid -mapx`. Negative ticks are ignored because radius is unsigned. The zero tick represents the origin rather
         than a circle.
@@ -5779,155 +5928,6 @@ namespace eval ::rbc::GRID {
         └──────────────────────────────┴───────────────────────┴───────────────────────┴───────────────────────────────┘
         ```
         #ruffopt excludedformats {}
-
-        ## Grid axes
-        `-mapx` and `-mapy` select the axes whose tick positions are used to generate the grid.
-
-        `-mapx` controls the vertical grid lines:
-        ```tcl
-        .g grid configure -mapx x
-        ```
-
-        `-mapy` controls the horizontal grid lines:
-        ```tcl
-        .g grid configure -mapy y
-        ```
-
-        Either mapping may be empty to disable grid lines for that direction:
-        ```tcl
-        .g grid configure -mapx {}
-        ```
-
-        This is especially useful for bar charts, where the default grid uses only the Y axis.
-
-        The axis names refer to graph axes documented by [AXIS].
-
-        ## Major and minor grid lines
-        Grid lines normally follow both major and minor axis ticks.
-
-        The `-minor` option controls whether lines are also drawn at minor tick positions:
-        ```tcl
-        .g grid configure -minor no
-        ```
-
-        With `-minor no`, only major tick positions generate grid lines. With `-minor yes`, minor tick positions are
-        included as well.
-
-        The number and spacing of the grid lines therefore depend on the tick configuration of the mapped axes.
-
-        ## Showing and hiding the grid
-        The `-hide` option controls grid visibility:
-        ```tcl
-        .g grid configure -hide no
-        ```
-
-        The `GRID on`, `GRID off`, and `GRID toggle` operations provide convenient alternatives:
-        ```tcl
-        .g grid on
-        .g grid off
-        .g grid toggle
-        ```
-
-        These operations change the same state represented by `-hide`. For example, after:
-        ```tcl
-        .g grid off
-        ```
-
-        querying:
-        ```tcl
-        .g grid cget -hide
-        ```
-
-        returns a true value.
-
-        For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
-        This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes'
-        `-showticks` options and major tick lists still control which labels appear.
-        `-minor` controls minor grid lines only; minor ticks do not receive labels.
-
-        ## Widget-specific defaults
-        The initial grid configuration depends on the graph widget type.
-
-        #ruffopt excludedformats nroff
-        | Widget       | `-hide` | `-mapx` | `-mapy` |
-        |--------------|---------|---------|---------|
-        | `graph`      | `yes`   | `x`     | `y`     |
-        | `stripchart` | `yes`   | `x`     | `y`     |
-        | `polar`      | `no`    | `x`     | `y`     |
-        | `barchart`   | `no`    | empty   | `y`     |
-
-        #ruffopt includedformats nroff
-        ```
-        ┌────────────┬───────┬───────┬───────┐
-        │ Widget     │ -hide │ -mapx │ -mapy │
-        ├────────────┼───────┼───────┼───────┤
-        │ graph      │ yes   │ x     │ y     │
-        │ stripchart │ yes   │ x     │ y     │
-        │ polar      │ no    │ x     │ y     │
-        │ barchart   │ no    │ empty │ y     │
-        └────────────┴───────┴───────┴───────┘
-        ```
-        #ruffopt excludedformats {}
-
-        Thus a `graph` or `stripchart` does not initially display its grid, while a `barchart` initially displays
-        horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
-        including when `-representation smith` is selected. The option database can override these defaults.
-
-        The remaining grid defaults are common to all graph widget types.
-
-        ## Grid options
-
-        #ruffopt excludedformats nroff
-        | Option                | Database name | Database class | Description                                                                                                                                                                                                                         |
-        |-----------------------|---------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-        | `-color color`        | `color`       | `Color`        | Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.                                                                                                                                     |
-        | `-dashes dashes`      | `dashes`      | `Dashes`       | Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is `dot`. Each numeric list item accepts a Tcl integer expression. |
-        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph and stripchart widgets and `no` for polar and barchart widgets.                                                                                                        |
-        | `-linewidth distance` | `lineWidth`   | `Linewidth`    | Sets the non-negative width of grid lines. Values `0` and `1` use the native thin-line width. The default is `0`.                                                                                                                   |
-        | `-mapx axisName`      | `mapX`        | `MapX`         | Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is `x` for graph and stripchart widgets and empty for barchart widgets. |
-        | `-mapy axisName`      | `mapY`        | `MapY`         | Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is `y`.                                                                |
-        | `-minor boolean`      | `minor`       | `Minor`        | Controls whether grid lines are also generated at minor tick positions. The default is `yes`.                                                                                                                                       |
-
-        #ruffopt includedformats nroff
-        ```
-        ┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────┐
-        │ Option                │ Database name │ Database class │ Description                                             │
-        ├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────┤
-        │ -color color          │ color         │ Color          │ Sets the color used to draw grid lines. The default is  │
-        │                       │               │                │ grey64, or black on monochrome displays.                │
-        │ -dashes dashes        │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines. An empty │
-        │                       │               │                │ value selects solid lines. The default is dot.          │
-        │                       │               │                │ Each numeric list item accepts a Tcl integer            │
-        │                       │               │                │ expression.                                             │
-        │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed. The default is  │
-        │                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
-        │                       │               │                │ barchart widgets.                                       │
-        │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines. Values 0 and │
-        │                       │               │                │ 1 use the native thin-line width. The default is 0.     │
-        │ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid │
-        │                       │               │                │ lines. The axis must exist and must be an X axis. An    │
-        │                       │               │                │ empty value disables X grid lines. The default is x for │
-        │                       │               │                │ graph, stripchart, and polar widgets and empty for      │
-        │                       │               │                │ barchart widgets.                                       │
-        │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal    │
-        │                       │               │                │ grid lines. The axis must exist and must be a Y axis.   │
-        │                       │               │                │ An empty value disables Y grid lines. The default is y. │
-        │ -minor boolean        │ minor         │ Minor          │ Controls whether grid lines are also generated at minor │
-        │                       │               │                │ tick positions. The default is yes.                     │
-        └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────┘
-        ```
-        #ruffopt excludedformats {}
-
-        Grid configuration options may also be supplied through Tk's option database. The resource name is `grid` and
-        the resource class is `Grid`.
-
-        For example:
-        ```tcl
-        option add *Graph.grid.Color grey70
-        option add *Graph.Grid.Linewidth 1
-        option add *Polar.grid.AngleMajorTicks {0 90 180 270}
-        option add *Polar.Grid.SmithGrid admittance
-        ```
     }
 
     proc cget {option} {
@@ -6040,8 +6040,8 @@ namespace eval ::rbc::CROSSHAIRS {
         modify the crosshair `-position`. Applications can use this event to update coordinate readouts or other
         annotations without waiting for a `<Motion>` event.
 
-        The [graphtoolbar] provides this behavior automatically for its enhanced `current` and `closest`\
-        modes. Current-position annotations follow the physical pointer, while closest-point annotations are\
+        The [graphtoolbar] provides this behavior automatically for its enhanced `current` and `closest`
+        modes. Current-position annotations follow the physical pointer, while closest-point annotations are
         recalculated from the current plotted data.
 
         ## Showing and hiding crosshairs
@@ -6541,9 +6541,12 @@ namespace eval ::rbc::SVG {
         ```
 
         The SVG component exports the complete graph, including elements, axes, grid, markers, legend, title and
-        margins. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo.  There is
-        one SVG configuration per widget, independent of PostScript and the screen renderer.  There are no named SVG
+        margins. It is available on graph, stripchart, barchart and polar widgets without requiring Cairo. There is
+        one SVG configuration per widget, independent of PostScript and the screen renderer. There are no named SVG
         objects.
+
+        Most of the embedded images in current documentation are generated as an .svg images and could be found under
+        `docs/images`.
 
         ## Generating SVG
         Return the document as a Tcl string or write it directly to a file:
@@ -6580,8 +6583,8 @@ namespace eval ::rbc::SVG {
         #ruffopt excludedformats {}
 
         Dimensions accept pixels or Tk screen distances, such as `6i` or `15c`, and are stored as integer pixels. Zero
-        uses the current widget dimension, or its requested dimension before layout is available.  The graph is laid
-        out again for the export dimensions; the SVG canvas has a matching `viewBox`.  Export does not resize the
+        uses the current widget dimension, or its requested dimension before layout is available. The graph is laid
+        out again for the export dimensions; the SVG canvas has a matching `viewBox`. Export does not resize the
         on-screen widget.
 
         ```tcl
@@ -6595,18 +6598,18 @@ namespace eval ::rbc::SVG {
         ```tcl
         {option name class default current}
         ```
-        Names/classes are `width`/`Width`, `height`/`Height`, and `decorations`/`Decorations`.
-        These describe the query result only: SVG settings are not read from Tk's option database.
-        Set them with `svg configure` or `svg output`.
+        Names/classes are `width`/`Width`, `height`/`Height`, and `decorations`/`Decorations`. These describe the
+        query result only: SVG settings are not read from Tk's option database. Set them with `svg configure` or `svg
+        output`.
 
         Invalid option/value lists leave all SVG settings unchanged. Once an output option list has been
         validated, its values remain configured even if subsequent rendering or file writing fails.
 
         ## Supported content and limitations
         SVG export supports traces, error bars, grids, axes, solid areas and bars, standard geometric symbols,
-        line/polygon/text markers, legends, borders and editable text.  Polar/Smith labels use the same layout and
+        line/polygon/text markers, legends, borders and editable text. Polar/Smith labels use the same layout and
         formatting as PostScript. Export remaps full source geometry rather than screen-decimated traces. Solid area
-        fills preserve `-areaopacity`.  Fonts are referenced by family rather than embedded; text appearance depends on
+        fills preserve `-areaopacity`. Fonts are referenced by family rather than embedded; text appearance depends on
         installed fonts in the SVG viewer. Text rotation, baseline positions, measured widths and shadows are retained.
 
         Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image
@@ -6617,7 +6620,7 @@ namespace eval ::rbc::SVG {
         Stipple areas, polygon markers, bars and bar legend samples export as vector patterns. Stipples retain
         foreground/background colors and transparent gaps. Photo area tiles embed a repeating PNG with alpha and take
         precedence over stipples. Stipples align with graph pixels; photo tiles retain the screen renderer's
-        toplevel-relative phase. Bar legend patterns restart at each sample's corner.  Pattern sizes are in export
+        toplevel-relative phase. Bar legend patterns restart at each sample's corner. Pattern sizes are in export
         pixels. `-areaopacity` affects solid fills only, not stipples or tiles.
 
         Non-photo Tk image markers and tiles are drawn off-screen and embedded as PNG. Transparency is recovered from
