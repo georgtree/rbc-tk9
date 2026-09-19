@@ -60,6 +60,121 @@ Graph widgets contain several components with their own command interfaces:
 .RE
 .PP
 These component interfaces are documented separately\&.
+.SH MARGINS
+.PP
+The graph has four margins surrounding the plotting area\&. Their sizes are normally calculated automatically
+from axes, axis titles, tick labels, the graph title, and the legend\&.
+.PP
+The margin options:
+.PP
+.RS 4n
+.nf
+-bottommargin
+-leftmargin
+-rightmargin
+-topmargin
+.fi
+.RE
+.PP
+override the automatically calculated size when set to a positive screen distance\&. Setting a margin size to 0
+restores automatic sizing\&.
+.PP
+The corresponding options:
+.PP
+.RS 4n
+.nf
+-bottomvariable
+-leftvariable
+-rightvariable
+-topvariable
+.fi
+.RE
+.PP
+can be used to observe the actual calculated margin sizes\&. After layout and drawing, Rbc writes the current
+size of each configured margin to the specified global Tcl variable\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+graph \&.g -leftvariable leftSize -bottomvariable bottomSize
+
+pack \&.g -fill both -expand yes
+update idletasks
+
+puts "left margin: $leftSize"
+puts "bottom margin: $bottomSize"
+.fi
+.RE
+.SH "PLOTTING AREA"
+.PP
+The outer graph background and the plotting-area background are configured independently\&.
+.PP
+.RS 4n
+.nf
+graph \&.g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
+.fi
+.RE
+.PP
+-plotpadx and -plotpady add space immediately around the plotting surface\&. Each option accepts either one
+distance:
+.PP
+.RS 4n
+.nf
+\&.g configure -plotpadx 10
+.fi
+.RE
+.PP
+or two distances for the two sides:
+.PP
+.RS 4n
+.nf
+\&.g configure -plotpadx {5 15}
+\&.g configure -plotpady {10 20}
+.fi
+.RE
+.SH "ASPECT RATIO"
+.PP
+A positive -aspect value constrains the plotting area to a requested width-to-height ratio\&.
+.PP
+For example:
+.PP
+.RS 4n
+.nf
+\&.g configure -aspect 1\&.0
+.fi
+.RE
+.PP
+requests a square plotting area, while:
+.PP
+.RS 4n
+.nf
+\&.g configure -aspect 1\&.5
+.fi
+.RE
+.PP
+requests a plotting area whose width is 1\&.5 times its height\&.
+.PP
+Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+enlarge the widget\&. Set -aspect to 0 to disable the constraint\&.
+.SH LAYOUT
+.PP
+For simple cartesian graph without legend and with all default axes shown, example of layout and corresponding
+dimensions:
+.PP
+.RS 4n
+.nf
+set graph [graph \&.g -width 600 -height 600]
+$graph configure -plotpadx 20 -plotpady 20 -title {Title example} -plotborderwidth 5 -plotrelief sunken
+
+$graph axis configure x -hide no -title {x axis}
+$graph axis configure y -hide no -title {y axis}
+$graph axis configure x2 -hide no -title {x2 axis}
+$graph axis configure y2 -hide no -title {y2 axis}
+
+grid $graph -row 0 -column 0
+.fi
+.RE
 .SH "COORDINATE SYSTEMS"
 .PP
 Graph widgets use two coordinate systems:
@@ -1027,103 +1142,6 @@ barchart \&.b
 .PP
 The -barmode, -barwidth, and -baseline options have no significant effect unless bar elements are present
 in the graph\&.
-.SH MARGINS
-.PP
-The graph has four margins surrounding the plotting area\&. Their sizes are normally calculated automatically
-from axes, axis titles, tick labels, the graph title, and the legend\&.
-.PP
-The margin options:
-.PP
-.RS 4n
-.nf
--bottommargin
--leftmargin
--rightmargin
--topmargin
-.fi
-.RE
-.PP
-override the automatically calculated size when set to a positive screen distance\&. Setting a margin size to 0
-restores automatic sizing\&.
-.PP
-The corresponding options:
-.PP
-.RS 4n
-.nf
--bottomvariable
--leftvariable
--rightvariable
--topvariable
-.fi
-.RE
-.PP
-can be used to observe the actual calculated margin sizes\&. After layout and drawing, Rbc writes the current
-size of each configured margin to the specified global Tcl variable\&.
-.PP
-For example:
-.PP
-.RS 4n
-.nf
-graph \&.g -leftvariable leftSize -bottomvariable bottomSize
-
-pack \&.g -fill both -expand yes
-update idletasks
-
-puts "left margin: $leftSize"
-puts "bottom margin: $bottomSize"
-.fi
-.RE
-.SH "PLOTTING AREA"
-.PP
-The outer graph background and the plotting-area background are configured independently\&.
-.PP
-.RS 4n
-.nf
-graph \&.g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
-.fi
-.RE
-.PP
--plotpadx and -plotpady add space immediately around the plotting surface\&. Each option accepts either one
-distance:
-.PP
-.RS 4n
-.nf
-\&.g configure -plotpadx 10
-.fi
-.RE
-.PP
-or two distances for the two sides:
-.PP
-.RS 4n
-.nf
-\&.g configure -plotpadx {5 15}
-\&.g configure -plotpady {10 20}
-.fi
-.RE
-.SH "ASPECT RATIO"
-.PP
-A positive -aspect value constrains the plotting area to a requested width-to-height ratio\&.
-.PP
-For example:
-.PP
-.RS 4n
-.nf
-\&.g configure -aspect 1\&.0
-.fi
-.RE
-.PP
-requests a square plotting area, while:
-.PP
-.RS 4n
-.nf
-\&.g configure -aspect 1\&.5
-.fi
-.RE
-.PP
-requests a plotting area whose width is 1\&.5 times its height\&.
-.PP
-Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
-enlarge the widget\&. Set -aspect to 0 to disable the constraint\&.
 .SH BUFFERING
 .PP
 Two separate buffering mechanisms are available\&.

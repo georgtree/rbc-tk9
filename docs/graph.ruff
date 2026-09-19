@@ -176,6 +176,100 @@ namespace eval ::rbc::GRAPHINST {
 
         These component interfaces are documented separately.
 
+        ## Margins
+        The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
+        from axes, axis titles, tick labels, the graph title, and the legend.
+
+        The margin options:
+        ```text
+        -bottommargin
+        -leftmargin
+        -rightmargin
+        -topmargin
+        ```
+
+        override the automatically calculated size when set to a positive screen distance. Setting a margin size to `0`
+        restores automatic sizing.
+
+        The corresponding options:
+        ```text
+        -bottomvariable
+        -leftvariable
+        -rightvariable
+        -topvariable
+        ```
+
+        can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+        size of each configured margin to the specified global Tcl variable.
+
+        For example:
+        ```tcl
+        graph .g -leftvariable leftSize -bottomvariable bottomSize
+
+        pack .g -fill both -expand yes
+        update idletasks
+
+        puts "left margin: $leftSize"
+        puts "bottom margin: $bottomSize"
+        ```
+
+        ## Plotting area
+        The outer graph background and the plotting-area background are configured independently.
+
+        ```tcl
+        graph .g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
+        ```
+
+        `-plotpadx` and `-plotpady` add space immediately around the plotting surface. Each option accepts either one
+        distance:
+        ```tcl
+        .g configure -plotpadx 10
+        ```
+
+        or two distances for the two sides:
+        ```tcl
+        .g configure -plotpadx {5 15}
+        .g configure -plotpady {10 20}
+        ```
+
+        ## Aspect ratio
+        A positive `-aspect` value constrains the plotting area to a requested width-to-height ratio.
+
+        For example:
+        ```tcl
+        .g configure -aspect 1.0
+        ```
+
+        requests a square plotting area, while:
+        ```tcl
+        .g configure -aspect 1.5
+        ```
+
+        requests a plotting area whose width is 1.5 times its height.
+
+        Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+        enlarge the widget. Set `-aspect` to `0` to disable the constraint.
+
+        ## Layout
+        For simple cartesian graph without legend and with all default axes shown, example of layout and corresponding
+        dimensions:
+
+        ```tcl
+        set graph [graph .g -width 600 -height 600]
+        $graph configure -plotpadx 20 -plotpady 20 -title {Title example} -plotborderwidth 5 -plotrelief sunken
+
+        $graph axis configure x -hide no -title {x axis}
+        $graph axis configure y -hide no -title {y axis}
+        $graph axis configure x2 -hide no -title {x2 axis}
+        $graph axis configure y2 -hide no -title {y2 axis}
+
+        grid $graph -row 0 -column 0
+        ```
+
+        #ruffopt excludedformats nroff
+        ![layout](images/layout.svg)
+        #ruffopt excludedformats {}
+
         ## Coordinate systems
         Graph widgets use two coordinate systems:
 
@@ -1132,80 +1226,6 @@ namespace eval ::rbc::GRAPHINST {
 
         The `-barmode`, `-barwidth`, and `-baseline` options have no significant effect unless bar elements are present
         in the graph.
-
-        ## Margins
-        The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
-        from axes, axis titles, tick labels, the graph title, and the legend.
-
-        The margin options:
-        ```text
-        -bottommargin
-        -leftmargin
-        -rightmargin
-        -topmargin
-        ```
-
-        override the automatically calculated size when set to a positive screen distance. Setting a margin size to `0`
-        restores automatic sizing.
-
-        The corresponding options:
-        ```text
-        -bottomvariable
-        -leftvariable
-        -rightvariable
-        -topvariable
-        ```
-
-        can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
-        size of each configured margin to the specified global Tcl variable.
-
-        For example:
-        ```tcl
-        graph .g -leftvariable leftSize -bottomvariable bottomSize
-
-        pack .g -fill both -expand yes
-        update idletasks
-
-        puts "left margin: $leftSize"
-        puts "bottom margin: $bottomSize"
-        ```
-
-        ## Plotting area
-        The outer graph background and the plotting-area background are configured independently.
-
-        ```tcl
-        graph .g -background grey90 -plotbackground white -plotrelief sunken -plotborderwidth 2
-        ```
-
-        `-plotpadx` and `-plotpady` add space immediately around the plotting surface. Each option accepts either one
-        distance:
-        ```tcl
-        .g configure -plotpadx 10
-        ```
-
-        or two distances for the two sides:
-        ```tcl
-        .g configure -plotpadx {5 15}
-        .g configure -plotpady {10 20}
-        ```
-
-        ## Aspect ratio
-        A positive `-aspect` value constrains the plotting area to a requested width-to-height ratio.
-
-        For example:
-        ```tcl
-        .g configure -aspect 1.0
-        ```
-
-        requests a square plotting area, while:
-        ```tcl
-        .g configure -aspect 1.5
-        ```
-
-        requests a plotting area whose width is 1.5 times its height.
-
-        Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
-        enlarge the widget. Set `-aspect` to `0` to disable the constraint.
 
         ## Buffering
         Two separate buffering mechanisms are available.

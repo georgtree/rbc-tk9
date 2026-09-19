@@ -128,6 +128,88 @@ element type used by the <code class="docutils literal notranslate"><span class=
 </tbody>
 </table>
 <p>These component interfaces are documented separately.</p>
+<section id="margins">
+<span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h2>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h2>
+<p>The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
+from axes, axis titles, tick labels, the graph title, and the legend.</p>
+<p>The margin options:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottommargin
+-leftmargin
+-rightmargin
+-topmargin
+</pre></div>
+</div>
+<p>override the automatically calculated size when set to a positive screen distance. Setting a margin size to <code class="docutils literal notranslate"><span class="pre">0</span></code>
+restores automatic sizing.</p>
+<p>The corresponding options:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottomvariable
+-leftvariable
+-rightvariable
+-topvariable
+</pre></div>
+</div>
+<p>can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+size of each configured margin to the specified global Tcl variable.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>leftvariable<span class="w"> </span>leftSize<span class="w"> </span><span class="o">-</span>bottomvariable<span class="w"> </span>bottomSize
+
+<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="k">update</span><span class="w"> </span>idletasks
+
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;left margin: $leftSize&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;bottom margin: $bottomSize&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting-area">
+<span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h2>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h2>
+<p>The outer graph background and the plotting-area background are configured independently.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w"> </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w"> </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w"> </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-plotpady</span></code> add space immediately around the plotting surface. Each option accepts either one
+distance:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="mi">10</span>
+</pre></div>
+</div>
+<p>or two distances for the two sides:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">15</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpady<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
+</pre></div>
+</div>
+</section>
+<section id="aspect-ratio">
+<span id="r-rbc-graphinst-aspect-ratio"></span><span id="r-3a3arbc3a3agraphinstqzaspect20ratio"></span><h2>Aspect ratio<a class="headerlink" href="#aspect-ratio" title="Link to this heading">¶</a></h2>
+<p>A positive <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> value constrains the plotting area to a requested width-to-height ratio.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.0</span>
+</pre></div>
+</div>
+<p>requests a square plotting area, while:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>requests a plotting area whose width is 1.5 times its height.</p>
+<p>Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+enlarge the widget. Set <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code> to disable the constraint.</p>
+</section>
+<section id="layout">
+<span id="r-rbc-graphinst-layout"></span><span id="r-3a3arbc3a3agraphinstqzlayout"></span><h2>Layout<a class="headerlink" href="#layout" title="Link to this heading">¶</a></h2>
+<p>For simple cartesian graph without legend and with all default axes shown, example of layout and corresponding
+dimensions:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>graph<span class="w"> </span><span class="k">[</span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">600</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">600</span><span class="k">]</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">configure</span><span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="o">-</span>plotpady<span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">Title</span><span class="w"> </span>example<span class="k">}</span><span class="w"> </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken
+
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span>axis<span class="k">}</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">y</span><span class="w"> </span>axis<span class="k">}</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>x2<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">x2</span><span class="w"> </span>axis<span class="k">}</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>y2<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="k">{</span><span class="nv">y2</span><span class="w"> </span>axis<span class="k">}</span>
+
+<span class="nv">grid</span><span class="w"> </span><span class="nv">$graph</span><span class="w"> </span><span class="o">-</span>row<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>column<span class="w"> </span><span class="mi">0</span>
+</pre></div>
+</div>
+<p><img alt="layout" src="images/layout.svg" /></p>
+</section>
 <section id="coordinate-systems">
 <span id="r-rbc-graphinst-coordinate-systems"></span><span id="r-3a3arbc3a3agraphinstqzcoordinate20systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Link to this heading">¶</a></h2>
 <p>Graph widgets use two coordinate systems:</p>
@@ -1028,71 +1110,6 @@ coordinate.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> options have no significant effect unless bar elements are present
 in the graph.</p>
 </section>
-<section id="margins">
-<span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h2>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h2>
-<p>The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
-from axes, axis titles, tick labels, the graph title, and the legend.</p>
-<p>The margin options:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottommargin
--leftmargin
--rightmargin
--topmargin
-</pre></div>
-</div>
-<p>override the automatically calculated size when set to a positive screen distance. Setting a margin size to <code class="docutils literal notranslate"><span class="pre">0</span></code>
-restores automatic sizing.</p>
-<p>The corresponding options:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-bottomvariable
--leftvariable
--rightvariable
--topvariable
-</pre></div>
-</div>
-<p>can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
-size of each configured margin to the specified global Tcl variable.</p>
-<p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>leftvariable<span class="w"> </span>leftSize<span class="w"> </span><span class="o">-</span>bottomvariable<span class="w"> </span>bottomSize
-
-<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
-<span class="k">update</span><span class="w"> </span>idletasks
-
-<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;left margin: $leftSize&quot;</span>
-<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;bottom margin: $bottomSize&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="plotting-area">
-<span id="r-rbc-graphinst-plotting-area"></span><span id="r-3a3arbc3a3agraphinstqzplotting20area"></span><h2>Plotting area<a class="headerlink" href="#plotting-area" title="Link to this heading">¶</a></h2>
-<p>The outer graph background and the plotting-area background are configured independently.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>background<span class="w"> </span>grey90<span class="w"> </span><span class="o">-</span>plotbackground<span class="w"> </span>white<span class="w"> </span><span class="o">-</span>plotrelief<span class="w"> </span>sunken<span class="w"> </span><span class="o">-</span>plotborderwidth<span class="w"> </span><span class="mi">2</span>
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-plotpady</span></code> add space immediately around the plotting surface. Each option accepts either one
-distance:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="mi">10</span>
-</pre></div>
-</div>
-<p>or two distances for the two sides:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpadx<span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">15</span><span class="k">}</span>
-<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>plotpady<span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
-</pre></div>
-</div>
-</section>
-<section id="aspect-ratio">
-<span id="r-rbc-graphinst-aspect-ratio"></span><span id="r-3a3arbc3a3agraphinstqzaspect20ratio"></span><h2>Aspect ratio<a class="headerlink" href="#aspect-ratio" title="Link to this heading">¶</a></h2>
-<p>A positive <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> value constrains the plotting area to a requested width-to-height ratio.</p>
-<p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.0</span>
-</pre></div>
-</div>
-<p>requests a square plotting area, while:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>aspect<span class="w"> </span><span class="mf">1.5</span>
-</pre></div>
-</div>
-<p>requests a plotting area whose width is 1.5 times its height.</p>
-<p>Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
-enlarge the widget. Set <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code> to disable the constraint.</p>
-</section>
 <section id="buffering">
 <span id="r-rbc-graphinst-buffering"></span><span id="r-3a3arbc3a3agraphinstqzbuffering"></span><h2>Buffering<a class="headerlink" href="#buffering" title="Link to this heading">¶</a></h2>
 <p>Two separate buffering mechanisms are available.</p>
@@ -1288,6 +1305,10 @@ bounds change. Logarithmic bounds are reported in data units, just as by <code c
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
+<li><a class="reference internal" href="#margins">Margins</a></li>
+<li><a class="reference internal" href="#plotting-area">Plotting area</a></li>
+<li><a class="reference internal" href="#aspect-ratio">Aspect ratio</a></li>
+<li><a class="reference internal" href="#layout">Layout</a></li>
 <li><a class="reference internal" href="#coordinate-systems">Coordinate systems</a></li>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a><ul>
 <li><a class="reference internal" href="#automatic-equal-unit-aspect">Automatic equal-unit aspect</a></li>
@@ -1310,9 +1331,6 @@ bounds change. Logarithmic bounds are reported in data units, just as by <code c
 </ul>
 </li>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
-<li><a class="reference internal" href="#margins">Margins</a></li>
-<li><a class="reference internal" href="#plotting-area">Plotting area</a></li>
-<li><a class="reference internal" href="#aspect-ratio">Aspect ratio</a></li>
 <li><a class="reference internal" href="#buffering">Buffering</a></li>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
 <li><a class="reference internal" href="#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
