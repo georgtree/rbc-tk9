@@ -234,15 +234,25 @@ y = imaginary
 <p>The <code class="docutils literal notranslate"><span class="pre">-representation</span></code> option changes the grid and associated labels; it does not reinterpret ordinary X/Y
 element data as radius/angle pairs.</p>
 <p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>polar
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>polar<span class="w"> </span><span class="k">[</span><span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">600</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span><span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>polar<span class="k">]</span>
+<span class="nv">$polar</span><span class="w"> </span><span class="nv">grid</span><span class="w"> </span>on
+<span class="nv">$polar</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
+<span class="nv">$polar</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>
+<span class="nv">$polar</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>
 
-<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
+<span class="nv">grid</span><span class="w"> </span><span class="nv">$polar</span><span class="w"> </span><span class="o">-</span>sticky<span class="w"> </span>news
+<span class="nv">grid</span><span class="w"> </span>columnconfigure<span class="w"> </span>.<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>weight<span class="w"> </span><span class="mi">1</span>
+<span class="nv">grid</span><span class="w"> </span>rowconfigure<span class="w"> </span>.<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>weight<span class="w"> </span><span class="mi">1</span>
 </pre></div>
 </div>
+<p><img alt="polar_cartesian" src="images/polar_cartesian.svg" /></p>
 <p>The same Cartesian coordinates may be displayed with a Smith grid:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith
 </pre></div>
 </div>
+<p><img alt="smith_cartesian" src="images/smith_cartesian.svg" /></p>
+<p>Element data can be interpreted differently that rectangular coordinates, for example, as a angle/radius pair,
+or complex gamma/impedance/admittance, for more details please check <a class="reference internal" href="rbc-tk9-rbc-POLARELEMENT.html#r-namespaceqz3a3arbc3a3apolarelement"><span class="std std-ref">POLARELEMENT</span></a> chapter.</p>
 <section id="automatic-equal-unit-aspect">
 <span id="r-rbc-graphinst-automatic-equal-unit-aspect"></span><span id="r-3a3arbc3a3agraphinstqzautomatic20equal2dunit20aspect"></span><h3>Automatic equal-unit aspect<a class="headerlink" href="#automatic-equal-unit-aspect" title="Link to this heading">¶</a></h3>
 <p>Polar and Smith geometry requires equal physical scaling of the Cartesian X and Y dimensions. Otherwise a
@@ -298,6 +308,7 @@ callback can be used to customize radial labels:</p>
 <span class="nv">.p</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">-1</span><span class="w"> </span><span class="o">-</span><span class="mf">0.75</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="o">-</span><span class="mf">0.25</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.75</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>command<span class="w"> </span>formatRadius
 </pre></div>
 </div>
+<p><img alt="polar_custom_radial_ticks" src="images/polar_custom_radial_ticks.svg" /></p>
 <p>Only positive radial values are candidates for radial labels.</p>
 <p>Radial labels are attached to the positive zero-degree ray at:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>x = radius
@@ -339,9 +350,10 @@ spokes this is based on the mapped screen direction, so the behavior also follow
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>formatAngle<span class="w"> </span><span class="k">{</span><span class="nv">widget</span><span class="w"> </span>degrees<span class="k">}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;%g deg&quot;</span><span class="w"> </span><span class="nv">$degrees</span><span class="k">]</span>
 <span class="k">}</span>
-<span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>anglemajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">45</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="mi">135</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="mi">225</span><span class="w"> </span><span class="mi">270</span><span class="w"> </span><span class="mi">315</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>anglecommand<span class="w"> </span>formatAngle
+<span class="nv">.p</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>anglemajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">45</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="mi">135</span><span class="w"> </span><span class="mi">180</span><span class="w"> </span><span class="mi">225</span><span class="w"> </span><span class="mi">270</span><span class="w"> </span><span class="mi">315</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>anglecommand<span class="w"> </span>formatAngle
 </pre></div>
 </div>
+<p><img alt="polar_custom_angular_ticks" src="images/polar_custom_angular_ticks.svg" /></p>
 <p>The callback result is used as the complete label. Returning an empty string suppresses that label.</p>
 <p>If an angular formatter raises an error while the graph is being drawn, the error is reported as a background
 Tcl error and Rbc keeps the built-in label for that tick.</p>
@@ -392,9 +404,10 @@ positive magnitudes, must be finite and greater than zero, and generate both pos
 contours.</p>
 <p>Empty tick lists suppress the corresponding contour class.</p>
 <p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>smithrealmajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithrealminorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mf">0.75</span><span class="w"> </span><span class="mf">1.5</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithimagmajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithimagminorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mf">0.75</span><span class="w"> </span><span class="mf">1.5</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>smithrealmajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithrealminorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mf">0.75</span><span class="w"> </span><span class="mf">1.5</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithimagmajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>smithimagminorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.15</span><span class="w"> </span><span class="mf">0.35</span><span class="w"> </span><span class="mf">0.75</span><span class="w"> </span><span class="mf">1.25</span><span class="w"> </span><span class="mf">1.5</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
 </pre></div>
 </div>
+<p><img alt="smith_custom_ticks" src="images/smith_custom_ticks.svg" /></p>
 </section>
 <section id="smith-labels-during-zooming">
 <span id="r-rbc-graphinst-smith-labels-during-zooming"></span><span id="r-3a3arbc3a3agraphinstqzsmith20labels20during20zooming"></span><h3>Smith labels during zooming<a class="headerlink" href="#smith-labels-during-zooming" title="Link to this heading">¶</a></h3>
@@ -437,13 +450,16 @@ therefore works with <code class="docutils literal notranslate"><span class="pre
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;b</span><span class="o">=</span><span class="s2">%+g&quot;</span><span class="w"> </span><span class="nv">$value</span><span class="k">]</span>
 <span class="k">}</span>
 
-<span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith<span class="w"> </span><span class="o">-</span>smithgrid<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>smithrealcommand<span class="w"> </span>formatSmithReal<span class="w"> </span><span class="o">-</span>smithimagcommand<span class="w"> </span>formatSmithImag
+<span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith<span class="w"> </span><span class="o">-</span>smithgrid<span class="w"> </span>impedance<span class="w"> </span><span class="o">-</span>smithrealcommand<span class="w"> </span>formatSmithReal<span class="w"> </span><span class="o">-</span>smithimagcommand<span class="w"> </span>formatSmithImag
 </pre></div>
 </div>
+<p><img alt="smith_custom_label_ticks_impedance" src="images/smith_custom_label_ticks_impedance.svg" /></p>
+<p>and for <code class="docutils literal notranslate"><span class="pre">-smithgrid</span> <span class="pre">admittance</span></code>:</p>
+<p><img alt="smith_custom_label_ticks_admittance" src="images/smith_custom_label_ticks_admittance.svg" /></p>
 <p>Returning an empty string suppresses that label.</p>
 <p>A formatter error raised during drawing is reported as a background Tcl error and the normal built-in label is
 retained.</p>
-<p>The same formatter callbacks and label strings are used for window drawing and PostScript output.</p>
+<p>The same formatter callbacks and label strings are used for window drawing and SVG/PostScript output.</p>
 </section>
 <section id="polar-smith-mapped-axes">
 <span id="r-rbc-graphinst-polar-smith-mapped-axes"></span><span id="r-3a3arbc3a3agraphinstqzpolar2fsmith20mapped20axes"></span><h3>Polar/Smith mapped axes<a class="headerlink" href="#polar-smith-mapped-axes" title="Link to this heading">¶</a></h3>
@@ -577,80 +593,78 @@ Requesting <code class="docutils literal notranslate"><span class="pre">cairo</s
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>native
 </pre></div>
 </div>
-<p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip
-error bars, and solid, stippled, or photo-tiled line areas. Active traces and symbols use Cairo too.
-Grid lines, non-XOR line markers (including arrowheads), and polygon markers also use Cairo.
-Mapping, decimation, and point selection
-remain shared with native rendering.</p>
-<p>Supported symbols are <code class="docutils literal notranslate"><span class="pre">circle</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">plus</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">splus</span></code>, <code class="docutils literal notranslate"><span class="pre">scross</span></code>,
-<code class="docutils literal notranslate"><span class="pre">triangle</span></code>, and <code class="docutils literal notranslate"><span class="pre">arrow</span></code>. Their size, fill, outline, and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> settings are preserved.
-Symbols remain partially visible at plot edges, including when their centers are outside.
-Fill passes precede outline passes, using bounded batches.</p>
-<p>Error bars retain their color, cap geometry, and <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span></code> settings. They are solid,
-independent of trace dashes. A zero error-bar width retains the native one-pixel hairline.</p>
-<p>Line areas use the existing mapped polygon and even-odd fill rule. Stipples repeat from the
-widget origin, with crisp pattern pixels and antialiased polygon edges. An empty
-<code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves stipple gaps transparent; a color paints them. Solid fills use
-<code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>. Areas are drawn before the line’s traces, error bars, and symbols.</p>
-<p>Photo tiles repeat from the toplevel window origin, matching native tile alignment.
-Their pixels remain sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> controls polygon edges. Cairo composites photo alpha,
-including partially transparent pixels, against the existing graph contents. Native tiles retain
-their existing transparency-mask behavior. Image edits invalidate the cached element image.</p>
-<p>Bar elements use Cairo for solid/stippled fills and error bars, including active bars and named pens.
-Existing bar modes, baselines, axes, and selection mapping are shared with native rendering.
-Mapped rectangles retain crisp integer edges. Stipples retain their widget origin and transparent or
-colored gaps. Tk relief borders and value labels remain native.</p>
+<p>Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip error bars, and solid,
+stippled, or photo-tiled line areas. Active traces and symbols use Cairo too. Grid lines, non-XOR line markers
+(including arrowheads), and polygon markers also use Cairo. Mapping, decimation, and point selection remain
+shared with native rendering.</p>
+<p>Supported symbols are <code class="docutils literal notranslate"><span class="pre">circle</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">plus</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">splus</span></code>, <code class="docutils literal notranslate"><span class="pre">scross</span></code>, <code class="docutils literal notranslate"><span class="pre">triangle</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">arrow</span></code>. Their size, fill, outline, and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> settings are preserved. Symbols remain partially visible
+at plot edges, including when their centers are outside. Fill passes precede outline passes, using bounded
+batches.</p>
+<p>Error bars retain their color, cap geometry, and <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span></code> settings. They are solid, independent of
+trace dashes. A zero error-bar width retains the native one-pixel hairline.</p>
+<p>Line areas use the existing mapped polygon and even-odd fill rule. Stipples repeat from the widget origin, with
+crisp pattern pixels and antialiased polygon edges. An empty <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves stipple gaps transparent;
+a color paints them. Solid fills use <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>. Areas are drawn before the line’s traces, error bars,
+and symbols.</p>
+<p>Photo tiles repeat from the toplevel window origin, matching native tile alignment. Their pixels remain sharp;
+<code class="docutils literal notranslate"><span class="pre">-antialias</span></code> controls polygon edges. Cairo composites photo alpha, including partially transparent pixels,
+against the existing graph contents. Native tiles retain their existing transparency-mask behavior. Image edits
+invalidate the cached element image.</p>
+<p>Bar elements use Cairo for solid/stippled fills and error bars, including active bars and named pens. Existing
+bar modes, baselines, axes, and selection mapping are shared with native rendering. Mapped rectangles retain
+crisp integer edges. Stipples retain their widget origin and transparent or colored gaps. Tk relief borders and
+value labels remain native.</p>
 <p>Legend line/strip samples, geometric symbols, and bar swatches also use Cairo, including external
 legends. Swatch stipples restart at the sample origin. Legend text, backgrounds, and borders retain native
 drawing. Samples use the normal pen and do not consume plot symbol limits.</p>
-<p>Axis lines and tick marks use Cairo with the existing color, width, and projecting caps.
-They draw across the widget margins, independently of the plot clip. Axis labels, titles, and relief
-backgrounds remain native. A zero axis <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes, as with native rendering.</p>
-<p>Non-photo image tiles retain native rendering. Empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> values use Cairo with the native GC color.
-Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds.
-All text, window markers, non-photo image markers, and crosshairs retain native rendering.</p>
-<p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets,
-caps, and under/over ordering are preserved. Mapped segments remain independent, retaining their
-existing dash restarts. XOR markers keep native drawing and erase behavior. A line marker with an
-empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> also uses Cairo with its native GC color.</p>
-<p>Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode.
-As with native drawing, they use only the fill color and bypass <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>; an empty fill hides them.</p>
-<p>Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling
-and mask behavior. Pixels stay sharp in every antialias mode. Active pens and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> retain
-their existing selection rules; legend samples do not consume that limit. The scaled bitmap is
-converted once per pen drawing pass and reused for its selected symbols.</p>
-<p>Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition.
-Scaling, rotation, anchors, offsets, and layer order are preserved. Bitmap pixels stay sharp;
-<code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects the polygon background of arbitrarily rotated markers. An empty foreground uses Cairo with the native GC color.</p>
+<p>Axis lines and tick marks use Cairo with the existing color, width, and projecting caps. They draw across the
+widget margins, independently of the plot clip. Axis labels, titles, and relief backgrounds remain native. A
+zero axis <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes, as with native rendering.</p>
+<p>Non-photo image tiles retain native rendering. Empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> values use Cairo with the native GC
+color. Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds. All
+text, window markers, non-photo image markers, and crosshairs retain native rendering.</p>
+<p>Grid and marker geometry is clipped to the plotting area. Marker color pairs, stipples, dash offsets, caps, and
+under/over ordering are preserved. Mapped segments remain independent, retaining their existing dash
+restarts. XOR markers keep native drawing and erase behavior. A line marker with an empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> also uses
+Cairo with its native GC color.</p>
+<p>Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode. As with
+native drawing, they use only the fill color and bypass <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>; an empty fill hides them.</p>
+<p>Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling and mask
+behavior. Pixels stay sharp in every antialias mode. Active pens and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> retain their existing
+selection rules; legend samples do not consume that limit. The scaled bitmap is converted once per pen drawing
+pass and reused for its selected symbols.</p>
+<p>Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition. Scaling,
+rotation, anchors, offsets, and layer order are preserved. Bitmap pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects the
+polygon background of arbitrarily rotated markers. An empty foreground uses Cairo with the native GC color.</p>
 <p>Photo image markers also use Cairo. Their existing anchors, offsets, scaling, and layer order are
-preserved. Cairo composites photo alpha at the mapped integer position and clips to the plot;
-<code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample image pixels. Source edits, resizing, and deletion refresh the marker.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry.
-Its default is <code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>.
-Native rendering ignores this option. Changing it invalidates the cached element image.</p>
-<p><code class="docutils literal notranslate"><span class="pre">none</span></code> disables antialiasing. <code class="docutils literal notranslate"><span class="pre">gray</span></code> requests coverage antialiasing. <code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">good</span></code>, and <code class="docutils literal notranslate"><span class="pre">best</span></code>
-are backend-dependent quality hints; they need not produce different images. Antialiasing can
-vary the apparent brightness of a one-pixel diagonal. A wider line or <code class="docutils literal notranslate"><span class="pre">none</span></code> can make that
-effect less noticeable.</p>
+preserved. Cairo composites photo alpha at the mapped integer position and clips to the plot; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does
+not resample image pixels. Source edits, resizing, and deletion refresh the marker.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default|none|gray|fast|good|best</span></code> selects antialiasing for Cairo geometry. Its default is
+<code class="docutils literal notranslate"><span class="pre">default</span></code>; its option-database name and class are <code class="docutils literal notranslate"><span class="pre">antialias</span></code> and <code class="docutils literal notranslate"><span class="pre">Antialias</span></code>. Native rendering ignores this
+option. Changing it invalidates the cached element image.</p>
+<p><code class="docutils literal notranslate"><span class="pre">none</span></code> disables antialiasing. <code class="docutils literal notranslate"><span class="pre">gray</span></code> requests coverage antialiasing. <code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">good</span></code>, and <code class="docutils literal notranslate"><span class="pre">best</span></code> are
+backend-dependent quality hints; they need not produce different images. Antialiasing can vary the apparent
+brightness of a one-pixel diagonal. A wider line or <code class="docutils literal notranslate"><span class="pre">none</span></code> can make that effect less noticeable.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo<span class="w"> </span><span class="o">-</span>antialias<span class="w"> </span>gray
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>offdash<span class="w"> </span>red
 </pre></div>
 </div>
-<p>Dash lengths and offsets use the existing pen values in screen pixels. Phase continues within
-each mapped line trace and restarts for each independent strip segment. An empty <code class="docutils literal notranslate"><span class="pre">-offdash</span></code>
-leaves gaps transparent. A color paints the gaps using the existing PostScript underlay
-convention; <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the foreground color and produces a solid stroke.</p>
-<p>Two-color strip segments are stroked individually to preserve drawing order at intersections.
-Solid and single-color strip segments retain batching.</p>
-<p>Snapshots use the selected renderer for these primitives. PostScript and Windows metafile output
-retain their existing exporters. Switching renderers invalidates the cached element image.
-On Windows, mixed/Cairo marker passes share a temporary DIB drawing target. Existing pixels are copied
-once into the target and once back; native text and fallbacks retain display-list order. Text-only passes
-keep native batching. The target is released at the end of each pass, including snapshot rendering.
-Consecutive compatible solid line and outline-only polygon markers share a Cairo context. Each marker
-retains a separate stroke so overlapping antialiased edges keep their appearance. Style changes, arrows,
-dashes, fills, and native drawing end the run. The context is released before the marker pass ends.
-Native rendering remains the fallback when a Cairo drawing surface cannot be opened.</p>
+<p>Dash lengths and offsets use the existing pen values in screen pixels. Phase continues within each mapped line
+trace and restarts for each independent strip segment. An empty <code class="docutils literal notranslate"><span class="pre">-offdash</span></code> leaves gaps transparent. A color
+paints the gaps using the existing PostScript underlay convention; <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> uses the foreground color and
+produces a solid stroke.</p>
+<p>Two-color strip segments are stroked individually to preserve drawing order at intersections. Solid and
+single-color strip segments retain batching.</p>
+<p>Snapshots use the selected renderer for these primitives. PostScript and Windows metafile output retain their
+existing exporters. Switching renderers invalidates the cached element image. On Windows, mixed/Cairo marker
+passes share a temporary DIB drawing target. Existing pixels are copied once into the target and once back;
+native text and fallbacks retain display-list order. Text-only passes keep native batching. The target is
+released at the end of each pass, including snapshot rendering. Consecutive compatible solid line and
+outline-only polygon markers share a Cairo context. Each marker retains a separate stroke so overlapping
+antialiased edges keep their appearance. Style changes, arrows, dashes, fills, and native drawing end the
+run. The context is released before the marker pass ends. Native rendering remains the fallback when a Cairo
+drawing surface cannot be opened.</p>
 </section>
 <section id="widget-options">
 <span id="r-rbc-graphinst-widget-options"></span><span id="r-3a3arbc3a3agraphinstqzwidget20options"></span><h2>Widget options<a class="headerlink" href="#widget-options" title="Link to this heading">¶</a></h2>
@@ -1139,10 +1153,10 @@ and without requiring Cairo. It is available on graph, stripchart, barchart and 
 </section>
 <section id="named-fonts-and-display-scaling">
 <span id="r-rbc-graphinst-named-fonts-and-display-scaling"></span><span id="r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"></span><h2>Named fonts and display scaling<a class="headerlink" href="#named-fonts-and-display-scaling" title="Link to this heading">¶</a></h2>
-<p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>,
-pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
-text-marker geometry and element value labels. This includes named pens and active pens. No explicit
-graph or component reconfiguration is needed.</p>
+<p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>, pending
+idle work refreshes graph and axis titles, tick labels, legends (including external legends), text-marker
+geometry and element value labels. This includes named pens and active pens. No explicit graph or component
+reconfiguration is needed.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">font</span><span class="w"> </span>create<span class="w"> </span>PlotFont<span class="w"> </span><span class="o">-</span>family<span class="w"> </span>Helvetica<span class="w"> </span><span class="o">-</span>size<span class="w"> </span><span class="mi">10</span>
 <span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>tickfont<span class="w"> </span>PlotFont
 <span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>font<span class="w"> </span>PlotFont
@@ -1150,40 +1164,40 @@ graph or component reconfiguration is needed.</p>
 <span class="k">update</span><span class="w"> </span>idletasks
 </pre></div>
 </div>
-<p>Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly
-configured axis limits. Automatic tick placement can change to fit the new text dimensions.</p>
-<p>This notification handles font resources, not automatic resizing of every pixel-valued option.
-Explicit pixel sizes remain pixels. Physical screen distances are converted through Tk when configured;
-changing <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">scaling</span></code> does not promise to rescale every existing graph option. Configure application
-scaling before creating widgets. Toolbar icon and spacing adaptation is separate from this core behavior.</p>
+<p>Font changes invalidate graph layout and buffered drawing. They do not change data or explicitly configured
+axis limits. Automatic tick placement can change to fit the new text dimensions.</p>
+<p>This notification handles font resources, not automatic resizing of every pixel-valued option. Explicit pixel
+sizes remain pixels. Physical screen distances are converted through Tk when configured; changing <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">scaling</span></code>
+does not promise to rescale every existing graph option. Configure application scaling before creating
+widgets. Toolbar icon and spacing adaptation is separate from this core behavior.</p>
 </section>
 <section id="numeric-values-and-expressions">
 <span id="r-rbc-graphinst-numeric-values-and-expressions"></span><span id="r-3a3arbc3a3agraphinstqznumeric20values20and20expressions"></span><h2>Numeric values and expressions<a class="headerlink" href="#numeric-values-and-expressions" title="Link to this heading">¶</a></h2>
-<p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric
-expression, or when each list item accepts one. Integer expressions must produce integer results;
-numeric expressions may produce floating-point results. The option’s range and domain rules still apply.</p>
-<p>Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
-lists, and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically
-evaluate arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair
-<code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk pixel distances rather than the legend’s integer expressions.</p>
+<p>Expression support is option-specific. The option tables say when a value accepts a Tcl numeric expression, or
+when each list item accepts one. Integer expressions must produce integer results; numeric expressions may
+produce floating-point results. The option’s range and domain rules still apply.</p>
+<p>Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash lists,
+and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically evaluate
+arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair <code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk
+pixel distances rather than the legend’s integer expressions.</p>
 <p>Brace an expression to pass it to Rbc without Tcl substituting it first:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>acos<span class="k">(</span><span class="nv">-1</span><span class="k">)}</span>
 <span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{</span>@10<span class="o">+</span><span class="nv">5</span>,20<span class="o">+</span><span class="mi">10</span><span class="k">}</span>
 </pre></div>
 </div>
-<p>For list options, each expression must be one list item. Use inner braces around expressions containing
-spaces; the outer braces delimit the entire list:</p>
+<p>For list options, each expression must be one list item. Use inner braces around expressions containing spaces;
+the outer braces delimit the entire list:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="k">{</span><span class="nv">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
 <span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}}</span>
 </pre></div>
 </div>
-<p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division,
-while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code> produces a fraction. Tcl expression functions and substitutions follow normal Tcl
-expression rules. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
-<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced
-Tcl variable does not itself update the graph. Supply the option again to evaluate it with new values.
-An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
-not an expression; vector notifications provide its automatic updates.</p>
+<p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division, while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code>
+produces a fraction. Tcl expression functions and substitutions follow normal Tcl expression rules. Outer
+braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
+<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced Tcl
+variable does not itself update the graph. Supply the option again to evaluate it with new values. An existing
+Rbc vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
+vector notifications provide its automatic updates.</p>
 <p>For an option that does not evaluate expressions, calculate the value explicitly:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>gap<span class="w"> </span><span class="mi">8</span>
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">-$gap</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">4</span><span class="k">}]]</span>
@@ -1204,30 +1218,29 @@ but the current graph core does not automatically execute it.</p>
 </section>
 <section id="graph-change-notification">
 <span id="r-rbc-graphinst-graph-change-notification"></span><span id="r-3a3arbc3a3agraphinstqzgraph20change20notification"></span><h2>Graph change notification<a class="headerlink" href="#graph-change-notification" title="Link to this heading">¶</a></h2>
-<p>Graph, barchart, stripchart, and polar widgets generate <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> when changes to the
-on-screen coordinate mapping or plotted element geometry have been processed for display.</p>
-<p>Applications can use this event to refresh information that depends on the displayed graph without
-waiting for pointer motion. Typical causes include:</p>
+<p>Graph, barchart, stripchart, and polar widgets generate <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> when changes to the on-screen
+coordinate mapping or plotted element geometry have been processed for display.</p>
+<p>Applications can use this event to refresh information that depends on the displayed graph without waiting for
+pointer motion. Typical causes include:</p>
 <ul class="simple">
 <li><p>Axis range changes, including zooming, panning, and stripchart automatic scrolling.</p></li>
 <li><p>Widget resizing or layout changes that alter the plotting area.</p></li>
 <li><p>Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed.</p></li>
 </ul>
-<p>The event is also generated for the initial mapped display. It is a notification that mapping work
-occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
-when the resulting axis limits or geometry are unchanged.</p>
+<p>The event is also generated for the initial mapped display. It is a notification that mapping work occurred,
+not a comparison of old and new coordinates: reconfiguration can generate an event even when the resulting axis
+limits or geometry are unchanged.</p>
 <section id="geometry-event-delivery-and-data">
 <span id="r-rbc-graphinst-geometry-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzgeometry20event20delivery20and20data"></span><h3>Geometry event delivery and data<a class="headerlink" href="#geometry-event-delivery-and-data" title="Link to this heading">¶</a></h3>
-<p>The event is queued on the graph widget after its on-screen display pass completes. Delivery is
-asynchronous; it does not occur immediately inside the command that changes an axis or element.</p>
-<p>Several changes handled by one display pass are combined into one notification. Changes requiring
-further display passes can produce further notifications. Applications must not assume one event
-per configuration command or data update.</p>
-<p>An unmapped widget defers notification until it can complete an on-screen display with a usable
-plotting area.</p>
-<p>No application data payload is attached to the event. Use <code class="docutils literal notranslate"><span class="pre">%W</span></code> to identify the graph and query its
-current state. Because delivery is queued, that state may include changes made after the display
-pass that queued the event.</p>
+<p>The event is queued on the graph widget after its on-screen display pass completes. Delivery is asynchronous;
+it does not occur immediately inside the command that changes an axis or element.</p>
+<p>Several changes handled by one display pass are combined into one notification. Changes requiring further
+display passes can produce further notifications. Applications must not assume one event per configuration
+command or data update.</p>
+<p>An unmapped widget defers notification until it can complete an on-screen display with a usable plotting area.</p>
+<p>No application data payload is attached to the event. Use <code class="docutils literal notranslate"><span class="pre">%W</span></code> to identify the graph and query its current
+state. Because delivery is queued, that state may include changes made after the display pass that queued the
+event.</p>
 <p>For example, this binding records the current primary axis limits:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">bind</span><span class="w"> </span>.g<span class="w"> </span><span class="o">&lt;&lt;</span>RbcGraphChanged<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">set</span><span class="w"> </span><span class="o">::</span>graphView<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>x<span class="k">]</span><span class="w"> </span>y<span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>axis<span class="w"> </span>limits<span class="w"> </span>y<span class="k">]]</span>
@@ -1237,16 +1250,15 @@ pass that queued the event.</p>
 </section>
 <section id="scope">
 <span id="r-rbc-graphinst-scope"></span><span id="r-3a3arbc3a3agraphinstqzscope"></span><h3>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> is not a notification for every repaint. Exposure or focus redraws and
-marker-only updates do not generate it unless coordinate mapping or element remapping is also
-required.</p>
-<p>Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen
-display that restores or changes the screen mapping can generate it normally.</p>
-<p>The event does not reposition ordinary graph markers or change the configured crosshair position.
-Applications implement any additional tracking behavior in their bindings. The graphtoolbar
-already uses this notification to refresh its enhanced crosshair annotations.</p>
-<p>Event handlers should avoid repeatedly changing axes or element data in response to the notification:
-such changes can schedule another display and another notification.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> is not a notification for every repaint. Exposure or focus redraws and marker-only
+updates do not generate it unless coordinate mapping or element remapping is also required.</p>
+<p>Temporary mappings used for PostScript output do not generate this event. A subsequent on-screen display that
+restores or changes the screen mapping can generate it normally.</p>
+<p>The event does not reposition ordinary graph markers or change the configured crosshair position. Applications
+implement any additional tracking behavior in their bindings. The graphtoolbar already uses this notification
+to refresh its enhanced crosshair annotations.</p>
+<p>Event handlers should avoid repeatedly changing axes or element data in response to the notification: such
+changes can schedule another display and another notification.</p>
 </section>
 </section>
 <section id="axis-change-notifications">
@@ -1258,17 +1270,17 @@ such changes can schedule another display and another notification.</p>
 </ul>
 <section id="axis-event-delivery-and-data">
 <span id="r-rbc-graphinst-axis-event-delivery-and-data"></span><span id="r-3a3arbc3a3agraphinstqzaxis20event20delivery20and20data"></span><h3>Axis event delivery and data<a class="headerlink" href="#axis-event-delivery-and-data" title="Link to this heading">¶</a></h3>
-<p>Both events are queued on the graph after an on-screen display pass with a usable plotting area.
-An unmapped graph defers delivery until it can display. Each event combines all affected axes from that
-display pass; several commands before a redraw can therefore produce one event. Changes followed by a
-return to the previously displayed limits before redraw do not produce a limits-change event.</p>
+<p>Both events are queued on the graph after an on-screen display pass with a usable plotting area. An unmapped
+graph defers delivery until it can display. Each event combines all affected axes from that display pass;
+several commands before a redraw can therefore produce one event. Changes followed by a return to the
+previously displayed limits before redraw do not produce a limits-change event.</p>
 <p><code class="docutils literal notranslate"><span class="pre">%W</span></code> identifies the graph and <code class="docutils literal notranslate"><span class="pre">%d</span></code> is a Tcl list of axis names. Each name appears once; ordering is
-unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the
-first display after creating an axis, announce its limits through both events. Deleted axes are skipped
-when building the notification; deletion itself is not an axis-change notification.</p>
+unspecified. Hidden axes and named axes outside the margins are included. Initial display, and the first
+display after creating an axis, announce its limits through both events. Deleted axes are skipped when building
+the notification; deletion itself is not an axis-change notification.</p>
 <p>The payload identifies affected axes, not an old/new snapshot. Query the graph for current limits and
-configuration. Because delivery is asynchronous, the current state may be newer than the display that
-queued the event, and an axis may have been deleted in the meantime.</p>
+configuration. Because delivery is asynchronous, the current state may be newer than the display that queued
+the event, and an axis may have been deleted in the meantime.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>RecordAxisState<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>axes<span class="k">}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">foreach</span><span class="w"> </span>axis<span class="w"> </span><span class="nv">$axes</span><span class="w"> </span><span class="k">{</span>
 <span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="k">{</span><span class="nv">$axis</span><span class="w"> </span><span class="nv">ni</span><span class="w"> </span><span class="k">[</span><span class="nv">$graph</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>names<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
@@ -1285,7 +1297,7 @@ these events. A later screen display compares the effective limits with the prev
 changes inside fixed bounds, marker updates, hover highlighting, and ordinary repainting do not generate axis
 events unless an axis is configured or its effective limits change.</p>
 <p>These events do not report every change in tick-label placement or screen geometry. Use <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code>
-for mapping and layout updates, including resizing without changed numeric limits.  Log/linear switching is
+for mapping and layout updates, including resizing without changed numeric limits. Log/linear switching is
 always covered by <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code>, but only generates <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> if the resulting numeric
 bounds change. Logarithmic bounds are reported in data units, just as by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>.</p>
 <hr class="docutils" />

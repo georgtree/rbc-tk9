@@ -87,9 +87,9 @@ the last option affecting a coordinate wins.</p>
 <code class="docutils literal notranslate"><span class="pre">-data</span></code> later restores a coherent paired representation.</p>
 <section id="parameter-mapping">
 <span id="r-rbc-lineelement-parameter-mapping"></span><span id="r-3a3arbc3a3alineelementqzparameter20mapping"></span><h3>Parameter mapping<a class="headerlink" href="#parameter-mapping" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">-param</span></code> associates one additional real parameter value with each element data point. It is intended for parametric
-data where the plotted X/Y coordinates alone do not identify the independent variable, for example time, frequency,
-bias voltage, or another sweep quantity.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-param</span></code> associates one additional real parameter value with each element data point. It is intended for
+parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
+time, frequency, bias voltage, or another sweep quantity.</p>
 <p>The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>sweep<span class="w"> </span>xValues<span class="w"> </span>yValues
 
@@ -599,10 +599,10 @@ precedence over <code class="docutils literal notranslate"><span class="pre">-yl
 using <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">e</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, or <code class="docutils literal notranslate"><span class="pre">G</span></code>. Dynamic width or precision using <code class="docutils literal notranslate"><span class="pre">*</span></code> is not permitted.</p>
 <section id="value-label-position">
 <span id="r-rbc-lineelement-value-label-position"></span><span id="r-3a3arbc3a3alineelementqzvalue2dlabel20position"></span><h3>Value-label position<a class="headerlink" href="#value-label-position" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> moves the label anchor by signed integer pixels: positive X moves right,
-positive Y moves down. The default is <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. Directions stay the same with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and
-<code class="docutils literal notranslate"><span class="pre">-valuerotate</span></code>; <code class="docutils literal notranslate"><span class="pre">-valueanchor</span></code> still controls text alignment. The offset is measured from the
-existing label position, not from the symbol edge.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> moves the label anchor by signed integer pixels: positive X moves right, positive Y
+moves down. The default is <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. Directions stay the same with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuerotate</span></code>;
+<code class="docutils literal notranslate"><span class="pre">-valueanchor</span></code> still controls text alignment. The offset is measured from the existing label position, not from
+the symbol edge.</p>
 <p>This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
 pens. It works with <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, in both renderers and PostScript output.
 PostScript uses the offset before page scaling. Source coordinates passed to callbacks do not change.</p>
@@ -679,12 +679,12 @@ PostScript. For an open polar arc, <code class="docutils literal notranslate"><s
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areaclose<span class="w"> </span>origin<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
 </pre></div>
 </div>
-<p>Chord and origin fills align with the mapped trace without the historical baseline pixel offset.
-Origin closure needs at least two mapped points; other modes need at least three. Origin filling is
-omitted when either mapped axis is logarithmic, since zero has no logarithmic coordinate.
-Existing restrictions on discontinuous traces remain. Self-intersecting curves retain the renderer’s
-fill rule; origin closure does not mean filling between successive turns of a spiral.
-Existing PostScript limitations for image tiles are unchanged.</p>
+<p>Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Origin
+closure needs at least two mapped points; other modes need at least three. Origin filling is omitted when
+either mapped axis is logarithmic, since zero has no logarithmic coordinate.  Existing restrictions on
+discontinuous traces remain. Self-intersecting curves retain the renderer’s fill rule; origin closure does not
+mean filling between successive turns of a spiral.  Existing PostScript limitations for image tiles are
+unchanged.</p>
 <p>Area filling is enabled by either <code class="docutils literal notranslate"><span class="pre">-areapattern</span></code> or <code class="docutils literal notranslate"><span class="pre">-areatile</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-areapattern</span></code> accepts:</p>
 <ul class="simple">
@@ -697,26 +697,26 @@ Existing PostScript limitations for image tiles are unchanged.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> and in SVG output.
-It accepts a finite number from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).
-Intermediate values blend the fill with the content already drawn beneath it. It does not
-change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha.
-An invisible fill remains configured and does not affect element data or closest searches.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> and in SVG output.  It
+accepts a finite number from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).  Intermediate values blend the
+fill with the content already drawn beneath it. It does not change the trace, symbols, stipples, or image
+tiles; photo tiles use their own pixel alpha.  An invisible fill remains configured and does not affect element
+data or closest searches.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.g configure -renderer cairo
 .g element configure signal -areapattern solid -areaforeground blue -areaopacity 0.3
 </pre></div>
 </div>
-<p><strong>Native renderer limitation:</strong> <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> accepts but ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>;
-solid fills remain opaque, including at <code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Native image tiles use a binary transparency
-mask and do not provide full alpha blending. PostScript output also ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>
-and retains opaque solid fills. Switching to Cairo restores the configured opacity.</p>
+<p><strong>Native renderer limitation:</strong> <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> accepts but ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>; solid fills remain
+opaque, including at <code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Native image tiles use a binary transparency mask and do not provide full alpha
+blending. PostScript output also ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> and retains opaque solid fills. Switching to Cairo
+restores the configured opacity.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code> specifies an Rbc tile/image used to fill the area. An empty value disables the tile.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting.
-Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.
-An empty <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns.
-Photo tiles align to the toplevel window origin and preserve their alpha, including partial transparency.
-Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
-the underlying pattern. Recreating the image with the same name restores the tile.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting.  Stipple
+pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
+<code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns.  Photo tiles align to the
+toplevel window origin and preserve their alpha, including partial transparency.  Image edits and resizing
+refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern. Recreating the
+image with the same name restores the tile.</p>
 <p>Non-photo image tiles retain native rendering. Solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>
 use Cairo with the native GC color. Native photo tiles retain their existing transparency-mask behavior.</p>
 <p>The fill polygon follows the mapped line and uses the closure selected by <code class="docutils literal notranslate"><span class="pre">-areaclose</span></code>.</p>

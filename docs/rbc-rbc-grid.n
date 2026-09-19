@@ -18,10 +18,6 @@ GRAPHINST grid
 .PP
 The grid draws horizontal and vertical lines across the plotting area at axis tick positions\&.
 .PP
-The grid follows the graph's -renderer and -antialias settings\&. Cairo preserves its axis mappings,
-major/minor tick selection, dash pattern, and color\&. A zero -linewidth remains a one-pixel hairline\&.
-Grid labels and all other text remain native\&.
-.PP
 For example:
 .PP
 .RS 4n
@@ -33,6 +29,10 @@ graph \&.g
 .PP
 The grid is a single component of the graph\&. Unlike elements, markers, or pens, there are no named grid
 objects\&.
+.PP
+The grid follows the graph's -renderer and -antialias settings\&. Cairo preserves its axis mappings,
+major/minor tick selection, dash pattern, and color\&. A zero -linewidth remains a one-pixel hairline\&.  Grid
+labels and all other text remain native\&.
 .SH "GRID AXES"
 .PP
 -mapx and -mapy select the axes whose tick positions are used to generate the grid\&.

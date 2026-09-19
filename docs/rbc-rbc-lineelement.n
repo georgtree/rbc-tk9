@@ -80,9 +80,9 @@ Configuring -x or -y separately invalidates the retained paired -data representa
 -data later restores a coherent paired representation\&.
 .SS "PARAMETER MAPPING"
 .PP
--param associates one additional real parameter value with each element data point\&. It is intended for parametric
-data where the plotted X/Y coordinates alone do not identify the independent variable, for example time, frequency,
-bias voltage, or another sweep quantity\&.
+-param associates one additional real parameter value with each element data point\&. It is intended for
+parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
+time, frequency, bias voltage, or another sweep quantity\&.
 .PP
 The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
 .PP
@@ -632,10 +632,10 @@ Value-label appearance is controlled by:
 using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
 .SS "VALUE-LABEL POSITION"
 .PP
--valueoffset {dx dy} moves the label anchor by signed integer pixels: positive X moves right,
-positive Y moves down\&. The default is {0 0}\&. Directions stay the same with -invertxy and
--valuerotate; -valueanchor still controls text alignment\&. The offset is measured from the
-existing label position, not from the symbol edge\&.
+-valueoffset {dx dy} moves the label anchor by signed integer pixels: positive X moves right, positive Y
+moves down\&. The default is {0 0}\&. Directions stay the same with -invertxy and -valuerotate;
+-valueanchor still controls text alignment\&. The offset is measured from the existing label position, not from
+the symbol edge\&.
 .PP
 This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
 pens\&. It works with -valueformat and -valuecommand, in both renderers and PostScript output\&.
@@ -748,12 +748,12 @@ PostScript\&. For an open polar arc, chord fills a segment and origin fills a se
 .fi
 .RE
 .PP
-Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.
-Origin closure needs at least two mapped points; other modes need at least three\&. Origin filling is
-omitted when either mapped axis is logarithmic, since zero has no logarithmic coordinate\&.
-Existing restrictions on discontinuous traces remain\&. Self-intersecting curves retain the renderer's
-fill rule; origin closure does not mean filling between successive turns of a spiral\&.
-Existing PostScript limitations for image tiles are unchanged\&.
+Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.  Origin
+closure needs at least two mapped points; other modes need at least three\&. Origin filling is omitted when
+either mapped axis is logarithmic, since zero has no logarithmic coordinate\&.  Existing restrictions on
+discontinuous traces remain\&. Self-intersecting curves retain the renderer's fill rule; origin closure does not
+mean filling between successive turns of a spiral\&.  Existing PostScript limitations for image tiles are
+unchanged\&.
 .PP
 Area filling is enabled by either -areapattern or -areatile\&.
 .PP
@@ -778,11 +778,11 @@ For example:
 .fi
 .RE
 .PP
--areaopacity controls solid area fills (-areapattern solid) with -renderer cairo and in SVG output\&.
-It accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&.
-Intermediate values blend the fill with the content already drawn beneath it\&. It does not
-change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha\&.
-An invisible fill remains configured and does not affect element data or closest searches\&.
+-areaopacity controls solid area fills (-areapattern solid) with -renderer cairo and in SVG output\&.  It
+accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&.  Intermediate values blend the
+fill with the content already drawn beneath it\&. It does not change the trace, symbols, stipples, or image
+tiles; photo tiles use their own pixel alpha\&.  An invisible fill remains configured and does not affect element
+data or closest searches\&.
 .PP
 .RS 4n
 .nf
@@ -791,19 +791,19 @@ An invisible fill remains configured and does not affect element data or closest
 .fi
 .RE
 .PP
-\fBNative renderer limitation:\fP -renderer native accepts but ignores -areaopacity;
-solid fills remain opaque, including at 0\&.0\&. Native image tiles use a binary transparency
-mask and do not provide full alpha blending\&. PostScript output also ignores -areaopacity
-and retains opaque solid fills\&. Switching to Cairo restores the configured opacity\&.
+\fBNative renderer limitation:\fP -renderer native accepts but ignores -areaopacity; solid fills remain
+opaque, including at 0\&.0\&. Native image tiles use a binary transparency mask and do not provide full alpha
+blending\&. PostScript output also ignores -areaopacity and retains opaque solid fills\&. Switching to Cairo
+restores the configured opacity\&.
 .PP
 -areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
 .PP
-With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&.
-Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge\&.
-An empty -areabackground leaves gaps transparent\&. Image tiles take precedence over patterns\&.
-Photo tiles align to the toplevel window origin and preserve their alpha, including partial transparency\&.
-Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
-the underlying pattern\&. Recreating the image with the same name restores the tile\&.
+With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&.  Stipple
+pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge\&.  An empty
+-areabackground leaves gaps transparent\&. Image tiles take precedence over patterns\&.  Photo tiles align to the
+toplevel window origin and preserve their alpha, including partial transparency\&.  Image edits and resizing
+refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern\&. Recreating the
+image with the same name restores the tile\&.
 .PP
 Non-photo image tiles retain native rendering\&. Solid/stippled areas with an empty -areaforeground
 use Cairo with the native GC color\&. Native photo tiles retain their existing transparency-mask behavior\&.

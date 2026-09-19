@@ -84,9 +84,7 @@ screen location\&.
 modify the crosshair -position\&. Applications can use this event to update coordinate readouts or other
 annotations without waiting for a <Motion> event\&.
 .PP
-The graphtoolbar provides this behavior automatically for its enhanced current and closest
-modes\&. Current-position annotations follow the physical pointer, while closest-point annotations are
-recalculated from the current plotted data\&.
+The \fIgraphtoolbar\fP provides this behavior automatically for its enhanced current and closest modes\&. Current-position annotations follow the physical pointer, while closest-point annotations are recalculated from the current plotted data\&.
 .SH "SHOWING AND HIDING CROSSHAIRS"
 .PP
 -hide controls whether the crosshairs are enabled\&. Actual drawing also depends on the configured position\&.

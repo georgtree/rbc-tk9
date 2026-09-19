@@ -6,9 +6,9 @@ namespace eval ::rbc::AXIS {
     }
 
     variable _ruff_preamble {
-        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings.
-        Cairo preserves their mapped geometry, color, width, and projecting caps, including axes in margins.
-        A zero `-linewidth` hides strokes. Tick labels, titles, and relief backgrounds remain native.
+        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings.  Cairo preserves their
+        mapped geometry, color, width, and projecting caps, including axes in margins.  A zero `-linewidth` hides
+        strokes. Tick labels, titles, and relief backgrounds remain native.
 
         Commands in this namespace document operations accepted by the `axis` component of a graph, barchart,
         stripchart, or polar widget.
@@ -29,19 +29,19 @@ namespace eval ::rbc::AXIS {
 
         ## Virtual axes
         Every graph widget initially contains four axes named `x`, `y`, `x2`, and `y2`. The `x` and `y` axes are the
-        primary axes and are displayed by default. The secondary `x2` and `y2` axes are created on the opposite
-        margins and are hidden by default.
+        primary axes and are displayed by default. The secondary `x2` and `y2` axes are created on the opposite margins
+        and are hidden by default.
 
         Additional axes may be created with `AXIS create`:
         ```tcl
         .g axis create current -title "Current"
         ```
 
-        A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it
-        may later be assigned to one of the graph margins with the appropriate margin-axis `use` operation.
+        A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it may
+        later be assigned to one of the graph margins with the appropriate margin-axis `use` operation.
 
-        An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the
-        same axis cannot subsequently be used as the opposite type.
+        An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the same
+        axis cannot subsequently be used as the opposite type.
 
         More than one axis may be displayed in the same margin.
 
@@ -1245,8 +1245,8 @@ namespace eval ::rbc::ELEMENT {
         # A selected line or Polar element with a valid `-param` mapping additionally reports `param`.
         # A selected bar element additionally reports its mapped rectangle geometry. A selected element in a polar
         # widget additionally reports `radius` and `angle`; in Smith representation it also reports Gamma, normalized
-        # and physical impedance, normalized and physical admittance, and `z0`. See [Polar elements][::rbc::POLARELEMENT] for the complete
-        # Polar/Smith result set.
+        # and physical impedance, normalized and physical admittance, and `z0`. See
+        # [Polar elements][::rbc::POLARELEMENT] for the complete Polar/Smith result set.
         # x - X coordinate in window coordinates.
         # y - Y coordinate in window coordinates.
         # varName - name of the Tcl array in which result information is stored.
@@ -1415,9 +1415,9 @@ namespace eval ::rbc::LINEELEMENT {
         `-data` later restores a coherent paired representation.
 
         ### Parameter mapping
-        `-param` associates one additional real parameter value with each element data point. It is intended for parametric
-        data where the plotted X/Y coordinates alone do not identify the independent variable, for example time, frequency,
-        bias voltage, or another sweep quantity.
+        `-param` associates one additional real parameter value with each element data point. It is intended for
+        parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
+        time, frequency, bias voltage, or another sweep quantity.
 
         The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
         ```tcl
@@ -1937,7 +1937,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-valuecolor color`   | Sets the label color. The default is black.                                          |
         | `-valuefont font`     | Sets the label font.                                                                 |
         | `-valuecommand cmd`   | Formats value labels with a Tcl command prefix. The default is empty.                |
-        | `-valueoffset {dx dy}` | Moves the label anchor by signed integer pixels. Default: `{0 0}`. |
+        | `-valueoffset {dx dy}` | Moves the label anchor by signed integer pixels. Default: `{0 0}`.                  |
         | `-valueformat format` | Sets the printf-style floating-point format. The default is `%g`.                    |
         | `-valuerotate angle`  | Rotates the label by the specified angle in degrees. The default is `0.0`.           |
         | `-valueshadow shadow` | Specifies an optional text shadow. An empty value disables the shadow.               |
@@ -1963,11 +1963,10 @@ namespace eval ::rbc::LINEELEMENT {
         using `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`. Dynamic width or precision using `*` is not permitted.
 
         ### Value-label position
-
-        `-valueoffset {dx dy}` moves the label anchor by signed integer pixels: positive X moves right,
-        positive Y moves down. The default is `{0 0}`. Directions stay the same with `-invertxy` and
-        `-valuerotate`; `-valueanchor` still controls text alignment. The offset is measured from the
-        existing label position, not from the symbol edge.
+        `-valueoffset {dx dy}` moves the label anchor by signed integer pixels: positive X moves right, positive Y
+        moves down. The default is `{0 0}`. Directions stay the same with `-invertxy` and `-valuerotate`;
+        `-valueanchor` still controls text alignment. The offset is measured from the existing label position, not from
+        the symbol edge.
 
         This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
         pens. It works with `-valueformat` and `-valuecommand`, in both renderers and PostScript output.
@@ -1979,7 +1978,6 @@ namespace eval ::rbc::LINEELEMENT {
         ```
 
         ### Custom value-label text
-
         `-valuecommand` supplies a Tcl command prefix for value labels. It is available on line, strip, Polar and
         bar elements and on their named pens, including active and weighted-style pens. The option database name
         and class are `valueCommand` and `ValueCommand`. The default is empty.
@@ -2059,12 +2057,12 @@ namespace eval ::rbc::LINEELEMENT {
         .p element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
         ```
 
-        Chord and origin fills align with the mapped trace without the historical baseline pixel offset.
-        Origin closure needs at least two mapped points; other modes need at least three. Origin filling is
-        omitted when either mapped axis is logarithmic, since zero has no logarithmic coordinate.
-        Existing restrictions on discontinuous traces remain. Self-intersecting curves retain the renderer's
-        fill rule; origin closure does not mean filling between successive turns of a spiral.
-        Existing PostScript limitations for image tiles are unchanged.
+        Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Origin
+        closure needs at least two mapped points; other modes need at least three. Origin filling is omitted when
+        either mapped axis is logarithmic, since zero has no logarithmic coordinate.  Existing restrictions on
+        discontinuous traces remain. Self-intersecting curves retain the renderer's fill rule; origin closure does not
+        mean filling between successive turns of a spiral.  Existing PostScript limitations for image tiles are
+        unchanged.
 
         Area filling is enabled by either `-areapattern` or `-areatile`.
 
@@ -2080,30 +2078,30 @@ namespace eval ::rbc::LINEELEMENT {
         .g element configure signal -areapattern solid -areaforeground lightblue
         ```
 
-        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo` and in SVG output.
-        It accepts a finite number from `0.0` (invisible) to `1.0` (opaque, the default).
-        Intermediate values blend the fill with the content already drawn beneath it. It does not
-        change the trace, symbols, stipples, or image tiles; photo tiles use their own pixel alpha.
-        An invisible fill remains configured and does not affect element data or closest searches.
+        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo` and in SVG output.  It
+        accepts a finite number from `0.0` (invisible) to `1.0` (opaque, the default).  Intermediate values blend the
+        fill with the content already drawn beneath it. It does not change the trace, symbols, stipples, or image
+        tiles; photo tiles use their own pixel alpha.  An invisible fill remains configured and does not affect element
+        data or closest searches.
 
         ```
         .g configure -renderer cairo
         .g element configure signal -areapattern solid -areaforeground blue -areaopacity 0.3
         ```
 
-        **Native renderer limitation:** `-renderer native` accepts but ignores `-areaopacity`;
-        solid fills remain opaque, including at `0.0`. Native image tiles use a binary transparency
-        mask and do not provide full alpha blending. PostScript output also ignores `-areaopacity`
-        and retains opaque solid fills. Switching to Cairo restores the configured opacity.
+        **Native renderer limitation:** `-renderer native` accepts but ignores `-areaopacity`; solid fills remain
+        opaque, including at `0.0`. Native image tiles use a binary transparency mask and do not provide full alpha
+        blending. PostScript output also ignores `-areaopacity` and retains opaque solid fills. Switching to Cairo
+        restores the configured opacity.
 
         `-areatile` specifies an Rbc tile/image used to fill the area. An empty value disables the tile.
 
-        With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting.
-        Stipple pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.
-        An empty `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns.
-        Photo tiles align to the toplevel window origin and preserve their alpha, including partial transparency.
-        Image edits and resizing refresh the displayed fill; deleting a photo removes it without enabling
-        the underlying pattern. Recreating the image with the same name restores the tile.
+        With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting.  Stipple
+        pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
+        `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns.  Photo tiles align to the
+        toplevel window origin and preserve their alpha, including partial transparency.  Image edits and resizing
+        refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern. Recreating the
+        image with the same name restores the tile.
 
         Non-photo image tiles retain native rendering. Solid/stippled areas with an empty `-areaforeground`
         use Cairo with the native GC color. Native photo tiles retain their existing transparency-mask behavior.
@@ -2773,6 +2771,7 @@ namespace eval ::rbc::POLARELEMENT {
         Polar elements use the same underlying line-rendering machinery as [LINEELEMENT]. Consequently they support
         the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
         area filling, and smoothing options.
+
         In particular, `-areaopacity` controls solid fill opacity in Cairo and SVG; native rendering and
         PostScript ignore it. See [LINEELEMENT] for the area options and renderer limitations.
 
@@ -2867,31 +2866,31 @@ namespace eval ::rbc::POLARELEMENT {
         processed in caller order and the final data-source selection determines the active mode.
 
         ## Real input coordinates
-        `-datacoordinates cartesian` (the default) interprets `-xdata` and `-ydata` as Cartesian X/Y.
-        With `-datacoordinates polar`, `-xdata` supplies theta in radians and `-ydata` supplies radius.
-        Both options accept real vectors or lists. Interleaved `-data` accepts theta/radius pairs in this mode.
+        `-datacoordinates cartesian` (the default) interprets `-xdata` and `-ydata` as Cartesian X/Y.  With
+        `-datacoordinates polar`, `-xdata` supplies theta in radians and `-ydata` supplies radius.  Both options accept
+        real vectors or lists. Interleaved `-data` accepts theta/radius pairs in this mode.
 
         ```tcl
         .p element create trace -xdata {0 1.5707963267948966} -ydata {1 2} -datacoordinates polar
         ```
 
-        Each pair is converted to `x = radius*cos(theta)`, `y = radius*sin(theta)` before mapping. Source
-        values are retained: `cget` returns the original input, and vector changes update the plotted points.
-        The shorter source determines the number of points, as with Cartesian input. Angles need not be
-        normalized. Negative radii follow the same conversion equations; non-finite pairs break the trace.
-        In Smith representation, the resulting X/Y coordinates represent Gamma.
+        Each pair is converted to `x = radius*cos(theta)`, `y = radius*sin(theta)` before mapping. Source values are
+        retained: `cget` returns the original input, and vector changes update the plotted points.  The shorter source
+        determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radii follow
+        the same conversion equations; non-finite pairs break the trace.  In Smith representation, the resulting X/Y
+        coordinates represent Gamma.
 
-        The active data source must be real pairs; complex `-cdata` requires `-datacoordinates cartesian`.
-        Error-bar data options (`-xerror`, `-yerror`, `-xhigh`, `-xlow`, `-yhigh`, `-ylow`) must be empty in
-        polar-coordinate mode. Angular/radial error bars are not supported. Invalid combinations leave the
-        existing element configuration unchanged.
+        The active data source must be real pairs; complex `-cdata` requires `-datacoordinates cartesian`.  Error-bar
+        data options (`-xerror`, `-yerror`, `-xhigh`, `-xlow`, `-yhigh`, `-ylow`) must be empty in polar-coordinate
+        mode. Angular/radial error bars are not supported. Invalid combinations leave the existing element
+        configuration unchanged.
 
-        Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest `dataFormat`
-        is `polar` for theta/radius input. Its `radius` is the geometric magnitude and its `angle` is in
-        radians, normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.
-        Interpolated results describe the selected point on the plotted Cartesian trace. For exact sample
-        searches, use `index` to retrieve the original theta/radius, including any complete turns or radius sign.
-        Smoothing, symbols, active points and PostScript all use the converted Cartesian geometry.
+        Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest `dataFormat` is
+        `polar` for theta/radius input. Its `radius` is the geometric magnitude and its `angle` is in radians,
+        normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.  Interpolated results
+        describe the selected point on the plotted Cartesian trace. For exact sample searches, use `index` to retrieve
+        the original theta/radius, including any complete turns or radius sign.  Smoothing, symbols, active points and
+        PostScript all use the converted Cartesian geometry.
 
         ## Parameter mapping
         Polar elements support the line-element `-param` option with either ordinary X/Y data or `-cdata`. The
@@ -3282,10 +3281,10 @@ namespace eval ::rbc::BARELEMENT {
     variable _ruff_preamble {
         This page documents the configuration and behavior of bar elements.
 
-        With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and
-        named pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes.
-        Bar layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders
-        and value labels retain native rendering.
+        With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and named
+        pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes.  Bar
+        layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
+        native rendering.
 
         `BARELEMENT` denotes an element whose concrete type is `BarElement`. Bar elements are the default element
         type of a `barchart` widget:
@@ -3649,7 +3648,6 @@ namespace eval ::rbc::BARELEMENT {
         `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`; dynamic width or precision using `*` is not permitted.
 
         ## Weights and styles
-
         `-weights` associates numeric weights with data points. The value may be a Tcl list or an Rbc vector.
 
         `-styles` maps ranges of those weights to named bar pens.
@@ -4429,16 +4427,15 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
-        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`.
-        Solid and stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported.
-        Mapped outline segments remain independent, as in native drawing. XOR markers remain native.
-        Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to
-        the plot; `-antialias` does not resample their pixels. Source image changes refresh the marker.
-        Bitmap markers use Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp;
-        `-antialias` affects rotated background polygons. An empty foreground uses Cairo with the native GC color.
-        Text-marker backgrounds use Cairo, including rotated edges, and clip to the plot. Text itself stays native.
-        Window and non-photo image markers keep their Tk rendering; line markers with an
-        empty `-outline` use Cairo with the native GC color.
+        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`.  Solid and
+        stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported.  Mapped outline
+        segments remain independent, as in native drawing. XOR markers remain native.  Photo image markers use Cairo
+        alpha compositing with existing placement and scaling. They clip to the plot; `-antialias` does not resample
+        their pixels. Source image changes refresh the marker.  Bitmap markers use Cairo with existing scaling,
+        rotation, and masks. Their mapped pixels stay sharp; `-antialias` affects rotated background polygons. An empty
+        foreground uses Cairo with the native GC color.  Text-marker backgrounds use Cairo, including rotated edges,
+        and clip to the plot. Text itself stays native.  Window and non-photo image markers keep their Tk rendering;
+        line markers with an empty `-outline` use Cairo with the native GC color.
 
         Rbc provides six marker types:
 
@@ -4802,8 +4799,8 @@ namespace eval ::rbc::MARKER {
         `a` specifies the distance from the arrowhead neck to its tip, `b` specifies the distance from the trailing
         points to the tip, and `c` specifies the distance from the outside edge of the line to the trailing points.
 
-        The arrowhead uses the line marker's `-outline` color. The line shaft is shortened to the neck of the
-        arrowhead so that it does not protrude through the filled arrowhead.
+        The arrowhead uses the line marker's `-outline` color. The line shaft is shortened to the neck of the arrowhead
+        so that it does not protrude through the filled arrowhead.
 
         Screen-distance units accepted by Tk may also be used:
         ```tcl
@@ -5131,10 +5128,6 @@ namespace eval ::rbc::LEGEND {
     }
 
     variable _ruff_preamble {
-        With `-renderer cairo`, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo.
-        They follow `-antialias` and the normal element pen, including dash colors and stipples.
-        Swatch stipples restart at the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external legend windows.
-
         Commands in this namespace document the graph legend.
 
         `LEGEND` is used below as a placeholder for:
@@ -5157,6 +5150,11 @@ namespace eval ::rbc::LEGEND {
 
         The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
         objects.
+
+        With `-renderer cairo`, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo.  They
+        follow `-antialias` and the normal element pen, including dash colors and stipples.  Swatch stipples restart at
+        the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external
+        legend windows.
 
         ## Legend entries
         Legend entries correspond to graph elements. The element's `-label` option supplies the text displayed in the
@@ -5466,10 +5464,6 @@ namespace eval ::rbc::GRID {
 
         The grid draws horizontal and vertical lines across the plotting area at axis tick positions.
 
-        The grid follows the graph's `-renderer` and `-antialias` settings. Cairo preserves its axis mappings,
-        major/minor tick selection, dash pattern, and color. A zero `-linewidth` remains a one-pixel hairline.
-        Grid labels and all other text remain native.
-
         For example:
         ```tcl
         graph .g
@@ -5478,6 +5472,10 @@ namespace eval ::rbc::GRID {
 
         The grid is a single component of the graph. Unlike elements, markers, or pens, there are no named grid
         objects.
+
+        The grid follows the graph's `-renderer` and `-antialias` settings. Cairo preserves its axis mappings,
+        major/minor tick selection, dash pattern, and color. A zero `-linewidth` remains a one-pixel hairline.  Grid
+        labels and all other text remain native.
 
         ## Grid axes
         `-mapx` and `-mapy` select the axes whose tick positions are used to generate the grid.
@@ -5505,7 +5503,6 @@ namespace eval ::rbc::GRID {
         Grid lines normally follow both major and minor axis ticks.
 
         The `-minor` option controls whether lines are also drawn at minor tick positions:
-
         ```tcl
         .g grid configure -minor no
         ```
@@ -5730,8 +5727,8 @@ namespace eval ::rbc::CROSSHAIRS {
         modify the crosshair `-position`. Applications can use this event to update coordinate readouts or other
         annotations without waiting for a `<Motion>` event.
 
-        The graphtoolbar provides this behavior automatically for its enhanced `current` and `closest`
-        modes. Current-position annotations follow the physical pointer, while closest-point annotations are
+        The [graphtoolbar] provides this behavior automatically for its enhanced `current` and `closest`\
+        modes. Current-position annotations follow the physical pointer, while closest-point annotations are\
         recalculated from the current plotted data.
 
         ## Showing and hiding crosshairs

@@ -1070,8 +1070,8 @@ Tcl array varName using the common keys name, index, x, y, and dist\&.
 A selected line or Polar element with a valid -param mapping additionally reports param\&.
 A selected bar element additionally reports its mapped rectangle geometry\&. A selected element in a polar
 widget additionally reports radius and angle; in Smith representation it also reports Gamma, normalized
-and physical impedance, normalized and physical admittance, and z0\&. See \fIPolar elements\fP for the complete
-Polar/Smith result set\&.
+and physical impedance, normalized and physical admittance, and z0\&. See
+\fIPolar elements\fP for the complete Polar/Smith result set\&.
 .RS 4n
 \fBELEMENT closest\fP \fIx y varName ?option value \&.\&.\&.? ?--? ?elemName \&.\&.\&.?\fP
 .br

@@ -56,8 +56,8 @@ element type of a <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolq
 <code class="docutils literal notranslate"><span class="pre">show</span></code> are documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-namespaceqz3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
 <p>Polar elements use the same underlying line-rendering machinery as <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Consequently they support
 the normal line-element data, axis mapping, pens, styles, symbols, error bars, value labels, trace drawing,
-area filling, and smoothing options.
-In particular, <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fill opacity in Cairo and SVG; native rendering and
+area filling, and smoothing options.</p>
+<p>In particular, <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid fill opacity in Cairo and SVG; native rendering and
 PostScript ignore it. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the area options and renderer limitations.</p>
 <p>Polar elements additionally support direct complex-vector data through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> and can interpret complex
 values as reflection coefficient, impedance, or admittance.</p>
@@ -137,27 +137,27 @@ processed in caller order and the final data-source selection determines the act
 </section>
 <section id="real-input-coordinates">
 <span id="r-rbc-polarelement-real-input-coordinates"></span><span id="r-3a3arbc3a3apolarelementqzreal20input20coordinates"></span><h2>Real input coordinates<a class="headerlink" href="#real-input-coordinates" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code> (the default) interprets <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> as Cartesian X/Y.
-With <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> supplies theta in radians and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> supplies radius.
-Both options accept real vectors or lists. Interleaved <code class="docutils literal notranslate"><span class="pre">-data</span></code> accepts theta/radius pairs in this mode.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code> (the default) interprets <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> as Cartesian X/Y.  With
+<code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> supplies theta in radians and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> supplies radius.  Both options accept
+real vectors or lists. Interleaved <code class="docutils literal notranslate"><span class="pre">-data</span></code> accepts theta/radius pairs in this mode.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">1.5707963267948966</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>datacoordinates<span class="w"> </span>polar
 </pre></div>
 </div>
-<p>Each pair is converted to <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">radius*cos(theta)</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">radius*sin(theta)</span></code> before mapping. Source
-values are retained: <code class="docutils literal notranslate"><span class="pre">cget</span></code> returns the original input, and vector changes update the plotted points.
-The shorter source determines the number of points, as with Cartesian input. Angles need not be
-normalized. Negative radii follow the same conversion equations; non-finite pairs break the trace.
-In Smith representation, the resulting X/Y coordinates represent Gamma.</p>
-<p>The active data source must be real pairs; complex <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> requires <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code>.
-Error-bar data options (<code class="docutils literal notranslate"><span class="pre">-xerror</span></code>, <code class="docutils literal notranslate"><span class="pre">-yerror</span></code>, <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code>, <code class="docutils literal notranslate"><span class="pre">-xlow</span></code>, <code class="docutils literal notranslate"><span class="pre">-yhigh</span></code>, <code class="docutils literal notranslate"><span class="pre">-ylow</span></code>) must be empty in
-polar-coordinate mode. Angular/radial error bars are not supported. Invalid combinations leave the
-existing element configuration unchanged.</p>
-<p>Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest <code class="docutils literal notranslate"><span class="pre">dataFormat</span></code>
-is <code class="docutils literal notranslate"><span class="pre">polar</span></code> for theta/radius input. Its <code class="docutils literal notranslate"><span class="pre">radius</span></code> is the geometric magnitude and its <code class="docutils literal notranslate"><span class="pre">angle</span></code> is in
-radians, normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.
-Interpolated results describe the selected point on the plotted Cartesian trace. For exact sample
-searches, use <code class="docutils literal notranslate"><span class="pre">index</span></code> to retrieve the original theta/radius, including any complete turns or radius sign.
-Smoothing, symbols, active points and PostScript all use the converted Cartesian geometry.</p>
+<p>Each pair is converted to <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">radius*cos(theta)</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">radius*sin(theta)</span></code> before mapping. Source values are
+retained: <code class="docutils literal notranslate"><span class="pre">cget</span></code> returns the original input, and vector changes update the plotted points.  The shorter source
+determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radii follow
+the same conversion equations; non-finite pairs break the trace.  In Smith representation, the resulting X/Y
+coordinates represent Gamma.</p>
+<p>The active data source must be real pairs; complex <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> requires <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code>.  Error-bar
+data options (<code class="docutils literal notranslate"><span class="pre">-xerror</span></code>, <code class="docutils literal notranslate"><span class="pre">-yerror</span></code>, <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code>, <code class="docutils literal notranslate"><span class="pre">-xlow</span></code>, <code class="docutils literal notranslate"><span class="pre">-yhigh</span></code>, <code class="docutils literal notranslate"><span class="pre">-ylow</span></code>) must be empty in polar-coordinate
+mode. Angular/radial error bars are not supported. Invalid combinations leave the existing element
+configuration unchanged.</p>
+<p>Closest results and value-formatting callbacks retain Cartesian X/Y coordinates. Closest <code class="docutils literal notranslate"><span class="pre">dataFormat</span></code> is
+<code class="docutils literal notranslate"><span class="pre">polar</span></code> for theta/radius input. Its <code class="docutils literal notranslate"><span class="pre">radius</span></code> is the geometric magnitude and its <code class="docutils literal notranslate"><span class="pre">angle</span></code> is in radians,
+normalized to [0,2*pi), regardless of the input angle. At the origin, angle is zero.  Interpolated results
+describe the selected point on the plotted Cartesian trace. For exact sample searches, use <code class="docutils literal notranslate"><span class="pre">index</span></code> to retrieve
+the original theta/radius, including any complete turns or radius sign.  Smoothing, symbols, active points and
+PostScript all use the converted Cartesian geometry.</p>
 </section>
 <section id="parameter-mapping">
 <span id="r-rbc-polarelement-parameter-mapping"></span><span id="r-3a3arbc3a3apolarelementqzparameter20mapping"></span><h2>Parameter mapping<a class="headerlink" href="#parameter-mapping" title="Link to this heading">¶</a></h2>

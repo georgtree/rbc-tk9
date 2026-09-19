@@ -48,9 +48,6 @@
 </pre></div>
 </div>
 <p>The grid draws horizontal and vertical lines across the plotting area at axis tick positions.</p>
-<p>The grid follows the graph’s <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings. Cairo preserves its axis mappings,
-major/minor tick selection, dash pattern, and color. A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> remains a one-pixel hairline.
-Grid labels and all other text remain native.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
 <span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>grey70<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span>dot
@@ -58,6 +55,9 @@ Grid labels and all other text remain native.</p>
 </div>
 <p>The grid is a single component of the graph. Unlike elements, markers, or pens, there are no named grid
 objects.</p>
+<p>The grid follows the graph’s <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings. Cairo preserves its axis mappings,
+major/minor tick selection, dash pattern, and color. A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> remains a one-pixel hairline.  Grid
+labels and all other text remain native.</p>
 <section id="grid-axes">
 <span id="r-rbc-grid-grid-axes"></span><span id="r-3a3arbc3a3agridqzgrid20axes"></span><h2>Grid axes<a class="headerlink" href="#grid-axes" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> select the axes whose tick positions are used to generate the grid.</p>

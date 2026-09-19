@@ -42,9 +42,9 @@
             
   <section id="graph-virtual-axis-axis-command">
 <span id="r-graph-virtual-axis-axis-command"></span><span id="r-graph20virtual20axis2060axis6020command"></span><span id="r-namespaceqz3a3arbc3a3aaxis"></span><h1>Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command<a class="headerlink" href="#graph-virtual-axis-axis-command" title="Link to this heading">¶</a></h1>
-<p>Axis lines and tick marks follow the graph’s <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings.
-Cairo preserves their mapped geometry, color, width, and projecting caps, including axes in margins.
-A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides strokes. Tick labels, titles, and relief backgrounds remain native.</p>
+<p>Axis lines and tick marks follow the graph’s <code class="docutils literal notranslate"><span class="pre">-renderer</span></code> and <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> settings.  Cairo preserves their
+mapped geometry, color, width, and projecting caps, including axes in margins.  A zero <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code> hides
+strokes. Tick labels, titles, and relief backgrounds remain native.</p>
 <p>Commands in this namespace document operations accepted by the <code class="docutils literal notranslate"><span class="pre">axis</span></code> component of a graph, barchart,
 stripchart, or polar widget.</p>
 <p><code class="docutils literal notranslate"><span class="pre">AXIS</span></code> is used below as a placeholder for:</p>
@@ -61,16 +61,16 @@ stripchart, or polar widget.</p>
 <section id="virtual-axes">
 <span id="r-rbc-axis-virtual-axes"></span><span id="r-3a3arbc3a3aaxisqzvirtual20axes"></span><h2>Virtual axes<a class="headerlink" href="#virtual-axes" title="Link to this heading">¶</a></h2>
 <p>Every graph widget initially contains four axes named <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">x2</span></code>, and <code class="docutils literal notranslate"><span class="pre">y2</span></code>. The <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> axes are the
-primary axes and are displayed by default. The secondary <code class="docutils literal notranslate"><span class="pre">x2</span></code> and <code class="docutils literal notranslate"><span class="pre">y2</span></code> axes are created on the opposite
-margins and are hidden by default.</p>
+primary axes and are displayed by default. The secondary <code class="docutils literal notranslate"><span class="pre">x2</span></code> and <code class="docutils literal notranslate"><span class="pre">y2</span></code> axes are created on the opposite margins
+and are hidden by default.</p>
 <p>Additional axes may be created with <code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">create</span></code>:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Current&quot;</span>
 </pre></div>
 </div>
-<p>A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it
-may later be assigned to one of the graph margins with the appropriate margin-axis <code class="docutils literal notranslate"><span class="pre">use</span></code> operation.</p>
-<p>An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the
-same axis cannot subsequently be used as the opposite type.</p>
+<p>A newly created virtual axis does not have to be displayed. It may be used only for mapping elements, or it may
+later be assigned to one of the graph margins with the appropriate margin-axis <code class="docutils literal notranslate"><span class="pre">use</span></code> operation.</p>
+<p>An axis becomes an X or Y axis according to how it is first used. Once its type has been established, the same
+axis cannot subsequently be used as the opposite type.</p>
 <p>More than one axis may be displayed in the same margin.</p>
 </section>
 <section id="axis-ranges">

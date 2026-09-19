@@ -42,9 +42,6 @@
             
   <section id="graph-legend-legend-command">
 <span id="r-graph-legend-legend-command"></span><span id="r-graph20legend2060legend6020command"></span><span id="r-namespaceqz3a3arbc3a3alegend"></span><h1>Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command<a class="headerlink" href="#graph-legend-legend-command" title="Link to this heading">¶</a></h1>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo.
-They follow <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> and the normal element pen, including dash colors and stipples.
-Swatch stipples restart at the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external legend windows.</p>
 <p>Commands in this namespace document the graph legend.</p>
 <p><code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> is used below as a placeholder for:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">GRAPHINST</span><span class="w"> </span>legend
@@ -62,6 +59,10 @@ drawing attributes of that element.</p>
 </div>
 <p>The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
 objects.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo.  They
+follow <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> and the normal element pen, including dash colors and stipples.  Swatch stipples restart at
+the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external
+legend windows.</p>
 <section id="legend-entries">
 <span id="r-rbc-legend-legend-entries"></span><span id="r-3a3arbc3a3alegendqzlegend20entries"></span><h2>Legend entries<a class="headerlink" href="#legend-entries" title="Link to this heading">¶</a></h2>
 <p>Legend entries correspond to graph elements. The element’s <code class="docutils literal notranslate"><span class="pre">-label</span></code> option supplies the text displayed in the

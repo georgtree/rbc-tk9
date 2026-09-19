@@ -211,9 +211,15 @@ For example:
 .PP
 .RS 4n
 .nf
-polar \&.p -representation polar
+set polar [polar \&.p -width 600 -height 500 -representation polar]
+$polar grid on
+$polar element create trace -data {1 0 0\&.5 0\&.5 0 1 -0\&.5 0\&.5}
+$polar axis configure x -min -1 -max 1
+$polar axis configure y -min -1 -max 1
 
-\&.p element create trace -data {1 0 0\&.5 0\&.5 0 1 -0\&.5 0\&.5}
+grid $polar -sticky news
+grid columnconfigure \&. 0 -weight 1
+grid rowconfigure \&. 0 -weight 1
 .fi
 .RE
 .PP
@@ -224,6 +230,9 @@ The same Cartesian coordinates may be displayed with a Smith grid:
 \&.p configure -representation smith
 .fi
 .RE
+.PP
+Element data can be interpreted differently that rectangular coordinates, for example, as a angle/radius pair,
+or complex gamma/impedance/admittance, for more details please check \fIPOLARELEMENT\fP chapter\&.
 .SS "AUTOMATIC EQUAL-UNIT ASPECT"
 .PP
 Polar and Smith geometry requires equal physical scaling of the Cartesian X and Y dimensions\&. Otherwise a
@@ -380,7 +389,7 @@ For example:
 proc formatAngle {widget degrees} {
     return [format "%g deg" $degrees]
 }
-polar \&.p -anglemajorticks {0 45 90 135 180 225 270 315} -anglecommand formatAngle
+\&.p configure -anglemajorticks {0 45 90 135 180 225 270 315} -anglecommand formatAngle
 .fi
 .RE
 .PP
@@ -461,7 +470,7 @@ For example:
 .PP
 .RS 4n
 .nf
-\&.p configure -smithrealmajorticks {0 0\&.25 0\&.5 1 2 5 10} -smithrealminorticks {0\&.1 0\&.75 1\&.5 3} -smithimagmajorticks {0\&.25 0\&.5 1 2 5} -smithimagminorticks {0\&.1 0\&.75 1\&.5 3}
+\&.p configure -smithrealmajorticks {0 0\&.25 0\&.5 1 2 5 10} -smithrealminorticks {0\&.1 0\&.75 1\&.5 3} -smithimagmajorticks {0\&.1 0\&.25 0\&.5 1 2 5} -smithimagminorticks {0\&.15 0\&.35 0\&.75 1\&.25 1\&.5 3 4}
 .fi
 .RE
 .SS "SMITH LABELS DURING ZOOMING"
@@ -521,16 +530,18 @@ proc formatSmithImag {widget domain value} {
     return [format "b=%+g" $value]
 }
 
-polar \&.p -representation smith -smithgrid both -smithrealcommand formatSmithReal -smithimagcommand formatSmithImag
+polar \&.p -representation smith -smithgrid impedance -smithrealcommand formatSmithReal -smithimagcommand formatSmithImag
 .fi
 .RE
+.PP
+and for -smithgrid admittance:
 .PP
 Returning an empty string suppresses that label\&.
 .PP
 A formatter error raised during drawing is reported as a background Tcl error and the normal built-in label is
 retained\&.
 .PP
-The same formatter callbacks and label strings are used for window drawing and PostScript output\&.
+The same formatter callbacks and label strings are used for window drawing and SVG/PostScript output\&.
 .SS "POLAR/SMITH MAPPED AXES"
 .PP
 The Polar and Smith grids use the X and Y axes selected by the grid component:
@@ -629,76 +640,74 @@ graph \&.g -renderer cairo
 .fi
 .RE
 .PP
-Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip
-error bars, and solid, stippled, or photo-tiled line areas\&. Active traces and symbols use Cairo too\&.
-Grid lines, non-XOR line markers (including arrowheads), and polygon markers also use Cairo\&.
-Mapping, decimation, and point selection
-remain shared with native rendering\&.
+Cairo draws solid and dashed line traces, strip segments, geometric symbols, line/strip error bars, and solid,
+stippled, or photo-tiled line areas\&. Active traces and symbols use Cairo too\&. Grid lines, non-XOR line markers
+(including arrowheads), and polygon markers also use Cairo\&. Mapping, decimation, and point selection remain
+shared with native rendering\&.
 .PP
-Supported symbols are circle, square, diamond, plus, cross, splus, scross,
-triangle, and arrow\&. Their size, fill, outline, and -maxsymbols settings are preserved\&.
-Symbols remain partially visible at plot edges, including when their centers are outside\&.
-Fill passes precede outline passes, using bounded batches\&.
+Supported symbols are circle, square, diamond, plus, cross, splus, scross, triangle, and
+arrow\&. Their size, fill, outline, and -maxsymbols settings are preserved\&. Symbols remain partially visible
+at plot edges, including when their centers are outside\&. Fill passes precede outline passes, using bounded
+batches\&.
 .PP
-Error bars retain their color, cap geometry, and -showerrorbars settings\&. They are solid,
-independent of trace dashes\&. A zero error-bar width retains the native one-pixel hairline\&.
+Error bars retain their color, cap geometry, and -showerrorbars settings\&. They are solid, independent of
+trace dashes\&. A zero error-bar width retains the native one-pixel hairline\&.
 .PP
-Line areas use the existing mapped polygon and even-odd fill rule\&. Stipples repeat from the
-widget origin, with crisp pattern pixels and antialiased polygon edges\&. An empty
--areabackground leaves stipple gaps transparent; a color paints them\&. Solid fills use
--areaforeground\&. Areas are drawn before the line's traces, error bars, and symbols\&.
+Line areas use the existing mapped polygon and even-odd fill rule\&. Stipples repeat from the widget origin, with
+crisp pattern pixels and antialiased polygon edges\&. An empty -areabackground leaves stipple gaps transparent;
+a color paints them\&. Solid fills use -areaforeground\&. Areas are drawn before the line's traces, error bars,
+and symbols\&.
 .PP
-Photo tiles repeat from the toplevel window origin, matching native tile alignment\&.
-Their pixels remain sharp; -antialias controls polygon edges\&. Cairo composites photo alpha,
-including partially transparent pixels, against the existing graph contents\&. Native tiles retain
-their existing transparency-mask behavior\&. Image edits invalidate the cached element image\&.
+Photo tiles repeat from the toplevel window origin, matching native tile alignment\&. Their pixels remain sharp;
+-antialias controls polygon edges\&. Cairo composites photo alpha, including partially transparent pixels,
+against the existing graph contents\&. Native tiles retain their existing transparency-mask behavior\&. Image edits
+invalidate the cached element image\&.
 .PP
-Bar elements use Cairo for solid/stippled fills and error bars, including active bars and named pens\&.
-Existing bar modes, baselines, axes, and selection mapping are shared with native rendering\&.
-Mapped rectangles retain crisp integer edges\&. Stipples retain their widget origin and transparent or
-colored gaps\&. Tk relief borders and value labels remain native\&.
+Bar elements use Cairo for solid/stippled fills and error bars, including active bars and named pens\&. Existing
+bar modes, baselines, axes, and selection mapping are shared with native rendering\&. Mapped rectangles retain
+crisp integer edges\&. Stipples retain their widget origin and transparent or colored gaps\&. Tk relief borders and
+value labels remain native\&.
 .PP
 Legend line/strip samples, geometric symbols, and bar swatches also use Cairo, including external
 legends\&. Swatch stipples restart at the sample origin\&. Legend text, backgrounds, and borders retain native
 drawing\&. Samples use the normal pen and do not consume plot symbol limits\&.
 .PP
-Axis lines and tick marks use Cairo with the existing color, width, and projecting caps\&.
-They draw across the widget margins, independently of the plot clip\&. Axis labels, titles, and relief
-backgrounds remain native\&. A zero axis -linewidth hides strokes, as with native rendering\&.
+Axis lines and tick marks use Cairo with the existing color, width, and projecting caps\&. They draw across the
+widget margins, independently of the plot clip\&. Axis labels, titles, and relief backgrounds remain native\&. A
+zero axis -linewidth hides strokes, as with native rendering\&.
 .PP
-Non-photo image tiles retain native rendering\&. Empty -areaforeground values use Cairo with the native GC color\&.
-Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds\&.
-All text, window markers, non-photo image markers, and crosshairs retain native rendering\&.
+Non-photo image tiles retain native rendering\&. Empty -areaforeground values use Cairo with the native GC
+color\&. Text-marker backgrounds use Cairo antialiasing and plot clipping, including rotated backgrounds\&. All
+text, window markers, non-photo image markers, and crosshairs retain native rendering\&.
 .PP
-Grid and marker geometry is clipped to the plotting area\&. Marker color pairs, stipples, dash offsets,
-caps, and under/over ordering are preserved\&. Mapped segments remain independent, retaining their
-existing dash restarts\&. XOR markers keep native drawing and erase behavior\&. A line marker with an
-empty -outline also uses Cairo with its native GC color\&.
+Grid and marker geometry is clipped to the plotting area\&. Marker color pairs, stipples, dash offsets, caps, and
+under/over ordering are preserved\&. Mapped segments remain independent, retaining their existing dash
+restarts\&. XOR markers keep native drawing and erase behavior\&. A line marker with an empty -outline also uses
+Cairo with its native GC color\&.
 .PP
-Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode\&.
-As with native drawing, they use only the fill color and bypass -maxsymbols; an empty fill hides them\&.
+Symbols smaller than three mapped pixels use Cairo one-pixel fills, sharp in every antialias mode\&. As with
+native drawing, they use only the fill color and bypass -maxsymbols; an empty fill hides them\&.
 .PP
-Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling
-and mask behavior\&. Pixels stay sharp in every antialias mode\&. Active pens and -maxsymbols retain
-their existing selection rules; legend samples do not consume that limit\&. The scaled bitmap is
-converted once per pen drawing pass and reused for its selected symbols\&.
+Bitmap element symbols and their legend samples use Cairo with existing aspect-preserving scaling and mask
+behavior\&. Pixels stay sharp in every antialias mode\&. Active pens and -maxsymbols retain their existing
+selection rules; legend samples do not consume that limit\&. The scaled bitmap is converted once per pen drawing
+pass and reused for its selected symbols\&.
 .PP
-Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition\&.
-Scaling, rotation, anchors, offsets, and layer order are preserved\&. Bitmap pixels stay sharp;
--antialias affects the polygon background of arbitrarily rotated markers\&. An empty foreground uses Cairo with the native GC color\&.
+Bitmap markers use their existing mapped bitmap and mask with Cairo clipping and color composition\&. Scaling,
+rotation, anchors, offsets, and layer order are preserved\&. Bitmap pixels stay sharp; -antialias affects the
+polygon background of arbitrarily rotated markers\&. An empty foreground uses Cairo with the native GC color\&.
 .PP
 Photo image markers also use Cairo\&. Their existing anchors, offsets, scaling, and layer order are
-preserved\&. Cairo composites photo alpha at the mapped integer position and clips to the plot;
--antialias does not resample image pixels\&. Source edits, resizing, and deletion refresh the marker\&.
+preserved\&. Cairo composites photo alpha at the mapped integer position and clips to the plot; -antialias does
+not resample image pixels\&. Source edits, resizing, and deletion refresh the marker\&.
 .PP
--antialias default|none|gray|fast|good|best selects antialiasing for Cairo geometry\&.
-Its default is default; its option-database name and class are antialias and Antialias\&.
-Native rendering ignores this option\&. Changing it invalidates the cached element image\&.
+-antialias default|none|gray|fast|good|best selects antialiasing for Cairo geometry\&. Its default is
+default; its option-database name and class are antialias and Antialias\&. Native rendering ignores this
+option\&. Changing it invalidates the cached element image\&.
 .PP
-none disables antialiasing\&. gray requests coverage antialiasing\&. fast, good, and best
-are backend-dependent quality hints; they need not produce different images\&. Antialiasing can
-vary the apparent brightness of a one-pixel diagonal\&. A wider line or none can make that
-effect less noticeable\&.
+none disables antialiasing\&. gray requests coverage antialiasing\&. fast, good, and best are
+backend-dependent quality hints; they need not produce different images\&. Antialiasing can vary the apparent
+brightness of a one-pixel diagonal\&. A wider line or none can make that effect less noticeable\&.
 .PP
 .RS 4n
 .nf
@@ -707,23 +716,23 @@ effect less noticeable\&.
 .fi
 .RE
 .PP
-Dash lengths and offsets use the existing pen values in screen pixels\&. Phase continues within
-each mapped line trace and restarts for each independent strip segment\&. An empty -offdash
-leaves gaps transparent\&. A color paints the gaps using the existing PostScript underlay
-convention; defcolor uses the foreground color and produces a solid stroke\&.
+Dash lengths and offsets use the existing pen values in screen pixels\&. Phase continues within each mapped line
+trace and restarts for each independent strip segment\&. An empty -offdash leaves gaps transparent\&. A color
+paints the gaps using the existing PostScript underlay convention; defcolor uses the foreground color and
+produces a solid stroke\&.
 .PP
-Two-color strip segments are stroked individually to preserve drawing order at intersections\&.
-Solid and single-color strip segments retain batching\&.
+Two-color strip segments are stroked individually to preserve drawing order at intersections\&. Solid and
+single-color strip segments retain batching\&.
 .PP
-Snapshots use the selected renderer for these primitives\&. PostScript and Windows metafile output
-retain their existing exporters\&. Switching renderers invalidates the cached element image\&.
-On Windows, mixed/Cairo marker passes share a temporary DIB drawing target\&. Existing pixels are copied
-once into the target and once back; native text and fallbacks retain display-list order\&. Text-only passes
-keep native batching\&. The target is released at the end of each pass, including snapshot rendering\&.
-Consecutive compatible solid line and outline-only polygon markers share a Cairo context\&. Each marker
-retains a separate stroke so overlapping antialiased edges keep their appearance\&. Style changes, arrows,
-dashes, fills, and native drawing end the run\&. The context is released before the marker pass ends\&.
-Native rendering remains the fallback when a Cairo drawing surface cannot be opened\&.
+Snapshots use the selected renderer for these primitives\&. PostScript and Windows metafile output retain their
+existing exporters\&. Switching renderers invalidates the cached element image\&. On Windows, mixed/Cairo marker
+passes share a temporary DIB drawing target\&. Existing pixels are copied once into the target and once back;
+native text and fallbacks retain display-list order\&. Text-only passes keep native batching\&. The target is
+released at the end of each pass, including snapshot rendering\&. Consecutive compatible solid line and
+outline-only polygon markers share a Cairo context\&. Each marker retains a separate stroke so overlapping
+antialiased edges keep their appearance\&. Style changes, arrows, dashes, fills, and native drawing end the
+run\&. The context is released before the marker pass ends\&. Native rendering remains the fallback when a Cairo
+drawing surface cannot be opened\&.
 .SH "WIDGET OPTIONS"
 .PP
 The following options configure the graph widget itself\&. They are shared by graph, barchart, stripchart,
@@ -1181,10 +1190,10 @@ set document [\&.g svg output]
 See \fI::rbc::SVG\fP for command syntax, options, examples and export limitations\&.
 .SH "NAMED FONTS AND DISPLAY SCALING"
 .PP
-Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts\&. After font configure,
-pending idle work refreshes graph and axis titles, tick labels, legends (including external legends),
-text-marker geometry and element value labels\&. This includes named pens and active pens\&. No explicit
-graph or component reconfiguration is needed\&.
+Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts\&. After font configure, pending
+idle work refreshes graph and axis titles, tick labels, legends (including external legends), text-marker
+geometry and element value labels\&. This includes named pens and active pens\&. No explicit graph or component
+reconfiguration is needed\&.
 .PP
 .RS 4n
 .nf
@@ -1196,23 +1205,23 @@ update idletasks
 .fi
 .RE
 .PP
-Font changes invalidate graph layout and buffered drawing\&. They do not change data or explicitly
-configured axis limits\&. Automatic tick placement can change to fit the new text dimensions\&.
+Font changes invalidate graph layout and buffered drawing\&. They do not change data or explicitly configured
+axis limits\&. Automatic tick placement can change to fit the new text dimensions\&.
 .PP
-This notification handles font resources, not automatic resizing of every pixel-valued option\&.
-Explicit pixel sizes remain pixels\&. Physical screen distances are converted through Tk when configured;
-changing tk scaling does not promise to rescale every existing graph option\&. Configure application
-scaling before creating widgets\&. Toolbar icon and spacing adaptation is separate from this core behavior\&.
+This notification handles font resources, not automatic resizing of every pixel-valued option\&. Explicit pixel
+sizes remain pixels\&. Physical screen distances are converted through Tk when configured; changing tk scaling
+does not promise to rescale every existing graph option\&. Configure application scaling before creating
+widgets\&. Toolbar icon and spacing adaptation is separate from this core behavior\&.
 .SH "NUMERIC VALUES AND EXPRESSIONS"
 .PP
-Expression support is option-specific\&. The option tables say when a value accepts a Tcl numeric
-expression, or when each list item accepts one\&. Integer expressions must produce integer results;
-numeric expressions may produce floating-point results\&. The option's range and domain rules still apply\&.
+Expression support is option-specific\&. The option tables say when a value accepts a Tcl numeric expression, or
+when each list item accepts one\&. Integer expressions must produce integer results; numeric expressions may
+produce floating-point results\&. The option's range and domain rules still apply\&.
 .PP
-Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash
-lists, and the legend's @x,y position support expressions\&. Other numeric options do not automatically
-evaluate arithmetic\&. For example, -valueoffset requires two integer pixel values, and crosshair
--position accepts Tk pixel distances rather than the legend's integer expressions\&.
+Axis limits and explicit ticks, literal element data and error lists, marker coordinates, numeric dash lists,
+and the legend's @x,y position support expressions\&. Other numeric options do not automatically evaluate
+arithmetic\&. For example, -valueoffset requires two integer pixel values, and crosshair -position accepts Tk
+pixel distances rather than the legend's integer expressions\&.
 .PP
 Brace an expression to pass it to Rbc without Tcl substituting it first:
 .PP
@@ -1223,8 +1232,8 @@ Brace an expression to pass it to Rbc without Tcl substituting it first:
 .fi
 .RE
 .PP
-For list options, each expression must be one list item\&. Use inner braces around expressions containing
-spaces; the outer braces delimit the entire list:
+For list options, each expression must be one list item\&. Use inner braces around expressions containing spaces;
+the outer braces delimit the entire list:
 .PP
 .RS 4n
 .nf
@@ -1233,14 +1242,14 @@ spaces; the outer braces delimit the entire list:
 .fi
 .RE
 .PP
-Use floating-point operands when a fractional result is needed: 1 / 3 is integer division,
-while 1\&.0 / 3 produces a fraction\&. Tcl expression functions and substitutions follow normal Tcl
-expression rules\&. Outer braces defer substitution; they do not disable it when Rbc evaluates the expression\&.
+Use floating-point operands when a fractional result is needed: 1 / 3 is integer division, while 1\&.0 / 3
+produces a fraction\&. Tcl expression functions and substitutions follow normal Tcl expression rules\&. Outer
+braces defer substitution; they do not disable it when Rbc evaluates the expression\&.
 .PP
-Expressions are evaluated when Rbc parses the option\&. They are not live formulas: changing a referenced
-Tcl variable does not itself update the graph\&. Supply the option again to evaluate it with new values\&.
-An existing Rbc vector name supplied to a vector-capable data option is handled as a vector reference,
-not an expression; vector notifications provide its automatic updates\&.
+Expressions are evaluated when Rbc parses the option\&. They are not live formulas: changing a referenced Tcl
+variable does not itself update the graph\&. Supply the option again to evaluate it with new values\&. An existing
+Rbc vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
+vector notifications provide its automatic updates\&.
 .PP
 For an option that does not evaluate expressions, calculate the value explicitly:
 .PP
@@ -1268,11 +1277,11 @@ set graphData [\&.g cget -data]
 but the current graph core does not automatically execute it\&.
 .SH "GRAPH CHANGE NOTIFICATION"
 .PP
-Graph, barchart, stripchart, and polar widgets generate <<RbcGraphChanged>> when changes to the
-on-screen coordinate mapping or plotted element geometry have been processed for display\&.
+Graph, barchart, stripchart, and polar widgets generate <<RbcGraphChanged>> when changes to the on-screen
+coordinate mapping or plotted element geometry have been processed for display\&.
 .PP
-Applications can use this event to refresh information that depends on the displayed graph without
-waiting for pointer motion\&. Typical causes include:
+Applications can use this event to refresh information that depends on the displayed graph without waiting for
+pointer motion\&. Typical causes include:
 .TP
 \(bu
 Axis range changes, including zooming, panning, and stripchart automatic scrolling\&.
@@ -1283,24 +1292,23 @@ Widget resizing or layout changes that alter the plotting area\&.
 \(bu
 Element data changes that require plotted geometry to be remapped, even when axis limits remain fixed\&.
 .PP
-The event is also generated for the initial mapped display\&. It is a notification that mapping work
-occurred, not a comparison of old and new coordinates: reconfiguration can generate an event even
-when the resulting axis limits or geometry are unchanged\&.
+The event is also generated for the initial mapped display\&. It is a notification that mapping work occurred,
+not a comparison of old and new coordinates: reconfiguration can generate an event even when the resulting axis
+limits or geometry are unchanged\&.
 .SS "GEOMETRY EVENT DELIVERY AND DATA"
 .PP
-The event is queued on the graph widget after its on-screen display pass completes\&. Delivery is
-asynchronous; it does not occur immediately inside the command that changes an axis or element\&.
+The event is queued on the graph widget after its on-screen display pass completes\&. Delivery is asynchronous;
+it does not occur immediately inside the command that changes an axis or element\&.
 .PP
-Several changes handled by one display pass are combined into one notification\&. Changes requiring
-further display passes can produce further notifications\&. Applications must not assume one event
-per configuration command or data update\&.
+Several changes handled by one display pass are combined into one notification\&. Changes requiring further
+display passes can produce further notifications\&. Applications must not assume one event per configuration
+command or data update\&.
 .PP
-An unmapped widget defers notification until it can complete an on-screen display with a usable
-plotting area\&.
+An unmapped widget defers notification until it can complete an on-screen display with a usable plotting area\&.
 .PP
-No application data payload is attached to the event\&. Use %W to identify the graph and query its
-current state\&. Because delivery is queued, that state may include changes made after the display
-pass that queued the event\&.
+No application data payload is attached to the event\&. Use %W to identify the graph and query its current
+state\&. Because delivery is queued, that state may include changes made after the display pass that queued the
+event\&.
 .PP
 For example, this binding records the current primary axis limits:
 .PP
@@ -1313,19 +1321,18 @@ bind \&.g <<RbcGraphChanged>> {
 .RE
 .SS SCOPE
 .PP
-<<RbcGraphChanged>> is not a notification for every repaint\&. Exposure or focus redraws and
-marker-only updates do not generate it unless coordinate mapping or element remapping is also
-required\&.
+<<RbcGraphChanged>> is not a notification for every repaint\&. Exposure or focus redraws and marker-only
+updates do not generate it unless coordinate mapping or element remapping is also required\&.
 .PP
-Temporary mappings used for PostScript output do not generate this event\&. A subsequent on-screen
-display that restores or changes the screen mapping can generate it normally\&.
+Temporary mappings used for PostScript output do not generate this event\&. A subsequent on-screen display that
+restores or changes the screen mapping can generate it normally\&.
 .PP
-The event does not reposition ordinary graph markers or change the configured crosshair position\&.
-Applications implement any additional tracking behavior in their bindings\&. The graphtoolbar
-already uses this notification to refresh its enhanced crosshair annotations\&.
+The event does not reposition ordinary graph markers or change the configured crosshair position\&. Applications
+implement any additional tracking behavior in their bindings\&. The graphtoolbar already uses this notification
+to refresh its enhanced crosshair annotations\&.
 .PP
-Event handlers should avoid repeatedly changing axes or element data in response to the notification:
-such changes can schedule another display and another notification\&.
+Event handlers should avoid repeatedly changing axes or element data in response to the notification: such
+changes can schedule another display and another notification\&.
 .SH "AXIS CHANGE NOTIFICATIONS"
 .PP
 Graph, barchart, stripchart, and polar widgets provide two axis events:
@@ -1337,19 +1344,19 @@ Graph, barchart, stripchart, and polar widgets provide two axis events:
 <<RbcAxisLimitsChanged>> reports changes to the bounds returned by axis limits\&. These include zooming, panning, scrolling, and automatic limits derived from element data\&. Cosmetic configuration does not generate this event when the resulting numeric limits are unchanged\&.
 .SS "AXIS EVENT DELIVERY AND DATA"
 .PP
-Both events are queued on the graph after an on-screen display pass with a usable plotting area\&.
-An unmapped graph defers delivery until it can display\&. Each event combines all affected axes from that
-display pass; several commands before a redraw can therefore produce one event\&. Changes followed by a
-return to the previously displayed limits before redraw do not produce a limits-change event\&.
+Both events are queued on the graph after an on-screen display pass with a usable plotting area\&. An unmapped
+graph defers delivery until it can display\&. Each event combines all affected axes from that display pass;
+several commands before a redraw can therefore produce one event\&. Changes followed by a return to the
+previously displayed limits before redraw do not produce a limits-change event\&.
 .PP
 %W identifies the graph and %d is a Tcl list of axis names\&. Each name appears once; ordering is
-unspecified\&. Hidden axes and named axes outside the margins are included\&. Initial display, and the
-first display after creating an axis, announce its limits through both events\&. Deleted axes are skipped
-when building the notification; deletion itself is not an axis-change notification\&.
+unspecified\&. Hidden axes and named axes outside the margins are included\&. Initial display, and the first
+display after creating an axis, announce its limits through both events\&. Deleted axes are skipped when building
+the notification; deletion itself is not an axis-change notification\&.
 .PP
 The payload identifies affected axes, not an old/new snapshot\&. Query the graph for current limits and
-configuration\&. Because delivery is asynchronous, the current state may be newer than the display that
-queued the event, and an axis may have been deleted in the meantime\&.
+configuration\&. Because delivery is asynchronous, the current state may be newer than the display that queued
+the event, and an axis may have been deleted in the meantime\&.
 .PP
 .RS 4n
 .nf
@@ -1371,7 +1378,7 @@ changes inside fixed bounds, marker updates, hover highlighting, and ordinary re
 events unless an axis is configured or its effective limits change\&.
 .PP
 These events do not report every change in tick-label placement or screen geometry\&. Use <<RbcGraphChanged>>
-for mapping and layout updates, including resizing without changed numeric limits\&.  Log/linear switching is
+for mapping and layout updates, including resizing without changed numeric limits\&. Log/linear switching is
 always covered by <<RbcAxisChanged>>, but only generates <<RbcAxisLimitsChanged>> if the resulting numeric
 bounds change\&. Logarithmic bounds are reported in data units, just as by axis limits\&.
 

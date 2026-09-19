@@ -49,16 +49,15 @@
 </div>
 <p>Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
 of axis limits.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, line markers, arrowheads, and polygon fills/outlines use <code class="docutils literal notranslate"><span class="pre">-antialias</span></code>.
-Solid and stippled fills, colored dash gaps, caps, clipping, and <code class="docutils literal notranslate"><span class="pre">-under</span></code> ordering are supported.
-Mapped outline segments remain independent, as in native drawing. XOR markers remain native.
-Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to
-the plot; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample their pixels. Source image changes refresh the marker.
-Bitmap markers use Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp;
-<code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects rotated background polygons. An empty foreground uses Cairo with the native GC color.
-Text-marker backgrounds use Cairo, including rotated edges, and clip to the plot. Text itself stays native.
-Window and non-photo image markers keep their Tk rendering; line markers with an
-empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> use Cairo with the native GC color.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, line markers, arrowheads, and polygon fills/outlines use <code class="docutils literal notranslate"><span class="pre">-antialias</span></code>.  Solid and
+stippled fills, colored dash gaps, caps, clipping, and <code class="docutils literal notranslate"><span class="pre">-under</span></code> ordering are supported.  Mapped outline
+segments remain independent, as in native drawing. XOR markers remain native.  Photo image markers use Cairo
+alpha compositing with existing placement and scaling. They clip to the plot; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample
+their pixels. Source image changes refresh the marker.  Bitmap markers use Cairo with existing scaling,
+rotation, and masks. Their mapped pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects rotated background polygons. An empty
+foreground uses Cairo with the native GC color.  Text-marker backgrounds use Cairo, including rotated edges,
+and clip to the plot. Text itself stays native.  Window and non-photo image markers keep their Tk rendering;
+line markers with an empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> use Cairo with the native GC color.</p>
 <p>Rbc provides six marker types:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -492,8 +491,8 @@ are <code class="docutils literal notranslate"><span class="pre">none</span></co
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">a</span></code> specifies the distance from the arrowhead neck to its tip, <code class="docutils literal notranslate"><span class="pre">b</span></code> specifies the distance from the trailing
 points to the tip, and <code class="docutils literal notranslate"><span class="pre">c</span></code> specifies the distance from the outside edge of the line to the trailing points.</p>
-<p>The arrowhead uses the line marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color. The line shaft is shortened to the neck of the
-arrowhead so that it does not protrude through the filled arrowhead.</p>
+<p>The arrowhead uses the line marker’s <code class="docutils literal notranslate"><span class="pre">-outline</span></code> color. The line shaft is shortened to the neck of the arrowhead
+so that it does not protrude through the filled arrowhead.</p>
 <p>Screen-distance units accepted by Tk may also be used:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>configure<span class="w"> </span>direction<span class="w"> </span><span class="o">-</span>arrowshape<span class="w"> </span><span class="k">{</span><span class="nv">8p</span><span class="w"> </span><span class="mi">10</span>p<span class="w"> </span><span class="mi">3</span>p<span class="k">}</span>
 </pre></div>

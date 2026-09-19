@@ -6,9 +6,9 @@
 rbc::AXIS - Commands in namespace rbc::AXIS
 .SH "GRAPH VIRTUAL AXIS AXIS COMMAND"
 .PP
-Axis lines and tick marks follow the graph's -renderer and -antialias settings\&.
-Cairo preserves their mapped geometry, color, width, and projecting caps, including axes in margins\&.
-A zero -linewidth hides strokes\&. Tick labels, titles, and relief backgrounds remain native\&.
+Axis lines and tick marks follow the graph's -renderer and -antialias settings\&.  Cairo preserves their
+mapped geometry, color, width, and projecting caps, including axes in margins\&.  A zero -linewidth hides
+strokes\&. Tick labels, titles, and relief backgrounds remain native\&.
 .PP
 Commands in this namespace document operations accepted by the axis component of a graph, barchart,
 stripchart, or polar widget\&.
@@ -34,8 +34,8 @@ graph \&.g
 .SH "VIRTUAL AXES"
 .PP
 Every graph widget initially contains four axes named x, y, x2, and y2\&. The x and y axes are the
-primary axes and are displayed by default\&. The secondary x2 and y2 axes are created on the opposite
-margins and are hidden by default\&.
+primary axes and are displayed by default\&. The secondary x2 and y2 axes are created on the opposite margins
+and are hidden by default\&.
 .PP
 Additional axes may be created with AXIS create:
 .PP
@@ -45,11 +45,11 @@ Additional axes may be created with AXIS create:
 .fi
 .RE
 .PP
-A newly created virtual axis does not have to be displayed\&. It may be used only for mapping elements, or it
-may later be assigned to one of the graph margins with the appropriate margin-axis use operation\&.
+A newly created virtual axis does not have to be displayed\&. It may be used only for mapping elements, or it may
+later be assigned to one of the graph margins with the appropriate margin-axis use operation\&.
 .PP
-An axis becomes an X or Y axis according to how it is first used\&. Once its type has been established, the
-same axis cannot subsequently be used as the opposite type\&.
+An axis becomes an X or Y axis according to how it is first used\&. Once its type has been established, the same
+axis cannot subsequently be used as the opposite type\&.
 .PP
 More than one axis may be displayed in the same margin\&.
 .SH "AXIS RANGES"
