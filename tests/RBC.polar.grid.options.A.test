@@ -78,11 +78,11 @@ namespace eval ::rbcPolarGridOptionsTest {
         return "GRID-ANGLE-$angle"
     }
 
-    test polarGridOptions-5 {hidden grid lines retain labels and tick changes reach export} -setup {
+    test polarGridOptions-5 {visible grid labels follow tick changes and mapped-axis showticks} -setup {
         ::rbc::polar .gridOptions -width 400 -height 400
         .gridOptions axis configure x -min -1 -max 1 -loose no
         .gridOptions axis configure y -min -1 -max 1 -loose no -showticks yes
-        .gridOptions grid configure -hide yes -anglemajorticks {30} \
+        .gridOptions grid configure -hide no -anglemajorticks {30} \
             -anglecommand ::rbcPolarGridOptionsTest::AngleLabel
     } -body {
         set before [.gridOptions svg output]
@@ -97,5 +97,79 @@ namespace eval ::rbcPolarGridOptionsTest {
     } -cleanup {
         destroy .gridOptions
     } -result {1 1 1 1}
+
+    foreach {widget expected} {graph 1 stripchart 1 barchart 0 polar 0} {
+        test polarGridVisibility-default-$widget {grid visibility defaults and option metadata agree} -setup {
+            ::rbc::$widget .gridDefault
+        } -body {
+            list [.gridDefault grid cget -hide] \
+                [expr {!![lindex [.gridDefault grid configure -hide] 3]}]
+        } -cleanup {
+            destroy .gridDefault
+        } -result [list $expected $expected]
+    }
+
+    test polarGridVisibility-optiondb {option database can hide a Smith grid at creation} -setup {
+        option add *gridVisibilityOverride.grid.Hide yes interactive
+        ::rbc::polar .gridVisibilityOverride -representation smith
+    } -body {
+        .gridVisibilityOverride grid cget -hide
+    } -cleanup {
+        destroy .gridVisibilityOverride
+        option add *gridVisibilityOverride.grid.Hide no interactive
+    } -result 1
+
+    proc VisibilityRadiusLabel {widget value} {
+        return GRID-VISIBILITY-LABEL
+    }
+
+    proc VisibilityLabel {args} {
+        variable labelCalls
+        incr labelCalls
+        return GRID-VISIBILITY-LABEL
+    }
+
+    foreach representation {polar smith} {
+        foreach output {screen svg postscript} {
+            test polarGridVisibility-$representation-$output {
+                grid off/on/toggle/configure hide and restore coordinate labels
+            } -setup {
+                ::rbc::polar .gridVisibility -width 400 -height 400 -representation $representation
+                pack .gridVisibility
+                .gridVisibility axis configure x -min -1.2 -max 1.2 -loose no -showticks yes \
+                    -command ::rbcPolarGridOptionsTest::VisibilityRadiusLabel
+                .gridVisibility axis configure y -min -1.2 -max 1.2 -loose no -showticks yes
+                .gridVisibility grid configure -smithgrid both -anglemajorticks {30} \
+                    -anglecommand ::rbcPolarGridOptionsTest::VisibilityLabel \
+                    -smithrealcommand ::rbcPolarGridOptionsTest::VisibilityLabel \
+                    -smithimagcommand ::rbcPolarGridOptionsTest::VisibilityLabel
+                set photo [image create photo]
+                update idletasks
+            } -body {
+                set result {}
+                # Start with the constructor default, then exercise each way
+                # to change visibility. Screen snapshots force fresh drawing.
+                foreach operation {{} off on toggle toggle {configure -hide yes} {configure -hide no}} {
+                    if {$operation ne {}} {
+                        .gridVisibility grid {*}$operation
+                    }
+                    update idletasks
+                    set labelCalls 0
+                    if {$output eq "screen"} {
+                        .gridVisibility snap $photo
+                        lappend result [expr {$labelCalls > 0}]
+                    } else {
+                        set document [.gridVisibility $output output]
+                        lappend result [expr {[string first GRID-VISIBILITY-LABEL $document] >= 0}]
+                    }
+                }
+                set result
+            } -cleanup {
+                destroy .gridVisibility
+                image delete $photo
+            } -result {1 0 1 0 1 0 1}
+        }
+    }
+
 }
 ::tcltest::cleanupTests

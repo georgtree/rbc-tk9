@@ -134,4 +134,23 @@ namespace eval polar.smith {
         catch {destroy .p2}
         catch {vector destroy z}
     }
+
+    # Grid lines and coordinate labels disappear together. Elements remain.
+    proc RBC.polar.smith.M.1.5.Setup {} {
+        polar .polar1 -width 520 -height 520 -representation smith \
+            -title "Grid and labels: visible by default"
+        pack .polar1 -fill both -expand yes
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Curve -data {-0.7 -0.3 0 0.7 0.6 0.2} -symbol circle
+    }
+
+    proc RBC.polar.smith.M.1.5.Body {} {
+        .polar1 grid off
+        .polar1 configure -title "Grid and labels: both hidden; curve remains"
+    }
+
+    proc RBC.polar.smith.M.1.5.Cleanup {} {
+        destroy .polar1
+    }
 }

@@ -122,6 +122,11 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
      GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+/* Polar grids share graph options, but are visible by default. */
+static const Tk_OptionSpec polarGridOptionSpecs[] = {
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, (ClientData)graphGridOptionSpecs, 0}};
+
 static const Tk_OptionSpec barGridOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
@@ -1058,6 +1063,8 @@ int Rbc_CreateGrid(Graph *graphPtr) {
     gridPtr->graphPtr = graphPtr;
     if (graphPtr->classUid == rbcBarElementUid) {
         specsPtr = barGridOptionSpecs;
+    } else if (graphPtr->classUid == rbcPolarElementUid) {
+        specsPtr = polarGridOptionSpecs;
     } else {
         specsPtr = graphGridOptionSpecs;
     }

@@ -5840,8 +5840,9 @@ namespace eval ::rbc::GRID {
 
         returns a true value.
 
-        For Polar/Smith representations, hiding grid lines does not hide coordinate labels. Labels remain controlled
-        by the mapped axes' `-showticks` options. Empty major tick lists also suppress the corresponding major labels.
+        For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
+        This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes'
+        `-showticks` options and major tick lists still control which labels appear.
         `-minor` controls minor grid lines only; minor ticks do not receive labels.
 
         ## Widget-specific defaults
@@ -5852,6 +5853,7 @@ namespace eval ::rbc::GRID {
         |--------------|---------|---------|---------|
         | `graph`      | `yes`   | `x`     | `y`     |
         | `stripchart` | `yes`   | `x`     | `y`     |
+        | `polar`      | `no`    | `x`     | `y`     |
         | `barchart`   | `no`    | empty   | `y`     |
 
         #ruffopt includedformats nroff
@@ -5861,13 +5863,15 @@ namespace eval ::rbc::GRID {
         ├────────────┼───────┼───────┼───────┤
         │ graph      │ yes   │ x     │ y     │
         │ stripchart │ yes   │ x     │ y     │
+        │ polar      │ no    │ x     │ y     │
         │ barchart   │ no    │ empty │ y     │
         └────────────┴───────┴───────┴───────┘
         ```
         #ruffopt excludedformats {}
 
         Thus a `graph` or `stripchart` does not initially display its grid, while a `barchart` initially displays
-        horizontal grid lines associated with its Y axis.
+        horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
+        including when `-representation smith` is selected. The option database can override these defaults.
 
         The remaining grid defaults are common to all graph widget types.
 
@@ -5878,7 +5882,7 @@ namespace eval ::rbc::GRID {
         |-----------------------|---------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
         | `-color color`        | `color`       | `Color`        | Sets the color used to draw grid lines. The default is grey64, or black on monochrome displays.                                                                                                                                     |
         | `-dashes dashes`      | `dashes`      | `Dashes`       | Sets the dash pattern used to draw grid lines. An empty value selects solid lines. The default is `dot`. Each numeric list item accepts a Tcl integer expression. |
-        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph, stripchart, and polar widgets and `no` for barchart widgets.                                                                                                        |
+        | `-hide boolean`       | `hide`        | `Hide`         | Controls whether the grid is displayed. The default is `yes` for graph and stripchart widgets and `no` for polar and barchart widgets.                                                                                                        |
         | `-linewidth distance` | `lineWidth`   | `Linewidth`    | Sets the non-negative width of grid lines. Values `0` and `1` use the native thin-line width. The default is `0`.                                                                                                                   |
         | `-mapx axisName`      | `mapX`        | `MapX`         | Specifies the X axis whose ticks generate vertical grid lines. The axis must exist and must be an X axis. An empty value disables X grid lines. The default is `x` for graph and stripchart widgets and empty for barchart widgets. |
         | `-mapy axisName`      | `mapY`        | `MapY`         | Specifies the Y axis whose ticks generate horizontal grid lines. The axis must exist and must be a Y axis. An empty value disables Y grid lines. The default is `y`.                                                                |
@@ -5896,7 +5900,7 @@ namespace eval ::rbc::GRID {
         │                       │               │                │ Each numeric list item accepts a Tcl integer            │
         │                       │               │                │ expression.                                             │
         │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed. The default is  │
-        │                       │               │                │ yes for graph, stripchart, and polar widgets and no for │
+        │                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
         │                       │               │                │ barchart widgets.                                       │
         │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines. Values 0 and │
         │                       │               │                │ 1 use the native thin-line width. The default is 0.     │

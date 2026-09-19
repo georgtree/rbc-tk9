@@ -379,8 +379,9 @@ included as well.</p>
 </pre></div>
 </div>
 <p>returns a true value.</p>
-<p>For Polar/Smith representations, hiding grid lines does not hide coordinate labels. Labels remain controlled
-by the mapped axes’ <code class="docutils literal notranslate"><span class="pre">-showticks</span></code> options. Empty major tick lists also suppress the corresponding major labels.
+<p>For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels.
+This applies to screen drawing, snapshots, SVG, and PostScript. When the grid is visible, the mapped axes’
+<code class="docutils literal notranslate"><span class="pre">-showticks</span></code> options and major tick lists still control which labels appear.
 <code class="docutils literal notranslate"><span class="pre">-minor</span></code> controls minor grid lines only; minor ticks do not receive labels.</p>
 </section>
 <section id="widget-specific-defaults">
@@ -411,7 +412,12 @@ by the mapped axes’ <code class="docutils literal notranslate"><span class="pr
 <td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">barchart</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">no</span></code></p></td>
 <td><p>empty</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
@@ -419,7 +425,8 @@ by the mapped axes’ <code class="docutils literal notranslate"><span class="pr
 </tbody>
 </table>
 <p>Thus a <code class="docutils literal notranslate"><span class="pre">graph</span></code> or <code class="docutils literal notranslate"><span class="pre">stripchart</span></code> does not initially display its grid, while a <code class="docutils literal notranslate"><span class="pre">barchart</span></code> initially displays
-horizontal grid lines associated with its Y axis.</p>
+horizontal grid lines associated with its Y axis. Polar widgets initially display their grid and labels,
+including when <code class="docutils literal notranslate"><span class="pre">-representation</span> <span class="pre">smith</span></code> is selected. The option database can override these defaults.</p>
 <p>The remaining grid defaults are common to all graph widget types.</p>
 </section>
 <section id="grid-options">
@@ -452,7 +459,7 @@ horizontal grid lines associated with its Y axis.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
-<td><p>Controls whether the grid is displayed. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code> for graph, stripchart, and polar widgets and <code class="docutils literal notranslate"><span class="pre">no</span></code> for barchart widgets.</p></td>
+<td><p>Controls whether the grid is displayed. The default is <code class="docutils literal notranslate"><span class="pre">yes</span></code> for graph and stripchart widgets and <code class="docutils literal notranslate"><span class="pre">no</span></code> for polar and barchart widgets.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">lineWidth</span></code></p></td>

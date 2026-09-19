@@ -432,8 +432,9 @@ querying:
 .PP
 returns a true value\&.
 .PP
-For Polar/Smith representations, hiding grid lines does not hide coordinate labels\&. Labels remain controlled
-by the mapped axes' -showticks options\&. Empty major tick lists also suppress the corresponding major labels\&.
+For Polar/Smith representations, hiding the grid also hides its radial, angular, and Smith coordinate labels\&.
+This applies to screen drawing, snapshots, SVG, and PostScript\&. When the grid is visible, the mapped axes'
+-showticks options and major tick lists still control which labels appear\&.
 -minor controls minor grid lines only; minor ticks do not receive labels\&.
 .SH "WIDGET-SPECIFIC DEFAULTS"
 .PP
@@ -446,13 +447,15 @@ The initial grid configuration depends on the graph widget type\&.
 ├────────────┼───────┼───────┼───────┤
 │ graph      │ yes   │ x     │ y     │
 │ stripchart │ yes   │ x     │ y     │
+│ polar      │ no    │ x     │ y     │
 │ barchart   │ no    │ empty │ y     │
 └────────────┴───────┴───────┴───────┘
 .fi
 .RE
 .PP
 Thus a graph or stripchart does not initially display its grid, while a barchart initially displays
-horizontal grid lines associated with its Y axis\&.
+horizontal grid lines associated with its Y axis\&. Polar widgets initially display their grid and labels,
+including when -representation smith is selected\&. The option database can override these defaults\&.
 .PP
 The remaining grid defaults are common to all graph widget types\&.
 .SH "GRID OPTIONS"
@@ -469,7 +472,7 @@ The remaining grid defaults are common to all graph widget types\&.
 │                       │               │                │ Each numeric list item accepts a Tcl integer            │
 │                       │               │                │ expression\&.                                             │
 │ -hide boolean         │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is  │
-│                       │               │                │ yes for graph, stripchart, and polar widgets and no for │
+│                       │               │                │ yes for graph and stripchart widgets; no for polar and  │
 │                       │               │                │ barchart widgets\&.                                       │
 │ -linewidth distance   │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines\&. Values 0 and │
 │                       │               │                │ 1 use the native thin-line width\&. The default is 0\&.     │

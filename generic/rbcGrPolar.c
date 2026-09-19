@@ -691,7 +691,7 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
     double completeRadius;
 
     gridPtr = graphPtr->gridPtr;
-    if (gridPtr == NULL) {
+    if ((gridPtr == NULL) || gridPtr->hidden) {
         return;
     }
     /*
@@ -1001,7 +1001,7 @@ void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     double completeRadius;
 
     gridPtr = graphPtr->gridPtr;
-    if (gridPtr == NULL) {
+    if ((gridPtr == NULL) || gridPtr->hidden) {
         return;
     }
     PolarRadialLabelsExport(graphPtr, exportPtr, gridPtr);
@@ -1252,7 +1252,7 @@ void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr;
 
     gridPtr = graphPtr->gridPtr;
-    if (gridPtr == NULL) {
+    if ((gridPtr == NULL) || gridPtr->hidden) {
         return;
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
@@ -1597,7 +1597,7 @@ void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr;
 
     gridPtr = graphPtr->gridPtr;
-    if (gridPtr == NULL) {
+    if ((gridPtr == NULL) || gridPtr->hidden) {
         return;
     }
     if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
