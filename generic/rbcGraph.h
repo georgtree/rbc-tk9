@@ -265,10 +265,23 @@ typedef struct {
      * Modern Tk option state.
      */
     Tk_OptionTable optionTable;
+    Graph *graphPtr;
+    int optionsConfigured;
+    Tcl_Size optionObjc;
+    Tcl_Obj *const *optionObjv;
     /*
      * Original Tcl option values. These are owned and reference-counted
      * by Tk_InitOptions(), Tk_SetOptions(), and Tk_FreeConfigOptions().
      */
+    Tcl_Obj *angleMajorTicksObjPtr;
+    Tcl_Obj *angleMinorTicksObjPtr;
+    Tcl_Obj *angleCommandObjPtr;
+    Tcl_Obj *smithRealCommandObjPtr;
+    Tcl_Obj *smithImagCommandObjPtr;
+    Tcl_Obj *smithRealMajorTicksObjPtr;
+    Tcl_Obj *smithRealMinorTicksObjPtr;
+    Tcl_Obj *smithImagMajorTicksObjPtr;
+    Tcl_Obj *smithImagMinorTicksObjPtr;
     Tcl_Obj *dashesObjPtr;
     Tcl_Obj *lineWidthObjPtr;
     Tcl_Obj *mapXObjPtr;
@@ -276,6 +289,21 @@ typedef struct {
     /*
      * Derived/internal state.
      */
+    SmithGridMode smithGrid;
+    PolarLabelAnchor radialLabelAnchor;
+    PolarLabelAnchor angleLabelAnchor;
+    double *angleMajorTicks;
+    Tcl_Size nAngleMajorTicks;
+    double *angleMinorTicks;
+    Tcl_Size nAngleMinorTicks;
+    double *smithRealMajorTicks;
+    Tcl_Size nSmithRealMajorTicks;
+    double *smithRealMinorTicks;
+    Tcl_Size nSmithRealMinorTicks;
+    double *smithImagMajorTicks;
+    Tcl_Size nSmithImagMajorTicks;
+    double *smithImagMinorTicks;
+    Tcl_Size nSmithImagMinorTicks;
     GC gc; /* Graphics context for the grid. */
     Axis2D axes;
     int hidden;    /* If non-zero, grid isn't displayed. */
@@ -379,15 +407,6 @@ struct GraphStruct {
     Tcl_Obj *tileObjPtr;
     Tcl_Obj *topMarginObjPtr;
     Tcl_Obj *widthObjPtr;
-    Tcl_Obj *angleMajorTicksObjPtr;
-    Tcl_Obj *angleMinorTicksObjPtr;
-    Tcl_Obj *angleCommandObjPtr;
-    Tcl_Obj *smithRealCommandObjPtr;
-    Tcl_Obj *smithImagCommandObjPtr;
-    Tcl_Obj *smithRealMajorTicksObjPtr;
-    Tcl_Obj *smithRealMinorTicksObjPtr;
-    Tcl_Obj *smithImagMajorTicksObjPtr;
-    Tcl_Obj *smithImagMinorTicksObjPtr;
     /*
      * Temporary context for a modern option transaction.
      */
@@ -467,21 +486,6 @@ struct GraphStruct {
      * Polar-specific presentation options.
      */
     PolarRepresentation representation;
-    SmithGridMode smithGrid;
-    PolarLabelAnchor radialLabelAnchor;
-    PolarLabelAnchor angleLabelAnchor;
-    double *angleMajorTicks;
-    Tcl_Size nAngleMajorTicks;
-    double *angleMinorTicks;
-    Tcl_Size nAngleMinorTicks;
-    double *smithRealMajorTicks;
-    Tcl_Size nSmithRealMajorTicks;
-    double *smithRealMinorTicks;
-    Tcl_Size nSmithRealMinorTicks;
-    double *smithImagMajorTicks;
-    Tcl_Size nSmithImagMajorTicks;
-    double *smithImagMinorTicks;
-    Tcl_Size nSmithImagMinorTicks;
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;
     Rbc_Pad padX;        /* Vertical padding for plotarea */

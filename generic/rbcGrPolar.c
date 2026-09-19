@@ -334,8 +334,8 @@ static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
     Tcl_Size index;
     Tcl_Size i;
 
-    nMajor = graphPtr->nAngleMajorTicks;
-    nMinor = gridPtr->minorGrid ? graphPtr->nAngleMinorTicks : 0;
+    nMajor = graphPtr->gridPtr->nAngleMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->gridPtr->nAngleMinorTicks : 0;
     if (nMinor > TCL_SIZE_MAX - nMajor) {
         return;
     }
@@ -355,7 +355,7 @@ static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
      * Major spokes are always present.
      */
     for (i = 0; i < nMajor; i++) {
-        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->angleMajorTicks[i], segments + index)) {
+        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->gridPtr->angleMajorTicks[i], segments + index)) {
             index++;
         }
     }
@@ -363,7 +363,7 @@ static void MapPolarSpokes(Graph *graphPtr, Grid *gridPtr) {
      * Minor spokes are controlled by the existing grid -minor option.
      */
     for (i = 0; i < nMinor; i++) {
-        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->angleMinorTicks[i], segments + index)) {
+        if (MapPolarSpoke(graphPtr, gridPtr, graphPtr->gridPtr->angleMinorTicks[i], segments + index)) {
             index++;
         }
     }
@@ -386,10 +386,10 @@ void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr) {
 }
 
 static Tk_Anchor GetPolarRadialLabelAnchor(Graph *graphPtr) {
-    if (graphPtr->radialLabelAnchor.isAuto) {
+    if (graphPtr->gridPtr->radialLabelAnchor.isAuto) {
         return TK_ANCHOR_SE;
     }
-    return graphPtr->radialLabelAnchor.anchor;
+    return graphPtr->gridPtr->radialLabelAnchor.anchor;
 }
 
 static Tk_Anchor GetInwardLabelAnchor(double degrees) {
@@ -418,8 +418,8 @@ static Tk_Anchor GetInwardLabelAnchor(double degrees) {
 }
 
 static Tk_Anchor GetPolarAngleLabelAnchor(Graph *graphPtr, double degrees) {
-    if (!graphPtr->angleLabelAnchor.isAuto) {
-        return graphPtr->angleLabelAnchor.anchor;
+    if (!graphPtr->gridPtr->angleLabelAnchor.isAuto) {
+        return graphPtr->gridPtr->angleLabelAnchor.anchor;
     }
     return GetInwardLabelAnchor(degrees);
 }
@@ -429,8 +429,8 @@ static Tk_Anchor GetPolarSpokeLabelAnchor(Graph *graphPtr, const Segment2D *segm
     double dy;
     double degrees;
 
-    if (!graphPtr->angleLabelAnchor.isAuto) {
-        return graphPtr->angleLabelAnchor.anchor;
+    if (!graphPtr->gridPtr->angleLabelAnchor.isAuto) {
+        return graphPtr->gridPtr->angleLabelAnchor.anchor;
     }
     /*
      * The label is placed at segmentPtr->q, the far end of the
@@ -582,14 +582,14 @@ static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString 
      */
     Tcl_DStringAppend(dsPtr, valueString, -1);
     Tcl_DStringAppend(dsPtr, "\xC2\xB0", 2);
-    if (graphPtr->angleCommandObjPtr == NULL) {
+    if (graphPtr->gridPtr->angleCommandObjPtr == NULL) {
         return Tcl_DStringValue(dsPtr);
     }
     interp = graphPtr->interp;
     {
         Tcl_Size prefixObjc;
 
-        result = Tcl_ListObjLength(interp, graphPtr->angleCommandObjPtr, &prefixObjc);
+        result = Tcl_ListObjLength(interp, graphPtr->gridPtr->angleCommandObjPtr, &prefixObjc);
         /*
          * ConfigureGraph() normally guarantees that this object has
          * a valid list representation.  Preserve drawing if that
@@ -615,7 +615,7 @@ static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString 
         /*
          * Never modify the Tk-managed option object itself.
          */
-        cmdObjPtr = Tcl_DuplicateObj(graphPtr->angleCommandObjPtr);
+        cmdObjPtr = Tcl_DuplicateObj(graphPtr->gridPtr->angleCommandObjPtr);
         Tcl_IncrRefCount(cmdObjPtr);
         result = Tcl_ListObjAppendElement(interp, cmdObjPtr, Tcl_NewStringObj(Tk_PathName(graphPtr->tkwin), -1));
         if (result == TCL_OK) {
@@ -666,14 +666,14 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nAngleMajorTicks; i++) {
         double degrees;
         Point2D point;
         Tk_Anchor anchor;
         Tcl_DString label;
         char *string;
 
-        degrees = graphPtr->angleMajorTicks[i];
+        degrees = graphPtr->gridPtr->angleMajorTicks[i];
         if (!GetPolarAngularLabelPosition(graphPtr, gridPtr, completeRadius, degrees, &point, &anchor)) {
             continue;
         }
@@ -870,7 +870,7 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nSmithRealMajorTicks; i++) {
         double value;
         double real;
         double imag;
@@ -878,13 +878,13 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
         Tcl_DString label;
         char *string;
 
-        value = graphPtr->smithRealMajorTicks[i];
+        value = graphPtr->gridPtr->smithRealMajorTicks[i];
         SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
         point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        string = FormatSmithLabel(graphPtr, graphPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
         if (string[0] == '\0') {
             Tcl_DStringFree(&label);
             continue;
@@ -975,14 +975,14 @@ static void PolarAngularLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportP
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nAngleMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nAngleMajorTicks; i++) {
         double degrees;
         Point2D point;
         Tk_Anchor anchor;
         Tcl_DString label;
         char *string;
 
-        degrees = graphPtr->angleMajorTicks[i];
+        degrees = graphPtr->gridPtr->angleMajorTicks[i];
         if (!GetPolarAngularLabelPosition(graphPtr, gridPtr, completeRadius, degrees, &point, &anchor)) {
             continue;
         }
@@ -1222,11 +1222,11 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nSmithImagMajorTicks; i++) {
         double magnitude;
         int sign;
 
-        magnitude = graphPtr->smithImagMajorTicks[i];
+        magnitude = graphPtr->gridPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
             double reactive;
             Point2D point;
@@ -1239,7 +1239,7 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
                 continue;
             }
             style.anchor = anchor;
-            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
             if (string[0] != '\0') {
                 Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
             }
@@ -1255,11 +1255,11 @@ void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {
     if (gridPtr == NULL) {
         return;
     }
-    if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+    if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         DrawSmithRealLabels(graphPtr, drawable, gridPtr, FALSE);
         DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, FALSE);
     }
-    if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+    if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         DrawSmithRealLabels(graphPtr, drawable, gridPtr, TRUE);
         DrawSmithReactiveLabels(graphPtr, drawable, gridPtr, TRUE);
     }
@@ -1294,10 +1294,10 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     int doImpedance;
     int doAdmittance;
 
-    doImpedance = (graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    doAdmittance = (graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    nMajor = graphPtr->nSmithRealMajorTicks;
-    nMinor = gridPtr->minorGrid ? graphPtr->nSmithRealMinorTicks : 0;
+    doImpedance = (graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH);
+    doAdmittance = (graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH);
+    nMajor = graphPtr->gridPtr->nSmithRealMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->gridPtr->nSmithRealMinorTicks : 0;
     /*
      * Count the actual circles that will be drawn.
      *
@@ -1320,7 +1320,7 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
         for (i = 0; i < nMajor; i++) {
             double value;
 
-            value = graphPtr->smithRealMajorTicks[i];
+            value = graphPtr->gridPtr->smithRealMajorTicks[i];
             if (doImpedance && (value == 0.0)) {
                 continue;
             }
@@ -1332,7 +1332,7 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
         for (i = 0; i < nMinor; i++) {
             double value;
 
-            value = graphPtr->smithRealMinorTicks[i];
+            value = graphPtr->gridPtr->smithRealMinorTicks[i];
             if (doImpedance && (value == 0.0)) {
                 continue;
             }
@@ -1359,11 +1359,11 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
     index = 0;
     if (doImpedance) {
         for (i = 0; i < nMajor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->smithRealMajorTicks[i], FALSE, segments + index);
+            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->gridPtr->smithRealMajorTicks[i], FALSE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
         for (i = 0; i < nMinor; i++) {
-            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->smithRealMinorTicks[i], FALSE, segments + index);
+            MapSmithResistanceCircle(graphPtr, gridPtr, graphPtr->gridPtr->smithRealMinorTicks[i], FALSE, segments + index);
             index += SMITH_CIRCLE_SEGMENTS;
         }
     }
@@ -1371,7 +1371,7 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
         for (i = 0; i < nMajor; i++) {
             double value;
 
-            value = graphPtr->smithRealMajorTicks[i];
+            value = graphPtr->gridPtr->smithRealMajorTicks[i];
             /*
              * If impedance is also present, r=0 has already drawn
              * the same unit circle as g=0.
@@ -1385,7 +1385,7 @@ static void MapSmithResistanceGrid(Graph *graphPtr, Grid *gridPtr) {
         for (i = 0; i < nMinor; i++) {
             double value;
 
-            value = graphPtr->smithRealMinorTicks[i];
+            value = graphPtr->gridPtr->smithRealMinorTicks[i];
             if (doImpedance && (value == 0.0)) {
                 continue;
             }
@@ -1410,10 +1410,10 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
     int doImpedance;
     int doAdmittance;
 
-    doImpedance = (graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    doAdmittance = (graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH);
-    nMajor = graphPtr->nSmithImagMajorTicks;
-    nMinor = gridPtr->minorGrid ? graphPtr->nSmithImagMinorTicks : 0;
+    doImpedance = (graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH);
+    doAdmittance = (graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH);
+    nMajor = graphPtr->gridPtr->nSmithImagMajorTicks;
+    nMinor = gridPtr->minorGrid ? graphPtr->gridPtr->nSmithImagMinorTicks : 0;
     nDomains = doImpedance + doAdmittance;
     if (nMajor > TCL_SIZE_MAX - nMinor) {
         return;
@@ -1452,7 +1452,7 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
 #define MAP_REACTIVE_DOMAIN(admittance_)                                                                               \
     do {                                                                                                               \
         for (i = 0; i < nMajor; i++) {                                                                                 \
-            double value = graphPtr->smithImagMajorTicks[i];                                                           \
+            double value = graphPtr->gridPtr->smithImagMajorTicks[i];                                                           \
                                                                                                                        \
             MapSmithReactanceArc(graphPtr, gridPtr, value, admittance_, segments + index);                             \
             index += SMITH_ARC_SEGMENTS;                                                                               \
@@ -1462,7 +1462,7 @@ static void MapSmithReactanceGrid(Graph *graphPtr, Grid *gridPtr) {
         }                                                                                                              \
                                                                                                                        \
         for (i = 0; i < nMinor; i++) {                                                                                 \
-            double value = graphPtr->smithImagMinorTicks[i];                                                           \
+            double value = graphPtr->gridPtr->smithImagMinorTicks[i];                                                           \
                                                                                                                        \
             MapSmithReactanceArc(graphPtr, gridPtr, value, admittance_, segments + index);                             \
             index += SMITH_ARC_SEGMENTS;                                                                               \
@@ -1508,7 +1508,7 @@ static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr,
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nSmithRealMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nSmithRealMajorTicks; i++) {
         double value;
         double real;
         double imag;
@@ -1516,13 +1516,13 @@ static void SmithRealLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr,
         Tcl_DString label;
         char *string;
 
-        value = graphPtr->smithRealMajorTicks[i];
+        value = graphPtr->gridPtr->smithRealMajorTicks[i];
         SmithGridValueToGamma(admittance, value, 0.0, &real, &imag);
         point = Rbc_Map2D(graphPtr, real, imag, &gridPtr->axes);
         if ((!FINITE(point.x)) || (!FINITE(point.y))) {
             continue;
         }
-        string = FormatSmithLabel(graphPtr, graphPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
+        string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithRealCommandObjPtr, admittance, FALSE, value, &label);
         if (string[0] == '\0') {
             Tcl_DStringFree(&label);
             continue;
@@ -1566,11 +1566,11 @@ static void SmithReactiveLabelsExport(Graph *graphPtr, Rbc_ExportContext *export
     }
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
-    for (i = 0; i < graphPtr->nSmithImagMajorTicks; i++) {
+    for (i = 0; i < graphPtr->gridPtr->nSmithImagMajorTicks; i++) {
         double magnitude;
         int sign;
 
-        magnitude = graphPtr->smithImagMajorTicks[i];
+        magnitude = graphPtr->gridPtr->smithImagMajorTicks[i];
         for (sign = 1; sign >= -1; sign -= 2) {
             double reactive;
             Point2D point;
@@ -1583,7 +1583,7 @@ static void SmithReactiveLabelsExport(Graph *graphPtr, Rbc_ExportContext *export
                 continue;
             }
             style.anchor = anchor;
-            string = FormatSmithLabel(graphPtr, graphPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
+            string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
             if (string[0] != '\0') {
                 Rbc_RenderText(output, string, &style, point.x, point.y);
             }
@@ -1600,11 +1600,11 @@ void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     if (gridPtr == NULL) {
         return;
     }
-    if ((graphPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+    if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_IMPEDANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
         SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, FALSE);
     }
-    if ((graphPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->smithGrid == SMITH_GRID_BOTH)) {
+    if ((graphPtr->gridPtr->smithGrid == SMITH_GRID_ADMITTANCE) || (graphPtr->gridPtr->smithGrid == SMITH_GRID_BOTH)) {
         SmithRealLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
         SmithReactiveLabelsExport(graphPtr, exportPtr, gridPtr, TRUE);
     }

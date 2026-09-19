@@ -18,6 +18,23 @@ The win/makefile\&.vc build supports MSVC and Nmake with Tcl/Tk 9, including opt
 CAIRO=1 and CAIRODIR\&. It provides build, test, install and shell targets independently of the
 MSYS2 build\&. Matching MSVC-built Tcl/Tk source trees and libraries are required; Cairo runtime
 DLLs and their dependencies must be available when loading RBC\&. See win/README\&.md for commands\&.
+.SS "POLAR/SMITH GRID CONFIGURATION"
+.PP
+Polar/Smith tick lists, label anchors, label formatter commands, and -smithgrid are now grid component
+options\&. Use graphPath grid configure and graphPath grid cget\&. They are no longer accepted by the graph
+constructor or graph-level configure/cget\&. The graph retains -representation and -aspect\&.
+.PP
+.RS 4n
+.nf
+::rbc::polar \&.p -representation smith
+\&.p grid configure -smithgrid admittance -smithrealmajorticks {0 0\&.5 1 2}
+.fi
+.RE
+.PP
+Option-database patterns likewise include the grid component, for example
+option add *Polar\&.grid\&.AngleMajorTicks {0 90 180 270}\&. Grid -hide still controls lines independently of
+coordinate labels\&. The toolbar keeps its -smithgrid constructor convenience option and reads subsequent
+changes from the grid component\&. See \fI::rbc::GRID\fP for full option tables and formatter details\&.
 .SS "OPTIONAL CAIRO RENDERING"
 .PP
 Configure with --enable-cairo to build the antialiased renderer\&. Cairo-enabled builds default to

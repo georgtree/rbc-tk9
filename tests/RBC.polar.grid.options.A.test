@@ -1,0 +1,101 @@
+# Polar/Smith grid settings belong to the grid component.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcPolarGridOptionsTest {
+    namespace import ::tcltest::*
+
+    set options {
+        -anglelabelanchor -radiallabelanchor -anglemajorticks -angleminorticks -anglecommand
+        -smithgrid -smithrealmajorticks -smithrealminorticks -smithimagmajorticks -smithimagminorticks
+        -smithrealcommand -smithimagcommand
+    }
+
+    test polarGridOptions-1 {grid owns options and graph rejects the old location} -setup {
+        ::rbc::polar .gridOptions
+    } -body {
+        set failures {}
+        foreach option $options {
+            set value [.gridOptions grid cget $option]
+            if {[lindex [.gridOptions grid configure $option] 4] ne $value ||
+                ![catch {.gridOptions cget $option}] ||
+                ![catch {.gridOptions configure $option $value}]} {
+                lappend failures $option
+            }
+        }
+        list $failures [.gridOptions cget -representation] [.gridOptions cget -aspect]
+    } -cleanup {
+        destroy .gridOptions
+    } -result {{} polar 1.0}
+
+    test polarGridOptions-2 {component option database supplies parsed defaults at creation} -setup {
+        option add *gridOptions.grid.AngleMajorTicks {10 70 190} interactive
+        option add *gridOptions.grid.AngleLabelAnchor auto interactive
+        option add *gridOptions.grid.SmithGrid admittance interactive
+        option add *gridOptions.grid.SmithRealMajorTicks {0 0.75 3} interactive
+        ::rbc::polar .gridOptions -representation smith
+    } -body {
+        list [.gridOptions grid cget -anglemajorticks] [.gridOptions grid cget -anglelabelanchor] \
+            [.gridOptions grid cget -smithgrid] [.gridOptions grid cget -smithrealmajorticks]
+    } -cleanup {
+        catch {destroy .gridOptions}
+        # Restore defaults for this test-specific pathname without clearing
+        # the suite's renderer defaults or other option-database entries.
+        option add *gridOptions.grid.AngleMajorTicks {0 30 60 90 120 150 180 210 240 270 300 330} interactive
+        option add *gridOptions.grid.AngleLabelAnchor center interactive
+        option add *gridOptions.grid.SmithGrid impedance interactive
+        option add *gridOptions.grid.SmithRealMajorTicks {0 0.2 0.5 1 2 5} interactive
+    } -result {{10 70 190} auto admittance {0 0.75 3}}
+
+    test polarGridOptions-3 {invalid ticks roll back style, mappings and parsed grid state together} -setup {
+        ::rbc::polar .gridOptions
+        .gridOptions grid configure -color navy -mapx x -smithgrid impedance -anglemajorticks {0 90}
+        set before [.gridOptions grid configure]
+    } -body {
+        set failed [catch {
+            .gridOptions grid configure -color red -mapx x2 -smithgrid both \
+                -anglemajorticks {0 45} -smithimagmajorticks {0 1}
+        }]
+        list $failed [expr {[.gridOptions grid configure] eq $before}]
+    } -cleanup {
+        destroy .gridOptions
+    } -result {1 1}
+
+    test polarGridOptions-4 {invalid mapping does not commit new tick arrays} -setup {
+        ::rbc::polar .gridOptions
+        .gridOptions grid configure -anglemajorticks {0 90}
+        set before [.gridOptions grid configure]
+    } -body {
+        set failed [catch {
+            .gridOptions grid configure -anglemajorticks {45 135} -mapx y
+        }]
+        list $failed [expr {[.gridOptions grid configure] eq $before}]
+    } -cleanup {
+        destroy .gridOptions
+    } -result {1 1}
+
+    proc AngleLabel {widget angle} {
+        return "GRID-ANGLE-$angle"
+    }
+
+    test polarGridOptions-5 {hidden grid lines retain labels and tick changes reach export} -setup {
+        ::rbc::polar .gridOptions -width 400 -height 400
+        .gridOptions axis configure x -min -1 -max 1 -loose no
+        .gridOptions axis configure y -min -1 -max 1 -loose no -showticks yes
+        .gridOptions grid configure -hide yes -anglemajorticks {30} \
+            -anglecommand ::rbcPolarGridOptionsTest::AngleLabel
+    } -body {
+        set before [.gridOptions svg output]
+        .gridOptions grid configure -anglemajorticks {60}
+        set after [.gridOptions svg output]
+        .gridOptions axis configure y -showticks no
+        set hidden [.gridOptions svg output]
+        list [string match {*GRID-ANGLE-30*} $before] \
+            [string match {*GRID-ANGLE-60*} $after] \
+            [expr {![string match {*GRID-ANGLE-30*} $after]}] \
+            [expr {![string match {*GRID-ANGLE-*} $hidden]}]
+    } -cleanup {
+        destroy .gridOptions
+    } -result {1 1 1 1}
+}
+::tcltest::cleanupTests

@@ -588,7 +588,7 @@ test generalConfiguration-1 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame} -cleanup {
+} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame svgDialogBut} -cleanup {
     destroy $widget
 }
 
@@ -599,7 +599,7 @@ test generalConfiguration-2 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     $widget names
-} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut} -cleanup {
+} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut svgDialogBut} -cleanup {
     destroy $widget
 }
 
@@ -610,7 +610,8 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {crosshairsMenu crosshairsMenuButton graph makeSnapshotBut postScriptDialogBut resetZoomBut revertZoomBut toolbarFrame} -cleanup {
+} -result {crosshairsMenu crosshairsMenuButton graph makeSnapshotBut postScriptDialogBut resetZoomBut revertZoomBut\
+                   svgDialogBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -804,12 +805,12 @@ test generalConfiguration-19 {context menu contains only controls for enabled fe
         lappend actual [MenuDescription [$widget subwidget contextMenu]]
     }
     return $actual
-} -result {{{command {Make snapshot...}} {command PostScript...}}\
-    {{command {Make snapshot...}} {command PostScript...} {separator {}} {command {Reset view}}\
+} -result {{{command {Make snapshot...}} {command PostScript...} {command SVG...}}\
+    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {command {Reset view}}\
              {command {Previous view}}}\
-    {{command {Make snapshot...}} {command PostScript...} {separator {}} {cascade {Crosshairs mode}}\
+    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {cascade {Crosshairs mode}}\
              {cascade {Closest crosshairs format}}}\
-    {{command {Make snapshot...}} {command PostScript...} {separator {}} {command {Reset view}}\
+    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {command {Reset view}}\
              {command {Previous view}} {separator {}} {cascade {Crosshairs mode}}\
              {cascade {Closest crosshairs format}}}} -cleanup {
     foreach widget $widgets {
@@ -1022,7 +1023,7 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
         lappend states [$w cget -state]
     }
     return $states
-}  -result {disabled disabled disabled disabled normal normal normal normal} -cleanup {
+}  -result {disabled disabled disabled disabled disabled normal normal normal normal normal} -cleanup {
     destroy $widget
 }
 
@@ -3334,7 +3335,7 @@ test crosshairsInteractive-28 {smith current marker supports all coordinate repr
     }
     $widget configure -coordmark auto
     foreach {gridMode expectedMode} {admittance admittance both impedance} {
-        $graph configure -smithgrid $gridMode
+        $graph grid configure -smithgrid $gridMode
         GenerateGraphEvent $graph <Motion> $x $y 20
         if {$expectedMode eq {impedance}} {
             lappend actual [$graph marker cget gtbCrosshairsText -text]
@@ -3469,7 +3470,8 @@ test crosshairsInteractive-32 {closest coordinate selector chooses valid default
 } -body {
     WaitForWindow $graph
     $widget configure -coordclosestmark complex
-    $graph configure -representation smith -smithgrid admittance
+    $graph configure -representation smith
+    $graph grid configure -smithgrid admittance
     uplevel #0 [$menu cget -postcommand]
     list [$widget configure -coordclosestmark] [set [$menu entrycget 0 -variable]] \
         [expr {[$menu index {Normalized admittance}] ne {none}}]

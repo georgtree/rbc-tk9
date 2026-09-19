@@ -30,10 +30,10 @@ namespace eval polar.smith {
     }
 
     proc ConfigureSmith {w title gridMode} {
-        polar $w -width 520 -height 520 -representation smith -smithgrid $gridMode -title $title
+        polar $w -width 520 -height 520 -representation smith -title $title
         $w axis configure x -min -1.2 -max 1.2
         $w axis configure y -min -1.2 -max 1.2
-        $w grid configure -hide no -minor yes
+        $w grid configure -hide no -minor yes -smithgrid $gridMode
     }
 
     # ------------------------------------------------------------------
@@ -73,7 +73,8 @@ namespace eval polar.smith {
     }
 
     proc RBC.polar.smith.M.1.2.Body {} {
-        .polar1 configure -smithgrid both -title "Smith: admittance data with both grids"
+        .polar1 grid configure -smithgrid both
+        .polar1 configure -title "Smith: admittance data with both grids"
     }
 
     proc RBC.polar.smith.M.1.2.Cleanup {} {
@@ -89,13 +90,13 @@ namespace eval polar.smith {
     proc RBC.polar.smith.M.1.3.Setup {} {
         ConfigureSmith .polar1 "Smith: custom contours and labels" both
         pack .polar1 -fill both -expand yes
-        .polar1 configure -smithrealmajorticks {0 0.5 1 2 5} -smithrealminorticks {0.2 0.75 1.5 3}\
+        .polar1 grid configure -smithrealmajorticks {0 0.5 1 2 5} -smithrealminorticks {0.2 0.75 1.5 3}\
             -smithimagmajorticks {0.5 1 2 5} -smithimagminorticks {0.2 0.75 1.5 3}\
             -smithrealcommand ::polar.smith::SmithRealLabel -smithimagcommand ::polar.smith::SmithImagLabel
     }
 
     proc RBC.polar.smith.M.1.3.Body {} {
-        .polar1 configure -smithrealmajorticks {0 0.2 1 5 10} -smithimagmajorticks {0.2 1 5 10}
+        .polar1 grid configure -smithrealmajorticks {0 0.2 1 5 10} -smithimagmajorticks {0.2 1 5 10}
     }
 
     proc RBC.polar.smith.M.1.3.Cleanup {} {

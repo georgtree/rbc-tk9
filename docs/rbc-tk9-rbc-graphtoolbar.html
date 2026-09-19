@@ -307,7 +307,7 @@ toolbar refreshes the annotation beneath the pointer.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">normalizedadmittanceri</span></code></p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">auto</span></code> uses normal axis coordinates for ordinary and Polar graphs. For a Smith representation it selects
-real/imaginary normalized impedance or admittance according to <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code>.</p>
+real/imaginary normalized impedance or admittance according to the current <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">cget</span> <span class="pre">-smithgrid</span></code> value.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span></code> controls closest-point annotation. The permitted formats depend on the graph
 representation:</p>
 <ul class="simple">
@@ -822,7 +822,7 @@ the embedded graph.</p>
 <dd class="field-odd"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
 </dd>
 <dt class="field-even">-smithgrid mode<span class="colon">:</span></dt>
-<dd class="field-even"><p>For a Smith representation, selects <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">impedance</span></code>.</p>
+<dd class="field-even"><p>Initializes the graph grid component’s <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code> option. For a Smith representation, selects <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">impedance</span></code>. Later changes use <code class="docutils literal notranslate"><span class="pre">$toolbar</span> <span class="pre">graph</span> <span class="pre">grid</span> <span class="pre">configure</span> <span class="pre">-smithgrid</span> <span class="pre">mode</span></code>.</p>
 </dd>
 <dt class="field-odd">-coordmark mode<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Initial value of the <code class="docutils literal notranslate"><span class="pre">-coordmark</span></code> configurable property. The default is <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p>

@@ -67,8 +67,8 @@ namespace eval polar.representation {
     proc RBC.polar.representation.M.1.2.Setup {} {
         vector create z -type complex
         z set {{ 0.15 0.10} { 0.35 0.55} {-0.10 0.75} {-0.65 0.35} {-0.55 -0.35} { 0.10 -0.70} { 0.65 -0.25}}
-        polar .polar1 -width 520 -height 520 -title "Polar: custom angular and radial labels"\
-                -anglemajorticks {0 45 90 135 180 225 270 315}\
+        polar .polar1 -width 520 -height 520 -title "Polar: custom angular and radial labels"
+        .polar1 grid configure -anglemajorticks {0 45 90 135 180 225 270 315}\
                 -angleminorticks {22.5 67.5 112.5 157.5 202.5 247.5 292.5 337.5}\
                 -anglecommand ::polar.representation::AngleLabel
         pack .polar1 -fill both -expand yes
@@ -80,7 +80,7 @@ namespace eval polar.representation {
     }
 
     proc RBC.polar.representation.M.1.2.Body {} {
-        .polar1 configure -anglelabelanchor center -radiallabelanchor nw
+        .polar1 grid configure -anglelabelanchor center -radiallabelanchor nw
     }
 
     proc RBC.polar.representation.M.1.2.Cleanup {} {

@@ -25,9 +25,88 @@
 #define GRID_REDRAW (1U << 0)
 #define GRID_GC_CHANGED (1U << 1)
 #define GRID_AXES_CHANGED (1U << 2)
-#define GRID_INITIALIZE_MASK (GRID_GC_CHANGED | GRID_AXES_CHANGED)
+#define GRID_POLAR_CHANGED (1U << 3)
+#define GRID_INITIALIZE_MASK (GRID_GC_CHANGED | GRID_AXES_CHANGED | GRID_POLAR_CHANGED)
+
+#define DEF_GRID_RADIAL_LABEL_ANCHOR "se"
+#define DEF_GRID_ANGLE_LABEL_ANCHOR "center"
+#define DEF_GRID_SMITH_GRID "impedance"
+#define DEF_GRID_ANGLE_MAJOR_TICKS "0 30 60 90 120 150 180 210 240 270 300 330"
+#define DEF_GRID_ANGLE_MINOR_TICKS "15 45 75 105 135 165 195 225 255 285 315 345"
+#define DEF_GRID_ANGLE_COMMAND (char *)NULL
+#define DEF_GRID_SMITH_REAL_MAJOR_TICKS "0 0.2 0.5 1 2 5"
+#define DEF_GRID_SMITH_REAL_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
+#define DEF_GRID_SMITH_IMAG_MAJOR_TICKS "0.2 0.5 1 2 5"
+#define DEF_GRID_SMITH_IMAG_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
+#define DEF_GRID_SMITH_REAL_COMMAND (char *)NULL
+#define DEF_GRID_SMITH_IMAG_COMMAND (char *)NULL
+
+typedef struct {
+    int majorStaged;
+    double *majorTicks;
+    Tcl_Size nMajorTicks;
+    int minorStaged;
+    double *minorTicks;
+    Tcl_Size nMinorTicks;
+} GridPolarAngleTicksTransaction;
+
+typedef struct {
+    int realMajorStaged;
+    double *realMajorTicks;
+    Tcl_Size nRealMajorTicks;
+    int realMinorStaged;
+    double *realMinorTicks;
+    Tcl_Size nRealMinorTicks;
+    int imagMajorStaged;
+    double *imagMajorTicks;
+    Tcl_Size nImagMajorTicks;
+    int imagMinorStaged;
+    double *imagMinorTicks;
+    Tcl_Size nImagMinorTicks;
+} GridSmithTicksTransaction;
+
+static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
+                               char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags);
+static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset);
+static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr, char *saveInternalPtr);
+static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr);
+static const Tk_ObjCustomOption polarLabelAnchorOption = {
+    "polarLabelAnchor", SetPolarLabelAnchor, GetPolarLabelAnchor, RestorePolarLabelAnchor, FreePolarLabelAnchor, NULL};
+static const char *const smithGridNames[] = {"impedance", "admittance", "both", NULL};
 
 static const Tk_OptionSpec graphGridOptionSpecs[] = {
+    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
+     offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
+     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
+     offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
+     offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR,
+     -1, offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1,
+     offsetof(Grid, smithGrid), 0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
+     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
+     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
+     DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks",
+     DEF_GRID_SMITH_REAL_MINOR_TICKS, offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks",
+     DEF_GRID_SMITH_IMAG_MAJOR_TICKS, offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks",
+     DEF_GRID_SMITH_IMAG_MINOR_TICKS, offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+
     {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
      DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
     {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
@@ -44,6 +123,38 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec barGridOptionSpecs[] = {
+    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
+     offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
+     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
+     offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
+     offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR,
+     -1, offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1,
+     offsetof(Grid, smithGrid), 0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
+     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
+     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
+     DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks",
+     DEF_GRID_SMITH_REAL_MINOR_TICKS, offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks",
+     DEF_GRID_SMITH_IMAG_MAJOR_TICKS, offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks",
+     DEF_GRID_SMITH_IMAG_MINOR_TICKS, offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+
     {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
      DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
     {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
@@ -59,6 +170,526 @@ static const Tk_OptionSpec barGridOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
      GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
+
+static int IsGridOption(Tcl_Obj *objPtr, const char *optionName) {
+    const char *name = Rbc_GetCanonicalOptionName(objPtr, graphGridOptionSpecs);
+
+    return ((name != NULL) && (strcmp(name, optionName) == 0));
+}
+
+static int SetPolarLabelAnchor(void *clientData, Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj **valuePtrPtr,
+                               char *widgRec, Tcl_Size offset, char *saveInternalPtr, int flags) {
+    PolarLabelAnchor *anchorPtr;
+    PolarLabelAnchor newAnchor;
+    const char *string;
+
+    (void)clientData;
+    (void)tkwin;
+    (void)flags;
+    anchorPtr = (PolarLabelAnchor *)(widgRec + offset);
+    /*
+     * Tk needs the old internal representation for transactional
+     * rollback.
+     */
+    if (saveInternalPtr != NULL) {
+        *((PolarLabelAnchor *)saveInternalPtr) = *anchorPtr;
+    }
+    string = Tcl_GetString(*valuePtrPtr);
+    if (strcmp(string, "auto") == 0) {
+        newAnchor.anchor = TK_ANCHOR_CENTER;
+        newAnchor.isAuto = TRUE;
+    } else {
+        if (Tk_GetAnchorFromObj(interp, *valuePtrPtr, &newAnchor.anchor) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        newAnchor.isAuto = FALSE;
+    }
+    *anchorPtr = newAnchor;
+    return TCL_OK;
+}
+
+static Tcl_Obj *GetPolarLabelAnchor(void *clientData, Tk_Window tkwin, char *widgRec, Tcl_Size offset) {
+    PolarLabelAnchor *anchorPtr;
+
+    (void)clientData;
+    (void)tkwin;
+    anchorPtr = (PolarLabelAnchor *)(widgRec + offset);
+    if (anchorPtr->isAuto) {
+        return Tcl_NewStringObj("auto", -1);
+    }
+    return Tcl_NewStringObj(Tk_NameOfAnchor(anchorPtr->anchor), -1);
+}
+
+static void RestorePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr, char *saveInternalPtr) {
+    (void)clientData;
+    (void)tkwin;
+
+    *((PolarLabelAnchor *)internalPtr) = *((PolarLabelAnchor *)saveInternalPtr);
+}
+
+static void FreePolarLabelAnchor(void *clientData, Tk_Window tkwin, char *internalPtr) {
+    (void)clientData;
+    (void)tkwin;
+    (void)internalPtr;
+}
+
+static int ParsePolarAngleTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, double **ticksPtr,
+                                Tcl_Size *nTicksPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    double *ticks;
+    size_t bytes;
+
+    *ticksPtr = NULL;
+    *nTicksPtr = 0;
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc == 0) {
+        return TCL_OK;
+    }
+    if ((Tcl_WideUInt)objc > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s contains too many angles", optionName));
+        return TCL_ERROR;
+    }
+    bytes = (size_t)objc * sizeof(double);
+    ticks = Tcl_AttemptAlloc(bytes);
+    if (ticks == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate polar angular tick array", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < objc; i++) {
+        double value;
+
+        if (Tcl_GetDoubleFromObj(interp, objv[i], &value) != TCL_OK) {
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        if ((!FINITE(value)) || (value < 0.0) || (value >= 360.0)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s angle \"%s\" must be finite "
+                                                   "and in the range 0 <= angle < 360",
+                                                   optionName, Tcl_GetString(objv[i])));
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        /*
+         * Canonicalize negative zero.
+         */
+        if (value == 0.0) {
+            value = 0.0;
+        }
+        ticks[i] = value;
+    }
+    *ticksPtr = ticks;
+    *nTicksPtr = objc;
+    return TCL_OK;
+}
+
+static int ParseSmithTicks(Tcl_Interp *interp, Tcl_Obj *objPtr, const char *optionName, int allowZero,
+                           double **ticksPtr, Tcl_Size *nTicksPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+    Tcl_Size i;
+    double *ticks;
+    size_t bytes;
+
+    *ticksPtr = NULL;
+    *nTicksPtr = 0;
+    if (Tcl_ListObjGetElements(interp, objPtr, &objc, &objv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc == 0) {
+        return TCL_OK;
+    }
+    if ((Tcl_WideUInt)objc > (Tcl_WideUInt)(SIZE_MAX / sizeof(double))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%s contains too many values", optionName));
+        return TCL_ERROR;
+    }
+    bytes = (size_t)objc * sizeof(double);
+    ticks = Tcl_AttemptAlloc(bytes);
+    if (ticks == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate Smith tick array", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < objc; i++) {
+        double value;
+
+        if (Tcl_GetDoubleFromObj(interp, objv[i], &value) != TCL_OK) {
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        if ((!FINITE(value)) || (allowZero ? (value < 0.0) : (value <= 0.0))) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf(allowZero ? "%s value \"%s\" must be finite and non-negative"
+                                                             : "%s value \"%s\" must be finite and greater than zero",
+                                                   optionName, Tcl_GetString(objv[i])));
+            ckfree(ticks);
+            return TCL_ERROR;
+        }
+        /*
+         * Canonicalize negative zero.
+         */
+        if (value == 0.0) {
+            value = 0.0;
+        }
+        ticks[i] = value;
+    }
+    *ticksPtr = ticks;
+    *nTicksPtr = objc;
+    return TCL_OK;
+}
+
+static int StageGridPolarAngleTicks(Grid *gridPtr, Tcl_Obj *objPtr, int major,
+                                     GridPolarAngleTicksTransaction *transactionPtr) {
+    double *ticks;
+    Tcl_Size nTicks;
+    const char *optionName;
+
+    ticks = NULL;
+    nTicks = 0;
+    optionName = major ? "-anglemajorticks" : "-angleminorticks";
+    if (ParsePolarAngleTicks(gridPtr->graphPtr->interp, objPtr, optionName, &ticks, &nTicks) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Only release an earlier staged value after the new
+     * value has parsed successfully.
+     */
+    if (major) {
+        if (transactionPtr->majorStaged && (transactionPtr->majorTicks != NULL)) {
+            ckfree(transactionPtr->majorTicks);
+        }
+        transactionPtr->majorTicks = ticks;
+        transactionPtr->nMajorTicks = nTicks;
+        transactionPtr->majorStaged = TRUE;
+    } else {
+        if (transactionPtr->minorStaged && (transactionPtr->minorTicks != NULL)) {
+            ckfree(transactionPtr->minorTicks);
+        }
+        transactionPtr->minorTicks = ticks;
+        transactionPtr->nMinorTicks = nTicks;
+        transactionPtr->minorStaged = TRUE;
+    }
+    return TCL_OK;
+}
+
+static int StageGridSmithTicks(Grid *gridPtr, Tcl_Obj *objPtr, int realPart, int major,
+                                GridSmithTicksTransaction *transactionPtr) {
+    double *ticks;
+    Tcl_Size nTicks;
+    const char *optionName;
+    int allowZero;
+
+    ticks = NULL;
+    nTicks = 0;
+    allowZero = realPart;
+    if (realPart) {
+        optionName = major ? "-smithrealmajorticks" : "-smithrealminorticks";
+    } else {
+        optionName = major ? "-smithimagmajorticks" : "-smithimagminorticks";
+    }
+    if (ParseSmithTicks(gridPtr->graphPtr->interp, objPtr, optionName, allowZero, &ticks, &nTicks) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    /*
+     * Only release an earlier staged value after the new
+     * value has parsed successfully.
+     */
+    if (realPart) {
+        if (major) {
+            if (transactionPtr->realMajorStaged && (transactionPtr->realMajorTicks != NULL)) {
+                ckfree(transactionPtr->realMajorTicks);
+            }
+            transactionPtr->realMajorTicks = ticks;
+            transactionPtr->nRealMajorTicks = nTicks;
+            transactionPtr->realMajorStaged = TRUE;
+        } else {
+            if (transactionPtr->realMinorStaged && (transactionPtr->realMinorTicks != NULL)) {
+                ckfree(transactionPtr->realMinorTicks);
+            }
+            transactionPtr->realMinorTicks = ticks;
+            transactionPtr->nRealMinorTicks = nTicks;
+            transactionPtr->realMinorStaged = TRUE;
+        }
+    } else {
+        if (major) {
+            if (transactionPtr->imagMajorStaged && (transactionPtr->imagMajorTicks != NULL)) {
+                ckfree(transactionPtr->imagMajorTicks);
+            }
+            transactionPtr->imagMajorTicks = ticks;
+            transactionPtr->nImagMajorTicks = nTicks;
+            transactionPtr->imagMajorStaged = TRUE;
+        } else {
+            if (transactionPtr->imagMinorStaged && (transactionPtr->imagMinorTicks != NULL)) {
+                ckfree(transactionPtr->imagMinorTicks);
+            }
+            transactionPtr->imagMinorTicks = ticks;
+            transactionPtr->nImagMinorTicks = nTicks;
+            transactionPtr->imagMinorStaged = TRUE;
+        }
+    }
+    return TCL_OK;
+}
+
+static void FreeGridPolarAngleTicksTransaction(GridPolarAngleTicksTransaction *transactionPtr) {
+    if (transactionPtr->majorTicks != NULL) {
+        ckfree(transactionPtr->majorTicks);
+    }
+    if (transactionPtr->minorTicks != NULL) {
+        ckfree(transactionPtr->minorTicks);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static void FreeGridSmithTicksTransaction(GridSmithTicksTransaction *transactionPtr) {
+    if (transactionPtr->realMajorTicks != NULL) {
+        ckfree(transactionPtr->realMajorTicks);
+    }
+    if (transactionPtr->realMinorTicks != NULL) {
+        ckfree(transactionPtr->realMinorTicks);
+    }
+    if (transactionPtr->imagMajorTicks != NULL) {
+        ckfree(transactionPtr->imagMajorTicks);
+    }
+    if (transactionPtr->imagMinorTicks != NULL) {
+        ckfree(transactionPtr->imagMinorTicks);
+    }
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+}
+
+static int PrepareGridPolarAngleTicksTransaction(Grid *gridPtr, GridPolarAngleTicksTransaction *transactionPtr) {
+    int explicitMajor;
+    int explicitMinor;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitMajor = FALSE;
+    explicitMinor = FALSE;
+    assert((gridPtr->optionObjc & 1) == 0);
+    /*
+     * Determine whether the caller explicitly supplied either
+     * option.  On initial configuration, option-database/default
+     * values must also be staged.
+     */
+    for (i = 0; i < gridPtr->optionObjc; i += 2) {
+        if (IsGridOption(gridPtr->optionObjv[i], "-anglemajorticks")) {
+            explicitMajor = TRUE;
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-angleminorticks")) {
+            explicitMinor = TRUE;
+        }
+    }
+    if (!gridPtr->optionsConfigured) {
+        if ((!explicitMajor) && (gridPtr->angleMajorTicksObjPtr != NULL)) {
+            if (StageGridPolarAngleTicks(gridPtr, gridPtr->angleMajorTicksObjPtr, TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitMinor) && (gridPtr->angleMinorTicksObjPtr != NULL)) {
+            if (StageGridPolarAngleTicks(gridPtr, gridPtr->angleMinorTicksObjPtr, FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    /*
+     * Process explicit values in caller order so that an invalid
+     * earlier duplicate is not hidden by a later valid value.
+     */
+    for (i = 0; i < gridPtr->optionObjc; i += 2) {
+        if (IsGridOption(gridPtr->optionObjv[i], "-anglemajorticks")) {
+            if (StageGridPolarAngleTicks(gridPtr, gridPtr->optionObjv[i + 1], TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-angleminorticks")) {
+            if (StageGridPolarAngleTicks(gridPtr, gridPtr->optionObjv[i + 1], FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    return TCL_OK;
+
+error:
+    FreeGridPolarAngleTicksTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+static int PrepareGridSmithTicksTransaction(Grid *gridPtr, GridSmithTicksTransaction *transactionPtr) {
+    int explicitRealMajor;
+    int explicitRealMinor;
+    int explicitImagMajor;
+    int explicitImagMinor;
+    Tcl_Size i;
+
+    memset(transactionPtr, 0, sizeof(*transactionPtr));
+    explicitRealMajor = FALSE;
+    explicitRealMinor = FALSE;
+    explicitImagMajor = FALSE;
+    explicitImagMinor = FALSE;
+    assert((gridPtr->optionObjc & 1) == 0);
+    /*
+     * Determine whether the caller explicitly supplied any of the
+     * Smith tick options.  On initial configuration,
+     * option-database/default values must also be staged.
+     */
+    for (i = 0; i < gridPtr->optionObjc; i += 2) {
+        if (IsGridOption(gridPtr->optionObjv[i], "-smithrealmajorticks")) {
+            explicitRealMajor = TRUE;
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithrealminorticks")) {
+            explicitRealMinor = TRUE;
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithimagmajorticks")) {
+            explicitImagMajor = TRUE;
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithimagminorticks")) {
+            explicitImagMinor = TRUE;
+        }
+    }
+    if (!gridPtr->optionsConfigured) {
+        if ((!explicitRealMajor) && (gridPtr->smithRealMajorTicksObjPtr != NULL)) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->smithRealMajorTicksObjPtr, TRUE, TRUE, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitRealMinor) && (gridPtr->smithRealMinorTicksObjPtr != NULL)) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->smithRealMinorTicksObjPtr, TRUE, FALSE, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitImagMajor) && (gridPtr->smithImagMajorTicksObjPtr != NULL)) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->smithImagMajorTicksObjPtr, FALSE, TRUE, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+        if ((!explicitImagMinor) && (gridPtr->smithImagMinorTicksObjPtr != NULL)) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->smithImagMinorTicksObjPtr, FALSE, FALSE, transactionPtr) !=
+                TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    /*
+     * Process explicit values in caller order so that an invalid
+     * earlier duplicate is not hidden by a later valid value.
+     */
+    for (i = 0; i < gridPtr->optionObjc; i += 2) {
+        if (IsGridOption(gridPtr->optionObjv[i], "-smithrealmajorticks")) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->optionObjv[i + 1], TRUE, TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithrealminorticks")) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->optionObjv[i + 1], TRUE, FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithimagmajorticks")) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->optionObjv[i + 1], FALSE, TRUE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        } else if (IsGridOption(gridPtr->optionObjv[i], "-smithimagminorticks")) {
+            if (StageGridSmithTicks(gridPtr, gridPtr->optionObjv[i + 1], FALSE, FALSE, transactionPtr) != TCL_OK) {
+                goto error;
+            }
+        }
+    }
+    return TCL_OK;
+
+error:
+    FreeGridSmithTicksTransaction(transactionPtr);
+    return TCL_ERROR;
+}
+
+static void CommitGridPolarAngleTicksTransaction(Grid *gridPtr, GridPolarAngleTicksTransaction *transactionPtr) {
+    if (transactionPtr->majorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->angleMajorTicks;
+        gridPtr->angleMajorTicks = transactionPtr->majorTicks;
+        gridPtr->nAngleMajorTicks = transactionPtr->nMajorTicks;
+        transactionPtr->majorTicks = NULL;
+        transactionPtr->nMajorTicks = 0;
+        transactionPtr->majorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->minorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->angleMinorTicks;
+        gridPtr->angleMinorTicks = transactionPtr->minorTicks;
+        gridPtr->nAngleMinorTicks = transactionPtr->nMinorTicks;
+        transactionPtr->minorTicks = NULL;
+        transactionPtr->nMinorTicks = 0;
+        transactionPtr->minorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+}
+
+static void CommitGridSmithTicksTransaction(Grid *gridPtr, GridSmithTicksTransaction *transactionPtr) {
+    if (transactionPtr->realMajorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->smithRealMajorTicks;
+        gridPtr->smithRealMajorTicks = transactionPtr->realMajorTicks;
+        gridPtr->nSmithRealMajorTicks = transactionPtr->nRealMajorTicks;
+        transactionPtr->realMajorTicks = NULL;
+        transactionPtr->nRealMajorTicks = 0;
+        transactionPtr->realMajorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->realMinorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->smithRealMinorTicks;
+        gridPtr->smithRealMinorTicks = transactionPtr->realMinorTicks;
+        gridPtr->nSmithRealMinorTicks = transactionPtr->nRealMinorTicks;
+        transactionPtr->realMinorTicks = NULL;
+        transactionPtr->nRealMinorTicks = 0;
+        transactionPtr->realMinorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->imagMajorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->smithImagMajorTicks;
+        gridPtr->smithImagMajorTicks = transactionPtr->imagMajorTicks;
+        gridPtr->nSmithImagMajorTicks = transactionPtr->nImagMajorTicks;
+        transactionPtr->imagMajorTicks = NULL;
+        transactionPtr->nImagMajorTicks = 0;
+        transactionPtr->imagMajorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+    if (transactionPtr->imagMinorStaged) {
+        double *oldTicks;
+
+        oldTicks = gridPtr->smithImagMinorTicks;
+        gridPtr->smithImagMinorTicks = transactionPtr->imagMinorTicks;
+        gridPtr->nSmithImagMinorTicks = transactionPtr->nImagMinorTicks;
+        transactionPtr->imagMinorTicks = NULL;
+        transactionPtr->nImagMinorTicks = 0;
+        transactionPtr->imagMinorStaged = FALSE;
+        if (oldTicks != NULL) {
+            ckfree(oldTicks);
+        }
+    }
+}
+
+static int ValidateGridCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    Tcl_Obj **objv;
+    Tcl_Size objc;
+
+    if (objPtr == NULL) {
+        return TCL_OK;
+    }
+    return Tcl_ListObjGetElements(interp, objPtr, &objc, &objv);
+}
 
 static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask);
 
@@ -98,6 +729,8 @@ static RbcGrGridOp ToggleOp;
  *----------------------------------------------------------------------
  */
 static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
+    GridPolarAngleTicksTransaction angleTicks = {0};
+    GridSmithTicksTransaction smithTicks = {0};
     Rbc_Dashes newDashes;
     int newLineWidth;
     Axis *newXAxis;
@@ -135,6 +768,19 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
             return TCL_ERROR;
         }
     }
+    if (mask & GRID_POLAR_CHANGED) {
+        if (ValidateGridCommandPrefix(graphPtr->interp, gridPtr->angleCommandObjPtr) != TCL_OK ||
+            ValidateGridCommandPrefix(graphPtr->interp, gridPtr->smithRealCommandObjPtr) != TCL_OK ||
+            ValidateGridCommandPrefix(graphPtr->interp, gridPtr->smithImagCommandObjPtr) != TCL_OK ||
+            PrepareGridPolarAngleTicksTransaction(gridPtr, &angleTicks) != TCL_OK ||
+            PrepareGridSmithTicksTransaction(gridPtr, &smithTicks) != TCL_OK) {
+            FreeGridPolarAngleTicksTransaction(&angleTicks);
+            FreeGridSmithTicksTransaction(&smithTicks);
+            Rbc_FreeAxisReference(graphPtr, newXAxis);
+            Rbc_FreeAxisReference(graphPtr, newYAxis);
+            return TCL_ERROR;
+        }
+    }
     /*
      * Allocate the replacement GC only after every fallible conversion
      * and axis lookup has succeeded.
@@ -152,6 +798,9 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
             Rbc_SetDashes(graphPtr->display, newGC, &newDashes);
         }
     }
+    CommitGridPolarAngleTicksTransaction(gridPtr, &angleTicks);
+    CommitGridSmithTicksTransaction(gridPtr, &smithTicks);
+    gridPtr->optionsConfigured = TRUE;
     /*
      * Commit the new axis references.
      */
@@ -360,6 +1009,24 @@ void Rbc_DestroyGrid(Graph *graphPtr) {
     if (gridPtr->y.segments != NULL) {
         ckfree((char *)gridPtr->y.segments);
     }
+    if (gridPtr->angleMajorTicks != NULL) {
+        ckfree(gridPtr->angleMajorTicks);
+    }
+    if (gridPtr->angleMinorTicks != NULL) {
+        ckfree(gridPtr->angleMinorTicks);
+    }
+    if (gridPtr->smithRealMajorTicks != NULL) {
+        ckfree(gridPtr->smithRealMajorTicks);
+    }
+    if (gridPtr->smithRealMinorTicks != NULL) {
+        ckfree(gridPtr->smithRealMinorTicks);
+    }
+    if (gridPtr->smithImagMajorTicks != NULL) {
+        ckfree(gridPtr->smithImagMajorTicks);
+    }
+    if (gridPtr->smithImagMinorTicks != NULL) {
+        ckfree(gridPtr->smithImagMinorTicks);
+    }
     ckfree((char *)gridPtr);
 }
 
@@ -388,6 +1055,7 @@ int Rbc_CreateGrid(Graph *graphPtr) {
     gridPtr = RbcCalloc(1, sizeof(Grid));
     assert(gridPtr != NULL);
     graphPtr->gridPtr = gridPtr;
+    gridPtr->graphPtr = graphPtr;
     if (graphPtr->classUid == rbcBarElementUid) {
         specsPtr = barGridOptionSpecs;
     } else {
@@ -475,6 +1143,7 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     Tcl_Obj *resultObjPtr;
     Tk_SavedOptions savedOptions;
     int mask;
+    int result;
 
     gridPtr = (Grid *)graphPtr->gridPtr;
     if (objc == 3) {
@@ -497,7 +1166,12 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
                       &mask) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (ConfigureGrid(graphPtr, gridPtr, mask) != TCL_OK) {
+    gridPtr->optionObjc = objc - 3;
+    gridPtr->optionObjv = objv + 3;
+    result = ConfigureGrid(graphPtr, gridPtr, mask);
+    gridPtr->optionObjc = 0;
+    gridPtr->optionObjv = NULL;
+    if (result != TCL_OK) {
         Tcl_Obj *errorObjPtr;
         /*
          * Preserve the error from post-configuration validation while
@@ -511,6 +1185,9 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
         return TCL_ERROR;
     }
     Tk_FreeSavedOptions(&savedOptions);
+    if (mask & GRID_POLAR_CHANGED) {
+        graphPtr->flags |= RESET_WORLD;
+    }
     if ((mask & GRID_AXES_CHANGED) && (graphPtr->classUid == rbcPolarElementUid) && graphPtr->polarAutoAspect) {
         /*
          * The automatic Polar aspect is derived from the grid's mapped

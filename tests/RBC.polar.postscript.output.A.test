@@ -129,13 +129,13 @@ namespace eval polar.postscript {
         pack .polar1
         update
     } -body {
-        .polar1 configure -smithgrid admittance
+        .polar1 grid configure -smithgrid admittance
         update
         set code1 [catch {.polar1 postscript output}]
-        .polar1 configure -smithgrid both
+        .polar1 grid configure -smithgrid both
         update
         set code2 [catch {.polar1 postscript output}]
-        .polar1 configure -smithgrid impedance
+        .polar1 grid configure -smithgrid impedance
         update
         set code3 [catch {.polar1 postscript output}]
         list $code1 $code2 $code3
@@ -149,7 +149,8 @@ namespace eval polar.postscript {
         proc ::PolarPsAngleFormat {widget degrees} {
             return "ANGLE-$degrees"
         }
-        polar .polar1 -width 400 -height 400 -anglemajorticks {0 45 90} -anglecommand ::PolarPsAngleFormat
+        polar .polar1 -width 400 -height 400
+        .polar1 grid configure -anglemajorticks {0 45 90} -anglecommand ::PolarPsAngleFormat
         pack .polar1
         .polar1 axis configure x -min -2 -max 2
         .polar1 axis configure y -min -2 -max 2
@@ -169,7 +170,8 @@ namespace eval polar.postscript {
         proc ::PolarPsAngleSuppress {widget degrees} {
             return {}
         }
-        polar .polar1 -width 400 -height 400 -anglemajorticks {13} -anglecommand ::PolarPsAngleSuppress
+        polar .polar1 -width 400 -height 400
+        .polar1 grid configure -anglemajorticks {13} -anglecommand ::PolarPsAngleSuppress
         pack .polar1
         .polar1 axis configure x -min -2 -max 2
         .polar1 axis configure y -min -2 -max 2
@@ -188,8 +190,9 @@ namespace eval polar.postscript {
         proc ::SmithPsRealFormat {widget domain value} {
             return "REAL-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithrealmajorticks {0 0.5 1}\
-                -smithrealcommand ::SmithPsRealFormat
+        polar .polar1 -width 400 -height 400 -representation smith
+        .polar1 grid configure -smithgrid impedance -smithrealmajorticks {0 0.5 1} \
+            -smithrealcommand ::SmithPsRealFormat
         pack .polar1
         update
     } -body {
@@ -207,8 +210,8 @@ namespace eval polar.postscript {
         proc ::SmithPsImagFormat {widget domain value} {
             return "IMAG-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithimagmajorticks {0.5 1}\
-                -smithimagcommand ::SmithPsImagFormat
+        polar .polar1 -width 400 -height 400 -representation smith
+        .polar1 grid configure -smithgrid impedance -smithimagmajorticks {0.5 1} -smithimagcommand ::SmithPsImagFormat
         pack .polar1
         update
     } -body {
@@ -228,8 +231,8 @@ namespace eval polar.postscript {
         proc ::SmithPsDomainFormat {widget domain value} {
             return "DOMAIN-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithgrid both -smithrealmajorticks {0.5}\
-                -smithrealcommand ::SmithPsDomainFormat
+        polar .polar1 -width 400 -height 400 -representation smith
+        .polar1 grid configure -smithgrid both -smithrealmajorticks {0.5} -smithrealcommand ::SmithPsDomainFormat
         pack .polar1
         update
     } -body {
@@ -247,8 +250,9 @@ namespace eval polar.postscript {
         proc ::SmithPsPrefixFormat {prefix widget domain value} {
             return "$prefix-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithgrid impedance -smithrealmajorticks {0.5}\
-                -smithrealcommand [list ::SmithPsPrefixFormat PREFIX]
+        polar .polar1 -width 400 -height 400 -representation smith
+        .polar1 grid configure -smithgrid impedance -smithrealmajorticks {0.5} \
+            -smithrealcommand [list ::SmithPsPrefixFormat PREFIX]
         pack .polar1
         update
     } -body {
@@ -265,7 +269,8 @@ namespace eval polar.postscript {
         proc ::PolarGridAxisFormat {widget degrees} {
             return "GRIDANGLE-$degrees"
         }
-        polar .polar1 -width 400 -height 400 -anglemajorticks {0 90} -anglecommand ::PolarGridAxisFormat
+        polar .polar1 -width 400 -height 400
+        .polar1 grid configure -anglemajorticks {0 90} -anglecommand ::PolarGridAxisFormat
         pack .polar1
         #
         # The normal x/y axes are deliberately off-centre.
@@ -295,7 +300,8 @@ namespace eval polar.postscript {
         proc ::PolarGridSwitchFormat {widget degrees} {
             return "SWITCHANGLE-$degrees"
         }
-        polar .polar1 -width 400 -height 400 -anglemajorticks {45} -anglecommand ::PolarGridSwitchFormat
+        polar .polar1 -width 400 -height 400
+        .polar1 grid configure -anglemajorticks {45} -anglecommand ::PolarGridSwitchFormat
         pack .polar1
         .polar1 axis configure x -min 10 -max 20
         .polar1 axis configure y -min 30 -max 40
@@ -336,8 +342,8 @@ namespace eval polar.postscript {
         proc ::SmithLogAxisFormat {widget domain value} {
             return "SMITHLOG-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithrealmajorticks {0.5 1 2} -smithrealcommand\
-                ::SmithLogAxisFormat
+        polar .polar1 -width 400 -height 400 -representation smith
+        .polar1 grid configure -smithrealmajorticks {0.5 1 2} -smithrealcommand ::SmithLogAxisFormat
         pack .polar1
         .polar1 axis configure x -logscale yes -min 0.1 -max 10
         .polar1 axis configure y -logscale yes -min 0.1 -max 10
@@ -356,7 +362,8 @@ namespace eval polar.postscript {
         proc ::PolarOffCenterFormat {widget degrees} {
             return "OFFCENTER-$degrees"
         }
-        polar .polar1 -width 400 -height 400 -anglemajorticks {0 90 180 270} -anglecommand ::PolarOffCenterFormat
+        polar .polar1 -width 400 -height 400
+        .polar1 grid configure -anglemajorticks {0 90 180 270} -anglecommand ::PolarOffCenterFormat
         pack .polar1
         #
         # Both axes contain zero, but zero is deliberately not
@@ -399,8 +406,8 @@ namespace eval polar.postscript {
         proc ::SmithInvertFormat {widget domain value} {
             return "INV-$domain-$value"
         }
-        polar .polar1 -width 400 -height 400 -representation smith -smithgrid both -invertxy yes -smithrealmajorticks\
-                {0.5} -smithrealcommand ::SmithInvertFormat
+        polar .polar1 -width 400 -height 400 -representation smith -invertxy yes
+        .polar1 grid configure -smithgrid both -smithrealmajorticks {0.5} -smithrealcommand ::SmithInvertFormat
         pack .polar1
         .polar1 axis configure x -min -1.2 -max 1.2
         .polar1 axis configure y -min -1.2 -max 1.2

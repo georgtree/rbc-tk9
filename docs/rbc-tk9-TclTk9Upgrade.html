@@ -55,6 +55,20 @@ is not a goal of this fork. Build instructions and dependency details are in the
 MSYS2 build. Matching MSVC-built Tcl/Tk source trees and libraries are required; Cairo runtime
 DLLs and their dependencies must be available when loading RBC. See <code class="docutils literal notranslate"><span class="pre">win/README.md</span></code> for commands.</p>
 </section>
+<section id="polar-smith-grid-configuration">
+<span id="r-tcltk9upgrade-polar-smith-grid-configuration"></span><span id="r-3a3atcltk9upgradeqzpolar2fsmith20grid20configuration"></span><h3>Polar/Smith grid configuration<a class="headerlink" href="#polar-smith-grid-configuration" title="Link to this heading">¶</a></h3>
+<p>Polar/Smith tick lists, label anchors, label formatter commands, and <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code> are now grid component
+options. Use <code class="docutils literal notranslate"><span class="pre">graphPath</span> <span class="pre">grid</span> <span class="pre">configure</span></code> and <code class="docutils literal notranslate"><span class="pre">graphPath</span> <span class="pre">grid</span> <span class="pre">cget</span></code>. They are no longer accepted by the graph
+constructor or graph-level <code class="docutils literal notranslate"><span class="pre">configure</span></code>/<code class="docutils literal notranslate"><span class="pre">cget</span></code>. The graph retains <code class="docutils literal notranslate"><span class="pre">-representation</span></code> and <code class="docutils literal notranslate"><span class="pre">-aspect</span></code>.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>polar<span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>smith
+<span class="nv">.p</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>smithgrid<span class="w"> </span>admittance<span class="w"> </span><span class="o">-</span>smithrealmajorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Option-database patterns likewise include the grid component, for example
+<code class="docutils literal notranslate"><span class="pre">option</span> <span class="pre">add</span> <span class="pre">*Polar.grid.AngleMajorTicks</span> <span class="pre">{0</span> <span class="pre">90</span> <span class="pre">180</span> <span class="pre">270}</span></code>. Grid <code class="docutils literal notranslate"><span class="pre">-hide</span></code> still controls lines independently of
+coordinate labels. The toolbar keeps its <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code> constructor convenience option and reads subsequent
+changes from the grid component. See <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-namespaceqz3a3arbc3a3agrid"><span class="std std-ref">::rbc::GRID</span></a> for full option tables and formatter details.</p>
+</section>
 <section id="optional-cairo-rendering">
 <span id="r-tcltk9upgrade-optional-cairo-rendering"></span><span id="r-3a3atcltk9upgradeqzoptional20cairo20rendering"></span><h3>Optional Cairo rendering<a class="headerlink" href="#optional-cairo-rendering" title="Link to this heading">¶</a></h3>
 <p>Configure with <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code> to build the antialiased renderer. Cairo-enabled builds default to
@@ -687,6 +701,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>
+<li><a class="reference internal" href="#polar-smith-grid-configuration">Polar/Smith grid configuration</a></li>
 <li><a class="reference internal" href="#optional-cairo-rendering">Optional Cairo rendering</a></li>
 <li><a class="reference internal" href="#display-decimation-and-streaming-updates">Display decimation and streaming updates</a></li>
 <li><a class="reference internal" href="#graph-interaction-and-toolbar">Graph interaction and toolbar</a></li>

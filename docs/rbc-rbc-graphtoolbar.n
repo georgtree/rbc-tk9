@@ -444,7 +444,7 @@ normalizedadmittance
 normalizedadmittanceri
 .PP
 auto uses normal axis coordinates for ordinary and Polar graphs\&. For a Smith representation it selects
-real/imaginary normalized impedance or admittance according to -smithgrid\&.
+real/imaginary normalized impedance or admittance according to the current grid cget -smithgrid value\&.
 .PP
 -coordclosestmark controls closest-point annotation\&. The permitted formats depend on the graph
 representation:
@@ -816,7 +816,7 @@ Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, or polar
 For -type polar, selects polar or smith representation\&. The default is polar\&. It is ignored by the other graph types\&.
 .TP
 -smithgrid mode
-For a Smith representation, selects impedance, admittance, or both\&. The default is impedance\&.
+Initializes the graph grid component's -smithgrid option\&. For a Smith representation, selects impedance, admittance, or both\&. The default is impedance\&. Later changes use $toolbar graph grid configure -smithgrid mode\&.
 .TP
 -coordmark mode
 Initial value of the -coordmark configurable property\&. The default is auto\&.

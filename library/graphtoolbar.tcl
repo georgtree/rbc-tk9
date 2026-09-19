@@ -317,7 +317,7 @@ namespace eval ::rbc::graphtoolbar {
         - `normalizedadmittanceri`
 
         `auto` uses normal axis coordinates for ordinary and Polar graphs. For a Smith representation it selects
-        real/imaginary normalized impedance or admittance according to `-smithgrid`.
+        real/imaginary normalized impedance or admittance according to the current `grid cget -smithgrid` value.
 
         `-coordclosestmark` controls closest-point annotation. The permitted formats depend on the graph
         representation:
@@ -811,8 +811,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  `polar`. The default is `graph`.
                 -representation mode - For `-type polar`, selects `polar` or `smith` representation. The default is
                  `polar`. It is ignored by the other graph types.
-                -smithgrid mode - For a Smith representation, selects `impedance`, `admittance`, or `both`. The default
-                 is `impedance`.
+                -smithgrid mode - Initializes the graph grid component's `-smithgrid` option. For a Smith
+                 representation, selects `impedance`, `admittance`, or `both`. The default is `impedance`.
+                 Later changes use `$toolbar graph grid configure -smithgrid mode`.
                 -coordmark mode - Initial value of the `-coordmark` configurable property. The default is `auto`.
                 -closestcommand commandPrefix - Custom closest-point text callback. Receives `element x y info`. The
                  default is empty.
@@ -1426,8 +1427,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set Subwidgets(graph) [::rbc::$GraphType $frameName.graph -width [dict get $arguments width]\
                                        -height [dict get $arguments height]]
         if {$GraphType eq {polar}} {
-            $Subwidgets(graph) configure -representation [dict get $arguments representation]\
-                    -smithgrid [dict get $arguments smithgrid]
+            $Subwidgets(graph) configure -representation [dict get $arguments representation]
+            $Subwidgets(graph) grid configure -smithgrid [dict get $arguments smithgrid]
         }
         my configure -closestcommand [dict get $arguments closestcommand]
         my configure -coordmark [dict get $arguments coordmark]\
@@ -3339,7 +3340,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: `normalizedimpedanceri` or `normalizedadmittanceri`.
         set graph $Subwidgets(graph)
-        switch -- [$graph cget -smithgrid] {
+        switch -- [$graph grid cget -smithgrid] {
             admittance {
                 return normalizedadmittanceri
             }
@@ -3441,7 +3442,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[$graph cget -representation] ne {smith}} {
             return axis
         }
-        switch -- [$graph cget -smithgrid] {
+        switch -- [$graph grid cget -smithgrid] {
             admittance {
                 return normalizedadmittance
             }
@@ -3625,7 +3626,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {$GraphType eq {polar} && [$graph element type $element] eq {PolarElement}} {
                 dict set closestInfo coordinateSystem complex
                 if {[$graph cget -representation] eq {smith}} {
-                    if {[$graph cget -smithgrid] eq {admittance}} {
+                    if {[$graph grid cget -smithgrid] eq {admittance}} {
                         set key normalizedAdmittance
                         set system normalizedadmittance
                     } else {

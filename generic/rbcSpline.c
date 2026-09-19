@@ -1732,9 +1732,11 @@ static CubicSpline *CubicSlopes(const Point2D points[], Tcl_Size nPoints, int is
     }
     SolveCubic2(A, spline, n);
     /*
-     * Reject arithmetic overflow in the solved second derivatives.
+     * Reject arithmetic overflow in the n solved second derivatives.
+     * Endpoint derivatives are populated below; the remaining entries
+     * do not yet all contain initialized values.
      */
-    for (i = 0; i < nPoints; i++) {
+    for (i = 0; i < n; i++) {
         if ((!FINITE(spline[i].x)) || (!FINITE(spline[i].y))) {
             ckfree(A);
             ckfree(spline);
