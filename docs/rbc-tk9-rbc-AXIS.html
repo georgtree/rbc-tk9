@@ -155,6 +155,11 @@ greater than zero. Explicit <code class="docutils literal notranslate"><span cla
 do not need to apply <code class="docutils literal notranslate"><span class="pre">log10</span></code> themselves.</p>
 <p>Automatically generated major ticks normally correspond to powers of ten. For a normal logarithmic range,
 minor ticks represent the values 2 through 9 within each decade.</p>
+<p>Example of logarithmic y axis:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">1</span>e-1<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>e3
+</pre></div>
+</div>
+<p><img alt="axes_logscale" src="images/axes_logscale.svg" /></p>
 <p>Explicit <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> on a logarithmic axis are specified in base-10 exponent coordinates. For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
 </pre></div>
@@ -165,15 +170,17 @@ minor ticks represent the values 2 through 9 within each decade.</p>
 <span id="r-rbc-axis-major-and-minor-ticks"></span><span id="r-3a3arbc3a3aaxisqzmajor20and20minor20ticks"></span><h2>Major and minor ticks<a class="headerlink" href="#major-and-minor-ticks" title="Link to this heading">¶</a></h2>
 <p>When <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> is empty, Rbc automatically chooses major tick positions.</p>
 <p>A custom list may be supplied:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">30</span>
 </pre></div>
 </div>
+<p><img alt="axes_custom_major_ticks" src="images/axes_custom_major_ticks.svg" /></p>
 <p>Each list element is evaluated as a Tcl numeric expression and must produce a finite value.</p>
 <p>When major ticks are generated automatically, <code class="docutils literal notranslate"><span class="pre">-stepsize</span></code> may request the interval between major ticks on a
 linear axis:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>stepsize<span class="w"> </span><span class="mf">0.5</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>stepsize<span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">5</span>
 </pre></div>
 </div>
+<p><img alt="axes_stepsize_major_ticks" src="images/axes_stepsize_major_ticks.svg" /></p>
 <p>A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
 impractical number of ticks, Rbc falls back to an automatically selected interval.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-subdivisions</span></code> option controls automatically generated minor ticks between major ticks. A value of <code class="docutils literal notranslate"><span class="pre">N</span></code>
@@ -187,10 +194,11 @@ disabled while explicit major ticks remain; clearing <code class="docutils liter
 </pre></div>
 </div>
 <p>places three minor ticks within each major interval.</p>
-<p>With explicit <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code>, each minor fraction subdivides the interval from one supplied major tick
-to the next, in list order. No minor ticks are drawn after the last major tick or for a zero-length interval.
-Only fractions strictly between 0 and 1 are drawn in these intervals. For example, major ticks
-{0 2 5} and minor ticks {0.5} place minor ticks at 1 and 3.5 on a linear axis.</p>
+<p><img alt="axes_custom_minor_ticks" src="images/axes_custom_minor_ticks.svg" /></p>
+<p>With explicit <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code>, each minor fraction subdivides the interval from one supplied major tick to the
+next, in list order. No minor ticks are drawn after the last major tick or for a zero-length interval. Only
+fractions strictly between 0 and 1 are drawn in these intervals. For example, major ticks {0 2 5} and minor
+ticks {0.5} place minor ticks at 1 and 3.5 on a linear axis.</p>
 <p>On logarithmic axes, interpolation takes place in base-10 exponent coordinates. With consecutive integer
 major exponents, use minor fractions log10(2), log10(3), through log10(9) for the usual decade subdivisions.
 For wider explicit intervals, these fractions scale with the full exponent interval. Automatically generated
@@ -199,8 +207,8 @@ major ticks retain their regular subdivision and clipping rules at the axis limi
 </section>
 <section id="tick-labels">
 <span id="r-rbc-axis-tick-labels"></span><span id="r-3a3arbc3a3aaxisqztick20labels"></span><h2>Tick labels<a class="headerlink" href="#tick-labels" title="Link to this heading">¶</a></h2>
-<p>Major tick labels are generated automatically. Linear-axis labels use a general floating-point
-representation, while logarithmic major labels use power-of-ten notation.</p>
+<p>Major tick labels are generated automatically. Linear-axis labels use a general floating-point representation,
+while logarithmic major labels use power-of-ten notation.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-command</span></code> may be used to replace the generated label text. Its value is a Tcl command prefix. For every
 major tick, Rbc appends two arguments:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>graphPath defaultLabel
@@ -215,6 +223,7 @@ major tick, Rbc appends two arguments:</p>
 <span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>command<span class="w"> </span>formatTick
 </pre></div>
 </div>
+<p><img alt="axes_custom_label_ticks" src="images/axes_custom_label_ticks.svg" /></p>
 <p>If the formatting command raises an error during drawing, the error is reported as a background error and
 the original default label is used.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-labeloffset</span></code> moves each tick label to the middle of the following major interval while leaving the major
@@ -223,6 +232,7 @@ tick mark itself at the original position. This is useful for category-like axes
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>rotate<span class="w"> </span><span class="mi">45</span>
 </pre></div>
 </div>
+<p><img alt="axes_custom_label_ticks_rotation" src="images/axes_custom_label_ticks_rotation.svg" /></p>
 <p>Angles are specified in degrees and are normalized into the range from 0 through less than 360 degrees.</p>
 </section>
 <section id="axis-limits-display">
@@ -235,6 +245,7 @@ maximum.</p>
 <span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>limitsformat<span class="w"> </span><span class="k">{</span><span class="nv">Min</span><span class="o">=%</span>.3g<span class="w"> </span>Max<span class="o">=%</span>.3g<span class="k">}</span>
 </pre></div>
 </div>
+<p><img alt="axes_custom_limits_labels" src="images/axes_custom_limits_labels.svg" /></p>
 <p>An empty format element suppresses that particular limit:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>limitsformat<span class="w"> </span><span class="k">{{}</span><span class="w"> </span><span class="k">{</span><span class="o">%</span><span class="nv">.3g</span><span class="k">}}</span>
 </pre></div>

@@ -162,7 +162,7 @@ A custom list may be supplied:
 .PP
 .RS 4n
 .nf
-\&.g axis configure x -majorticks {0 5 10 15 20}
+\&.g axis configure x -majorticks {0 5 10 15 20} -min -1 -max 30
 .fi
 .RE
 .PP
@@ -173,7 +173,7 @@ linear axis:
 .PP
 .RS 4n
 .nf
-\&.g axis configure x -stepsize 0\&.5
+\&.g axis configure x -stepsize 0\&.5 -min -1 -max 5
 .fi
 .RE
 .PP
@@ -198,10 +198,10 @@ Values in -minorticks are fractional offsets within a major interval\&. For exam
 .PP
 places three minor ticks within each major interval\&.
 .PP
-With explicit -majorticks, each minor fraction subdivides the interval from one supplied major tick
-to the next, in list order\&. No minor ticks are drawn after the last major tick or for a zero-length interval\&.
-Only fractions strictly between 0 and 1 are drawn in these intervals\&. For example, major ticks
-{0 2 5} and minor ticks {0\&.5} place minor ticks at 1 and 3\&.5 on a linear axis\&.
+With explicit -majorticks, each minor fraction subdivides the interval from one supplied major tick to the
+next, in list order\&. No minor ticks are drawn after the last major tick or for a zero-length interval\&. Only
+fractions strictly between 0 and 1 are drawn in these intervals\&. For example, major ticks {0 2 5} and minor
+ticks {0\&.5} place minor ticks at 1 and 3\&.5 on a linear axis\&.
 .PP
 On logarithmic axes, interpolation takes place in base-10 exponent coordinates\&. With consecutive integer
 major exponents, use minor fractions log10(2), log10(3), through log10(9) for the usual decade subdivisions\&.
@@ -211,8 +211,8 @@ major ticks retain their regular subdivision and clipping rules at the axis limi
 An empty -majorticks or -minorticks value restores automatic generation for that tick class\&.
 .SH "TICK LABELS"
 .PP
-Major tick labels are generated automatically\&. Linear-axis labels use a general floating-point
-representation, while logarithmic major labels use power-of-ten notation\&.
+Major tick labels are generated automatically\&. Linear-axis labels use a general floating-point representation,
+while logarithmic major labels use power-of-ten notation\&.
 .PP
 -command may be used to replace the generated label text\&. Its value is a Tcl command prefix\&. For every
 major tick, Rbc appends two arguments:

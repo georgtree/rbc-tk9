@@ -147,6 +147,16 @@ namespace eval ::rbc::AXIS {
         Automatically generated major ticks normally correspond to powers of ten. For a normal logarithmic range,
         minor ticks represent the values 2 through 9 within each decade.
 
+        #ruffopt excludedformats nroff
+        Example of logarithmic y axis:
+        ```tcl
+        .g axis configure y -logscale yes -min 1e-1 -max 1e3
+        ```
+
+        ![axes_logscale](images/axes_logscale.svg)
+
+        #ruffopt excludedformats {}
+
         Explicit `-majorticks` on a logarithmic axis are specified in base-10 exponent coordinates. For example:
         ```tcl
         .g axis configure y -logscale yes -majorticks {0 1 2 3}
@@ -159,16 +169,24 @@ namespace eval ::rbc::AXIS {
 
         A custom list may be supplied:
         ```tcl
-        .g axis configure x -majorticks {0 5 10 15 20}
+        .g axis configure x -majorticks {0 5 10 15 20} -min -1 -max 30
         ```
+
+        #ruffopt excludedformats nroff
+        ![axes_custom_major_ticks](images/axes_custom_major_ticks.svg)
+        #ruffopt excludedformats {}
 
         Each list element is evaluated as a Tcl numeric expression and must produce a finite value.
 
         When major ticks are generated automatically, `-stepsize` may request the interval between major ticks on a
         linear axis:
         ```tcl
-        .g axis configure x -stepsize 0.5
+        .g axis configure x -stepsize 0.5 -min -1 -max 5
         ```
+
+        #ruffopt excludedformats nroff
+        ![axes_stepsize_major_ticks](images/axes_stepsize_major_ticks.svg)
+        #ruffopt excludedformats {}
 
         A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
         impractical number of ticks, Rbc falls back to an automatically selected interval.
@@ -188,22 +206,25 @@ namespace eval ::rbc::AXIS {
 
         places three minor ticks within each major interval.
 
-        With explicit `-majorticks`, each minor fraction subdivides the interval from one supplied major tick
-        to the next, in list order. No minor ticks are drawn after the last major tick or for a zero-length interval.
-        Only fractions strictly between 0 and 1 are drawn in these intervals. For example, major ticks
-        {0 2 5} and minor ticks {0.5} place minor ticks at 1 and 3.5 on a linear axis.
+        #ruffopt excludedformats nroff
+        ![axes_custom_minor_ticks](images/axes_custom_minor_ticks.svg)
+        #ruffopt excludedformats {}
+
+        With explicit `-majorticks`, each minor fraction subdivides the interval from one supplied major tick to the
+        next, in list order. No minor ticks are drawn after the last major tick or for a zero-length interval. Only
+        fractions strictly between 0 and 1 are drawn in these intervals. For example, major ticks {0 2 5} and minor
+        ticks {0.5} place minor ticks at 1 and 3.5 on a linear axis.
 
         On logarithmic axes, interpolation takes place in base-10 exponent coordinates. With consecutive integer
         major exponents, use minor fractions log10(2), log10(3), through log10(9) for the usual decade subdivisions.
         For wider explicit intervals, these fractions scale with the full exponent interval. Automatically generated
         major ticks retain their regular subdivision and clipping rules at the axis limits.
 
-
         An empty `-majorticks` or `-minorticks` value restores automatic generation for that tick class.
 
         ## Tick labels
-        Major tick labels are generated automatically. Linear-axis labels use a general floating-point
-        representation, while logarithmic major labels use power-of-ten notation.
+        Major tick labels are generated automatically. Linear-axis labels use a general floating-point representation,
+        while logarithmic major labels use power-of-ten notation.
 
         `-command` may be used to replace the generated label text. Its value is a Tcl command prefix. For every
         major tick, Rbc appends two arguments:
@@ -222,6 +243,10 @@ namespace eval ::rbc::AXIS {
         .g axis configure y -command formatTick
         ```
 
+        #ruffopt excludedformats nroff
+        ![axes_custom_label_ticks](images/axes_custom_label_ticks.svg)
+        #ruffopt excludedformats {}
+
         If the formatting command raises an error during drawing, the error is reported as a background error and
         the original default label is used.
 
@@ -232,6 +257,10 @@ namespace eval ::rbc::AXIS {
         ```tcl
         .g axis configure x -rotate 45
         ```
+
+        #ruffopt excludedformats nroff
+        ![axes_custom_label_ticks_rotation](images/axes_custom_label_ticks_rotation.svg)
+        #ruffopt excludedformats {}
 
         Angles are specified in degrees and are normalized into the range from 0 through less than 360 degrees.
 
@@ -246,6 +275,10 @@ namespace eval ::rbc::AXIS {
         .g axis configure y -limitsformat {%.3g}
         .g axis configure y -limitsformat {Min=%.3g Max=%.3g}
         ```
+
+        #ruffopt excludedformats nroff
+        ![axes_custom_limits_labels](images/axes_custom_limits_labels.svg)
+        #ruffopt excludedformats {}
 
         An empty format element suppresses that particular limit:
         ```tcl
