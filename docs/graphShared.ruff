@@ -6,10 +6,6 @@ namespace eval ::rbc::AXIS {
     }
 
     variable _ruff_preamble {
-        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings. Cairo preserves their
-        mapped geometry, color, width, and projecting caps, including axes in margins. A zero `-linewidth` hides
-        strokes. Tick labels, titles, and relief backgrounds remain native.
-
         Commands in this namespace document operations accepted by the `axis` component of a graph, barchart,
         stripchart, or polar widget.
 
@@ -26,6 +22,10 @@ namespace eval ::rbc::AXIS {
         .g axis create temperature -title "Temperature"
         .g axis configure temperature -min 0 -max 100
         ```
+
+        Axis lines and tick marks follow the graph's `-renderer` and `-antialias` settings. Cairo preserves their
+        mapped geometry, color, width, and projecting caps, including axes in margins. A zero `-linewidth` hides
+        strokes. Tick labels, titles, and relief backgrounds remain native.
 
         ## Virtual axes
         Every graph widget initially contains four axes named `x`, `y`, `x2`, and `y2`. The `x` and `y` axes are the
@@ -95,6 +95,23 @@ namespace eval ::rbc::AXIS {
         `AXIS limits` returns the effective limits currently used to display an axis, after automatic scaling,
         requested limits, logarithmic conversion, and loose-range processing have been applied.
 
+        #ruffopt excludedformats nroff
+        To demonstrate `-loose` option effect, let's add element with lower and upper x values equal to fractional
+        numbers:
+        ```tcl
+        .g element create line -data {1.5 2 3 4 4.5 6}
+        ```
+        
+        with `-loose no` the x axis limits are set to the lower/upper limits of the element:
+
+        ![axes_loose_false](images/axes_loose_false.svg)
+
+        with `-loose yes` the x axis limits are rounded to the closest major ticks:
+
+        ![axes_loose_true](images/axes_loose_true.svg)
+
+        #ruffopt excludedformats {}
+
         ## Automatic sliding ranges
         The `-autorange` option provides a sliding axis window useful for continuously growing data.
 
@@ -160,8 +177,9 @@ namespace eval ::rbc::AXIS {
         divides each major interval into `N` parts, producing `N-1` minor ticks. The default value is `2`, which
         produces one minor tick halfway between adjacent major ticks.
 
-        Explicitly configuring `-majorticks` disables automatic minor subdivision. Minor ticks may still be supplied
-        explicitly with `-minorticks`.
+        Explicitly configuring `-majorticks` disables automatic minor ticks on both linear and logarithmic axes.
+        Minor ticks may still be supplied explicitly with `-minorticks`. Clearing `-minorticks` leaves minor ticks
+        disabled while explicit major ticks remain; clearing `-majorticks` restores automatic generation.
 
         Values in `-minorticks` are fractional offsets within a major interval. For example:
         ```tcl
@@ -6610,7 +6628,7 @@ namespace eval ::rbc::SVG {
         line/polygon/text markers, legends, borders and editable text. Polar/Smith labels use the same layout and
         formatting as PostScript. Export remaps full source geometry rather than screen-decimated traces. Solid area
         fills preserve `-areaopacity`. Fonts are referenced by family rather than embedded; text appearance depends on
-        installed fonts in the SVG viewer. Text rotation, baseline positions, measured widths and shadows are retained.
+        installed fonts in the SVG viewer. Text Rotation, baseline positions, measured widths and shadows are retained.
 
         Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image
         files. Mapped scaling and plot clipping are retained. Bitmap markers (including rotation and explicit masks)

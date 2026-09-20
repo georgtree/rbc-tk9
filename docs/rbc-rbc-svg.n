@@ -96,7 +96,7 @@ SVG export supports traces, error bars, grids, axes, solid areas and bars, stand
 line/polygon/text markers, legends, borders and editable text\&. Polar/Smith labels use the same layout and
 formatting as PostScript\&. Export remaps full source geometry rather than screen-decimated traces\&. Solid area
 fills preserve -areaopacity\&. Fonts are referenced by family rather than embedded; text appearance depends on
-installed fonts in the SVG viewer\&. Text rotation, baseline positions, measured widths and shadows are retained\&.
+installed fonts in the SVG viewer\&. Text Rotation, baseline positions, measured widths and shadows are retained\&.
 .PP
 Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image
 files\&. Mapped scaling and plot clipping are retained\&. Bitmap markers (including rotation and explicit masks)

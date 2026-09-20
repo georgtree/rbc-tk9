@@ -6,10 +6,6 @@
 rbc::AXIS - Commands in namespace rbc::AXIS
 .SH "GRAPH VIRTUAL AXIS AXIS COMMAND"
 .PP
-Axis lines and tick marks follow the graph's -renderer and -antialias settings\&. Cairo preserves their
-mapped geometry, color, width, and projecting caps, including axes in margins\&. A zero -linewidth hides
-strokes\&. Tick labels, titles, and relief backgrounds remain native\&.
-.PP
 Commands in this namespace document operations accepted by the axis component of a graph, barchart,
 stripchart, or polar widget\&.
 .PP
@@ -31,6 +27,10 @@ graph \&.g
 \&.g axis configure temperature -min 0 -max 100
 .fi
 .RE
+.PP
+Axis lines and tick marks follow the graph's -renderer and -antialias settings\&. Cairo preserves their
+mapped geometry, color, width, and projecting caps, including axes in margins\&. A zero -linewidth hides
+strokes\&. Tick labels, titles, and relief backgrounds remain native\&.
 .SH "VIRTUAL AXES"
 .PP
 Every graph widget initially contains four axes named x, y, x2, and y2\&. The x and y axes are the
@@ -184,8 +184,9 @@ The -subdivisions option controls automatically generated minor ticks between ma
 divides each major interval into N parts, producing N-1 minor ticks\&. The default value is 2, which
 produces one minor tick halfway between adjacent major ticks\&.
 .PP
-Explicitly configuring -majorticks disables automatic minor subdivision\&. Minor ticks may still be supplied
-explicitly with -minorticks\&.
+Explicitly configuring -majorticks disables automatic minor ticks on both linear and logarithmic axes\&.
+Minor ticks may still be supplied explicitly with -minorticks\&. Clearing -minorticks leaves minor ticks
+disabled while explicit major ticks remain; clearing -majorticks restores automatic generation\&.
 .PP
 Values in -minorticks are fractional offsets within a major interval\&. For example:
 .PP

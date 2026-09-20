@@ -3265,6 +3265,13 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
         minorStep = 0.0;
         nMinor = 8;
     }
+    /*
+     * Explicit major ticks disable automatic minor ticks, as on a
+     * linear axis. SweepTicks preserves any explicit -minorticks list.
+     */
+    if (axisPtr->flags & AXIS_CONFIG_MAJOR) {
+        nMinor = 0;
+    }
     axisPtr->minorSweep.initial = minorStep;
     axisPtr->minorSweep.step = minorStep;
     axisPtr->minorSweep.nSteps = nMinor;
