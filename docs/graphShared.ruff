@@ -1673,6 +1673,23 @@ namespace eval ::rbc::LINEELEMENT {
         Smoothing never implicitly closes an element. Repeat the first source point as the final source point when a
         closed trace is required.
 
+        #ruffopt excludedformats nroff
+        Example of different smoothing types on the same set of data:
+        ```tcl
+        vector create signal1x signal1y
+        signal1x set {0 2 4 6 7 8 9}
+        signal1y set {1 3 5 4 5 2 3}
+        .g element create linear -x signal1x -y signal1y -smooth linear
+        .g element create step -x signal1x -y signal1y -smooth step -color green
+        .g element create natural -x signal1x -y signal1y -smooth natural -color red
+        .g element create quadratic -x signal1x -y signal1y -smooth quadratic -color black
+        .g element create catrom -x signal1x -y signal1y -smooth catrom -color brown
+        ```
+
+        ![smoothing_comparison](images/smoothing_comparison.svg)
+        
+        #ruffopt excludedformats {}
+
         ## Trace direction
         `-trace` determines whether connecting segments are drawn when X values change direction.
 
