@@ -562,6 +562,12 @@ of displayed symbols are additionaly reduced compared with <code class="docutils
 </section>
 <section id="error-bars-of-line-elements">
 <span id="r-rbc-lineelement-error-bars-of-line-elements"></span><span id="r-3a3arbc3a3alineelementqzerror20bars20of20line20elements"></span><h2>Error bars of line elements<a class="headerlink" href="#error-bars-of-line-elements" title="Link to this heading">¶</a></h2>
+<p>Error bars follow the original sample selection made by -symbolpoints. With reduced selection and a
+positive -reduce tolerance, only retained samples have error bars. A positive -maxsymbols further thins
+symbols and error bars together, using the same interval across pen styles. Each selected error bar
+keeps its shaft and caps. This also applies with -symbol none and to SVG and PostScript output.
+Value labels remain independent of -maxsymbols. Source data, axis limits and exact closest-point
+searches are unchanged. The default -symbolpoints all -maxsymbols 0 preserves all eligible error bars.</p>
 <p>Error-bar data may be specified in either symmetric or asymmetric form.</p>
 <p>Symmetric X errors use:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-xerror</span><span class="w"> </span>values

@@ -568,6 +568,13 @@ continue to search all source samples\&. SVG and PostScript use the reduced sele
 evaluated for the export geometry\&. The option is shared by line, stripchart, and polar elements\&.
 .SH "ERROR BARS OF LINE ELEMENTS"
 .PP
+Error bars follow the original sample selection made by -symbolpoints\&. With reduced selection and a
+positive -reduce tolerance, only retained samples have error bars\&. A positive -maxsymbols further thins
+symbols and error bars together, using the same interval across pen styles\&. Each selected error bar
+keeps its shaft and caps\&. This also applies with -symbol none and to SVG and PostScript output\&.
+Value labels remain independent of -maxsymbols\&. Source data, axis limits and exact closest-point
+searches are unchanged\&. The default -symbolpoints all -maxsymbols 0 preserves all eligible error bars\&.
+.PP
 Error-bar data may be specified in either symmetric or asymmetric form\&.
 .PP
 Symmetric X errors use:

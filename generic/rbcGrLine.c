@@ -7373,6 +7373,63 @@ static void ResetLine(Line *linePtr) {
     linePtr->core.yErrorBarCnt = 0;
 }
 
+/* Compact complete error bars by source index, keeping shafts and caps together. */
+static Tcl_Size FilterErrorBarSegments(Segment2D *segments, Tcl_Size *indices, Tcl_Size count,
+                                       const unsigned char *selected) {
+    Tcl_Size i, kept = 0;
+
+    for (i = 0; i < count; i++) {
+        if (selected[indices[i]]) {
+            segments[kept] = segments[i];
+            indices[kept++] = indices[i];
+        }
+    }
+    return kept;
+}
+
+/* Match the palette order used by symbol drawing, before MergePens reorders arrays. */
+static void FilterLineErrorBars(Line *linePtr, PenStyle **dataToStyle) {
+    Element *elemPtr = &linePtr->core;
+    unsigned char *selected;
+    size_t bytes;
+    Tcl_Size i, counter = 0, interval = 0;
+    Rbc_ChainLink *linkPtr;
+
+    if (((elemPtr->xErrorBarCnt == 0) && (elemPtr->yErrorBarCnt == 0)) ||
+        ((linePtr->reqMaxSymbols <= 0) &&
+         ((linePtr->symbolPoints != LINE_SYMBOL_POINTS_REDUCED) || (linePtr->rTolerance <= 0.0)))) {
+        return;
+    }
+    if (GetLineArrayByteCount(NumberOfPoints(elemPtr), sizeof(*selected), &bytes) != TCL_OK) {
+        return;
+    }
+    selected = ckalloc(bytes);
+    memset(selected, 0, bytes);
+    if (linePtr->reqMaxSymbols > 0) {
+        interval = linePtr->nSymbolPts / (Tcl_Size)linePtr->reqMaxSymbols;
+    }
+    for (linkPtr = Rbc_ChainFirstLink(elemPtr->palette); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        PenStyle *stylePtr = Rbc_ChainGetValue(linkPtr);
+
+        for (i = 0; i < linePtr->nSymbolPts; i++) {
+            Tcl_Size index = linePtr->symbolToData[i];
+
+            if (dataToStyle[index] == stylePtr) {
+                if ((interval <= 1) || ((counter % interval) == 0)) {
+                    selected[index] = 1;
+                }
+                counter++;
+            }
+        }
+    }
+    elemPtr->xErrorBarCnt = FilterErrorBarSegments(elemPtr->xErrorBars, elemPtr->xErrorToData,
+                                                  elemPtr->xErrorBarCnt, selected);
+    elemPtr->yErrorBarCnt = FilterErrorBarSegments(elemPtr->yErrorBars, elemPtr->yErrorToData,
+                                                  elemPtr->yErrorBarCnt, selected);
+    ckfree(selected);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -7556,6 +7613,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
          (linePtr->core.xError.nValues > 0) || (linePtr->core.yError.nValues > 0))) {
         Rbc_MapErrorBars(graphPtr, &linePtr->core, dataToStyle);
     }
+    FilterLineErrorBars(linePtr, dataToStyle);
     MergePens(linePtr, dataToStyle);
     ckfree((char *)dataToStyle);
 }
@@ -11147,6 +11205,8 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
         if ((stylePtr->nSymbolPts > 0) && (penPtr->symbol.type != SYMBOL_NONE)) {
             DrawSymbols(graphPtr, drawable, linePtr, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
                         stylePtr->symbolPts);
+        } else if (linePtr->symbolInterval > 0) {
+            linePtr->symbolCounter += stylePtr->nSymbolPts;
         }
         if (penPtr->valueShow != SHOW_NONE) {
             DrawValues(graphPtr, drawable, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,
@@ -11510,6 +11570,8 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         if ((stylePtr->nSymbolPts > 0) && (stylePtr->penPtr->symbol.type != SYMBOL_NONE)) {
             SymbolsExport(graphPtr, exportPtr, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
                                 stylePtr->symbolPts, interval, &counter);
+        } else {
+            counter += stylePtr->nSymbolPts;
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,

@@ -1,0 +1,104 @@
+# Error bars follow symbol sample selection and density. See license.terms.
+package require rbc
+package require tcltest
+namespace eval ::errorThinningTest {
+    namespace import ::tcltest::*
+    proc Create {kind symbol} {
+        ::rbc::$kind .et -width 400 -height 400 -plotbackground white -bufferelements no
+        pack .et
+        .et axis configure x -min -1 -max 5 -loose no
+        .et axis configure y -min -1 -max 5 -loose no
+        .et grid configure -hide yes
+        .et legend configure -hide yes
+        .et element create e -data {0 0 1 1 2 2 3 3 4 4} -symbol $symbol \
+            -fill blue -outline blue -linewidth 0 -reduce 1 -errorbarcolor red \
+            -errorbarwidth 3 -errorbarcap 8 -xerror {0.3 0.3 0.3 0.3 0.3} -yerror {0.3 0.3 0.3 0.3 0.3}
+        update idletasks
+    }
+    proc Count {format} {
+        set document [.et $format output]
+        if {$format eq "svg"} {
+            return [regexp -all {<polyline[^>]*stroke="#ff0000"} $document]
+        }
+        set first [string first {% Element "e"} $document]
+        if {$first < 0} {error "Missing exported element"}
+        set last [string first {% Unset clipping} $document $first]
+        if {$last < 0} {error "Missing end of exported element"}
+        return [regexp -all -line {^DashesProc stroke$} [string range $document $first [expr {$last - 1}]]]
+    }
+    proc Visible {photo} {
+        .et snap $photo
+        set result {}
+        foreach v {0 1 2 3 4} {
+            lassign [.et transform $v [expr {$v + 0.2}]] x y
+            set ink 0
+            for {set dx -2} {$dx <= 2} {incr dx} {
+                for {set dy -2} {$dy <= 2} {incr dy} {
+                    lassign [$photo get [expr {$x+$dx}] [expr {$y+$dy}]] r g b
+                    if {$r > 150 && $g < 100 && $b < 100} {set ink 1}
+                }
+            }
+            lappend result $ink
+        }
+        return $result
+    }
+    foreach kind {graph stripchart polar} {
+        foreach symbol {none circle} {
+            foreach format {svg postscript} {
+                test errorThinning-export-$kind-$symbol-$format {selection, density, caps and reset agree in exports} -setup {
+                    Create $kind $symbol
+                } -body {
+                    set result [list [Count $format]]
+                    .et element configure e -symbolpoints reduced
+                    lappend result [Count $format]
+                    .et element configure e -maxsymbols 1
+                    lappend result [Count $format]
+                    .et element configure e -showerrorbars x
+                    lappend result [Count $format]
+                    .et element configure e -showerrorbars y
+                    lappend result [Count $format]
+                    .et element configure e -showerrorbars both -symbolpoints all -maxsymbols 2
+                    lappend result [Count $format]
+                    .et element configure e -maxsymbols 0
+                    lappend result [Count $format]
+                    set result
+                } -cleanup {destroy .et} -result {30 12 6 3 3 18 30}
+            }
+            test errorThinning-screen-$kind-$symbol {screen error bars follow selected sample positions} -setup {
+                set photo {}
+                set photo [image create photo]
+                Create $kind $symbol
+            } -body {
+                set result [list [Visible $photo]]
+                .et element configure e -symbolpoints reduced
+                lappend result [Visible $photo]
+                .et element configure e -maxsymbols 1
+                lappend result [Visible $photo]
+                .et element configure e -symbolpoints all -maxsymbols 0
+                lappend result [Visible $photo]
+                set result
+            } -cleanup {
+                destroy .et
+                if {$photo ne {}} {image delete $photo}
+            } -result {{1 1 1 1 1} {1 0 0 0 1} {1 0 0 0 0} {1 1 1 1 1}}
+        }
+        foreach format {svg postscript} {
+            test errorThinning-palette-$kind-$format {hidden-symbol styles share the same density sequence} -setup {
+                Create $kind none
+                .et axis configure x -max 6
+                .et axis configure y -max 6
+                .et pen create first -symbol none -linewidth 0 -errorbarcolor red -errorbarcap 8
+                .et pen create second -symbol circle -linewidth 0 -errorbarcolor red -errorbarcap 8
+                .et element configure e -data {0 0 1 1 2 2 3 3 4 4 5 5} -reduce 0 -maxsymbols 3 \
+                    -weights {1 1 1 2 2 2} -styles {{first 0.5 1.5} {second 1.5 2.5}} \
+                    -xerror {0.3 0.3 0.3 0.3 0.3 0.3} -yerror {0.3 0.3 0.3 0.3 0.3 0.3}
+            } -body {
+                set result [list [Count $format]]
+                .et element configure e -maxsymbols 0
+                lappend result [Count $format]
+                set result
+            } -cleanup {destroy .et} -result {18 36}
+        }
+    }
+}
+::tcltest::cleanupTests

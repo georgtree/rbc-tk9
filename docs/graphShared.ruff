@@ -2055,6 +2055,13 @@ namespace eval ::rbc::LINEELEMENT {
         #ruffopt excludedformats {}
 
         ## Error bars of line elements
+        Error bars follow the original sample selection made by -symbolpoints. With reduced selection and a
+        positive -reduce tolerance, only retained samples have error bars. A positive -maxsymbols further thins
+        symbols and error bars together, using the same interval across pen styles. Each selected error bar
+        keeps its shaft and caps. This also applies with -symbol none and to SVG and PostScript output.
+        Value labels remain independent of -maxsymbols. Source data, axis limits and exact closest-point
+        searches are unchanged. The default -symbolpoints all -maxsymbols 0 preserves all eligible error bars.
+
         Error-bar data may be specified in either symmetric or asymmetric form.
 
         Symmetric X errors use:
