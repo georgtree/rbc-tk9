@@ -1,0 +1,41 @@
+# Explicit major/minor tick interaction. See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcAxisMinorTicksTest {
+    namespace import ::tcltest::*
+
+    # Count only the Y grid segments, using a color unique to the grid.
+    # This observes mapped ticks without depending on fonts or pixel sampling.
+    proc GridCount {} {
+        regexp -all {stroke="#123456"} [.minorTicks svg output]
+    }
+
+    foreach {mode logscale minimum maximum} {
+        linear 0 0 5
+        log 1 0.1 100000
+        wide-log 1 0.1 1e30
+    } {
+        test axisMinorTicks-$mode {explicit majors suppress automatic minors but retain explicit minors} -setup {
+            ::rbc::graph .minorTicks -width 500 -height 400
+            .minorTicks axis configure y -logscale $logscale -min $minimum -max $maximum -loose no
+            .minorTicks grid configure -hide no -mapx {} -mapy y -minor yes -color #123456 -dashes {}
+        } -body {
+            # Begin with automatic ticks, to check that stale minor ticks
+            # are discarded when an explicit major list is installed.
+            set automatic [GridCount]
+            .minorTicks axis configure y -majorticks {0 1 2 3}
+            set majors [GridCount]
+            .minorTicks axis configure y -minorticks {0.5}
+            set explicit [GridCount]
+            .minorTicks axis configure y -minorticks {}
+            set cleared [GridCount]
+            .minorTicks axis configure y -majorticks {}
+            set restored [GridCount]
+            list $majors $explicit $cleared [expr {$automatic > $majors && $restored == $automatic}]
+        } -cleanup {
+            destroy .minorTicks
+        } -result {4 7 4 1}
+    }
+}
+::tcltest::cleanupTests

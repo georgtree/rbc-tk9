@@ -1,0 +1,64 @@
+# Minor ticks subdivide successive explicit major ticks.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval ::rbcMinorIntervalsTest {
+    namespace import ::tcltest::*
+
+    proc Positions {document color} {
+        set positions {}
+        foreach tag [regexp -all -inline {<polyline\s[^>]*>} $document] {
+            if {[string first "stroke=\"$color\"" $tag] < 0} { continue }
+            regexp {points="([^"]+)"} $tag -> coordinates
+            lassign [split [string map {, { }} $coordinates]] x1 y1 x2 y2
+            if {abs($y1 - $y2) < 0.01} { lappend positions $y1 }
+        }
+        return [lsort -real $positions]
+    }
+
+    foreach {mode logarithmic} {linear 0 log 1} {
+        foreach {case majors fractions expected} {
+            regular {0 1 2 3} {0.5} {0 0.5 1 1.5 2 2.5 3}
+            irregular {0 1 3} {0.25 0.75} {0 0.25 0.75 1 1.5 2.5 3}
+            single {1} {0.5} {1}
+            descending {3 1 0} {0.25 0.75} {3 2.5 1.5 1 0.75 0.25 0}
+            duplicate {0 0 2} {0.5} {0 0 1 2}
+            outside {0 1 3} {-0.5 0 0.5 1 1.5} {0 0.5 1 2 3}
+        } {
+            test minorIntervals-$mode-$case {axis ticks and grid use actual explicit major intervals} -setup {
+                ::rbc::graph .minorIntervals -width 500 -height 400
+                pack .minorIntervals
+                set minimum [expr {$logarithmic ? 0.1 : -1}]
+                set maximum [expr {$logarithmic ? 100000 : 5}]
+                .minorIntervals axis configure y -logscale $logarithmic -min $minimum -max $maximum \
+                    -loose no -majorticks $majors -minorticks $fractions -color #654321
+                .minorIntervals grid configure -hide no -mapx {} -mapy y -minor yes -color #123456 -dashes {}
+                update idletasks
+            } -body {
+                set document [.minorIntervals svg output]
+                set target {}
+                foreach value $expected {
+                    if {$logarithmic} { set value [expr {pow(10.0, $value)}] }
+                    lappend target [.minorIntervals axis transform y $value]
+                }
+                set target [lsort -real $target]
+                set result {}
+                foreach color {#123456 #654321} {
+                    set actual [Positions $document $color]
+                    set matches [expr {[llength $actual] == [llength $target]}]
+                    if {$matches} {
+                        foreach a $actual b $target {
+                            if {abs($a - $b) > 1.1} { set matches 0 }
+                        }
+                    }
+                    lappend result $matches
+                }
+                set result
+            } -cleanup {
+                destroy .minorIntervals
+            } -result {1 1}
+        }
+    }
+}
+::tcltest::cleanupTests

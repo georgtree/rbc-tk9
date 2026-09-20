@@ -117,13 +117,14 @@ controls the minimum and the second controls the maximum.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code> returns the effective limits currently used to display an axis, after automatic scaling,
 requested limits, logarithmic conversion, and loose-range processing have been applied.</p>
-<p>To demonstrate <code class="docutils literal notranslate"><span class="pre">-loose</span></code> option, let’s add element with lower and upper x values equal to fractional numbers:</p>
+<p>To demonstrate <code class="docutils literal notranslate"><span class="pre">-loose</span></code> option effect, let’s add element with lower and upper x values equal to fractional
+numbers:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1.5</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mf">4.5</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span>
 </pre></div>
 </div>
 <p>with <code class="docutils literal notranslate"><span class="pre">-loose</span> <span class="pre">no</span></code> the x axis limits are set to the lower/upper limits of the element:</p>
 <p><img alt="axes_loose_false" src="images/axes_loose_false.svg" /></p>
-<p>with <code class="docutils literal notranslate"><span class="pre">-loose</span> <span class="pre">yes</span></code> the x axis limits are rounded to closest major ticks:</p>
+<p>with <code class="docutils literal notranslate"><span class="pre">-loose</span> <span class="pre">yes</span></code> the x axis limits are rounded to the closest major ticks:</p>
 <p><img alt="axes_loose_true" src="images/axes_loose_true.svg" /></p>
 </section>
 <section id="automatic-sliding-ranges">
@@ -178,13 +179,22 @@ impractical number of ticks, Rbc falls back to an automatically selected interva
 <p>The <code class="docutils literal notranslate"><span class="pre">-subdivisions</span></code> option controls automatically generated minor ticks between major ticks. A value of <code class="docutils literal notranslate"><span class="pre">N</span></code>
 divides each major interval into <code class="docutils literal notranslate"><span class="pre">N</span></code> parts, producing <code class="docutils literal notranslate"><span class="pre">N-1</span></code> minor ticks. The default value is <code class="docutils literal notranslate"><span class="pre">2</span></code>, which
 produces one minor tick halfway between adjacent major ticks.</p>
-<p>Explicitly configuring <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> disables automatic minor subdivision. Minor ticks may still be supplied
-explicitly with <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code>.</p>
+<p>Explicitly configuring <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> disables automatic minor ticks on both linear and logarithmic axes.
+Minor ticks may still be supplied explicitly with <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code>. Clearing <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> leaves minor ticks
+disabled while explicit major ticks remain; clearing <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> restores automatic generation.</p>
 <p>Values in <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> are fractional offsets within a major interval. For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>minorticks<span class="w"> </span><span class="k">{</span><span class="nv">0.25</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.75</span><span class="k">}</span>
 </pre></div>
 </div>
 <p>places three minor ticks within each major interval.</p>
+<p>With explicit <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code>, each minor fraction subdivides the interval from one supplied major tick
+to the next, in list order. No minor ticks are drawn after the last major tick or for a zero-length interval.
+Only fractions strictly between 0 and 1 are drawn in these intervals. For example, major ticks
+{0 2 5} and minor ticks {0.5} place minor ticks at 1 and 3.5 on a linear axis.</p>
+<p>On logarithmic axes, interpolation takes place in base-10 exponent coordinates. With consecutive integer
+major exponents, use minor fractions log10(2), log10(3), through log10(9) for the usual decade subdivisions.
+For wider explicit intervals, these fractions scale with the full exponent interval. Automatically generated
+major ticks retain their regular subdivision and clipping rules at the axis limits.</p>
 <p>An empty <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> or <code class="docutils literal notranslate"><span class="pre">-minorticks</span></code> value restores automatic generation for that tick class.</p>
 </section>
 <section id="tick-labels">

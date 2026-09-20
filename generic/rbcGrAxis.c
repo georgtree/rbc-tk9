@@ -3952,6 +3952,43 @@ static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int
 }
 
 /*
+ * Resolve a minor tick in the same coordinates as the major ticks
+ * (base-10 exponents for log axes). Explicit majors bound each interval;
+ * automatic sweeps retain their regular step and edge subdivisions.
+ */
+static int GetMinorTickPosition(const Axis *axisPtr, const Ticks *majorPtr, Tcl_Size index,
+                                double fraction, double *valuePtr) {
+    double first;
+    double value;
+
+    first = majorPtr->values[index];
+    if (axisPtr->flags & AXIS_CONFIG_MAJOR) {
+        double last;
+        double step;
+
+        if ((index + 1 >= majorPtr->nTicks) || !(fraction > 0.0 && fraction < 1.0)) {
+            return FALSE;
+        }
+        last = majorPtr->values[index + 1];
+        if (first == last) {
+            return FALSE;
+        }
+        step = last - first;
+        value = FINITE(step) ? first + fraction * step : (1.0 - fraction) * first + fraction * last;
+        if (!(value > MIN(first, last) && value < MAX(first, last))) {
+            return FALSE;
+        }
+    } else {
+        value = first + axisPtr->majorSweep.step * fraction;
+    }
+    if (!FINITE(value)) {
+        return FALSE;
+    }
+    *valuePtr = value;
+    return TRUE;
+}
+
+/*
  * -----------------------------------------------------------------
  *
  * MapAxis --
@@ -4036,8 +4073,8 @@ static void MapAxis(Graph *graphPtr, Axis *axisPtr, int offset, int margin) {
             t1 = axisPtr->t1Ptr->values[i];
             /* Minor ticks */
             for (j = 0; j < axisPtr->t2Ptr->nTicks; j++) {
-                t2 = t1 + (axisPtr->majorSweep.step * axisPtr->t2Ptr->values[j]);
-                if (InRange(t2, &axisPtr->axisRange)) {
+                if (GetMinorTickPosition(axisPtr, axisPtr->t1Ptr, i, axisPtr->t2Ptr->values[j], &t2) &&
+                    InRange(t2, &axisPtr->axisRange)) {
                     MakeTick(graphPtr, axisPtr, t2, info.t2, info.axis, segPtr);
                     segPtr++;
                 }
@@ -4583,8 +4620,8 @@ void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, 
             for (j = 0; j < t2Ptr->nTicks; j++) {
                 double subValue;
 
-                subValue = value + (axisPtr->majorSweep.step * t2Ptr->values[j]);
-                if (InRange(subValue, &axisPtr->axisRange)) {
+                if (GetMinorTickPosition(axisPtr, t1Ptr, i, t2Ptr->values[j], &subValue) &&
+                    InRange(subValue, &axisPtr->axisRange)) {
                     MakeGridLine(graphPtr, axisPtr, subValue, segPtr);
                     segPtr++;
                 }

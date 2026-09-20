@@ -198,6 +198,16 @@ Values in -minorticks are fractional offsets within a major interval\&. For exam
 .PP
 places three minor ticks within each major interval\&.
 .PP
+With explicit -majorticks, each minor fraction subdivides the interval from one supplied major tick
+to the next, in list order\&. No minor ticks are drawn after the last major tick or for a zero-length interval\&.
+Only fractions strictly between 0 and 1 are drawn in these intervals\&. For example, major ticks
+{0 2 5} and minor ticks {0\&.5} place minor ticks at 1 and 3\&.5 on a linear axis\&.
+.PP
+On logarithmic axes, interpolation takes place in base-10 exponent coordinates\&. With consecutive integer
+major exponents, use minor fractions log10(2), log10(3), through log10(9) for the usual decade subdivisions\&.
+For wider explicit intervals, these fractions scale with the full exponent interval\&. Automatically generated
+major ticks retain their regular subdivision and clipping rules at the axis limits\&.
+.PP
 An empty -majorticks or -minorticks value restores automatic generation for that tick class\&.
 .SH "TICK LABELS"
 .PP
