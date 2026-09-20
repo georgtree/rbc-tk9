@@ -7173,16 +7173,6 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D origin;
 
     /*
-     * Always discard the previous mapped polygon first.  The old code
-     * performed its INT_MAX check before this cleanup, which could leave
-     * a stale fill polygon after remapping failed.
-     */
-    if (linePtr->fillPts != NULL) {
-        ckfree(linePtr->fillPts);
-        linePtr->fillPts = NULL;
-        linePtr->nFillPts = 0;
-    }
-    /*
      * Line currently stores one fill polygon only.  Filling a mapped
      * line containing discontinuities would incorrectly bridge separate
      * data runs.
@@ -7190,7 +7180,8 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     if (mapPtr->breakBefore != NULL) {
         return;
     }
-    if (mapPtr->nScreenPts < ((linePtr->areaClose == LINE_AREA_ORIGIN) ? 2 : 3)) {
+    /* Baseline and origin closure add vertices; chord closure does not. */
+    if (mapPtr->nScreenPts < ((linePtr->areaClose == LINE_AREA_CHORD) ? 3 : 2)) {
         return;
     }
     /*
@@ -7281,6 +7272,15 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  *----------------------------------------------------------------------
  */
 static void ResetLine(Line *linePtr) {
+    /*
+     * Discard the old fill even when MapLine returns early or skips
+     * MapFillArea because fewer than two source points remain.
+     */
+    if (linePtr->fillPts != NULL) {
+        ckfree(linePtr->fillPts);
+        linePtr->fillPts = NULL;
+    }
+    linePtr->nFillPts = 0;
     FreeTraces(linePtr);
     ClearPalette(linePtr->core.palette);
     if (linePtr->symbolPts != NULL) {
@@ -11509,10 +11509,6 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
         ckfree((char *)elemPtr->activeIndices);
         elemPtr->activeIndices = NULL;
         elemPtr->nActiveIndices = 0;
-    }
-    if (linePtr->fillPts != NULL) {
-        ckfree((char *)linePtr->fillPts);
-        linePtr->fillPts = NULL;
     }
     if (linePtr->fillTile != NULL) {
         Rbc_FreeTile(linePtr->fillTile);

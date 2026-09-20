@@ -76,8 +76,8 @@ For example:
 .PP
 .RS 4n
 .nf
-\&.g axis create time
-\&.g axis create phase
+\&.g axis create time -title time
+\&.g axis create phase -title phase
 
 \&.g xaxis use {time phase}
 .fi

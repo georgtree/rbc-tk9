@@ -801,11 +801,15 @@ namespace eval ::rbc::MARGINAXIS {
 
         For example:
         ```tcl
-        .g axis create time
-        .g axis create phase
+        .g axis create time -title time
+        .g axis create phase -title phase
 
         .g xaxis use {time phase}
         ```
+
+        #ruffopt excludedformats nroff
+        ![multiple_x_axes](images/multiple_x_axes.svg)
+        #ruffopt excludedformats {}
 
         The order is significant. The first axis in the list is the primary axis for that margin and is the axis
         addressed by the other `MARGINAXIS` operations such as `configure`, `cget`, `transform`, and `limits`.
@@ -2119,8 +2123,8 @@ namespace eval ::rbc::LINEELEMENT {
         .p element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
         ```
 
-        Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Origin
-        closure needs at least two mapped points; other modes need at least three. Origin filling is omitted when
+        Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Baseline and origin
+        closure need at least two mapped points; chord closure needs at least three. Origin filling is omitted when
         either mapped axis is logarithmic, since zero has no logarithmic coordinate.  Existing restrictions on
         discontinuous traces remain. Self-intersecting curves retain the renderer's fill rule; origin closure does not
         mean filling between successive turns of a spiral.  Existing PostScript limitations for image tiles are

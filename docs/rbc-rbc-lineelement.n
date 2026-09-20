@@ -748,8 +748,8 @@ PostScript\&. For an open polar arc, chord fills a segment and origin fills a se
 .fi
 .RE
 .PP
-Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.  Origin
-closure needs at least two mapped points; other modes need at least three\&. Origin filling is omitted when
+Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.  Baseline and origin
+closure need at least two mapped points; chord closure needs at least three\&. Origin filling is omitted when
 either mapped axis is logarithmic, since zero has no logarithmic coordinate\&.  Existing restrictions on
 discontinuous traces remain\&. Self-intersecting curves retain the renderer's fill rule; origin closure does not
 mean filling between successive turns of a spiral\&.  Existing PostScript limitations for image tiles are

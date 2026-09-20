@@ -122,12 +122,13 @@ of graph orientation.</p>
 <p>Each margin can contain one or more virtual axes. The <code class="docutils literal notranslate"><span class="pre">use</span></code> operation queries or changes the ordered list of
 axes assigned to the margin.</p>
 <p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>time
-<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>phase
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>time
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>phase<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>phase
 
 <span class="nv">.g</span><span class="w"> </span>xaxis<span class="w"> </span>use<span class="w"> </span><span class="k">{</span><span class="nb">time</span><span class="w"> </span>phase<span class="k">}</span>
 </pre></div>
 </div>
+<p><img alt="multiple_x_axes" src="images/multiple_x_axes.svg" /></p>
 <p>The order is significant. The first axis in the list is the primary axis for that margin and is the axis
 addressed by the other <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> operations such as <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">transform</span></code>, and <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p>
 <p>Additional axes in the list are displayed farther away from the plotting area.</p>

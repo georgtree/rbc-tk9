@@ -126,5 +126,46 @@ namespace eval areaClose {
         destroy .area
     } -result {1 1 1 1}
 
+    foreach type {graph polar} {
+        foreach inverted {no yes} {
+            foreach fill {solid tile} {
+                test areaClose-6-$type-$inverted-$fill {two-point baseline fill survives closure changes and clears} -setup {
+                    $type .area -width 400 -height 400 -invertxy $inverted -plotbackground white
+                    pack .area
+                    .area axis configure x -min -3 -max 3
+                    .area axis configure y -min -3 -max 3
+                    .area grid configure -hide yes
+                    .area legend configure -hide yes
+                    set photo [image create photo]
+                    set tile [image create photo -width 2 -height 2]
+                    $tile put black -to 0 0 2 2
+                    .area element create signal -data {2 0 0 2} -linewidth 0 -symbol none
+                    if {$fill eq "solid"} {
+                        .area element configure signal -areapattern solid -areaforeground black
+                    } else {
+                        .area element configure signal -areatile $tile
+                    }
+                    update idletasks
+                } -body {
+                    set result {}
+                    # The initial closure is the default baseline mode.
+                    foreach mode {baseline chord origin baseline} {
+                        .area element configure signal -areaclose $mode
+                        .area snap $photo
+                        set below [expr {$inverted eq "yes" ? [Ink $photo -1 1] : [Ink $photo 1 -1]}]
+                        lappend result [list [Ink $photo 0.5 0.5] $below]
+                    }
+                    .area element configure signal -data {2 0}
+                    .area snap $photo
+                    lappend result [Ink $photo 0.5 0.5]
+                    set result
+                } -cleanup {
+                    destroy .area
+                    image delete $photo $tile
+                } -result {{1 1} {0 0} {1 0} {1 1} 0}
+            }
+        }
+    }
+
 }
 ::tcltest::cleanupTests
