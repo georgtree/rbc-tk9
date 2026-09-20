@@ -1,0 +1,141 @@
+# Symbol selection after geometric reduction. See license.terms.
+package require rbc
+package require tcltest
+namespace eval ::symbolPointsTest {
+    namespace import ::tcltest::*
+    variable calls {}
+    proc Label {graph element index x y} {
+        variable calls
+        lappend calls $index
+        return {}
+    }
+    proc Create {kind} {
+        ::rbc::$kind .sp -width 400 -height 400 -bufferelements no -plotbackground white
+        pack .sp
+        .sp axis configure x -min -1 -max 5 -loose no
+        .sp axis configure y -min -1 -max 5 -loose no
+        .sp grid configure -hide yes
+        .sp legend configure -hide yes
+        .sp element create e -data {0 0 1 1 2 2 3 3 4 4} -symbol square -pixels 9 \
+            -fill red -outline red -color blue -reduce 1 -showvalues y -valuecommand ::symbolPointsTest::Label
+        update idletasks
+    }
+    proc Indices {photo} {
+        variable calls
+        update idletasks
+        set calls {}
+        .sp snap $photo
+        return $calls
+    }
+    foreach kind {graph stripchart polar} {
+        test symbolPoints-options-$kind {default, metadata and invalid-option rollback} -setup {
+            Create $kind
+        } -body {
+            set default [.sp element cget e -symbolpoints]
+            .sp element configure e -symbolpoints reduced
+            set failed [catch {.sp element configure e -symbolpoints invalid}]
+            list $default [lindex [.sp element configure e -symbolpoints] 3] $failed \
+                [.sp element cget e -symbolpoints]
+        } -cleanup {destroy .sp} -result {all all 1 reduced}
+
+        foreach width {0 1} {
+            test symbolPoints-reduce-$kind-$width {reduce selects samples, reset restores all and exact closest survives} -setup {
+                set photo {}
+                set photo [image create photo]
+                Create $kind
+                .sp element configure e -linewidth $width
+            } -body {
+                set result [list [Indices $photo]]
+                .sp element configure e -symbolpoints reduced
+                lappend result [Indices $photo]
+                lassign [.sp transform 2 2] x y
+                set found [.sp element closest $x $y hit -interpolate no -halo 3 e]
+                lappend result [list $found $hit(index)]
+                .sp element configure e -reduce 0
+                lappend result [Indices $photo]
+                .sp element configure e -reduce 1 -symbolpoints all
+                lappend result [Indices $photo]
+                set result
+            } -cleanup {
+                destroy .sp
+                if {$photo ne {}} {image delete $photo}
+                unset -nocomplain hit
+            } -result {{0 1 2 3 4} {0 4} {1 2} {0 1 2 3 4} {0 1 2 3 4}}
+        }
+        test symbolPoints-max-$kind {maxsymbols further thins the reduced set on screen} -setup {
+            set photo {}
+            set photo [image create photo]
+            Create $kind
+            .sp element configure e -symbolpoints reduced -maxsymbols 1
+        } -body {
+            .sp snap $photo
+            set result {}
+            foreach value {0 4} {
+                lassign [.sp transform $value $value] x y
+                lappend result [expr {[$photo get $x $y] eq {255 0 0}}]
+            }
+            set result
+        } -cleanup {
+            destroy .sp
+            if {$photo ne {}} {image delete $photo}
+        } -result {1 0}
+    }
+    test symbolPoints-strip-reduce-option {strip reduction metadata and invalid-value rollback} -setup {
+        Create stripchart
+    } -body {
+        set default [lindex [.sp element configure e -reduce] 3]
+        set failed [catch {.sp element configure e -reduce invalid}]
+        list [expr {$default == 0}] $failed [expr {[.sp element cget e -reduce] == 1}]
+    } -cleanup {destroy .sp} -result {1 1 1}
+
+    test symbolPoints-gap {reduction retains endpoints of separate valid data runs} -setup {
+        set photo {}
+        set photo [image create photo]
+        Create graph
+        .sp axis configure x -min 0 -max 8
+        .sp axis configure y -logscale yes -min 0.1 -max 1000
+        .sp element configure e -data {1 1 2 10 3 100 4 -1 5 1 6 10 7 100} -symbolpoints reduced
+    } -body {
+        Indices $photo
+    } -cleanup {
+        destroy .sp
+        if {$photo ne {}} {image delete $photo}
+    } -result {0 2 4 6}
+
+    foreach output {svg postscript} {
+        test symbolPoints-export-$output {export uses selected source indices and restores all mode} -setup {
+            Create graph
+            .sp element configure e -symbolpoints reduced
+        } -body {
+            set calls {}
+            .sp $output output
+            set reduced $calls
+            .sp element configure e -symbolpoints all
+            set calls {}
+            .sp $output output
+            list $reduced $calls
+        } -cleanup {destroy .sp} -result {{0 4} {0 1 2 3 4}}
+    }
+
+    foreach smooth {step natural quadratic catrom} {
+        test symbolPoints-smooth-$smooth {generated geometry never adds symbol samples} -setup {
+            set photo {}
+            set photo [image create photo]
+            Create graph
+            .sp element configure e -data {0 0 1 3 3 1 4 4} -smooth $smooth -reduce 0.01 -symbolpoints reduced
+        } -body {
+            set indices [Indices $photo]
+            set valid [expr {[llength $indices] >= 2 && [llength $indices] <= 4 &&
+                [llength $indices] == [llength [lsort -unique $indices]]}]
+            foreach index $indices {
+                if {$index ni {0 1 2 3}} {set valid 0}
+            }
+            .sp element configure e -reduce 0
+            list $valid [Indices $photo]
+        } -cleanup {
+            destroy .sp
+            if {$photo ne {}} {image delete $photo}
+        } -result {1 {0 1 2 3}}
+    }
+}
+::tcltest::cleanupTests

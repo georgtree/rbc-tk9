@@ -160,6 +160,9 @@ typedef struct {
 
 typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
 
+typedef enum { LINE_SYMBOL_POINTS_ALL, LINE_SYMBOL_POINTS_REDUCED } LineSymbolPoints;
+static const char *lineSymbolPointNames[] = {"all", "reduced", NULL};
+
 typedef enum { LINE_AREA_BASELINE, LINE_AREA_CHORD, LINE_AREA_ORIGIN } LineAreaClose;
 static const char *lineAreaCloseNames[] = {"baseline", "chord", "origin", NULL};
 typedef enum { LINE_COORDINATES_CARTESIAN, LINE_COORDINATES_POLAR } LineDataCoordinates;
@@ -305,12 +308,13 @@ typedef struct {
     Smoothing smooth; /* Smoothing function used. */
     double rTolerance; /* Tolerance to reduce the number of
                         * points displayed. */
+    LineSymbolPoints symbolPoints; /* Source samples eligible for normal symbols. */
     LineDecimation decimate;
     LineDecimateCache decimateCache;
     /*
      * True when the current screen mapping intentionally omitted the
      * full symbolPts/symbolToData arrays because the trace was reduced
-     * before world-to-screen mapping.
+     * before world-to-screen mapping or -symbolpoints selected a subset.
      */
     int pointMapOmitted;
     /*
@@ -765,6 +769,8 @@ typedef struct {
          0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
+        {TK_OPTION_STRING_TABLE, "-symbolpoints", "symbolPoints", "SymbolPoints", "all", -1,                          \
+         offsetof(Line, symbolPoints), 0, (ClientData)lineSymbolPointNames, LINE_ELEM_MAP_ITEM_MASK},                   \
         {TK_OPTION_STRING,                                                                                             \
          "-maxsymbols",                                                                                                \
          "maxSymbols",                                                                                                 \
@@ -1030,7 +1036,7 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
-    LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES,
+    LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES),
     {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
      (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
@@ -6454,6 +6460,42 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
 }
 
 /*
+ * Keep only original samples that survived trace reduction. Spline samples
+ * and step corners can carry the same source index, so compare coordinates
+ * as well. Both mappings are still in source order here, before MergePens.
+ */
+static void FilterReducedSymbols(Line *linePtr, const MapInfo *mapPtr) {
+    Tcl_Size i;
+    Tcl_Size j = 0;
+    Tcl_Size count = 0;
+
+    for (i = 0; i < linePtr->nSymbolPts; i++) {
+        Tcl_Size index = linePtr->symbolToData[i];
+        Point2D point = linePtr->symbolPts[i];
+        int retained = FALSE;
+
+        while ((j < mapPtr->nScreenPts) && (mapPtr->indices[j] < index)) {
+            j++;
+        }
+        while ((j < mapPtr->nScreenPts) && (mapPtr->indices[j] == index)) {
+            if ((mapPtr->screenPts[j].x == point.x) && (mapPtr->screenPts[j].y == point.y)) {
+                retained = TRUE;
+            }
+            j++;
+        }
+        if (retained) {
+            linePtr->symbolPts[count] = point;
+            linePtr->symbolToData[count++] = index;
+        }
+    }
+    if (count < linePtr->nSymbolPts) {
+        /* Exact point searches must continue to consider every sample. */
+        linePtr->pointMapOmitted = TRUE;
+    }
+    linePtr->nSymbolPts = count;
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * MapActiveSymbols --
@@ -7427,7 +7469,8 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
      * Map connecting line segments if they are to be displayed.
      */
     if ((nPoints > 1) && ((graphPtr->classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0) ||
-                          (linePtr->fillTile != NULL) || (linePtr->fillStipple != None))) {
+                          (linePtr->fillTile != NULL) || (linePtr->fillStipple != None) ||
+                          ((linePtr->symbolPoints == LINE_SYMBOL_POINTS_REDUCED) && (linePtr->rTolerance > 0.0)))) {
         linePtr->smooth = linePtr->reqSmooth;
         /*
          * Do smoothing if necessary.  This can extend the coordinate array,
@@ -7469,6 +7512,9 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         }
         if (linePtr->rTolerance > 0.0) {
             ReducePoints(&mapInfo, linePtr->rTolerance);
+            if (linePtr->symbolPoints == LINE_SYMBOL_POINTS_REDUCED) {
+                FilterReducedSymbols(linePtr, &mapInfo);
+            }
         }
         if ((linePtr->fillTile != NULL) || (linePtr->fillStipple != None)) {
             MapFillArea(graphPtr, linePtr, &mapInfo);

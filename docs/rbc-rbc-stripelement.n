@@ -41,7 +41,6 @@ In particular, the following LINEELEMENT options are not available for strip ele
 │ -areaopacity        │ Cairo/SVG solid area fill opacity                       │
 │ -areatile           │ tiled area filling                                      │
 │ -param              │ per-point parameter mapping returned by ELEMENT closest │
-│ -reduce             │ screen-space trace reduction                            │
 │ -state              │ line-element state option                               │
 │ -trace              │ filtering of increasing/decreasing X trace directions   │
 └─────────────────────┴─────────────────────────────────────────────────────────┘
@@ -281,6 +280,14 @@ The complete strip-element option set is:
 │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis used to map the element's  │
 │                       │               │                │ Y coordinates\&. The axis must exist and must be  │
 │                       │               │                │ a Y axis\&. The default is y\&.                     │
+│ -reduce tolerance     │ reduce        │ Reduce         │ Sets the screen-space trace reduction tolerance │
+│                       │               │                │ in pixels\&. The default is 0 (disabled)\&. With    │
+│                       │               │                │ -symbolpoints reduced, symbols and value labels │
+│                       │               │                │ use surviving original samples\&.                 │
+│ -symbolpoints mode    │ symbolPoints  │ SymbolPoints   │ Selects all (default) or reduced original       │
+│                       │               │                │ samples for symbols and value labels\&. Reduced   │
+│                       │               │                │ selection requires a positive -reduce           │
+│                       │               │                │ tolerance\&.                                      │
 │ -maxsymbols number    │ maxSymbols    │ MaxSymbols     │ Requests a reduced symbol display density when  │
 │                       │               │                │ the element contains many points\&. 0 draws       │
 │                       │               │                │ symbols without this reduction\&. The default is  │

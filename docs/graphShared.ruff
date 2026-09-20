@@ -1922,6 +1922,25 @@ namespace eval ::rbc::LINEELEMENT {
 
         Reduction affects rendered geometry only; it does not modify the element's source data.
 
+        By default, `-symbolpoints all` keeps symbols and value labels at the original eligible sample points,
+        independently of trace reduction. Set `-symbolpoints reduced` to keep only original samples that remain
+        as vertices of the reduced trace:
+        ```tcl
+        .g element configure signal -reduce 1.0 -symbolpoints reduced
+        ```
+
+        With a non-positive `-reduce`, both modes keep all eligible samples. Generated spline samples and step
+        corners never acquire symbols or value labels. A source sample is retained only when both its index and
+        mapped coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves.
+        The selection also applies to symbols-only elements (`-linewidth 0`) and is recomputed when the axes change.
+
+        `-maxsymbols` can further thin the selected symbols on screen; its default `0` adds no thinning.
+        Value labels follow the selected sample set, independently of `-maxsymbols`. Explicit active indices can
+        still highlight omitted samples; activating all points uses the selected set. Exact closest-point searches
+        (`-interpolate no`) continue to search all source samples. SVG and PostScript use the reduced selection too,
+        with reduction evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.
+
+
         ## Symbols
         Symbols may be drawn at element data points using `-symbol`.
 
@@ -2259,6 +2278,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-linewidth width`      | `lineWidth`      | `LineWidth`      | Sets the built-in normal pen's trace width. The default is `1`; `0` suppresses the trace.                                                                                                                         |
         | `-mapx axisName`        | `mapX`           | `MapX`           | Specifies the X axis used to map the element's X coordinates. The axis must exist and must be an X axis. The default is `x`.                                                                                      |
         | `-mapy axisName`        | `mapY`           | `MapY`           | Specifies the Y axis used to map the element's Y coordinates. The axis must exist and must be a Y axis. The default is `y`.                                                                                       |
+        | `-symbolpoints mode` | `symbolPoints` | `SymbolPoints` | Selects `all` (default) or `reduced` original samples for symbols and value labels. Reduced selection requires a positive `-reduce` tolerance. |
         | `-maxsymbols number`    | `maxSymbols`     | `MaxSymbols`     | Requests a reduced symbol display density when the element contains many points. `0` draws symbols without this reduction. The default is `0`.                                                                    |
         | `-offdash color`        | `offDash`        | `OffDash`        | Sets the color used for the gaps of a dashed trace. An empty value leaves the gaps transparent; `defcolor` uses the trace color.                                                                                  |
         | `-outline color`        | `outline`        | `Outline`        | Sets the symbol outline color. `defcolor` uses the trace color.                                                                                                                                                   |
@@ -2355,6 +2375,9 @@ namespace eval ::rbc::LINEELEMENT {
         │ -mapy axisName          │ mapY             │ MapY             │ Specifies the Y axis used to map the element's Y        │
         │                         │                  │                  │ coordinates. The axis must exist and must be a Y axis.  │
         │                         │                  │                  │ The default is y.                                       │
+        │ -symbolpoints mode      │ symbolPoints     │ SymbolPoints     │ Selects all (default) or reduced original samples for   │
+        │                         │                  │                  │ symbols and value labels. Reduced selection requires a  │
+        │                         │                  │                  │ positive -reduce tolerance.                             │
         │ -maxsymbols number      │ maxSymbols       │ MaxSymbols       │ Requests a reduced symbol display density when the      │
         │                         │                  │                  │ element contains many points. 0 draws symbols without   │
         │                         │                  │                  │ this reduction. The default is 0.                       │
@@ -2492,7 +2515,6 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-areaopacity`    | Cairo/SVG solid area fill opacity                     |
         | `-areatile`       | tiled area filling                                    |
         | `-param`          | per-point parameter mapping returned by `ELEMENT closest` |
-        | `-reduce`         | screen-space trace reduction                          |
         | `-state`          | line-element state option                             |
         | `-trace`          | filtering of increasing/decreasing X trace directions |
 
@@ -2507,7 +2529,6 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -areaopacity        │ Cairo/SVG solid area fill opacity                       │
         │ -areatile           │ tiled area filling                                      │
         │ -param              │ per-point parameter mapping returned by ELEMENT closest │
-        │ -reduce             │ screen-space trace reduction                            │
         │ -state              │ line-element state option                               │
         │ -trace              │ filtering of increasing/decreasing X trace directions   │
         └─────────────────────┴─────────────────────────────────────────────────────────┘
@@ -2685,6 +2706,8 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-linewidth width`      | `lineWidth`     | `LineWidth`     | Sets the built-in normal pen's trace width. The default is `1`; `0` suppresses the trace.                                                                                                                         |
         | `-mapx axisName`        | `mapX`          | `MapX`          | Specifies the X axis used to map the element's X coordinates. The axis must exist and must be an X axis. The default is `x`.                                                                                      |
         | `-mapy axisName`        | `mapY`          | `MapY`          | Specifies the Y axis used to map the element's Y coordinates. The axis must exist and must be a Y axis. The default is `y`.                                                                                       |
+        | `-reduce tolerance` | `reduce` | `Reduce` | Sets the screen-space trace reduction tolerance in pixels. The default is `0` (disabled). With `-symbolpoints reduced`, symbols and value labels use surviving original samples. |
+        | `-symbolpoints mode` | `symbolPoints` | `SymbolPoints` | Selects `all` (default) or `reduced` original samples for symbols and value labels. Reduced selection requires a positive `-reduce` tolerance. |
         | `-maxsymbols number`    | `maxSymbols`    | `MaxSymbols`    | Requests a reduced symbol display density when the element contains many points. `0` draws symbols without this reduction. The default is `0`.                                                                    |
         | `-offdash color`        | `offDash`       | `OffDash`       | Sets the color used for the gaps of a dashed trace. An empty value leaves the gaps transparent; `defcolor` uses the trace color.                                                                                  |
         | `-outline color`        | `outline`       | `Outline`       | Sets the symbol outline color. `defcolor` uses the trace color.                                                                                                                                                   |
@@ -2770,6 +2793,14 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis used to map the element's  │
         │                       │               │                │ Y coordinates. The axis must exist and must be  │
         │                       │               │                │ a Y axis. The default is y.                     │
+        │ -reduce tolerance     │ reduce        │ Reduce         │ Sets the screen-space trace reduction tolerance │
+        │                       │               │                │ in pixels. The default is 0 (disabled). With    │
+        │                       │               │                │ -symbolpoints reduced, symbols and value labels │
+        │                       │               │                │ use surviving original samples.                 │
+        │ -symbolpoints mode    │ symbolPoints  │ SymbolPoints   │ Selects all (default) or reduced original       │
+        │                       │               │                │ samples for symbols and value labels. Reduced   │
+        │                       │               │                │ selection requires a positive -reduce           │
+        │                       │               │                │ tolerance.                                      │
         │ -maxsymbols number    │ maxSymbols    │ MaxSymbols     │ Requests a reduced symbol display density when  │
         │                       │               │                │ the element contains many points. 0 draws       │
         │                       │               │                │ symbols without this reduction. The default is  │

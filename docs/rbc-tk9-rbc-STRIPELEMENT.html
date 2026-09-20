@@ -90,13 +90,10 @@ semantics as described in <a class="reference internal" href="rbc-tk9-rbc-LINEEL
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-param</span></code></p></td>
 <td><p>per-point parameter mapping returned by <code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-reduce</span></code></p></td>
-<td><p>screen-space trace reduction</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span></code></p></td>
 <td><p>line-element state option</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-trace</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-trace</span></code></p></td>
 <td><p>filtering of increasing/decreasing X trace directions</p></td>
 </tr>
 </tbody>
@@ -336,6 +333,16 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
 <td><p>Specifies the Y axis used to map the element’s Y coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-reduce</span> <span class="pre">tolerance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Reduce</span></code></p></td>
+<td><p>Sets the screen-space trace reduction tolerance in pixels. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code> (disabled). With <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code>, symbols and value labels use surviving original samples.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">symbolPoints</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SymbolPoints</span></code></p></td>
+<td><p>Selects <code class="docutils literal notranslate"><span class="pre">all</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">reduced</span></code> original samples for symbols and value labels. Reduced selection requires a positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> tolerance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">number</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">maxSymbols</span></code></p></td>

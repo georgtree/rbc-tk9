@@ -48,6 +48,13 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="symbols-on-reduced-traces">
+<span id="r-tcltk9upgrade-symbols-on-reduced-traces"></span><span id="r-3a3atcltk9upgradeqzsymbols20on20reduced20traces"></span><h3>Symbols on reduced traces<a class="headerlink" href="#symbols-on-reduced-traces" title="Link to this heading">¶</a></h3>
+<p>Line, stripchart, and polar elements accept <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all|reduced</span></code>. The default <code class="docutils literal notranslate"><span class="pre">all</span></code> preserves
+original-sample symbols. With positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">reduced</span></code> restricts symbols and value labels to original
+samples retained by trace simplification; generated smoothing vertices never acquire symbols. Exact
+closest-point searches still include omitted samples. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">::rbc::LINEELEMENT</span></a> for details.</p>
+</section>
 <section id="msvc-builds-on-windows">
 <span id="r-tcltk9upgrade-msvc-builds-on-windows"></span><span id="r-3a3atcltk9upgradeqzmsvc20builds20on20windows"></span><h3>MSVC builds on Windows<a class="headerlink" href="#msvc-builds-on-windows" title="Link to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">win/makefile.vc</span></code> build supports MSVC and Nmake with Tcl/Tk 9, including optional Cairo via
@@ -701,6 +708,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>
 <li><a class="reference internal" href="#polar-smith-grid-configuration">Polar/Smith grid configuration</a></li>
 <li><a class="reference internal" href="#optional-cairo-rendering">Optional Cairo rendering</a></li>

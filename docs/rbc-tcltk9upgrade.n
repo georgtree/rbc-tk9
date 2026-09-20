@@ -12,6 +12,12 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "SYMBOLS ON REDUCED TRACES"
+.PP
+Line, stripchart, and polar elements accept -symbolpoints all|reduced\&. The default all preserves
+original-sample symbols\&. With positive -reduce, reduced restricts symbols and value labels to original
+samples retained by trace simplification; generated smoothing vertices never acquire symbols\&. Exact
+closest-point searches still include omitted samples\&. See \fI::rbc::LINEELEMENT\fP for details\&.
 .SS "MSVC BUILDS ON WINDOWS"
 .PP
 The win/makefile\&.vc build supports MSVC and Nmake with Tcl/Tk 9, including optional Cairo via
