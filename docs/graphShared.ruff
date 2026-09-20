@@ -1020,7 +1020,28 @@ namespace eval ::rbc::ELEMENT {
         ```
 
         The order of the supplied list is the drawing order. Elements later in the list are drawn above elements
-        earlier in the list.
+        earlier in the list. The element that is added later to the graph inserted in the beginning of the list.
+
+        For example, plot two lines with area fill, default ordering:
+        ```tcl
+        .g element create signal1 -data {0 1 2 3} -areapattern solid -areaforeground purple
+        .g element create signal2 -data {0 3 2 1} -areapattern solid -areaforeground blue
+        .g element show
+        # -> signal2 signal1
+        ```
+
+        #ruffopt excludedformats nroff
+        ![display_order](images/display_order.svg)
+        #ruffopt excludedformats {}
+
+        and in reverse order:
+        ```tcl
+        .g element show {signal1 signal2}
+        ```
+
+        #ruffopt excludedformats nroff
+        ![display_order_reverse](images/display_order_reverse.svg)
+        #ruffopt excludedformats {}
 
         Unknown element names in a list supplied to `show` are ignored.
 
@@ -1048,13 +1069,24 @@ namespace eval ::rbc::ELEMENT {
 
         Supplying only an element name activates the complete element:
         ```tcl
+        $graph element create signal1 -data {0 1 2 3 4 5} -color green
+        $graph element create signal2 -data {0 5 2 3 4 1} -color red
+
         .g element activate signal1
         ```
 
+        #ruffopt excludedformats nroff
+        ![element_active_full](images/element_active_full.svg)
+        #ruffopt excludedformats {}
+
         Supplying one or more indices activates only those data points:
         ```tcl
-        .g element activate signal1 2 5 8
+        .g element activate signal1 1 2
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/element_active_points.svg)
+        #ruffopt excludedformats {}
 
         Each activation replaces the previous active-point selection for that element.
 
@@ -1258,8 +1290,9 @@ namespace eval ::rbc::ELEMENT {
 
         Polar elements are documented separately in [POLARELEMENT].
 
-        There is no separate `GRAPHINST polar` element operation. Polar elements are created through the generic
-        `GRAPHINST element create` operation when the owning widget's default element type is `PolarElement`.
+        There is no separate `GRAPHINST polar` and `GRAPHINST strip` element operations. Polar and strip elements are
+        created through the generic `GRAPHINST element create` operation when the owning widget's default element type
+        is `PolarElement` or `StripElement`.
 
         Configuration options are specific to the concrete element type:
         * [LINEELEMENT] - line elements;

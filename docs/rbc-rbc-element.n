@@ -95,7 +95,26 @@ Elements not present in the supplied list are hidden\&. An empty list hides all 
 .RE
 .PP
 The order of the supplied list is the drawing order\&. Elements later in the list are drawn above elements
-earlier in the list\&.
+earlier in the list\&. The element that is added later to the graph inserted in the beginning of the list\&.
+.PP
+For example, plot two lines with area fill, default ordering:
+.PP
+.RS 4n
+.nf
+\&.g element create signal1 -data {0 1 2 3} -areapattern solid -areaforeground purple
+\&.g element create signal2 -data {0 3 2 1} -areapattern solid -areaforeground blue
+\&.g element show
+# -> signal2 signal1
+.fi
+.RE
+.PP
+and in reverse order:
+.PP
+.RS 4n
+.nf
+\&.g element show {signal1 signal2}
+.fi
+.RE
 .PP
 Unknown element names in a list supplied to show are ignored\&.
 .PP
@@ -128,6 +147,9 @@ Supplying only an element name activates the complete element:
 .PP
 .RS 4n
 .nf
+$graph element create signal1 -data {0 1 2 3 4 5} -color green
+$graph element create signal2 -data {0 5 2 3 4 1} -color red
+
 \&.g element activate signal1
 .fi
 .RE
@@ -136,7 +158,7 @@ Supplying one or more indices activates only those data points:
 .PP
 .RS 4n
 .nf
-\&.g element activate signal1 2 5 8
+\&.g element activate signal1 1 2
 .fi
 .RE
 .PP
@@ -333,8 +355,9 @@ ELEMENT type reports the concrete class of an existing element\&. The current el
 .PP
 Polar elements are documented separately in \fIPOLARELEMENT\fP\&.
 .PP
-There is no separate GRAPHINST polar element operation\&. Polar elements are created through the generic
-GRAPHINST element create operation when the owning widget's default element type is PolarElement\&.
+There is no separate GRAPHINST polar and GRAPHINST strip element operations\&. Polar and strip elements are
+created through the generic GRAPHINST element create operation when the owning widget's default element type
+is PolarElement or StripElement\&.
 .PP
 Configuration options are specific to the concrete element type:
 .TP
