@@ -1352,7 +1352,7 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData);
 static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
-                                Point2D *symbolPts);
+                                Point2D *symbolPts, Tcl_Size interval, Tcl_Size *counterPtr);
 static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr);
 static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr);
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
@@ -11044,6 +11044,23 @@ static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
                                  linePtr->areaOpacity);
 }
 
+/* Use the same density interval for screen drawing and vector export. */
+static Tcl_Size SymbolInterval(Line *linePtr) {
+    Tcl_Size total = 0;
+    Rbc_ChainLink *linkPtr;
+
+    if (linePtr->reqMaxSymbols <= 0) {
+        return 0;
+    }
+    for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        LinePenStyle *stylePtr = Rbc_ChainGetValue(linkPtr);
+
+        total += stylePtr->nSymbolPts;
+    }
+    return total / (Tcl_Size)linePtr->reqMaxSymbols;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -11114,18 +11131,8 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     } else if ((Rbc_ChainGetLength(linePtr->traces) > 0) && (normalPenPtr->traceWidth > 0)) {
         DrawTraces(graphPtr, drawable, linePtr, normalPenPtr);
     }
-    if (linePtr->reqMaxSymbols > 0) {
-        Tcl_Size total;
-
-        total = 0;
-        for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL;
-             linkPtr = Rbc_ChainNextLink(linkPtr)) {
-            stylePtr = Rbc_ChainGetValue(linkPtr);
-            total += stylePtr->nSymbolPts;
-        }
-        linePtr->symbolInterval = total / (Tcl_Size)linePtr->reqMaxSymbols;
-        linePtr->symbolCounter = 0;
-    }
+    linePtr->symbolInterval = SymbolInterval(linePtr);
+    linePtr->symbolCounter = 0;
     /* Symbols, error bars, values. */
     count = 0;
     for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -11161,7 +11168,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
  *----------------------------------------------------------------------
  */
 static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
-                                Point2D *symbolPts) {
+                                Point2D *symbolPts, Tcl_Size interval, Tcl_Size *counterPtr) {
     static const Rbc_RenderSymbolType types[] = {
         RBC_RENDER_SYMBOL_CIRCLE, /* SYMBOL_NONE is not drawn here. */
         RBC_RENDER_SYMBOL_SQUARE, RBC_RENDER_SYMBOL_CIRCLE, RBC_RENDER_SYMBOL_DIAMOND,
@@ -11185,7 +11192,18 @@ static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen
     style.bitmap = penPtr->symbol.bitmap;
     style.mask = penPtr->symbol.mask;
     ctx = Rbc_RenderBeginExportSymbol(graphPtr, exportPtr, &style);
-    Rbc_RenderSymbolPoints(ctx, symbolPts, nSymbolPts);
+    if (interval > 1) {
+        Tcl_Size i;
+
+        for (i = 0; i < nSymbolPts; i++) {
+            if ((*counterPtr % interval) == 0) {
+                Rbc_RenderSymbolPoints(ctx, symbolPts + i, 1);
+            }
+            (*counterPtr)++;
+        }
+    } else {
+        Rbc_RenderSymbolPoints(ctx, symbolPts, nSymbolPts);
+    }
     Rbc_RenderEnd(ctx);
 }
 
@@ -11226,7 +11244,7 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
     if (penPtr->symbol.type != SYMBOL_NONE) {
         Point2D point;
         point.x = x, point.y = y;
-        SymbolsExport(graphPtr, exportPtr, penPtr, size, 1, &point);
+        SymbolsExport(graphPtr, exportPtr, penPtr, size, 1, &point, 0, NULL);
     }
 }
 
@@ -11378,7 +11396,7 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
             MapActiveSymbols(graphPtr, linePtr);
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
-            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nActivePts, linePtr->activePts);
+            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nActivePts, linePtr->activePts, 0, NULL);
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
@@ -11397,7 +11415,7 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
             }
         }
         if (penPtr->symbol.type != SYMBOL_NONE) {
-            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nSymbolPts, linePtr->symbolPts);
+            SymbolsExport(graphPtr, exportPtr, penPtr, symbolSize, linePtr->nSymbolPts, linePtr->symbolPts, 0, NULL);
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, linePtr->nSymbolPts, linePtr->symbolPts,
@@ -11434,6 +11452,8 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
     Rbc_ChainLink *linkPtr;
     LinePen *penPtr;
     Tcl_Size count;
+    Tcl_Size interval = SymbolInterval(linePtr);
+    Tcl_Size counter = 0;
     XColor *colorPtr;
 
     /* Draw fill area; PostScript retains its opaque/tile-background policy. */
@@ -11489,7 +11509,7 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         }
         if ((stylePtr->nSymbolPts > 0) && (stylePtr->penPtr->symbol.type != SYMBOL_NONE)) {
             SymbolsExport(graphPtr, exportPtr, penPtr, stylePtr->symbolSize, stylePtr->nSymbolPts,
-                                stylePtr->symbolPts);
+                                stylePtr->symbolPts, interval, &counter);
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,

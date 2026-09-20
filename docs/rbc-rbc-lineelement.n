@@ -487,26 +487,7 @@ missing values\&.
 .PP
 Reduction affects rendered geometry only; it does not modify the element's source data\&.
 .PP
-By default, -symbolpoints all keeps symbols and value labels at the original eligible sample points,
-independently of trace reduction\&. Set -symbolpoints reduced to keep only original samples that remain
-as vertices of the reduced trace:
-.PP
-.RS 4n
-.nf
-\&.g element configure signal -reduce 1\&.0 -symbolpoints reduced
-.fi
-.RE
-.PP
-With a non-positive -reduce, both modes keep all eligible samples\&. Generated spline samples and step
-corners never acquire symbols or value labels\&. A source sample is retained only when both its index and
-mapped coordinates match a retained trace vertex\&. This can leave few symbols on heavily simplified curves\&.
-The selection also applies to symbols-only elements (-linewidth 0) and is recomputed when the axes change\&.
-.PP
--maxsymbols can further thin the selected symbols on screen; its default 0 adds no thinning\&.
-Value labels follow the selected sample set, independently of -maxsymbols\&. Explicit active indices can
-still highlight omitted samples; activating all points uses the selected set\&. Exact closest-point searches
-(-interpolate no) continue to search all source samples\&. SVG and PostScript use the reduced selection too,
-with reduction evaluated for the export geometry\&. The option is shared by line, stripchart, and polar elements\&.
+For information about -reduce option interaction with displayed symbols, see \fISymbols\fP\&.
 .SH SYMBOLS
 .PP
 Symbols may be drawn at element data points using -symbol\&.
@@ -562,7 +543,29 @@ Symbol appearance is controlled by:
 .RE
 .PP
 -maxsymbols is a display-density control rather than a modification of the source data\&. When positive, Rbc
-computes an interval and draws approximately the requested number of symbols across the visible element\&.
+computes an interval and draws approximately the requested number of symbols across the visible element\&. The
+same interval policy applies to SVG and PostScript output\&. Legend symbols and active symbols are not thinned\&.
+.PP
+By default, -symbolpoints all keeps symbols and value labels at the original eligible sample points,
+independently of trace reduction\&. Set -symbolpoints reduced to keep only original samples that remain as
+vertices of the reduced trace:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -reduce 1\&.0 -symbolpoints reduced
+.fi
+.RE
+.PP
+With a non-positive -reduce, both modes keep all eligible samples\&. Generated spline samples and step corners
+never acquire symbols or value labels\&. A source sample is retained only when both its index and mapped
+coordinates match a retained trace vertex\&. This can leave few symbols on heavily simplified curves\&. The
+selection also applies to symbols-only elements (-linewidth 0) and is recomputed when the axes change\&.
+.PP
+-maxsymbols can further thin the selected symbols on screen; its default 0 adds no thinning\&.  Value labels
+follow the selected sample set, independently of -maxsymbols\&. Explicit active indices can still highlight
+omitted samples; activating all points uses the selected set\&. Exact closest-point searches (-interpolate no)
+continue to search all source samples\&. SVG and PostScript use the reduced selection too, with reduction
+evaluated for the export geometry\&. The option is shared by line, stripchart, and polar elements\&.
 .SH "ERROR BARS OF LINE ELEMENTS"
 .PP
 Error-bar data may be specified in either symmetric or asymmetric form\&.

@@ -1921,25 +1921,29 @@ namespace eval ::rbc::LINEELEMENT {
         missing values.
 
         Reduction affects rendered geometry only; it does not modify the element's source data.
+        
+        For information about `-reduce` option interaction with displayed symbols, see [Symbols].
 
-        By default, `-symbolpoints all` keeps symbols and value labels at the original eligible sample points,
-        independently of trace reduction. Set `-symbolpoints reduced` to keep only original samples that remain
-        as vertices of the reduced trace:
+        #ruffopt excludedformats nroff
+        Example of line mapped points reduction with two different window sizes:
         ```tcl
-        .g element configure signal -reduce 1.0 -symbolpoints reduced
+        vector create signal1x signal1y
+        set pi 3.14159265359
+        signal1x seq 0 {2*$pi} {2*$pi/100}
+        signal1y expr {sin(signal1x)}
+        $graph element create signal1 -x signal1x -y signal1y -symbol {}
+        $graph element create signal1reduced -x signal1x -y signal1y -reduce 4 -color green -symbol {} -linewidth 2
         ```
 
-        With a non-positive `-reduce`, both modes keep all eligible samples. Generated spline samples and step
-        corners never acquire symbols or value labels. A source sample is retained only when both its index and
-        mapped coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves.
-        The selection also applies to symbols-only elements (`-linewidth 0`) and is recomputed when the axes change.
+        ![line_reduction_normal_size](images/line_reduction_normal_size.svg)
 
-        `-maxsymbols` can further thin the selected symbols on screen; its default `0` adds no thinning.
-        Value labels follow the selected sample set, independently of `-maxsymbols`. Explicit active indices can
-        still highlight omitted samples; activating all points uses the selected set. Exact closest-point searches
-        (`-interpolate no`) continue to search all source samples. SVG and PostScript use the reduced selection too,
-        with reduction evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.
+        And in window with smaller width:
 
+        ![line_reduction_smaller_size.svg](images/line_reduction_smaller_size.svg)
+
+        You can see that location of mapped points changed.
+        
+        #ruffopt excludedformats {}
 
         ## Symbols
         Symbols may be drawn at element data points using `-symbol`.
@@ -1999,7 +2003,56 @@ namespace eval ::rbc::LINEELEMENT {
         #ruffopt excludedformats {}
 
         `-maxsymbols` is a display-density control rather than a modification of the source data. When positive, Rbc
-        computes an interval and draws approximately the requested number of symbols across the visible element.
+        computes an interval and draws approximately the requested number of symbols across the visible element. The
+        same interval policy applies to SVG and PostScript output. Legend symbols and active symbols are not thinned.
+
+        By default, `-symbolpoints all` keeps symbols and value labels at the original eligible sample points,
+        independently of trace reduction. Set `-symbolpoints reduced` to keep only original samples that remain as
+        vertices of the reduced trace:
+        ```tcl
+        .g element configure signal -reduce 1.0 -symbolpoints reduced
+        ```
+
+        With a non-positive `-reduce`, both modes keep all eligible samples. Generated spline samples and step corners
+        never acquire symbols or value labels. A source sample is retained only when both its index and mapped
+        coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves. The
+        selection also applies to symbols-only elements (`-linewidth 0`) and is recomputed when the axes change.
+
+        `-maxsymbols` can further thin the selected symbols on screen; its default `0` adds no thinning.  Value labels
+        follow the selected sample set, independently of `-maxsymbols`. Explicit active indices can still highlight
+        omitted samples; activating all points uses the selected set. Exact closest-point searches (`-interpolate no`)
+        continue to search all source samples. SVG and PostScript use the reduced selection too, with reduction
+        evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.
+
+        #ruffopt excludedformats nroff
+        Example of line mapped points reduction with additional symbols reduction by providing `-symbolpoints reduced`,
+        and both `-symbolpoints reduced` and `-maxsymbols 3` at the same time:
+        ```tcl
+        vector create signal1x signal1y
+        set pi 3.14159265359
+        signal1x seq 0 {2*$pi} {2*$pi/100}
+        signal1y expr {sin(signal1x)}
+        .g element create normal -x signal1x -y signal1y -pixels 3 -fill {}
+        .g element create reduced -x signal1x -y signal1y -reduce 6 -color green -fill {} -pixels 6 -symbolpoints all
+        .g element create reducedSymbols -x signal1x -y signal1y -reduce 6 -color red -fill {} -pixels 12\
+                -symbolpoints reduced
+        .g element create reducedSymbolsMaxSymbols -x signal1x -y signal1y -reduce 6 -color grey -fill {} -pixels 24\
+                -symbolpoints reduced -maxsymbols 3
+        ```
+
+        ![line_reduction_symbols](images/line_reduction_symbols.svg)
+
+        Reduction is not applied to element `normal`. It contains all data points displayed as symbols.
+
+        Element `reduced` has reduction applied, it affects drawing of the line, but does not affect displayed symbols,
+        so symbols are visually not on the reduced line.
+
+        Element `reducedSymbols` has option `-symbolpoints reduced` set, so symbols aligned with the reduced line.
+
+        Element `reducedSymbolsMaxSymbols` has both options `-symbolpoints reduced` and `-maxsymbols 3` set, so number
+        of displayed symbols are additionaly reduced compared with `reducedSymbols` element.
+        
+        #ruffopt excludedformats {}
 
         ## Error bars of line elements
         Error-bar data may be specified in either symmetric or asymmetric form.

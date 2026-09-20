@@ -88,6 +88,64 @@ namespace eval ::symbolPointsTest {
         list [expr {$default == 0}] $failed [expr {[.sp element cget e -reduce] == 1}]
     } -cleanup {destroy .sp} -result {1 1 1}
 
+    proc ExportCount {format} {
+        set document [.sp $format output]
+        if {$format eq "svg"} {
+            return [regexp -all {<circle r="} $document]
+        }
+        return [regexp -all -line {^[-0-9.e+]+ [-0-9.e+]+ [-0-9.e+]+ Ci$} $document]
+    }
+
+    foreach kind {graph stripchart polar} {
+        foreach format {svg postscript} {
+            test symbolPoints-export-max-$kind-$format {export density follows all and reduced samples and resets} -setup {
+                Create $kind
+                .sp element configure e -symbol circle
+            } -body {
+                set result [list [ExportCount $format]]
+                .sp element configure e -maxsymbols 2
+                lappend result [ExportCount $format]
+                .sp element configure e -symbolpoints reduced -maxsymbols 1
+                update idletasks
+                set calls {}
+                lappend result [ExportCount $format] $calls
+                .sp element configure e -maxsymbols 0
+                lappend result [ExportCount $format]
+                .sp element configure e -symbolpoints all
+                lappend result [ExportCount $format]
+                set result
+            } -cleanup {destroy .sp} -result {5 3 1 {0 4} 2 5}
+
+            test symbolPoints-export-palette-$kind-$format {symbol interval continues across pen boundaries} -setup {
+                Create $kind
+                .sp axis configure x -max 6
+                .sp axis configure y -max 6
+                .sp pen create first -symbol circle
+                .sp pen create second -symbol circle
+                .sp element configure e -data {0 0 1 1 2 2 3 3 4 4 5 5} -reduce 0 \
+                    -weights {1 1 1 2 2 2} -styles {{first 0.5 1.5} {second 1.5 2.5}} -maxsymbols 3
+            } -body {
+                set limited [ExportCount $format]
+                .sp element configure e -maxsymbols 0
+                list $limited [ExportCount $format]
+            } -cleanup {destroy .sp} -result {3 6}
+
+            test symbolPoints-export-active-$kind-$format {legend and explicit active symbols bypass density thinning} -setup {
+                Create $kind
+                .sp pen create highlight -symbol circle -linewidth 0
+                .sp element configure e -symbol circle -symbolpoints reduced -maxsymbols 1 -activepen highlight
+            } -body {
+                set result [list [ExportCount $format]]
+                .sp element activate e 1 2 3
+                lappend result [ExportCount $format]
+                .sp element deactivate e
+                .sp legend configure -hide no
+                lappend result [ExportCount $format]
+                set result
+            } -cleanup {destroy .sp} -result {1 4 2}
+        }
+    }
+
     test symbolPoints-gap {reduction retains endpoints of separate valid data runs} -setup {
         set photo {}
         set photo [image create photo]

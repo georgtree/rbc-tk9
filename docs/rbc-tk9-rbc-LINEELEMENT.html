@@ -452,21 +452,20 @@ the default is <code class="docutils literal notranslate"><span class="pre">0.0<
 <p>Reduction is performed separately for every continuous data run, so it does not reconnect traces across
 missing values.</p>
 <p>Reduction affects rendered geometry only; it does not modify the element’s source data.</p>
-<p>By default, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all</span></code> keeps symbols and value labels at the original eligible sample points,
-independently of trace reduction. Set <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> to keep only original samples that remain
-as vertices of the reduced trace:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span>symbolpoints<span class="w"> </span>reduced
+<p>For information about <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> option interaction with displayed symbols, see <a class="reference internal" href="rbc-tk9-rbc-PEN.html#r-3a3arbc3a3apenqzsymbols"><span class="std std-ref">Symbols</span></a>.</p>
+<p>Example of line mapped points reduction with two different window sizes:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>signal1x<span class="w"> </span>signal1y
+<span class="k">set</span><span class="w"> </span>pi<span class="w"> </span><span class="mf">3.14159265359</span>
+<span class="nv">signal1x</span><span class="w"> </span>seq<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="o">*</span><span class="nv">$pi</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="o">*</span><span class="nv">$pi</span><span class="o">/</span><span class="mi">100</span><span class="k">}</span>
+<span class="nv">signal1y</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sin</span><span class="k">(</span><span class="nv">signal1x</span><span class="k">)}</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>create<span class="w"> </span>signal1<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>symbol<span class="w"> </span><span class="k">{}</span>
+<span class="nv">$graph</span><span class="w"> </span><span class="nv">element</span><span class="w"> </span>create<span class="w"> </span>signal1reduced<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>green<span class="w"> </span><span class="o">-</span>symbol<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span>
 </pre></div>
 </div>
-<p>With a non-positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, both modes keep all eligible samples. Generated spline samples and step
-corners never acquire symbols or value labels. A source sample is retained only when both its index and
-mapped coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves.
-The selection also applies to symbols-only elements (<code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">0</span></code>) and is recomputed when the axes change.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> can further thin the selected symbols on screen; its default <code class="docutils literal notranslate"><span class="pre">0</span></code> adds no thinning.
-Value labels follow the selected sample set, independently of <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>. Explicit active indices can
-still highlight omitted samples; activating all points uses the selected set. Exact closest-point searches
-(<code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">no</span></code>) continue to search all source samples. SVG and PostScript use the reduced selection too,
-with reduction evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.</p>
+<p><img alt="line_reduction_normal_size" src="images/line_reduction_normal_size.svg" /></p>
+<p>And in window with smaller width:</p>
+<p><img alt="line_reduction_smaller_size.svg" src="images/line_reduction_smaller_size.svg" /></p>
+<p>You can see that location of mapped points changed.</p>
 </section>
 <section id="symbols">
 <span id="r-rbc-lineelement-symbols"></span><span id="r-3a3arbc3a3alineelementqzsymbols"></span><h2>Symbols<a class="headerlink" href="#symbols" title="Link to this heading">¶</a></h2>
@@ -524,7 +523,42 @@ arrow
 </tbody>
 </table>
 <p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> is a display-density control rather than a modification of the source data. When positive, Rbc
-computes an interval and draws approximately the requested number of symbols across the visible element.</p>
+computes an interval and draws approximately the requested number of symbols across the visible element. The
+same interval policy applies to SVG and PostScript output. Legend symbols and active symbols are not thinned.</p>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all</span></code> keeps symbols and value labels at the original eligible sample points,
+independently of trace reduction. Set <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> to keep only original samples that remain as
+vertices of the reduced trace:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span>symbolpoints<span class="w"> </span>reduced
+</pre></div>
+</div>
+<p>With a non-positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, both modes keep all eligible samples. Generated spline samples and step corners
+never acquire symbols or value labels. A source sample is retained only when both its index and mapped
+coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves. The
+selection also applies to symbols-only elements (<code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">0</span></code>) and is recomputed when the axes change.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> can further thin the selected symbols on screen; its default <code class="docutils literal notranslate"><span class="pre">0</span></code> adds no thinning.  Value labels
+follow the selected sample set, independently of <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>. Explicit active indices can still highlight
+omitted samples; activating all points uses the selected set. Exact closest-point searches (<code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">no</span></code>)
+continue to search all source samples. SVG and PostScript use the reduced selection too, with reduction
+evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.</p>
+<p>Example of line mapped points reduction with additional symbols reduction by providing <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code>,
+and both <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">3</span></code> at the same time:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>signal1x<span class="w"> </span>signal1y
+<span class="k">set</span><span class="w"> </span>pi<span class="w"> </span><span class="mf">3.14159265359</span>
+<span class="nv">signal1x</span><span class="w"> </span>seq<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="o">*</span><span class="nv">$pi</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="o">*</span><span class="nv">$pi</span><span class="o">/</span><span class="mi">100</span><span class="k">}</span>
+<span class="nv">signal1y</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sin</span><span class="k">(</span><span class="nv">signal1x</span><span class="k">)}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>normal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">-</span>fill<span class="w"> </span><span class="k">{}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>reduced<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>green<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="o">-</span>symbolpoints<span class="w"> </span>all
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>reducedSymbols<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">12</span><span class="w"> </span><span class="o">-</span>symbolpoints<span class="w"> </span>reduced
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>reducedSymbolsMaxSymbols<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>signal1x<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>signal1y<span class="w"> </span><span class="o">-</span>reduce<span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>grey<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">24</span><span class="w"> </span><span class="o">-</span>symbolpoints<span class="w"> </span>reduced<span class="w"> </span><span class="o">-</span>maxsymbols<span class="w"> </span><span class="mi">3</span>
+</pre></div>
+</div>
+<p><img alt="line_reduction_symbols" src="images/line_reduction_symbols.svg" /></p>
+<p>Reduction is not applied to element <code class="docutils literal notranslate"><span class="pre">normal</span></code>. It contains all data points displayed as symbols.</p>
+<p>Element <code class="docutils literal notranslate"><span class="pre">reduced</span></code> has reduction applied, it affects drawing of the line, but does not affect displayed symbols,
+so symbols are visually not on the reduced line.</p>
+<p>Element <code class="docutils literal notranslate"><span class="pre">reducedSymbols</span></code> has option <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> set, so symbols aligned with the reduced line.</p>
+<p>Element <code class="docutils literal notranslate"><span class="pre">reducedSymbolsMaxSymbols</span></code> has both options <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">3</span></code> set, so number
+of displayed symbols are additionaly reduced compared with <code class="docutils literal notranslate"><span class="pre">reducedSymbols</span></code> element.</p>
 </section>
 <section id="error-bars-of-line-elements">
 <span id="r-rbc-lineelement-error-bars-of-line-elements"></span><span id="r-3a3arbc3a3alineelementqzerror20bars20of20line20elements"></span><h2>Error bars of line elements<a class="headerlink" href="#error-bars-of-line-elements" title="Link to this heading">¶</a></h2>

@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+<rect x="38" y="7" width="621" height="561" fill="#ffffff"/>
+<defs><clipPath id="rbcPlot" clipPathUnits="userSpaceOnUse"><rect x="38" y="7" width="621" height="561"/></clipPath></defs>
+<g clip-path="url(#rbcPlot)">
+<polyline points="47,287 101.18,141.791 143.32,58.1871 179.44,20.8002 215.56,20.8002 245.66,49.5209 281.78,114.258 426.26,484.55 462.38,538.969 498.5,558 528.6,544.736 564.72,495.809 649,287 " fill="none" stroke="#808080" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(47 287)"><circle r="12.5" fill="none" stroke="#808080" stroke-width="1"/></g>
+<g transform="translate(215.56 20.8002)"><circle r="12.5" fill="none" stroke="#808080" stroke-width="1"/></g>
+<g transform="translate(462.38 538.969)"><circle r="12.5" fill="none" stroke="#808080" stroke-width="1"/></g>
+<g transform="translate(649 287)"><circle r="12.5" fill="none" stroke="#808080" stroke-width="1"/></g>
+<polyline points="47,287 101.18,141.791 143.32,58.1871 179.44,20.8002 215.56,20.8002 245.66,49.5209 281.78,114.258 426.26,484.55 462.38,538.969 498.5,558 528.6,544.736 564.72,495.809 649,287 " fill="none" stroke="#ff0000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(47 287)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(101.18 141.791)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(143.32 58.1871)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(179.44 20.8002)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(215.56 20.8002)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(245.66 49.5209)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(281.78 114.258)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(426.26 484.55)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(462.38 538.969)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(498.5 558)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(528.6 544.736)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(564.72 495.809)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(649 287)"><circle r="6.5" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<polyline points="47,287 101.18,141.791 143.32,58.1871 179.44,20.8002 215.56,20.8002 245.66,49.5209 281.78,114.258 426.26,484.55 462.38,538.969 498.5,558 528.6,544.736 564.72,495.809 649,287 " fill="none" stroke="#008000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(47 287)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(53.02 269.984)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(59.04 253.035)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(65.06 236.22)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(71.08 219.605)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(77.1 203.256)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(83.12 187.238)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(89.14 171.614)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(95.16 156.445)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(101.18 141.791)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(107.2 127.71)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(113.22 114.258)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(119.24 101.488)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(125.26 89.4495)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(131.28 78.1909)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(137.3 67.7564)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(143.32 58.1871)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(149.34 49.5209)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(155.36 41.7919)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(161.38 35.0306)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(167.4 29.2637)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(173.42 24.514)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(179.44 20.8002)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(185.46 18.1369)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(191.48 16.5348)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(197.5 16)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(203.52 16.5348)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(209.54 18.1369)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(215.56 20.8002)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(221.58 24.514)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(227.6 29.2637)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(233.62 35.0306)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(239.64 41.7919)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(245.66 49.5209)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(251.68 58.1871)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(257.7 67.7564)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(263.72 78.1909)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(269.74 89.4495)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(275.76 101.488)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(281.78 114.258)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(287.8 127.71)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(293.82 141.791)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(299.84 156.445)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(305.86 171.614)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(311.88 187.238)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(317.9 203.256)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(323.92 219.605)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(329.94 236.22)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(335.96 253.035)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(341.98 269.984)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(348 287)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(354.02 304.016)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(360.04 320.965)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(366.06 337.78)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(372.08 354.395)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(378.1 370.744)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(384.12 386.762)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(390.14 402.386)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(396.16 417.555)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(402.18 432.209)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(408.2 446.29)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(414.22 459.742)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(420.24 472.512)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(426.26 484.55)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(432.28 495.809)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(438.3 506.244)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(444.32 515.813)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(450.34 524.479)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(456.36 532.208)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(462.38 538.969)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(468.4 544.736)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(474.42 549.486)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(480.44 553.2)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(486.46 555.863)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(492.48 557.465)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(498.5 558)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(504.52 557.465)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(510.54 555.863)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(516.56 553.2)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(522.58 549.486)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(528.6 544.736)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(534.62 538.969)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(540.64 532.208)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(546.66 524.479)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(552.68 515.813)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(558.7 506.244)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(564.72 495.809)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(570.74 484.55)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(576.76 472.512)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(582.78 459.742)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(588.8 446.29)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(594.82 432.209)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(600.84 417.555)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(606.86 402.386)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(612.88 386.762)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(618.9 370.744)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(624.92 354.395)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(630.94 337.78)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(636.96 320.965)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(642.98 304.016)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(649 287)"><circle r="3.5" fill="none" stroke="#008000" stroke-width="1"/></g>
+<polyline points="47,287 53.02,269.984 59.04,253.035 65.06,236.22 71.08,219.605 77.1,203.256 83.12,187.238 89.14,171.614 95.16,156.445 101.18,141.791 107.2,127.71 113.22,114.258 119.24,101.488 125.26,89.4495 131.28,78.1909 137.3,67.7564 143.32,58.1871 149.34,49.5209 155.36,41.7919 161.38,35.0306 167.4,29.2637 173.42,24.514 179.44,20.8002 185.46,18.1369 191.48,16.5348 197.5,16 203.52,16.5348 209.54,18.1369 215.56,20.8002 221.58,24.514 227.6,29.2637 233.62,35.0306 239.64,41.7919 245.66,49.5209 251.68,58.1871 257.7,67.7564 263.72,78.1909 269.74,89.4495 275.76,101.488 281.78,114.258 287.8,127.71 293.82,141.791 299.84,156.445 305.86,171.614 311.88,187.238 317.9,203.256 323.92,219.605 329.94,236.22 335.96,253.035 341.98,269.984 348,287 354.02,304.016 360.04,320.965 366.06,337.78 372.08,354.395 378.1,370.744 384.12,386.762 390.14,402.386 396.16,417.555 402.18,432.209 408.2,446.29 414.22,459.742 420.24,472.512 426.26,484.55 432.28,495.809 438.3,506.244 444.32,515.813 450.34,524.479 456.36,532.208 462.38,538.969 468.4,544.736 474.42,549.486 480.44,553.2 486.46,555.863 492.48,557.465 498.5,558 504.52,557.465 510.54,555.863 516.56,553.2 522.58,549.486 528.6,544.736 534.62,538.969 540.64,532.208 546.66,524.479 552.68,515.813 558.7,506.244 564.72,495.809 570.74,484.55 576.76,472.512 582.78,459.742 588.8,446.29 594.82,432.209 600.84,417.555 606.86,402.386 612.88,386.762 618.9,370.744 624.92,354.395 630.94,337.78 636.96,320.965 642.98,304.016 649,287 " fill="none" stroke="#000080" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(47 287)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(53.02 269.984)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(59.04 253.035)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(65.06 236.22)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(71.08 219.605)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(77.1 203.256)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(83.12 187.238)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(89.14 171.614)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(95.16 156.445)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(101.18 141.791)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(107.2 127.71)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(113.22 114.258)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(119.24 101.488)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(125.26 89.4495)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(131.28 78.1909)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(137.3 67.7564)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(143.32 58.1871)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(149.34 49.5209)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(155.36 41.7919)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(161.38 35.0306)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(167.4 29.2637)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(173.42 24.514)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(179.44 20.8002)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(185.46 18.1369)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(191.48 16.5348)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(197.5 16)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(203.52 16.5348)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(209.54 18.1369)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(215.56 20.8002)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(221.58 24.514)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(227.6 29.2637)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(233.62 35.0306)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(239.64 41.7919)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(245.66 49.5209)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(251.68 58.1871)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(257.7 67.7564)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(263.72 78.1909)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(269.74 89.4495)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(275.76 101.488)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(281.78 114.258)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(287.8 127.71)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(293.82 141.791)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(299.84 156.445)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(305.86 171.614)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(311.88 187.238)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(317.9 203.256)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(323.92 219.605)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(329.94 236.22)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(335.96 253.035)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(341.98 269.984)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(348 287)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(354.02 304.016)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(360.04 320.965)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(366.06 337.78)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(372.08 354.395)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(378.1 370.744)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(384.12 386.762)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(390.14 402.386)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(396.16 417.555)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(402.18 432.209)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(408.2 446.29)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(414.22 459.742)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(420.24 472.512)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(426.26 484.55)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(432.28 495.809)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(438.3 506.244)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(444.32 515.813)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(450.34 524.479)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(456.36 532.208)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(462.38 538.969)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(468.4 544.736)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(474.42 549.486)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(480.44 553.2)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(486.46 555.863)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(492.48 557.465)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(498.5 558)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(504.52 557.465)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(510.54 555.863)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(516.56 553.2)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(522.58 549.486)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(528.6 544.736)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(534.62 538.969)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(540.64 532.208)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(546.66 524.479)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(552.68 515.813)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(558.7 506.244)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(564.72 495.809)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(570.74 484.55)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(576.76 472.512)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(582.78 459.742)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(588.8 446.29)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(594.82 432.209)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(600.84 417.555)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(606.86 402.386)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(612.88 386.762)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(618.9 370.744)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(624.92 354.395)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(630.94 337.78)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(636.96 320.965)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(642.98 304.016)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(649 287)"><circle r="1.5" fill="none" stroke="#000080" stroke-width="1"/></g>
+</g>
+<rect x="0" y="0" width="800" height="8" fill="#f0f0f0"/>
+<rect x="0" y="8" width="39" height="558" fill="#f0f0f0"/>
+<rect x="657" y="8" width="143" height="558" fill="#f0f0f0"/>
+<rect x="0" y="566" width="800" height="34" fill="#f0f0f0"/>
+<rect x="38" y="566" width="620" height="1" fill="#ffffff"/>
+<rect x="657" y="7" width="1" height="560" fill="#ffffff"/>
+<polygon points="38,567 38,7 658,7 657,8 39,8 39,566 " fill="#a0a0a0" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="663" y="74" width="131" height="1" fill="#ffffff"/>
+<rect x="793" y="9" width="1" height="66" fill="#ffffff"/>
+<polygon points="663,75 663,9 794,9 793,10 664,10 664,74 " fill="#a0a0a0" fill-opacity="1" fill-rule="evenodd"/>
+<polyline points="668,18 684,18 " fill="none" stroke="#000080" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(676 18)"><circle r="4" fill="none" stroke="#000080" stroke-width="1"/></g>
+<g transform="translate(700 18) rotate(-0) translate(-12 -5)" font-family="Arial" font-size="7.99301" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="0" y="8" textLength="24" lengthAdjust="spacingAndGlyphs" fill="#000000">normal</text>
+</g>
+<polyline points="668,34 684,34 " fill="none" stroke="#008000" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(676 34)"><circle r="4" fill="none" stroke="#008000" stroke-width="1"/></g>
+<g transform="translate(701.5 34) rotate(-0) translate(-13.5 -5)" font-family="Arial" font-size="7.99301" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="0" y="8" textLength="27" lengthAdjust="spacingAndGlyphs" fill="#000000">reduced</text>
+</g>
+<polyline points="668,50 684,50 " fill="none" stroke="#ff0000" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(676 50)"><circle r="4" fill="none" stroke="#ff0000" stroke-width="1"/></g>
+<g transform="translate(716.5 50) rotate(-0) translate(-28.5 -5)" font-family="Arial" font-size="7.99301" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="0" y="8" textLength="57" lengthAdjust="spacingAndGlyphs" fill="#000000">reducedSymbols</text>
+</g>
+<polyline points="668,66 684,66 " fill="none" stroke="#808080" stroke-width="3" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(676 66)"><circle r="4" fill="none" stroke="#808080" stroke-width="1"/></g>
+<g transform="translate(739 66) rotate(-0) translate(-51 -5)" font-family="Arial" font-size="7.99301" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="0" y="8" textLength="102" lengthAdjust="spacingAndGlyphs" fill="#000000">reducedSymbolsMaxSymbols</text>
+</g>
+<g transform="translate(47 587.5) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">0</text>
+</g>
+<g transform="translate(238.623 587.5) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">2</text>
+</g>
+<g transform="translate(430.245 587.5) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">4</text>
+</g>
+<g transform="translate(621.868 587.5) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">6</text>
+</g>
+<polyline points="47,570 649,570 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="142.811,570 142.811,575 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="47,570 47,578 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="334.434,570 334.434,575 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="238.623,570 238.623,578 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="526.056,570 526.056,575 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="430.245,570 430.245,578 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="621.868,570 621.868,578 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(19 558) rotate(-0) translate(-6 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="8" lengthAdjust="spacingAndGlyphs" fill="#000000">-1</text>
+</g>
+<g transform="translate(15 422.5) rotate(-0) translate(-10 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#000000">-0.5</text>
+</g>
+<g transform="translate(20.5 287) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">0</text>
+</g>
+<g transform="translate(16.5 151.5) rotate(-0) translate(-8.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="13" lengthAdjust="spacingAndGlyphs" fill="#000000">0.5</text>
+</g>
+<g transform="translate(20.5 16) rotate(-0) translate(-4.5 -7.5)" font-family="Arial Narrow" font-size="10.6573" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="5" lengthAdjust="spacingAndGlyphs" fill="#000000">1</text>
+</g>
+<polyline points="35,558 35,16 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,490.25 30,490.25 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,558 27,558 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,354.75 30,354.75 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,422.5 27,422.5 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,219.25 30,219.25 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,287 27,287 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,83.75 30,83.75 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,151.5 27,151.5 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="35,16 27,16 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+</svg>
