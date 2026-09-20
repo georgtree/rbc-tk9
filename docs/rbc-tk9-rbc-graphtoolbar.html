@@ -238,6 +238,11 @@ changes are suppressed. Normal legend interaction resumes when the transient ope
 <code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code> property controls the appearance of this pointer. A closest bar instead uses a dimension line
 with arrowheads spanning the displayed bar. Very short bars use external arrowheads when two internal heads
 would overlap.</p>
+<p>Closest annotations also show configured source-point errors when available: symmetric errors appear
+as x error=±value or y error=±value; asymmetric bounds appear as x bounds=[low, high] or y bounds=[low, high].
+The existing -formatx and -formaty settings format these numbers. Bounds remain in their original data
+coordinates, including in polar/Smith display modes. Custom closest callbacks receive the same optional
+xerror, yerror, xlow, xhigh, ylow and yhigh fields and control their own text.</p>
 <p>When an element has a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the parameter value reported by <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code> is appended to
 the closest annotation. Its format is controlled by <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>.</p>
 <p>In axis-format closest mode, an axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> formatter is honoured. If the formatter fails, the

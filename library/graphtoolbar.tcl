@@ -239,6 +239,12 @@ namespace eval ::rbc::graphtoolbar {
         with arrowheads spanning the displayed bar. Very short bars use external arrowheads when two internal heads
         would overlap.
 
+        Closest annotations also show configured source-point errors when available: symmetric errors appear
+        as x error=±value or y error=±value; asymmetric bounds appear as x bounds=[low, high] or y bounds=[low, high].
+        The existing -formatx and -formaty settings format these numbers. Bounds remain in their original data
+        coordinates, including in polar/Smith display modes. Custom closest callbacks receive the same optional
+        xerror, yerror, xlow, xhigh, ylow and yhigh fields and control their own text.
+
         When an element has a valid `-param` mapping, the parameter value reported by `element closest` is appended to
         the closest annotation. Its format is controlled by `-formatparam`.
 
@@ -3708,6 +3714,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set param [dict get $closestInfo param]
             set formatParam [dict get $options -formatparam]
             append text [format "\nparam=%$formatParam" $param]
+        }
+        foreach axis {x y} {
+            set errorKey ${axis}error
+            set lowKey ${axis}low
+            set highKey ${axis}high
+            set conversion [dict get $options -format$axis]
+            if {[dict exists $closestInfo $errorKey]} {
+                append text [format "\n%s error=±%$conversion" $axis [dict get $closestInfo $errorKey]]
+            } elseif {[dict exists $closestInfo $lowKey] && [dict exists $closestInfo $highKey]} {
+                append text "\n" [format {%s bounds=[%s, %s]} $axis\
+                                     [format %$conversion [dict get $closestInfo $lowKey]]\
+                                     [format %$conversion [dict get $closestInfo $highKey]]]
+            }
         }
         return $text
     }

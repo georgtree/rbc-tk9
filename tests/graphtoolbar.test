@@ -5407,4 +5407,22 @@ test polarAngleUnits-1 {closest selector and text support radians and degrees} -
     destroy $widget
 } -result {1 1 1 1 1 1}
 
+
+foreach type {graph stripchart polar barchart} {
+    test closestErrors-text-$type {closest text formats symmetric errors and absolute bounds} -setup {
+        set widget [graphtoolbar .gtb -type $type -crosshairs]
+        set graph [$widget subwidget graph]
+        $graph element create Signal -x {1} -y {2}
+        set objectNs [info object namespace $widget]
+        set options [dict create -formatx .2f -formaty .1f -formatparam .3g]
+        set metadata [dict create name Signal index 0 x 1 y 2 radius 2.236 angle 1.107 xerror 0.25 ylow 1.5 yhigh 2.75]
+    } -body {
+        set text [namespace eval $objectNs [list my ClosestMarkerText Signal 1 2 $options $metadata]]
+        set suffix "\nx error=±0.25\ny bounds=\[1.5, 2.8\]"
+        set bare [namespace eval $objectNs [list my ClosestMarkerText Signal 1 2 $options \
+                                              [dict remove $metadata xerror ylow yhigh]]]
+        expr {$text eq "${bare}${suffix}"}
+    } -cleanup {destroy $widget} -result 1
+}
+
 cleanupTests

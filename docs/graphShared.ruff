@@ -1150,6 +1150,9 @@ namespace eval ::rbc::ELEMENT {
         | `x`           | X coordinate of the result in graph coordinates.                          |
         | `y`           | Y coordinate of the result in graph coordinates.                          |
         | `dist`        | Distance from the requested window coordinate, measured in screen pixels. |
+        | `xerror, yerror` | Optional symmetric error magnitudes at the source index. |
+        | `xlow, xhigh` | Optional absolute X error bounds at the source index. |
+        | `ylow, yhigh` | Optional absolute Y error bounds at the source index. |
 
         #ruffopt includedformats nroff
         ```
@@ -1161,9 +1164,21 @@ namespace eval ::rbc::ELEMENT {
         │ x             │ X coordinate of the result in graph coordinates.                          │
         │ y             │ Y coordinate of the result in graph coordinates.                          │
         │ dist          │ Distance from the requested window coordinate, measured in screen pixels. │
+        │ xerror, yerror │ Optional symmetric error magnitudes at the source index.                  │
+        │ xlow, xhigh   │ Optional absolute X error bounds at the source index.                     │
+        │ ylow, yhigh   │ Optional absolute Y error bounds at the source index.                     │
         └───────────────┴───────────────────────────────────────────────────────────────────────────┘
         ```
         #ruffopt excludedformats {}
+
+        Closest results optionally include error data from the reported source index: xerror and yerror are
+        symmetric magnitudes; xlow/xhigh and ylow/yhigh are absolute endpoints from the corresponding options.
+        A nonempty symmetric vector takes precedence over bounds on the same axis. A bounds pair is reported
+        only when both endpoints are available and finite. Missing, short, non-finite or pending vector data
+        is omitted. The six optional error fields are cleared on each completed search, including a miss.
+        These values are not geometrically interpolated, transformed to another polar/Smith representation,
+        or adjusted for stacked bars. They remain available when error bars are hidden or thinned. This applies
+        to line, strip, polar and bar elements. The values describe configured source data, not screen distances.
 
         For a line or Polar element configured with a valid `-param` mapping, the result array also contains `param`.
         Its value is the parameter value associated with the source data index reported by `index`.

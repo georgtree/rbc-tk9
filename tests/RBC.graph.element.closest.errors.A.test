@@ -1,0 +1,96 @@
+# Source-point error metadata in closest results. See license.terms.
+package require rbc
+package require tcltest
+namespace eval ::closestErrorsTest {
+    namespace import ::tcltest::*
+    proc Create {kind} {
+        ::rbc::$kind .ce -width 400 -height 400
+        pack .ce
+        .ce axis configure x -min -1 -max 6 -loose no
+        .ce axis configure y -min -1 -max 6 -loose no
+        .ce element create e -x {1 3 5} -y {1 3 5}
+        update idletasks
+    }
+    proc Query {{value 3} {interpolate no}} {
+        variable hit
+        update idletasks
+        lassign [.ce transform $value $value] x y
+        if {![.ce element closest $x $y hit -interpolate $interpolate -halo 10 e]} {
+            error "No closest point"
+        }
+        set result {}
+        foreach key {xerror xlow xhigh yerror ylow yhigh} {
+            if {[info exists hit($key)]} {lappend result $key $hit($key)}
+        }
+        return $result
+    }
+    foreach kind {graph stripchart polar barchart} {
+        test closestErrors-symmetric-$kind {symmetric errors report the selected source sample} -setup {
+            Create $kind
+            .ce element configure e -xerror {0.1 0.2 0.3} -yerror {0.4 0.5 0.6}
+        } -body {Query} -cleanup {destroy .ce} -result {xerror 0.2 yerror 0.5}
+
+        test closestErrors-bounds-$kind {asymmetric values are absolute bounds, not magnitudes} -setup {
+            Create $kind
+            .ce element configure e -xlow {0 2 4} -xhigh {2 4 6} -ylow {0 1 4} -yhigh {2 5 6}
+        } -body {Query} -cleanup {destroy .ce} -result {xlow 2.0 xhigh 4.0 ylow 1.0 yhigh 5.0}
+
+        test closestErrors-precedence-$kind {symmetric errors override bounds and clearing removes stale fields} -setup {
+            Create $kind
+            .ce element configure e -xerror {1 2 3} -xlow {0 2 4} -xhigh {2 4 6}
+        } -body {
+            set result [list [Query]]
+            .ce element configure e -xerror {}
+            lappend result [Query]
+            .ce element configure e -xlow {} -xhigh {}
+            lappend result [Query]
+            set result
+        } -cleanup {destroy .ce} -result {{xerror 2.0} {xlow 2.0 xhigh 4.0} {}}
+
+        test closestErrors-short-$kind {short or incomplete error arrays omit unavailable metadata} -setup {
+            Create $kind
+            .ce element configure e -xerror {0.1} -ylow {0 2 4}
+        } -body {Query} -cleanup {destroy .ce} -result {}
+
+        test closestErrors-hidden-$kind {metadata is independent of displayed error bars and clears on a miss} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3} -showerrorbars none
+        } -body {
+            set result [list [Query]]
+            set found [.ce element closest -100 -100 hit -halo 1 e]
+            lappend result $found [info exists hit(yerror)]
+            set result
+        } -cleanup {destroy .ce} -result {{yerror 2.0} 0 0}
+    }
+    foreach kind {graph stripchart polar} {
+        test closestErrors-interpolate-$kind {interpolated hits use info(index) without interpolating errors} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3}
+        } -body {
+            Query 2 yes
+            expr {$hit(yerror) == [lindex {1 2 3} $hit(index)]}
+        } -cleanup {destroy .ce} -result 1
+
+        test closestErrors-thinned-$kind {exact hits retain errors for omitted symbols and error bars} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3} -reduce 1 -symbolpoints reduced -maxsymbols 1
+        } -body {Query} -cleanup {destroy .ce} -result {yerror 2.0}
+    }
+    test closestErrors-vector {vector changes and resizing update error metadata} -setup {
+        Create graph
+        ::rbc::vector create ceErrors
+        ceErrors set {1 2 3}
+        .ce element configure e -yerror ceErrors
+    } -body {
+        set result [list [Query]]
+        ceErrors set {4 5 6}
+        lappend result [Query]
+        ceErrors set {4}
+        lappend result [Query]
+        set result
+    } -cleanup {
+        destroy .ce
+        ::rbc::vector destroy ceErrors
+    } -result {{yerror 2.0} {yerror 5.0} {}}
+}
+::tcltest::cleanupTests

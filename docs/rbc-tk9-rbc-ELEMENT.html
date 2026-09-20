@@ -235,8 +235,25 @@ active pen.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dist</span></code></p></td>
 <td><p>Distance from the requested window coordinate, measured in screen pixels.</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xerror,</span> <span class="pre">yerror</span></code></p></td>
+<td><p>Optional symmetric error magnitudes at the source index.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">xlow,</span> <span class="pre">xhigh</span></code></p></td>
+<td><p>Optional absolute X error bounds at the source index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ylow,</span> <span class="pre">yhigh</span></code></p></td>
+<td><p>Optional absolute Y error bounds at the source index.</p></td>
+</tr>
 </tbody>
 </table>
+<p>Closest results optionally include error data from the reported source index: xerror and yerror are
+symmetric magnitudes; xlow/xhigh and ylow/yhigh are absolute endpoints from the corresponding options.
+A nonempty symmetric vector takes precedence over bounds on the same axis. A bounds pair is reported
+only when both endpoints are available and finite. Missing, short, non-finite or pending vector data
+is omitted. The six optional error fields are cleared on each completed search, including a miss.
+These values are not geometrically interpolated, transformed to another polar/Smith representation,
+or adjusted for stacked bars. They remain available when error bars are hidden or thinned. This applies
+to line, strip, polar and bar elements. The values describe configured source data, not screen distances.</p>
 <p>For a line or Polar element configured with a valid <code class="docutils literal notranslate"><span class="pre">-param</span></code> mapping, the result array also contains <code class="docutils literal notranslate"><span class="pre">param</span></code>.
 Its value is the parameter value associated with the source data index reported by <code class="docutils literal notranslate"><span class="pre">index</span></code>.</p>
 <p>For example:</p>

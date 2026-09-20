@@ -4184,6 +4184,53 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size ob
     return TCL_OK;
 }
 
+/* Error metadata refers to the selected source index, not an interpolated value. */
+static int ClosestErrorValue(const ElemVector *vectorPtr, Tcl_Size index, double *valuePtr) {
+    if ((vectorPtr->clientId != NULL) && Rbc_VectorNotifyPending(vectorPtr->clientId)) {
+        return FALSE;
+    }
+    if ((index < 0) || (index >= vectorPtr->nValues) || (vectorPtr->valueArr == NULL) ||
+        !FINITE(vectorPtr->valueArr[index])) {
+        return FALSE;
+    }
+    *valuePtr = vectorPtr->valueArr[index];
+    return TRUE;
+}
+
+static int AppendClosestErrors(Tcl_Interp *interp, Element *elemPtr, Tcl_Size index, Tcl_Obj *varNameObjPtr) {
+    const ElemVector *vectors[] = {&elemPtr->xError, &elemPtr->xLow, &elemPtr->xHigh,
+                                  &elemPtr->yError, &elemPtr->yLow, &elemPtr->yHigh};
+    static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
+    int axis;
+
+    for (axis = 0; axis < 6; axis += 3) {
+        double values[3];
+        int first, last, i;
+
+        /* Symmetric error vectors take precedence, as in Rbc_MapErrorBars. */
+        if (vectors[axis]->nValues > 0) {
+            if (!ClosestErrorValue(vectors[axis], index, &values[0])) {
+                continue;
+            }
+            first = last = 0;
+        } else {
+            if (!ClosestErrorValue(vectors[axis + 1], index, &values[1]) ||
+                !ClosestErrorValue(vectors[axis + 2], index, &values[2])) {
+                continue;
+            }
+            first = 1;
+            last = 2;
+        }
+        for (i = first; i <= last; i++) {
+            if (Tcl_ObjSetVar2(interp, varNameObjPtr, Tcl_NewStringObj(names[axis + i], -1),
+                               Tcl_NewDoubleObj(values[i]), TCL_LEAVE_ERR_MSG) == NULL) {
+                return TCL_ERROR;
+            }
+        }
+    }
+    return TCL_OK;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -4298,6 +4345,15 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
             }
         }
     }
+    /* Clear optional error fields when callers reuse the result array. */
+    {
+        static const char *names[] = {"xerror", "xlow", "xhigh", "yerror", "ylow", "yhigh"};
+        int k;
+
+        for (k = 0; k < 6; k++) {
+            Tcl_UnsetVar2(interp, Tcl_GetString(objv[5]), names[k], 0);
+        }
+    }
     /* varname = objv[5] */
     if (search.dist < (double)search.halo) {
         /*
@@ -4352,6 +4408,9 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                     return TCL_ERROR;
                 }
             }
+        }
+        if (AppendClosestErrors(interp, search.elemPtr, search.index, objv[5]) != TCL_OK) {
+            return TCL_ERROR;
         }
         /*
          * Allow the concrete element type to append representation-specific
