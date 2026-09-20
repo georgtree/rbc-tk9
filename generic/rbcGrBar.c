@@ -2421,6 +2421,12 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
     style.foreground = bpPtr->fgColor;
     style.background = (bpPtr->border != NULL) ? Tk_3DBorderColor(bpPtr->border) : NULL;
     style.stipple = bpPtr->stipple;
+    /* Match the screen GC: without -foreground, the background color
+     * paints the stipple bits and the gaps remain transparent. */
+    if ((style.stipple != None) && (style.foreground == NULL)) {
+        style.foreground = style.background;
+        style.background = NULL;
+    }
     style.opacity = 1.0;
     style.backgroundOnly = FALSE;
     ctx = Rbc_RenderBeginExportBarSymbol(graphPtr, exportPtr, &style, size);
@@ -2462,6 +2468,12 @@ static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen
     style.foreground = penPtr->fgColor;
     style.background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
     style.stipple = penPtr->stipple;
+    /* Match the screen GC: without -foreground, the background color
+     * paints the stipple bits and the gaps remain transparent. */
+    if ((style.stipple != None) && (style.foreground == NULL)) {
+        style.foreground = style.background;
+        style.background = NULL;
+    }
     style.opacity = 1.0;
     style.backgroundOnly = FALSE;
     ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);

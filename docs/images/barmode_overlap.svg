@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+<rect x="53" y="33" width="660" height="418" fill="#ffffff"/>
+<defs><clipPath id="rbcPlot" clipPathUnits="userSpaceOnUse"><rect x="53" y="33" width="660" height="418"/></clipPath></defs>
+<g clip-path="url(#rbcPlot)">
+<polyline points="54,354.52 711,354.52 " fill="none" stroke="#a3a3a3" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="2 4"/>
+<polyline points="54,441 711,441 " fill="none" stroke="#a3a3a3" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="2 4"/>
+<polyline points="54,181.56 711,181.56 " fill="none" stroke="#a3a3a3" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="2 4"/>
+<polyline points="54,268.04 711,268.04 " fill="none" stroke="#a3a3a3" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="2 4"/>
+<polyline points="54,95.0796 711,95.0796 " fill="none" stroke="#a3a3a3" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="2 4"/>
+<defs><pattern id="rbcPattern1" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#bfefff" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="85" y="42" width="35" height="399" fill="url(#rbcPattern1)"/>
+<rect x="85" y="441" width="36" height="1" fill="#000000"/>
+<rect x="120" y="42" width="1" height="400" fill="#000000"/>
+<polygon points="85,442 85,42 121,42 120,43 86,43 86,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="158" y="307" width="35" height="134" fill="url(#rbcPattern1)"/>
+<rect x="158" y="441" width="36" height="1" fill="#000000"/>
+<rect x="193" y="307" width="1" height="135" fill="#000000"/>
+<polygon points="158,442 158,307 194,307 193,308 159,308 159,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="230" y="284" width="35" height="157" fill="url(#rbcPattern1)"/>
+<rect x="230" y="441" width="36" height="1" fill="#000000"/>
+<rect x="265" y="284" width="1" height="158" fill="#000000"/>
+<polygon points="230,442 230,284 266,284 265,285 231,285 231,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="303" y="287" width="35" height="154" fill="url(#rbcPattern1)"/>
+<rect x="303" y="441" width="36" height="1" fill="#000000"/>
+<rect x="338" y="287" width="1" height="155" fill="#000000"/>
+<polygon points="303,442 303,287 339,287 338,288 304,288 304,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="376" y="360" width="35" height="81" fill="url(#rbcPattern1)"/>
+<rect x="376" y="441" width="36" height="1" fill="#000000"/>
+<rect x="411" y="360" width="1" height="82" fill="#000000"/>
+<polygon points="376,442 376,360 412,360 411,361 377,361 377,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="449" y="397" width="35" height="44" fill="url(#rbcPattern1)"/>
+<rect x="449" y="441" width="36" height="1" fill="#000000"/>
+<rect x="484" y="397" width="1" height="45" fill="#000000"/>
+<polygon points="449,442 449,397 485,397 484,398 450,398 450,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="522" y="379" width="35" height="62" fill="url(#rbcPattern1)"/>
+<rect x="522" y="441" width="36" height="1" fill="#000000"/>
+<rect x="557" y="379" width="1" height="63" fill="#000000"/>
+<polygon points="522,442 522,379 558,379 557,380 523,380 523,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="595" y="298" width="35" height="143" fill="url(#rbcPattern1)"/>
+<rect x="595" y="441" width="36" height="1" fill="#000000"/>
+<rect x="630" y="298" width="1" height="144" fill="#000000"/>
+<polygon points="595,442 595,298 631,298 630,299 596,299 596,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="668" y="329" width="35" height="112" fill="url(#rbcPattern1)"/>
+<rect x="668" y="441" width="36" height="1" fill="#000000"/>
+<rect x="703" y="329" width="1" height="113" fill="#000000"/>
+<polygon points="668,442 668,329 704,329 703,330 669,330 669,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<defs><pattern id="rbcPattern2" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#00ffff" stroke="none" d="M3 0h1v1h-1ZM7 0h1v1h-1ZM2 1h1v1h-1ZM6 1h1v1h-1ZM1 2h1v1h-1ZM5 2h1v1h-1ZM0 3h1v1h-1ZM4 3h1v1h-1ZM3 4h1v1h-1ZM7 4h1v1h-1ZM2 5h1v1h-1ZM6 5h1v1h-1ZM1 6h1v1h-1ZM5 6h1v1h-1ZM0 7h1v1h-1ZM4 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="79" y="406" width="35" height="35" fill="url(#rbcPattern2)"/>
+<rect x="79" y="441" width="36" height="1" fill="#000000"/>
+<rect x="114" y="406" width="1" height="36" fill="#000000"/>
+<polygon points="79,442 79,406 115,406 114,407 80,407 80,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="152" y="425" width="35" height="16" fill="url(#rbcPattern2)"/>
+<rect x="152" y="441" width="36" height="1" fill="#000000"/>
+<rect x="187" y="425" width="1" height="17" fill="#000000"/>
+<polygon points="152,442 152,425 188,425 187,426 153,426 153,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="225" y="424" width="35" height="17" fill="url(#rbcPattern2)"/>
+<rect x="225" y="441" width="36" height="1" fill="#000000"/>
+<rect x="260" y="424" width="1" height="18" fill="#000000"/>
+<polygon points="225,442 225,424 261,424 260,425 226,425 226,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="298" y="426" width="35" height="15" fill="url(#rbcPattern2)"/>
+<rect x="298" y="441" width="36" height="1" fill="#000000"/>
+<rect x="333" y="426" width="1" height="16" fill="#000000"/>
+<polygon points="298,442 298,426 334,426 333,427 299,427 299,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="370" y="405" width="35" height="36" fill="url(#rbcPattern2)"/>
+<rect x="370" y="441" width="36" height="1" fill="#000000"/>
+<rect x="405" y="405" width="1" height="37" fill="#000000"/>
+<polygon points="370,442 370,405 406,405 405,406 371,406 371,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="443" y="425" width="35" height="16" fill="url(#rbcPattern2)"/>
+<rect x="443" y="441" width="36" height="1" fill="#000000"/>
+<rect x="478" y="425" width="1" height="17" fill="#000000"/>
+<polygon points="443,442 443,425 479,425 478,426 444,426 444,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="516" y="392" width="35" height="49" fill="url(#rbcPattern2)"/>
+<rect x="516" y="441" width="36" height="1" fill="#000000"/>
+<rect x="551" y="392" width="1" height="50" fill="#000000"/>
+<polygon points="516,442 516,392 552,392 551,393 517,393 517,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="589" y="366" width="35" height="75" fill="url(#rbcPattern2)"/>
+<rect x="589" y="441" width="36" height="1" fill="#000000"/>
+<rect x="624" y="366" width="1" height="76" fill="#000000"/>
+<polygon points="589,442 589,366 625,366 624,367 590,367 590,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="662" y="353" width="35" height="88" fill="url(#rbcPattern2)"/>
+<rect x="662" y="441" width="36" height="1" fill="#000000"/>
+<rect x="697" y="353" width="1" height="89" fill="#000000"/>
+<polygon points="662,442 662,353 698,353 697,354 663,354 663,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<defs><pattern id="rbcPattern3" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#ffaeb9" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="73" y="440" width="35" height="1" fill="url(#rbcPattern3)"/>
+<rect x="73" y="441" width="36" height="1" fill="#000000"/>
+<rect x="108" y="440" width="1" height="2" fill="#000000"/>
+<polygon points="73,442 73,440 109,440 108,441 74,441 74,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="146" y="423" width="35" height="18" fill="url(#rbcPattern3)"/>
+<rect x="146" y="441" width="36" height="1" fill="#000000"/>
+<rect x="181" y="423" width="1" height="19" fill="#000000"/>
+<polygon points="146,442 146,423 182,423 181,424 147,424 147,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="219" y="422" width="35" height="19" fill="url(#rbcPattern3)"/>
+<rect x="219" y="441" width="36" height="1" fill="#000000"/>
+<rect x="254" y="422" width="1" height="20" fill="#000000"/>
+<polygon points="219,442 219,422 255,422 254,423 220,423 220,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="292" y="435" width="35" height="6" fill="url(#rbcPattern3)"/>
+<rect x="292" y="441" width="36" height="1" fill="#000000"/>
+<rect x="327" y="435" width="1" height="7" fill="#000000"/>
+<polygon points="292,442 292,435 328,435 327,436 293,436 293,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="365" y="440" width="35" height="1" fill="url(#rbcPattern3)"/>
+<rect x="365" y="441" width="36" height="1" fill="#000000"/>
+<rect x="400" y="440" width="1" height="2" fill="#000000"/>
+<polygon points="365,442 365,440 401,440 400,441 366,441 366,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="437" y="436" width="35" height="5" fill="url(#rbcPattern3)"/>
+<rect x="437" y="441" width="36" height="1" fill="#000000"/>
+<rect x="472" y="436" width="1" height="6" fill="#000000"/>
+<polygon points="437,442 437,436 473,436 472,437 438,437 438,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="510" y="423" width="35" height="18" fill="url(#rbcPattern3)"/>
+<rect x="510" y="441" width="36" height="1" fill="#000000"/>
+<rect x="545" y="423" width="1" height="19" fill="#000000"/>
+<polygon points="510,442 510,423 546,423 545,424 511,424 511,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="583" y="438" width="35" height="3" fill="url(#rbcPattern3)"/>
+<rect x="583" y="441" width="36" height="1" fill="#000000"/>
+<rect x="618" y="438" width="1" height="4" fill="#000000"/>
+<polygon points="583,442 583,438 619,438 618,439 584,439 584,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="656" y="427" width="35" height="14" fill="url(#rbcPattern3)"/>
+<rect x="656" y="441" width="36" height="1" fill="#000000"/>
+<rect x="691" y="427" width="1" height="15" fill="#000000"/>
+<polygon points="656,442 656,427 692,427 691,428 657,428 657,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<defs><pattern id="rbcPattern4" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#ffec8b" stroke="none" d="M3 0h1v1h-1ZM7 0h1v1h-1ZM2 1h1v1h-1ZM6 1h1v1h-1ZM1 2h1v1h-1ZM5 2h1v1h-1ZM0 3h1v1h-1ZM4 3h1v1h-1ZM3 4h1v1h-1ZM7 4h1v1h-1ZM2 5h1v1h-1ZM6 5h1v1h-1ZM1 6h1v1h-1ZM5 6h1v1h-1ZM0 7h1v1h-1ZM4 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="67" y="416" width="35" height="25" fill="url(#rbcPattern4)"/>
+<rect x="67" y="441" width="36" height="1" fill="#000000"/>
+<rect x="102" y="416" width="1" height="26" fill="#000000"/>
+<polygon points="67,442 67,416 103,416 102,417 68,417 68,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="213" y="438" width="35" height="3" fill="url(#rbcPattern4)"/>
+<rect x="213" y="441" width="36" height="1" fill="#000000"/>
+<rect x="248" y="438" width="1" height="4" fill="#000000"/>
+<polygon points="213,442 213,438 249,438 248,439 214,439 214,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="359" y="440" width="35" height="1" fill="url(#rbcPattern4)"/>
+<rect x="359" y="441" width="36" height="1" fill="#000000"/>
+<rect x="394" y="440" width="1" height="2" fill="#000000"/>
+<polygon points="359,442 359,440 395,440 394,441 360,441 360,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="504" y="435" width="35" height="6" fill="url(#rbcPattern4)"/>
+<rect x="504" y="441" width="36" height="1" fill="#000000"/>
+<rect x="539" y="435" width="1" height="7" fill="#000000"/>
+<polygon points="504,442 504,435 540,435 539,436 505,436 505,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="577" y="439" width="35" height="2" fill="url(#rbcPattern4)"/>
+<rect x="577" y="441" width="36" height="1" fill="#000000"/>
+<rect x="612" y="439" width="1" height="3" fill="#000000"/>
+<polygon points="577,442 577,439 613,439 612,440 578,440 578,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="650" y="438" width="35" height="3" fill="url(#rbcPattern4)"/>
+<rect x="650" y="441" width="36" height="1" fill="#000000"/>
+<rect x="685" y="438" width="1" height="4" fill="#000000"/>
+<polygon points="650,442 650,438 686,438 685,439 651,439 651,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<defs><pattern id="rbcPattern5" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#00ff00" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="280" y="439" width="35" height="2" fill="url(#rbcPattern5)"/>
+<rect x="280" y="441" width="36" height="1" fill="#000000"/>
+<rect x="315" y="439" width="1" height="3" fill="#000000"/>
+<polygon points="280,442 280,439 316,439 315,440 281,440 281,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="426" y="431" width="35" height="10" fill="url(#rbcPattern5)"/>
+<rect x="426" y="441" width="36" height="1" fill="#000000"/>
+<rect x="461" y="431" width="1" height="11" fill="#000000"/>
+<polygon points="426,442 426,431 462,431 461,432 427,432 427,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="499" y="439" width="35" height="2" fill="url(#rbcPattern5)"/>
+<rect x="499" y="441" width="36" height="1" fill="#000000"/>
+<rect x="534" y="439" width="1" height="3" fill="#000000"/>
+<polygon points="499,442 499,439 535,439 534,440 500,440 500,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="571" y="436" width="35" height="5" fill="url(#rbcPattern5)"/>
+<rect x="571" y="441" width="36" height="1" fill="#000000"/>
+<rect x="606" y="436" width="1" height="6" fill="#000000"/>
+<polygon points="571,442 571,436 607,436 606,437 572,437 572,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="644" y="439" width="35" height="2" fill="url(#rbcPattern5)"/>
+<rect x="644" y="441" width="36" height="1" fill="#000000"/>
+<rect x="679" y="439" width="1" height="3" fill="#000000"/>
+<polygon points="644,442 644,439 680,439 679,440 645,440 645,441 " fill="#000000" fill-opacity="1" fill-rule="evenodd"/>
+</g>
+<rect x="0" y="0" width="800" height="34" fill="#f0f0f0"/>
+<rect x="0" y="34" width="54" height="415" fill="#f0f0f0"/>
+<rect x="711" y="34" width="89" height="415" fill="#f0f0f0"/>
+<rect x="0" y="449" width="800" height="51" fill="#f0f0f0"/>
+<rect x="53" y="449" width="659" height="1" fill="#ffffff"/>
+<rect x="711" y="33" width="1" height="417" fill="#ffffff"/>
+<polygon points="53,450 53,33 712,33 711,34 54,34 54,449 " fill="#a0a0a0" fill-opacity="1" fill-rule="evenodd"/>
+<rect x="718" y="35" width="77" height="105" fill="#ffffff"/>
+<g transform="translate(728 39)">
+<defs><pattern id="rbcPattern6" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#00ff00" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="0" y="0" width="12" height="12" fill="url(#rbcPattern6)"/>
+</g>
+<g transform="translate(766.5 45.5) rotate(-0) translate(-16.5 -7.5)" font-family="Arial" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="33" lengthAdjust="spacingAndGlyphs" fill="#000000">Setup</text>
+</g>
+<g transform="translate(728 60)">
+<defs><pattern id="rbcPattern7" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#ffec8b" stroke="none" d="M3 0h1v1h-1ZM7 0h1v1h-1ZM2 1h1v1h-1ZM6 1h1v1h-1ZM1 2h1v1h-1ZM5 2h1v1h-1ZM0 3h1v1h-1ZM4 3h1v1h-1ZM3 4h1v1h-1ZM7 4h1v1h-1ZM2 5h1v1h-1ZM6 5h1v1h-1ZM1 6h1v1h-1ZM5 6h1v1h-1ZM0 7h1v1h-1ZM4 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="0" y="0" width="12" height="12" fill="url(#rbcPattern7)"/>
+</g>
+<g transform="translate(771 66.5) rotate(-0) translate(-21 -7.5)" font-family="Arial" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="42" lengthAdjust="spacingAndGlyphs" fill="#000000">Read In</text>
+</g>
+<g transform="translate(728 81)">
+<defs><pattern id="rbcPattern8" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#ffaeb9" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="0" y="0" width="12" height="12" fill="url(#rbcPattern8)"/>
+</g>
+<g transform="translate(766 87.5) rotate(-0) translate(-16 -7.5)" font-family="Arial" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="32" lengthAdjust="spacingAndGlyphs" fill="#000000">Other</text>
+</g>
+<g transform="translate(728 102)">
+<defs><pattern id="rbcPattern9" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#00ffff" stroke="none" d="M3 0h1v1h-1ZM7 0h1v1h-1ZM2 1h1v1h-1ZM6 1h1v1h-1ZM1 2h1v1h-1ZM5 2h1v1h-1ZM0 3h1v1h-1ZM4 3h1v1h-1ZM3 4h1v1h-1ZM7 4h1v1h-1ZM2 5h1v1h-1ZM6 5h1v1h-1ZM1 6h1v1h-1ZM5 6h1v1h-1ZM0 7h1v1h-1ZM4 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="0" y="0" width="12" height="12" fill="url(#rbcPattern9)"/>
+</g>
+<g transform="translate(765.5 108.5) rotate(-0) translate(-15.5 -7.5)" font-family="Arial" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="31" lengthAdjust="spacingAndGlyphs" fill="#000000">Solve</text>
+</g>
+<g transform="translate(728 123)">
+<defs><pattern id="rbcPattern10" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" x="0" y="0" width="8" height="8" patternTransform="translate(0 0)">
+<rect x="0" y="0" width="8" height="8" fill="none"/>
+<path fill="#bfefff" stroke="none" d="M0 0h1v1h-1ZM4 0h1v1h-1ZM1 1h1v1h-1ZM5 1h1v1h-1ZM2 2h1v1h-1ZM6 2h1v1h-1ZM3 3h1v1h-1ZM7 3h1v1h-1ZM0 4h1v1h-1ZM4 4h1v1h-1ZM1 5h1v1h-1ZM5 5h1v1h-1ZM2 6h1v1h-1ZM6 6h1v1h-1ZM3 7h1v1h-1ZM7 7h1v1h-1Z"/>
+</pattern></defs>
+<rect x="0" y="0" width="12" height="12" fill="url(#rbcPattern10)"/>
+</g>
+<g transform="translate(764 129.5) rotate(-0) translate(-14 -7.5)" font-family="Arial" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="28" lengthAdjust="spacingAndGlyphs" fill="#000000">Load</text>
+</g>
+<g transform="translate(382 17) rotate(-0) translate(-90 -8)" font-family="helvetica" font-size="13.3333" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="13" textLength="180" lengthAdjust="spacingAndGlyphs" fill="#000000">Comparison of Simulators</text>
+</g>
+<g transform="translate(382 489.5) rotate(-0) translate(-27.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="55" lengthAdjust="spacingAndGlyphs" fill="#000000">Simulator</text>
+</g>
+<g transform="translate(91.1364 470.5) rotate(-0) translate(-9 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="14" lengthAdjust="spacingAndGlyphs" fill="#000000">A1</text>
+</g>
+<g transform="translate(163.977 470.5) rotate(-0) translate(-9.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="15" lengthAdjust="spacingAndGlyphs" fill="#000000">B1</text>
+</g>
+<g transform="translate(236.818 470.5) rotate(-0) translate(-9 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="14" lengthAdjust="spacingAndGlyphs" fill="#000000">A2</text>
+</g>
+<g transform="translate(309.659 470.5) rotate(-0) translate(-9.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="15" lengthAdjust="spacingAndGlyphs" fill="#000000">B2</text>
+</g>
+<g transform="translate(382.5 470.5) rotate(-0) translate(-10 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#000000">C1</text>
+</g>
+<g transform="translate(455.341 470.5) rotate(-0) translate(-10 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#000000">D1</text>
+</g>
+<g transform="translate(528.182 470.5) rotate(-0) translate(-10 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="16" lengthAdjust="spacingAndGlyphs" fill="#000000">C2</text>
+</g>
+<g transform="translate(601.023 470.5) rotate(-0) translate(-9 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="14" lengthAdjust="spacingAndGlyphs" fill="#000000">A3</text>
+</g>
+<g transform="translate(673.864 470.5) rotate(-0) translate(-9.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="15" lengthAdjust="spacingAndGlyphs" fill="#000000">E1</text>
+</g>
+<polyline points="62,453 703,453 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="127.557,453 127.557,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="91.1364,453 91.1364,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="200.398,453 200.398,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="163.977,453 163.977,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="273.239,453 273.239,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="236.818,453 236.818,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="346.08,453 346.08,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="309.659,453 309.659,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="418.92,453 418.92,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="382.5,453 382.5,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="491.761,453 491.761,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="455.341,453 455.341,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="564.602,453 564.602,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="528.182,453 528.182,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="637.443,453 637.443,458 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="601.023,453 601.023,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="673.864,453 673.864,461 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<g transform="translate(11.5 241) rotate(-90) translate(-29 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="bold" font-style="normal">
+<text xml:space="preserve" x="0" y="12" textLength="58" lengthAdjust="spacingAndGlyphs" fill="#000000">Time (hrs)</text>
+</g>
+<g transform="translate(34.5 441) rotate(-0) translate(-5.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="7" lengthAdjust="spacingAndGlyphs" fill="#000000">0</text>
+</g>
+<g transform="translate(34.5 268.04) rotate(-0) translate(-5.5 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="7" lengthAdjust="spacingAndGlyphs" fill="#000000">5</text>
+</g>
+<g transform="translate(31 95.0796) rotate(-0) translate(-9 -7.5)" font-family="helvetica" font-size="11.6667" font-weight="normal" font-style="normal">
+<text xml:space="preserve" x="2" y="12" textLength="14" lengthAdjust="spacingAndGlyphs" fill="#000000">10</text>
+</g>
+<polyline points="50,441 50,42 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="50,354.52 45,354.52 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="50,441 42,441 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="50,181.56 45,181.56 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="50,268.04 42,268.04 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+<polyline points="50,95.0796 42,95.0796 " fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter"/>
+</svg>

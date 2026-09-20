@@ -438,6 +438,8 @@ outline-only polygon markers share a Cairo context\&. Each marker retains a sepa
 antialiased edges keep their appearance\&. Style changes, arrows, dashes, fills, and native drawing end the
 run\&. The context is released before the marker pass ends\&. Native rendering remains the fallback when a Cairo
 drawing surface cannot be opened\&.
+.PP
+Comparison of native renderer versus Cairo renderer with -antialias default option (demos/cairoGraph1\&.tcl):
 .SH "WIDGET OPTIONS"
 .PP
 The following options configure the graph widget itself\&. They are shared by graph, barchart, stripchart,
@@ -451,6 +453,11 @@ on all four graph widget types\&.
 ┌────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────┐
 │ Option                     │ Database name       │ Database class      │ Description                         │
 ├────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────┤
+│ -antialias mode            │ antialias           │ Antialias           │ Selects Cairo antialiasing: default,│
+│                            │                     │                     │ none, gray, fast, good, or best\&.    │
+│                            │                     │                     │ The default is default, using       │
+│                            │                     │                     │ Cairo's default policy\&. Has no      │
+│                            │                     │                     │ effect with the native renderer\&.    │
 │ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed physical               │
 │                            │                     │                     │ width-to-height aspect ratio when   │
 │                            │                     │                     │ explicitly configured\&. Graph,       │
@@ -591,6 +598,11 @@ on all four graph widget types\&.
 │                            │                     │                     │ outer graph widget\&. Valid values    │
 │                            │                     │                     │ are the standard Tk relief values\&.  │
 │                            │                     │                     │ The default is flat\&.                │
+│ -renderer name             │ renderer            │ Renderer            │ Selects native or cairo rendering\&.  │
+│                            │                     │                     │ Defaults to cairo when compiled     │
+│                            │                     │                     │ with Cairo support, otherwise       │
+│                            │                     │                     │ native\&. Selecting cairo without     │
+│                            │                     │                     │ that support reports an error\&.      │
 │ -rightmargin size          │ rightMargin         │ Margin              │ Sets the requested size of the      │
 │                            │                     │                     │ right margin\&. A value of 0 lets the │
 │                            │                     │                     │ graph calculate the required size   │

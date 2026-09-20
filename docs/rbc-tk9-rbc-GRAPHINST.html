@@ -404,6 +404,8 @@ outline-only polygon markers share a Cairo context. Each marker retains a separa
 antialiased edges keep their appearance. Style changes, arrows, dashes, fills, and native drawing end the
 run. The context is released before the marker pass ends. Native rendering remains the fallback when a Cairo
 drawing surface cannot be opened.</p>
+<p>Comparison of native renderer versus Cairo renderer with <code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">default</span></code> option (demos/cairoGraph1.tcl):</p>
+<p><img alt="renderers_comparison" src="images/cairoGraph1.png" /></p>
 </section>
 <section id="widget-options">
 <span id="r-rbc-graphinst-widget-options"></span><span id="r-3a3arbc3a3agraphinstqzwidget20options"></span><h2>Widget options<a class="headerlink" href="#widget-options" title="Link to this heading">¶</a></h2>
@@ -426,155 +428,165 @@ on all four graph widget types.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-aspect</span> <span class="pre">ratio</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-antialias</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">antialias</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Antialias</span></code></p></td>
+<td><p>Selects the Cairo antialiasing mode: <code class="docutils literal notranslate"><span class="pre">default</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">gray</span></code>, <code class="docutils literal notranslate"><span class="pre">fast</span></code>, <code class="docutils literal notranslate"><span class="pre">good</span></code>, or <code class="docutils literal notranslate"><span class="pre">best</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">default</span></code>, which uses Cairo’s default policy. This option has no effect with the native renderer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-aspect</span> <span class="pre">ratio</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">aspect</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Aspect</span></code></p></td>
 <td><p>Sets a fixed physical width-to-height aspect ratio for the plotting area when explicitly configured. For graph, barchart, and stripchart the default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>, which disables fixed aspect enforcement. A polar widget reports a nominal default of <code class="docutils literal notranslate"><span class="pre">1.0</span></code>; when that value is implicit, Polar/Smith layout instead adjusts the effective plot aspect automatically to preserve equal X/Y data-unit scale. Explicitly supplying <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> selects the normal fixed-aspect behavior.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">background</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Background</span></code></p></td>
 <td><p>Sets the background used for the outer graph area and margins. The plotting area has its own <code class="docutils literal notranslate"><span class="pre">-plotbackground</span></code> option. <code class="docutils literal notranslate"><span class="pre">-bg</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">mode</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">barMode</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BarMode</span></code></p></td>
 <td><p>Controls how bar elements having the same X coordinate are arranged. Valid modes are <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">infront</span></code>, <code class="docutils literal notranslate"><span class="pre">aligned</span></code>, <code class="docutils literal notranslate"><span class="pre">overlap</span></code>, and <code class="docutils literal notranslate"><span class="pre">stacked</span></code>. <code class="docutils literal notranslate"><span class="pre">normal</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">infront</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">barWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BarWidth</span></code></p></td>
 <td><p>Sets the default width of bar elements in graph-coordinate units. The value must be finite. Values less than or equal to zero are normalized to <code class="docutils literal notranslate"><span class="pre">0.1</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">0.8</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-baseline</span> <span class="pre">value</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-baseline</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">baseline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Baseline</span></code></p></td>
 <td><p>Sets the baseline from which bars are drawn. The value must be finite. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">borderWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BorderWidth</span></code></p></td>
 <td><p>Sets the width of the 3-D border around the outside of the widget. The appearance of the border is controlled by <code class="docutils literal notranslate"><span class="pre">-relief</span></code>. <code class="docutils literal notranslate"><span class="pre">-bd</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bottommargin</span> <span class="pre">size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bottommargin</span> <span class="pre">size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bottomMargin</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Margin</span></code></p></td>
 <td><p>Sets the requested size of the bottom margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-bm</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bottomvariable</span> <span class="pre">varName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bottomvariable</span> <span class="pre">varName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bottomVariable</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BottomVariable</span></code></p></td>
 <td><p>Names a global Tcl variable that is updated with the actual size of the bottom margin after graph layout. An empty value disables the variable update.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-bufferelements</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bufferelements</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bufferElements</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BufferElements</span></code></p></td>
 <td><p>Enables caching of the plotted elements in a backing pixmap. This can improve redraw performance when elements remain unchanged while markers, legends, or other overlays are updated. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bufferGraph</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BufferGraph</span></code></p></td>
 <td><p>Enables double-buffering of the complete graph. When enabled, the graph is first rendered into a pixmap and then copied to the widget window, reducing visible redraw flicker. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-cursor</span> <span class="pre">cursor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-cursor</span> <span class="pre">cursor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">cursor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Cursor</span></code></p></td>
 <td><p>Specifies the mouse cursor displayed over the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">crosshair</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-data</span> <span class="pre">string</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-data</span> <span class="pre">string</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Data</span></code></p></td>
 <td><p>Stores application-defined data associated with the graph widget. The graph rendering code does not interpret this value; it may be used by Tcl code or bindings to associate additional information with the widget.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-datacommand</span> <span class="pre">command</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-datacommand</span> <span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dataCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">DataCommand</span></code></p></td>
 <td><p>Stores an application-defined command string associated with the graph. The graph core currently does not invoke this command automatically.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-font</span> <span class="pre">fontName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-font</span> <span class="pre">fontName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">font</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Font</span></code></p></td>
 <td><p>Specifies the font used for the graph title.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">foreground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Foreground</span></code></p></td>
 <td><p>Specifies the foreground color of the graph title. <code class="docutils literal notranslate"><span class="pre">-fg</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">distance</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">halo</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Halo</span></code></p></td>
 <td><p>Sets the default maximum screen distance used when searching for a closest data point or element. Operations that provide their own halo value override this setting. The default is <code class="docutils literal notranslate"><span class="pre">2m</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Height</span></code></p></td>
 <td><p>Specifies the requested height of the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">4i</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightbackground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightbackground</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">highlightBackground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HighlightBackground</span></code></p></td>
 <td><p>Specifies the color used for the traversal highlight area when the widget does not have keyboard focus.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightcolor</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightcolor</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">highlightColor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HighlightColor</span></code></p></td>
 <td><p>Specifies the color used for the traversal highlight when the widget has keyboard focus.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightthickness</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-highlightthickness</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">highlightThickness</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HighlightThickness</span></code></p></td>
 <td><p>Specifies the width of the keyboard-focus highlight around the widget. The default is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invertXY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">InvertXY</span></code></p></td>
 <td><p>Swaps the placement and orientation of the logical X and Y axes. When enabled, X axes are displayed vertically and Y axes horizontally. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-justify</span> <span class="pre">justify</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">justify</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Justify</span></code></p></td>
 <td><p>Specifies the justification of multi-line graph title text. Valid values are <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code>, and <code class="docutils literal notranslate"><span class="pre">right</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-leftmargin</span> <span class="pre">size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-leftmargin</span> <span class="pre">size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">leftMargin</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Margin</span></code></p></td>
 <td><p>Sets the requested size of the left margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-lm</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-leftvariable</span> <span class="pre">varName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-leftvariable</span> <span class="pre">varName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">leftVariable</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LeftVariable</span></code></p></td>
 <td><p>Names a global Tcl variable that is updated with the actual size of the left margin after graph layout. An empty value disables the variable update.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotbackground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotbackground</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">plotBackground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Background</span></code></p></td>
 <td><p>Specifies the background color of the plotting area. This is independent of the outer <code class="docutils literal notranslate"><span class="pre">-background</span></code> color. The default is white.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotborderwidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotborderwidth</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">plotBorderWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BorderWidth</span></code></p></td>
 <td><p>Sets the width of the 3-D border surrounding the plotting area. Its appearance is controlled by <code class="docutils literal notranslate"><span class="pre">-plotrelief</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span> <span class="pre">pad</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpadx</span> <span class="pre">pad</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">plotPadX</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PlotPad</span></code></p></td>
 <td><p>Sets horizontal padding around the plotting area. <code class="docutils literal notranslate"><span class="pre">pad</span></code> may contain one screen distance, applied to both sides, or two distances specifying the left and right padding separately. The default is <code class="docutils literal notranslate"><span class="pre">8</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpady</span> <span class="pre">pad</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotpady</span> <span class="pre">pad</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">plotPadY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">PlotPad</span></code></p></td>
 <td><p>Sets vertical padding around the plotting area. <code class="docutils literal notranslate"><span class="pre">pad</span></code> may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is <code class="docutils literal notranslate"><span class="pre">8</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-plotrelief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-plotrelief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">plotRelief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Relief</span></code></p></td>
 <td><p>Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is <code class="docutils literal notranslate"><span class="pre">sunken</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Relief</span></code></p></td>
 <td><p>Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">renderer</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Renderer</span></code></p></td>
+<td><p>Selects the screen renderer: <code class="docutils literal notranslate"><span class="pre">native</span></code> or <code class="docutils literal notranslate"><span class="pre">cairo</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">cairo</span></code> when compiled with Cairo support, otherwise <code class="docutils literal notranslate"><span class="pre">native</span></code>. Selecting <code class="docutils literal notranslate"><span class="pre">cairo</span></code> without that support reports an error.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-rightmargin</span> <span class="pre">size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rightMargin</span></code></p></td>
@@ -860,6 +872,14 @@ coordinate.</p>
 <span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>barmode<span class="w"> </span>stacked
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">normal</span></code>:</p>
+<p><img alt="barmode_normal" src="images/barmode_normal.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">stacked</span></code>:</p>
+<p><img alt="barmode_stacked" src="images/barmode_stacked.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">aligned</span></code>:</p>
+<p><img alt="barmode_aligned" src="images/barmode_aligned.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">overlap</span></code>:</p>
+<p><img alt="barmode_overlap" src="images/barmode_overlap.svg" /></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> options have no significant effect unless bar elements are present
 in the graph.</p>
 </section>

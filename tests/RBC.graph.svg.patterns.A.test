@@ -24,7 +24,7 @@ namespace eval graph.svg.patterns {
     }
 
     proc Pattern {document} {
-        if {![regexp {(?s)<pattern\s[^>]*>.*?</pattern>} $document block]} {
+        if {![regexp {(?s)<pattern\s[^>]*?>.*?</pattern>} $document block]} {
             error "SVG has no pattern definition"
         }
         return $block
@@ -133,6 +133,37 @@ namespace eval graph.svg.patterns {
     } -cleanup {
         destroy .pattern
     } -result {1 1 1 1}
+
+    foreach {name foreground background expected} {
+        background-only {} #445566 {#445566}
+        foreground-only #112233 {} {#112233}
+        opaque #112233 #445566 {#112233 #445566}
+    } {
+        test svgPattern-5-$name {bar and legend stipples preserve transparent gaps and color roles} -setup {
+            Create barchart
+            .pattern legend configure -hide no
+            .pattern element create bars -data {-5 2 0 6 5 4} -foreground $foreground \
+                -background $background -stipple gray50 -label Bars -relief flat -borderwidth 0
+        } -body {
+            set document [.pattern svg output]
+            set blocks [regexp -all -inline {(?s)<pattern\s[^>]*?>.*?</pattern>} $document]
+            set result [list [llength $blocks]]
+            foreach block $blocks {
+                set colors {}
+                foreach {all color} [regexp -all -inline {fill="(#[[:xdigit:]]+)"} $block] {
+                    lappend colors $color
+                }
+                lappend result [expr {[lsort -unique $colors] eq [lsort $expected]}] \
+                    [expr {
+                           [regexp {<rect\s[^>]*\sfill="#[[:xdigit:]]+"} $block]
+                           == ($name eq "opaque")
+                       }]
+            }
+            set result
+        } -cleanup {
+            destroy .pattern
+        } -result {2 1 1 1 1}
+    }
 
     test svgPattern-6 {polygon marker stipples preserve foreground and background} -setup {
         Create

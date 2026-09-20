@@ -517,6 +517,13 @@ namespace eval ::rbc::GRAPHINST {
         run. The context is released before the marker pass ends. Native rendering remains the fallback when a Cairo
         drawing surface cannot be opened.
 
+        Comparison of native renderer versus Cairo renderer with `-antialias default` option (demos/cairoGraph1.tcl):
+
+        #ruffopt excludedformats nroff
+        ![renderers_comparison](images/cairoGraph1.png)
+        #ruffopt excludedformats {}
+
+
         ## Widget options
         The following options configure the graph widget itself. They are shared by `graph`, `barchart`, `stripchart`,
         and `polar` and may be specified when the widget is created or modified later with `GRAPHINST configure`.
@@ -527,6 +534,7 @@ namespace eval ::rbc::GRAPHINST {
         #ruffopt excludedformats nroff
         | Option                       | Database name         | Database class        | Description                                                                                                                                                                                                                                                                         |
         |------------------------------|-----------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-antialias mode` | `antialias` | `Antialias` | Selects the Cairo antialiasing mode: `default`, `none`, `gray`, `fast`, `good`, or `best`. The default is `default`, which uses Cairo's default policy. This option has no effect with the native renderer. |
         | `-aspect ratio`              | `aspect`              | `Aspect`              | Sets a fixed physical width-to-height aspect ratio for the plotting area when explicitly configured. For graph, barchart, and stripchart the default is `0.0`, which disables fixed aspect enforcement. A polar widget reports a nominal default of `1.0`; when that value is implicit, Polar/Smith layout instead adjusts the effective plot aspect automatically to preserve equal X/Y data-unit scale. Explicitly supplying `-aspect` selects the normal fixed-aspect behavior. |
         | `-background color`          | `background`          | `Background`          | Sets the background used for the outer graph area and margins. The plotting area has its own `-plotbackground` option. `-bg` is a synonym.                                                                                                                                          |
         | `-barmode mode`              | `barMode`             | `BarMode`             | Controls how bar elements having the same X coordinate are arranged. Valid modes are `normal`, `infront`, `aligned`, `overlap`, and `stacked`. `normal` is equivalent to `infront`. The default is `normal`.                                                                        |
@@ -557,6 +565,7 @@ namespace eval ::rbc::GRAPHINST {
         | `-plotpady pad`              | `plotPadY`            | `PlotPad`             | Sets vertical padding around the plotting area. `pad` may contain one screen distance, applied to both sides, or two distances specifying the top and bottom padding separately. The default is `8`.                                                                                |
         | `-plotrelief relief`         | `plotRelief`          | `Relief`              | Specifies the 3-D relief of the plotting area. Valid values are the standard Tk relief values. The default is `sunken`.                                                                                                                                                             |
         | `-relief relief`             | `relief`              | `Relief`              | Specifies the 3-D relief of the outer graph widget. Valid values are the standard Tk relief values. The default is `flat`.                                                                                                                                                          |
+| `-renderer name` | `renderer` | `Renderer` | Selects the screen renderer: `native` or `cairo`. The default is `cairo` when compiled with Cairo support, otherwise `native`. Selecting `cairo` without that support reports an error. |
         | `-rightmargin size`          | `rightMargin`         | `Margin`              | Sets the requested size of the right margin. A value of `0` lets the graph calculate the required size automatically. `-rm` is a synonym.                                                                                                                                           |
         | `-rightvariable varName`     | `rightVariable`       | `RightVariable`       | Names a global Tcl variable that is updated with the actual size of the right margin after graph layout. An empty value disables the variable update.                                                                                                                               |
         | `-shadow shadow`             | `shadow`              | `Shadow`              | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
@@ -571,6 +580,11 @@ namespace eval ::rbc::GRAPHINST {
         ┌────────────────────────────┬─────────────────────┬─────────────────────┬─────────────────────────────────────┐
         │ Option                     │ Database name       │ Database class      │ Description                         │
         ├────────────────────────────┼─────────────────────┼─────────────────────┼─────────────────────────────────────┤
+        │ -antialias mode            │ antialias           │ Antialias           │ Selects Cairo antialiasing: default,│
+        │                            │                     │                     │ none, gray, fast, good, or best.    │
+        │                            │                     │                     │ The default is default, using       │
+        │                            │                     │                     │ Cairo's default policy. Has no      │
+        │                            │                     │                     │ effect with the native renderer.    │
         │ -aspect ratio              │ aspect              │ Aspect              │ Sets a fixed physical               │
         │                            │                     │                     │ width-to-height aspect ratio when   │
         │                            │                     │                     │ explicitly configured. Graph,       │
@@ -711,6 +725,11 @@ namespace eval ::rbc::GRAPHINST {
         │                            │                     │                     │ outer graph widget. Valid values    │
         │                            │                     │                     │ are the standard Tk relief values.  │
         │                            │                     │                     │ The default is flat.                │
+        │ -renderer name             │ renderer            │ Renderer            │ Selects native or cairo rendering.  │
+        │                            │                     │                     │ Defaults to cairo when compiled     │
+        │                            │                     │                     │ with Cairo support, otherwise       │
+        │                            │                     │                     │ native. Selecting cairo without     │
+        │                            │                     │                     │ that support reports an error.      │
         │ -rightmargin size          │ rightMargin         │ Margin              │ Sets the requested size of the      │
         │                            │                     │                     │ right margin. A value of 0 lets the │
         │                            │                     │                     │ graph calculate the required size   │
@@ -972,6 +991,25 @@ namespace eval ::rbc::GRAPHINST {
         barchart .b
         .b configure -barmode stacked
         ```
+
+        #ruffopt excludedformats nroff
+        `-barmode normal`:
+
+        ![barmode_normal](images/barmode_normal.svg)
+
+        `-barmode stacked`:
+
+        ![barmode_stacked](images/barmode_stacked.svg)
+
+        `-barmode aligned`:
+
+        ![barmode_aligned](images/barmode_aligned.svg)
+
+        `-barmode overlap`:
+
+        ![barmode_overlap](images/barmode_overlap.svg)
+        #ruffopt excludedformats {}
+
 
         The `-barmode`, `-barwidth`, and `-baseline` options have no significant effect unless bar elements are present
         in the graph.
