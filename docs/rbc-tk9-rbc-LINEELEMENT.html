@@ -535,11 +535,11 @@ vertices of the reduced trace:</p>
 never acquire symbols or value labels. A source sample is retained only when both its index and mapped
 coordinates match a retained trace vertex. This can leave few symbols on heavily simplified curves. The
 selection also applies to symbols-only elements (<code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">0</span></code>) and is recomputed when the axes change.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> can further thin the selected symbols on screen; its default <code class="docutils literal notranslate"><span class="pre">0</span></code> adds no thinning.  Value labels
-follow the selected sample set, independently of <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>. Explicit active indices can still highlight
-omitted samples; activating all points uses the selected set. Exact closest-point searches (<code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">no</span></code>)
-continue to search all source samples. SVG and PostScript use the reduced selection too, with reduction
-evaluated for the export geometry. The option is shared by line, stripchart, and polar elements.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> further thins symbols, error bars and value labels together on screen and in SVG/PostScript; its
+default <code class="docutils literal notranslate"><span class="pre">0</span></code> adds no thinning. Explicit active indices can still highlight omitted samples; activating all
+points uses the selected set. Exact closest-point searches (<code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">no</span></code>) continue to search all source
+samples. SVG and PostScript use the reduced selection too, with reduction evaluated for the export
+geometry. The option is shared by line, stripchart, and polar elements.</p>
 <p>Example of line mapped points reduction with additional symbols reduction by providing <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code>,
 and both <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span> <span class="pre">3</span></code> at the same time:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>signal1x<span class="w"> </span>signal1y
@@ -562,12 +562,6 @@ of displayed symbols are additionaly reduced compared with <code class="docutils
 </section>
 <section id="error-bars-of-line-elements">
 <span id="r-rbc-lineelement-error-bars-of-line-elements"></span><span id="r-3a3arbc3a3alineelementqzerror20bars20of20line20elements"></span><h2>Error bars of line elements<a class="headerlink" href="#error-bars-of-line-elements" title="Link to this heading">¶</a></h2>
-<p>Error bars follow the original sample selection made by -symbolpoints. With reduced selection and a
-positive -reduce tolerance, only retained samples have error bars. A positive -maxsymbols further thins
-symbols and error bars together, using the same interval across pen styles. Each selected error bar
-keeps its shaft and caps. This also applies with -symbol none and to SVG and PostScript output.
-Value labels remain independent of -maxsymbols. Source data, axis limits and exact closest-point
-searches are unchanged. The default -symbolpoints all -maxsymbols 0 preserves all eligible error bars.</p>
 <p>Error-bar data may be specified in either symmetric or asymmetric form.</p>
 <p>Symmetric X errors use:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-xerror</span><span class="w"> </span>values
@@ -618,6 +612,13 @@ precedence over <code class="docutils literal notranslate"><span class="pre">-yl
 </tr>
 </tbody>
 </table>
+<p>Error bars follow the original sample selection made by <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>. With reduced selection and a
+positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> tolerance, only retained samples have error bars. A positive <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> further thins
+symbols and error bars together, using the same interval across pen styles. Each selected error bar
+keeps its shaft and caps.</p>
+<p>This also applies with <code class="docutils literal notranslate"><span class="pre">-symbol</span> <span class="pre">none</span></code> and to SVG and PostScript output. Value labels use the same thinned
+samples.  Source data, axis limits and exact closest-point searches are unchanged. The default <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span>
+<span class="pre">all</span> <span class="pre">-maxsymbols</span> <span class="pre">0</span></code> preserves all eligible error bars.</p>
 </section>
 <section id="value-labels-of-line-elements">
 <span id="r-rbc-lineelement-value-labels-of-line-elements"></span><span id="r-3a3arbc3a3alineelementqzvalue20labels20of20line20elements"></span><h2>Value labels of line elements<a class="headerlink" href="#value-labels-of-line-elements" title="Link to this heading">¶</a></h2>
@@ -664,6 +665,10 @@ precedence over <code class="docutils literal notranslate"><span class="pre">-yl
 </table>
 <p><code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> is validated before it is accepted. It may contain at most one floating-point conversion,
 using <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">e</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">g</span></code>, or <code class="docutils literal notranslate"><span class="pre">G</span></code>. Dynamic width or precision using <code class="docutils literal notranslate"><span class="pre">*</span></code> is not permitted.</p>
+<p>Normal value labels follow <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code> and <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>, even with <code class="docutils literal notranslate"><span class="pre">-symbol</span> <span class="pre">none</span></code>. Hidden labels do not
+invoke <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>. Thinning uses the sample position across all pen styles, including styles with
+<code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">none</span></code>. Active labels bypass <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>, matching active symbols: explicitly activated indices
+can label omitted samples, while activating all points labels the set selected by <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>.</p>
 <section id="value-label-position">
 <span id="r-rbc-lineelement-value-label-position"></span><span id="r-3a3arbc3a3alineelementqzvalue2dlabel20position"></span><h3>Value-label position<a class="headerlink" href="#value-label-position" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> moves the label anchor by signed integer pixels: positive X moves right, positive Y

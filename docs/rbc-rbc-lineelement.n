@@ -561,19 +561,12 @@ never acquire symbols or value labels\&. A source sample is retained only when b
 coordinates match a retained trace vertex\&. This can leave few symbols on heavily simplified curves\&. The
 selection also applies to symbols-only elements (-linewidth 0) and is recomputed when the axes change\&.
 .PP
--maxsymbols can further thin the selected symbols on screen; its default 0 adds no thinning\&.  Value labels
-follow the selected sample set, independently of -maxsymbols\&. Explicit active indices can still highlight
-omitted samples; activating all points uses the selected set\&. Exact closest-point searches (-interpolate no)
-continue to search all source samples\&. SVG and PostScript use the reduced selection too, with reduction
-evaluated for the export geometry\&. The option is shared by line, stripchart, and polar elements\&.
+-maxsymbols further thins symbols, error bars and value labels together on screen and in SVG/PostScript; its
+default 0 adds no thinning\&. Explicit active indices can still highlight omitted samples; activating all
+points uses the selected set\&. Exact closest-point searches (-interpolate no) continue to search all source
+samples\&. SVG and PostScript use the reduced selection too, with reduction evaluated for the export
+geometry\&. The option is shared by line, stripchart, and polar elements\&.
 .SH "ERROR BARS OF LINE ELEMENTS"
-.PP
-Error bars follow the original sample selection made by -symbolpoints\&. With reduced selection and a
-positive -reduce tolerance, only retained samples have error bars\&. A positive -maxsymbols further thins
-symbols and error bars together, using the same interval across pen styles\&. Each selected error bar
-keeps its shaft and caps\&. This also applies with -symbol none and to SVG and PostScript output\&.
-Value labels remain independent of -maxsymbols\&. Source data, axis limits and exact closest-point
-searches are unchanged\&. The default -symbolpoints all -maxsymbols 0 preserves all eligible error bars\&.
 .PP
 Error-bar data may be specified in either symmetric or asymmetric form\&.
 .PP
@@ -632,6 +625,15 @@ The drawing style is controlled by:
 └───────────────────────┴─────────────────────────────────────────────────────────────────┘
 .fi
 .RE
+.PP
+Error bars follow the original sample selection made by -symbolpoints\&. With reduced selection and a
+positive -reduce tolerance, only retained samples have error bars\&. A positive -maxsymbols further thins
+symbols and error bars together, using the same interval across pen styles\&. Each selected error bar
+keeps its shaft and caps\&.
+.PP
+This also applies with -symbol none and to SVG and PostScript output\&. Value labels use the same thinned
+samples\&.  Source data, axis limits and exact closest-point searches are unchanged\&. The default -symbolpoints
+all -maxsymbols 0 preserves all eligible error bars\&.
 .SH "VALUE LABELS OF LINE ELEMENTS"
 .PP
 Data values may be displayed next to symbols with -showvalues\&.
@@ -661,6 +663,11 @@ Value-label appearance is controlled by:
 .PP
 -valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion,
 using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
+.PP
+Normal value labels follow -symbolpoints and -maxsymbols, even with -symbol none\&. Hidden labels do not
+invoke -valuecommand\&. Thinning uses the sample position across all pen styles, including styles with
+-showvalues none\&. Active labels bypass -maxsymbols, matching active symbols: explicitly activated indices
+can label omitted samples, while activating all points labels the set selected by -symbolpoints\&.
 .SS "VALUE-LABEL POSITION"
 .PP
 -valueoffset {dx dy} moves the label anchor by signed integer pixels: positive X moves right, positive Y

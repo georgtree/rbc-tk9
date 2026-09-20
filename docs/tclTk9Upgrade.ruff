@@ -15,9 +15,12 @@ namespace eval TclTk9Upgrade {
         ### Symbols on reduced traces
 
         Line, stripchart, and polar elements accept `-symbolpoints all|reduced`. The default `all` preserves
-        original-sample symbols. With positive `-reduce`, `reduced` restricts symbols and value labels to original
+        original-sample symbols. With positive `-reduce`, `reduced` restricts symbols, error bars and value labels to original
         samples retained by trace simplification; generated smoothing vertices never acquire symbols. Exact
         closest-point searches still include omitted samples. See [::rbc::LINEELEMENT] for details.
+
+        A positive -maxsymbols further thins normal symbols, error bars and value labels together on screen
+        and in SVG/PostScript exports. Active symbols and labels bypass this density limit.
 
         ### MSVC builds on Windows
 

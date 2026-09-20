@@ -51,9 +51,11 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="symbols-on-reduced-traces">
 <span id="r-tcltk9upgrade-symbols-on-reduced-traces"></span><span id="r-3a3atcltk9upgradeqzsymbols20on20reduced20traces"></span><h3>Symbols on reduced traces<a class="headerlink" href="#symbols-on-reduced-traces" title="Link to this heading">¶</a></h3>
 <p>Line, stripchart, and polar elements accept <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all|reduced</span></code>. The default <code class="docutils literal notranslate"><span class="pre">all</span></code> preserves
-original-sample symbols. With positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">reduced</span></code> restricts symbols and value labels to original
+original-sample symbols. With positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">reduced</span></code> restricts symbols, error bars and value labels to original
 samples retained by trace simplification; generated smoothing vertices never acquire symbols. Exact
 closest-point searches still include omitted samples. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">::rbc::LINEELEMENT</span></a> for details.</p>
+<p>A positive -maxsymbols further thins normal symbols, error bars and value labels together on screen
+and in SVG/PostScript exports. Active symbols and labels bypass this density limit.</p>
 </section>
 <section id="msvc-builds-on-windows">
 <span id="r-tcltk9upgrade-msvc-builds-on-windows"></span><span id="r-3a3atcltk9upgradeqzmsvc20builds20on20windows"></span><h3>MSVC builds on Windows<a class="headerlink" href="#msvc-builds-on-windows" title="Link to this heading">¶</a></h3>

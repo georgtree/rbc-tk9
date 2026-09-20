@@ -1350,13 +1350,13 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
 static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments);
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr);
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
-                       Point2D *symbolPts, const Tcl_Size *pointToData);
+                       Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset);
 static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts, Tcl_Size interval, Tcl_Size *counterPtr);
 static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr);
 static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr);
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
-                               const Tcl_Size *pointToData);
+                               const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset);
 static int GetDrawablePolygonPointCount(Display *display, Tcl_Size nPoints);
 
 
@@ -10964,7 +10964,7 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
  *----------------------------------------------------------------------
  */
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
-                       Point2D *symbolPts, const Tcl_Size *pointToData) {
+                       Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
     Point2D *pointPtr;
     Point2D *endPtr;
     Tcl_Size count;
@@ -10978,6 +10978,9 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
         double x;
         double y;
         dataIndex = pointToData[count++];
+        if ((interval > 1) && (((offset + count - 1) % interval) != 0)) {
+            continue;
+        }
         if (!PointInRegion(&exts, pointPtr->x, pointPtr->y)) {
             continue;
         }
@@ -11052,7 +11055,7 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
         }
         if (penPtr->valueShow != SHOW_NONE) {
             DrawValues(graphPtr, drawable, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
-                       linePtr->activeToData);
+                       linePtr->activeToData, 0, 0);
         }
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
@@ -11067,7 +11070,7 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
         }
         if (penPtr->valueShow != SHOW_NONE) {
             DrawValues(graphPtr, drawable, linePtr, penPtr, linePtr->nSymbolPts, linePtr->symbolPts,
-                       linePtr->symbolToData);
+                       linePtr->symbolToData, 0, 0);
         }
     }
 }
@@ -11210,7 +11213,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
         }
         if (penPtr->valueShow != SHOW_NONE) {
             DrawValues(graphPtr, drawable, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,
-                       linePtr->symbolToData + count);
+                       linePtr->symbolToData + count, linePtr->symbolInterval, count);
         }
         count += stylePtr->nSymbolPts;
     }
@@ -11383,7 +11386,7 @@ static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
  *----------------------------------------------------------------------
  */
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
-                               const Tcl_Size *pointToData) {
+                               const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
     Rbc_RenderContext *output = Rbc_RenderBeginExportOutput(exportPtr);
     Point2D *pointPtr;
     Point2D *endPtr;
@@ -11399,6 +11402,9 @@ static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
         double y;
 
         dataIndex = pointToData[count++];
+        if ((interval > 1) && (((offset + count - 1) % interval) != 0)) {
+            continue;
+        }
         if (!PointInRegion(&exts, pointPtr->x, pointPtr->y)) {
             continue;
         }
@@ -11460,7 +11466,7 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, linePtr->nActivePts, linePtr->activePts,
-                               linePtr->activeToData);
+                               linePtr->activeToData, 0, 0);
         }
     } else if (elemPtr->nActiveIndices < 0) {
         if (penPtr->traceWidth > 0) {
@@ -11479,7 +11485,7 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, linePtr->nSymbolPts, linePtr->symbolPts,
-                               linePtr->symbolToData);
+                               linePtr->symbolToData, 0, 0);
         }
     }
 }
@@ -11575,7 +11581,7 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         }
         if (penPtr->valueShow != SHOW_NONE) {
             ValuesExport(exportPtr, linePtr, penPtr, stylePtr->nSymbolPts, stylePtr->symbolPts,
-                               linePtr->symbolToData + count);
+                               linePtr->symbolToData + count, interval, count);
         }
         count += stylePtr->nSymbolPts;
     }
