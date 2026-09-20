@@ -612,6 +612,13 @@ precedence over <code class="docutils literal notranslate"><span class="pre">-yl
 </tr>
 </tbody>
 </table>
+<p>Example of different error bars:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal1<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorbarwidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>errorbarcap<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">2</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal2<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mf">4.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorbarwidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>errorbarcap<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>green<span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">2</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal3<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">3.5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>ylow<span class="w"> </span><span class="k">{</span><span class="nv">4.8</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yhigh<span class="w"> </span><span class="k">{</span><span class="nv">5.2</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mf">1.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xlow<span class="w"> </span><span class="k">{</span><span class="nv">-0.1</span><span class="w"> </span><span class="mf">1.7</span><span class="w"> </span><span class="mf">3.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xhigh<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">2.2</span><span class="w"> </span><span class="mf">4.05</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorbarwidth<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>errorbarcap<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>color<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>pixels<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p><img alt="error_bars" src="images/error_bars.svg" /></p>
 <p>Error bars follow the original sample selection made by <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>. With reduced selection and a
 positive <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> tolerance, only retained samples have error bars. A positive <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> further thins
 symbols and error bars together, using the same interval across pen styles. Each selected error bar
@@ -724,12 +731,14 @@ penName min max
 </pre></div>
 </div>
 <p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>low<span class="w">  </span><span class="o">-</span>type<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>blue
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>low<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>blue
 <span class="nv">.g</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>high<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>red
 
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="k">}</span>
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>weights<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">1.2</span><span class="w"> </span><span class="mf">1.8</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>styles<span class="w"> </span><span class="k">{{</span><span class="nv">low</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">high</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}}</span>
 </pre></div>
 </div>
+<p><img alt="line_pen_weight" src="images/line_pen_weight.svg" /></p>
 <p>A style without explicit limits receives the legacy default range based on its position in the style list:
 the first style covers 0 through 1, the second 1 through 2, and so on.</p>
 <p>Points whose weights do not match a configured style use the element’s normal pen.</p>
@@ -740,23 +749,6 @@ traces, and error bars.</p>
 <section id="area-under-the-line">
 <span id="r-rbc-lineelement-area-under-the-line"></span><span id="r-3a3arbc3a3alineelementqzarea20under20the20line"></span><h2>Area under the line<a class="headerlink" href="#area-under-the-line" title="Link to this heading">¶</a></h2>
 <p>Line elements, unlike strip elements, may fill the area beneath the rendered trace.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-areaclose</span></code> selects how the fill polygon closes an open trace:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">baseline</span></code> (default): extends both endpoints to the plot bottom, retaining historical behaviour.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chord</span></code>: connects the last point directly to the first.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">origin</span></code>: connects the last point to Cartesian (0,0), then to the first, using the element’s mapped axes.</p></li>
-</ul>
-<p>Closure affects only the fill, not the visible trace. It applies to solid fills, stipples, tiles and
-PostScript. For an open polar arc, <code class="docutils literal notranslate"><span class="pre">chord</span></code> fills a segment and <code class="docutils literal notranslate"><span class="pre">origin</span></code> fills a sector. For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areaclose<span class="w"> </span>origin<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
-</pre></div>
-</div>
-<p>Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Baseline and origin
-closure need at least two mapped points; chord closure needs at least three. Origin filling is omitted when
-either mapped axis is logarithmic, since zero has no logarithmic coordinate.  Existing restrictions on
-discontinuous traces remain. Self-intersecting curves retain the renderer’s fill rule; origin closure does not
-mean filling between successive turns of a spiral.  Existing PostScript limitations for image tiles are
-unchanged.</p>
 <p>Area filling is enabled by either <code class="docutils literal notranslate"><span class="pre">-areapattern</span></code> or <code class="docutils literal notranslate"><span class="pre">-areatile</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-areapattern</span></code> accepts:</p>
 <ul class="simple">
@@ -766,27 +758,69 @@ unchanged.</p>
 </ul>
 <p>The stipple colors are controlled by <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code> and <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code>.</p>
 <p>For example:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> and in SVG output.  It
-accepts a finite number from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).  Intermediate values blend the
+<p><img alt="line_areaclose_baseline" src="images/line_areaclose_baseline.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaclose</span></code> selects how the fill polygon closes an open trace:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline</span></code> (default): extends both endpoints to the plot bottom, retaining historical behaviour.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chord</span></code>: connects the last point directly to the first.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">origin</span></code>: connects the last point to Cartesian (0,0), then to the first, using the element’s mapped axes.</p></li>
+</ul>
+<p>Closure affects only the fill, not the visible trace. It applies to solid fills, stipples, tiles and
+PostScript. For an open polar arc, <code class="docutils literal notranslate"><span class="pre">chord</span></code> fills a segment and <code class="docutils literal notranslate"><span class="pre">origin</span></code> fills a sector. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areaclose<span class="w"> </span>chord<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
+</pre></div>
+</div>
+<p><img alt="line_areaclose_baseline" src="images/line_areaclose_baseline.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaclose</span> <span class="pre">origin</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areaclose<span class="w"> </span>origin<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
+</pre></div>
+</div>
+<p><img alt="line_areaclose_origin" src="images/line_areaclose_origin.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaclose</span> <span class="pre">chord</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areaclose<span class="w"> </span>chord<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
+</pre></div>
+</div>
+<p><img alt="line_areaclose_chord" src="images/line_areaclose_chord.svg" /></p>
+<p>In case of closed element (last point match the first), the <code class="docutils literal notranslate"><span class="pre">-areaclose</span></code> parameter doesn’t matter:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>lightblue
+</pre></div>
+</div>
+<p><img alt="line_areaclose_closed_element" src="images/line_areaclose_closed_element.svg" /></p>
+<p>Chord and origin fills align with the mapped trace without the historical baseline pixel offset. Baseline and
+origin closure need at least two mapped points; chord closure needs at least three. Origin filling is omitted
+when either mapped axis is logarithmic, since zero has no logarithmic coordinate. Existing restrictions on
+discontinuous traces remain. Self-intersecting curves retain the renderer’s fill rule; origin closure does not
+mean filling between successive turns of a spiral. Existing PostScript limitations for image tiles are
+unchanged.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> controls solid area fills (<code class="docutils literal notranslate"><span class="pre">-areapattern</span> <span class="pre">solid</span></code>) with <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code> and in SVG output. It
+accepts a finite number from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (invisible) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default). Intermediate values blend the
 fill with the content already drawn beneath it. It does not change the trace, symbols, stipples, or image
-tiles; photo tiles use their own pixel alpha.  An invisible fill remains configured and does not affect element
+tiles; photo tiles use their own pixel alpha. An invisible fill remains configured and does not affect element
 data or closest searches.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.g configure -renderer cairo
-.g element configure signal -areapattern solid -areaforeground blue -areaopacity 0.3
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal1<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>areapattern<span class="w"> </span>solid<span class="w"> </span><span class="o">-</span>areaforeground<span class="w"> </span>blue<span class="w"> </span><span class="o">-</span>areaopacity<span class="w"> </span><span class="mf">0.3</span>
 </pre></div>
 </div>
+<p><img alt="line_areaopacity" src="images/line_areaopacity.svg" /></p>
 <p><strong>Native renderer limitation:</strong> <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> accepts but ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>; solid fills remain
 opaque, including at <code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Native image tiles use a binary transparency mask and do not provide full alpha
 blending. PostScript output also ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> and retains opaque solid fills. Switching to Cairo
 restores the configured opacity.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code> specifies an Rbc tile/image used to fill the area. An empty value disables the tile.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting.  Stipple
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting. Stipple
 pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
-<code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns.  Photo tiles align to the
-toplevel window origin and preserve their alpha, including partial transparency.  Image edits and resizing
+<code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns. Photo tiles align to the
+toplevel window origin and preserve their alpha, including partial transparency. Image edits and resizing
 refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern. Recreating the
 image with the same name restores the tile.</p>
 <p>Non-photo image tiles retain native rendering. Solid/stippled areas with an empty <code class="docutils literal notranslate"><span class="pre">-areaforeground</span></code>

@@ -746,9 +746,10 @@ For example:
 .PP
 .RS 4n
 .nf
-\&.g pen create low  -type line -color blue
+\&.g pen create low -type line -color blue
 \&.g pen create high -type line -color red
 
+\&.g element create signal -data {0 1 2 3 4 5 6 7}
 \&.g element configure signal -weights {0\&.2 0\&.4 1\&.2 1\&.8} -styles {{low 0 1} {high 1 2}}
 .fi
 .RE
@@ -765,33 +766,6 @@ traces, and error bars\&.
 .SH "AREA UNDER THE LINE"
 .PP
 Line elements, unlike strip elements, may fill the area beneath the rendered trace\&.
-.PP
--areaclose selects how the fill polygon closes an open trace:
-.TP
-\(bu
-baseline (default): extends both endpoints to the plot bottom, retaining historical behaviour\&.
-.TP
-\(bu
-chord: connects the last point directly to the first\&.
-.TP
-\(bu
-origin: connects the last point to Cartesian (0,0), then to the first, using the element's mapped axes\&.
-.PP
-Closure affects only the fill, not the visible trace\&. It applies to solid fills, stipples, tiles and
-PostScript\&. For an open polar arc, chord fills a segment and origin fills a sector\&. For example:
-.PP
-.RS 4n
-.nf
-\&.p element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
-.fi
-.RE
-.PP
-Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&.  Baseline and origin
-closure need at least two mapped points; chord closure needs at least three\&. Origin filling is omitted when
-either mapped axis is logarithmic, since zero has no logarithmic coordinate\&.  Existing restrictions on
-discontinuous traces remain\&. Self-intersecting curves retain the renderer's fill rule; origin closure does not
-mean filling between successive turns of a spiral\&.  Existing PostScript limitations for image tiles are
-unchanged\&.
 .PP
 Area filling is enabled by either -areapattern or -areatile\&.
 .PP
@@ -812,19 +786,77 @@ For example:
 .PP
 .RS 4n
 .nf
+\&.g element create signal -data {0 1 2 3 4 5 6 5}
 \&.g element configure signal -areapattern solid -areaforeground lightblue
 .fi
 .RE
 .PP
--areaopacity controls solid area fills (-areapattern solid) with -renderer cairo and in SVG output\&.  It
-accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&.  Intermediate values blend the
+-areaclose selects how the fill polygon closes an open trace:
+.TP
+\(bu
+baseline (default): extends both endpoints to the plot bottom, retaining historical behaviour\&.
+.TP
+\(bu
+chord: connects the last point directly to the first\&.
+.TP
+\(bu
+origin: connects the last point to Cartesian (0,0), then to the first, using the element's mapped axes\&.
+.PP
+Closure affects only the fill, not the visible trace\&. It applies to solid fills, stipples, tiles and
+PostScript\&. For an open polar arc, chord fills a segment and origin fills a sector\&. For example:
+.PP
+.RS 4n
+.nf
+\&.g axis configure y -min 0
+\&.g axis configure x -min -1
+\&.g element create signal -data {0 1 2 3 4 5 6 5}
+\&.g element configure signal -areaclose chord -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+-areaclose origin:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+-areaclose chord:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -areaclose chord -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+In case of closed element (last point match the first), the -areaclose parameter doesn't matter:
+.PP
+.RS 4n
+.nf
+\&.g element create signal -data {0 1 2 3 4 5 6 5 0 1}
+\&.g element configure signal -areapattern solid -areaforeground lightblue
+.fi
+.RE
+.PP
+Chord and origin fills align with the mapped trace without the historical baseline pixel offset\&. Baseline and
+origin closure need at least two mapped points; chord closure needs at least three\&. Origin filling is omitted
+when either mapped axis is logarithmic, since zero has no logarithmic coordinate\&. Existing restrictions on
+discontinuous traces remain\&. Self-intersecting curves retain the renderer's fill rule; origin closure does not
+mean filling between successive turns of a spiral\&. Existing PostScript limitations for image tiles are
+unchanged\&.
+.PP
+-areaopacity controls solid area fills (-areapattern solid) with -renderer cairo and in SVG output\&. It
+accepts a finite number from 0\&.0 (invisible) to 1\&.0 (opaque, the default)\&. Intermediate values blend the
 fill with the content already drawn beneath it\&. It does not change the trace, symbols, stipples, or image
-tiles; photo tiles use their own pixel alpha\&.  An invisible fill remains configured and does not affect element
+tiles; photo tiles use their own pixel alpha\&. An invisible fill remains configured and does not affect element
 data or closest searches\&.
 .PP
 .RS 4n
 .nf
 \&.g configure -renderer cairo
+\&.g element create signal1 -data {2 2 4 4}
+\&.g element create signal -data {0 1 2 3 4 5 6 5}
 \&.g element configure signal -areapattern solid -areaforeground blue -areaopacity 0\&.3
 .fi
 .RE
@@ -836,10 +868,10 @@ restores the configured opacity\&.
 .PP
 -areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
 .PP
-With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&.  Stipple
+With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&. Stipple
 pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge\&.  An empty
--areabackground leaves gaps transparent\&. Image tiles take precedence over patterns\&.  Photo tiles align to the
-toplevel window origin and preserve their alpha, including partial transparency\&.  Image edits and resizing
+-areabackground leaves gaps transparent\&. Image tiles take precedence over patterns\&. Photo tiles align to the
+toplevel window origin and preserve their alpha, including partial transparency\&. Image edits and resizing
 refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern\&. Recreating the
 image with the same name restores the tile\&.
 .PP

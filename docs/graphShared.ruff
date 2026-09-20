@@ -2109,6 +2109,20 @@ namespace eval ::rbc::LINEELEMENT {
         ```
         #ruffopt excludedformats {}
 
+        #ruffopt excludedformats nroff
+        Example of different error bars:
+        ```tcl
+        .g element create signal1 -data {0 1 2 3 4 5} -yerror {0.2 0.1 0.3} -errorbarwidth 2 -errorbarcap 10 -pixels 2
+        .g element create signal2 -data {0 0.5 2 2.5 4 4.5} -xerror {0.2 0.1 0.3} -errorbarwidth 2 -errorbarcap 10\
+                -color green -pixels 2
+        .g element create signal3 -data {0 5 2 3.5 4 1} -ylow {4.8 3.2 0.3} -yhigh {5.2 4 1.3} -xlow {-0.1 1.7 3.5}\
+                -xhigh {0.2 2.2 4.05} -errorbarwidth 2 -errorbarcap 10 -color red -pixels 2
+        ```
+
+        ![error_bars](images/error_bars.svg)
+
+        #ruffopt excludedformats {}
+
         Error bars follow the original sample selection made by `-symbolpoints`. With reduced selection and a
         positive `-reduce` tolerance, only retained samples have error bars. A positive `-maxsymbols` further thins
         symbols and error bars together, using the same interval across pen styles. Each selected error bar
@@ -2227,11 +2241,16 @@ namespace eval ::rbc::LINEELEMENT {
 
         For example:
         ```tcl
-        .g pen create low  -type line -color blue
+        .g pen create low -type line -color blue
         .g pen create high -type line -color red
 
+        .g element create signal -data {0 1 2 3 4 5 6 7}
         .g element configure signal -weights {0.2 0.4 1.2 1.8} -styles {{low 0 1} {high 1 2}}
         ```
+
+        #ruffopt excludedformats nroff
+        ![line_pen_weight](images/line_pen_weight.svg)
+        #ruffopt excludedformats {}
 
         A style without explicit limits receives the legacy default range based on its position in the style list:
         the first style covers 0 through 1, the second 1 through 2, and so on.
@@ -2246,26 +2265,6 @@ namespace eval ::rbc::LINEELEMENT {
         ## Area under the line
         Line elements, unlike strip elements, may fill the area beneath the rendered trace.
 
-        `-areaclose` selects how the fill polygon closes an open trace:
-
-        - `baseline` (default): extends both endpoints to the plot bottom, retaining historical behaviour.
-        - `chord`: connects the last point directly to the first.
-        - `origin`: connects the last point to Cartesian (0,0), then to the first, using the element's mapped axes.
-
-        Closure affects only the fill, not the visible trace. It applies to solid fills, stipples, tiles and
-        PostScript. For an open polar arc, `chord` fills a segment and `origin` fills a sector. For example:
-
-        ```tcl
-        .p element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
-        ```
-
-        Chord and origin fills align with the mapped trace without the historical baseline pixel offset.  Baseline and origin
-        closure need at least two mapped points; chord closure needs at least three. Origin filling is omitted when
-        either mapped axis is logarithmic, since zero has no logarithmic coordinate.  Existing restrictions on
-        discontinuous traces remain. Self-intersecting curves retain the renderer's fill rule; origin closure does not
-        mean filling between successive turns of a spiral.  Existing PostScript limitations for image tiles are
-        unchanged.
-
         Area filling is enabled by either `-areapattern` or `-areatile`.
 
         `-areapattern` accepts:
@@ -2277,19 +2276,85 @@ namespace eval ::rbc::LINEELEMENT {
 
         For example:
         ```tcl
+        .g element create signal -data {0 1 2 3 4 5 6 5}
         .g element configure signal -areapattern solid -areaforeground lightblue
         ```
 
-        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo` and in SVG output.  It
-        accepts a finite number from `0.0` (invisible) to `1.0` (opaque, the default).  Intermediate values blend the
+        #ruffopt excludedformats nroff
+        ![line_areaclose_baseline](images/line_areaclose_baseline.svg)
+        #ruffopt excludedformats {}
+
+        `-areaclose` selects how the fill polygon closes an open trace:
+
+        - `baseline` (default): extends both endpoints to the plot bottom, retaining historical behaviour.
+        - `chord`: connects the last point directly to the first.
+        - `origin`: connects the last point to Cartesian (0,0), then to the first, using the element's mapped axes.
+
+        Closure affects only the fill, not the visible trace. It applies to solid fills, stipples, tiles and
+        PostScript. For an open polar arc, `chord` fills a segment and `origin` fills a sector. For example:
+
+        ```tcl
+        .g axis configure y -min 0
+        .g axis configure x -min -1
+        .g element create signal -data {0 1 2 3 4 5 6 5}
+        .g element configure signal -areaclose chord -areapattern solid -areaforeground lightblue
+        ```
+
+        #ruffopt excludedformats nroff
+        ![line_areaclose_baseline](images/line_areaclose_baseline.svg)
+        #ruffopt excludedformats {}
+
+        `-areaclose origin`:
+        ```tcl
+        .g element configure signal -areaclose origin -areapattern solid -areaforeground lightblue
+        ```
+
+        #ruffopt excludedformats nroff
+        ![line_areaclose_origin](images/line_areaclose_origin.svg)
+        #ruffopt excludedformats {}
+
+        `-areaclose chord`:
+        ```tcl
+        .g element configure signal -areaclose chord -areapattern solid -areaforeground lightblue
+        ```
+
+        #ruffopt excludedformats nroff
+        ![line_areaclose_chord](images/line_areaclose_chord.svg)
+        #ruffopt excludedformats {}
+
+        In case of closed element (last point match the first), the `-areaclose` parameter doesn't matter:
+        ```tcl
+        .g element create signal -data {0 1 2 3 4 5 6 5 0 1}
+        .g element configure signal -areapattern solid -areaforeground lightblue
+        ```
+
+        #ruffopt excludedformats nroff
+        ![line_areaclose_closed_element](images/line_areaclose_closed_element.svg)
+        #ruffopt excludedformats {}
+
+        Chord and origin fills align with the mapped trace without the historical baseline pixel offset. Baseline and
+        origin closure need at least two mapped points; chord closure needs at least three. Origin filling is omitted
+        when either mapped axis is logarithmic, since zero has no logarithmic coordinate. Existing restrictions on
+        discontinuous traces remain. Self-intersecting curves retain the renderer's fill rule; origin closure does not
+        mean filling between successive turns of a spiral. Existing PostScript limitations for image tiles are
+        unchanged.
+
+        `-areaopacity` controls solid area fills (`-areapattern solid`) with `-renderer cairo` and in SVG output. It
+        accepts a finite number from `0.0` (invisible) to `1.0` (opaque, the default). Intermediate values blend the
         fill with the content already drawn beneath it. It does not change the trace, symbols, stipples, or image
-        tiles; photo tiles use their own pixel alpha.  An invisible fill remains configured and does not affect element
+        tiles; photo tiles use their own pixel alpha. An invisible fill remains configured and does not affect element
         data or closest searches.
 
-        ```
+        ```tcl
         .g configure -renderer cairo
+        .g element create signal1 -data {2 2 4 4}
+        .g element create signal -data {0 1 2 3 4 5 6 5}
         .g element configure signal -areapattern solid -areaforeground blue -areaopacity 0.3
         ```
+
+        #ruffopt excludedformats nroff
+        ![line_areaopacity](images/line_areaopacity.svg)
+        #ruffopt excludedformats {}
 
         **Native renderer limitation:** `-renderer native` accepts but ignores `-areaopacity`; solid fills remain
         opaque, including at `0.0`. Native image tiles use a binary transparency mask and do not provide full alpha
@@ -2298,10 +2363,10 @@ namespace eval ::rbc::LINEELEMENT {
 
         `-areatile` specifies an Rbc tile/image used to fill the area. An empty value disables the tile.
 
-        With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting.  Stipple
+        With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting. Stipple
         pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
-        `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns.  Photo tiles align to the
-        toplevel window origin and preserve their alpha, including partial transparency.  Image edits and resizing
+        `-areabackground` leaves gaps transparent. Image tiles take precedence over patterns. Photo tiles align to the
+        toplevel window origin and preserve their alpha, including partial transparency. Image edits and resizing
         refresh the displayed fill; deleting a photo removes it without enabling the underlying pattern. Recreating the
         image with the same name restores the tile.
 
