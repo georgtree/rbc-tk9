@@ -417,6 +417,8 @@ static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char 
     TileKey key;
 
     dataPtr = GetTileInterpData(interp);
+    /* The hash key includes structure padding. */
+    memset(&key, 0, sizeof(key));    
     key.nameId = Tk_GetUid(name);
     key.display = Tk_Display(tkwin);
     key.depth = Tk_Depth(tkwin);
