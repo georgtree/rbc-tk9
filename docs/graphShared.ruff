@@ -3116,11 +3116,16 @@ namespace eval ::rbc::POLARELEMENT {
         For example:
         ```tcl
         polar .p -representation polar
-        .p element create trace -data {1.0 0.0 0.5 0.5 0.0 1.0 -0.5 0.5}
+        .p element create trace -data {1 0 0.5 0.5 0 1 -0.5 0.5}
+        .p axis configure x -min -1 -max 1
+        .p axis configure y -min -1 -max 1
         ```
 
-        ## Complex-vector data
+        #ruffopt excludedformats nroff
+        ![polar_cartesian](images/polar_cartesian.svg)
+        #ruffopt excludedformats {}
 
+        ## Complex-vector data
         `-cdata` names an Rbc complex vector whose values provide the two-dimensional element data directly.
 
         For example:
@@ -3131,6 +3136,10 @@ namespace eval ::rbc::POLARELEMENT {
         polar .p -representation smith
         .p element create trace -cdata gamma
         ```
+
+        #ruffopt excludedformats nroff
+        ![smith_complex](images/smith_complex.svg)
+        #ruffopt excludedformats {}
 
         A vector supplied to `-cdata` must have type `complex`. A real vector is rejected.
 
@@ -3168,9 +3177,13 @@ namespace eval ::rbc::POLARELEMENT {
         .p element create trace -xdata {0 1.5707963267948966} -ydata {1 2} -datacoordinates polar
         ```
 
+        #ruffopt excludedformats nroff
+        ![polar_coordinates](images/polar_coordinates.svg)
+        #ruffopt excludedformats {}
+
         Each pair is converted to `x = radius*cos(theta)`, `y = radius*sin(theta)` before mapping. Source values are
         retained: `cget` returns the original input, and vector changes update the plotted points. The shorter source
-        determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radii follow
+        determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radius follow
         the same conversion equations; non-finite pairs break the trace. In Smith representation, the resulting X/Y
         coordinates represent Gamma.
 
@@ -3225,6 +3238,8 @@ namespace eval ::rbc::POLARELEMENT {
 
         The default is `gamma`.
 
+        Interpretation does not depend on the `-representation` option of the graph.
+
         ### Gamma
         With:
         ```tcl
@@ -3248,6 +3263,10 @@ namespace eval ::rbc::POLARELEMENT {
         gamma set {{0.0 0.0} {0.25 0.50} {-0.20 0.60}}
         .p element create trace -cdata gamma -cdataformat gamma
         ```
+
+        #ruffopt excludedformats nroff
+        ![polar_cdataformat_gamma](images/polar_cdataformat_gamma.svg)
+        #ruffopt excludedformats {}
 
         ### Impedance
         With:
@@ -3278,6 +3297,10 @@ namespace eval ::rbc::POLARELEMENT {
         .p element create trace -cdata z -cdataformat impedance -z0 50
         ```
 
+        #ruffopt excludedformats nroff
+        ![smith_cdataformat_impedance](images/smith_cdataformat_impedance.svg)
+        #ruffopt excludedformats {}
+
         ### Admittance
         With:
         ```tcl
@@ -3305,6 +3328,10 @@ namespace eval ::rbc::POLARELEMENT {
         y set {{0.010 -0.010} {0.020 0.000} {0.015 0.010}}
         .p element create trace -cdata y -cdataformat admittance -z0 50
         ```
+
+        #ruffopt excludedformats nroff
+        ![smith_cdataformat_admittance](images/smith_cdataformat_admittance.svg)
+        #ruffopt excludedformats {}
 
         The conversion to Gamma is performed independently of the widget's grid representation. For example, an
         impedance data element may still be displayed while the Smith grid is configured for admittance contours.
@@ -3393,9 +3420,17 @@ namespace eval ::rbc::POLARELEMENT {
         For example:
         ```tcl
         vector create z -type complex
-        z set {{ 0 0} { 1 1} { 0 2} {-1 1} { 0 0}}
-        .p element create loop -cdata z -smooth natural
+        z set {{ 0 -1} { 1 1} { 0 2} {-1 1.5} {-0.5 0}}
+        .p element create linear -cdata z -smooth linear
+        .p element create step -cdata z -smooth step -color grey
+        .p element create natural -cdata z -smooth natural -color red
+        .p element create quadratic -cdata z -smooth quadratic -color black
+        .p element create catrom -cdata z -smooth catrom -color brown
         ```
+
+        #ruffopt excludedformats nroff
+        ![polar_smoothing](images/polar_smoothing.svg)
+        #ruffopt excludedformats {}
 
         `catrom` is also parametric.
 
@@ -3451,6 +3486,17 @@ namespace eval ::rbc::POLARELEMENT {
         and remains visible if the graph limits include it.
 
         The unit circle is therefore a Smith-chart reference contour, not an element clipping boundary.
+
+        For example:
+        ```tcl
+        vector create z -type complex
+        z set {{-5 0} {-2 10} {10 20} {50 0} {150 -20}}
+        .p element create linear -cdata z -cdataformat impedance
+        ```
+
+        #ruffopt excludedformats nroff
+        ![smith_outside_unit_circle](images/smith_outside_unit_circle.svg)
+        #ruffopt excludedformats {}
 
         ## Closest-point information
         `ELEMENT closest` works with Polar elements in the same way as line elements:
@@ -3526,11 +3572,11 @@ namespace eval ::rbc::POLARELEMENT {
 
         At the Smith endpoints, an equivalent impedance or admittance may be infinite.
 
-        ## PostScript output
-        Polar elements use the same mapped trace for window drawing and PostScript output.
+        ## PostScript/SVG output
+        Polar elements use the same mapped trace for window drawing and PostScript/SVG output.
 
         Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and other line-rendering
-        attributes therefore apply to PostScript output as well as on-screen drawing.
+        attributes therefore apply to PostScript/SVG output as well as on-screen drawing.
 
         ## Polar element options
         Polar elements support the configuration options documented for [LINEELEMENT], except for `-decimate`, which
@@ -5921,7 +5967,7 @@ namespace eval ::rbc::GRID {
         option add *Polar.Grid.SmithGrid admittance
         ```
 
-## Polar grid
+        ## Polar grid
         In `polar` representation, circular radial grid lines are derived from positive ticks of the X axis selected by
         `grid -mapx`. Negative ticks are ignored because radius is unsigned. The zero tick represents the origin rather
         than a circle.

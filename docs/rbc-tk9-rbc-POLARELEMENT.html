@@ -98,9 +98,12 @@ y = vertical Cartesian coordinate
 </div>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">polar</span><span class="w"> </span>.p<span class="w"> </span><span class="o">-</span>representation<span class="w"> </span>polar
-<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>
+<span class="nv">.p</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>
+<span class="nv">.p</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>
 </pre></div>
 </div>
+<p><img alt="polar_cartesian" src="images/polar_cartesian.svg" /></p>
 </section>
 <section id="complex-vector-data">
 <span id="r-rbc-polarelement-complex-vector-data"></span><span id="r-3a3arbc3a3apolarelementqzcomplex2dvector20data"></span><h2>Complex-vector data<a class="headerlink" href="#complex-vector-data" title="Link to this heading">¶</a></h2>
@@ -112,6 +115,7 @@ y = vertical Cartesian coordinate
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma
 </pre></div>
 </div>
+<p><img alt="smith_complex" src="images/smith_complex.svg" /></p>
 <p>A vector supplied to <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> must have type <code class="docutils literal notranslate"><span class="pre">complex</span></code>. A real vector is rejected.</p>
 <p>Complex vector attachment is live. If the vector contents or length change, the element is remapped and the
 graph is redrawn automatically.</p>
@@ -143,9 +147,10 @@ real vectors or lists. Interleaved <code class="docutils literal notranslate"><s
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mf">1.5707963267948966</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>datacoordinates<span class="w"> </span>polar
 </pre></div>
 </div>
+<p><img alt="polar_coordinates" src="images/polar_coordinates.svg" /></p>
 <p>Each pair is converted to <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">radius*cos(theta)</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">radius*sin(theta)</span></code> before mapping. Source values are
 retained: <code class="docutils literal notranslate"><span class="pre">cget</span></code> returns the original input, and vector changes update the plotted points. The shorter source
-determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radii follow
+determines the number of points, as with Cartesian input. Angles need not be normalized. Negative radius follow
 the same conversion equations; non-finite pairs break the trace. In Smith representation, the resulting X/Y
 coordinates represent Gamma.</p>
 <p>The active data source must be real pairs; complex <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> requires <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code>. Error-bar
@@ -194,6 +199,7 @@ admittance
 </pre></div>
 </div>
 <p>The default is <code class="docutils literal notranslate"><span class="pre">gamma</span></code>.</p>
+<p>Interpretation does not depend on the <code class="docutils literal notranslate"><span class="pre">-representation</span></code> option of the graph.</p>
 <section id="gamma">
 <span id="r-rbc-polarelement-gamma"></span><span id="r-3a3arbc3a3apolarelementqzgamma"></span><h3>Gamma<a class="headerlink" href="#gamma" title="Link to this heading">¶</a></h3>
 <p>With:</p>
@@ -215,6 +221,7 @@ y = imag(Gamma)
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>cdataformat<span class="w"> </span>gamma
 </pre></div>
 </div>
+<p><img alt="polar_cdataformat_gamma" src="images/polar_cdataformat_gamma.svg" /></p>
 </section>
 <section id="impedance">
 <span id="r-rbc-polarelement-impedance"></span><span id="r-3a3arbc3a3apolarelementqzimpedance"></span><h3>Impedance<a class="headerlink" href="#impedance" title="Link to this heading">¶</a></h3>
@@ -241,6 +248,7 @@ y = imag(Gamma)
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>cdataformat<span class="w"> </span>impedance<span class="w"> </span><span class="o">-</span>z0<span class="w"> </span><span class="mi">50</span>
 </pre></div>
 </div>
+<p><img alt="smith_cdataformat_impedance" src="images/smith_cdataformat_impedance.svg" /></p>
 </section>
 <section id="admittance">
 <span id="r-rbc-polarelement-admittance"></span><span id="r-3a3arbc3a3apolarelementqzadmittance"></span><h3>Admittance<a class="headerlink" href="#admittance" title="Link to this heading">¶</a></h3>
@@ -266,6 +274,7 @@ y = imag(Gamma)
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>cdataformat<span class="w"> </span>admittance<span class="w"> </span><span class="o">-</span>z0<span class="w"> </span><span class="mi">50</span>
 </pre></div>
 </div>
+<p><img alt="smith_cdataformat_admittance" src="images/smith_cdataformat_admittance.svg" /></p>
 <p>The conversion to Gamma is performed independently of the widget’s grid representation. For example, an
 impedance data element may still be displayed while the Smith grid is configured for admittance contours.</p>
 </section>
@@ -338,10 +347,15 @@ are parametric for a <code class="docutils literal notranslate"><span class="pre
 <p>This allows trajectories whose X coordinate reverses direction, vertical trajectories, and loops.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
-<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
-<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>loop<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>natural
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-1</span><span class="w"> </span><span class="mf">1.5</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-0.5</span><span class="w"> </span><span class="mi">0</span><span class="k">}}</span>
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>linear<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>linear
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>step<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>step<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>grey
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>natural<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>natural<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>red
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>quadratic<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>quadratic<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>black
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>catrom<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>smooth<span class="w"> </span>catrom<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>brown
 </pre></div>
 </div>
+<p><img alt="polar_smoothing" src="images/polar_smoothing.svg" /></p>
 <p><code class="docutils literal notranslate"><span class="pre">catrom</span></code> is also parametric.</p>
 <p><code class="docutils literal notranslate"><span class="pre">linear</span></code> joins mapped points with straight segments.</p>
 <p><code class="docutils literal notranslate"><span class="pre">step</span></code> retains the normal Cartesian step-and-hold behavior; it does not perform radius/angle stepping.</p>
@@ -383,6 +397,13 @@ ranges.</p>
 </div>
 <p>and remains visible if the graph limits include it.</p>
 <p>The unit circle is therefore a Smith-chart reference contour, not an element clipping boundary.</p>
+<p>For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">-5</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">-2</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">10</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">50</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">150</span><span class="w"> </span><span class="o">-</span><span class="mi">20</span><span class="k">}}</span>
+<span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>linear<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>cdataformat<span class="w"> </span>impedance
+</pre></div>
+</div>
+<p><img alt="smith_outside_unit_circle" src="images/smith_outside_unit_circle.svg" /></p>
 </section>
 <section id="closest-point-information">
 <span id="r-rbc-polarelement-closest-point-information"></span><span id="r-3a3arbc3a3apolarelementqzclosest2dpoint20information"></span><h2>Closest-point information<a class="headerlink" href="#closest-point-information" title="Link to this heading">¶</a></h2>
@@ -446,11 +467,11 @@ the source element was supplied as Gamma, impedance, or admittance.</p>
 <p>The physical values are derived using the element’s <code class="docutils literal notranslate"><span class="pre">-z0</span></code>.</p>
 <p>At the Smith endpoints, an equivalent impedance or admittance may be infinite.</p>
 </section>
-<section id="postscript-output">
-<span id="r-rbc-polarelement-postscript-output"></span><span id="r-3a3arbc3a3apolarelementqzpostscript20output"></span><h2>PostScript output<a class="headerlink" href="#postscript-output" title="Link to this heading">¶</a></h2>
-<p>Polar elements use the same mapped trace for window drawing and PostScript output.</p>
+<section id="postscript-svg-output">
+<span id="r-rbc-polarelement-postscript-svg-output"></span><span id="r-3a3arbc3a3apolarelementqzpostscript2fsvg20output"></span><h2>PostScript/SVG output<a class="headerlink" href="#postscript-svg-output" title="Link to this heading">¶</a></h2>
+<p>Polar elements use the same mapped trace for window drawing and PostScript/SVG output.</p>
 <p>Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and other line-rendering
-attributes therefore apply to PostScript output as well as on-screen drawing.</p>
+attributes therefore apply to PostScript/SVG output as well as on-screen drawing.</p>
 </section>
 <section id="polar-element-options">
 <span id="r-rbc-polarelement-polar-element-options"></span><span id="r-3a3arbc3a3apolarelementqzpolar20element20options"></span><h2>Polar element options<a class="headerlink" href="#polar-element-options" title="Link to this heading">¶</a></h2>
@@ -532,7 +553,7 @@ and complex-data mapping, the differences are described above.</p>
 <li><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
 <li><a class="reference internal" href="#data-outside-the-smith-unit-circle">Data outside the Smith unit circle</a></li>
 <li><a class="reference internal" href="#closest-point-information">Closest-point information</a></li>
-<li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
+<li><a class="reference internal" href="#postscript-svg-output">PostScript/SVG output</a></li>
 <li><a class="reference internal" href="#polar-element-options">Polar element options</a></li>
 </ul>
 </li>
