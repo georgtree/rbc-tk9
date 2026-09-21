@@ -43,10 +43,6 @@
   <section id="bar-element-barelement-options">
 <span id="r-bar-element-barelement-options"></span><span id="r-bar20element2060barelement6020options"></span><span id="r-namespaceqz3a3arbc3a3abarelement"></span><h1>Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options<a class="headerlink" href="#bar-element-barelement-options" title="Link to this heading">¶</a></h1>
 <p>This page documents the configuration and behavior of bar elements.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid/stippled bar fills and error bars use Cairo, including active bars and named
-pens. Integer rectangle edges and stipple pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> applies to error strokes. Bar
-layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
-native rendering.</p>
 <p><code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">BarElement</span></code>. Bar elements are the default element
 type of a <code class="docutils literal notranslate"><span class="pre">barchart</span></code> widget:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">barchart</span><span class="w"> </span>.b
@@ -59,6 +55,10 @@ type of a <code class="docutils literal notranslate"><span class="pre">barchart<
 </div>
 <p>The common element operations such as <code class="docutils literal notranslate"><span class="pre">create</span></code>, <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">bind</span></code>, and <code class="docutils literal notranslate"><span class="pre">delete</span></code> are
 documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-namespaceqz3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid/stippled bar fills and error bars use Cairo, including active bars and named
+pens. Integer rectangle edges and stipple pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> applies to error strokes. Bar
+layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
+native rendering.</p>
 <section id="data">
 <span id="r-rbc-barelement-data"></span><span id="r-3a3arbc3a3abarelementqzdata"></span><h2>Data<a class="headerlink" href="#data" title="Link to this heading">¶</a></h2>
 <p>X and Y coordinates may be supplied separately with <code class="docutils literal notranslate"><span class="pre">-x</span></code> and <code class="docutils literal notranslate"><span class="pre">-y</span></code>:</p>
@@ -102,6 +102,26 @@ and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 <p>The selected axes must have the appropriate X or Y orientation.</p>
 <p>Bar grouping is performed only between bars mapped through the same X/Y axis pair.</p>
 </section>
+<section id="bar-fill-opacity">
+<span id="r-rbc-barelement-bar-fill-opacity"></span><span id="r-3a3arbc3a3abarelementqzbar20fill20opacity"></span><h2>Bar fill opacity<a class="headerlink" href="#bar-fill-opacity" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code> sets the fill opacity from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (no fill) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).
+Cairo rendering and SVG export support intermediate values for both solid and stippled fills.
+Opacity applies to the bar interior and legend swatch, including both stipple colors; existing transparent
+stipple gaps remain transparent. Borders, error bars, and value labels are unaffected.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.35</span>
+<span class="nv">.b</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>translucent<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>bar<span class="w"> </span><span class="o">-</span>foreground<span class="w"> </span>blue<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.5</span>
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>pen<span class="w"> </span>translucent
+</pre></div>
+</div>
+<p>Named and active bar pens have their own <code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code>, which takes precedence when that pen is used.
+A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
+both states, configure both the normal and active pens with zero opacity. Use <code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">0</span></code> as well
+if the bar border should disappear.</p>
+<p><strong>Native renderer and PostScript limitation:</strong> zero opacity suppresses filling, but any positive opacity
+is rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking,
+element order, or closest-point searches.</p>
+</section>
 <section id="bar-geometry">
 <span id="r-rbc-barelement-bar-geometry"></span><span id="r-3a3arbc3a3abarelementqzbar20geometry"></span><h2>Bar geometry<a class="headerlink" href="#bar-geometry" title="Link to this heading">¶</a></h2>
 <p>Each data point describes a bar centered on its X coordinate.</p>
@@ -111,15 +131,18 @@ and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 <span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
 </pre></div>
 </div>
+<p><img alt="barchart_baseline_0" src="images/barchart_baseline_0.svg" /></p>
 <p>creates bars extending from Y=0 to the respective Y values.</p>
 <p>Values below the baseline extend in the opposite direction:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">-4</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="o">-</span><span class="mi">2</span><span class="k">}</span>
 </pre></div>
 </div>
+<p><img alt="barchart_baseline_0_neg" src="images/barchart_baseline_0_neg.svg" /></p>
 <p>The baseline is a <strong>graph widget option</strong>, not a bar-element option:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>baseline<span class="w"> </span><span class="o">-</span><span class="mi">10</span>
 </pre></div>
 </div>
+<p><img alt="barchart_baseline_-10" src="images/barchart_baseline_-10.svg" /></p>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-namespaceqz3a3arbc3a3agraphinst"><span class="std std-ref">GRAPHINST</span></a> for the graph widget option reference.</p>
 </section>
 <section id="bar-width">
@@ -128,6 +151,7 @@ and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>barwidth<span class="w"> </span><span class="mf">0.5</span>
 </pre></div>
 </div>
+<p><img alt="barchart_barwidth" src="images/barchart_barwidth.svg" /></p>
 <p>Width is expressed in graph-coordinate units along the X axis.</p>
 <p>The element default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Any non-positive element <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code> means to use the graph widget’s
 <code class="docutils literal notranslate"><span class="pre">-barwidth</span></code> value instead.</p>
@@ -186,6 +210,14 @@ necessary.</p>
 </div>
 <p>stacks their Y values instead.</p>
 <p>Only visible bar elements mapped through the same X/Y axis pair participate in the same grouping.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">normal</span></code>:</p>
+<p><img alt="barmode_normal" src="images/barmode_normal.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">stacked</span></code>:</p>
+<p><img alt="barmode_stacked" src="images/barmode_stacked.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">aligned</span></code>:</p>
+<p><img alt="barmode_aligned" src="images/barmode_aligned.svg" /></p>
+<p><code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">overlap</span></code>:</p>
+<p><img alt="barmode_overlap" src="images/barmode_overlap.svg" /></p>
 </section>
 <section id="stacked-bars">
 <span id="r-rbc-barelement-stacked-bars"></span><span id="r-3a3arbc3a3abarelementqzstacked20bars"></span><h2>Stacked bars<a class="headerlink" href="#stacked-bars" title="Link to this heading">¶</a></h2>
@@ -217,19 +249,22 @@ with a rendered stacked segment rather than replacing its Y value with the cumul
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span> <span class="pre">value</span></code></p></td>
+<td><p>Sets bar fill opacity from 0.0 (no fill) to 1.0 (opaque); partial opacity requires Cairo or SVG.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the primary fill color of the bar. <code class="docutils literal notranslate"><span class="pre">-fg</span></code> is a synonym. The default is <code class="docutils literal notranslate"><span class="pre">blue</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-background</span> <span class="pre">color</span></code></p></td>
 <td><p>Sets the 3-D border color and the background color used for opaque stippling. <code class="docutils literal notranslate"><span class="pre">-bg</span></code> is a synonym. The default is <code class="docutils literal notranslate"><span class="pre">navyblue</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">width</span></code></p></td>
 <td><p>Sets the non-negative width of the 3-D bar border. <code class="docutils literal notranslate"><span class="pre">-bd</span></code> is a synonym. The default is <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p>Sets the relief of the 3-D border. The default is <code class="docutils literal notranslate"><span class="pre">raised</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
 <td><p>Fills bars through the specified Tk bitmap stipple. An empty value disables stippling.</p></td>
 </tr>
 </tbody>
@@ -494,167 +529,172 @@ rectangle.</p>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fillOpacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FillOpacity</span></code></p></td>
+<td><p>Fill opacity from 0.0 to 1.0 (default). Cairo/SVG support partial opacity; native/PostScript only suppress zero.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">foreground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Foreground</span></code></p></td>
 <td><p>Sets the primary bar fill color. The default is blue.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">hide</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Hide</span></code></p></td>
 <td><p>Controls whether the element is displayed. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">hidePlot</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">HidePlot</span></code></p></td>
 <td><p>Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden bar does not contribute to automatic axis limits, bar grouping or stacking calculations, closest searches, or element hit testing. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-label</span> <span class="pre">text</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-label</span> <span class="pre">text</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Label</span></code></p></td>
 <td><p>Sets the element label used by the legend. The initial label is the element name.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-labelrelief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-labelrelief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">labelRelief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">LabelRelief</span></code></p></td>
 <td><p>Sets the relief used for the element’s legend label. The default is <code class="docutils literal notranslate"><span class="pre">flat</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapx</span> <span class="pre">axisName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">mapX</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapX</span></code></p></td>
 <td><p>Specifies the X axis used to map the element’s X coordinates. The axis must exist and must be an X axis. The default is <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axisName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">mapY</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
 <td><p>Specifies the Y axis used to map the element’s Y coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pen</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Pen</span></code></p></td>
 <td><p>Specifies a named bar pen containing the element’s normal drawing attributes. An empty value uses the element’s built-in pen.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Relief</span></code></p></td>
 <td><p>Sets the relief used to draw bars. The default is <code class="docutils literal notranslate"><span class="pre">raised</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showErrorBars</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowErrorBars</span></code></p></td>
 <td><p>Selects which error bars are displayed: X, Y, both, or neither. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showValues</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowValues</span></code></p></td>
 <td><p>Selects which coordinate values are displayed next to bars. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">State</span></code></p></td>
 <td><p>Sets the element state. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">stipple</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Stipple</span></code></p></td>
 <td><p>Specifies a bitmap used to stipple the bar fill. An empty value selects a solid fill.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-styles</span> <span class="pre">styles</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-styles</span> <span class="pre">styles</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">styles</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Styles</span></code></p></td>
 <td><p>Specifies pens selected according to <code class="docutils literal notranslate"><span class="pre">-weights</span></code>. Each style is either <code class="docutils literal notranslate"><span class="pre">penName</span></code> or <code class="docutils literal notranslate"><span class="pre">{penName</span> <span class="pre">min</span> <span class="pre">max}</span></code>. Bare pen names receive successive implicit weight ranges. An empty value disables weight-selected styles.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueAnchor</span></code></p></td>
 <td><p>Sets the anchor used to position value labels relative to bars. The default is <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueColor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueColor</span></code></p></td>
 <td><p>Sets the color used to draw value labels.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFont</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFont</span></code></p></td>
 <td><p>Sets the font used to draw value labels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code></p></td>
 <td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueOffset</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueOffset</span></code></p></td>
 <td><p>Moves the label anchor by signed integer pixels. Default: <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-weights</span> <span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Weights</span></code></p></td>
 <td><p>Supplies per-point numeric weights used to select pens through <code class="docutils literal notranslate"><span class="pre">-styles</span></code>. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xdata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Xdata</span></code></p></td>
 <td><p>Supplies the element’s X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-x</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
 <td><p>Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
 <td><p>Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
 <td><p>Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ydata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Ydata</span></code></p></td>
 <td><p>Supplies the element’s Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
 <td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
 <td><p>Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
 <td><p>Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
@@ -680,6 +720,7 @@ rectangle.</p>
 <li><a class="reference internal" href="#">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a><ul>
 <li><a class="reference internal" href="#data">Data</a></li>
 <li><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
+<li><a class="reference internal" href="#bar-fill-opacity">Bar fill opacity</a></li>
 <li><a class="reference internal" href="#bar-geometry">Bar geometry</a></li>
 <li><a class="reference internal" href="#bar-width">Bar width</a></li>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>

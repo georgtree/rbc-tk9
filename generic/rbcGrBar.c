@@ -40,6 +40,7 @@ typedef struct {
     int borderWidth;
     int relief;
     Pixmap stipple;
+    double fillOpacity; /* Fill alpha; borders and annotations remain opaque. */
     GC gc;
     int errorBarShow;
     int errorBarLineWidth;
@@ -176,6 +177,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-data", "data", "Data", NULL, BAR_CORE_OFFSET(dataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_DOUBLE, "-fillopacity", "fillOpacity", "FillOpacity", "1.0", -1,
+     BAR_BUILTIN_PEN_OFFSET(fillOpacity), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
     {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_BAR_FOREGROUND, -1,
      BAR_BUILTIN_PEN_OFFSET(fgColor), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
@@ -306,6 +309,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          TK_OPTION_NULL_OK,                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
+        {TK_OPTION_DOUBLE, "-fillopacity", "fillOpacity", "FillOpacity", "1.0", -1,                                  \
+         offsetof(BarPen, fillOpacity), 0, NULL, 0},                                                                   \
         {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},                                     \
         {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_PEN_RELIEF, -1, offsetof(BarPen, relief), 0, NULL, 0},   \
         {TK_OPTION_STRING,                                                                                             \
@@ -572,6 +577,11 @@ static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     newErrorBarColor = NULL;
     newShadow.color = NULL;
     newShadow.offset = 0;
+    if ((!FINITE(bpPtr->fillOpacity)) || (bpPtr->fillOpacity < 0.0) || (bpPtr->fillOpacity > 1.0)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_NewStringObj("-fillopacity must be a finite number between 0 and 1", -1));
+        goto error;
+    }
     if (Rbc_GetValueOffset(graphPtr->interp, bpPtr->valueOffsetObjPtr, &newValueOffset) != TCL_OK) {
         goto error;
     }
@@ -1833,7 +1843,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
     int radius;
 
     penPtr = BAR_PEN_FROM_CORE(elemPtr->normalPenPtr);
-    if ((penPtr->border == NULL) && (penPtr->fgColor == NULL)) {
+    if ((penPtr->fillOpacity == 0.0) || ((penPtr->border == NULL) && (penPtr->fgColor == NULL))) {
         return;
     }
     radius = (size / 2);
@@ -1845,7 +1855,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         const XColor *background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
         const XColor *foreground = (penPtr->fgColor != NULL) ? penPtr->fgColor : background;
         if (Rbc_RenderLegendBar(graphPtr, drawable, width, height, &r, foreground,
-                                (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple))
+                                (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple, penPtr->fillOpacity))
             return;
     }
     XSetTSOrigin(graphPtr->display, penPtr->gc, x, y);
@@ -2116,11 +2126,11 @@ static void DrawBarSegments(Graph *graphPtr, Drawable drawable, BarPen *penPtr, 
     if ((nRects <= 0) || ((penPtr->border == NULL) && (penPtr->fgColor == NULL))) {
         return;
     }
-    {
+    if (penPtr->fillOpacity > 0.0) {
         const XColor *background = (penPtr->border != NULL) ? Tk_3DBorderColor(penPtr->border) : NULL;
         const XColor *foreground = (penPtr->fgColor != NULL) ? penPtr->fgColor : background;
         if (!Rbc_RenderRectangles(graphPtr, drawable, rectangles, nRects, foreground,
-                                  (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple)) {
+                                  (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple, penPtr->fillOpacity)) {
             maxRects = Rbc_MaxRequestSize(graphPtr->display, sizeof(XRectangle));
             if (maxRects < 1) {
                 return;
@@ -2415,7 +2425,7 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
     Rbc_RenderContext *ctx;
     Point2D center = {x, y};
 
-    if ((bpPtr->border == NULL) && (bpPtr->fgColor == NULL)) {
+    if ((bpPtr->fillOpacity == 0.0) || ((bpPtr->border == NULL) && (bpPtr->fgColor == NULL))) {
         return;
     }
     style.foreground = bpPtr->fgColor;
@@ -2427,7 +2437,7 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
         style.foreground = style.background;
         style.background = NULL;
     }
-    style.opacity = 1.0;
+    style.opacity = bpPtr->fillOpacity;
     style.backgroundOnly = FALSE;
     ctx = Rbc_RenderBeginExportBarSymbol(graphPtr, exportPtr, &style, size);
     Rbc_RenderSymbolPoints(ctx, &center, 1);
@@ -2474,7 +2484,7 @@ static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen
         style.foreground = style.background;
         style.background = NULL;
     }
-    style.opacity = 1.0;
+    style.opacity = penPtr->fillOpacity;
     style.backgroundOnly = FALSE;
     ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
     for (endPtr = rectPtr + nRects; rectPtr < endPtr; rectPtr++) {
@@ -2484,7 +2494,9 @@ static void SegmentsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, BarPen
         /* Preserve the historical PostScript one-pixel inset. */
         Rbc_RenderRectangle fill = {rectPtr->x, rectPtr->y, rectPtr->width - 1, rectPtr->height - 1};
 
-        Rbc_RenderFillRectangles(ctx, &fill, 1);
+        if (penPtr->fillOpacity > 0.0) {
+            Rbc_RenderFillRectangles(ctx, &fill, 1);
+        }
         if ((penPtr->border != NULL) && (penPtr->borderWidth > 0) && (penPtr->relief != TK_RELIEF_FLAT)) {
             Rbc_RenderBorder(ctx, penPtr->border, (double)rectPtr->x, (double)rectPtr->y,
                                             rectPtr->width, rectPtr->height, penPtr->borderWidth, penPtr->relief, FALSE);

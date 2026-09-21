@@ -401,6 +401,7 @@ See \fIBARELEMENT\fP for placement of value labels relative to the baseline and 
 │                       │                │                │ positive value selects an explicit size; 0       │
 │                       │                │                │ automatically derives the size from the bar      │
 │                       │                │                │ width\&. The default is 1\&.                         │
+│ -fillopacity value    │ fillOpacity    │ FillOpacity    │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.      │
 │ -foreground color     │ foreground     │ Foreground     │ Specifies the primary bar fill color\&. With a     │
 │                       │                │                │ stipple, it supplies the stipple foreground\&. An  │
 │                       │                │                │ empty value disables the foreground fill\&. The    │

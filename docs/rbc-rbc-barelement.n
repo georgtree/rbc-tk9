@@ -8,11 +8,6 @@ rbc::BARELEMENT - Commands in namespace rbc::BARELEMENT
 .PP
 This page documents the configuration and behavior of bar elements\&.
 .PP
-With -renderer cairo, solid/stippled bar fills and error bars use Cairo, including active bars and named
-pens\&. Integer rectangle edges and stipple pixels stay sharp; -antialias applies to error strokes\&. Bar
-layout, clipping, color defaults, and stipple origin are preserved\&. Tk relief borders and value labels retain
-native rendering\&.
-.PP
 BARELEMENT denotes an element whose concrete type is BarElement\&. Bar elements are the default element
 type of a barchart widget:
 .PP
@@ -33,6 +28,11 @@ A bar element may also be created explicitly in any graph widget:
 .PP
 The common element operations such as create, configure, activate, closest, bind, and delete are
 documented in \fIELEMENT\fP\&.
+.PP
+With -renderer cairo, solid/stippled bar fills and error bars use Cairo, including active bars and named
+pens\&. Integer rectangle edges and stipple pixels stay sharp; -antialias applies to error strokes\&. Bar
+layout, clipping, color defaults, and stipple origin are preserved\&. Tk relief borders and value labels retain
+native rendering\&.
 .SH DATA
 .PP
 X and Y coordinates may be supplied separately with -x and -y:
@@ -99,6 +99,30 @@ and y\&.
 The selected axes must have the appropriate X or Y orientation\&.
 .PP
 Bar grouping is performed only between bars mapped through the same X/Y axis pair\&.
+.SH "BAR FILL OPACITY"
+.PP
+-fillopacity sets the fill opacity from 0\&.0 (no fill) to 1\&.0 (opaque, the default)\&.
+Cairo rendering and SVG export support intermediate values for both solid and stippled fills\&.
+Opacity applies to the bar interior and legend swatch, including both stipple colors; existing transparent
+stipple gaps remain transparent\&. Borders, error bars, and value labels are unaffected\&.
+.PP
+.RS 4n
+.nf
+\&.b configure -renderer cairo
+\&.b element configure values -fillopacity 0\&.35
+\&.b pen create translucent -type bar -foreground blue -fillopacity 0\&.5
+\&.b element configure values -pen translucent
+.fi
+.RE
+.PP
+Named and active bar pens have their own -fillopacity, which takes precedence when that pen is used\&.
+A transparent active fill leaves the normal bar underneath visible\&. To suppress the entire bar fill in
+both states, configure both the normal and active pens with zero opacity\&. Use -borderwidth 0 as well
+if the bar border should disappear\&.
+.PP
+\fBNative renderer and PostScript limitation:\fP zero opacity suppresses filling, but any positive opacity
+is rendered as opaque\&. Use Cairo or SVG for partial transparency\&. This option does not change stacking,
+element order, or closest-point searches\&.
 .SH "BAR GEOMETRY"
 .PP
 Each data point describes a bar centered on its X coordinate\&.
@@ -242,6 +266,7 @@ Its basic appearance is controlled directly by:
 ┌──────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                                                │
 ├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+│ -fillopacity value   │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.                                                │
 │ -foreground color    │ Sets the primary fill color of the bar\&. -fg is a synonym\&. The default is blue\&.             │
 │ -background color    │ Sets the 3-D border color and the background color used for opaque stippling\&. -bg is a     │
 │                      │ synonym\&. The default is navyblue\&.                                                          │
@@ -504,6 +529,7 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │ -errorbarwidth width    │ errorBarWidth   │ ErrorBarWidth    │ Sets the error-bar line width\&. The default is  │
 │                         │                 │                  │ 1\&.                                             │
 │ -fg color               │ —               │ —                │ Synonym for -foreground\&.                       │
+│ -fillopacity value      │ fillOpacity     │ FillOpacity      │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.    │
 │ -foreground color       │ foreground      │ Foreground       │ Sets the primary bar fill color\&. The default   │
 │                         │                 │                  │ is blue\&.                                       │
 │ -hide boolean           │ hide            │ Hide             │ Controls whether the element is displayed\&. The │

@@ -1,0 +1,175 @@
+# Bar fill opacity: configuration, screen rendering, legends, and export.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval barFillOpacity {
+    namespace import ::tcltest::*
+
+    ::rbc::graph .opacityProbe
+    set code [catch {.opacityProbe configure -renderer cairo} message]
+    destroy .opacityProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {
+        error $message
+    }
+    testConstraint barOpacityCairo [expr {!$code}]
+
+    proc Create {{renderer native}} {
+        ::rbc::barchart .bo -width 400 -height 300 -renderer $renderer -plotbackground white
+        .bo axis configure x -min 0 -max 2 -loose no
+        .bo axis configure y -min 0 -max 6 -loose no
+        .bo grid configure -hide yes
+        .bo legend configure -hide yes
+        .bo element create e -data {1 4} -barwidth 1 -foreground red -background red \
+            -borderwidth 0 -label bar
+        pack .bo
+        update
+    }
+
+    proc Pixel {photo x y} {
+        .bo snap $photo
+        lassign [.bo transform $x $y] px py
+        return [$photo get [expr {round($px)}] [expr {round($py)}]]
+    }
+
+    test barOpacity-options {element and pen defaults, metadata, and transactional validation} -setup {
+        Create
+        .bo pen create p -type bar -foreground red
+    } -body {
+        set result [list [.bo element cget e -fillopacity] [.bo pen cget p -fillopacity] \
+            [lrange [.bo element configure e -fillopacity] 1 3]]
+        set failures {}
+        foreach target {{element e} {pen p}} {
+            lassign $target kind name
+            .bo $kind configure $name -fillopacity 0.25
+            foreach value {-0.1 1.1 Inf -Inf NaN bad} {
+                set code [catch {.bo $kind configure $name -foreground blue -fillopacity $value}]
+                if {!$code || [.bo $kind cget $name -fillopacity] != 0.25 ||
+                    [.bo $kind cget $name -foreground] eq {blue}} {
+                    lappend failures $target $value
+                }
+            }
+        }
+        lappend result $failures
+    } -cleanup {
+        destroy .bo
+    } -result {1.0 1.0 {fillOpacity FillOpacity 1.0} {}}
+
+    foreach renderer {native cairo} {
+        set constraints {}
+        if {$renderer eq "cairo"} {
+            set constraints barOpacityCairo
+        }
+        test barOpacity-screen-$renderer {zero, partial and full fill opacity} -constraints $constraints -setup {
+            Create $renderer
+            set photo [image create photo]
+        } -body {
+            set result {}
+            foreach opacity {0 0.5 1} {
+                .bo element configure e -fillopacity $opacity
+                lassign [Pixel $photo 1.2 1] r g b
+                if {$opacity == 0} {
+                    lappend result [expr {$r == 255 && $g == 255 && $b == 255}]
+                } elseif {$opacity == 0.5 && $renderer eq "cairo"} {
+                    lappend result [expr {$r == 255 && $g >= 126 && $g <= 129 && $b == $g}]
+                } else {
+                    lappend result [expr {$r == 255 && $g == 0 && $b == 0}]
+                }
+            }
+            set result
+        } -cleanup {
+            destroy .bo
+            if {[info exists photo]} {catch {image delete $photo}}
+        } -result {1 1 1}
+    }
+
+    test barOpacity-active {active pen opacity overrides normal fill opacity} -constraints barOpacityCairo -setup {
+        Create cairo
+        set photo [image create photo]
+        .bo element configure e -fillopacity 0
+        .bo pen configure activeBar -foreground blue -background blue -borderwidth 0 -fillopacity 0.5
+        .bo element activate e
+    } -body {
+        lassign [Pixel $photo 1.2 1] r g b
+        expr {$b == 255 && $r >= 126 && $r <= 129 && $g == $r}
+    } -cleanup {
+        destroy .bo
+        if {[info exists photo]} {catch {image delete $photo}}
+    } -result 1
+
+    test barOpacity-stipple {Cairo blends both stipple colors} -constraints barOpacityCairo -setup {
+        Create cairo
+        set photo [image create photo]
+        .bo element configure e -foreground red -background blue -stipple gray25 -fillopacity 0.5
+    } -body {
+        .bo snap $photo
+        lassign [.bo transform 1 1] x y
+        set x [expr {round($x)}]
+        set y [expr {round($y)}]
+        set red 0
+        set blue 0
+        for {set dy 0} {$dy < 8} {incr dy} {
+            for {set dx 0} {$dx < 8} {incr dx} {
+                lassign [$photo get [expr {$x + $dx}] [expr {$y + $dy}]] r g b
+                if {$r == 255 && $g >= 126 && $g <= 129 && $b == $g} {incr red}
+                if {$b == 255 && $g >= 126 && $g <= 129 && $r == $g} {incr blue}
+            }
+        }
+        expr {$red > 0 && $blue > 0 && $red + $blue == 64}
+    } -cleanup {
+        destroy .bo
+        if {[info exists photo]} {catch {image delete $photo}}
+    } -result 1
+
+    test barOpacity-errors {zero fill leaves error bars visible} -setup {
+        Create
+        set photo [image create photo]
+        .bo element configure e -fillopacity 0 -yerror {1} -errorbarcolor black -errorbarwidth 3
+    } -body {
+        list [Pixel $photo 1.2 1] [Pixel $photo 1 3.5]
+    } -cleanup {
+        destroy .bo
+        if {[info exists photo]} {catch {image delete $photo}}
+    } -result {{255 255 255} {0 0 0}}
+
+    foreach stipple {{} gray25} {
+        test barOpacity-svg-$stipple {SVG bar and legend preserve solid or stippled opacity} -setup {
+            Create
+            .bo legend configure -hide no
+            .bo pen create p -type bar -foreground red -background blue -borderwidth 0 \
+                -fillopacity 0.25 -stipple $stipple
+            .bo element configure e -pen p
+            update
+        } -body {
+            set document [.bo svg output]
+            set result [list [expr {[regexp -all {<g opacity="0.25">} $document] >= 2}]]
+            if {$stipple ne {}} {
+                lappend result [expr {[string first {fill="url(#rbcPattern} $document] >= 0}]
+            } else {
+                lappend result [expr {[string first {fill="#ff0000"} $document] >= 0}]
+            }
+            .bo pen configure p -fillopacity 0
+            set document [.bo svg output]
+            lappend result [expr {[string first {fill="#ff0000"} $document] < 0 &&
+                [string first {fill="url(#rbcPattern} $document] < 0}]
+        } -cleanup {
+            destroy .bo
+        } -result {1 1 1}
+    }
+
+    test barOpacity-postscript {PostScript omits zero fill and treats partial fill as opaque} -setup {
+        Create
+    } -body {
+        set counts {}
+        foreach opacity {0 0.5 1} {
+            .bo element configure e -fillopacity $opacity
+            lappend counts [regexp -all { Box fill} [.bo postscript output]]
+        }
+        lassign $counts zero half full
+        list [expr {$half == $full}] [expr {$full == $zero + 1}]
+    } -cleanup {
+        destroy .bo
+    } -result {1 1}
+
+    cleanupTests
+}

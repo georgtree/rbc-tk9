@@ -3621,11 +3621,6 @@ namespace eval ::rbc::BARELEMENT {
     variable _ruff_preamble {
         This page documents the configuration and behavior of bar elements.
 
-        With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and named
-        pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes. Bar
-        layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
-        native rendering.
-
         `BARELEMENT` denotes an element whose concrete type is `BarElement`. Bar elements are the default element
         type of a `barchart` widget:
         ```tcl
@@ -3640,6 +3635,11 @@ namespace eval ::rbc::BARELEMENT {
 
         The common element operations such as `create`, `configure`, `activate`, `closest`, `bind`, and `delete` are
         documented in [ELEMENT].
+
+        With `-renderer cairo`, solid/stippled bar fills and error bars use Cairo, including active bars and named
+        pens. Integer rectangle edges and stipple pixels stay sharp; `-antialias` applies to error strokes. Bar
+        layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
+        native rendering.
 
         ## Data
         X and Y coordinates may be supplied separately with `-x` and `-y`:
@@ -3693,6 +3693,28 @@ namespace eval ::rbc::BARELEMENT {
 
         Bar grouping is performed only between bars mapped through the same X/Y axis pair.
 
+        ## Bar fill opacity
+        `-fillopacity` sets the fill opacity from `0.0` (no fill) to `1.0` (opaque, the default).
+        Cairo rendering and SVG export support intermediate values for both solid and stippled fills.
+        Opacity applies to the bar interior and legend swatch, including both stipple colors; existing transparent
+        stipple gaps remain transparent. Borders, error bars, and value labels are unaffected.
+
+        ```tcl
+        .b configure -renderer cairo
+        .b element configure values -fillopacity 0.35
+        .b pen create translucent -type bar -foreground blue -fillopacity 0.5
+        .b element configure values -pen translucent
+        ```
+
+        Named and active bar pens have their own `-fillopacity`, which takes precedence when that pen is used.
+        A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
+        both states, configure both the normal and active pens with zero opacity. Use `-borderwidth 0` as well
+        if the bar border should disappear.
+
+        **Native renderer and PostScript limitation:** zero opacity suppresses filling, but any positive opacity
+        is rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking,
+        element order, or closest-point searches.
+
         ## Bar geometry
         Each data point describes a bar centered on its X coordinate.
 
@@ -3704,6 +3726,10 @@ namespace eval ::rbc::BARELEMENT {
         .b element create values -x {1 2 3} -y {4 7 2}
         ```
 
+        #ruffopt excludedformats nroff
+        ![barchart_baseline_0](images/barchart_baseline_0.svg)
+        #ruffopt excludedformats {}
+
         creates bars extending from Y=0 to the respective Y values.
 
         Values below the baseline extend in the opposite direction:
@@ -3711,10 +3737,18 @@ namespace eval ::rbc::BARELEMENT {
         .b element configure values -y {-4 7 -2}
         ```
 
+        #ruffopt excludedformats nroff
+        ![barchart_baseline_0_neg](images/barchart_baseline_0_neg.svg)
+        #ruffopt excludedformats {}
+
         The baseline is a **graph widget option**, not a bar-element option:
         ```tcl
         .b configure -baseline -10
         ```
+
+        #ruffopt excludedformats nroff
+        ![barchart_baseline_-10](images/barchart_baseline_-10.svg)
+        #ruffopt excludedformats {}
 
         See [GRAPHINST] for the graph widget option reference.
 
@@ -3724,6 +3758,10 @@ namespace eval ::rbc::BARELEMENT {
         ```tcl
         .b element configure values -barwidth 0.5
         ```
+
+        #ruffopt excludedformats nroff
+        ![barchart_barwidth](images/barchart_barwidth.svg)
+        #ruffopt excludedformats {}
 
         Width is expressed in graph-coordinate units along the X axis.
 
@@ -3792,6 +3830,24 @@ namespace eval ::rbc::BARELEMENT {
 
         Only visible bar elements mapped through the same X/Y axis pair participate in the same grouping.
 
+        #ruffopt excludedformats nroff
+        `-barmode normal`:
+
+        ![barmode_normal](images/barmode_normal.svg)
+
+        `-barmode stacked`:
+
+        ![barmode_stacked](images/barmode_stacked.svg)
+
+        `-barmode aligned`:
+
+        ![barmode_aligned](images/barmode_aligned.svg)
+
+        `-barmode overlap`:
+
+        ![barmode_overlap](images/barmode_overlap.svg)
+        #ruffopt excludedformats {}
+
         ## Stacked bars
         In `stacked` mode, Y values at equal X coordinates are additive.
 
@@ -3820,6 +3876,7 @@ namespace eval ::rbc::BARELEMENT {
         #ruffopt excludedformats nroff
         | Option               | Description                                                                                                                  |
         |----------------------|------------------------------------------------------------------------------------------------------------------------------|
+        | `-fillopacity value` | Sets bar fill opacity from 0.0 (no fill) to 1.0 (opaque); partial opacity requires Cairo or SVG. |
         | `-foreground color`  | Sets the primary fill color of the bar. `-fg` is a synonym. The default is `blue`.                                           |
         | `-background color`  | Sets the 3-D border color and the background color used for opaque stippling. `-bg` is a synonym. The default is `navyblue`. |
         | `-borderwidth width` | Sets the non-negative width of the 3-D bar border. `-bd` is a synonym. The default is `2`.                                   |
@@ -3831,6 +3888,7 @@ namespace eval ::rbc::BARELEMENT {
         ┌──────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────┐
         │ Option               │ Description                                                                                │
         ├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+        │ -fillopacity value   │ Fill opacity 0.0-1.0; see Bar fill opacity.                                                │
         │ -foreground color    │ Sets the primary fill color of the bar. -fg is a synonym. The default is blue.             │
         │ -background color    │ Sets the 3-D border color and the background color used for opaque stippling. -bg is a     │
         │                      │ synonym. The default is navyblue.                                                          │
@@ -3857,7 +3915,6 @@ namespace eval ::rbc::BARELEMENT {
         the foreground and background colors form an opaque stippled fill.
 
         ## Pens
-
         A separately created bar pen may replace the element's built-in normal pen with `-pen`:
 
         ```tcl
@@ -4064,6 +4121,7 @@ namespace eval ::rbc::BARELEMENT {
         | `-errorbarcolor color`  | `errorBarColor` | `ErrorBarColor` | Sets the error-bar color. `defcolor` uses the bar foreground color.                                                                                                                                               |
         | `-errorbarwidth width`  | `errorBarWidth` | `ErrorBarWidth` | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
         | `-fg color`             | —               | —               | Synonym for `-foreground`.                                                                                                                                                                                        |
+        | `-fillopacity value` | `fillOpacity` | `FillOpacity` | Fill opacity from 0.0 to 1.0 (default). Cairo/SVG support partial opacity; native/PostScript only suppress zero. |
         | `-foreground color`     | `foreground`    | `Foreground`    | Sets the primary bar fill color. The default is blue.                                                                                                                                                             |
         | `-hide boolean`         | `hide`          | `Hide`          | Controls whether the element is displayed. The default is `no`.                                                                                                                                                   |
         | `-hideplot boolean`     | `hidePlot`      | `HidePlot`      | Suppresses plotting of the element while keeping it in the display list and legend. A plot-hidden bar does not contribute to automatic axis limits, bar grouping or stacking calculations, closest searches, or element hit testing. The default is `no`. |
@@ -4132,6 +4190,7 @@ namespace eval ::rbc::BARELEMENT {
         │ -errorbarwidth width    │ errorBarWidth   │ ErrorBarWidth    │ Sets the error-bar line width. The default is  │
         │                         │                 │                  │ 1.                                             │
         │ -fg color               │ —               │ —                │ Synonym for -foreground.                       │
+        │ -fillopacity value      │ fillOpacity     │ FillOpacity      │ Fill opacity 0.0-1.0; see Bar fill opacity.    │
         │ -foreground color       │ foreground      │ Foreground       │ Sets the primary bar fill color. The default   │
         │                         │                 │                  │ is blue.                                       │
         │ -hide boolean           │ hide            │ Hide             │ Controls whether the element is displayed. The │
@@ -4606,6 +4665,7 @@ namespace eval ::rbc::PEN {
         | `-errorbarcolor color` | `errorBarColor` | `ErrorBarColor` | Sets the error-bar color. `defcolor` uses the bar foreground color.                                                                                                                                                                            |
         | `-errorbarwidth width` | `errorBarWidth` | `ErrorBarWidth` | Sets the error-bar line width. The default is `1`.                                                                                                                                                                                             |
         | `-errorbarcap width`   | `errorBarCap`   | `ErrorBarCap`   | Sets the requested size of error-bar caps. A positive value selects an explicit size; `0` automatically derives the size from the bar width. The default is `1`.                                                                               |
+        | `-fillopacity value` | `fillOpacity` | `FillOpacity` | Fill opacity from 0.0 to 1.0 (default). Cairo/SVG support partial opacity; native/PostScript only suppress zero. |
         | `-foreground color`    | `foreground`    | `Foreground`    | Specifies the primary bar fill color. With a stipple, it supplies the stipple foreground. An empty value disables the foreground fill. The default is blue; `activeBar` defaults to pink.                                                      |
         | `-fg color`            | —               | —               | Synonym for `-foreground`.                                                                                                                                                                                                                     |
         | `-relief relief`       | `relief`        | `Relief`        | Sets the relief used to draw bars. The default is `raised`.                                                                                                                                                                                    |
@@ -4644,6 +4704,7 @@ namespace eval ::rbc::PEN {
         │                       │                │                │ positive value selects an explicit size; 0       │
         │                       │                │                │ automatically derives the size from the bar      │
         │                       │                │                │ width. The default is 1.                         │
+        │ -fillopacity value    │ fillOpacity    │ FillOpacity    │ Fill opacity 0.0-1.0; see Bar fill opacity.      │
         │ -foreground color     │ foreground     │ Foreground     │ Specifies the primary bar fill color. With a     │
         │                       │                │                │ stipple, it supplies the stipple foreground. An  │
         │                       │                │                │ empty value disables the foreground fill. The    │

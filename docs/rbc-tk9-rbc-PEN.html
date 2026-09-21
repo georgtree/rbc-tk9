@@ -479,77 +479,82 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ErrorBarCap</span></code></p></td>
 <td><p>Sets the requested size of error-bar caps. A positive value selects an explicit size; <code class="docutils literal notranslate"><span class="pre">0</span></code> automatically derives the size from the bar width. The default is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fillOpacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FillOpacity</span></code></p></td>
+<td><p>Fill opacity from 0.0 to 1.0 (default). Cairo/SVG support partial opacity; native/PostScript only suppress zero.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-foreground</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">foreground</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Foreground</span></code></p></td>
 <td><p>Specifies the primary bar fill color. With a stipple, it supplies the stipple foreground. An empty value disables the foreground fill. The default is blue; <code class="docutils literal notranslate"><span class="pre">activeBar</span></code> defaults to pink.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">color</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Synonym for <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-relief</span> <span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">relief</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Relief</span></code></p></td>
 <td><p>Sets the relief used to draw bars. The default is <code class="docutils literal notranslate"><span class="pre">raised</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showErrorBars</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowErrorBars</span></code></p></td>
 <td><p>Selects which error bars are displayed: X, Y, both, or neither. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">showValues</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ShowValues</span></code></p></td>
 <td><p>Selects which coordinate values are displayed next to bars. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-stipple</span> <span class="pre">bitmap</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">stipple</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Stipple</span></code></p></td>
 <td><p>Specifies a bitmap used to stipple the bar fill. An empty value selects a solid fill.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">type</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">type</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Selects the pen type when the pen is created. The default is <code class="docutils literal notranslate"><span class="pre">bar</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueanchor</span> <span class="pre">anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueAnchor</span></code></p></td>
 <td><p>Sets the anchor used to position value labels relative to bars. The default is <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecolor</span> <span class="pre">color</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueColor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueColor</span></code></p></td>
 <td><p>Sets the color used to draw value labels. The default is black.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuefont</span> <span class="pre">font</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFont</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFont</span></code></p></td>
 <td><p>Sets the font used to draw value labels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span> <span class="pre">cmd</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code></p></td>
 <td><p>Formats value labels with a Tcl command prefix. The default is empty.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueOffset</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueOffset</span></code></p></td>
 <td><p>Moves the label anchor by signed integer pixels. Default: <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueformat</span> <span class="pre">format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueFormat</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueFormat</span></code></p></td>
 <td><p>Sets the printf-style format used for value labels. The default is <code class="docutils literal notranslate"><span class="pre">%g</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valuerotate</span> <span class="pre">degrees</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueRotate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueRotate</span></code></p></td>
 <td><p>Sets the rotation angle of value labels in degrees. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-valueshadow</span> <span class="pre">shadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">valueShadow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ValueShadow</span></code></p></td>
 <td><p>Specifies a shadow for value labels. An empty value disables the shadow.</p></td>

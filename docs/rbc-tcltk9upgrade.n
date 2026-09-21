@@ -214,6 +214,10 @@ bottom-of-plot closure; chord joins the endpoints directly, and origin closes th
 {0 0}\&. These choices control the fill polygon without adding segments to the visible trace\&. They apply
 to solid, stippled and tiled areas, and the same closure geometry is used in PostScript\&.
 .PP
+Bar elements and bar pens support -fillopacity (default 1\&.0)\&. Cairo and SVG support partial opacity
+for solid and stippled bar fills and legend swatches\&. Zero disables filling on every backend; native
+drawing and PostScript render nonzero values as opaque\&. Borders, error bars, and labels remain unaffected\&.
+.PP
 -areaopacity controls solid fills (-areapattern solid) in Cairo and SVG, from 0\&.0 (invisible) to 1\&.0
 (opaque, the default)\&. It does not change lines, symbols, stipples or image tiles\&. Photo tiles retain
 their own per-pixel alpha, including partial transparency\&.

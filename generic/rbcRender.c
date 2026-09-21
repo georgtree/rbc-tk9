@@ -553,7 +553,7 @@ static cairo_pattern_t *CreateRenderStipple(Graph *graphPtr, Pixmap stipple, con
 
 /* Bar swatches restart the stipple at their top-left corner, as Tk does. */
 int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
-                        const XColor *foreground, const XColor *background, Pixmap stipple) {
+                        const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     Rbc_RenderContext *ctx;
     cairo_pattern_t *pattern = NULL;
     cairo_matrix_t matrix;
@@ -579,12 +579,19 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
         }
         return FALSE;
     }
+    if (opacity != 1.0) {
+        cairo_push_group(ctx->cr);
+    }
     cairo_translate(ctx->cr, -0.5, -0.5);
     if (pattern != NULL) {
         cairo_set_source(ctx->cr, pattern);
     }
     cairo_rectangle(ctx->cr, r->x, r->y, r->width, r->height);
     cairo_fill(ctx->cr);
+    if (opacity != 1.0) {
+        cairo_pop_group_to_source(ctx->cr);
+        cairo_paint_with_alpha(ctx->cr, opacity);
+    }
     if (pattern != NULL) {
         cairo_pattern_destroy(pattern);
     }
@@ -594,8 +601,8 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
 
 /* Integer bar edges stay sharp; bound path storage independently of bar count. */
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
-                         const XColor *foreground, const XColor *background, Pixmap stipple) {
-    Rbc_RenderFillStyle style = {foreground, background, stipple, 1.0, FALSE};
+                         const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
+    Rbc_RenderFillStyle style = {foreground, background, stipple, opacity, FALSE};
     Rbc_RenderContext *ctx;
 
     if (count <= 0) {
@@ -614,6 +621,9 @@ static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangl
     Tcl_Size i;
 
     cairo_save(ctx->cr);
+    if (ctx->fillStyle.opacity != 1.0) {
+        cairo_push_group(ctx->cr);
+    }
     cairo_translate(ctx->cr, -0.5, -0.5);
     cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_WINDING);
     if (ctx->bitmapPattern != NULL) {
@@ -629,6 +639,10 @@ static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangl
         }
     }
     cairo_fill(ctx->cr);
+    if (ctx->fillStyle.opacity != 1.0) {
+        cairo_pop_group_to_source(ctx->cr);
+        cairo_paint_with_alpha(ctx->cr, ctx->fillStyle.opacity);
+    }
     cairo_restore(ctx->cr);
 }
 
@@ -1008,7 +1022,7 @@ Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, i
     return NULL;
 }
 int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
-                        const XColor *foreground, const XColor *background, Pixmap stipple) {
+                        const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
     (void)drawable;
     (void)width;
@@ -1017,6 +1031,7 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
     (void)foreground;
     (void)background;
     (void)stipple;
+    (void)opacity;
     return FALSE;
 }
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
@@ -1056,7 +1071,7 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, con
     (void)outline;
 }
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
-                         const XColor *foreground, const XColor *background, Pixmap stipple) {
+                         const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
     (void)drawable;
     (void)rectangles;
@@ -1064,6 +1079,7 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
     (void)foreground;
     (void)background;
     (void)stipple;
+    (void)opacity;
     return FALSE;
 }
 Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable, Pixmap bitmap, Pixmap mask,
@@ -1771,12 +1787,18 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
         if (rect->width <= 0 || rect->height <= 0) {
             continue;
         }
+        if (ctx->fillStyle.opacity != 1.0) {
+            Rbc_ExportFormat(ctx->exportPtr, "<g opacity=\"%g\">\n", ctx->fillStyle.opacity);
+        }
         if (ctx->fillStyle.stipple != None || ctx->fillStyle.backgroundOnly) {
             const XColor *foreground =
                 ctx->fillStyle.foreground ? ctx->fillStyle.foreground : ctx->fillStyle.background;
             unsigned int id = SvgFillPattern(ctx, foreground);
 
             if (id == 0) {
+                if (ctx->fillStyle.opacity != 1.0) {
+                    Rbc_ExportAppend(ctx->exportPtr, "</g>\n", (char *)NULL);
+                }
                 return;
             }
             Rbc_ExportFormat(ctx->exportPtr,
@@ -1784,6 +1806,9 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
                              rect->x, rect->y, rect->width, rect->height, id);
         } else {
             SvgRectangle(ctx->exportPtr, rect->x, rect->y, rect->width, rect->height, ctx->fillStyle.foreground);
+        }
+        if (ctx->fillStyle.opacity != 1.0) {
+            Rbc_ExportAppend(ctx->exportPtr, "</g>\n", (char *)NULL);
         }
     }
 }
