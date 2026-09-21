@@ -208,11 +208,11 @@ linear trace segments.</p>
 </div>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the complete error-bar semantics.</p>
 </section>
-<section id="y-error-bands-of-strip-elements">
-<span id="r-rbc-stripelement-y-error-bands-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzy20error20bands20of20strip20elements"></span><h2>Y error bands of strip elements<a class="headerlink" href="#y-error-bands-of-strip-elements" title="Link to this heading">¶</a></h2>
-<p>Strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code> and all five band-style options listed below, with the same
+<section id="x-and-y-error-bands-of-strip-elements">
+<span id="r-rbc-stripelement-x-and-y-error-bands-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzx20and20y20error20bands20of20strip20elements"></span><h2>X and Y error bands of strip elements<a class="headerlink" href="#x-and-y-error-bands-of-strip-elements" title="Link to this heading">¶</a></h2>
+<p>Strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">none|x|y</span></code> and all five band-style options listed below, with the same
 relative/absolute bounds, gap handling, linear/step interpolation, and renderer limitations as line
-elements. See the Y error bands section in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Their lack of ordinary area-fill options
+elements. See the X and Y error bands section in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Their lack of ordinary area-fill options
 does not prevent error-band filling.</p>
 </section>
 <section id="value-labels-of-strip-elements">
@@ -289,7 +289,7 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">mode</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ErrorBand</span></code></p></td>
-<td><p>Selects none (default) or y; fills between Y error bounds.</p></td>
+<td><p>Selects none (default), x or y; fills between the selected error bounds.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span> <span class="pre">pattern</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBandPattern</span></code></p></td>
@@ -560,7 +560,7 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <li><a class="reference internal" href="#smoothing">Smoothing</a></li>
 <li><a class="reference internal" href="#pens-and-symbols">Pens and symbols</a></li>
 <li><a class="reference internal" href="#error-bars-of-strip-elements">Error bars of strip elements</a></li>
-<li><a class="reference internal" href="#y-error-bands-of-strip-elements">Y error bands of strip elements</a></li>
+<li><a class="reference internal" href="#x-and-y-error-bands-of-strip-elements">X and Y error bands of strip elements</a></li>
 <li><a class="reference internal" href="#value-labels-of-strip-elements">Value labels of strip elements</a></li>
 <li><a class="reference internal" href="#weights-and-styles">Weights and styles</a></li>
 <li><a class="reference internal" href="#strip-element-options">Strip element options</a></li>

@@ -12,10 +12,11 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
-.SS "Y ERROR BANDS FOR LINES AND STRIPS"
+.SS "X AND Y ERROR BANDS FOR LINES AND STRIPS"
 .PP
-Cartesian line and strip elements support -errorband y, filling between symmetric -yerror bounds
-or absolute -ylow/-yhigh endpoints\&. Independent -errorbandpattern, -errorbandforeground,
+Cartesian line and strip elements support -errorband x|y, filling between symmetric -xerror or
+-yerror bounds, or the corresponding absolute low/high endpoints\&. The default none disables bands\&.
+Independent -errorbandpattern, -errorbandforeground,
 -errorbandbackground, -errorbandtile, and -errorbandopacity options reuse ordinary area-fill
 styles and backend limitations\&. Solid opacity is supported by Cairo and SVG; native rendering and
 PostScript ignore it\&. Linear and step bands preserve all source bounds despite symbol thinning or

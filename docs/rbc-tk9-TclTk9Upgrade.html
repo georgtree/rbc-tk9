@@ -48,10 +48,11 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
-<section id="y-error-bands-for-lines-and-strips">
-<span id="r-tcltk9upgrade-y-error-bands-for-lines-and-strips"></span><span id="r-3a3atcltk9upgradeqzy20error20bands20for20lines20and20strips"></span><h3>Y error bands for lines and strips<a class="headerlink" href="#y-error-bands-for-lines-and-strips" title="Link to this heading">¶</a></h3>
-<p>Cartesian line and strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code>, filling between symmetric <code class="docutils literal notranslate"><span class="pre">-yerror</span></code> bounds
-or absolute <code class="docutils literal notranslate"><span class="pre">-ylow</span></code>/<code class="docutils literal notranslate"><span class="pre">-yhigh</span></code> endpoints. Independent <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>,
+<section id="x-and-y-error-bands-for-lines-and-strips">
+<span id="r-tcltk9upgrade-x-and-y-error-bands-for-lines-and-strips"></span><span id="r-3a3atcltk9upgradeqzx20and20y20error20bands20for20lines20and20strips"></span><h3>X and Y error bands for lines and strips<a class="headerlink" href="#x-and-y-error-bands-for-lines-and-strips" title="Link to this heading">¶</a></h3>
+<p>Cartesian line and strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">x|y</span></code>, filling between symmetric <code class="docutils literal notranslate"><span class="pre">-xerror</span></code> or
+<code class="docutils literal notranslate"><span class="pre">-yerror</span></code> bounds, or the corresponding absolute low/high endpoints. The default <code class="docutils literal notranslate"><span class="pre">none</span></code> disables bands.
+Independent <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>,
 <code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code>, and <code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code> options reuse ordinary area-fill
 styles and backend limitations. Solid opacity is supported by Cairo and SVG; native rendering and
 PostScript ignore it. Linear and step bands preserve all source bounds despite symbol thinning or
@@ -722,7 +723,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
-<li><a class="reference internal" href="#y-error-bands-for-lines-and-strips">Y error bands for lines and strips</a></li>
+<li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>
 <li><a class="reference internal" href="#polar-smith-grid-configuration">Polar/Smith grid configuration</a></li>

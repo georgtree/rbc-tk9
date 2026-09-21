@@ -299,7 +299,9 @@ typedef struct {
     LineBandPolygon *polygons;
 } LineErrorBand;
 
-static const char *lineErrorBandNames[] = {"none", "y", NULL};
+typedef enum { LINE_BAND_NONE, LINE_BAND_Y, LINE_BAND_X } LineBandMode;
+
+static const char *lineErrorBandNames[] = {"none", "y", "x", NULL};
 
 typedef struct {
     Element core;
@@ -7403,6 +7405,10 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
     Element *elemPtr = &linePtr->core;
     LineErrorBand *bandPtr = &linePtr->errorBand;
     LineBandPolygon **tailPtr = &bandPtr->polygons;
+    int xBand = (bandPtr->mode == LINE_BAND_X);
+    ElemVector *errorPtr = xBand ? &elemPtr->xError : &elemPtr->yError;
+    ElemVector *lowPtr = xBand ? &elemPtr->xLow : &elemPtr->yLow;
+    ElemVector *highPtr = xBand ? &elemPtr->xHigh : &elemPtr->yHigh;
     Point2D *upper, *lower;
     Tcl_Size n, i, count, capacity;
     size_t bytes;
@@ -7413,10 +7419,10 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
         return;
     }
     n = NumberOfPoints(elemPtr);
-    if (elemPtr->yError.nValues > 0) {
-        n = MIN(n, elemPtr->yError.nValues);
+    if (errorPtr->nValues > 0) {
+        n = MIN(n, errorPtr->nValues);
     } else {
-        n = MIN3(n, elemPtr->yLow.nValues, elemPtr->yHigh.nValues);
+        n = MIN3(n, lowPtr->nValues, highPtr->nValues);
     }
     if ((n < 2) || (n > TCL_SIZE_MAX / 2)) {
         return;
@@ -7455,12 +7461,13 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
         Point2D u, l;
         int valid;
 
-        if (elemPtr->yError.nValues > 0) {
-            high = y + elemPtr->yError.valueArr[i];
-            low = y - elemPtr->yError.valueArr[i];
+        if (errorPtr->nValues > 0) {
+            double center = xBand ? x : y;
+            high = center + errorPtr->valueArr[i];
+            low = center - errorPtr->valueArr[i];
         } else {
-            high = elemPtr->yHigh.valueArr[i];
-            low = elemPtr->yLow.valueArr[i];
+            high = highPtr->valueArr[i];
+            low = lowPtr->valueArr[i];
         }
         valid = FINITE(x) && FINITE(y) && FINITE(high) && FINITE(low);
         if (valid && (low > high)) {
@@ -7468,13 +7475,18 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
             low = high;
             high = swap;
         }
-        if ((elemPtr->axes.x->logScale && (x <= 0.0)) ||
-            (elemPtr->axes.y->logScale && ((y <= 0.0) || (low <= 0.0)))) {
+        if ((elemPtr->axes.x->logScale && ((x <= 0.0) || (xBand && (low <= 0.0)))) ||
+            (elemPtr->axes.y->logScale && ((y <= 0.0) || (!xBand && (low <= 0.0))))) {
             valid = FALSE;
         }
         if (valid) {
-            u = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
-            l = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
+            if (xBand) {
+                u = Rbc_Map2D(graphPtr, high, y, &elemPtr->axes);
+                l = Rbc_Map2D(graphPtr, low, y, &elemPtr->axes);
+            } else {
+                u = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
+                l = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
+            }
             valid = FINITE(u.x) && FINITE(u.y) && FINITE(l.x) && FINITE(l.y);
         }
         if (!valid || ((count > 0) && BROKEN_TRACE(linePtr->penDir, previousX, x))) {
@@ -7491,6 +7503,8 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
             count = 1;
         }
         if (step && (count > 0)) {
+            /* Both boundary paths follow the trace's X-first, then Y
+             * convention, even when the uncertainty is along X. */
             upper[count] = upper[count - 1];
             lower[count] = lower[count - 1];
             if (graphPtr->inverted) {

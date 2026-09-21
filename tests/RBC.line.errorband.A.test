@@ -1,4 +1,4 @@
-# Y uncertainty bands for Cartesian line and strip elements.
+# X/Y uncertainty bands for Cartesian line and strip elements.
 # See license.terms for redistribution terms.
 package require rbc
 package require tcltest
@@ -63,7 +63,7 @@ namespace eval errorBand {
         } -body {
             set failures {}
             foreach arguments {
-                {-errorband x} {-errorbandopacity -1} {-errorbandopacity 1.1}
+                {-errorband both} {-errorbandopacity -1} {-errorbandopacity 1.1}
                 {-errorbandopacity Inf} {-errorbandopacity NaN} {-errorbandopacity bad}
                 {-errorbandpattern __missing_bitmap__} {-errorbandtile __missing_image__}
                 {-errorbandpattern gray25 -errorbandtile __missing_image__}
@@ -227,6 +227,105 @@ namespace eval errorBand {
             set off [.band postscript output]
             expr {[regexp -all {closepath\n} $on] == [regexp -all {closepath\n} $off] + 1}
         } -cleanup {Clean} -result 1
+
+        foreach inverted {no yes} {
+            test errorBand-x-bounds-$kind-$inverted {X relative/absolute bounds and direction switching} -setup {
+                Create $kind $inverted
+                set photo [image create photo]
+                .band element configure e -data {4 2 4 8} -xerror {1 1} -errorband x
+            } -body {
+                set result [list [Pixel $photo 4.5 5] [Pixel $photo 2 5]]
+                .band element configure e -xerror {} -xlow {3 3} -xhigh {5 5}
+                lappend result [Pixel $photo 4.5 5]
+                .band element configure e -xerror {0.25 0.25}
+                lappend result [Pixel $photo 4.5 5]
+                .band element configure e -errorband y
+                lappend result [Pixel $photo 4.1 5]
+                .band element configure e -errorband x
+                lappend result [Pixel $photo 4.1 5]
+            } -cleanup {Clean} -result {{0 0 0} {255 255 255} {0 0 0} {255 255 255} {255 255 255} {0 0 0}}
+
+            test errorBand-x-step-$kind-$inverted {X step boundaries change X before Y in either traversal direction} -setup {
+                Create $kind $inverted
+                set photo [image create photo]
+                .band element configure e -data {3 2 7 8} -xerror {0.5 0.5} -errorband x
+            } -body {
+                set result [list [Pixel $photo 5 5] [Pixel $photo 7 5]]
+                .band element configure e -smooth step
+                lappend result [Pixel $photo 5 5] [Pixel $photo 7 5]
+                .band element configure e -data {7 8 3 2}
+                lappend result [Pixel $photo 3 5] [Pixel $photo 7 5]
+            } -cleanup {Clean} -result {{0 0 0} {255 255 255} {255 255 255} {0 0 0} {0 0 0} {255 255 255}}
+        }
+
+        test errorBand-x-gaps-$kind {X log-invalid bounds split runs; missing bounds clear the band} -setup {
+            Create $kind
+            .band axis configure x -logscale yes -min 1 -max 100
+            .band element configure e -data {10 1 10 2 10 5 10 8 10 9} -xerror {1 1 12 1 1} \
+                -errorband x -errorbandforeground #123456
+        } -body {
+            set result [list [llength [Polygons]]]
+            .band element configure e -xerror {1 1 Inf 1 1}
+            lappend result [llength [Polygons]]
+            .band element configure e -xerror {1}
+            lappend result [llength [Polygons]]
+            .band element configure e -xerror {} -xlow {9 9 9 9 9} -xhigh {11 11 11 11 11}
+            lappend result [llength [Polygons]]
+            .band element configure e -xhigh {}
+            lappend result [llength [Polygons]]
+        } -cleanup {Clean} -result {2 2 0 1 0}
+
+        test errorBand-x-vectors-$kind {X bound vectors update the band independently of Y errors} -setup {
+            Create $kind
+            set photo [image create photo]
+            ::rbc::vector create ::errorBand::lo ::errorBand::hi
+            lo set {3 3}
+            hi set {5 5}
+            .band element configure e -data {4 2 4 8} -xlow ::errorBand::lo -xhigh ::errorBand::hi -errorband x
+        } -body {
+            set result [list [Pixel $photo 4 5]]
+            lo set {6 6}
+            hi set {8 8}
+            lappend result [Pixel $photo 4 5] [Pixel $photo 7 5]
+            .band element configure e -yerror {Inf Inf}
+            lappend result [Pixel $photo 7 5]
+            .band element configure e -xlow {}
+            lappend result [Pixel $photo 7 5]
+        } -cleanup {
+            Clean
+            catch {::rbc::vector destroy ::errorBand::lo ::errorBand::hi}
+        } -result {{0 0 0} {255 255 255} {0 0 0} {0 0 0} {255 255 255}}
+
+        test errorBand-x-export-$kind {X band styles reach SVG and PostScript and survive thinning} -setup {
+            Create $kind
+            .band element configure e -data {4 1 4 3 4 5 4 7 4 9} -xerror {0.5 0.5 2 0.5 0.5} \
+                -errorband x -errorbandforeground #123456 -errorbandopacity 0.25
+            set tile [image create photo -width 2 -height 2]
+            $tile put red -to 0 0 2 2
+        } -body {
+            set before [Polygons]
+            .band element configure e -reduce 100 -symbolpoints reduced -maxsymbols 1 -decimate auto
+            set result [list [expr {$before eq [Polygons]}] \
+                [regexp {fill="#123456" fill-opacity="0.25"} [.band svg output]]]
+            set on [.band postscript output]
+            .band element configure e -errorband none
+            set off [.band postscript output]
+            lappend result [expr {[regexp -all {closepath\n} $on] == [regexp -all {closepath\n} $off] + 1}]
+            .band element configure e -errorband x -errorbandpattern gray25 -errorbandbackground #654321
+            set document [.band svg output]
+            lappend result [expr {[string first {fill="url(#rbcPattern} $document] >= 0}] \
+                [expr {[string first {fill="#654321"} $document] >= 0}]
+            .band element configure e -errorbandtile $tile
+            lappend result [expr {[string first {data:image/png;base64,} [.band svg output]] >= 0}]
+        } -cleanup {Clean} -result {1 1 1 1 1 1}
+
+        test errorBand-x-spline-$kind {X bands retain the spline restriction and transactional rollback} -setup {
+            Create $kind
+            .band element configure e -errorband x
+        } -body {
+            list [catch {.band element configure e -smooth natural}] \
+                [.band element cget e -smooth] [.band element cget e -errorband]
+        } -cleanup {Clean} -result {1 linear x}
     }
 
     test errorBand-smooth {enabling on a spline is rejected without changing the line} -setup {
@@ -257,6 +356,21 @@ namespace eval errorBand {
     foreach renderer {native cairo} {
         set constraints {}
         if {$renderer eq {cairo}} {set constraints bandCairo}
+        test errorBand-x-opacity-$renderer {X solid opacity follows the shared fill backend policy} \
+                -constraints $constraints -setup {
+            Create stripchart no $renderer
+            set photo [image create photo]
+            .band element configure e -data {4 2 4 8} -xerror {1 1} \
+                -errorband x -errorbandopacity 0.5
+        } -body {
+            lassign [Pixel $photo 4 5] r g b
+            if {$renderer eq {cairo}} {
+                expr {$r >= 126 && $r <= 129 && $g == $r && $b == $r}
+            } else {
+                expr {$r == 0 && $g == 0 && $b == 0}
+            }
+        } -cleanup {Clean} -result 1
+
         test errorBand-strip-trace-width-$renderer {strip traces use linewidth independently of errorbarwidth} \
                 -constraints $constraints -setup {
             Create stripchart no $renderer
