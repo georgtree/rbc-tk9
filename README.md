@@ -48,11 +48,22 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.
 
-The current package loader loads `graphtoolbar.tcl` as part of `package require rbc`, so `argparse` is required even
-when an application uses only graph or vector commands. A custom package loader can omit the toolbar, but the supplied
-loader expects this dependency.
+The full `package require rbc` loads Tk and `graphtoolbar.tcl`, including its `argparse` dependency.
+For vector-only use in `tclsh`, load the Tcl-only package instead:
 
-Rbc initializes Tk when loaded. Tests and documentation generation therefore also need a working graphical display.
+```tcl
+package require rbc::vector 0.5.0
+::rbc::vector create samples
+samples set {1 2 3}
+```
+
+This uses the same binary without initializing Tk, requiring a display, or loading argparse. Loading
+`package require rbc` afterward adds the GUI while preserving existing vectors. The binary's linked dependencies
+must still be installed; building still requires the usual Tcl/Tk development files.
+Direct `load` now initializes only the vector core; use `package require rbc` for the full package.
+External C extensions can use `Rbc_VectorInitStubs` from the updated stub library for this Tcl-only path.
+
+The full tests and documentation generation need a working graphical display. The vector-only test target does not.
 
 ### Building Rbc
 
@@ -326,6 +337,14 @@ This target builds the package and the public C API test extension, then runs `t
 environment. The automated runner sets native as the option-database default to preserve the existing pixel tests.
 Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
 build default: Cairo when enabled, native otherwise.
+
+Run the Tcl-only package-loading and public vector C API tests without a display:
+```sh
+make test-vector
+```
+
+This runs `tests/vectorAll.tcl`. GUI upgrade/load-order tests run in the normal `make test` suite and are skipped
+by the headless runner. Regenerate your Makefile with `./config.status` after updating `Makefile.in`.
 
 The suite uses `tcltest`. Pass test selection options through `TESTFLAGS`.
 

@@ -5,7 +5,7 @@
 
 package provide vector.capi
 
-package require rbc
+package require rbc::vector
 namespace import rbc::*
 
 package require tcltest

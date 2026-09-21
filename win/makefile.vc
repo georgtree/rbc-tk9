@@ -136,5 +136,9 @@ test: $(PROJECT) $(CAPI_DLL)
 	@echo Running RBC tests...
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)"
 
+test-vector: $(PROJECT) $(CAPI_DLL)
+	@echo Running Tcl-only vector tests...
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\vectorAll.tcl" $(TESTFLAGS)"
+
 shell: $(PROJECT)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""

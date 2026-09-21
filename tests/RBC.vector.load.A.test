@@ -1,0 +1,165 @@
+# Package initialization must keep the vector core independent of Tk.
+package require tcltest
+
+namespace eval vectorLoad {
+    namespace import ::tcltest::*
+    testConstraint vectorLoadGui [expr {[package provide Tk] ne {}}]
+
+    proc New {} {
+        catch {interp delete vectorCoreChild}
+        interp create vectorCoreChild
+        interp eval vectorCoreChild [list set auto_path $::auto_path]
+    }
+    proc Clean {} {
+        catch {interp delete vectorCoreChild}
+    }
+    proc CapiPath {} {
+        if {[info exists ::env(RBC_CAPI_TEST_LIB)]} {
+            return [file normalize $::env(RBC_CAPI_TEST_LIB)]
+        }
+        return [file normalize rbccapitest[info sharedlibextension]]
+    }
+
+    test vectorLoad-headless {vector loading does not load Tk, toolbar, or argparse} -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc::vector
+            ::rbc::vector create v
+            v set {1 2 3}
+            v expr {v * 2}
+            list [v range 0 end] [package provide Tk] [package provide rbc] \
+                [package provide argparse] [info commands ::rbc::graph] \
+                [info commands ::rbc::graphtoolbar] [info commands ::rbc::spline]
+        }
+    } -cleanup {Clean} -result {{2.0 4.0 6.0} {} {} {} {} {} {}}
+
+    test vectorLoad-repeat {repeated requires preserve vectors and array access} -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc::vector
+            ::rbc::vector create v
+            v set {1 2 3}
+            set version [package require rbc::vector]
+            package require -exact rbc::vector $version
+            set v(1) 7
+            list [v range 0 end] [package provide Tk]
+        }
+    } -cleanup {Clean} -result {{1.0 7.0 3.0} {}}
+
+    test vectorLoad-failed-gui {a failed Tk require leaves the vector package usable} -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc::vector
+            ::rbc::vector create v
+            v set {1 2}
+            package ifneeded Tk 99.0 {error {Tk deliberately unavailable}}
+            set failed [catch {package require rbc} message]
+            v append 3
+            list $failed [string match {*deliberately unavailable*} $message] \
+                [v range 0 end] [package provide rbc] [package provide Tk]
+        }
+    } -cleanup {Clean} -result {1 1 {1.0 2.0 3.0} {} {}}
+
+    test vectorLoad-direct {direct loading uses the same prefix across interpreters} -setup {
+        New
+        set binary [interp eval vectorCoreChild {
+            package require rbc::vector
+            set path {}
+            foreach entry [info loaded] {
+                if {[lindex $entry 1] eq {Rbc}} {
+                    set path [lindex $entry 0]
+                    break
+                }
+            }
+            set path
+        }]
+        if {$binary eq {}} {error {RBC shared library not found in info loaded}}
+        New
+    } -body {
+        interp eval vectorCoreChild [list load $binary Rbc]
+        interp eval vectorCoreChild {
+            package require rbc::vector
+            list [package provide Tk] [package provide rbc] [info commands ::rbc::vector]
+        }
+    } -cleanup {Clean} -result {{} {} ::rbc::vector}
+
+    test vectorLoad-capi {a C consumer loads vectors through stubs without Tk} -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild [list load [CapiPath]]
+        interp eval vectorCoreChild {
+            ::rbccapitest create ::v real 3
+            v set {1 2 3}
+            list [dict get [::rbccapitest inspect ::v] length] \
+                [package provide Tk] [package provide rbc] \
+                [expr {[package provide rbc::vector] ne {}}]
+        }
+    } -cleanup {Clean} -result {3 {} {} 1}
+
+    test vectorLoad-upgrade {full loading preserves vectors and command identity} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc::vector
+            ::rbc::vector create v
+            v set {1 2 3}
+            set deleted 0
+            trace add command ::rbc::vector delete {apply {{args} {set ::deleted 1}}}
+            set version [package require rbc]
+            set v(1) 9
+            ::rbc::graph .g
+            .g element create e -xdata v -ydata v
+            list [v range 0 end] $deleted [winfo exists .g] \
+                [expr {$version eq [package require rbc::vector]}]
+        }
+    } -cleanup {Clean} -result {{1.0 9.0 3.0} 0 1 1}
+
+    test vectorLoad-full-first {full loading also provides the vector package} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            set version [package require rbc]
+            ::rbc::vector create v
+            v set {4 5}
+            set core [package require rbc::vector]
+            list [expr {$core eq $version}] [v range 0 end]
+        }
+    } -cleanup {Clean} -result {1 {4.0 5.0}}
+
+    test vectorLoad-retry {GUI loading can be retried after Tk becomes available} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package ifneeded Tk 99.0 {error {Tk deliberately unavailable}}
+            catch {package require rbc}
+            ::rbc::vector create v
+            v set {7 8}
+            package forget Tk
+            package require rbc
+            list [v range 0 end] [expr {[info commands ::rbc::graph] ne {}}]
+        }
+    } -cleanup {Clean} -result {{7.0 8.0} 1}
+
+    test vectorLoad-capi-upgrade {legacy stubs initialization adds GUI without replacing vectors} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild [list load [CapiPath]]
+        interp eval vectorCoreChild {
+            ::rbccapitest create ::v real 2
+            v set {6 7}
+            set version [::rbccapitest initfull]
+            list [v range 0 end] [dict get [::rbccapitest inspect ::v] length] \
+                [expr {$version eq [package provide rbc]}] \
+                [expr {[info commands ::rbc::graph] ne {}}]
+        }
+    } -cleanup {Clean} -result {{6.0 7.0} 2 1 1}
+
+    cleanupTests
+}

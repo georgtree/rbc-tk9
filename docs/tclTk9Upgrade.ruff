@@ -12,6 +12,14 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
+        ### Tcl-only vector loading
+
+        `package require rbc::vector` loads vectors from the same shared library without initializing Tk or
+        loading argparse and graphtoolbar. Full `package require rbc` can follow without replacing vectors or
+        client subscriptions; the reverse loading order also works. C consumers can use `Rbc_VectorInitStubs`
+        with the updated stub library. `make test-vector` runs the package-loading and public C API tests
+        without a graphical display. Binary dependencies remain required. See [::rbc::vector] for details.
+
         ### X and Y error bands for lines and strips
 
         Cartesian line and strip elements support `-errorband x|y`, filling between symmetric `-xerror` or

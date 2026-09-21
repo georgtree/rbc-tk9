@@ -428,7 +428,7 @@ static int OwnershipCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]
 
 static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const subcommands[] = {"create",        "exists",     "free",   "inspect", "ownership", "range",
-                                              "resetvolatile", "resetwrong", "resize", "write", "writerange",  NULL};
+                                              "resetvolatile", "resetwrong", "resize", "write", "writerange", "initfull", NULL};
     enum {
         CMD_CREATE,
         CMD_EXISTS,
@@ -440,7 +440,8 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         CMD_RESETWRONG,
         CMD_RESIZE,
         CMD_WRITE,
-        CMD_WRITERANGE        
+        CMD_WRITERANGE,
+        CMD_INITFULL
     };
     int index;
 
@@ -453,6 +454,19 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         return TCL_ERROR;
     }
     switch (index) {
+    case CMD_INITFULL: {
+        const char *version;
+        if (objc != 2) {
+            Tcl_WrongNumArgs(interp, 2, objv, NULL);
+            return TCL_ERROR;
+        }
+        version = Rbc_InitStubs(interp, RBC_VERSION, 0);
+        if (version == NULL) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(version, -1));
+        return TCL_OK;
+    }
     case CMD_CREATE:
         return CreateCmd(interp, objc, objv);
     case CMD_EXISTS:
@@ -484,7 +498,7 @@ DLLEXPORT int Rbccapitest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL) {
         return TCL_ERROR;
     }
-    if (Rbc_InitStubs(interp, RBC_VERSION, 0) == NULL) {
+    if (Rbc_VectorInitStubs(interp, RBC_VERSION, 0) == NULL) {
         return TCL_ERROR;
     }
     Tcl_CreateObjCommand2(interp, "::rbccapitest", RbcCapiTestObjCmd, NULL, NULL);

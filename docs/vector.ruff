@@ -13,6 +13,33 @@ namespace eval ::rbc::vector {
         - an associated Tcl array variable
         - the RBC C API.
 
+        ## Loading vectors without Tk
+        Use the `rbc::vector` package in a Tcl-only interpreter:
+        ```tcl
+        package require rbc::vector 0.5.0
+        ::rbc::vector create samples
+        samples set {1 2 3}
+        samples expr {samples * 2}
+        ```
+
+        This loads the same Rbc shared library but initializes only its vector commands and C API. It does not
+        require Tk, a graphical display, argparse, or graphtoolbar. Real and complex vectors, expressions,
+        array access, and vector client notifications use the same implementation as the full package.
+        Graphs, winop, spline, and graphtoolbar are available through the full `rbc` package instead.
+
+        Loading `package require rbc` later adds the graphical components without recreating the vector
+        command or existing vectors. Full loading also provides `rbc::vector`, so either order is supported.
+        A failed Tk load leaves the vector core usable and full loading can be retried. Package versions
+        match the shared library version. Use package commands for both paths; the package index handles
+        the shared binary and its initialization order. Direct `load` and the C `Rbc_Init` entry point now
+        initialize only the vector core; use `package require rbc` (or `Rbc_InitStubs` in a consumer) for full
+        GUI initialization.
+
+        This is an initialization split, not a separate binary or reduced build. Building still requires
+        Tcl/Tk headers and the selected backend dependencies. The shared library's dynamic dependencies
+        (for example Cairo or platform graphics libraries) must remain installed even for vector-only use.
+        The private `::rbc::_initTk` command is loader infrastructure, not a public application API.
+
         ## Vector types
         Each vector has an immutable numeric type:
 
@@ -802,7 +829,7 @@ namespace eval ::rbc::VECINST {
         initialize it before calling Rbc functions:
         ```c
         static int InitRbcApi(Tcl_Interp *interp, const char *version) {
-            if (Rbc_InitStubs(interp, version, 0) == NULL) {
+            if (Rbc_VectorInitStubs(interp, version, 0) == NULL) {
                 return TCL_ERROR;
             }
 
@@ -810,8 +837,14 @@ namespace eval ::rbc::VECINST {
         }
         ```
 
-        `version` is the minimum Rbc package version required by the extension. `Rbc_InitStubs` also ensures that the
-        Rbc package is loaded in the interpreter.
+        `version` is the minimum Rbc package version required by the extension. `Rbc_VectorInitStubs` requires
+        `rbc::vector` and initializes the existing Rbc stubs table without loading Tk. Rebuild the consumer
+        with the updated `rbcStubLib.c` (or updated stub library) to use this new helper. The table layout and
+        vector function slots are unchanged.
+
+        `Rbc_InitStubs` remains available and requires the full `rbc` package, including Tk and the toolbar.
+        Both helpers use the same vector API and table; upgrading to the full package preserves vector pointers
+        and subscriptions. As before, each interpreter must have its package initialized before using the API.
 
         ### Vector representation
         `Rbc_Vector` is an opaque public type:

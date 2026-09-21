@@ -170,3 +170,15 @@ Existing copyright and license notices are retained.
 
 References: [MSVC C11 support](https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version),
 [vcpkg Cairo port](https://github.com/microsoft/vcpkg/tree/master/ports/cairo).
+
+### Tcl-only vector tests
+
+After building, run the package-loading and public vector C API tests without initializing Tk:
+
+```bat
+nmake /nologo /f makefile.vc %RBC_ARGS% test-vector
+```
+
+Use `package require rbc::vector` for vector-only Tcl scripts. The same DLL is loaded, so its runtime
+DLL dependencies must still be available. The normal `test` target also checks upgrading to full RBC
+without replacing existing vectors.

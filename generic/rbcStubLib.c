@@ -45,15 +45,23 @@ const RbcStubs *rbcStubsPtr;
  *----------------------------------------------------------------------
  */
 
-const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
+static const char *InitPackageStubs(Tcl_Interp *interp, const char *package, const char *version, int exact) {
     const char *result;
     void *data;
 
-    result = Tcl_PkgRequireEx(interp, "rbc", (const char *)version, exact, &data);
+    result = Tcl_PkgRequireEx(interp, package, version, exact, &data);
     if (!result || !data) {
         return NULL;
     }
 
     rbcStubsPtr = (const RbcStubs *)data;
     return result;
+}
+
+const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
+    return InitPackageStubs(interp, "rbc", version, exact);
+}
+
+const char *Rbc_VectorInitStubs(Tcl_Interp *interp, const char *version, int exact) {
+    return InitPackageStubs(interp, "rbc::vector", version, exact);
 }

@@ -314,6 +314,10 @@ test: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
 
+test-vector: binaries libraries $(TEST_CAPI_LIB)
+	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/vectorAll.tcl` $(TESTFLAGS)
+
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
 
@@ -564,7 +568,7 @@ uninstall-binaries:
 uninstall:
 	rm -rf "$(DESTDIR)$(pkglibdir)"
 
-.PHONY: all binaries clean depend distclean doc install libraries test
+.PHONY: all binaries clean depend distclean doc install libraries test test-vector
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

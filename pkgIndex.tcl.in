@@ -4,11 +4,14 @@ if {[package vsatisfies [package provide Tcl] 9.0-]} {
     set rbcLib @PKG_LIB_FILE8@
 }
 
-package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ [list apply {{dir lib} {
+package ifneeded rbc::vector @PACKAGE_VERSION@ [list load [file join $dir $rbcLib] Rbc]
+
+package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ [list apply {{dir version} {
+    package require -exact rbc::vector $version
     package require Tk
-    load [file join $dir $lib]
+    ::rbc::_initTk
     set ::rbc::library [file normalize $dir]
     source [file join $dir graphtoolbar.tcl]
-}} $dir $rbcLib]
+}} $dir @PACKAGE_VERSION@]
 
 unset rbcLib
