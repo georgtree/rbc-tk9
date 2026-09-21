@@ -367,6 +367,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     /* finished parsing arguments -> do some sanity checks: */
     Tcl_DStringInit(&ds);
     resultPtr = Tcl_NewObj();
+    Tcl_IncrRefCount(resultPtr);
     if (defLen < 0) {
         Tcl_AppendStringsToObj(resultPtr,
                                "value for \"-length\" option "
@@ -526,9 +527,11 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         Tcl_AppendStringsToObj(resultPtr, vPtr->name, NULL);
     }
     Tcl_SetObjResult(interp, resultPtr);
+    Tcl_DecrRefCount(resultPtr);
     return TCL_OK;
 
 error:
+    Tcl_DecrRefCount(resultPtr);
     ckfree(objNameArray);
     Tcl_DStringFree(&ds);
     return TCL_ERROR;
@@ -801,6 +804,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     Tcl_Interp *interp = dataPtr->interp;
     Tcl_DString qualVecNamePtr;
 
+    Tcl_IncrRefCount(resultPtr);
     isNew = 0;
     nsPtr = NULL;
     vPtr = NULL;
@@ -809,7 +813,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
         Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"", vecName, "\"", NULL);
         Tcl_SetObjResult(interp, resultPtr);
-        return NULL;
+        goto error;
     }
     if ((vecNameTail[0] == '#') && (strcmp(vecNameTail, "#auto") == 0)) {
         /* generate a unique automatic name for the vector: */
@@ -863,6 +867,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         if (isAutoName) {
             cmdName = qualVecName;
         } else {
+            Tcl_DStringFree(&qualVecNamePtr);
             cmdName = BuildQualifiedName(interp, cmdName, &qualVecNamePtr);
         }
         nsPtr = NULL;
@@ -870,7 +875,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         if (ParseQualifiedName(interp, cmdName, &nsPtr, &vecNameTail) != TCL_OK) {
             Tcl_AppendStringsToObj(resultPtr, "unknown namespace in \"", cmdName, "\"", NULL);
             Tcl_SetObjResult(interp, resultPtr);
-            return NULL;
+            goto error;
         }
         if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
             /*
@@ -897,6 +902,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         if ((varName[0] == '#') && (strcmp(varName, "#auto") == 0)) {
             varName = vPtr->name;
         } else {
+            Tcl_DStringFree(&qualVecNamePtr);
             varName = BuildQualifiedName(interp, varName, &qualVecNamePtr);
         }
         if (Rbc_VectorMapVariable(interp, vPtr, varName) != TCL_OK) {
@@ -905,6 +911,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     }
     *newPtr = isNew;
     Tcl_DStringFree(&qualVecNamePtr);
+    Tcl_DecrRefCount(resultPtr);
     return vPtr;
 
 error:
@@ -912,6 +919,7 @@ error:
         Rbc_VectorFree(vPtr);
     }
     Tcl_DStringFree(&qualVecNamePtr);
+    Tcl_DecrRefCount(resultPtr);
     return NULL;
 }
 

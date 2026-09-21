@@ -1,0 +1,76 @@
+# Vector creation cleanup. Use vectorLifecycleMemory.tcl under Valgrind to
+# check memory growth; these tests check results and error-path cleanup.
+package require rbc
+package require tcltest 2
+
+namespace eval ::vectorCreateCleanup {
+    namespace import ::tcltest::*
+
+    test vectorCreateCleanup-1 {repeated creation preserves results and removes commands} -body {
+        set valid 1
+        for {set i 0} {$i < 100} {incr i} {
+            set name [::rbc::vector create ::vectorCreateCleanup::v]
+            v set {1 2 3}
+            if {$name ne "::vectorCreateCleanup::v" ||
+                [::rbc::vector expr {v + v}] ne {2.0 4.0 6.0}} {
+                set valid 0
+            }
+            ::rbc::vector destroy ::vectorCreateCleanup::v
+        }
+        list $valid [::rbc::vector names ::vectorCreateCleanup::v] \
+            [info commands ::vectorCreateCleanup::v]
+    } -cleanup {
+        catch {::rbc::vector destroy ::vectorCreateCleanup::v}
+    } -result {1 {} {}}
+
+    test vectorCreateCleanup-2 {unknown command namespace removes newly created vector} -body {
+        set failed [catch {
+            ::rbc::vector create ::vectorCreateCleanup::v \
+                -command ::vectorCreateCleanup::missing::command
+        } message]
+        list $failed [string match {unknown namespace*} $message] \
+            [::rbc::vector names ::vectorCreateCleanup::v] \
+            [info commands ::vectorCreateCleanup::v]
+    } -cleanup {
+        catch {::rbc::vector destroy ::vectorCreateCleanup::v}
+    } -result {1 1 {} {}}
+
+    test vectorCreateCleanup-3 {wrapper preserves helper errors and existing vectors} -setup {
+        ::rbc::vector create ::vectorCreateCleanup::v
+        v set {1 2 3}
+    } -body {
+        set result {}
+        foreach arguments {
+            {::vectorCreateCleanup::v -type complex}
+            {::vectorCreateCleanup::missing::v}
+            {::vectorCreateCleanup::bad?name}
+            {::vectorCreateCleanup::new(bad)}
+        } {
+            lappend result [catch {::rbc::vector create {*}$arguments} message] \
+                [expr {$message ne {}}]
+        }
+        lappend result [v range 0 end]
+        set result
+    } -cleanup {
+        catch {::rbc::vector destroy ::vectorCreateCleanup::v}
+    } -result {1 1 1 1 1 1 1 1 {1.0 2.0 3.0}}
+
+    test vectorCreateCleanup-4 {long vector command and variable names survive buffer reuse} -setup {
+        set stem ::vectorCreateCleanup::[string repeat longName 50]
+        set name ${stem}Vector
+        set command ${stem}Command
+        set variable ${stem}Variable
+    } -body {
+        set result [::rbc::vector create $name -command $command -variable $variable]
+        $command set {7 8}
+        set values [list [set ${variable}(0)] [set ${variable}(1)]]
+        ::rbc::vector destroy $name
+        list [expr {$result eq $name}] $values \
+            [namespace which -command $command] [array exists $variable]
+    } -cleanup {
+        catch {::rbc::vector destroy $name}
+        unset -nocomplain $variable
+    } -result {1 {7.0 8.0} {} 0}
+
+    cleanupTests
+}
