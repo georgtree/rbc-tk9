@@ -321,6 +321,12 @@ y + e
 <p>When symmetric error data are present for an axis, they take precedence over the corresponding low/high
 vectors.</p>
 <p>Error data may be Tcl lists or Rbc vector names.</p>
+<p>Examples:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{</span><span class="nv">0.5</span><span class="w"> </span><span class="mf">0.8</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">1.0</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorbarcap<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>errorbarcolor<span class="w"> </span>black<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.5</span>
+</pre></div>
+</div>
+<p><img alt="barchart_errorbars" src="images/barchart_errorbars.svg" /></p>
 <p>Their appearance is controlled by:</p>
 <table class="docutils align-default">
 <colgroup>

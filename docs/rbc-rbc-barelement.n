@@ -362,6 +362,15 @@ vectors\&.
 .PP
 Error data may be Tcl lists or Rbc vector names\&.
 .PP
+Examples:
+.PP
+.RS 4n
+.nf
+\&.b element create values -x {1 2 3} -y {4 7 2}
+\&.b element configure values -yerror {0\&.5 0\&.8 0\&.4 1\&.0} -errorbarcap 10 -errorbarcolor black -fillopacity 0\&.5
+.fi
+.RE
+.PP
 Their appearance is controlled by:
 .PP
 .RS 4n

@@ -2,15 +2,13 @@
 package require rbc
 namespace import ::rbc::*
 
-set graph [barchart .b -width 600 -height 300]
+set graph [graph .g -width 600 -height 300]
 
 
-.b configure -baseline 0
-.b element create values -x {1 2 3} -y {4 7 2} 
-.b element configure values -yerror {0.5 0.8 0.4 1.0} -errorbarcap 10 -errorbarcolor black -fillopacity 0.5
-#.b element configure values -y {-4 7 -2}
-.b element configure values -barwidth 0.5
+.g element create horizontal -data {2 0 3 1 2.5 2} -xerror {0.2 0.4 0.3} -errorband x -errorbandopacity 0.25\
+        -errorbandforeground steelblue 
+.g element configure horizontal -xerror {} -xlow {1.7 2.5 2.1} -xhigh {2.4 3.2 3.0}
 grid $graph -row 0 -column 0
 
-$graph svg output barchart_errorbars.svg -decorations yes
+$graph svg output line_x_errorband_asym.svg -decorations yes
 

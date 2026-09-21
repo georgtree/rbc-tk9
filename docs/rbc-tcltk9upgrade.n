@@ -12,6 +12,13 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "TCL-ONLY VECTOR LOADING"
+.PP
+package require rbc::vector loads vectors from the same shared library without initializing Tk or
+loading argparse and graphtoolbar\&. Full package require rbc can follow without replacing vectors or
+client subscriptions; the reverse loading order also works\&. C consumers can use Rbc_VectorInitStubs
+with the updated stub library\&. make test-vector runs the package-loading and public C API tests
+without a graphical display\&. Binary dependencies remain required\&. See \fI::rbc::vector\fP for details\&.
 .SS "X AND Y ERROR BANDS FOR LINES AND STRIPS"
 .PP
 Cartesian line and strip elements support -errorband x|y, filling between symmetric -xerror or

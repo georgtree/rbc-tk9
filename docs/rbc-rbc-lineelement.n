@@ -668,6 +668,83 @@ Normal value labels follow -symbolpoints and -maxsymbols, even with -symbol none
 invoke -valuecommand\&. Thinning uses the sample position across all pen styles, including styles with
 -showvalues none\&. Active labels bypass -maxsymbols, matching active symbols: explicitly activated indices
 can label omitted samples, while activating all points labels the set selected by -symbolpoints\&.
+.SH "X AND Y ERROR BANDS"
+.PP
+Cartesian line and strip elements can fill the space between their lower and upper error bounds\&.  Select one
+direction with -errorband x or -errorband y; the default none disables the band\&.  X bands use -xerror
+as symmetric magnitudes around X, or both -xlow and -xhigh as absolute endpoints\&. Y bands use the
+corresponding Y options\&. Nonempty symmetric errors take precedence over absolute bounds on the selected
+axis\&. Lists and real vectors are supported\&. Errors on the other axis do not affect the band\&. Simultaneous X and
+Y bands (both) are not supported\&.
+.PP
+.RS 4n
+.nf
+\&.g element create signal -data {0 2 1 3 2 2\&.5} -yerror {0\&.2 0\&.4 0\&.3} -errorband y -errorbandopacity 0\&.25 -errorbandforeground steelblue
+.fi
+.RE
+.PP
+Asymmetric absolute endpoints instead of symmetric magnitudes:
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -yerror {} -ylow {1\&.7 2\&.5 2\&.1} -yhigh {2\&.4 3\&.2 3\&.0}
+.fi
+.RE
+.PP
+.RS 4n
+.nf
+\&.g element create horizontal -data {2 0 3 1 2\&.5 2} -xerror {0\&.2 0\&.4 0\&.3} -errorband x -errorbandopacity 0\&.25 -errorbandforeground steelblue
+.fi
+.RE
+.PP
+Asymmetric absolute endpoints instead of symmetric magnitudes:
+.PP
+.RS 4n
+.nf
+\&.g element configure horizontal -xerror {} -xlow {1\&.7 2\&.5 2\&.1} -xhigh {2\&.4 3\&.2 3\&.0}
+.fi
+.RE
+.PP
+Band styling is independent of ordinary area filling and error-bar strokes\&. It supports solid, Tk bitmap
+stipples, and image tiles through the -errorbandpattern, -errorbandforeground, -errorbandbackground, and
+-errorbandtile options\&. The pattern defaults to solid, foreground to black, background to white, and tile
+to empty\&. An empty pattern disables pattern filling\&. A nonempty tile takes precedence over the pattern,
+including when the tile image is empty or deleted\&.  Tile changes trigger redrawing\&. Clear -errorbandtile to
+restore pattern filling\&.
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -errorbandpattern gray25 -errorbandbackground {}
+\&.g element configure signal -errorbandtile $image
+.fi
+.RE
+.PP
+-errorbandopacity is a finite number from 0 to 1, default 1\&. It follows ordinary area-fill rules: Cairo and
+SVG apply it to solid fills; stipples and tiles retain their existing transparency rules\&.  Native rendering and
+PostScript accept but ignore this opacity option\&. Use Cairo or SVG for partially transparent solid
+bands\&. PostScript retains the ordinary area-tile background-color fallback\&.
+.PP
+Bands support -smooth linear and -smooth step; enabling a band with spline smoothing is rejected\&. Linear
+bands connect successive lower endpoints and successive upper endpoints in source order\&. Step bands use the
+trace's existing X-first convention for each boundary: move to the next boundary X while holding the previous
+Y, then move to the next Y\&. For X bands this places the vertical part between successive sample Y values at the
+next sample's X bounds; it is not a Y-first staircase\&.
+.PP
+Inverted axes change screen orientation without changing this data-coordinate convention\&. Bounds are normalized
+to lower/upper order\&. Each run needs at least two samples with finite X, Y and both bounds; invalid samples
+split the band\&. Nonpositive coordinates or bounds on a logarithmic axis split runs rather than being reflected
+or bridged\&. Missing bounds and shortened lists terminate the available run\&. Line-element -trace direction
+restrictions also split bands\&. Input order is preserved\&.
+.PP
+The band uses original source samples, independently of -reduce, -symbolpoints, -maxsymbols, and
+screen-density -decimate\&. It is drawn over the element's ordinary area fill and below its trace, symbols,
+error bars, and value labels\&. -showerrorbars none hides error-bar strokes without hiding the band\&. Existing
+error-data axis extents and closest-point results are unchanged; the band itself does not add a hit-test target
+or legend swatch\&.
+.PP
+Bands cover X or Y errors on Cartesian line and strip elements only\&. Polar/Smith bands, spline bands, and
+separate boundary outlines are not supported\&. The band closes between its two bounds, so ordinary -areaclose
+does not affect it\&.
 .SS "VALUE-LABEL POSITION"
 .PP
 -valueoffset {dx dy} moves the label anchor by signed integer pixels: positive X moves right, positive Y
@@ -675,9 +752,9 @@ moves down\&. The default is {0 0}\&. Directions stay the same with -invertxy an
 -valueanchor still controls text alignment\&. The offset is measured from the existing label position, not from
 the symbol edge\&.
 .PP
-This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
-pens\&. It works with -valueformat and -valuecommand, in both renderers and PostScript output\&.
-PostScript uses the offset before page scaling\&. Source coordinates passed to callbacks do not change\&.
+This option applies to line, strip, Polar and bar elements and their named, active and weighted-style pens\&. It
+works with -valueformat and -valuecommand, in both renderers and PostScript output\&. PostScript uses the
+offset before page scaling\&. Source coordinates passed to callbacks do not change\&.
 .PP
 .RS 4n
 .nf
@@ -687,16 +764,16 @@ PostScript uses the offset before page scaling\&. Source coordinates passed to c
 .RE
 .SS "CUSTOM VALUE-LABEL TEXT"
 .PP
--valuecommand supplies a Tcl command prefix for value labels\&. It is available on line, strip, Polar and
-bar elements and on their named pens, including active and weighted-style pens\&. The option database name
-and class are valueCommand and ValueCommand\&. The default is empty\&.
+-valuecommand supplies a Tcl command prefix for value labels\&. It is available on line, strip, Polar and bar
+elements and on their named pens, including active and weighted-style pens\&. The option database name and class
+are valueCommand and ValueCommand\&. The default is empty\&.
 .PP
 .RS 4n
 .nf
 proc ElementLabel {names graph element index x y} {
     return [lindex $names $index]
 }
-\&.g element configure samples -showvalues y  -valuecommand [list ::ElementLabel {Hydrogen Helium Lithium}]
+\&.g element configure samples -showvalues y -valuecommand [list ::ElementLabel {Hydrogen Helium Lithium}]
 .fi
 .RE
 .PP
@@ -885,69 +962,6 @@ Area filling uses the geometry after smoothing and point reduction\&.
 The current implementation stores one fill polygon per line element\&. Consequently, if the mapped line
 contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
 runs\&.
-.SH "X AND Y ERROR BANDS"
-.PP
-Cartesian line and strip elements can fill the space between their lower and upper error bounds\&.
-Select one direction with -errorband x or -errorband y; the default none disables the band\&.
-X bands use -xerror as symmetric magnitudes around X, or both -xlow and -xhigh as absolute
-endpoints\&. Y bands use the corresponding Y options\&. Nonempty symmetric errors take precedence over
-absolute bounds on the selected axis\&. Lists and real vectors are supported\&. Errors on the other axis
-do not affect the band\&. Simultaneous X and Y bands (both) are not supported\&.
-.PP
-.RS 4n
-.nf
-\&.g element create signal -data {0 2 1 3 2 2\&.5} -yerror {0\&.2 0\&.4 0\&.3}  -errorband y -errorbandforeground steelblue -errorbandopacity 0\&.25
-# Asymmetric absolute endpoints instead of symmetric magnitudes:
-\&.g element configure signal -yerror {} -ylow {1\&.7 2\&.5 2\&.1} -yhigh {2\&.4 3\&.2 3\&.0}
-.fi
-.RE
-.PP
-.RS 4n
-.nf
-\&.g element create horizontal -data {2 0 3 1 2\&.5 2} -xerror {0\&.2 0\&.4 0\&.3}  -errorband x -errorbandforeground steelblue -errorbandopacity 0\&.25
-\&.g element configure horizontal -xerror {} -xlow {1\&.7 2\&.5 2\&.1} -xhigh {2\&.4 3\&.2 3\&.0}
-.fi
-.RE
-.PP
-Band styling is independent of ordinary area filling and error-bar strokes\&. It supports solid, Tk
-bitmap stipples, and image tiles through the -errorbandpattern, -errorbandforeground,
--errorbandbackground, and -errorbandtile options\&. The pattern defaults to solid, foreground to
-black, background to white, and tile to empty\&. An empty pattern disables pattern filling\&. A nonempty
-tile takes precedence over the pattern, including when the tile image is empty or deleted\&.
-Tile changes trigger redrawing\&. Clear -errorbandtile to restore pattern filling\&.
-.PP
-.RS 4n
-.nf
-\&.g element configure signal -errorbandpattern gray25 -errorbandbackground {}
-\&.g element configure signal -errorbandtile $image
-.fi
-.RE
-.PP
--errorbandopacity is a finite number from 0 to 1, default 1\&. It follows ordinary area-fill rules:
-Cairo and SVG apply it to solid fills; stipples and tiles retain their existing transparency rules\&.
-Native rendering and PostScript accept but ignore this opacity option\&. Use Cairo or SVG for partially
-transparent solid bands\&. PostScript retains the ordinary area-tile background-color fallback\&.
-.PP
-Bands support -smooth linear and -smooth step; enabling a band with spline smoothing is rejected\&.
-Linear bands connect successive lower endpoints and successive upper endpoints in source order\&.
-Step bands use the trace's existing X-first convention for each boundary: move to the next boundary
-X while holding the previous Y, then move to the next Y\&. For X bands this places the vertical part
-between successive sample Y values at the next sample's X bounds; it is not a Y-first staircase\&.
-Inverted axes change screen orientation without changing this data-coordinate convention\&. Bounds are
-normalized to lower/upper order\&. Each run needs at least two samples with finite X, Y and both bounds;
-invalid samples split the band\&. Nonpositive coordinates or bounds on a logarithmic axis split runs
-rather than being reflected or bridged\&. Missing bounds and shortened lists terminate the available
-run\&. Line-element -trace direction restrictions also split bands\&. Input order is preserved\&.
-.PP
-The band uses original source samples, independently of -reduce, -symbolpoints, -maxsymbols,
-and screen-density -decimate\&. It is drawn over the element's ordinary area fill and below its trace,
-symbols, error bars, and value labels\&. -showerrorbars none hides error-bar strokes without hiding
-the band\&. Existing error-data axis extents and closest-point results are unchanged; the band itself
-does not add a hit-test target or legend swatch\&.
-.PP
-Bands cover X or Y errors on Cartesian line and strip elements only\&. Polar/Smith bands,
-spline bands, and separate boundary outlines are not supported\&. The band closes
-between its two bounds, so ordinary -areaclose does not affect it\&.
 .SH "LINE ELEMENT OPTIONS"
 .PP
 The complete line-element option set is:

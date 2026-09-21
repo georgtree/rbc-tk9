@@ -18,6 +18,36 @@ an associated Tcl array variable
 .TP
 \(bu
 the RBC C API\&.
+.SH "LOADING VECTORS WITHOUT TK"
+.PP
+Use the rbc::vector package in a Tcl-only interpreter:
+.PP
+.RS 4n
+.nf
+package require rbc::vector 0\&.5\&.0
+::rbc::vector create samples
+samples set {1 2 3}
+samples expr {samples * 2}
+.fi
+.RE
+.PP
+This loads the same Rbc shared library but initializes only its vector commands and C API\&. It does not
+require Tk, a graphical display, argparse, or graphtoolbar\&. Real and complex vectors, expressions,
+array access, and vector client notifications use the same implementation as the full package\&.
+Graphs, winop, spline, and graphtoolbar are available through the full rbc package instead\&.
+.PP
+Loading package require rbc later adds the graphical components without recreating the vector
+command or existing vectors\&. Full loading also provides rbc::vector, so either order is supported\&.
+A failed Tk load leaves the vector core usable and full loading can be retried\&. Package versions
+match the shared library version\&. Use package commands for both paths; the package index handles
+the shared binary and its initialization order\&. Direct load and the C Rbc_Init entry point now
+initialize only the vector core; use package require rbc (or Rbc_InitStubs in a consumer) for full
+GUI initialization\&.
+.PP
+This is an initialization split, not a separate binary or reduced build\&. Building still requires
+Tcl/Tk headers and the selected backend dependencies\&. The shared library's dynamic dependencies
+(for example Cairo or platform graphics libraries) must remain installed even for vector-only use\&.
+The private ::rbc::_initTk command is loader infrastructure, not a public application API\&.
 .SH "VECTOR TYPES"
 .PP
 Each vector has an immutable numeric type:

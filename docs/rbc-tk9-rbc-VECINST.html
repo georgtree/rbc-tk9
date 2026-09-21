@@ -679,7 +679,7 @@ scripts or graph elements without converting every value to and from a Tcl list.
 <p>Rbc exports its public C interface through the Rbc stubs table. An extension using the stubs interface should
 initialize it before calling Rbc functions:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">InitRbcApi</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">version</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_InitStubs</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorInitStubs</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
 
@@ -687,8 +687,13 @@ initialize it before calling Rbc functions:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the minimum Rbc package version required by the extension. <code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> also ensures that the
-Rbc package is loaded in the interpreter.</p>
+<p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the minimum Rbc package version required by the extension. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> requires
+<code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code> and initializes the existing Rbc stubs table without loading Tk. Rebuild the consumer
+with the updated <code class="docutils literal notranslate"><span class="pre">rbcStubLib.c</span></code> (or updated stub library) to use this new helper. The table layout and
+vector function slots are unchanged.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> remains available and requires the full <code class="docutils literal notranslate"><span class="pre">rbc</span></code> package, including Tk and the toolbar.
+Both helpers use the same vector API and table; upgrading to the full package preserves vector pointers
+and subscriptions. As before, each interpreter must have its package initialized before using the API.</p>
 <section id="vector-representation">
 <span id="r-rbc-vecinst-vector-representation"></span><span id="r-3a3arbc3a3avecinstqzvector20representation"></span><h3>Vector representation<a class="headerlink" href="#vector-representation" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span></code> is an opaque public type:</p>

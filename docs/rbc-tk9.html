@@ -82,10 +82,19 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 </ul>
 <p>The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.</p>
-<p>The current package loader loads <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code> as part of <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>, so <code class="docutils literal notranslate"><span class="pre">argparse</span></code> is required even
-when an application uses only graph or vector commands. A custom package loader can omit the toolbar, but the supplied
-loader expects this dependency.</p>
-<p>Rbc initializes Tk when loaded. Tests and documentation generation therefore also need a working graphical display.</p>
+<p>The full <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads Tk and <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code>, including its <code class="docutils literal notranslate"><span class="pre">argparse</span></code> dependency.
+For vector-only use in <code class="docutils literal notranslate"><span class="pre">tclsh</span></code>, load the Tcl-only package instead:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::vector<span class="w"> </span><span class="mf">0.5</span>.0
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>samples
+<span class="nv">samples</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>This uses the same binary without initializing Tk, requiring a display, or loading argparse. Loading
+<code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> afterward adds the GUI while preserving existing vectors. The binary’s linked dependencies
+must still be installed; building still requires the usual Tcl/Tk development files.
+Direct <code class="docutils literal notranslate"><span class="pre">load</span></code> now initializes only the vector core; use <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> for the full package.
+External C extensions can use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> from the updated stub library for this Tcl-only path.</p>
+<p>The full tests and documentation generation need a working graphical display. The vector-only test target does not.</p>
 </section>
 <section id="building-rbc">
 <span id="r-building-rbc"></span><span id="r-building20rbc"></span><h3>Building Rbc<a class="headerlink" href="#building-rbc" title="Link to this heading">¶</a></h3>
@@ -347,6 +356,12 @@ sufficient.</p>
 environment. The automated runner sets native as the option-database default to preserve the existing pixel tests.
 Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
 build default: Cairo when enabled, native otherwise.</p>
+<p>Run the Tcl-only package-loading and public vector C API tests without a display:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector
+</pre></div>
+</div>
+<p>This runs <code class="docutils literal notranslate"><span class="pre">tests/vectorAll.tcl</span></code>. GUI upgrade/load-order tests run in the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> suite and are skipped
+by the headless runner. Regenerate your Makefile with <code class="docutils literal notranslate"><span class="pre">./config.status</span></code> after updating <code class="docutils literal notranslate"><span class="pre">Makefile.in</span></code>.</p>
 <p>The suite uses <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>. Pass test selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>.</p>
 <p>For example, run the line-decimation test file:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">&quot;-file RBC.graph.element.decimate.A.test&quot;</span>

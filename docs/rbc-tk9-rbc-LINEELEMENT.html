@@ -676,15 +676,74 @@ using <code class="docutils literal notranslate"><span class="pre">a</span></cod
 invoke <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>. Thinning uses the sample position across all pen styles, including styles with
 <code class="docutils literal notranslate"><span class="pre">-showvalues</span> <span class="pre">none</span></code>. Active labels bypass <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>, matching active symbols: explicitly activated indices
 can label omitted samples, while activating all points labels the set selected by <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>.</p>
+</section>
+<section id="x-and-y-error-bands">
+<span id="r-rbc-lineelement-x-and-y-error-bands"></span><span id="r-3a3arbc3a3alineelementqzx20and20y20error20bands"></span><h2>X and Y error bands<a class="headerlink" href="#x-and-y-error-bands" title="Link to this heading">¶</a></h2>
+<p>Cartesian line and strip elements can fill the space between their lower and upper error bounds.  Select one
+direction with <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">x</span></code> or <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code>; the default <code class="docutils literal notranslate"><span class="pre">none</span></code> disables the band.  X bands use <code class="docutils literal notranslate"><span class="pre">-xerror</span></code>
+as symmetric magnitudes around X, or both <code class="docutils literal notranslate"><span class="pre">-xlow</span></code> and <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code> as absolute endpoints. Y bands use the
+corresponding Y options. Nonempty symmetric errors take precedence over absolute bounds on the selected
+axis. Lists and real vectors are supported. Errors on the other axis do not affect the band. Simultaneous X and
+Y bands (<code class="docutils literal notranslate"><span class="pre">both</span></code>) are not supported.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">2.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorband<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>errorbandopacity<span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="o">-</span>errorbandforeground<span class="w"> </span>steelblue
+</pre></div>
+</div>
+<p><img alt="line_y_errorband_sym" src="images/line_y_errorband_sym.svg" /></p>
+<p>Asymmetric absolute endpoints instead of symmetric magnitudes:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>ylow<span class="w"> </span><span class="k">{</span><span class="nv">1.7</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">2.1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yhigh<span class="w"> </span><span class="k">{</span><span class="nv">2.4</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">3.0</span><span class="k">}</span>
+</pre></div>
+</div>
+<p><img alt="line_y_errorband_asym" src="images/line_y_errorband_asym.svg" /></p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>horizontal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>errorband<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>errorbandopacity<span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="o">-</span>errorbandforeground<span class="w"> </span>steelblue
+</pre></div>
+</div>
+<p><img alt="line_x_errorband_sym" src="images/line_x_errorband_sym.svg" /></p>
+<p>Asymmetric absolute endpoints instead of symmetric magnitudes:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>horizontal<span class="w"> </span><span class="o">-</span>xerror<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>xlow<span class="w"> </span><span class="k">{</span><span class="nv">1.7</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">2.1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xhigh<span class="w"> </span><span class="k">{</span><span class="nv">2.4</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">3.0</span><span class="k">}</span>
+</pre></div>
+</div>
+<p><img alt="line_x_errorband_asym" src="images/line_x_errorband_asym.svg" /></p>
+<p>Band styling is independent of ordinary area filling and error-bar strokes. It supports <code class="docutils literal notranslate"><span class="pre">solid</span></code>, Tk bitmap
+stipples, and image tiles through the <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> options. The pattern defaults to <code class="docutils literal notranslate"><span class="pre">solid</span></code>, foreground to black, background to white, and tile
+to empty. An empty pattern disables pattern filling. A nonempty tile takes precedence over the pattern,
+including when the tile image is empty or deleted.  Tile changes trigger redrawing. Clear <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> to
+restore pattern filling.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandpattern<span class="w"> </span>gray25<span class="w"> </span><span class="o">-</span>errorbandbackground<span class="w"> </span><span class="k">{}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandtile<span class="w"> </span><span class="nv">$image</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code> is a finite number from 0 to 1, default 1. It follows ordinary area-fill rules: Cairo and
+SVG apply it to solid fills; stipples and tiles retain their existing transparency rules.  Native rendering and
+PostScript accept but ignore this opacity option. Use Cairo or SVG for partially transparent solid
+bands. PostScript retains the ordinary area-tile background-color fallback.</p>
+<p>Bands support <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code> and <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">step</span></code>; enabling a band with spline smoothing is rejected. Linear
+bands connect successive lower endpoints and successive upper endpoints in source order. Step bands use the
+trace’s existing X-first convention for each boundary: move to the next boundary X while holding the previous
+Y, then move to the next Y. For X bands this places the vertical part between successive sample Y values at the
+next sample’s X bounds; it is not a Y-first staircase.</p>
+<p>Inverted axes change screen orientation without changing this data-coordinate convention. Bounds are normalized
+to lower/upper order. Each run needs at least two samples with finite X, Y and both bounds; invalid samples
+split the band. Nonpositive coordinates or bounds on a logarithmic axis split runs rather than being reflected
+or bridged. Missing bounds and shortened lists terminate the available run. Line-element <code class="docutils literal notranslate"><span class="pre">-trace</span></code> direction
+restrictions also split bands. Input order is preserved.</p>
+<p>The band uses original source samples, independently of <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>, <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>, and
+screen-density <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>. It is drawn over the element’s ordinary area fill and below its trace, symbols,
+error bars, and value labels. <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">none</span></code> hides error-bar strokes without hiding the band. Existing
+error-data axis extents and closest-point results are unchanged; the band itself does not add a hit-test target
+or legend swatch.</p>
+<p>Bands cover X or Y errors on Cartesian line and strip elements only. Polar/Smith bands, spline bands, and
+separate boundary outlines are not supported. The band closes between its two bounds, so ordinary <code class="docutils literal notranslate"><span class="pre">-areaclose</span></code>
+does not affect it.</p>
 <section id="value-label-position">
 <span id="r-rbc-lineelement-value-label-position"></span><span id="r-3a3arbc3a3alineelementqzvalue2dlabel20position"></span><h3>Value-label position<a class="headerlink" href="#value-label-position" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">-valueoffset</span> <span class="pre">{dx</span> <span class="pre">dy}</span></code> moves the label anchor by signed integer pixels: positive X moves right, positive Y
 moves down. The default is <code class="docutils literal notranslate"><span class="pre">{0</span> <span class="pre">0}</span></code>. Directions stay the same with <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuerotate</span></code>;
 <code class="docutils literal notranslate"><span class="pre">-valueanchor</span></code> still controls text alignment. The offset is measured from the existing label position, not from
 the symbol edge.</p>
-<p>This option applies to line, strip, Polar and bar elements and their named, active and weighted-style
-pens. It works with <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, in both renderers and PostScript output.
-PostScript uses the offset before page scaling. Source coordinates passed to callbacks do not change.</p>
+<p>This option applies to line, strip, Polar and bar elements and their named, active and weighted-style pens. It
+works with <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code> and <code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code>, in both renderers and PostScript output. PostScript uses the
+offset before page scaling. Source coordinates passed to callbacks do not change.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>showvalues<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>valueanchor<span class="w"> </span>s<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="o">-</span><span class="mi">8</span><span class="k">}</span>
 <span class="nv">.g</span><span class="w"> </span>pen<span class="w"> </span>configure<span class="w"> </span>selected<span class="w"> </span><span class="o">-</span>valueoffset<span class="w"> </span><span class="k">{</span><span class="nv">8</span><span class="w"> </span><span class="o">-</span><span class="mi">8</span><span class="k">}</span>
 </pre></div>
@@ -692,13 +751,13 @@ PostScript uses the offset before page scaling. Source coordinates passed to cal
 </section>
 <section id="custom-value-label-text">
 <span id="r-rbc-lineelement-custom-value-label-text"></span><span id="r-3a3arbc3a3alineelementqzcustom20value2dlabel20text"></span><h3>Custom value-label text<a class="headerlink" href="#custom-value-label-text" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> supplies a Tcl command prefix for value labels. It is available on line, strip, Polar and
-bar elements and on their named pens, including active and weighted-style pens. The option database name
-and class are <code class="docutils literal notranslate"><span class="pre">valueCommand</span></code> and <code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code>. The default is empty.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> supplies a Tcl command prefix for value labels. It is available on line, strip, Polar and bar
+elements and on their named pens, including active and weighted-style pens. The option database name and class
+are <code class="docutils literal notranslate"><span class="pre">valueCommand</span></code> and <code class="docutils literal notranslate"><span class="pre">ValueCommand</span></code>. The default is empty.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>ElementLabel<span class="w"> </span><span class="k">{</span><span class="nv">names</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>index<span class="w"> </span>x<span class="w"> </span>y<span class="k">}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">lindex</span><span class="w"> </span><span class="nv">$names</span><span class="w"> </span><span class="nv">$index</span><span class="k">]</span>
 <span class="k">}</span>
-<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>samples<span class="w"> </span><span class="o">-</span>showvalues<span class="w"> </span>y<span class="w">  </span><span class="o">-</span>valuecommand<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="o">::</span>ElementLabel<span class="w"> </span><span class="k">{</span><span class="nv">Hydrogen</span><span class="w"> </span>Helium<span class="w"> </span>Lithium<span class="k">}]</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>samples<span class="w"> </span><span class="o">-</span>showvalues<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>valuecommand<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span><span class="o">::</span>ElementLabel<span class="w"> </span><span class="k">{</span><span class="nv">Hydrogen</span><span class="w"> </span>Helium<span class="w"> </span>Lithium<span class="k">}]</span>
 </pre></div>
 </div>
 <p>The callback runs in the global namespace with five arguments appended to its prefix:</p>
@@ -830,56 +889,6 @@ use Cairo with the native GC color. Native photo tiles retain their existing tra
 <p>The current implementation stores one fill polygon per line element. Consequently, if the mapped line
 contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
 runs.</p>
-</section>
-<section id="x-and-y-error-bands">
-<span id="r-rbc-lineelement-x-and-y-error-bands"></span><span id="r-3a3arbc3a3alineelementqzx20and20y20error20bands"></span><h2>X and Y error bands<a class="headerlink" href="#x-and-y-error-bands" title="Link to this heading">¶</a></h2>
-<p>Cartesian line and strip elements can fill the space between their lower and upper error bounds.
-Select one direction with <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">x</span></code> or <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code>; the default <code class="docutils literal notranslate"><span class="pre">none</span></code> disables the band.
-X bands use <code class="docutils literal notranslate"><span class="pre">-xerror</span></code> as symmetric magnitudes around X, or both <code class="docutils literal notranslate"><span class="pre">-xlow</span></code> and <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code> as absolute
-endpoints. Y bands use the corresponding Y options. Nonempty symmetric errors take precedence over
-absolute bounds on the selected axis. Lists and real vectors are supported. Errors on the other axis
-do not affect the band. Simultaneous X and Y bands (<code class="docutils literal notranslate"><span class="pre">both</span></code>) are not supported.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">2.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w">  </span><span class="o">-</span>errorband<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>errorbandforeground<span class="w"> </span>steelblue<span class="w"> </span><span class="o">-</span>errorbandopacity<span class="w"> </span><span class="mf">0.25</span>
-<span class="c"># Asymmetric absolute endpoints instead of symmetric magnitudes:</span>
-<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>ylow<span class="w"> </span><span class="k">{</span><span class="nv">1.7</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">2.1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yhigh<span class="w"> </span><span class="k">{</span><span class="nv">2.4</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">3.0</span><span class="k">}</span>
-</pre></div>
-</div>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>horizontal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w">  </span><span class="o">-</span>errorband<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>errorbandforeground<span class="w"> </span>steelblue<span class="w"> </span><span class="o">-</span>errorbandopacity<span class="w"> </span><span class="mf">0.25</span>
-<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>horizontal<span class="w"> </span><span class="o">-</span>xerror<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>xlow<span class="w"> </span><span class="k">{</span><span class="nv">1.7</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">2.1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>xhigh<span class="w"> </span><span class="k">{</span><span class="nv">2.4</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">3.0</span><span class="k">}</span>
-</pre></div>
-</div>
-<p>Band styling is independent of ordinary area filling and error-bar strokes. It supports <code class="docutils literal notranslate"><span class="pre">solid</span></code>, Tk
-bitmap stipples, and image tiles through the <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>,
-<code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span></code>, and <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> options. The pattern defaults to <code class="docutils literal notranslate"><span class="pre">solid</span></code>, foreground to
-black, background to white, and tile to empty. An empty pattern disables pattern filling. A nonempty
-tile takes precedence over the pattern, including when the tile image is empty or deleted.
-Tile changes trigger redrawing. Clear <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> to restore pattern filling.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandpattern<span class="w"> </span>gray25<span class="w"> </span><span class="o">-</span>errorbandbackground<span class="w"> </span><span class="k">{}</span>
-<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandtile<span class="w"> </span><span class="nv">$image</span>
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code> is a finite number from 0 to 1, default 1. It follows ordinary area-fill rules:
-Cairo and SVG apply it to solid fills; stipples and tiles retain their existing transparency rules.
-Native rendering and PostScript accept but ignore this opacity option. Use Cairo or SVG for partially
-transparent solid bands. PostScript retains the ordinary area-tile background-color fallback.</p>
-<p>Bands support <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code> and <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">step</span></code>; enabling a band with spline smoothing is rejected.
-Linear bands connect successive lower endpoints and successive upper endpoints in source order.
-Step bands use the trace’s existing X-first convention for each boundary: move to the next boundary
-X while holding the previous Y, then move to the next Y. For X bands this places the vertical part
-between successive sample Y values at the next sample’s X bounds; it is not a Y-first staircase.
-Inverted axes change screen orientation without changing this data-coordinate convention. Bounds are
-normalized to lower/upper order. Each run needs at least two samples with finite X, Y and both bounds;
-invalid samples split the band. Nonpositive coordinates or bounds on a logarithmic axis split runs
-rather than being reflected or bridged. Missing bounds and shortened lists terminate the available
-run. Line-element <code class="docutils literal notranslate"><span class="pre">-trace</span></code> direction restrictions also split bands. Input order is preserved.</p>
-<p>The band uses original source samples, independently of <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>, <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>,
-and screen-density <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>. It is drawn over the element’s ordinary area fill and below its trace,
-symbols, error bars, and value labels. <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">none</span></code> hides error-bar strokes without hiding
-the band. Existing error-data axis extents and closest-point results are unchanged; the band itself
-does not add a hit-test target or legend swatch.</p>
-<p>Bands cover X or Y errors on Cartesian line and strip elements only. Polar/Smith bands,
-spline bands, and separate boundary outlines are not supported. The band closes
-between its two bounds, so ordinary <code class="docutils literal notranslate"><span class="pre">-areaclose</span></code> does not affect it.</p>
 </section>
 <section id="line-element-options">
 <span id="r-rbc-lineelement-line-element-options"></span><span id="r-3a3arbc3a3alineelementqzline20element20options"></span><h2>Line element options<a class="headerlink" href="#line-element-options" title="Link to this heading">¶</a></h2>
@@ -1261,14 +1270,14 @@ between its two bounds, so ordinary <code class="docutils literal notranslate"><
 <li><a class="reference internal" href="#point-reduction">Point reduction</a></li>
 <li><a class="reference internal" href="#symbols">Symbols</a></li>
 <li><a class="reference internal" href="#error-bars-of-line-elements">Error bars of line elements</a></li>
-<li><a class="reference internal" href="#value-labels-of-line-elements">Value labels of line elements</a><ul>
+<li><a class="reference internal" href="#value-labels-of-line-elements">Value labels of line elements</a></li>
+<li><a class="reference internal" href="#x-and-y-error-bands">X and Y error bands</a><ul>
 <li><a class="reference internal" href="#value-label-position">Value-label position</a></li>
 <li><a class="reference internal" href="#custom-value-label-text">Custom value-label text</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pens-weights-and-styles">Pens, weights, and styles</a></li>
 <li><a class="reference internal" href="#area-under-the-line">Area under the line</a></li>
-<li><a class="reference internal" href="#x-and-y-error-bands">X and Y error bands</a></li>
 <li><a class="reference internal" href="#line-element-options">Line element options</a></li>
 </ul>
 </li>

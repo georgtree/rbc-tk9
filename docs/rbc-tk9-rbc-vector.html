@@ -49,6 +49,31 @@
 <li><p>an associated Tcl array variable</p></li>
 <li><p>the RBC C API.</p></li>
 </ul>
+<section id="loading-vectors-without-tk">
+<span id="r-rbc-vector-loading-vectors-without-tk"></span><span id="r-3a3arbc3a3avectorqzloading20vectors20without20tk"></span><h2>Loading vectors without Tk<a class="headerlink" href="#loading-vectors-without-tk" title="Link to this heading">¶</a></h2>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code> package in a Tcl-only interpreter:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::vector<span class="w"> </span><span class="mf">0.5</span>.0
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>samples
+<span class="nv">samples</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<span class="nv">samples</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">samples</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>This loads the same Rbc shared library but initializes only its vector commands and C API. It does not
+require Tk, a graphical display, argparse, or graphtoolbar. Real and complex vectors, expressions,
+array access, and vector client notifications use the same implementation as the full package.
+Graphs, winop, spline, and graphtoolbar are available through the full <code class="docutils literal notranslate"><span class="pre">rbc</span></code> package instead.</p>
+<p>Loading <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> later adds the graphical components without recreating the vector
+command or existing vectors. Full loading also provides <code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code>, so either order is supported.
+A failed Tk load leaves the vector core usable and full loading can be retried. Package versions
+match the shared library version. Use package commands for both paths; the package index handles
+the shared binary and its initialization order. Direct <code class="docutils literal notranslate"><span class="pre">load</span></code> and the C <code class="docutils literal notranslate"><span class="pre">Rbc_Init</span></code> entry point now
+initialize only the vector core; use <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> (or <code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> in a consumer) for full
+GUI initialization.</p>
+<p>This is an initialization split, not a separate binary or reduced build. Building still requires
+Tcl/Tk headers and the selected backend dependencies. The shared library’s dynamic dependencies
+(for example Cairo or platform graphics libraries) must remain installed even for vector-only use.
+The private <code class="docutils literal notranslate"><span class="pre">::rbc::_initTk</span></code> command is loader infrastructure, not a public application API.</p>
+</section>
 <section id="vector-types">
 <span id="r-rbc-vector-vector-types"></span><span id="r-3a3arbc3a3avectorqzvector20types"></span><h2>Vector types<a class="headerlink" href="#vector-types" title="Link to this heading">¶</a></h2>
 <p>Each vector has an immutable numeric type:</p>
@@ -173,6 +198,7 @@ individual vector.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li><a class="reference internal" href="#loading-vectors-without-tk">Loading vectors without Tk</a></li>
 <li><a class="reference internal" href="#vector-types">Vector types</a></li>
 <li><a class="reference internal" href="#graph-and-spline-integration">Graph and spline integration</a></li>
 <li><a class="reference internal" href="#vector-creation-forms">Vector creation forms</a></li>

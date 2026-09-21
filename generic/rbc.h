@@ -44,8 +44,7 @@ EXTERN int Rbc_Init (Tcl_Interp *interp);
  * statically linked into the calling dll/exe.
  */
 
-const char *
-Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact);
+const char *Rbc_InitStubs(Tcl_Interp *interp, const char *version, int exact);
 
 const char *Rbc_VectorInitStubs(Tcl_Interp *interp, const char *version, int exact);
 

@@ -48,6 +48,14 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="tcl-only-vector-loading">
+<span id="r-tcltk9upgrade-tcl-only-vector-loading"></span><span id="r-3a3atcltk9upgradeqztcl2donly20vector20loading"></span><h3>Tcl-only vector loading<a class="headerlink" href="#tcl-only-vector-loading" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::vector</span></code> loads vectors from the same shared library without initializing Tk or
+loading argparse and graphtoolbar. Full <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> can follow without replacing vectors or
+client subscriptions; the reverse loading order also works. C consumers can use <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code>
+with the updated stub library. <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-vector</span></code> runs the package-loading and public C API tests
+without a graphical display. Binary dependencies remain required. See <a class="reference internal" href="rbc-tk9-rbc-vector.html#r-namespaceqz3a3arbc3a3avector"><span class="std std-ref">::rbc::vector</span></a> for details.</p>
+</section>
 <section id="x-and-y-error-bands-for-lines-and-strips">
 <span id="r-tcltk9upgrade-x-and-y-error-bands-for-lines-and-strips"></span><span id="r-3a3atcltk9upgradeqzx20and20y20error20bands20for20lines20and20strips"></span><h3>X and Y error bands for lines and strips<a class="headerlink" href="#x-and-y-error-bands-for-lines-and-strips" title="Link to this heading">¶</a></h3>
 <p>Cartesian line and strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">x|y</span></code>, filling between symmetric <code class="docutils literal notranslate"><span class="pre">-xerror</span></code> or
@@ -723,6 +731,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#tcl-only-vector-loading">Tcl-only vector loading</a></li>
 <li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>

@@ -600,7 +600,7 @@ initialize it before calling Rbc functions:
 .RS 4n
 .nf
 static int InitRbcApi(Tcl_Interp *interp, const char *version) {
-    if (Rbc_InitStubs(interp, version, 0) == NULL) {
+    if (Rbc_VectorInitStubs(interp, version, 0) == NULL) {
         return TCL_ERROR;
     }
 
@@ -609,8 +609,14 @@ static int InitRbcApi(Tcl_Interp *interp, const char *version) {
 .fi
 .RE
 .PP
-version is the minimum Rbc package version required by the extension\&. Rbc_InitStubs also ensures that the
-Rbc package is loaded in the interpreter\&.
+version is the minimum Rbc package version required by the extension\&. Rbc_VectorInitStubs requires
+rbc::vector and initializes the existing Rbc stubs table without loading Tk\&. Rebuild the consumer
+with the updated rbcStubLib\&.c (or updated stub library) to use this new helper\&. The table layout and
+vector function slots are unchanged\&.
+.PP
+Rbc_InitStubs remains available and requires the full rbc package, including Tk and the toolbar\&.
+Both helpers use the same vector API and table; upgrading to the full package preserves vector pointers
+and subscriptions\&. As before, each interpreter must have its package initialized before using the API\&.
 .SS "VECTOR REPRESENTATION"
 .PP
 Rbc_Vector is an opaque public type:
