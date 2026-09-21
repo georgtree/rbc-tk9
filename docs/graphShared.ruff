@@ -2396,6 +2396,53 @@ namespace eval ::rbc::LINEELEMENT {
         contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
         runs.
 
+        ## Y error bands
+        Cartesian line and strip elements can fill the space between their lower and upper Y error bounds.
+        Set `-errorband y` to enable the band; the default `none` preserves existing behavior. The band uses
+        `-yerror` as symmetric magnitudes around Y, or both `-ylow` and `-yhigh` as absolute endpoints.
+        Nonempty `-yerror` takes precedence over the absolute bounds. Lists and real vectors are supported.
+
+        ```tcl
+        .g element create signal -data {0 2 1 3 2 2.5} -yerror {0.2 0.4 0.3} \
+            -errorband y -errorbandforeground steelblue -errorbandopacity 0.25
+        # Asymmetric absolute endpoints instead of symmetric magnitudes:
+        .g element configure signal -yerror {} -ylow {1.7 2.5 2.1} -yhigh {2.4 3.2 3.0}
+        ```
+
+        Band styling is independent of ordinary area filling and error-bar strokes. It supports `solid`, Tk
+        bitmap stipples, and image tiles through the `-errorbandpattern`, `-errorbandforeground`,
+        `-errorbandbackground`, and `-errorbandtile` options. The pattern defaults to `solid`, foreground to
+        black, background to white, and tile to empty. An empty pattern disables pattern filling. A nonempty
+        tile takes precedence over the pattern, including when the tile image is empty or deleted.
+        Tile changes trigger redrawing. Clear `-errorbandtile` to restore pattern filling.
+
+        ```tcl
+        .g element configure signal -errorbandpattern gray25 -errorbandbackground {}
+        .g element configure signal -errorbandtile $image
+        ```
+
+        `-errorbandopacity` is a finite number from 0 to 1, default 1. It follows ordinary area-fill rules:
+        Cairo and SVG apply it to solid fills; stipples and tiles retain their existing transparency rules.
+        Native rendering and PostScript accept but ignore this opacity option. Use Cairo or SVG for partially
+        transparent solid bands. PostScript retains the ordinary area-tile background-color fallback.
+
+        Bands support `-smooth linear` and `-smooth step`; enabling a band with spline smoothing is rejected.
+        Step bands hold each bound until the next X coordinate, including with inverted axes. Bounds are
+        normalized to lower/upper order. Each run needs at least two samples with finite X, Y and both bounds;
+        invalid samples split the band. On logarithmic axes, nonpositive coordinates or Y bounds split runs
+        rather than being reflected or bridged. Missing bounds and shortened lists terminate the available
+        run. Line-element `-trace` direction restrictions also split bands. Input order is preserved.
+
+        The band uses original source samples, independently of `-reduce`, `-symbolpoints`, `-maxsymbols`,
+        and screen-density `-decimate`. It is drawn over the element's ordinary area fill and below its trace,
+        symbols, error bars, and value labels. `-showerrorbars none` hides error-bar strokes without hiding
+        the band. Existing error-data axis extents and closest-point results are unchanged; the band itself
+        does not add a hit-test target or legend swatch.
+
+        This first implementation covers Y errors on Cartesian line and strip elements only. X bands,
+        polar/Smith bands, spline bands, and separate boundary outlines are not supported. The band closes
+        between its two bounds, so ordinary `-areaclose` does not affect it.
+
         ## Line element options
         The complete line-element option set is:
 
@@ -2414,6 +2461,12 @@ namespace eval ::rbc::LINEELEMENT {
         | `-dashes dashes`        | `dashes`         | `Dashes`         | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line. Each numeric list item accepts a Tcl integer expression. |
         | `-data data`            | `data`           | `Data`           | Supplies an even-length list of alternating X and Y values. Each literal list item accepts a Tcl numeric expression. |
         | `-decimate mode`        | `decimate`       | `Decimate`       | Selects automatic screen-density trace decimation. Accepted values are `none` and `auto`. The default is `none`. `auto` is applied only when the line and current display density are suitable. |
+        | `-errorband mode` | `errorBand` | `ErrorBand` | Selects none (default) or y; fills between Y error bounds. |
+        | `-errorbandpattern pattern` | `errorBandPattern` | `ErrorBandPattern` | Solid (default), Tk bitmap stipple, or empty to disable the pattern. |
+        | `-errorbandforeground color` | `errorBandForeground` | `ErrorBandForeground` | Band solid/stipple foreground; default black. |
+        | `-errorbandbackground color` | `errorBandBackground` | `ErrorBandBackground` | Band stipple background; default white. Empty leaves gaps transparent. |
+        | `-errorbandtile image` | `errorBandTile` | `ErrorBandTile` | Image tile, default empty; takes precedence over the pattern. |
+        | `-errorbandopacity value` | `errorBandOpacity` | `ErrorBandOpacity` | Solid opacity 0 to 1 (default 1), Cairo/SVG only. Native/PostScript ignore it. |
         | `-errorbarcap width`    | `errorBarCap`    | `ErrorBarCap`    | Sets the requested error-bar cap width. A positive value selects an explicit size; `0` automatically derives the size from the symbol size. The default is `1`.                                                   |
         | `-errorbarcolor color`  | `errorBarColor`  | `ErrorBarColor`  | Sets the error-bar color. `defcolor` uses the trace color.                                                                                                                                                        |
         | `-errorbarwidth width`  | `errorBarWidth`  | `ErrorBarWidth`  | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
@@ -2495,6 +2548,18 @@ namespace eval ::rbc::LINEELEMENT {
         │                         │                  │                  │ expression.                                             │
         │ -decimate mode          │ decimate         │ Decimate         │ Selects automatic screen-density trace decimation.      │
         │                         │                  │                  │ Accepted values are none and auto. The default is none. │
+        │ -errorband mode         │ errorBand        │ ErrorBand        │ Selects none (default) or y; fills between Y error      │
+        │                         │                  │                  │ bounds.                                                 │
+        │ -errorbandpattern       │ errorBandPattern │ ErrorBandPattern │ Solid (default), Tk bitmap stipple, or empty to disable │
+        │ pattern                 │                  │                  │ the pattern.                                            │
+        │ -errorbandforeground    │ errorBandForegro │ ErrorBandForegro │ Band solid/stipple foreground; default black.           │
+        │ color                   │ und              │ und              │                                                         │
+        │ -errorbandbackground    │ errorBandBackgro │ ErrorBandBackgro │ Band stipple background; default white. Empty leaves    │
+        │ color                   │ und              │ und              │ gaps transparent.                                       │
+        │ -errorbandtile image    │ errorBandTile    │ ErrorBandTile    │ Image tile, default empty; takes precedence over the    │
+        │                         │                  │                  │ pattern.                                                │
+        │ -errorbandopacity value │ errorBandOpacity │ ErrorBandOpacity │ Solid opacity 0 to 1 (default 1), Cairo/SVG only.       │
+        │                         │                  │                  │ Native/PostScript ignore it.                            │
         │ -errorbarcap width      │ errorBarCap      │ ErrorBarCap      │ Sets the requested error-bar cap width. A positive      │
         │                         │                  │                  │ value selects an explicit size; 0 automatically derives │
         │                         │                  │                  │ the size from the symbol size. The default is 1.        │
@@ -2805,6 +2870,12 @@ namespace eval ::rbc::STRIPELEMENT {
 
         See [LINEELEMENT] for the complete error-bar semantics.
 
+        ## Y error bands of strip elements
+        Strip elements support `-errorband y` and all five band-style options listed below, with the same
+        relative/absolute bounds, gap handling, linear/step interpolation, and renderer limitations as line
+        elements. See the Y error bands section in [LINEELEMENT]. Their lack of ordinary area-fill options
+        does not prevent error-band filling.
+
         ## Value labels of strip elements
         `-valuecommand` can replace the label text with a Tcl callback. See the custom value-label text section
         in LINEELEMENT for the callback arguments and error handling.
@@ -2842,6 +2913,12 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-dashes dashes`        | `dashes`        | `Dashes`        | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line. Each numeric list item accepts a Tcl integer expression. |
         | `-data data`            | `data`          | `Data`          | Supplies an even-length list of alternating X and Y values. Each literal list item accepts a Tcl numeric expression. |
         | `-decimate mode`        | `decimate`       | `Decimate`       | Selects automatic screen-density trace decimation. Accepted values are `none` and `auto`. The default is `none`. `auto` is applied only when the strip element and current display density are suitable. |
+        | `-errorband mode` | `errorBand` | `ErrorBand` | Selects none (default) or y; fills between Y error bounds. |
+        | `-errorbandpattern pattern` | `errorBandPattern` | `ErrorBandPattern` | Solid (default), Tk bitmap stipple, or empty to disable the pattern. |
+        | `-errorbandforeground color` | `errorBandForeground` | `ErrorBandForeground` | Band solid/stipple foreground; default black. |
+        | `-errorbandbackground color` | `errorBandBackground` | `ErrorBandBackground` | Band stipple background; default white. Empty leaves gaps transparent. |
+        | `-errorbandtile image` | `errorBandTile` | `ErrorBandTile` | Image tile, default empty; takes precedence over the pattern. |
+        | `-errorbandopacity value` | `errorBandOpacity` | `ErrorBandOpacity` | Solid opacity 0 to 1 (default 1), Cairo/SVG only. Native/PostScript ignore it. |
         | `-errorbarcap width`    | `errorBarCap`   | `ErrorBarCap`   | Sets the requested error-bar cap width. A positive value selects an explicit size; `0` automatically derives the size from the symbol size. The default is `1`.                                                   |
         | `-errorbarcolor color`  | `errorBarColor` | `ErrorBarColor` | Sets the error-bar color. `defcolor` uses the trace color.                                                                                                                                                        |
         | `-errorbarwidth width`  | `errorBarWidth` | `ErrorBarWidth` | Sets the error-bar line width. The default is `1`.                                                                                                                                                                |
@@ -2910,6 +2987,18 @@ namespace eval ::rbc::STRIPELEMENT {
         │ -decimate mode        │ decimate      │ Decimate       │ Selects automatic screen-density trace          │
         │                       │               │                │ decimation. Accepted values are none and auto.  │
         │                       │               │                │ The default is none.                            │
+        │ -errorband mode       │ errorBand     │ ErrorBand      │ Selects none (default) or y; fills between Y    │
+        │                       │               │                │ error bounds.                                   │
+        │ -errorbandpattern     │ errorBandPatt │ ErrorBandPatte │ Solid (default), Tk bitmap stipple, or empty to │
+        │ pattern               │ ern           │ rn             │ disable the pattern.                            │
+        │ -errorbandforeground  │ errorBandFore │ ErrorBandForeg │ Band solid/stipple foreground; default black.   │
+        │ color                 │ ground        │ round          │                                                 │
+        │ -errorbandbackground  │ errorBandBack │ ErrorBandBackg │ Band stipple background; default white. Empty   │
+        │ color                 │ ground        │ round          │ leaves gaps transparent.                        │
+        │ -errorbandtile image  │ errorBandTile │ ErrorBandTile  │ Image tile, default empty; takes precedence     │
+        │                       │               │                │ over the pattern.                               │
+        │ -errorbandopacity     │ errorBandOpac │ ErrorBandOpaci │ Solid opacity 0 to 1 (default 1), Cairo/SVG     │
+        │ value                 │ ity           │ ty             │ only. Native/PostScript ignore it.              │
         │ -errorbarcap width    │ errorBarCap   │ ErrorBarCap    │ Sets the requested error-bar cap width. A       │
         │                       │               │                │ positive value selects an explicit size; 0      │
         │                       │               │                │ automatically derives the size from the symbol  │
@@ -3579,9 +3668,9 @@ namespace eval ::rbc::POLARELEMENT {
         attributes therefore apply to PostScript/SVG output as well as on-screen drawing.
 
         ## Polar element options
-        Polar elements support the configuration options documented for [LINEELEMENT], except for `-decimate`, which
-        is currently available only on ordinary `LineElement` objects. Polar elements also provide the Polar-specific
-        additions below.
+        Polar elements support the configuration options documented for [LINEELEMENT], except for `-decimate` and the
+        `-errorband*` options, which require Cartesian line or strip elements. Polar elements also provide the
+        Polar-specific additions below.
 
         #ruffopt excludedformats nroff
         | Option                | Database name | Database class | Description |
@@ -7007,10 +7096,10 @@ namespace eval ::rbc::SVG {
         validated, its values remain configured even if subsequent rendering or file writing fails.
 
         ## Supported content and limitations
-        SVG export supports traces, error bars, grids, axes, solid areas and bars, standard geometric symbols,
+        SVG export supports traces, error bars, Y error bands, grids, axes, solid areas and bars, standard geometric symbols,
         line/polygon/text markers, legends, borders and editable text. Polar/Smith labels use the same layout and
         formatting as PostScript. Export remaps full source geometry rather than screen-decimated traces. Solid area
-        fills preserve `-areaopacity`. Fonts are referenced by family rather than embedded; text appearance depends on
+        fills preserve `-areaopacity`; solid error bands preserve `-errorbandopacity`. Fonts are referenced by family rather than embedded; text appearance depends on
         installed fonts in the SVG viewer. Text Rotation, baseline positions, measured widths and shadows are retained.
 
         Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image

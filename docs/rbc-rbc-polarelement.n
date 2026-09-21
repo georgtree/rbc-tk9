@@ -650,9 +650,9 @@ Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and 
 attributes therefore apply to PostScript/SVG output as well as on-screen drawing\&.
 .SH "POLAR ELEMENT OPTIONS"
 .PP
-Polar elements support the configuration options documented for \fILINEELEMENT\fP, except for -decimate, which
-is currently available only on ordinary LineElement objects\&. Polar elements also provide the Polar-specific
-additions below\&.
+Polar elements support the configuration options documented for \fILINEELEMENT\fP, except for -decimate and the
+-errorband* options, which require Cartesian line or strip elements\&. Polar elements also provide the
+Polar-specific additions below\&.
 .PP
 .RS 4n
 .nf

@@ -48,6 +48,15 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="y-error-bands-for-lines-and-strips">
+<span id="r-tcltk9upgrade-y-error-bands-for-lines-and-strips"></span><span id="r-3a3atcltk9upgradeqzy20error20bands20for20lines20and20strips"></span><h3>Y error bands for lines and strips<a class="headerlink" href="#y-error-bands-for-lines-and-strips" title="Link to this heading">¶</a></h3>
+<p>Cartesian line and strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code>, filling between symmetric <code class="docutils literal notranslate"><span class="pre">-yerror</span></code> bounds
+or absolute <code class="docutils literal notranslate"><span class="pre">-ylow</span></code>/<code class="docutils literal notranslate"><span class="pre">-yhigh</span></code> endpoints. Independent <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>,
+<code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code>, and <code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code> options reuse ordinary area-fill
+styles and backend limitations. Solid opacity is supported by Cairo and SVG; native rendering and
+PostScript ignore it. Linear and step bands preserve all source bounds despite symbol thinning or
+trace decimation and split at invalid data. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">::rbc::LINEELEMENT</span></a> for details and examples.</p>
+</section>
 <section id="symbols-on-reduced-traces">
 <span id="r-tcltk9upgrade-symbols-on-reduced-traces"></span><span id="r-3a3atcltk9upgradeqzsymbols20on20reduced20traces"></span><h3>Symbols on reduced traces<a class="headerlink" href="#symbols-on-reduced-traces" title="Link to this heading">¶</a></h3>
 <p>Line, stripchart, and polar elements accept <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all|reduced</span></code>. The default <code class="docutils literal notranslate"><span class="pre">all</span></code> preserves
@@ -713,6 +722,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#y-error-bands-for-lines-and-strips">Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>
 <li><a class="reference internal" href="#polar-smith-grid-configuration">Polar/Smith grid configuration</a></li>

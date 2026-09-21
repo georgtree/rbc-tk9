@@ -885,6 +885,56 @@ Area filling uses the geometry after smoothing and point reduction\&.
 The current implementation stores one fill polygon per line element\&. Consequently, if the mapped line
 contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
 runs\&.
+.SH "Y ERROR BANDS"
+.PP
+Cartesian line and strip elements can fill the space between their lower and upper Y error bounds\&.
+Set -errorband y to enable the band; the default none preserves existing behavior\&. The band uses
+-yerror as symmetric magnitudes around Y, or both -ylow and -yhigh as absolute endpoints\&.
+Nonempty -yerror takes precedence over the absolute bounds\&. Lists and real vectors are supported\&.
+.PP
+.RS 4n
+.nf
+\&.g element create signal -data {0 2 1 3 2 2\&.5} -yerror {0\&.2 0\&.4 0\&.3}  -errorband y -errorbandforeground steelblue -errorbandopacity 0\&.25
+# Asymmetric absolute endpoints instead of symmetric magnitudes:
+\&.g element configure signal -yerror {} -ylow {1\&.7 2\&.5 2\&.1} -yhigh {2\&.4 3\&.2 3\&.0}
+.fi
+.RE
+.PP
+Band styling is independent of ordinary area filling and error-bar strokes\&. It supports solid, Tk
+bitmap stipples, and image tiles through the -errorbandpattern, -errorbandforeground,
+-errorbandbackground, and -errorbandtile options\&. The pattern defaults to solid, foreground to
+black, background to white, and tile to empty\&. An empty pattern disables pattern filling\&. A nonempty
+tile takes precedence over the pattern, including when the tile image is empty or deleted\&.
+Tile changes trigger redrawing\&. Clear -errorbandtile to restore pattern filling\&.
+.PP
+.RS 4n
+.nf
+\&.g element configure signal -errorbandpattern gray25 -errorbandbackground {}
+\&.g element configure signal -errorbandtile $image
+.fi
+.RE
+.PP
+-errorbandopacity is a finite number from 0 to 1, default 1\&. It follows ordinary area-fill rules:
+Cairo and SVG apply it to solid fills; stipples and tiles retain their existing transparency rules\&.
+Native rendering and PostScript accept but ignore this opacity option\&. Use Cairo or SVG for partially
+transparent solid bands\&. PostScript retains the ordinary area-tile background-color fallback\&.
+.PP
+Bands support -smooth linear and -smooth step; enabling a band with spline smoothing is rejected\&.
+Step bands hold each bound until the next X coordinate, including with inverted axes\&. Bounds are
+normalized to lower/upper order\&. Each run needs at least two samples with finite X, Y and both bounds;
+invalid samples split the band\&. On logarithmic axes, nonpositive coordinates or Y bounds split runs
+rather than being reflected or bridged\&. Missing bounds and shortened lists terminate the available
+run\&. Line-element -trace direction restrictions also split bands\&. Input order is preserved\&.
+.PP
+The band uses original source samples, independently of -reduce, -symbolpoints, -maxsymbols,
+and screen-density -decimate\&. It is drawn over the element's ordinary area fill and below its trace,
+symbols, error bars, and value labels\&. -showerrorbars none hides error-bar strokes without hiding
+the band\&. Existing error-data axis extents and closest-point results are unchanged; the band itself
+does not add a hit-test target or legend swatch\&.
+.PP
+This first implementation covers Y errors on Cartesian line and strip elements only\&. X bands,
+polar/Smith bands, spline bands, and separate boundary outlines are not supported\&. The band closes
+between its two bounds, so ordinary -areaclose does not affect it\&.
 .SH "LINE ELEMENT OPTIONS"
 .PP
 The complete line-element option set is:
@@ -922,6 +972,18 @@ The complete line-element option set is:
 │                         │                  │                  │ expression\&.                                             │
 │ -decimate mode          │ decimate         │ Decimate         │ Selects automatic screen-density trace decimation\&.      │
 │                         │                  │                  │ Accepted values are none and auto\&. The default is none\&. │
+│ -errorband mode         │ errorBand        │ ErrorBand        │ Selects none (default) or y; fills between Y error      │
+│                         │                  │                  │ bounds\&.                                                 │
+│ -errorbandpattern       │ errorBandPattern │ ErrorBandPattern │ Solid (default), Tk bitmap stipple, or empty to disable │
+│ pattern                 │                  │                  │ the pattern\&.                                            │
+│ -errorbandforeground    │ errorBandForegro │ ErrorBandForegro │ Band solid/stipple foreground; default black\&.           │
+│ color                   │ und              │ und              │                                                         │
+│ -errorbandbackground    │ errorBandBackgro │ ErrorBandBackgro │ Band stipple background; default white\&. Empty leaves    │
+│ color                   │ und              │ und              │ gaps transparent\&.                                       │
+│ -errorbandtile image    │ errorBandTile    │ ErrorBandTile    │ Image tile, default empty; takes precedence over the    │
+│                         │                  │                  │ pattern\&.                                                │
+│ -errorbandopacity value │ errorBandOpacity │ ErrorBandOpacity │ Solid opacity 0 to 1 (default 1), Cairo/SVG only\&.       │
+│                         │                  │                  │ Native/PostScript ignore it\&.                            │
 │ -errorbarcap width      │ errorBarCap      │ ErrorBarCap      │ Sets the requested error-bar cap width\&. A positive      │
 │                         │                  │                  │ value selects an explicit size; 0 automatically derives │
 │                         │                  │                  │ the size from the symbol size\&. The default is 1\&.        │

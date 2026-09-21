@@ -208,6 +208,13 @@ linear trace segments.</p>
 </div>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a> for the complete error-bar semantics.</p>
 </section>
+<section id="y-error-bands-of-strip-elements">
+<span id="r-rbc-stripelement-y-error-bands-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzy20error20bands20of20strip20elements"></span><h2>Y error bands of strip elements<a class="headerlink" href="#y-error-bands-of-strip-elements" title="Link to this heading">¶</a></h2>
+<p>Strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code> and all five band-style options listed below, with the same
+relative/absolute bounds, gap handling, linear/step interpolation, and renderer limitations as line
+elements. See the Y error bands section in <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>. Their lack of ordinary area-fill options
+does not prevent error-band filling.</p>
+</section>
 <section id="value-labels-of-strip-elements">
 <span id="r-rbc-stripelement-value-labels-of-strip-elements"></span><span id="r-3a3arbc3a3astripelementqzvalue20labels20of20strip20elements"></span><h2>Value labels of strip elements<a class="headerlink" href="#value-labels-of-strip-elements" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-valuecommand</span></code> can replace the label text with a Tcl callback. See the custom value-label text section
@@ -278,6 +285,36 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">decimate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Decimate</span></code></p></td>
 <td><p>Selects automatic screen-density trace decimation. Accepted values are <code class="docutils literal notranslate"><span class="pre">none</span></code> and <code class="docutils literal notranslate"><span class="pre">auto</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">none</span></code>. <code class="docutils literal notranslate"><span class="pre">auto</span></code> is applied only when the strip element and current display density are suitable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBand</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBand</span></code></p></td>
+<td><p>Selects none (default) or y; fills between Y error bounds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span> <span class="pre">pattern</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandPattern</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandPattern</span></code></p></td>
+<td><p>Solid (default), Tk bitmap stipple, or empty to disable the pattern.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandForeground</span></code></p></td>
+<td><p>Band solid/stipple foreground; default black.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandBackground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandBackground</span></code></p></td>
+<td><p>Band stipple background; default white. Empty leaves gaps transparent.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandtile</span> <span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandTile</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandTile</span></code></p></td>
+<td><p>Image tile, default empty; takes precedence over the pattern.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandOpacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandOpacity</span></code></p></td>
+<td><p>Solid opacity 0 to 1 (default 1), Cairo/SVG only. Native/PostScript ignore it.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarCap</span></code></p></td>
@@ -523,6 +560,7 @@ in LINEELEMENT for the callback arguments and error handling.</p>
 <li><a class="reference internal" href="#smoothing">Smoothing</a></li>
 <li><a class="reference internal" href="#pens-and-symbols">Pens and symbols</a></li>
 <li><a class="reference internal" href="#error-bars-of-strip-elements">Error bars of strip elements</a></li>
+<li><a class="reference internal" href="#y-error-bands-of-strip-elements">Y error bands of strip elements</a></li>
 <li><a class="reference internal" href="#value-labels-of-strip-elements">Value labels of strip elements</a></li>
 <li><a class="reference internal" href="#weights-and-styles">Weights and styles</a></li>
 <li><a class="reference internal" href="#strip-element-options">Strip element options</a></li>

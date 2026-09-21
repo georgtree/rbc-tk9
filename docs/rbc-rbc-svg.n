@@ -92,10 +92,10 @@ Invalid option/value lists leave all SVG settings unchanged\&. Once an output op
 validated, its values remain configured even if subsequent rendering or file writing fails\&.
 .SH "SUPPORTED CONTENT AND LIMITATIONS"
 .PP
-SVG export supports traces, error bars, grids, axes, solid areas and bars, standard geometric symbols,
+SVG export supports traces, error bars, Y error bands, grids, axes, solid areas and bars, standard geometric symbols,
 line/polygon/text markers, legends, borders and editable text\&. Polar/Smith labels use the same layout and
 formatting as PostScript\&. Export remaps full source geometry rather than screen-decimated traces\&. Solid area
-fills preserve -areaopacity\&. Fonts are referenced by family rather than embedded; text appearance depends on
+fills preserve -areaopacity; solid error bands preserve -errorbandopacity\&. Fonts are referenced by family rather than embedded; text appearance depends on
 installed fonts in the SVG viewer\&. Text Rotation, baseline positions, measured widths and shadows are retained\&.
 .PP
 Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image

@@ -195,6 +195,12 @@ Their appearance is controlled by:
 .RE
 .PP
 See \fILINEELEMENT\fP for the complete error-bar semantics\&.
+.SH "Y ERROR BANDS OF STRIP ELEMENTS"
+.PP
+Strip elements support -errorband y and all five band-style options listed below, with the same
+relative/absolute bounds, gap handling, linear/step interpolation, and renderer limitations as line
+elements\&. See the Y error bands section in \fILINEELEMENT\fP\&. Their lack of ordinary area-fill options
+does not prevent error-band filling\&.
 .SH "VALUE LABELS OF STRIP ELEMENTS"
 .PP
 -valuecommand can replace the label text with a Tcl callback\&. See the custom value-label text section
@@ -250,6 +256,18 @@ The complete strip-element option set is:
 │ -decimate mode        │ decimate      │ Decimate       │ Selects automatic screen-density trace          │
 │                       │               │                │ decimation\&. Accepted values are none and auto\&.  │
 │                       │               │                │ The default is none\&.                            │
+│ -errorband mode       │ errorBand     │ ErrorBand      │ Selects none (default) or y; fills between Y    │
+│                       │               │                │ error bounds\&.                                   │
+│ -errorbandpattern     │ errorBandPatt │ ErrorBandPatte │ Solid (default), Tk bitmap stipple, or empty to │
+│ pattern               │ ern           │ rn             │ disable the pattern\&.                            │
+│ -errorbandforeground  │ errorBandFore │ ErrorBandForeg │ Band solid/stipple foreground; default black\&.   │
+│ color                 │ ground        │ round          │                                                 │
+│ -errorbandbackground  │ errorBandBack │ ErrorBandBackg │ Band stipple background; default white\&. Empty   │
+│ color                 │ ground        │ round          │ leaves gaps transparent\&.                        │
+│ -errorbandtile image  │ errorBandTile │ ErrorBandTile  │ Image tile, default empty; takes precedence     │
+│                       │               │                │ over the pattern\&.                               │
+│ -errorbandopacity     │ errorBandOpac │ ErrorBandOpaci │ Solid opacity 0 to 1 (default 1), Cairo/SVG     │
+│ value                 │ ity           │ ty             │ only\&. Native/PostScript ignore it\&.              │
 │ -errorbarcap width    │ errorBarCap   │ ErrorBarCap    │ Sets the requested error-bar cap width\&. A       │
 │                       │               │                │ positive value selects an explicit size; 0      │
 │                       │               │                │ automatically derives the size from the symbol  │

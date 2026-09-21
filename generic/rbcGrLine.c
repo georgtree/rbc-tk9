@@ -279,12 +279,35 @@ typedef struct {
     Tcl_Size nStrips; /* # of line segments for this pen. */
 } LinePenStyle;
 
+/* Separate polygons keep missing-data runs disconnected. */
+typedef struct LineBandPolygon {
+    Point2D *points;
+    Tcl_Size count;
+    struct LineBandPolygon *nextPtr;
+} LineBandPolygon;
+
+typedef struct {
+    int mode;
+    Tcl_Obj *patternObjPtr;
+    Tcl_Obj *tileObjPtr;
+    XColor *foreground;
+    XColor *background;
+    double opacity;
+    Pixmap stipple;
+    Rbc_Tile tile;
+    GC gc;
+    LineBandPolygon *polygons;
+} LineErrorBand;
+
+static const char *lineErrorBandNames[] = {"none", "y", NULL};
+
 typedef struct {
     Element core;
     /*
      * Line specific configurable attributes
      */
     LinePen builtinPen;
+    LineErrorBand errorBand;
     /*
      * Original Tcl representations for line-element options that
      * require validation or conversion after Tk_SetOptions.
@@ -470,6 +493,7 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_CDATA_FORMAT_MASK (1 << 14)
 #define LINE_ELEM_Z0_MASK (1 << 15)
 #define LINE_ELEM_PARAM_MASK (1 << 16)
+#define LINE_ELEM_ERROR_BAND_MASK (1 << 17)
 
 #define LINE_ELEM_COMPLEX_TRANSFORM_MASK (LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_Z0_MASK)
 #define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
@@ -1026,7 +1050,23 @@ typedef struct {
             LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK                                                              \
     }
 
+#define LINE_BAND_OFFSET(member) (offsetof(Line, errorBand) + offsetof(LineErrorBand, member))
+#define LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES                                                                       \
+    {TK_OPTION_STRING_TABLE, "-errorband", "errorBand", "ErrorBand", "none", -1, LINE_BAND_OFFSET(mode), 0,          \
+     (ClientData)lineErrorBandNames, LINE_ELEM_MAP_ITEM_MASK},                                                       \
+    {TK_OPTION_STRING, "-errorbandpattern", "errorBandPattern", "ErrorBandPattern", "solid",                         \
+     LINE_BAND_OFFSET(patternObjPtr), -1, TK_OPTION_NULL_OK, NULL, LINE_ELEM_ERROR_BAND_MASK | LINE_ELEM_MAP_ITEM_MASK},\
+    {TK_OPTION_STRING, "-errorbandtile", "errorBandTile", "ErrorBandTile", NULL, LINE_BAND_OFFSET(tileObjPtr), -1,   \
+     TK_OPTION_NULL_OK, NULL, LINE_ELEM_ERROR_BAND_MASK | LINE_ELEM_MAP_ITEM_MASK},                                  \
+    {TK_OPTION_COLOR, "-errorbandforeground", "errorBandForeground", "ErrorBandForeground", DEF_LINE_PATTERN_FG,     \
+     -1, LINE_BAND_OFFSET(foreground), TK_OPTION_NULL_OK, NULL, LINE_ELEM_ERROR_BAND_MASK},                          \
+    {TK_OPTION_COLOR, "-errorbandbackground", "errorBandBackground", "ErrorBandBackground", DEF_LINE_PATTERN_BG,     \
+     -1, LINE_BAND_OFFSET(background), TK_OPTION_NULL_OK, NULL, LINE_ELEM_ERROR_BAND_MASK},                          \
+    {TK_OPTION_DOUBLE, "-errorbandopacity", "errorBandOpacity", "ErrorBandOpacity", "1.0", -1,                       \
+     LINE_BAND_OFFSET(opacity), 0, NULL, LINE_ELEM_ERROR_BAND_MASK},
+
 static const Tk_OptionSpec lineElemOptionSpecs[] = {
+    LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_STATE_OPTION_ENTRY, LINE_ELEMENT_TRACE_OPTION_ENTRY),
     {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
@@ -1036,6 +1076,7 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
+    LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES
     LINE_ELEMENT_OPTION_ENTRIES(LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY,
                                 LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_NO_OPTION_ENTRIES),
     {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
@@ -2070,17 +2111,17 @@ static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
  *
  *----------------------------------------------------------------------
  */
-static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr) {
+static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr, int band) {
     const char *name;
 
     name = Rbc_GetCanonicalOptionName(objPtr, elemPtr->optionSpecs);
     if (name == NULL) {
         return LINE_AREA_OPTION_NONE;
     }
-    if (strcmp(name, "-areapattern") == 0) {
+    if (strcmp(name, band ? "-errorbandpattern" : "-areapattern") == 0) {
         return LINE_AREA_OPTION_PATTERN;
     }
-    if (strcmp(name, "-areatile") == 0) {
+    if (strcmp(name, band ? "-errorbandtile" : "-areatile") == 0) {
         return LINE_AREA_OPTION_TILE;
     }
     return LINE_AREA_OPTION_NONE;
@@ -2198,24 +2239,24 @@ static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransacti
     return TCL_OK;
 }
 
-static GC CreateLineFillGC(Graph *graphPtr, Line *linePtr, Pixmap stipple) {
+static GC CreateLineFillGC(Graph *graphPtr, XColor *foreground, XColor *background, Pixmap stipple) {
     unsigned long gcMask;
     XGCValues gcValues;
 
     gcMask = 0;
     memset(&gcValues, 0, sizeof(gcValues));
-    if (linePtr->fillFgColor != NULL) {
+    if (foreground != NULL) {
         gcMask |= GCForeground;
-        gcValues.foreground = linePtr->fillFgColor->pixel;
+        gcValues.foreground = foreground->pixel;
     }
-    if (linePtr->fillBgColor != NULL) {
+    if (background != NULL) {
         gcMask |= GCBackground;
-        gcValues.background = linePtr->fillBgColor->pixel;
+        gcValues.background = background->pixel;
     }
     if ((stipple != None) && (stipple != PATTERN_SOLID)) {
         gcMask |= GCStipple | GCFillStyle;
         gcValues.stipple = stipple;
-        gcValues.fill_style = (linePtr->fillBgColor == NULL) ? FillStippled : FillOpaqueStippled;
+        gcValues.fill_style = (background == NULL) ? FillStippled : FillOpaqueStippled;
     }
     return Tk_GetGC(graphPtr->tkwin, gcMask, &gcValues);
 }
@@ -2247,7 +2288,9 @@ static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transa
  *----------------------------------------------------------------------
  */
 static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
-                                      LineAreaTransaction *transactionPtr) {
+                                      LineAreaTransaction *transactionPtr, int band) {
+    Tcl_Obj *patternObjPtr = band ? linePtr->errorBand.patternObjPtr : linePtr->areaPatternObjPtr;
+    Tcl_Obj *tileObjPtr = band ? linePtr->errorBand.tileObjPtr : linePtr->areaTileObjPtr;
     unsigned int explicitMask;
     Pixmap effectiveStipple;
     int i;
@@ -2262,7 +2305,7 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
     for (i = 0; i < elemPtr->optionObjc; i += 2) {
         LineAreaOption option;
 
-        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
+        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i], band);
         if (option != LINE_AREA_OPTION_NONE) {
             explicitMask |= LINE_AREA_OPTION_MASK(option);
         }
@@ -2272,13 +2315,13 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
      * and option-database values not explicitly overridden.
      */
     if (!elemPtr->optionsConfigured) {
-        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) && (linePtr->areaPatternObjPtr != NULL)) {
-            if (StageLineAreaPattern(graphPtr, linePtr->areaPatternObjPtr, transactionPtr) != TCL_OK) {
+        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) && (patternObjPtr != NULL)) {
+            if (StageLineAreaPattern(graphPtr, patternObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
         }
-        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) && (linePtr->areaTileObjPtr != NULL)) {
-            if (StageLineAreaTile(graphPtr, linePtr->areaTileObjPtr, transactionPtr) != TCL_OK) {
+        if (!(explicitMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) && (tileObjPtr != NULL)) {
+            if (StageLineAreaTile(graphPtr, tileObjPtr, transactionPtr) != TCL_OK) {
                 goto error;
             }
         }
@@ -2290,7 +2333,7 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
         LineAreaOption option;
         Tcl_Obj *valueObjPtr;
 
-        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i]);
+        option = GetLineAreaOption(elemPtr, elemPtr->optionObjv[i], band);
         valueObjPtr = elemPtr->optionObjv[i + 1];
         switch (option) {
         case LINE_AREA_OPTION_PATTERN:
@@ -2314,9 +2357,11 @@ static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *l
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
         effectiveStipple = transactionPtr->stipple;
     } else {
-        effectiveStipple = linePtr->fillStipple;
+        effectiveStipple = band ? linePtr->errorBand.stipple : linePtr->fillStipple;
     }
-    transactionPtr->gc = CreateLineFillGC(graphPtr, linePtr, effectiveStipple);
+    transactionPtr->gc = CreateLineFillGC(graphPtr,
+        band ? linePtr->errorBand.foreground : linePtr->fillFgColor,
+        band ? linePtr->errorBand.background : linePtr->fillBgColor, effectiveStipple);
     return TCL_OK;
 
 error:
@@ -2324,39 +2369,43 @@ error:
     return TCL_ERROR;
 }
 
-static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTransaction *transactionPtr) {
+static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTransaction *transactionPtr, int band) {
+    Pixmap *stipplePtr = band ? &linePtr->errorBand.stipple : &linePtr->fillStipple;
+    Rbc_Tile *tilePtr = band ? &linePtr->errorBand.tile : &linePtr->fillTile;
+    GC *gcPtr = band ? &linePtr->errorBand.gc : &linePtr->fillGC;
+
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
         Pixmap oldStipple;
 
-        oldStipple = linePtr->fillStipple;
-        linePtr->fillStipple = transactionPtr->stipple;
+        oldStipple = *stipplePtr;
+        *stipplePtr = transactionPtr->stipple;
         transactionPtr->stipple = None;
         FreeLinePattern(graphPtr->display, oldStipple);
     }
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_TILE)) {
         Rbc_Tile oldTile;
 
-        oldTile = linePtr->fillTile;
-        linePtr->fillTile = transactionPtr->tile;
+        oldTile = *tilePtr;
+        *tilePtr = transactionPtr->tile;
         transactionPtr->tile = NULL;
-        if (linePtr->fillTile != NULL) {
-            Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+        if (*tilePtr != NULL) {
+            Rbc_SetTileChangedProc(*tilePtr, TileChangedProc, linePtr);
         }
         if (oldTile != NULL) {
             Rbc_FreeTile(oldTile);
         }
-    } else if (linePtr->fillTile != NULL) {
+    } else if (*tilePtr != NULL) {
         /*
          * Ensure that an existing tile also has its callback after the
          * initial modern configuration.
          */
-        Rbc_SetTileChangedProc(linePtr->fillTile, TileChangedProc, linePtr);
+        Rbc_SetTileChangedProc(*tilePtr, TileChangedProc, linePtr);
     }
     if (transactionPtr->gc != NULL) {
         GC oldGC;
 
-        oldGC = linePtr->fillGC;
-        linePtr->fillGC = transactionPtr->gc;
+        oldGC = *gcPtr;
+        *gcPtr = transactionPtr->gc;
         transactionPtr->gc = NULL;
         if (oldGC != NULL) {
             Tk_FreeGC(graphPtr->display, oldGC);
@@ -7295,6 +7344,174 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     linePtr->nFillPts = n;
 }
 
+/* Build one closed band from upper points forward and lower points backward. */
+static void AppendErrorBandPolygon(Graph *graphPtr, Point2D *upper, Point2D *lower, Tcl_Size count,
+                                   LineBandPolygon ***tailPtr) {
+    Point2D *points;
+    Point2D *clipped;
+    LineBandPolygon *polygonPtr;
+    Extents2D exts;
+    Tcl_Size n, capacity, i;
+    size_t bytes, clipBytes;
+
+    if ((count < 2) || (count > (TCL_SIZE_MAX - 1) / 6)) {
+        return;
+    }
+    n = 2 * count;
+    capacity = 3 * n + 1;
+    if ((GetLineArrayByteCount(n, sizeof(*points), &bytes) != TCL_OK) ||
+        (GetLineArrayByteCount(capacity, sizeof(*clipped), &clipBytes) != TCL_OK)) {
+        return;
+    }
+    points = Tcl_AttemptAlloc(bytes);
+    clipped = Tcl_AttemptAlloc(clipBytes);
+    polygonPtr = Tcl_AttemptAlloc(sizeof(*polygonPtr));
+    if ((points == NULL) || (clipped == NULL) || (polygonPtr == NULL)) {
+        if (points != NULL) {
+            ckfree(points);
+        }
+        if (clipped != NULL) {
+            ckfree(clipped);
+        }
+        if (polygonPtr != NULL) {
+            ckfree(polygonPtr);
+        }
+        return;
+    }
+    for (i = 0; i < count; i++) {
+        points[i] = upper[i];
+        points[n - i - 1] = lower[i];
+    }
+    Rbc_GraphExtents(graphPtr, &exts);
+    n = Rbc_PolyRectClip(&exts, points, n, clipped, capacity);
+    ckfree(points);
+    if (n < 3) {
+        ckfree(clipped);
+        ckfree(polygonPtr);
+        return;
+    }
+    polygonPtr->points = clipped;
+    polygonPtr->count = n;
+    polygonPtr->nextPtr = NULL;
+    **tailPtr = polygonPtr;
+    *tailPtr = &polygonPtr->nextPtr;
+}
+
+/* Always use source samples: symbol thinning and center-line decimation must
+ * not discard the extrema of independently varying error bounds. */
+static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
+    Element *elemPtr = &linePtr->core;
+    LineErrorBand *bandPtr = &linePtr->errorBand;
+    LineBandPolygon **tailPtr = &bandPtr->polygons;
+    Point2D *upper, *lower;
+    Tcl_Size n, i, count, capacity;
+    size_t bytes;
+    double previousX = 0.0;
+    int step = (linePtr->reqSmooth == PEN_SMOOTH_STEP);
+
+    if (!bandPtr->mode || ((bandPtr->tile == NULL) && (bandPtr->stipple == None))) {
+        return;
+    }
+    n = NumberOfPoints(elemPtr);
+    if (elemPtr->yError.nValues > 0) {
+        n = MIN(n, elemPtr->yError.nValues);
+    } else {
+        n = MIN3(n, elemPtr->yLow.nValues, elemPtr->yHigh.nValues);
+    }
+    if ((n < 2) || (n > TCL_SIZE_MAX / 2)) {
+        return;
+    }
+    capacity = step ? n * 2 : n;
+#ifndef WIN32
+    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) && !(graphPtr->flags & GRAPH_EXPORT)) {
+        /* Clipping may emit six vertices per boundary sample. Split large
+         * native bands at shared samples to stay within X request limits. */
+        Tcl_Size limit = (Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint)) - 1) / 6;
+        if (limit < 3) {
+            return;
+        }
+        capacity = MIN(capacity, limit);
+    }
+#endif
+    if (GetLineArrayByteCount(capacity, sizeof(*upper), &bytes) != TCL_OK) {
+        return;
+    }
+    upper = Tcl_AttemptAlloc(bytes);
+    lower = Tcl_AttemptAlloc(bytes);
+    if ((upper == NULL) || (lower == NULL)) {
+        if (upper != NULL) {
+            ckfree(upper);
+        }
+        if (lower != NULL) {
+            ckfree(lower);
+        }
+        return;
+    }
+    count = 0;
+    for (i = 0; i < n; i++) {
+        double x = elemPtr->x.valueArr[i];
+        double y = elemPtr->y.valueArr[i];
+        double high, low;
+        Point2D u, l;
+        int valid;
+
+        if (elemPtr->yError.nValues > 0) {
+            high = y + elemPtr->yError.valueArr[i];
+            low = y - elemPtr->yError.valueArr[i];
+        } else {
+            high = elemPtr->yHigh.valueArr[i];
+            low = elemPtr->yLow.valueArr[i];
+        }
+        valid = FINITE(x) && FINITE(y) && FINITE(high) && FINITE(low);
+        if (valid && (low > high)) {
+            double swap = low;
+            low = high;
+            high = swap;
+        }
+        if ((elemPtr->axes.x->logScale && (x <= 0.0)) ||
+            (elemPtr->axes.y->logScale && ((y <= 0.0) || (low <= 0.0)))) {
+            valid = FALSE;
+        }
+        if (valid) {
+            u = Rbc_Map2D(graphPtr, x, high, &elemPtr->axes);
+            l = Rbc_Map2D(graphPtr, x, low, &elemPtr->axes);
+            valid = FINITE(u.x) && FINITE(u.y) && FINITE(l.x) && FINITE(l.y);
+        }
+        if (!valid || ((count > 0) && BROKEN_TRACE(linePtr->penDir, previousX, x))) {
+            AppendErrorBandPolygon(graphPtr, upper, lower, count, &tailPtr);
+            count = 0;
+        }
+        if (!valid) {
+            continue;
+        }
+        if (count + (step ? 2 : 1) > capacity) {
+            AppendErrorBandPolygon(graphPtr, upper, lower, count, &tailPtr);
+            upper[0] = upper[count - 1];
+            lower[0] = lower[count - 1];
+            count = 1;
+        }
+        if (step && (count > 0)) {
+            upper[count] = upper[count - 1];
+            lower[count] = lower[count - 1];
+            if (graphPtr->inverted) {
+                upper[count].y = u.y;
+                lower[count].y = l.y;
+            } else {
+                upper[count].x = u.x;
+                lower[count].x = l.x;
+            }
+            count++;
+        }
+        upper[count] = u;
+        lower[count] = l;
+        count++;
+        previousX = x;
+    }
+    AppendErrorBandPolygon(graphPtr, upper, lower, count, &tailPtr);
+    ckfree(upper);
+    ckfree(lower);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -7314,6 +7531,13 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  *----------------------------------------------------------------------
  */
 static void ResetLine(Line *linePtr) {
+    LineBandPolygon *polygonPtr;
+
+    while ((polygonPtr = linePtr->errorBand.polygons) != NULL) {
+        linePtr->errorBand.polygons = polygonPtr->nextPtr;
+        ckfree(polygonPtr->points);
+        ckfree(polygonPtr);
+    }
     /*
      * Discard the old fill even when MapLine returns early or skips
      * MapFillArea because fewer than two source points remain.
@@ -7484,6 +7708,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     if (nPoints < 1) {
         return;
     }
+    MapErrorBand(graphPtr, linePtr);
     preMapDecimated = FALSE;
     /*
      * Separate semantic eligibility from the runtime density decision.
@@ -8195,6 +8420,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     ElemStylesTransaction stylesTransaction;
     LineScalarTransaction scalarTransaction;
     LineAreaTransaction areaTransaction;
+    LineAreaTransaction bandTransaction;
     LineComplexDataTransaction complexDataTransaction;
     LineParamTransaction paramTransaction;
     Rbc_ChainLink *linkPtr;
@@ -8206,6 +8432,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     int stylesTransactionPrepared;
     int scalarTransactionPrepared;
     int areaTransactionPrepared;
+    int bandTransactionPrepared;
     int complexDataTransactionPrepared;
     int paramTransactionPrepared;    
 
@@ -8213,6 +8440,16 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     if ((!FINITE(linePtr->areaOpacity)) || (linePtr->areaOpacity < 0.0) || (linePtr->areaOpacity > 1.0)) {
         Tcl_SetObjResult(graphPtr->interp,
                          Tcl_NewStringObj("-areaopacity must be a finite number between 0 and 1", -1));
+        return TCL_ERROR;
+    }
+    if ((!FINITE(linePtr->errorBand.opacity)) || (linePtr->errorBand.opacity < 0.0) ||
+        (linePtr->errorBand.opacity > 1.0)) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_NewStringObj("-errorbandopacity must be a finite number between 0 and 1", -1));
+        return TCL_ERROR;
+    }
+    if (linePtr->errorBand.mode && (graphPtr->classUid == rbcPolarElementUid)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("error bands require Cartesian axes", -1));
         return TCL_ERROR;
     }
     memset(&dataTransaction, 0, sizeof(dataTransaction));
@@ -8223,6 +8460,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     memset(&stylesTransaction, 0, sizeof(stylesTransaction));
     memset(&scalarTransaction, 0, sizeof(scalarTransaction));
     memset(&areaTransaction, 0, sizeof(areaTransaction));
+    memset(&bandTransaction, 0, sizeof(bandTransaction));
     memset(&complexDataTransaction, 0, sizeof(complexDataTransaction));
     memset(&paramTransaction, 0, sizeof(paramTransaction));
     dataTransactionPrepared = FALSE;
@@ -8233,6 +8471,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     stylesTransactionPrepared = FALSE;
     scalarTransactionPrepared = FALSE;
     areaTransactionPrepared = FALSE;
+    bandTransactionPrepared = FALSE;
     complexDataTransactionPrepared = FALSE;
     paramTransactionPrepared = FALSE;
     /*
@@ -8367,6 +8606,23 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         }
         scalarTransactionPrepared = TRUE;
     }
+    if (linePtr->errorBand.mode) {
+        Smoothing smooth = (scalarTransaction.stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_SMOOTH))
+            ? scalarTransaction.smooth : linePtr->reqSmooth;
+
+        if ((smooth != PEN_SMOOTH_NONE) && (smooth != PEN_SMOOTH_STEP)) {
+            Tcl_SetObjResult(graphPtr->interp,
+                             Tcl_NewStringObj("error bands support only linear or step smoothing", -1));
+            goto error;
+        }
+    }
+    if ((elemPtr->classUid != rbcPolarElementUid) &&
+        ((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_ERROR_BAND_MASK))) {
+        if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &bandTransaction, TRUE) != TCL_OK) {
+            goto error;
+        }
+        bandTransactionPrepared = TRUE;
+    }
     /*
      * Resolve line-area resources and construct the replacement fill GC
      * before modifying the live element.
@@ -8375,7 +8631,7 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
      * configuration may still construct their empty fill GC.
      */
     if (((!elemPtr->optionsConfigured) || (elemPtr->optionMask & LINE_ELEM_AREA_MASK))) {
-        if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &areaTransaction) != TCL_OK) {
+        if (PrepareLineAreaTransaction(graphPtr, elemPtr, linePtr, &areaTransaction, FALSE) != TCL_OK) {
             goto error;
         }
         areaTransactionPrepared = TRUE;
@@ -8413,7 +8669,10 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
         CommitLineScalarTransaction(linePtr, &scalarTransaction);
     }
     if (areaTransactionPrepared) {
-        CommitLineAreaTransaction(graphPtr, linePtr, &areaTransaction);
+        CommitLineAreaTransaction(graphPtr, linePtr, &areaTransaction, FALSE);
+    }
+    if (bandTransactionPrepared) {
+        CommitLineAreaTransaction(graphPtr, linePtr, &bandTransaction, TRUE);
     }
     assert(elemPtr->normalPenPtr != NULL);
     linkPtr = Rbc_ChainFirstLink(elemPtr->palette);
@@ -8455,6 +8714,9 @@ static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     return TCL_OK;
 
 error:
+    if (bandTransactionPrepared) {
+        FreeLineAreaTransaction(graphPtr, &bandTransaction);
+    }
     if (areaTransactionPrepared) {
         FreeLineAreaTransaction(graphPtr, &areaTransaction);
     }
@@ -11076,33 +11338,67 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
 }
 
 /* Tiles take precedence, including when the image is empty or unsupported. */
-static int DrawRenderedArea(Graph *graphPtr, Drawable drawable, Line *linePtr) {
+static int DrawRenderedFill(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                             XColor *foreground, XColor *background, GC gc, Rbc_Tile tile,
+                             Pixmap stipple, double opacity) {
     XColor gcColor;
 
-    XColor *foreground = linePtr->fillFgColor;
     if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
     }
-    if (linePtr->fillTile != NULL) {
+    if (tile != NULL) {
         Tk_PhotoImageBlock block;
 
-        if (!Rbc_GetTilePhoto(linePtr->fillTile, &block)) {
+        if (!Rbc_GetTilePhoto(tile, &block)) {
             return FALSE;
         }
-        return Rbc_RenderTileArea(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, &block);
+        return Rbc_RenderTileArea(graphPtr, drawable, points, count, &block);
     }
-    if (linePtr->fillStipple == None) {
+    if (stipple == None) {
         return FALSE;
     }
     if (foreground == NULL) {
-        if (!Rbc_RenderGCForeground(graphPtr, linePtr->fillGC, &gcColor))
+        if (!Rbc_RenderGCForeground(graphPtr, gc, &gcColor))
             return FALSE;
         foreground = &gcColor;
     }
-    return Rbc_RenderAreaOpacity(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, foreground,
-                                 linePtr->fillBgColor,
-                                 (linePtr->fillStipple == PATTERN_SOLID) ? None : linePtr->fillStipple,
-                                 linePtr->areaOpacity);
+    return Rbc_RenderAreaOpacity(graphPtr, drawable, points, count, foreground,
+                                 background,
+                                 (stipple == PATTERN_SOLID) ? None : stipple,
+                                 opacity);
+}
+
+static void DrawLineFill(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
+                          XColor *foreground, XColor *background, GC gc, Rbc_Tile tile,
+                          Pixmap stipple, double opacity) {
+    XPoint *nativePoints;
+    Tcl_Size i;
+    int n;
+
+    if ((points == NULL) || ((tile != NULL) && (Rbc_PixmapOfTile(tile) == None)) ||
+        DrawRenderedFill(graphPtr, drawable, points, count, foreground, background,
+                         gc, tile, stipple, opacity)) {
+        return;
+    }
+    n = GetDrawablePolygonPointCount(graphPtr->display, count);
+    if (n == 0) {
+        return;
+    }
+    nativePoints = Tcl_AttemptAlloc((size_t)n * sizeof(*nativePoints));
+    if (nativePoints == NULL) {
+        return;
+    }
+    for (i = 0; i < count; i++) {
+        nativePoints[i].x = (short int)points[i].x;
+        nativePoints[i].y = (short int)points[i].y;
+    }
+    if (tile != NULL) {
+        Rbc_SetTileOrigin(graphPtr->tkwin, tile, 0, 0);
+        Rbc_TilePolygon(graphPtr->tkwin, drawable, tile, nativePoints, n);
+    } else if (stipple != None) {
+        XFillPolygon(graphPtr->display, drawable, gc, nativePoints, n, Complex, CoordModeOrigin);
+    }
+    ckfree(nativePoints);
 }
 
 /* Use the same density interval for screen drawing and vector export. */
@@ -11155,29 +11451,16 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     register LinePenStyle *stylePtr;
     Tcl_Size count;
 
-    /* Fill area under the curve */
-    if ((linePtr->fillPts != NULL) && !DrawRenderedArea(graphPtr, drawable, linePtr)) {
-        XPoint *points;
-        int nPoints;
+    LineBandPolygon *polygonPtr;
+    LineErrorBand *bandPtr = &linePtr->errorBand;
 
-        nPoints = GetDrawablePolygonPointCount(graphPtr->display, linePtr->nFillPts);
-        if (nPoints > 0) {
-            points = (XPoint *)Tcl_AttemptAlloc((size_t)nPoints * sizeof(*points));
-            if (points != NULL) {
-                for (count = 0; count < linePtr->nFillPts; count++) {
-                    points[count].x = (short int)linePtr->fillPts[count].x;
-                    points[count].y = (short int)linePtr->fillPts[count].y;
-                }
-                if (linePtr->fillTile != NULL) {
-                    Rbc_SetTileOrigin(graphPtr->tkwin, linePtr->fillTile, 0, 0);
-                    Rbc_TilePolygon(graphPtr->tkwin, drawable, linePtr->fillTile, points, nPoints);
-                } else if (linePtr->fillStipple != None) {
-                    XFillPolygon(graphPtr->display, drawable, linePtr->fillGC, points, nPoints, Complex,
-                                 CoordModeOrigin);
-                }
-                ckfree(points);
-            }
-        }
+    /* Ordinary area first, then the uncertainty band, then annotations. */
+    DrawLineFill(graphPtr, drawable, linePtr->fillPts, linePtr->nFillPts, linePtr->fillFgColor,
+                  linePtr->fillBgColor, linePtr->fillGC, linePtr->fillTile, linePtr->fillStipple,
+                  linePtr->areaOpacity);
+    for (polygonPtr = bandPtr->polygons; polygonPtr != NULL; polygonPtr = polygonPtr->nextPtr) {
+        DrawLineFill(graphPtr, drawable, polygonPtr->points, polygonPtr->count, bandPtr->foreground,
+                      bandPtr->background, bandPtr->gc, bandPtr->tile, bandPtr->stipple, bandPtr->opacity);
     }
     /* Lines: stripchart segments or graph traces. */
     if (linePtr->nStrips > 0) {
@@ -11185,7 +11468,7 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             stylePtr = Rbc_ChainGetValue(linkPtr);
             penPtr = stylePtr->penPtr;
-            if ((stylePtr->nStrips > 0) && (penPtr->errorBarLineWidth > 0)) {
+            if ((stylePtr->nStrips > 0) && (penPtr->traceWidth > 0)) {
                 DrawRenderedStrips(graphPtr, drawable, penPtr, stylePtr->strips, stylePtr->nStrips);
             }
         }
@@ -11535,6 +11818,22 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
         Rbc_RenderFillPolygon(ctx, linePtr->fillPts, linePtr->nFillPts);
         Rbc_RenderEnd(ctx);
     }
+    if (linePtr->errorBand.polygons != NULL) {
+        LineErrorBand *bandPtr = &linePtr->errorBand;
+        LineBandPolygon *polygonPtr;
+        Rbc_RenderFillStyle style = {bandPtr->foreground, bandPtr->background,
+            (bandPtr->stipple == PATTERN_SOLID) ? None : bandPtr->stipple,
+            bandPtr->opacity, bandPtr->tile != NULL};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, &style);
+
+        if (bandPtr->tile != NULL) {
+            Rbc_RenderSetFillTile(ctx, bandPtr->tile);
+        }
+        for (polygonPtr = bandPtr->polygons; polygonPtr != NULL; polygonPtr = polygonPtr->nextPtr) {
+            Rbc_RenderFillPolygon(ctx, polygonPtr->points, polygonPtr->count);
+        }
+        Rbc_RenderEnd(ctx);
+    }
     /* Draw lines */
     if (linePtr->nStrips > 0) {
         for (linkPtr = Rbc_ChainFirstLink(linePtr->core.palette); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
@@ -11643,6 +11942,13 @@ static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
         ckfree((char *)elemPtr->activeIndices);
         elemPtr->activeIndices = NULL;
         elemPtr->nActiveIndices = 0;
+    }
+    if (linePtr->errorBand.tile != NULL) {
+        Rbc_FreeTile(linePtr->errorBand.tile);
+    }
+    FreeLinePattern(graphPtr->display, linePtr->errorBand.stipple);
+    if (linePtr->errorBand.gc != NULL) {
+        Tk_FreeGC(graphPtr->display, linePtr->errorBand.gc);
     }
     if (linePtr->fillTile != NULL) {
         Rbc_FreeTile(linePtr->fillTile);

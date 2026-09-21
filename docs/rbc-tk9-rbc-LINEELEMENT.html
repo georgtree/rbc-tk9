@@ -831,6 +831,46 @@ use Cairo with the native GC color. Native photo tiles retain their existing tra
 contains a discontinuity, area filling is suppressed rather than incorrectly filling across separate data
 runs.</p>
 </section>
+<section id="y-error-bands">
+<span id="r-rbc-lineelement-y-error-bands"></span><span id="r-3a3arbc3a3alineelementqzy20error20bands"></span><h2>Y error bands<a class="headerlink" href="#y-error-bands" title="Link to this heading">¶</a></h2>
+<p>Cartesian line and strip elements can fill the space between their lower and upper Y error bounds.
+Set <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">y</span></code> to enable the band; the default <code class="docutils literal notranslate"><span class="pre">none</span></code> preserves existing behavior. The band uses
+<code class="docutils literal notranslate"><span class="pre">-yerror</span></code> as symmetric magnitudes around Y, or both <code class="docutils literal notranslate"><span class="pre">-ylow</span></code> and <code class="docutils literal notranslate"><span class="pre">-yhigh</span></code> as absolute endpoints.
+Nonempty <code class="docutils literal notranslate"><span class="pre">-yerror</span></code> takes precedence over the absolute bounds. Lists and real vectors are supported.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">2.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{</span><span class="nv">0.2</span><span class="w"> </span><span class="mf">0.4</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span><span class="w">  </span><span class="o">-</span>errorband<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>errorbandforeground<span class="w"> </span>steelblue<span class="w"> </span><span class="o">-</span>errorbandopacity<span class="w"> </span><span class="mf">0.25</span>
+<span class="c"># Asymmetric absolute endpoints instead of symmetric magnitudes:</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>yerror<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>ylow<span class="w"> </span><span class="k">{</span><span class="nv">1.7</span><span class="w"> </span><span class="mf">2.5</span><span class="w"> </span><span class="mf">2.1</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>yhigh<span class="w"> </span><span class="k">{</span><span class="nv">2.4</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="mf">3.0</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Band styling is independent of ordinary area filling and error-bar strokes. It supports <code class="docutils literal notranslate"><span class="pre">solid</span></code>, Tk
+bitmap stipples, and image tiles through the <code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span></code>, <code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span></code>,
+<code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span></code>, and <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> options. The pattern defaults to <code class="docutils literal notranslate"><span class="pre">solid</span></code>, foreground to
+black, background to white, and tile to empty. An empty pattern disables pattern filling. A nonempty
+tile takes precedence over the pattern, including when the tile image is empty or deleted.
+Tile changes trigger redrawing. Clear <code class="docutils literal notranslate"><span class="pre">-errorbandtile</span></code> to restore pattern filling.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandpattern<span class="w"> </span>gray25<span class="w"> </span><span class="o">-</span>errorbandbackground<span class="w"> </span><span class="k">{}</span>
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>errorbandtile<span class="w"> </span><span class="nv">$image</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code> is a finite number from 0 to 1, default 1. It follows ordinary area-fill rules:
+Cairo and SVG apply it to solid fills; stipples and tiles retain their existing transparency rules.
+Native rendering and PostScript accept but ignore this opacity option. Use Cairo or SVG for partially
+transparent solid bands. PostScript retains the ordinary area-tile background-color fallback.</p>
+<p>Bands support <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">linear</span></code> and <code class="docutils literal notranslate"><span class="pre">-smooth</span> <span class="pre">step</span></code>; enabling a band with spline smoothing is rejected.
+Step bands hold each bound until the next X coordinate, including with inverted axes. Bounds are
+normalized to lower/upper order. Each run needs at least two samples with finite X, Y and both bounds;
+invalid samples split the band. On logarithmic axes, nonpositive coordinates or Y bounds split runs
+rather than being reflected or bridged. Missing bounds and shortened lists terminate the available
+run. Line-element <code class="docutils literal notranslate"><span class="pre">-trace</span></code> direction restrictions also split bands. Input order is preserved.</p>
+<p>The band uses original source samples, independently of <code class="docutils literal notranslate"><span class="pre">-reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span></code>, <code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code>,
+and screen-density <code class="docutils literal notranslate"><span class="pre">-decimate</span></code>. It is drawn over the element’s ordinary area fill and below its trace,
+symbols, error bars, and value labels. <code class="docutils literal notranslate"><span class="pre">-showerrorbars</span> <span class="pre">none</span></code> hides error-bar strokes without hiding
+the band. Existing error-data axis extents and closest-point results are unchanged; the band itself
+does not add a hit-test target or legend swatch.</p>
+<p>This first implementation covers Y errors on Cartesian line and strip elements only. X bands,
+polar/Smith bands, spline bands, and separate boundary outlines are not supported. The band closes
+between its two bounds, so ordinary <code class="docutils literal notranslate"><span class="pre">-areaclose</span></code> does not affect it.</p>
+</section>
 <section id="line-element-options">
 <span id="r-rbc-lineelement-line-element-options"></span><span id="r-3a3arbc3a3alineelementqzline20element20options"></span><h2>Line element options<a class="headerlink" href="#line-element-options" title="Link to this heading">¶</a></h2>
 <p>The complete line-element option set is:</p>
@@ -908,6 +948,36 @@ runs.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">decimate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Decimate</span></code></p></td>
 <td><p>Selects automatic screen-density trace decimation. Accepted values are <code class="docutils literal notranslate"><span class="pre">none</span></code> and <code class="docutils literal notranslate"><span class="pre">auto</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">none</span></code>. <code class="docutils literal notranslate"><span class="pre">auto</span></code> is applied only when the line and current display density are suitable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBand</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBand</span></code></p></td>
+<td><p>Selects none (default) or y; fills between Y error bounds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandpattern</span> <span class="pre">pattern</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandPattern</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandPattern</span></code></p></td>
+<td><p>Solid (default), Tk bitmap stipple, or empty to disable the pattern.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandforeground</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandForeground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandForeground</span></code></p></td>
+<td><p>Band solid/stipple foreground; default black.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandbackground</span> <span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandBackground</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandBackground</span></code></p></td>
+<td><p>Band stipple background; default white. Empty leaves gaps transparent.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandtile</span> <span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandTile</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandTile</span></code></p></td>
+<td><p>Image tile, default empty; takes precedence over the pattern.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">errorBandOpacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ErrorBandOpacity</span></code></p></td>
+<td><p>Solid opacity 0 to 1 (default 1), Cairo/SVG only. Native/PostScript ignore it.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-errorbarcap</span> <span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">errorBarCap</span></code></p></td>
@@ -1188,6 +1258,7 @@ runs.</p>
 </li>
 <li><a class="reference internal" href="#pens-weights-and-styles">Pens, weights, and styles</a></li>
 <li><a class="reference internal" href="#area-under-the-line">Area under the line</a></li>
+<li><a class="reference internal" href="#y-error-bands">Y error bands</a></li>
 <li><a class="reference internal" href="#line-element-options">Line element options</a></li>
 </ul>
 </li>
