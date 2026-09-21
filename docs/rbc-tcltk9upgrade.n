@@ -12,6 +12,12 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "STATIC MINGW-W64 THREADING RUNTIME"
+.PP
+--enable-winpthreads-static embeds the genuine libwinpthread\&.a archive in the RBC DLL and checks
+a linked probe for unwanted winpthreads imports\&. It is independent of --enable-cairo-static; combine
+both options to embed Cairo dependencies and the threading runtime\&. The option is off by default
+and requires a MinGW-w64 toolchain and target objdump\&. Windows system libraries remain dynamic\&.
 .SS "TCL-ONLY VECTOR LOADING"
 .PP
 package require rbc::vector loads vectors from the same shared library without initializing Tk or

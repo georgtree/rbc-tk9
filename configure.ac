@@ -306,6 +306,58 @@ TEA_ENABLE_SHARED
 TEA_CONFIG_CFLAGS
 TEA_ADD_CFLAGS([-DRBCAPI=MODULE_SCOPE])
 
+# Optional static MinGW-w64 threading runtime, independent of Cairo.
+AC_ARG_ENABLE([winpthreads-static],
+    [AS_HELP_STRING([--enable-winpthreads-static],
+        [embed libwinpthread.a in the RBC DLL (MinGW-w64 only; default: no)])],
+    [], [enable_winpthreads_static=no])
+AS_CASE([$enable_winpthreads_static], [yes|no], [],
+    [AC_MSG_ERROR([--enable-winpthreads-static accepts only yes or no])])
+AC_ARG_VAR([OBJDUMP], [target objdump used to check static winpthreads DLL imports])
+AS_IF([test "x$enable_winpthreads_static" = xyes], [
+    AS_IF([test "x$TEA_PLATFORM" != xwindows || test "x$GCC" != xyes],
+        [AC_MSG_ERROR([--enable-winpthreads-static requires a MinGW-w64 GNU-compatible toolchain])])
+    AS_IF([test -z "$OBJDUMP"], [OBJDUMP="${ac_tool_prefix}objdump"])
+    # Include the whole archive before other libraries so later -pthread,
+    # -lpthread and implicit GCC runtime references cannot select the DLL.
+    # The exact archive name prevents fallback to a .dll.a import library.
+    rbc_winpthreads_flags="-Wl,--whole-archive -l:libwinpthread.a -Wl,--no-whole-archive"
+    rbc_saved_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $rbc_winpthreads_flags -shared -Wl,--no-undefined"
+    AC_MSG_CHECKING([whether static winpthreads links into a DLL without a winpthreads import])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#ifndef __MINGW32__
+#error MinGW-w64 is required
+#endif
+#define WINPTHREAD_STATIC 1
+#include <pthread.h>
+    ]], [[
+        pthread_mutex_t mutex;
+        int result = pthread_mutex_init(&mutex, NULL);
+        if (result == 0) {
+            result = pthread_mutex_lock(&mutex);
+            result |= pthread_mutex_unlock(&mutex);
+            result |= pthread_mutex_destroy(&mutex);
+        }
+        return result;
+    ]])], [
+        rbc_winpthreads_link=yes
+        AS_IF([rbc_winpthreads_imports=`$OBJDUMP -p conftest$ac_exeext 2>&1`], [
+            AS_IF([echo "$rbc_winpthreads_imports" | grep -i 'DLL Name:.*libwinpthread' >/dev/null],
+                [rbc_winpthreads_link=dynamic])
+        ], [rbc_winpthreads_link=objdump])
+        echo "$rbc_winpthreads_imports" >&AS_MESSAGE_LOG_FD
+    ], [rbc_winpthreads_link=no])
+    LDFLAGS=$rbc_saved_LDFLAGS
+    AC_MSG_RESULT([$rbc_winpthreads_link])
+    AS_CASE([$rbc_winpthreads_link],
+        [no], [AC_MSG_ERROR([static winpthreads link failed; install the matching libwinpthread.a and inspect config.log])],
+        [dynamic], [AC_MSG_ERROR([static winpthreads probe still imports libwinpthread; check the archive and linker flags in config.log])],
+        [objdump], [AC_MSG_ERROR([cannot inspect the winpthreads probe; set OBJDUMP to the target GNU objdump])])
+    LDFLAGS="$LDFLAGS $rbc_winpthreads_flags"
+    TEA_ADD_CFLAGS([-DWINPTHREAD_STATIC])
+])
+
 # Optional Cairo support. Native builds have no Cairo dependency.
 AC_ARG_ENABLE([cairo-static],
     [AS_HELP_STRING([--enable-cairo-static],

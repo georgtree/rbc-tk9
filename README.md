@@ -163,6 +163,7 @@ the intended destination.
 | `--disable-cairo`                 | Builds without Cairo; `native` is the renderer default. This is also the configure default when neither flag is supplied.                             |
 | `--enable-cairo-static`           | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options. |
 | `--disable-cairo-static`          | Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by `--enable-cairo`.                |
+| `--enable-winpthreads-static` | Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo; disabled by default. Requires genuine `libwinpthread.a` and target `objdump`. |
 | `--enable-symbols`                | Builds with debugging symbols for crash diagnosis.                                                                                                    |
 | `--with-tcl=DIR`, `--with-tk=DIR` | Select directories containing the matching Tcl/Tk configuration files.                                                                                |
 | `--prefix=DIR`                    | Selects the installation prefix.                                                                                                                      |
@@ -216,6 +217,29 @@ This option does not download or build dependencies. Missing archives or unresol
 fail; inspect `config.log` for the linker diagnostics.
 
 #### MSYS2/UCRT64
+
+To also eliminate the RBC DLL's `libwinpthread-1.dll` import, add the separate option:
+
+```sh
+./configure --enable-cairo-static --enable-winpthreads-static
+make clean
+make
+objdump -p tcl9rbc050.dll | rg 'DLL Name:'
+```
+
+Retain your usual `--with-tcl`, `--with-tk`, and other configure arguments. Winpthreads is not supplied by
+Windows. This option forces inclusion of the genuine `libwinpthread.a` archive before other libraries,
+including compiler-added thread references, and defines `WINPTHREAD_STATIC` for RBC compilation.
+Configure links a test DLL and checks its imports using the target `objdump`; no test binary is executed.
+A missing archive, failed link, remaining winpthreads import, or failed inspection stops configuration.
+For cross-compilation, set `OBJDUMP` to the target tool (for example `x86_64-w64-mingw32-objdump`).
+Custom archive locations can be supplied with `LDFLAGS=-L/path/to/lib`.
+
+`--enable-winpthreads-static` works independently of Cairo and is rejected on non-MinGW builds.
+`--disable-winpthreads-static` retains the normal runtime linkage. It does not eliminate imports from
+other DLLs: if Cairo itself is shared, Cairo may still require its own winpthreads DLL. Always inspect the
+final RBC DLL and its remaining non-system dependencies. Windows system and UCRT imports remain normal.
+This configure option does not apply to the MSVC `win/makefile.vc` build.
 
 Use Cairo, its dependencies and GCC from the same UCRT64 environment as the RBC build. Static libraries must be genuine
 `.a` archives; `.dll.a` import libraries still require external DLLs.

@@ -48,6 +48,13 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="static-mingw-w64-threading-runtime">
+<span id="r-tcltk9upgrade-static-mingw-w64-threading-runtime"></span><span id="r-3a3atcltk9upgradeqzstatic20mingw2dw6420threading20runtime"></span><h3>Static MinGW-w64 threading runtime<a class="headerlink" href="#static-mingw-w64-threading-runtime" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">--enable-winpthreads-static</span></code> embeds the genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> archive in the RBC DLL and checks
+a linked probe for unwanted winpthreads imports. It is independent of <code class="docutils literal notranslate"><span class="pre">--enable-cairo-static</span></code>; combine
+both options to embed Cairo dependencies and the threading runtime. The option is off by default
+and requires a MinGW-w64 toolchain and target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>. Windows system libraries remain dynamic.</p>
+</section>
 <section id="tcl-only-vector-loading">
 <span id="r-tcltk9upgrade-tcl-only-vector-loading"></span><span id="r-3a3atcltk9upgradeqztcl2donly20vector20loading"></span><h3>Tcl-only vector loading<a class="headerlink" href="#tcl-only-vector-loading" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::vector</span></code> loads vectors from the same shared library without initializing Tk or
@@ -731,6 +738,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#tcl-only-vector-loading">Tcl-only vector loading</a></li>
 <li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>

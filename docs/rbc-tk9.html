@@ -201,13 +201,16 @@ the intended destination.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo-static</span></code></p></td>
 <td><p>Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-symbols</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-winpthreads-static</span></code></p></td>
+<td><p>Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo; disabled by default. Requires genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> and target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-symbols</span></code></p></td>
 <td><p>Builds with debugging symbols for crash diagnosis.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--with-tcl=DIR</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-tk=DIR</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--with-tcl=DIR</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-tk=DIR</span></code></p></td>
 <td><p>Select directories containing the matching Tcl/Tk configuration files.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--prefix=DIR</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--prefix=DIR</span></code></p></td>
 <td><p>Selects the installation prefix.</p></td>
 </tr>
 </tbody>
@@ -253,6 +256,25 @@ be incorporated into a shared library.</p>
 fail; inspect <code class="docutils literal notranslate"><span class="pre">config.log</span></code> for the linker diagnostics.</p>
 <section id="msys2-ucrt64">
 <span id="r-msys2-ucrt64"></span><span id="r-msys22fucrt64"></span><h4>MSYS2/UCRT64<a class="headerlink" href="#msys2-ucrt64" title="Link to this heading">¶</a></h4>
+<p>To also eliminate the RBC DLL’s <code class="docutils literal notranslate"><span class="pre">libwinpthread-1.dll</span></code> import, add the separate option:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span>--enable-cairo-static<span class="w"> </span>--enable-winpthreads-static
+make<span class="w"> </span>clean
+make
+objdump<span class="w"> </span>-p<span class="w"> </span>tcl9rbc050.dll<span class="w"> </span><span class="p">|</span><span class="w"> </span>rg<span class="w"> </span><span class="s1">&#39;DLL Name:&#39;</span>
+</pre></div>
+</div>
+<p>Retain your usual <code class="docutils literal notranslate"><span class="pre">--with-tcl</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-tk</span></code>, and other configure arguments. Winpthreads is not supplied by
+Windows. This option forces inclusion of the genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> archive before other libraries,
+including compiler-added thread references, and defines <code class="docutils literal notranslate"><span class="pre">WINPTHREAD_STATIC</span></code> for RBC compilation.
+Configure links a test DLL and checks its imports using the target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>; no test binary is executed.
+A missing archive, failed link, remaining winpthreads import, or failed inspection stops configuration.
+For cross-compilation, set <code class="docutils literal notranslate"><span class="pre">OBJDUMP</span></code> to the target tool (for example <code class="docutils literal notranslate"><span class="pre">x86_64-w64-mingw32-objdump</span></code>).
+Custom archive locations can be supplied with <code class="docutils literal notranslate"><span class="pre">LDFLAGS=-L/path/to/lib</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--enable-winpthreads-static</span></code> works independently of Cairo and is rejected on non-MinGW builds.
+<code class="docutils literal notranslate"><span class="pre">--disable-winpthreads-static</span></code> retains the normal runtime linkage. It does not eliminate imports from
+other DLLs: if Cairo itself is shared, Cairo may still require its own winpthreads DLL. Always inspect the
+final RBC DLL and its remaining non-system dependencies. Windows system and UCRT imports remain normal.
+This configure option does not apply to the MSVC <code class="docutils literal notranslate"><span class="pre">win/makefile.vc</span></code> build.</p>
 <p>Use Cairo, its dependencies and GCC from the same UCRT64 environment as the RBC build. Static libraries must be genuine
 <code class="docutils literal notranslate"><span class="pre">.a</span></code> archives; <code class="docutils literal notranslate"><span class="pre">.dll.a</span></code> import libraries still require external DLLs.</p>
 <p>The build defines <code class="docutils literal notranslate"><span class="pre">CAIRO_WIN32_STATIC_BUILD</span></code>, links the C++ standard library and Iconv statically, and selects static

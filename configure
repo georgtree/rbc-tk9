@@ -663,6 +663,7 @@ CFLAGS_DEFAULT
 PKG_CONFIG
 CAIRO_LIBS
 CAIRO_CFLAGS
+OBJDUMP
 LD_LIBRARY_PATH_VAR
 SHLIB_CFLAGS
 SHLIB_LD_LIBS
@@ -795,6 +796,7 @@ enable_stubs
 enable_64bit
 enable_64bit_vis
 enable_rpath
+enable_winpthreads_static
 enable_cairo_static
 enable_cairo
 enable_symbols
@@ -808,6 +810,7 @@ LDFLAGS
 LIBS
 CPPFLAGS
 CPP
+OBJDUMP
 CAIRO_CFLAGS
 CAIRO_LIBS'
 
@@ -1435,6 +1438,9 @@ Optional Features:
   --enable-64bit          enable 64bit support (default: off)
   --enable-64bit-vis      enable 64bit Sparc VIS support (default: off)
   --disable-rpath         disable rpath support (default: on)
+  --enable-winpthreads-static
+                          embed libwinpthread.a in the RBC DLL (MinGW-w64 only;
+                          default: no)
   --enable-cairo-static   link Cairo and its non-system dependencies
                           statically into the shared RBC library
   --enable-cairo          build the optional Cairo renderer (default: no)
@@ -1459,6 +1465,7 @@ Some influential environment variables:
   CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
   CPP         C preprocessor
+  OBJDUMP     target objdump used to check static winpthreads DLL imports
   CAIRO_CFLAGS
               compiler flags for Cairo
   CAIRO_LIBS  linker flags for Cairo
@@ -9267,6 +9274,86 @@ printf "%s\n" "no" >&6; }
     PKG_CFLAGS="$PKG_CFLAGS -DRBCAPI=MODULE_SCOPE"
 
 
+
+# Optional static MinGW-w64 threading runtime, independent of Cairo.
+# Check whether --enable-winpthreads-static was given.
+if test ${enable_winpthreads_static+y}
+then :
+  enableval=$enable_winpthreads_static;
+else $as_nop
+  enable_winpthreads_static=no
+fi
+case $enable_winpthreads_static in
+  yes|no) ;;
+  *) as_fn_error $? "--enable-winpthreads-static accepts only yes or no" "$LINENO" 5 ;;
+esac
+if test "x$enable_winpthreads_static" = xyes
+then :
+    if test "x$TEA_PLATFORM" != xwindows || test "x$GCC" != xyes
+    then :
+        as_fn_error $? "--enable-winpthreads-static requires a MinGW-w64 GNU-compatible toolchain" "$LINENO" 5
+    fi
+    if test -z "$OBJDUMP"
+    then :
+        OBJDUMP="${ac_tool_prefix}objdump"
+    fi
+    # Force archive inclusion before explicit and compiler-added libraries.
+    rbc_winpthreads_flags="-Wl,--whole-archive -l:libwinpthread.a -Wl,--no-whole-archive"
+    rbc_saved_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $rbc_winpthreads_flags -shared -Wl,--no-undefined"
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether static winpthreads links into a DLL without a winpthreads import" >&5
+printf %s "checking whether static winpthreads links into a DLL without a winpthreads import... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __MINGW32__
+#error MinGW-w64 is required
+#endif
+#define WINPTHREAD_STATIC 1
+#include <pthread.h>
+int
+main (void)
+{
+        pthread_mutex_t mutex;
+        int result = pthread_mutex_init(&mutex, NULL);
+        if (result == 0) {
+            result = pthread_mutex_lock(&mutex);
+            result |= pthread_mutex_unlock(&mutex);
+            result |= pthread_mutex_destroy(&mutex);
+        }
+        return result;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+    rbc_winpthreads_link=yes
+    if rbc_winpthreads_imports=`$OBJDUMP -p conftest$ac_exeext 2>&1`
+    then :
+        if echo "$rbc_winpthreads_imports" | grep -i 'DLL Name:.*libwinpthread' >/dev/null
+        then :
+            rbc_winpthreads_link=dynamic
+        fi
+    else $as_nop
+        rbc_winpthreads_link=objdump
+    fi
+    echo "$rbc_winpthreads_imports" >&5
+else $as_nop
+    rbc_winpthreads_link=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+    LDFLAGS=$rbc_saved_LDFLAGS
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $rbc_winpthreads_link" >&5
+printf "%s\n" "$rbc_winpthreads_link" >&6; }
+    case $rbc_winpthreads_link in
+        no) as_fn_error $? "static winpthreads link failed; install the matching libwinpthread.a and inspect config.log" "$LINENO" 5 ;;
+        dynamic) as_fn_error $? "static winpthreads probe still imports libwinpthread; check the archive and linker flags in config.log" "$LINENO" 5 ;;
+        objdump) as_fn_error $? "cannot inspect the winpthreads probe; set OBJDUMP to the target GNU objdump" "$LINENO" 5 ;;
+    esac
+    LDFLAGS="$LDFLAGS $rbc_winpthreads_flags"
+    PKG_CFLAGS="$PKG_CFLAGS -DWINPTHREAD_STATIC"
+fi
 
 # Optional Cairo support. Native builds have no Cairo dependency.
 # Check whether --enable-cairo-static was given.
