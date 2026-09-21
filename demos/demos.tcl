@@ -8,12 +8,22 @@ package require Tk
 
 proc EnableMouseWheelScrolling {canvas widget} {
     set bindScroll {
-        if {[tk windowingsystem] eq "win32"} {
-            bind %W <MouseWheel> "%C yview scroll \[expr {- (%D / 120)}\] units"
-        } elseif {[tk windowingsystem] eq "x11"} {
-            bind %W <MouseWheel> "%C yview scroll \[expr {- (%D / 120)}\] units"
-        } elseif {[tk windowingsystem] eq "aqua"} {
-            bind %W <MouseWheel> [list %C yview scroll [expr {- (%D)}] units]
+        if {[tk windowingsystem] eq "aqua"} {
+            bind %W <MouseWheel> {
+                %C yview scroll [expr {-%D}] units
+            }
+        } else {
+            bind %W <MouseWheel> {
+                %C yview scroll [expr {-(%D / 120)}] units
+            }
+        }
+        bind %W <TouchpadScroll> {
+            if {%# %% 5 == 0} {
+                lassign [::tk::PreciseScrollDeltas %D] deltaX deltaY
+                if {$deltaY != 0} {
+                    %C yview scroll [expr {$deltaY > 0 ? -1 : 1}] units
+                }
+            }
         }
     }
     # Bind to the frame and all its children
@@ -297,6 +307,7 @@ proc MainWindow {win DemoDir} {
     "
     EnableMouseWheelScrolling $win.c $win.c.targetFrame
     bind $win.c <MouseWheel> [bind $win.c.targetFrame <MouseWheel>]
+    bind $win.c <TouchpadScroll> [bind $win.c.targetFrame <TouchpadScroll>]
     return $win
 }
 
