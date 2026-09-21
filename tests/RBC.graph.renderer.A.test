@@ -461,7 +461,8 @@ namespace eval graph.renderer {
             -setup {
         StrokeFixture graph
         .renderer configure -antialias none
-        .renderer element configure signal -linewidth 0 -symbol circle -pixels 21 -fill red -outline black\
+        # Straight edges avoid circle rasterization differences between batches.
+        .renderer element configure signal -linewidth 0 -symbol square -pixels 21 -fill red -outline black\
                 -outlinewidth 2
         set photo [image create photo]
     } -body {

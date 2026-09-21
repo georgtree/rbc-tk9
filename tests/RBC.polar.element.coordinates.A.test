@@ -19,11 +19,11 @@ namespace eval polar.coordinates {
         pack .polar1
         .polar1 axis configure x -min -4 -max 4
         .polar1 axis configure y -min -4 -max 4
-        update idletasks
+        update
     }
 
     proc Closest {x y} {
-        update idletasks
+        update
         lassign [.polar1 transform $x $y] px py
         if {![.polar1 element closest $px $py info -along both -interpolate no -halo 3 signal]} {
             error "no point found at $x,$y"
@@ -127,7 +127,7 @@ namespace eval polar.coordinates {
         polar .polar1 -width 400 -height 400
         pack .polar1
         .polar1 element create signal -data {100 2} -datacoordinates polar
-    }-body {
+    } -body {
         update idletasks
         lassign [.polar1 axis limits x] lo hi
         set tolerance 1e-10

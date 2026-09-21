@@ -442,6 +442,8 @@ namespace eval stripchart.element.decimate {
         set CacheXVar($changedIndex) 60.0
         update
         lassign [.stripchart1 transform 60 0.0] px py
+        # Query beyond the rightmost endpoint so interpolation clamps to it.
+        incr px
         set found [.stripchart1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
         list $found [expr {$found && abs(double($info(x)) - 60.0) < 0.1}]
     } -cleanup {

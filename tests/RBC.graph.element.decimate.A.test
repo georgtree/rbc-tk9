@@ -218,10 +218,11 @@ namespace eval graph.element.decimate {
     test RBC.graph.element.decimate.A.4.2 {
         graph element decimate: non-monotonic X falls back safely
     } -setup {
-        graph .graph1 -width 160 -height 250
-        pack .graph1
-        .graph1 axis configure x -min 0 -max 10
-        .graph1 axis configure y -min -1 -max 11
+		graph .graph1 -width 400 -height 300
+		pack .graph1
+		.graph1 legend configure -hide yes
+		.graph1 axis configure x -min 0 -max 10 -loose no
+		.graph1 axis configure y -min -1 -max 11 -loose no
         .graph1 element create Element1 -xdata {0 1 2 3 4 5 4 3 2 1 0} -ydata {0 0 0 0 0 10 0 0 0 0 0} -symbol none\
                 -linewidth 1 -smooth linear -reduce 0.0 -decimate auto
         update
