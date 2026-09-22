@@ -115,7 +115,7 @@ For example, using Tcl/Tk build trees and a user-local installation prefix:
 make -j4
 make test
 
-make install DOC_INSTALL_DIR="$HOME/.local/share/rbc0.5.0/doc"
+make install
 ```
 
 The Tcl/Tk directories can instead refer to installed configuration files, provided that the required headers and source
@@ -146,7 +146,7 @@ architecture:
 make -j4
 make test
 
-make install DOC_INSTALL_DIR=/ucrt64/share/rbc0.5.0/doc
+make install
 ```
 
 Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
@@ -302,8 +302,8 @@ With the default directory layout, installation places:
 - Demos in `PREFIX/lib/rbc0.5.0/demos`.
 - Manual pages in `PREFIX/share/man/mann`.
 
-The current Makefile has a separate `DOC_INSTALL_DIR` setting for HTML documentation. The commands above explicitly set
-it to a location under the chosen prefix.
+HTML documentation, image resources and the license are installed in `PREFIX/share/rbc0.5.0/doc`.
+Override `DOC_INSTALL_DIR` to choose a different location.
 
 If `--prefix` is omitted, the build system normally inherits the prefix from the selected Tcl configuration.
 
@@ -311,6 +311,48 @@ For other configure options, run:
 ```sh
 ./configure --help
 ```
+
+## Creating an installation archive
+
+After configuring the desired build, run:
+
+```sh
+make dist
+# Optional ZIP archive, convenient for Windows Explorer:
+make dist-zip
+```
+
+These GNU make targets build RBC and stage the **same files as `make install`**, including the library,
+`pkgIndex.tcl`, runtime resources, demos, public headers, stub library, manual pages and HTML documentation
+with its images. They do not create a source archive or write into the configured installation prefix.
+They use the generated documentation already present in `docs/`; run `make doc` first if it needs updating.
+
+Output defaults to `dist/rbc0.5.0.tar.gz` (and `dist/rbc0.5.0.zip` for `dist-zip`) in the build directory.
+The archive directly contains `lib/`, `include/`, `share/`, and any installed `bin/` files. Extract it into
+the intended installation prefix, or merge these directories into that prefix. For example, for an MSYS2
+UCRT64 installation, merge them into `C:/msys64/ucrt64`, not into its `lib` subdirectory.
+
+Configured subdirectory choices such as `lib64` are preserved. All installation directories must be under
+`--prefix`; an external directory produces an error because it cannot be represented in a single relocatable
+archive. `DESTDIR` is not included in archive paths. The archive contains the current build's binaries and
+requires matching platform, architecture, Tcl/Tk and any dynamically linked dependencies; it does not bundle them.
+
+For separately named release builds:
+
+```sh
+make dist-zip DIST_NAME=rbc0.5.0-windows-x86_64 DIST_ROOT=/path/to/releases
+```
+
+`make dist-clean` removes that distribution's staging directory and archives. Source releases can be obtained
+from the repository's GitHub source archives.
+
+Packaging regression tests (no Tk or compiler needed):
+
+```sh
+tclsh tests/build/installDist.test
+```
+
+The tests use GNU make, a POSIX shell, `install` and `tar`; ZIP checks also require `zip` and `unzip`.
 
 ## Loading the package
 

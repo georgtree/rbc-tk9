@@ -112,7 +112,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_LIBRARY = @INSTALL_LIBRARY@
 
-DOC_INSTALL_DIR = $(DESTDIR)/usr/local/share/$(PACKAGE_NAME)$(PACKAGE_VERSION)/doc
+DOC_INSTALL_DIR = $(DESTDIR)$(pkgdatadir)/doc
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
@@ -281,8 +281,8 @@ install-demos: demos
 	@list='$(PKG_TCL_DEMOS)'; for i in $$list; do \
 	    echo "Installing $$i"; \
 	    subdir=`dirname $$i`; \
-	    mkdir -p $(DESTDIR)$(pkglibdir)/$$subdir; \
-	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(pkglibdir)/$$subdir; \
+	    mkdir -p "$(DESTDIR)$(pkglibdir)/$$subdir"; \
+	    $(INSTALL_DATA) "$(srcdir)/$$i" "$(DESTDIR)$(pkglibdir)/$$subdir"; \
 	done
 
 #========================================================================
@@ -309,6 +309,16 @@ install-doc:
 	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DOC_INSTALL_DIR)/$$p"; \
 	  fi; \
 	done
+	@set -e; for directory in images _images; do \
+	  if test -d "$(srcdir)/docs/$$directory"; then \
+	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
+	    while IFS= read -r file; do \
+	      $(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)/`dirname "$$file"`"; \
+	      $(INSTALL_DATA) "$(srcdir)/docs/$$file" "$(DOC_INSTALL_DIR)/$$file"; \
+	    done; \
+	  fi; \
+	done
+	@$(INSTALL_DATA) "$(srcdir)/license.terms" "$(DOC_INSTALL_DIR)/license.terms"
 
 test: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
@@ -407,64 +417,50 @@ $(TEST_CAPI_LIB): $(TEST_CAPI_OBJECTS)
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
 
 #========================================================================
-# Distribution creation
-# You may need to tweak this target to make it work correctly.
+# Installation distribution (merge the archive contents into the install prefix).
+# Uses the install targets so runtime resources, headers, demos and docs agree.
 #========================================================================
-COMPRESS = tar zcvf $(PKG_DIR).tar.gz $(PKG_DIR)
-COMPRESS_ZIP = zip -r $(PKG_DIR).zip $(PKG_DIR)
-DIST_ROOT	= /tmp/dist
-DIST_DIR	= $(DIST_ROOT)/$(PKG_DIR)
+DIST_ROOT = $(top_builddir)/dist
+DIST_NAME = $(PKG_DIR)
+DIST_DIR = $(DIST_ROOT)/$(DIST_NAME)
 
 dist-clean:
-	rm -rf $(DIST_DIR) $(DIST_ROOT)/$(PKG_DIR).tar.*
-	rm -rf $(DIST_DIR) $(DIST_ROOT)/$(PKG_DIR).zip
+	rm -rf "$(DIST_DIR)"
+	rm -f "$(DIST_ROOT)/$(DIST_NAME).tar.gz" "$(DIST_ROOT)/$(DIST_NAME).zip"
 
-dist: dist-clean
-	mkdir -p $(DIST_DIR)
-	cp -p $(srcdir)/ChangeLog $(srcdir)/README* $(srcdir)/license* \
-		$(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/*.in \
-		$(DIST_DIR)/
-	chmod 664 $(DIST_DIR)/Makefile.in $(DIST_DIR)/aclocal.m4
-	chmod 775 $(DIST_DIR)/configure $(DIST_DIR)/configure.in
+# Do not make dist-clean a parallel prerequisite: staging must finish before
+# archiving, and cleanup must not race with the installer.
+dist: all
+	@set -eu; \
+	  case '$(DIST_NAME)' in ''|.|..|*/*|*\\*) echo 'dist: DIST_NAME must be a directory name' >&2; exit 1 ;; esac; \
+	  root=`mkdir -p "$(DIST_ROOT)" && cd "$(DIST_ROOT)" && pwd`; \
+	  stage="$$root/$(DIST_NAME)"; \
+	  prefix='$(prefix)'; prefix=$${prefix%/}; \
+	  relative() { \
+	    case "$$1" in \
+	      "$$prefix"/*) printf '%s\n' "$${1#"$$prefix"}" ;; \
+	      *) echo "dist: install directory '$$1' is outside prefix '$$prefix'" >&2; return 1 ;; \
+	    esac; \
+	  }; \
+	  set --; \
+	  for entry in 'bindir=$(bindir)' 'libdir=$(libdir)' 'includedir=$(includedir)' \
+	      'datadir=$(datadir)' 'mandir=$(mandir)' 'pkglibdir=$(pkglibdir)' \
+	      'pkgdatadir=$(pkgdatadir)' 'pkgincludedir=$(pkgincludedir)'; do \
+	    key=$${entry%%=*}; value=$${entry#*=}; \
+	    value=`relative "$$value"`; \
+	    set -- "$$@" "$$key=$$stage$$value"; \
+	  done; \
+	  doc='$(DOC_INSTALL_DIR)'; dest='$(DESTDIR)'; doc=$${doc#"$$dest"}; \
+	  doc=`relative "$$doc"`; \
+	  rm -rf "$$stage"; mkdir -p "$$stage"; \
+	  rm -f "$$root/$(DIST_NAME).tar.gz" "$$root/$(DIST_NAME).zip"; \
+	  $(MAKE) install DESTDIR= "$$@" "DOC_INSTALL_DIR=$$stage$$doc"; \
+	  tar -czf "$$root/$(DIST_NAME).tar.gz" -C "$$stage" .; \
+	  echo "Installation archive: $$root/$(DIST_NAME).tar.gz"
 
-	for i in $(srcdir)/*.[ch]; do \
-	    if [ -f $$i ]; then \
-		cp -p $$i $(DIST_DIR)/ ; \
-	    fi; \
-	done;
-
-	mkdir $(DIST_DIR)/tclconfig
-	cp $(srcdir)/tclconfig/install-sh $(srcdir)/tclconfig/tcl.m4 \
-		$(DIST_DIR)/tclconfig/
-	chmod 664 $(DIST_DIR)/tclconfig/tcl.m4
-	chmod +x $(DIST_DIR)/tclconfig/install-sh
-	list='doc generic library mac tests unix win'; \
-	for p in $$list; do \
-	    if test -d $(srcdir)/$$p ; then \
-		mkdir $(DIST_DIR)/$$p; \
-		cp -p $(srcdir)/$$p/*.* $(DIST_DIR)/$$p/; \
-	    fi; \
-	done
-	list='demos'; \
-	for p in $$list; do \
-	    if test -d $(srcdir)/$$p ; then \
-		mkdir $(DIST_DIR)/$$p; \
-		cp -r -p $(srcdir)/$$p $(DIST_DIR)/; \
-	    fi; \
-	done
-	@$(INSTALL_DATA_DIR) "$(DIST_DIR)/docs"
-	@echo "Copying html documentation to $(DIST_DIR)/docs"
-	@list='$(DOC_HTML_FILES)'; for p in $$list; do \
-	  if test -f "$(srcdir)/docs/$$p"; then \
-	    d=`dirname "$$p"`; \
-	    if test "x$$d" != "x."; then \
-	      $(INSTALL_DATA_DIR) "$(DIST_DIR)/docs/$$d"; \
-	    fi; \
-	    echo " Copy $(srcdir)/docs/$$p $(DIST_DIR)/docs/$$p"; \
-	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DIST_DIR)/docs/$$p"; \
-	  fi; \
-	done
-	(cd $(DIST_ROOT); $(COMPRESS);)
+# ZIP is convenient for Windows Explorer. The payload is identical to dist.
+dist-zip: dist
+	cd "$(DIST_DIR)" && zip -qr "$(abspath $(DIST_ROOT))/$(DIST_NAME).zip" .
 
 #========================================================================
 # End of user-definable section
@@ -568,7 +564,7 @@ uninstall-binaries:
 uninstall:
 	rm -rf "$(DESTDIR)$(pkglibdir)"
 
-.PHONY: all binaries clean depend distclean doc install libraries test test-vector
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

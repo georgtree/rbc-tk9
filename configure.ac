@@ -68,7 +68,7 @@ AC_SUBST([SHLIB_SUFFIX])
 #-----------------------------------------------------------------------
 
 TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
-TEA_ADD_HEADERS([])
+TEA_ADD_HEADERS([generic/rbc.h generic/rbcVector.h generic/rbcDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([])

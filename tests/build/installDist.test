@@ -1,0 +1,154 @@
+# Run with tclsh tests/build/installDist.test. No Tk or compiler required.
+package require tcltest
+namespace import ::tcltest::*
+testConstraint installDistZip [expr {[auto_execok zip] ne {} && [auto_execok unzip] ne {}}]
+
+namespace eval installDist {
+    variable root [file normalize [file join [file dirname [info script]] ../..]]
+    variable work [file normalize [file join [temporaryDirectory] install-dist-[pid]]]
+
+    proc Write {path contents} {
+        file mkdir [file dirname $path]
+        set f [open $path w]
+        puts -nonewline $f $contents
+        close $f
+    }
+
+    proc Read {path} {
+        set f [open $path rb]
+        try {return [read $f]} finally {close $f}
+    }
+
+    proc Fixture {} {
+        variable root
+        variable work
+        file delete -force $work
+        file mkdir $work
+        set source [file join $work source]
+        set build [file join $work build]
+        file mkdir $build
+        foreach path {generic/rbc.h generic/rbcStubLib.c library/runtime.tcl demos/example.tcl
+                      docs/index.html docs/_static/site.css docs/images/preview.png
+                      docs/_images/plot.svg docs/rbc.n license.terms} {
+            Write [file join $source $path] "fixture: $path\n"
+        }
+        foreach path {librbc.so librbcstub.a pkgIndex.tcl} {
+            Write [file join $build $path] "fixture: $path\n"
+        }
+        set settings [dict create SHELL /bin/sh PACKAGE_NAME rbc PACKAGE_VERSION 0.5.0 \
+            srcdir $source abs_top_builddir $build prefix /opt/rbc exec_prefix {${prefix}} \
+            bindir {${exec_prefix}/bin} libdir {${exec_prefix}/lib} includedir {${prefix}/include} \
+            datarootdir {${prefix}/share} datadir {${datarootdir}} mandir {${datarootdir}/man} \
+            PKG_LIB_FILE librbc.so PKG_STUB_LIB_FILE librbcstub.a OBJEXT o SHARED_BUILD 1 \
+            PKG_HEADERS generic/rbc.h PKG_STUB_SOURCES generic/rbcStubLib.c \
+            PKG_TCL_SOURCES library/runtime.tcl PKG_TCL_DEMOS demos/example.tcl \
+            DOC_HTML_FILES {index.html _static/site.css} INSTALL install \
+            INSTALL_DATA_DIR {mkdir -p} INSTALL_DATA {install -m 644} \
+            INSTALL_LIBRARY {install -m 755} INSTALL_PROGRAM {install -m 755} \
+            RANLIB true RANLIB_STUB true CYGPATH echo]
+        set mapping {}
+        dict for {name value} $settings {lappend mapping @$name@ $value}
+        set template [string map $mapping [Read [file join $root Makefile.in]]]
+        regsub -all {@[A-Za-z_][A-Za-z_0-9]*@} $template {} template
+        Write [file join $source Makefile.in] $template
+        Write [file join $build config.status] {}
+        Write [file join $build Makefile] $template
+        return $build
+    }
+
+    proc Files {directory {relative {}}} {
+        set result {}
+        foreach path [glob -nocomplain -directory [file join $directory $relative] *] {
+            set name [file join $relative [file tail $path]]
+            if {[file isdirectory $path]} {
+                lappend result {*}[Files $directory $name]
+            } else {
+                lappend result $name
+            }
+        }
+        return [lsort $result]
+    }
+}
+
+foreach custom {0 1} {
+    test installDist-layout-$custom {archive matches make install including docs and resources} -setup {
+        set build [installDist::Fixture]
+        set args {}
+        set prefix /opt/rbc
+        if {$custom} {
+            set prefix {/opt/custom prefix}
+            set args [list prefix=$prefix libdir=$prefix/lib64]
+        }
+    } -body {
+        exec make -s -C $build install DESTDIR=$installDist::work/reference {*}$args 2>@1
+        exec make -s -C $build dist {*}$args 2>@1
+        set extracted [file join $installDist::work extracted]
+        file mkdir $extracted
+        exec tar -xzf [file join $build dist rbc0.5.0.tar.gz] -C $extracted
+        set reference $installDist::work/reference$prefix
+        set files [installDist::Files $reference]
+        set equal [expr {$files eq [installDist::Files $extracted]}]
+        foreach name $files {
+            if {[installDist::Read [file join $reference $name]] ne
+                [installDist::Read [file join $extracted $name]]} {set equal 0}
+        }
+        list $equal [file exists $extracted/share/rbc0.5.0/doc/images/preview.png] \
+            [file exists $extracted/share/rbc0.5.0/doc/_images/plot.svg] \
+            [file exists $extracted/share/rbc0.5.0/doc/license.terms] \
+            [file exists $extracted/Makefile.in]
+    } -cleanup {
+        file delete -force $installDist::work
+    } -result {1 1 1 1 0}
+}
+
+test installDist-outside {directories outside prefix fail before staging installation} -setup {
+    set build [installDist::Fixture]
+} -body {
+    set failed [catch {exec make -s -C $build dist libdir=/elsewhere 2>@1} message]
+    list $failed [string match {*outside prefix*} $message] \
+        [file exists [file join $build dist rbc0.5.0.tar.gz]]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {1 1 0}
+
+test installDist-zip {ZIP contains the same installation files and cleanup removes artifacts} -constraints {
+    installDistZip
+} -setup {
+    set build [installDist::Fixture]
+} -body {
+    exec make -s -C $build dist-zip 2>@1
+    set extracted [file join $installDist::work zip]
+    exec unzip -q [file join $build dist rbc0.5.0.zip] -d $extracted
+    set equal [expr {[installDist::Files $extracted] eq
+        [installDist::Files [file join $build dist rbc0.5.0]]}]
+    exec make -s -C $build dist-clean 2>@1
+    list $equal [glob -nocomplain -directory [file join $build dist] *]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {1 {}}
+
+test installDist-restage {new archive removes obsolete staged files and ignores outer DESTDIR} -setup {
+    set build [installDist::Fixture]
+} -body {
+    set archive [file join $build dist rbc0.5.0.tar.gz]
+    exec make -s -C $build dist DESTDIR=$installDist::work/unused 2>@1
+    installDist::Write [file join $build dist rbc0.5.0 obsolete] old
+    exec make -s -C $build dist DESTDIR=$installDist::work/unused 2>@1
+    set listing [exec tar -tzf $archive]
+    list [string match {*obsolete*} $listing] \
+        [string match {*./share/rbc0.5.0/doc/index.html*} $listing] \
+        [file exists $installDist::work/unused]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {0 1 0}
+
+test installDist-failure {failed install never produces a successful archive} -setup {
+    set build [installDist::Fixture]
+} -body {
+    set failed [catch {exec make -s -C $build dist INSTALL_DATA=false 2>@1}]
+    list $failed [file exists [file join $build dist rbc0.5.0.tar.gz]]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {1 0}
+
+cleanupTests
