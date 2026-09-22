@@ -312,6 +312,27 @@ For other configure options, run:
 ./configure --help
 ```
 
+### Uninstalling
+
+From the configured build directory, run:
+
+```sh
+make uninstall
+```
+
+Use the same directory overrides and `DESTDIR` as for installation. For example:
+
+```sh
+make uninstall DESTDIR=/path/to/staging
+```
+
+Uninstall removes the RBC package directory (including its stub archive, scripts and demos), installed executables,
+public headers (`rbc.h`, `rbcVector.h`, `rbcDecls.h`), `rbcStubLib.c`, manual pages and HTML documentation resources.
+It preserves shared `include`, `bin` and manual-page directories and unrelated files in them. Documentation files
+are removed individually; empty documentation directories are then removed. A custom `DOC_INSTALL_DIR` may
+therefore contain unrelated files without those files being deleted. Use the same source version and configured
+build used for installation so the file lists match; uninstall does not track files installed by other versions.
+
 ## Creating an installation archive
 
 After configuring the desired build, run:

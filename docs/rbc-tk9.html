@@ -139,7 +139,7 @@ filenames themselves.</p>
 make<span class="w"> </span>-j4
 make<span class="w"> </span><span class="nb">test</span>
 
-make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_INSTALL_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local/share/rbc0.5.0/doc&quot;</span>
+make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>The Tcl/Tk directories can instead refer to installed configuration files, provided that the required headers and source
@@ -168,7 +168,7 @@ architecture:</p>
 make<span class="w"> </span>-j4
 make<span class="w"> </span><span class="nb">test</span>
 
-make<span class="w"> </span>install<span class="w"> </span><span class="nv">DOC_INSTALL_DIR</span><span class="o">=</span>/ucrt64/share/rbc0.5.0/doc
+make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
@@ -326,14 +326,63 @@ still be installed.</p>
 <li><p>Demos in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.5.0/demos</span></code>.</p></li>
 <li><p>Manual pages in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/man/mann</span></code>.</p></li>
 </ul>
-<p>The current Makefile has a separate <code class="docutils literal notranslate"><span class="pre">DOC_INSTALL_DIR</span></code> setting for HTML documentation. The commands above explicitly set
-it to a location under the chosen prefix.</p>
+<p>HTML documentation, image resources and the license are installed in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/rbc0.5.0/doc</span></code>.
+Override <code class="docutils literal notranslate"><span class="pre">DOC_INSTALL_DIR</span></code> to choose a different location.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> is omitted, the build system normally inherits the prefix from the selected Tcl configuration.</p>
 <p>For other configure options, run:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./configure<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
+<section id="uninstalling">
+<span id="r-uninstalling"></span><h3>Uninstalling<a class="headerlink" href="#uninstalling" title="Link to this heading">¶</a></h3>
+<p>From the configured build directory, run:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>uninstall
+</pre></div>
+</div>
+<p>Use the same directory overrides and <code class="docutils literal notranslate"><span class="pre">DESTDIR</span></code> as for installation. For example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>uninstall<span class="w"> </span><span class="nv">DESTDIR</span><span class="o">=</span>/path/to/staging
+</pre></div>
+</div>
+<p>Uninstall removes the RBC package directory (including its stub archive, scripts and demos), installed executables,
+public headers (<code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code>), <code class="docutils literal notranslate"><span class="pre">rbcStubLib.c</span></code>, manual pages and HTML documentation resources.
+It preserves shared <code class="docutils literal notranslate"><span class="pre">include</span></code>, <code class="docutils literal notranslate"><span class="pre">bin</span></code> and manual-page directories and unrelated files in them. Documentation files
+are removed individually; empty documentation directories are then removed. A custom <code class="docutils literal notranslate"><span class="pre">DOC_INSTALL_DIR</span></code> may
+therefore contain unrelated files without those files being deleted. Use the same source version and configured
+build used for installation so the file lists match; uninstall does not track files installed by other versions.</p>
+</section>
+</section>
+<section id="creating-an-installation-archive">
+<span id="r-creating-an-installation-archive"></span><span id="r-creating20an20installation20archive"></span><h2>Creating an installation archive<a class="headerlink" href="#creating-an-installation-archive" title="Link to this heading">¶</a></h2>
+<p>After configuring the desired build, run:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>dist
+<span class="c1"># Optional ZIP archive, convenient for Windows Explorer:</span>
+make<span class="w"> </span>dist-zip
+</pre></div>
+</div>
+<p>These GNU make targets build RBC and stage the <strong>same files as ``make install``</strong>, including the library,
+<code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, runtime resources, demos, public headers, stub library, manual pages and HTML documentation
+with its images. They do not create a source archive or write into the configured installation prefix.
+They use the generated documentation already present in <code class="docutils literal notranslate"><span class="pre">docs/</span></code>; run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code> first if it needs updating.</p>
+<p>Output defaults to <code class="docutils literal notranslate"><span class="pre">dist/rbc0.5.0.tar.gz</span></code> (and <code class="docutils literal notranslate"><span class="pre">dist/rbc0.5.0.zip</span></code> for <code class="docutils literal notranslate"><span class="pre">dist-zip</span></code>) in the build directory.
+The archive directly contains <code class="docutils literal notranslate"><span class="pre">lib/</span></code>, <code class="docutils literal notranslate"><span class="pre">include/</span></code>, <code class="docutils literal notranslate"><span class="pre">share/</span></code>, and any installed <code class="docutils literal notranslate"><span class="pre">bin/</span></code> files. Extract it into
+the intended installation prefix, or merge these directories into that prefix. For example, for an MSYS2
+UCRT64 installation, merge them into <code class="docutils literal notranslate"><span class="pre">C:/msys64/ucrt64</span></code>, not into its <code class="docutils literal notranslate"><span class="pre">lib</span></code> subdirectory.</p>
+<p>Configured subdirectory choices such as <code class="docutils literal notranslate"><span class="pre">lib64</span></code> are preserved. All installation directories must be under
+<code class="docutils literal notranslate"><span class="pre">--prefix</span></code>; an external directory produces an error because it cannot be represented in a single relocatable
+archive. <code class="docutils literal notranslate"><span class="pre">DESTDIR</span></code> is not included in archive paths. The archive contains the current build’s binaries and
+requires matching platform, architecture, Tcl/Tk and any dynamically linked dependencies; it does not bundle them.</p>
+<p>For separately named release builds:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>dist-zip<span class="w"> </span><span class="nv">DIST_NAME</span><span class="o">=</span>rbc0.5.0-windows-x86_64<span class="w"> </span><span class="nv">DIST_ROOT</span><span class="o">=</span>/path/to/releases
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">dist-clean</span></code> removes that distribution’s staging directory and archives. Source releases can be obtained
+from the repository’s GitHub source archives.</p>
+<p>Packaging regression tests (no Tk or compiler needed):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh<span class="w"> </span>tests/build/installDist.test
+</pre></div>
+</div>
+<p>The tests use GNU make, a POSIX shell, <code class="docutils literal notranslate"><span class="pre">install</span></code> and <code class="docutils literal notranslate"><span class="pre">tar</span></code>; ZIP checks also require <code class="docutils literal notranslate"><span class="pre">zip</span></code> and <code class="docutils literal notranslate"><span class="pre">unzip</span></code>.</p>
 </section>
 <section id="loading-the-package">
 <span id="r-loading-the-package"></span><span id="r-loading20the20package"></span><h2>Loading the package<a class="headerlink" href="#loading-the-package" title="Link to this heading">¶</a></h2>
@@ -577,8 +626,10 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#installation-locations">Installation locations</a></li>
+<li><a class="reference internal" href="#uninstalling">Uninstalling</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#creating-an-installation-archive">Creating an installation archive</a></li>
 <li><a class="reference internal" href="#loading-the-package">Loading the package</a><ul>
 <li><a class="reference internal" href="#using-an-uninstalled-build">Using an uninstalled build</a></li>
 </ul>

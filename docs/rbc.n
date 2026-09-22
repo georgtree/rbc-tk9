@@ -153,7 +153,7 @@ For example, using Tcl/Tk build trees and a user-local installation prefix:
 make -j4
 make test
 
-make install DOC_INSTALL_DIR="$HOME/\&.local/share/rbc0\&.5\&.0/doc"
+make install
 .fi
 .RE
 .PP
@@ -185,7 +185,7 @@ architecture:
 make -j4
 make test
 
-make install DOC_INSTALL_DIR=/ucrt64/share/rbc0\&.5\&.0/doc
+make install
 .fi
 .RE
 .PP
@@ -367,8 +367,8 @@ Demos in PREFIX/lib/rbc0\&.5\&.0/demos\&.
 \(bu
 Manual pages in PREFIX/share/man/mann\&.
 .PP
-The current Makefile has a separate DOC_INSTALL_DIR setting for HTML documentation\&. The commands above explicitly set
-it to a location under the chosen prefix\&.
+HTML documentation, image resources and the license are installed in PREFIX/share/rbc0\&.5\&.0/doc\&.
+Override DOC_INSTALL_DIR to choose a different location\&.
 .PP
 If --prefix is omitted, the build system normally inherits the prefix from the selected Tcl configuration\&.
 .PP
@@ -379,6 +379,77 @@ For other configure options, run:
 \&./configure --help
 .fi
 .RE
+.SS UNINSTALLING
+.PP
+From the configured build directory, run:
+.PP
+.RS 4n
+.nf
+make uninstall
+.fi
+.RE
+.PP
+Use the same directory overrides and DESTDIR as for installation\&. For example:
+.PP
+.RS 4n
+.nf
+make uninstall DESTDIR=/path/to/staging
+.fi
+.RE
+.PP
+Uninstall removes the RBC package directory (including its stub archive, scripts and demos), installed executables,
+public headers (rbc\&.h, rbcVector\&.h, rbcDecls\&.h), rbcStubLib\&.c, manual pages and HTML documentation resources\&.
+It preserves shared include, bin and manual-page directories and unrelated files in them\&. Documentation files
+are removed individually; empty documentation directories are then removed\&. A custom DOC_INSTALL_DIR may
+therefore contain unrelated files without those files being deleted\&. Use the same source version and configured
+build used for installation so the file lists match; uninstall does not track files installed by other versions\&.
+.SH "CREATING AN INSTALLATION ARCHIVE"
+.PP
+After configuring the desired build, run:
+.PP
+.RS 4n
+.nf
+make dist
+# Optional ZIP archive, convenient for Windows Explorer:
+make dist-zip
+.fi
+.RE
+.PP
+These GNU make targets build RBC and stage the \fBsame files as make install\fP, including the library,
+pkgIndex\&.tcl, runtime resources, demos, public headers, stub library, manual pages and HTML documentation
+with its images\&. They do not create a source archive or write into the configured installation prefix\&.
+They use the generated documentation already present in docs/; run make doc first if it needs updating\&.
+.PP
+Output defaults to dist/rbc0\&.5\&.0\&.tar\&.gz (and dist/rbc0\&.5\&.0\&.zip for dist-zip) in the build directory\&.
+The archive directly contains lib/, include/, share/, and any installed bin/ files\&. Extract it into
+the intended installation prefix, or merge these directories into that prefix\&. For example, for an MSYS2
+UCRT64 installation, merge them into C:/msys64/ucrt64, not into its lib subdirectory\&.
+.PP
+Configured subdirectory choices such as lib64 are preserved\&. All installation directories must be under
+--prefix; an external directory produces an error because it cannot be represented in a single relocatable
+archive\&. DESTDIR is not included in archive paths\&. The archive contains the current build's binaries and
+requires matching platform, architecture, Tcl/Tk and any dynamically linked dependencies; it does not bundle them\&.
+.PP
+For separately named release builds:
+.PP
+.RS 4n
+.nf
+make dist-zip DIST_NAME=rbc0\&.5\&.0-windows-x86_64 DIST_ROOT=/path/to/releases
+.fi
+.RE
+.PP
+make dist-clean removes that distribution's staging directory and archives\&. Source releases can be obtained
+from the repository's GitHub source archives\&.
+.PP
+Packaging regression tests (no Tk or compiler needed):
+.PP
+.RS 4n
+.nf
+tclsh tests/build/installDist\&.test
+.fi
+.RE
+.PP
+The tests use GNU make, a POSIX shell, install and tar; ZIP checks also require zip and unzip\&.
 .SH "LOADING THE PACKAGE"
 .PP
 Start the Tcl/Tk interpreter associated with your build and run:

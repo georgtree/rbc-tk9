@@ -549,22 +549,45 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+# Remove the package-owned directory and only named files from shared paths.
 uninstall-binaries:
-	list='$(lib_BINARIES)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(pkglibdir)/$$p; \
-	done
-	list='$(PKG_TCL_SOURCES)'; for p in $$list; do \
-	  p=`basename $$p`; \
-	  rm -f $(DESTDIR)$(pkglibdir)/$$p; \
-	done
-	list='$(bin_BINARIES)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/$$p; \
-	done
-
-uninstall:
 	rm -rf "$(DESTDIR)$(pkglibdir)"
+	@set -e; list='$(bin_BINARIES)'; for p in $$list; do \
+	  rm -f "$(DESTDIR)$(bindir)/$$p"; \
+	done
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector
+uninstall-libraries:
+	@set -e; list='$(PKG_HEADERS) $(PKG_STUB_SOURCES)'; for p in $$list; do \
+	  name=`basename "$$p"`; \
+	  rm -f "$(DESTDIR)$(includedir)/$$name"; \
+	done
+
+uninstall-doc:
+	@set -e; for p in "$(srcdir)"/docs/*.n; do \
+	  test -f "$$p" || continue; \
+	  name=`basename "$$p"`; \
+	  rm -f "$(DESTDIR)$(mandir)/mann/$$name"; \
+	done
+	@set -e; list='$(DOC_HTML_FILES) license.terms'; for p in $$list; do \
+	  rm -f "$(DOC_INSTALL_DIR)/$$p"; \
+	done
+	@set -e; for directory in images _images; do \
+	  if test -d "$(srcdir)/docs/$$directory"; then \
+	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
+	    while IFS= read -r file; do \
+	      rm -f "$(DOC_INSTALL_DIR)/$$file"; \
+	    done; \
+	  fi; \
+	done
+	@# Remove empty documentation directories, leaving unrelated files intact.
+	@if test -d "$(DOC_INSTALL_DIR)"; then \
+	  find "$(DOC_INSTALL_DIR)" -depth -type d -exec rmdir {} \; 2>/dev/null || :; \
+	fi
+
+uninstall: uninstall-binaries uninstall-libraries uninstall-doc
+
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector \
+	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

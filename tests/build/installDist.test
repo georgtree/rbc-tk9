@@ -10,7 +10,10 @@ namespace eval installDist {
     proc Write {path contents} {
         file mkdir [file dirname $path]
         set f [open $path w]
-        puts -nonewline $f $contents
+        # Makefiles may be read from a CRLF checkout. Do not translate
+        # CRLF a second time on Windows, producing CRCRLF continuations.
+        fconfigure $f -encoding utf-8 -translation lf
+        puts -nonewline $f [string map [list "\r\n" "\n"] $contents]
         close $f
     }
 
@@ -27,7 +30,7 @@ namespace eval installDist {
         set source [file join $work source]
         set build [file join $work build]
         file mkdir $build
-        foreach path {generic/rbc.h generic/rbcStubLib.c library/runtime.tcl demos/example.tcl
+        foreach path {generic/rbc.h generic/rbcVector.h generic/rbcDecls.h generic/rbcStubLib.c library/runtime.tcl demos/example.tcl
                       docs/index.html docs/_static/site.css docs/images/preview.png
                       docs/_images/plot.svg docs/rbc.n license.terms} {
             Write [file join $source $path] "fixture: $path\n"
@@ -40,7 +43,7 @@ namespace eval installDist {
             bindir {${exec_prefix}/bin} libdir {${exec_prefix}/lib} includedir {${prefix}/include} \
             datarootdir {${prefix}/share} datadir {${datarootdir}} mandir {${datarootdir}/man} \
             PKG_LIB_FILE librbc.so PKG_STUB_LIB_FILE librbcstub.a OBJEXT o SHARED_BUILD 1 \
-            PKG_HEADERS generic/rbc.h PKG_STUB_SOURCES generic/rbcStubLib.c \
+            PKG_HEADERS {generic/rbc.h generic/rbcVector.h generic/rbcDecls.h} PKG_STUB_SOURCES generic/rbcStubLib.c \
             PKG_TCL_SOURCES library/runtime.tcl PKG_TCL_DEMOS demos/example.tcl \
             DOC_HTML_FILES {index.html _static/site.css} INSTALL install \
             INSTALL_DATA_DIR {mkdir -p} INSTALL_DATA {install -m 644} \
@@ -150,5 +153,76 @@ test installDist-failure {failed install never produces a successful archive} -s
 } -cleanup {
     file delete -force $installDist::work
 } -result {1 0}
+
+foreach custom {0 1} {
+    test installDist-uninstall-$custom {uninstall removes installed files and preserves shared-directory neighbors} -setup {
+        set build [installDist::Fixture]
+        set stage $installDist::work/stage
+        set prefix /opt/rbc
+        set args {}
+        set doc $stage$prefix/share/rbc0.5.0/doc
+        if {$custom} {
+            set prefix {/opt/custom prefix}
+            set doc $stage$prefix/shared-docs
+            set args [list prefix=$prefix libdir=$prefix/lib64 DOC_INSTALL_DIR=$doc]
+        }
+        installDist::Write [file join $build helper.exe] EXECUTABLE
+        lappend args bin_BINARIES=helper.exe
+        exec make -s -C $build install DESTDIR=$stage {*}$args 2>@1
+        set installed [installDist::Files $stage]
+        set neighbors [list $stage$prefix/include/other.h $stage$prefix/bin/other \
+            $stage$prefix/share/man/mann/other.n $doc/other.html $doc/images/other.png]
+        foreach path $neighbors {installDist::Write $path KEEP}
+    } -body {
+        exec make -s -C $build -j4 uninstall DESTDIR=$stage {*}$args 2>@1
+        set remaining {}
+        foreach path $installed {
+            if {[file exists [file join $stage $path]]} {lappend remaining $path}
+        }
+        set kept 1
+        foreach path $neighbors {
+            if {![file exists $path] || [installDist::Read $path] ne "KEEP"} {set kept 0}
+        }
+        # Repeating uninstall is harmless.
+        exec make -s -C $build uninstall DESTDIR=$stage {*}$args 2>@1
+        list $remaining $kept [file isdirectory $stage$prefix/include] \
+            [file isdirectory $stage$prefix/share/man/mann]
+    } -cleanup {
+        file delete -force $installDist::work
+    } -result {{} 1 1 1}
+}
+
+test installDist-uninstall-empty {package and documentation directories disappear when empty} -setup {
+    set build [installDist::Fixture]
+    set stage $installDist::work/stage
+    exec make -s -C $build install DESTDIR=$stage 2>@1
+} -body {
+    exec make -s -C $build uninstall DESTDIR=$stage 2>@1
+    list [installDist::Files $stage] [file exists $stage/opt/rbc/lib/rbc0.5.0] \
+        [file exists $stage/opt/rbc/share/rbc0.5.0/doc]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {{} 0 0}
+
+test installDist-public-headers {configure registers the complete installed public header set} -body {
+    set configureAc [installDist::Read [file join $installDist::root configure.ac]]
+    regexp {TEA_ADD_HEADERS\(\[([^]]*)\]\)} $configureAc all headers
+    set expected {generic/rbc.h generic/rbcVector.h generic/rbcDecls.h}
+    list [expr {[lsort $headers] eq [lsort $expected]}] \
+        [expr {[string first "vars=\"[join $headers { }]\"" \
+            [installDist::Read [file join $installDist::root configure]]] >= 0}]
+} -result {1 1}
+
+test installDist-newlines {fixture writes CRLF input as LF without breaking make continuations} -setup {
+    file mkdir $installDist::work
+    set path [file join $installDist::work newline.mk]
+} -body {
+    set contents "VALUE = \\\r\n\tok\r\nall:\r\n\t@echo \$(VALUE)\r\n"
+    installDist::Write $path $contents
+    list [expr {[string first "\r" [installDist::Read $path]] < 0}] \
+        [string trim [exec make -s -f $path]]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {1 ok}
 
 cleanupTests

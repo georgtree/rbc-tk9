@@ -388,14 +388,18 @@ events also request a refresh, allowing the toolbar to account for the graph or 
 beneath a stationary pointer\&.
 .PP
 Refresh requests are combined into an idle callback\&. The callback reads the actual pointer position at that
-time; it does not reuse coordinates from the last motion event\&. No polling timer or synthetic pointer-motion
-event is required\&.
+time; it does not reuse coordinates from the last motion event\&. No synthetic pointer-motion event is required\&.
+.PP
+As a fallback for missed pointer-leave events, a one-second timer checks for leftover crosshair markers\&.
+It removes them when the physical pointer is outside the plotting area, another window covers the pointer,
+or the graph is hidden\&. This check only deletes private crosshair markers; it does not rebuild annotations,
+repeat closest-point searches, or remove application markers\&.
 .PP
 Refreshing respects temporary crosshair suspension during interactions such as rectangle zooming and
 panning\&. It does not recreate annotations while the context menu is posted\&. When a refresh finds that the
 pointer is outside the graph's plotting area or over another window, it removes stale annotations\&.
 .PP
-Pending refresh callbacks are cancelled when the toolbar is destroyed\&.
+Pending refresh callbacks and the cleanup timer are cancelled when the toolbar is destroyed\&.
 .SS "STREAMING GRAPHS"
 .PP
 Automatic refresh requires no additional option or application binding\&. Enable enhanced crosshairs and select
