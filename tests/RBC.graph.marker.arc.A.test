@@ -16,8 +16,7 @@ namespace eval arcMarker {
     proc Point {u v} {
         lassign [.arc transform 2 2] x1 y1
         lassign [.arc transform 8 8] x2 y2
-        list [expr {round(($x1+$x2)/2.0+$u*abs($x2-$x1)/2.0)}] \
-             [expr {round(($y1+$y2)/2.0-$v*abs($y2-$y1)/2.0)}]
+        list [expr {round(($x1+$x2)/2.0+$u*abs($x2-$x1)/2.0)}] [expr {round(($y1+$y2)/2.0-$v*abs($y2-$y1)/2.0)}]
     }
     proc Find {u v} {
         update

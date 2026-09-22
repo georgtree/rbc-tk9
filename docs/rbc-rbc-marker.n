@@ -20,14 +20,14 @@ Markers are graph annotations\&. They are independent of graph elements and do n
 of axis limits\&.
 .PP
 With -renderer cairo, line markers, arrowheads, and polygon/arc fills/outlines use -antialias\&. Solid and
-stippled fills, colored dash gaps, caps, clipping, and -under ordering are supported\&. Mapped outline
-segments of line/polygon markers remain independent, as in native drawing; arcs use continuous paths\&. XOR markers remain native\&. Photo image markers use Cairo
-alpha compositing with existing placement and scaling\&. They clip to the plot; -antialias does not resample
-their pixels\&. Source image changes refresh the marker\&. Bitmap markers use Cairo with existing scaling,
-rotation, and masks\&. Their mapped pixels stay sharp; -antialias affects rotated background polygons\&. An empty
-foreground uses Cairo with the native GC color\&. Text-marker backgrounds use Cairo, including rotated edges,
-and clip to the plot\&. Text itself stays native\&. Window and non-photo image markers keep their Tk rendering;
-line markers with an empty -outline use Cairo with the native GC color\&.
+stippled fills, colored dash gaps, caps, clipping, and -under ordering are supported\&. Mapped outline segments
+of line/polygon markers remain independent, as in native drawing; arcs use continuous paths\&. XOR markers remain
+native\&. Photo image markers use Cairo alpha compositing with existing placement and scaling\&. They clip to the
+plot; -antialias does not resample their pixels\&. Source image changes refresh the marker\&. Bitmap markers use
+Cairo with existing scaling, rotation, and masks\&. Their mapped pixels stay sharp; -antialias affects rotated
+background polygons\&. An empty foreground uses Cairo with the native GC color\&. Text-marker backgrounds use
+Cairo, including rotated edges, and clip to the plot\&. Text itself stays native\&. Window and non-photo image
+markers keep their Tk rendering; line markers with an empty -outline use Cairo with the native GC color\&.
 .PP
 Rbc provides seven marker types:
 .PP
@@ -73,7 +73,7 @@ The number of coordinates depends on the marker type:
 │ bitmap      │ One or two X-Y pairs    │
 │ image       │ One or two X-Y pairs    │
 │ line        │ Two or more X-Y pairs   │
-│ arc         │ Two opposite corners   │
+│ arc         │ Two opposite corners    │
 │ polygon     │ Three or more X-Y pairs │
 │ text        │ One X-Y pair            │
 │ window      │ One X-Y pair            │
@@ -367,9 +367,9 @@ _
 .TE
 .PP
 Zero degrees points right on the display\&. Positive sweeps run counterclockwise; negative sweeps run
-clockwise\&. This display-angle convention also applies with descending or inverted axes\&. Angles must
-be finite\&. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greater draw one full ellipse\&.
-cget retains the supplied angles\&. A zero sweep or zero displayed width/height draws nothing\&.
+clockwise\&. This display-angle convention also applies with descending or inverted axes\&. Angles must be
+finite\&. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greater draw one full ellipse\&.  cget
+retains the supplied angles\&. A zero sweep or zero displayed width/height draws nothing\&.
 .TP
 \(bu
 arc draws only the curved outline and ignores filling, including stipple options\&.
@@ -383,28 +383,27 @@ pieslice closes the curve through the ellipse centre\&.
 Full ellipses have no radial seam, regardless of style\&. Closed shapes can use -fill {} for an outline
 only\&. -outline {} or -linewidth 0 suppresses the outline\&. The other appearance options have the same
 meanings and defaults as polygon markers: -fill, -outline, -stipple, -linewidth, -dashes, -cap,
--join, and -xor\&. In particular, fill and outline accept foreground/background color pairs\&. Polygon
-markers do not currently expose image fills or fill opacity, so arc markers do not add those options\&.
-Common marker options, including offsets, visibility, drawing order and axis mapping, also apply\&.
-The default binding tags are Arc all; the option database component class is ArcMarker\&.
+-join, and -xor\&. In particular, fill and outline accept foreground/background color pairs\&. Polygon markers
+do not currently expose image fills or fill opacity, so arc markers do not add those options\&. Common marker
+options, including offsets, visibility, drawing order and axis mapping, also apply\&.  The default binding tags
+are Arc all; the option database component class is ArcMarker\&.
 .PP
-Filled interiors and visible outlines participate in picking\&. Open arcs and unfilled closed shapes
-do not select their empty interiors\&. Point picking uses the graph halo or half the outline width,
-whichever is larger\&. marker find enclosed requires the complete mapped path inside the search box;
-overlapping checks the clipped fill and outline centreline\&. Marker bindings and marker get current
-work as for other marker types\&.
+Filled interiors and visible outlines participate in picking\&. Open arcs and unfilled closed shapes do not
+select their empty interiors\&. Point picking uses the graph halo or half the outline width, whichever is
+larger\&. marker find enclosed requires the complete mapped path inside the search box; overlapping checks
+the clipped fill and outline centreline\&. Marker bindings and marker get current work as for other marker
+types\&.
 .PP
-Cairo draws curved ellipse paths with the graph's antialiasing setting\&. SVG exports elliptical arc
-commands; PostScript exports transformed arc/arcn paths\&. These backends clip the original curve to
-the plot without adding outline edges along the clip boundary\&. Line width and dash lengths remain in
-display units when the ellipse is stretched, and stipple patterns retain their widget-space origin\&.
-Dashes follow the complete curve continuously, including portions outside the plot\&. Full ellipses have
-a closed outline without a radial seam\&.
+Cairo draws curved ellipse paths with the graph's antialiasing setting\&. SVG exports elliptical arc commands;
+PostScript exports transformed arc/arcn paths\&. These backends clip the original curve to the plot without
+adding outline edges along the clip boundary\&. Line width and dash lengths remain in display units when the
+ellipse is stretched, and stipple patterns retain their widget-space origin\&. Dashes follow the complete curve
+continuously, including portions outside the plot\&. Full ellipses have a closed outline without a radial seam\&.
 .PP
-Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error
-target of 0\&.15 display pixels and at most 8192 segments for extreme off-screen boxes\&. The native dash
-pattern may restart when a curve leaves and re-enters the plot\&. At extreme zoom, the hit-test
-approximation can differ from the curved path\&. Switching renderers does not change marker options\&.
+Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error target of 0\&.15
+display pixels and at most 8192 segments for extreme off-screen boxes\&. The native dash pattern may restart when
+a curve leaves and re-enters the plot\&. At extreme zoom, the hit-test approximation can differ from the curved
+path\&. Switching renderers does not change marker options\&.
 .PP
 .RS 4n
 .nf

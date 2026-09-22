@@ -50,14 +50,14 @@
 <p>Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
 of axis limits.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, line markers, arrowheads, and polygon/arc fills/outlines use <code class="docutils literal notranslate"><span class="pre">-antialias</span></code>. Solid and
-stippled fills, colored dash gaps, caps, clipping, and <code class="docutils literal notranslate"><span class="pre">-under</span></code> ordering are supported. Mapped outline
-segments of line/polygon markers remain independent, as in native drawing; arcs use continuous paths. XOR markers remain native. Photo image markers use Cairo
-alpha compositing with existing placement and scaling. They clip to the plot; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample
-their pixels. Source image changes refresh the marker. Bitmap markers use Cairo with existing scaling,
-rotation, and masks. Their mapped pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects rotated background polygons. An empty
-foreground uses Cairo with the native GC color. Text-marker backgrounds use Cairo, including rotated edges,
-and clip to the plot. Text itself stays native. Window and non-photo image markers keep their Tk rendering;
-line markers with an empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> use Cairo with the native GC color.</p>
+stippled fills, colored dash gaps, caps, clipping, and <code class="docutils literal notranslate"><span class="pre">-under</span></code> ordering are supported. Mapped outline segments
+of line/polygon markers remain independent, as in native drawing; arcs use continuous paths. XOR markers remain
+native. Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to the
+plot; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> does not resample their pixels. Source image changes refresh the marker. Bitmap markers use
+Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp; <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> affects rotated
+background polygons. An empty foreground uses Cairo with the native GC color. Text-marker backgrounds use
+Cairo, including rotated edges, and clip to the plot. Text itself stays native. Window and non-photo image
+markers keep their Tk rendering; line markers with an empty <code class="docutils literal notranslate"><span class="pre">-outline</span></code> use Cairo with the native GC color.</p>
 <p>Rbc provides seven marker types:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -546,9 +546,9 @@ axes. Equal displayed width and height produce a circle; equal graph-coordinate 
 </tbody>
 </table>
 <p>Zero degrees points right on the display. Positive sweeps run counterclockwise; negative sweeps run
-clockwise. This display-angle convention also applies with descending or inverted axes. Angles must
-be finite. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greater draw one full ellipse.
-<code class="docutils literal notranslate"><span class="pre">cget</span></code> retains the supplied angles. A zero sweep or zero displayed width/height draws nothing.</p>
+clockwise. This display-angle convention also applies with descending or inverted axes. Angles must be
+finite. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greater draw one full ellipse.  <code class="docutils literal notranslate"><span class="pre">cget</span></code>
+retains the supplied angles. A zero sweep or zero displayed width/height draws nothing.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">arc</span></code> draws only the curved outline and ignores filling, including stipple options.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">chord</span></code> closes the curve with a straight line between its endpoints.</p></li>
@@ -557,33 +557,32 @@ be finite. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greate
 <p>Full ellipses have no radial seam, regardless of style. Closed shapes can use <code class="docutils literal notranslate"><span class="pre">-fill</span> <span class="pre">{}</span></code> for an outline
 only. <code class="docutils literal notranslate"><span class="pre">-outline</span> <span class="pre">{}</span></code> or <code class="docutils literal notranslate"><span class="pre">-linewidth</span> <span class="pre">0</span></code> suppresses the outline. The other appearance options have the same
 meanings and defaults as polygon markers: <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, <code class="docutils literal notranslate"><span class="pre">-stipple</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>, <code class="docutils literal notranslate"><span class="pre">-cap</span></code>,
-<code class="docutils literal notranslate"><span class="pre">-join</span></code>, and <code class="docutils literal notranslate"><span class="pre">-xor</span></code>. In particular, fill and outline accept foreground/background color pairs. Polygon
-markers do not currently expose image fills or fill opacity, so arc markers do not add those options.
-Common marker options, including offsets, visibility, drawing order and axis mapping, also apply.
-The default binding tags are <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">all</span></code>; the option database component class is <code class="docutils literal notranslate"><span class="pre">ArcMarker</span></code>.</p>
-<p>Filled interiors and visible outlines participate in picking. Open arcs and unfilled closed shapes
-do not select their empty interiors. Point picking uses the graph halo or half the outline width,
-whichever is larger. <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">find</span> <span class="pre">enclosed</span></code> requires the complete mapped path inside the search box;
-<code class="docutils literal notranslate"><span class="pre">overlapping</span></code> checks the clipped fill and outline centreline. Marker bindings and <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">get</span> <span class="pre">current</span></code>
-work as for other marker types.</p>
-<p>Cairo draws curved ellipse paths with the graph’s antialiasing setting. SVG exports elliptical arc
-commands; PostScript exports transformed <code class="docutils literal notranslate"><span class="pre">arc</span></code>/<code class="docutils literal notranslate"><span class="pre">arcn</span></code> paths. These backends clip the original curve to
-the plot without adding outline edges along the clip boundary. Line width and dash lengths remain in
-display units when the ellipse is stretched, and stipple patterns retain their widget-space origin.
-Dashes follow the complete curve continuously, including portions outside the plot. Full ellipses have
-a closed outline without a radial seam.</p>
-<p>Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error
-target of 0.15 display pixels and at most 8192 segments for extreme off-screen boxes. The native dash
-pattern may restart when a curve leaves and re-enters the plot. At extreme zoom, the hit-test
-approximation can differ from the curved path. Switching renderers does not change marker options.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Full ellipse
-.g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
-# Sector connected to the centre
-.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style pieslice -fill orange
-# Segment closed directly between endpoints
-.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style chord -fill lightblue
-# Open curve
-.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
+<code class="docutils literal notranslate"><span class="pre">-join</span></code>, and <code class="docutils literal notranslate"><span class="pre">-xor</span></code>. In particular, fill and outline accept foreground/background color pairs. Polygon markers
+do not currently expose image fills or fill opacity, so arc markers do not add those options. Common marker
+options, including offsets, visibility, drawing order and axis mapping, also apply.  The default binding tags
+are <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">all</span></code>; the option database component class is <code class="docutils literal notranslate"><span class="pre">ArcMarker</span></code>.</p>
+<p>Filled interiors and visible outlines participate in picking. Open arcs and unfilled closed shapes do not
+select their empty interiors. Point picking uses the graph halo or half the outline width, whichever is
+larger. <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">find</span> <span class="pre">enclosed</span></code> requires the complete mapped path inside the search box; <code class="docutils literal notranslate"><span class="pre">overlapping</span></code> checks
+the clipped fill and outline centreline. Marker bindings and <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">get</span> <span class="pre">current</span></code> work as for other marker
+types.</p>
+<p>Cairo draws curved ellipse paths with the graph’s antialiasing setting. SVG exports elliptical arc commands;
+PostScript exports transformed <code class="docutils literal notranslate"><span class="pre">arc</span></code>/<code class="docutils literal notranslate"><span class="pre">arcn</span></code> paths. These backends clip the original curve to the plot without
+adding outline edges along the clip boundary. Line width and dash lengths remain in display units when the
+ellipse is stretched, and stipple patterns retain their widget-space origin. Dashes follow the complete curve
+continuously, including portions outside the plot. Full ellipses have a closed outline without a radial seam.</p>
+<p>Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error target of 0.15
+display pixels and at most 8192 segments for extreme off-screen boxes. The native dash pattern may restart when
+a curve leaves and re-enters the plot. At extreme zoom, the hit-test approximation can differ from the curved
+path. Switching renderers does not change marker options.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># Full ellipse</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>lightblue<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>navy
+<span class="c"># Sector connected to the centre</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>pieslice<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>orange
+<span class="c"># Segment closed directly between endpoints</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>chord<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>lightblue
+<span class="c"># Open curve</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span>
 </pre></div>
 </div>
 </section>
