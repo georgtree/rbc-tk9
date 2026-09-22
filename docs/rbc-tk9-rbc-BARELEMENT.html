@@ -102,26 +102,6 @@ and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 <p>The selected axes must have the appropriate X or Y orientation.</p>
 <p>Bar grouping is performed only between bars mapped through the same X/Y axis pair.</p>
 </section>
-<section id="bar-fill-opacity">
-<span id="r-rbc-barelement-bar-fill-opacity"></span><span id="r-3a3arbc3a3abarelementqzbar20fill20opacity"></span><h2>Bar fill opacity<a class="headerlink" href="#bar-fill-opacity" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code> sets the fill opacity from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (no fill) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default).
-Cairo rendering and SVG export support intermediate values for both solid and stippled fills.
-Opacity applies to the bar interior and legend swatch, including both stipple colors; existing transparent
-stipple gaps remain transparent. Borders, error bars, and value labels are unaffected.</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo
-<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.35</span>
-<span class="nv">.b</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>translucent<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>bar<span class="w"> </span><span class="o">-</span>foreground<span class="w"> </span>blue<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.5</span>
-<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>pen<span class="w"> </span>translucent
-</pre></div>
-</div>
-<p>Named and active bar pens have their own <code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code>, which takes precedence when that pen is used.
-A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
-both states, configure both the normal and active pens with zero opacity. Use <code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">0</span></code> as well
-if the bar border should disappear.</p>
-<p><strong>Native renderer and PostScript limitation:</strong> zero opacity suppresses filling, but any positive opacity
-is rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking,
-element order, or closest-point searches.</p>
-</section>
 <section id="bar-geometry">
 <span id="r-rbc-barelement-bar-geometry"></span><span id="r-3a3arbc3a3abarelementqzbar20geometry"></span><h2>Bar geometry<a class="headerlink" href="#bar-geometry" title="Link to this heading">¶</a></h2>
 <p>Each data point describes a bar centered on its X coordinate.</p>
@@ -280,6 +260,26 @@ with a rendered stacked segment rather than replacing its Y value with the cumul
 </pre></div>
 </div>
 <p>the foreground and background colors form an opaque stippled fill.</p>
+<section id="bar-fill-opacity">
+<span id="r-rbc-barelement-bar-fill-opacity"></span><span id="r-3a3arbc3a3abarelementqzbar20fill20opacity"></span><h3>Bar fill opacity<a class="headerlink" href="#bar-fill-opacity" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code> sets the fill opacity from <code class="docutils literal notranslate"><span class="pre">0.0</span></code> (no fill) to <code class="docutils literal notranslate"><span class="pre">1.0</span></code> (opaque, the default). Cairo rendering and
+SVG export support intermediate values for both solid and stippled fills.  Opacity applies to the bar interior
+and legend swatch, including both stipple colors; existing transparent stipple gaps remain transparent. Borders,
+error bars, and value labels are unaffected.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>renderer<span class="w"> </span>cairo
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.35</span>
+<span class="nv">.b</span><span class="w"> </span>pen<span class="w"> </span>create<span class="w"> </span>translucent<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>bar<span class="w"> </span><span class="o">-</span>foreground<span class="w"> </span>blue<span class="w"> </span><span class="o">-</span>fillopacity<span class="w"> </span><span class="mf">0.5</span>
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>pen<span class="w"> </span>translucent
+</pre></div>
+</div>
+<p>Named and active bar pens have their own <code class="docutils literal notranslate"><span class="pre">-fillopacity</span></code>, which takes precedence when that pen is used.
+A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
+both states, configure both the normal and active pens with zero opacity. Use <code class="docutils literal notranslate"><span class="pre">-borderwidth</span> <span class="pre">0</span></code> as well
+if the bar border should disappear.</p>
+<p><strong>Native renderer and PostScript limitation:</strong> zero opacity suppresses filling, but any positive opacity is
+rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking, element
+order, or closest-point searches.</p>
+</section>
 </section>
 <section id="pens">
 <span id="r-rbc-barelement-pens"></span><span id="r-3a3arbc3a3abarelementqzpens"></span><h2>Pens<a class="headerlink" href="#pens" title="Link to this heading">¶</a></h2>
@@ -438,9 +438,11 @@ the normal pen.</p>
 <p>Bar elements support logarithmic axes, with additional domain restrictions imposed by their rectangular
 geometry.</p>
 <p>On a logarithmic Y axis, the drawable baseline is <code class="docutils literal notranslate"><span class="pre">1.0</span></code> rather than the graph’s linear <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> value:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>yaxis<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
+<span class="nv">.b</span><span class="w"> </span>yaxis<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes
 </pre></div>
 </div>
+<p><img alt="barchart_logscale" src="images/barchart_logscale.svg" /></p>
 <p>Non-positive Y data cannot be mapped to the logarithmic axis and are omitted.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">stacked</span></code> mode, stack values remain ordinary additive data quantities. The stack accumulator therefore
 starts from zero, but the first visible stacked segment uses 1.0 as its drawable lower edge because zero
@@ -726,12 +728,14 @@ rectangle.</p>
 <li><a class="reference internal" href="#">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a><ul>
 <li><a class="reference internal" href="#data">Data</a></li>
 <li><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
-<li><a class="reference internal" href="#bar-fill-opacity">Bar fill opacity</a></li>
 <li><a class="reference internal" href="#bar-geometry">Bar geometry</a></li>
 <li><a class="reference internal" href="#bar-width">Bar width</a></li>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
 <li><a class="reference internal" href="#stacked-bars">Stacked bars</a></li>
-<li><a class="reference internal" href="#appearance">Appearance</a></li>
+<li><a class="reference internal" href="#appearance">Appearance</a><ul>
+<li><a class="reference internal" href="#bar-fill-opacity">Bar fill opacity</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pens">Pens</a></li>
 <li><a class="reference internal" href="#error-bars-of-bar-elements">Error bars of bar elements</a></li>
 <li><a class="reference internal" href="#value-labels-of-bar-elements">Value labels of bar elements</a></li>

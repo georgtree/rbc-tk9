@@ -3817,28 +3817,6 @@ namespace eval ::rbc::BARELEMENT {
 
         Bar grouping is performed only between bars mapped through the same X/Y axis pair.
 
-        ## Bar fill opacity
-        `-fillopacity` sets the fill opacity from `0.0` (no fill) to `1.0` (opaque, the default).
-        Cairo rendering and SVG export support intermediate values for both solid and stippled fills.
-        Opacity applies to the bar interior and legend swatch, including both stipple colors; existing transparent
-        stipple gaps remain transparent. Borders, error bars, and value labels are unaffected.
-
-        ```tcl
-        .b configure -renderer cairo
-        .b element configure values -fillopacity 0.35
-        .b pen create translucent -type bar -foreground blue -fillopacity 0.5
-        .b element configure values -pen translucent
-        ```
-
-        Named and active bar pens have their own `-fillopacity`, which takes precedence when that pen is used.
-        A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
-        both states, configure both the normal and active pens with zero opacity. Use `-borderwidth 0` as well
-        if the bar border should disappear.
-
-        **Native renderer and PostScript limitation:** zero opacity suppresses filling, but any positive opacity
-        is rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking,
-        element order, or closest-point searches.
-
         ## Bar geometry
         Each data point describes a bar centered on its X coordinate.
 
@@ -4038,6 +4016,28 @@ namespace eval ::rbc::BARELEMENT {
 
         the foreground and background colors form an opaque stippled fill.
 
+        ### Bar fill opacity
+        `-fillopacity` sets the fill opacity from `0.0` (no fill) to `1.0` (opaque, the default). Cairo rendering and
+        SVG export support intermediate values for both solid and stippled fills.  Opacity applies to the bar interior
+        and legend swatch, including both stipple colors; existing transparent stipple gaps remain transparent. Borders,
+        error bars, and value labels are unaffected.
+
+        ```tcl
+        .b configure -renderer cairo
+        .b element configure values -fillopacity 0.35
+        .b pen create translucent -type bar -foreground blue -fillopacity 0.5
+        .b element configure values -pen translucent
+        ```
+
+        Named and active bar pens have their own `-fillopacity`, which takes precedence when that pen is used.
+        A transparent active fill leaves the normal bar underneath visible. To suppress the entire bar fill in
+        both states, configure both the normal and active pens with zero opacity. Use `-borderwidth 0` as well
+        if the bar border should disappear.
+
+        **Native renderer and PostScript limitation:** zero opacity suppresses filling, but any positive opacity is
+        rendered as opaque. Use Cairo or SVG for partial transparency. This option does not change stacking, element
+        order, or closest-point searches.
+
         ## Pens
         A separately created bar pen may replace the element's built-in normal pen with `-pen`:
 
@@ -4212,8 +4212,13 @@ namespace eval ::rbc::BARELEMENT {
 
         On a logarithmic Y axis, the drawable baseline is `1.0` rather than the graph's linear `-baseline` value:
         ```tcl
+        .b element create values -x {1 2 3} -y {0.1 100 10}
         .b yaxis configure -logscale yes
         ```
+
+        #ruffopt excludedformats nroff
+        ![barchart_logscale](images/barchart_logscale.svg)
+        #ruffopt excludedformats {}
 
         Non-positive Y data cannot be mapped to the logarithmic axis and are omitted.
 
