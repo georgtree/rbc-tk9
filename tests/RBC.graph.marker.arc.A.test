@@ -1,0 +1,206 @@
+# Arc marker geometry, interaction, rendering and configuration regressions.
+# See license.terms for details.
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval arcMarker {
+    proc Setup {{renderer native}} {
+        ::rbc::graph .arc -width 420 -height 320 -plotbackground white -renderer $renderer
+        .arc axis configure x y -min 0 -max 10
+        pack .arc
+        update
+        .arc marker create arc -name a -coords {2 2 8 8} -outline black -fill red
+    }
+    # A position in the mapped box: u increases right, v increases upward.
+    proc Point {u v} {
+        lassign [.arc transform 2 2] x1 y1
+        lassign [.arc transform 8 8] x2 y2
+        list [expr {round(($x1+$x2)/2.0+$u*abs($x2-$x1)/2.0)}] \
+             [expr {round(($y1+$y2)/2.0-$v*abs($y2-$y1)/2.0)}]
+    }
+    proc Find {u v} {
+        update
+        lassign [Point $u $v] x y
+        .arc marker find overlapping [expr {$x-2}] [expr {$y-2}] [expr {$x+2}] [expr {$y+2}]
+    }
+    proc Pixel {photo u v} {
+        lassign [Point $u $v] x y
+        $photo get $x $y
+    }
+
+    test arc-1.1 {defaults, type, and original box coordinates} -setup {
+        Setup
+    } -body {
+        list [.arc marker type a] [.arc marker cget a -coords] \
+            [expr {[.arc marker cget a -start] == 0}] \
+            [expr {[.arc marker cget a -extent] == 360}] \
+            [.arc marker cget a -style] [.arc marker cget a -bindtags]
+    } -cleanup {destroy .arc} -result {ArcMarker {2 2 8 8} 1 1 pieslice {Arc all}}
+
+    foreach {suffix options} {
+        short {-coords {1 2}} long {-coords {1 2 3 4 5 6}}
+        odd {-coords {1 2 3}} style {-style invalid}
+        start {-start Inf} extent {-extent -Inf} width {-linewidth -1}
+        color {-fill not-a-color}
+    } {
+        test arc-1.2-$suffix {failed configure restores geometry, name and options} -setup {
+            Setup
+            update
+        } -body {
+            set before [.arc marker configure a]
+            set failed [catch {.arc marker configure a -name changed -start 45 {*}$options}]
+            list $failed [.arc marker exists changed] [expr {$before eq [.arc marker configure a]}] [Find 0 0]
+        } -cleanup {destroy .arc} -result {1 0 1 a}
+    }
+
+    test arc-2.1 {positive and negative sweeps select opposite quadrants} -setup {
+        Setup
+        .arc marker configure a -extent 90
+    } -body {
+        set positive [list [Find .4 .4] [Find .4 -.4]]
+        .arc marker configure a -extent -90
+        list $positive [list [Find .4 .4] [Find .4 -.4]]
+    } -cleanup {destroy .arc} -result {{a {}} {{} a}}
+
+    test arc-2.2 {chord excludes the centre-side area included in a sector} -setup {
+        Setup
+        .arc marker configure a -extent 90 -style chord
+    } -body {
+        set chord [list [Find .2 .2] [Find .65 .65]]
+        .arc marker configure a -style pieslice
+        list $chord [Find .2 .2]
+    } -cleanup {destroy .arc} -result {{{} a} a}
+
+    test arc-2.3 {open arc ignores fill and has neither chord nor radii} -setup {
+        Setup
+        .arc marker configure a -extent 90 -style arc -fill red
+    } -body {
+        list [Find .5 .5] [Find .4 0] [Find 0 0] [Find .707 .707]
+    } -cleanup {destroy .arc} -result {{} {} {} a}
+
+    test arc-2.4 {empty fill leaves only the closed sector outline} -setup {
+        Setup
+        .arc marker configure a -extent 90 -fill {}
+    } -body {
+        list [Find .4 .4] [Find .4 0] [Find .707 .707]
+    } -cleanup {destroy .arc} -result {{} a a}
+
+    test arc-2.5 {full sweep has no radius seam; zero sweep and zero box hide} -setup {
+        Setup
+        .arc marker configure a -extent 720 -fill {}
+    } -body {
+        set full [list [Find .4 0] [Find -1 0]]
+        .arc marker configure a -extent 0
+        set empty [Find -1 0]
+        .arc marker configure a -extent 360 -coords {2 2 2 8}
+        list $full $empty [Find -1 0]
+    } -cleanup {destroy .arc} -result {{{} a} {} {}}
+
+    test arc-2.6 {empty coordinates discard interaction with previous geometry} -setup {
+        Setup
+        update
+    } -body {
+        .arc marker configure a -coords {}
+        Find 0 0
+    } -cleanup {destroy .arc} -result {}
+
+    test arc-2.7 {reversed box corners preserve screen geometry} -setup {Setup} -body {
+        set before [Find .6 .6]
+        .arc marker configure a -coords {8 8 2 2}
+        list $before [Find .6 .6]
+    } -cleanup {destroy .arc} -result {a a}
+
+    test arc-2.8 {enclosed uses curved geometry including sector centre} -setup {Setup} -body {
+        update
+        lassign [Point -1 -1] l b
+        lassign [Point 1 1] r t
+        list [.arc marker find enclosed [expr {$l-2}] [expr {$t-2}] [expr {$r+2}] [expr {$b+2}]] \
+             [.arc marker find enclosed [expr {$l+10}] $t $r $b]
+    } -cleanup {destroy .arc} -result {a {}}
+
+    test arc-3.1 {Arc binding tag and marker get current use the curved outline} -setup {
+        Setup
+        .arc marker configure a -style arc -extent 90
+        set ::arcPicked {}
+        .arc marker bind Arc <Motion> {set ::arcPicked [.arc marker get current]}
+        update
+    } -body {
+        lassign [Point .707 .707] x y
+        event generate .arc <Motion> -x $x -y $y
+        update
+        set ::arcPicked
+    } -cleanup {destroy .arc; unset ::arcPicked} -result a
+
+    ::rbc::graph .arcProbe
+    testConstraint arcCairo [expr {![catch {.arcProbe configure -renderer cairo}]}]
+    destroy .arcProbe
+    foreach renderer {native cairo} {
+        set constraints [expr {$renderer eq "cairo" ? "arcCairo" : ""}]
+        test arc-4.1-$renderer {fill and open-arc snapshots} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -extent 90
+            set photo [image create photo]
+        } -body {
+            update
+            .arc snap $photo
+            set sector [Pixel $photo .35 .35]
+            .arc marker configure a -style arc
+            update
+            .arc snap $photo
+            list $sector [Pixel $photo .35 .35]
+        } -cleanup {image delete $photo; destroy .arc} -result {{255 0 0} {255 255 255}}
+
+        test arc-4.2-$renderer {clip a filled ellipse crossing every plot boundary} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -coords {-10 -10 20 20} -outline {} -fill red
+            set photo [image create photo]
+        } -body {
+            update
+            .arc snap $photo
+            Pixel $photo 0 0
+        } -cleanup {image delete $photo; destroy .arc} -result {255 0 0}
+
+        test arc-4.3-$renderer {stipple color pair and dashed outline survive remapping} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -stipple gray50 -fill {red blue} -outline {black white} -dashes {4 4}
+        } -body {
+            foreach coords {{2 2 8 8} {1 1 9 9} {8 8 2 2}} {
+                .arc marker configure a -coords $coords
+                update
+            }
+            list [Find 0 0] [.arc marker cget a -fill] [.arc marker cget a -dashes]
+        } -cleanup {destroy .arc} -result {a {red blue} {4 4}}
+    }
+
+    test arc-5.1 {SVG and PostScript export include the arc's unique fill color} -setup {
+        Setup
+        .arc marker configure a -fill #123456 -outline {} -extent 120
+        update
+    } -body {
+        set svg [.arc svg output]
+        set ps [.arc postscript output]
+        .arc marker configure a -hide yes
+        set hidden [.arc svg output]
+        list [expr {[string first {#123456} $svg] >= 0}] \
+            [expr {[string first {#123456} $hidden] < 0}] \
+            [expr {[string first {% Marker "a" is a ArcMarker marker} $ps] >= 0}]
+    } -cleanup {destroy .arc} -result {1 1 1}
+
+    test arc-5.2 {logarithmic bounding box remains an ellipse in screen coordinates} -setup {
+        Setup
+        .arc axis configure x -min 1 -max 100 -logscale yes
+        .arc marker configure a -extent 90
+    } -body {
+        list [Find .4 .4] [Find -.4 .4]
+    } -cleanup {destroy .arc} -result {a {}}
+
+    foreach kind {barchart stripchart} {
+        test arc-6.1-$kind {arc marker available to other Cartesian widgets} -body {
+            ::rbc::$kind .arc
+            .arc marker create arc -name a -coords {0 0 1 1}
+            .arc marker type a
+        } -cleanup {destroy .arc} -result ArcMarker
+    }
+}
+cleanupTests

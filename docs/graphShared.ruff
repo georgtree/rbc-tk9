@@ -4971,9 +4971,9 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
-        With `-renderer cairo`, line markers, arrowheads, and polygon fills/outlines use `-antialias`. Solid and
+        With `-renderer cairo`, line markers, arrowheads, and polygon/arc fills/outlines use `-antialias`. Solid and
         stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported. Mapped outline
-        segments remain independent, as in native drawing. XOR markers remain native. Photo image markers use Cairo
+        segments of line/polygon markers remain independent, as in native drawing; arcs use continuous paths. XOR markers remain native. Photo image markers use Cairo
         alpha compositing with existing placement and scaling. They clip to the plot; `-antialias` does not resample
         their pixels. Source image changes refresh the marker. Bitmap markers use Cairo with existing scaling,
         rotation, and masks. Their mapped pixels stay sharp; `-antialias` affects rotated background polygons. An empty
@@ -4981,7 +4981,7 @@ namespace eval ::rbc::MARKER {
         and clip to the plot. Text itself stays native. Window and non-photo image markers keep their Tk rendering;
         line markers with an empty `-outline` use Cairo with the native GC color.
 
-        Rbc provides six marker types:
+        Rbc provides seven marker types:
 
         #ruffopt excludedformats nroff
         | Type      | Description                                  |
@@ -4989,6 +4989,7 @@ namespace eval ::rbc::MARKER {
         | `bitmap`  | Displays a Tk bitmap                         |
         | `image`   | Displays a Tk image                          |
         | `line`    | Displays one or more connected line segments |
+        | `arc`     | Displays an ellipse, open arc, chord or sector |
         | `polygon` | Displays a filled and/or outlined polygon    |
         | `text`    | Displays text                                |
         | `window`  | Displays an embedded Tk window               |
@@ -5001,6 +5002,7 @@ namespace eval ::rbc::MARKER {
         │ bitmap  │ Displays a Tk bitmap                           │
         │ image   │ Displays a Tk image                            │
         │ line    │ Displays one or more connected line segments   │
+        │ arc     │ Displays an ellipse, open arc, chord or sector   │
         │ polygon │ Displays a filled and/or outlined polygon      │
         │ text    │ Displays text                                  │
         │ window  │ Displays an embedded Tk window                 │
@@ -5029,6 +5031,7 @@ namespace eval ::rbc::MARKER {
         | `bitmap`    | One or two X-Y pairs    |
         | `image`     | One or two X-Y pairs    |
         | `line`      | Two or more X-Y pairs   |
+        | `arc`       | Two opposite corners of an ellipse bounding box |
         | `polygon`   | Three or more X-Y pairs |
         | `text`      | One X-Y pair            |
         | `window`    | One X-Y pair            |
@@ -5041,6 +5044,7 @@ namespace eval ::rbc::MARKER {
         │ bitmap      │ One or two X-Y pairs    │
         │ image       │ One or two X-Y pairs    │
         │ line        │ Two or more X-Y pairs   │
+        │ arc         │ Two opposite corners   │
         │ polygon     │ Three or more X-Y pairs │
         │ text        │ One X-Y pair            │
         │ window      │ One X-Y pair            │
@@ -5097,6 +5101,7 @@ namespace eval ::rbc::MARKER {
         | `bitmap`  | `Bitmap all`        |
         | `image`   | `Image all`         |
         | `line`    | `Line all`          |
+        | `arc`     | `Arc all`           |
         | `polygon` | `Polygon all`       |
         | `text`    | `Text all`          |
         | `window`  | `Window all`        |
@@ -5109,6 +5114,7 @@ namespace eval ::rbc::MARKER {
         │ bitmap  │ Bitmap all        │
         │ image   │ Image all         │
         │ line    │ Line all          │
+        │ arc     │ Arc all           │
         │ polygon │ Polygon all       │
         │ text    │ Text all          │
         │ window  │ Window all        │
@@ -5351,6 +5357,58 @@ namespace eval ::rbc::MARKER {
         .g marker configure direction -arrowshape {8p 10p 3p}
         ```
 
+        ### Arc marker options
+        Arc markers draw circles, ellipses, open arcs, chords and pie sectors. `-coords {x1 y1 x2 y2}` specifies
+        two opposite corners of the bounding rectangle in graph coordinates. Either corner order is accepted;
+        an empty coordinate list hides the marker. The rectangle is mapped through `-mapx` and `-mapy` first,
+        then the ellipse is constructed in display coordinates. This keeps the shape elliptical on logarithmic
+        axes. Equal displayed width and height produce a circle; equal graph-coordinate spans need not do so.
+
+        | Option | Resource name | Resource class | Description |
+        | --- | --- | --- | --- |
+        | `-start angle` | `start` | `Start` | Starting angle in degrees. Default: `0`. |
+        | `-extent angle` | `extent` | `Extent` | Signed sweep in degrees. Default: `360`. |
+        | `-style style` | `style` | `Style` | `arc`, `chord`, or `pieslice`. Default: `pieslice`. |
+
+        Zero degrees points right on the display. Positive sweeps run counterclockwise; negative sweeps run
+        clockwise. This display-angle convention also applies with descending or inverted axes. Angles must
+        be finite. Starts wrap modulo 360 for drawing; sweeps of magnitude 360 or greater draw one full ellipse.
+        `cget` retains the supplied angles. A zero sweep or zero displayed width/height draws nothing.
+
+        * `arc` draws only the curved outline and ignores filling, including stipple options.
+        * `chord` closes the curve with a straight line between its endpoints.
+        * `pieslice` closes the curve through the ellipse centre.
+
+        Full ellipses have no radial seam, regardless of style. Closed shapes can use `-fill {}` for an outline
+        only. `-outline {}` or `-linewidth 0` suppresses the outline. The other appearance options have the same
+        meanings and defaults as polygon markers: `-fill`, `-outline`, `-stipple`, `-linewidth`, `-dashes`, `-cap`,
+        `-join`, and `-xor`. In particular, fill and outline accept foreground/background color pairs. Polygon
+        markers do not currently expose image fills or fill opacity, so arc markers do not add those options.
+        Common marker options, including offsets, visibility, drawing order and axis mapping, also apply.
+        The default binding tags are `Arc all`; the option database component class is `ArcMarker`.
+
+        Filled interiors and visible outlines participate in picking. Open arcs and unfilled closed shapes
+        do not select their empty interiors. Point picking uses the graph halo or half the outline width,
+        whichever is larger. `marker find enclosed` requires the complete mapped path inside the search box;
+        `overlapping` checks the clipped fill and outline centreline. Marker bindings and `marker get current`
+        work as for other marker types.
+
+        Native, Cairo, SVG and PostScript use the same flattened curve geometry. The chord-error target is
+        0.15 display pixels, with at most 8192 segments for extreme off-screen boxes. Cairo antialiasing applies
+        normally. Exported curves are vector polylines/polygons. Dashes remain continuous within each visible
+        path; leaving and re-entering the plot can restart the dash pattern.
+
+        ```
+        # Full ellipse
+        .g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
+        # Sector connected to the centre
+        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style pieslice -fill orange
+        # Segment closed directly between endpoints
+        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style chord -fill lightblue
+        # Open curve
+        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
+        ```
+
         ### Polygon marker options
         Polygon markers draw the closed polygon formed by their coordinate pairs.
 
@@ -5519,6 +5577,7 @@ namespace eval ::rbc::MARKER {
         | `bitmap`    | `BitmapMarker`  |
         | `image`     | `ImageMarker`   |
         | `line`      | `LineMarker`    |
+        | `arc`       | `ArcMarker`     |
         | `polygon`   | `PolygonMarker` |
         | `text`      | `TextMarker`    |
         | `window`    | `WindowMarker`  |
@@ -5531,6 +5590,7 @@ namespace eval ::rbc::MARKER {
         │ bitmap      │ BitmapMarker    │
         │ image       │ ImageMarker     │
         │ line        │ LineMarker      │
+        │ arc         │ ArcMarker       │
         │ polygon     │ PolygonMarker   │
         │ text        │ TextMarker      │
         │ window      │ WindowMarker    │
@@ -5600,7 +5660,7 @@ namespace eval ::rbc::MARKER {
     }
 
     proc create {type args} {
-        # Creates a new marker of the specified type. `type` may be `bitmap`, `image`, `line`, `polygon`, `text`, or
+        # Creates a new marker of the specified type. `type` may be `arc`, `bitmap`, `image`, `line`, `polygon`, `text`, or
         # `window`. Use `-name` to specify an explicit marker name; otherwise Rbc generates one automatically. Creating
         # a marker with the same name as an existing marker replaces the existing marker. See
         # [Marker types and options][Marker types and options].
@@ -5657,7 +5717,7 @@ namespace eval ::rbc::MARKER {
     proc type {markerName} {
         # Gives back the concrete type of an existing marker.
         # markerName - name of the marker.
-        # Returns: Marker type: `bitmap`, `image`, `line`, `polygon`, `text`, or `window`.
+        # Returns: Marker type: `arc`, `bitmap`, `image`, `line`, `polygon`, `text`, or `window`.
         # Synopsis: markerName
     }
 

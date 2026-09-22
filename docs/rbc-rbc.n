@@ -2506,7 +2506,7 @@ Queries the current value of one configuration option of a marker\&. The availab
 Queries or modifies marker configuration options\&. One or more marker names may be supplied before the first option\&. With no option, returns all configuration information for the first marker\&. With one option, returns information for that option for the first marker\&. With option/value pairs, applies the same changes to every listed marker\&. See \fIMarker types and options\fP\&.
 .TP
 \fIcreate\fP
-Creates a new marker of the specified type\&. type may be bitmap, image, line, polygon, text, or window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. Creating a marker with the same name as an existing marker replaces the existing marker\&. See \fIMarker types and options\fP\&.
+Creates a new marker of the specified type\&. type may be arc, bitmap, image, line, polygon, text, or window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. Creating a marker with the same name as an existing marker replaces the existing marker\&. See \fIMarker types and options\fP\&.
 .TP
 \fIdelete\fP
 Deletes one or more markers\&. Supplying no marker names has no effect\&.
@@ -2669,7 +2669,7 @@ Configuration information when querying, otherwise nothing\&.
 \fBMARKER create\fR (::rbc)
 .RE
 .PP
-Creates a new marker of the specified type\&. type may be bitmap, image, line, polygon, text, or
+Creates a new marker of the specified type\&. type may be arc, bitmap, image, line, polygon, text, or
 window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. Creating
 a marker with the same name as an existing marker replaces the existing marker\&. See
 \fIMarker types and options\fP\&.
@@ -2835,7 +2835,7 @@ Name of the marker\&.
 .PP
 \fBReturn value\fR
 .PP
-Marker type: bitmap, image, line, polygon, text, or window\&.
+Marker type: arc, bitmap, image, line, polygon, text, or window\&.
 .PP
 .RS -4n
 \fBPEN\fR (::rbc)

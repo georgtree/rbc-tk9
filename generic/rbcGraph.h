@@ -740,6 +740,7 @@ extern Rbc_Uid rbcBitmapMarkerUid;
 extern Rbc_Uid rbcImageMarkerUid;
 extern Rbc_Uid rbcTextMarkerUid;
 extern Rbc_Uid rbcPolygonMarkerUid;
+extern Rbc_Uid rbcArcMarkerUid;
 extern Rbc_Uid rbcWindowMarkerUid;
 extern Rbc_Uid rbcXAxisUid;
 extern Rbc_Uid rbcYAxisUid;

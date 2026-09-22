@@ -537,14 +537,22 @@ typedef struct {
     int xorState; /* State of the XOR drawing. Indicates
                    * if the marker is visible. We have
                    * to drawn it again to erase it. */
+    /* Arc markers share polygon appearance/resources, but have their own
+     * mapped vertex count: their world coordinates remain a two-point box. */
+    double start, extent;
+    int arcStyle;
+    Tcl_Size nArcPts;
 } PolygonMarker;
 
-#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT)                                                     \
+enum { ARC_OPEN, ARC_CHORD, ARC_PIESLICE };
+static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
+
+#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                                     \
     {TK_OPTION_STRING,                                                                                                   \
      "-bindtags",                                                                                                        \
      "bindTags",                                                                                                         \
      "BindTags",                                                                                                         \
-     DEF_MARKER_POLYGON_TAGS,                                                                                            \
+     TAGS_DEFAULT,                                                                                            \
      offsetof(Marker, bindTagsObjPtr),                                                                                   \
      -1,                                                                                                                 \
      TK_OPTION_NULL_OK,                                                                                                  \
@@ -627,15 +635,30 @@ typedef struct {
          offsetof(Marker, yOffset),                                                                                      \
          0,                                                                                                              \
          NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+         0}
 
 static const Tk_OptionSpec polygonMarkerOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR)};
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, DEF_MARKER_POLYGON_TAGS),
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO)};
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, DEF_MARKER_POLYGON_TAGS),
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+#define ARC_MARKER_OPTION_ENTRIES \
+    {TK_OPTION_DOUBLE, "-start", "start", "Start", "0", -1, offsetof(PolygonMarker, start), 0, NULL, 0}, \
+    {TK_OPTION_DOUBLE, "-extent", "extent", "Extent", "360", -1, offsetof(PolygonMarker, extent), 0, NULL, 0}, \
+    {TK_OPTION_STRING_TABLE, "-style", "style", "Style", "pieslice", -1, offsetof(PolygonMarker, arcStyle), \
+     0, (ClientData)arcStyles, 0}, \
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+
+static const Tk_OptionSpec arcMarkerOptionSpecs[] = {
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, "Arc all"),
+    ARC_MARKER_OPTION_ENTRIES};
+static const Tk_OptionSpec arcMarkerMonoOptionSpecs[] = {
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, "Arc all"),
+    ARC_MARKER_OPTION_ENTRIES};
+#undef ARC_MARKER_OPTION_ENTRIES
 #undef POLYGON_MARKER_OPTION_ENTRIES
 
 _Static_assert(offsetof(TextMarker, core) == 0, "Marker core must be first in TextMarker");
@@ -651,6 +674,15 @@ _Static_assert(offsetof(PolygonMarker, core) == 0, "Marker core must be first in
 #define IMAGE_MARKER_FROM_CORE(ptr) ((ImageMarker *)((char *)(ptr) - offsetof(ImageMarker, core)))
 #define LINE_MARKER_FROM_CORE(ptr) ((LineMarker *)((char *)(ptr) - offsetof(LineMarker, core)))
 #define POLYGON_MARKER_FROM_CORE(ptr) ((PolygonMarker *)((char *)(ptr) - offsetof(PolygonMarker, core)))
+
+static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
+static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable);
+static MarkerCreateProc CreateArcMarker;
+static MarkerMapProc MapArcMarker;
+static MarkerPointProc PointInArcMarker;
+static MarkerRegionProc RegionInArcMarker;
+static MarkerDrawProc DrawArcMarker;
+static MarkerExportProc ArcMarkerExport;
 
 static MarkerCreateProc CreateBitmapMarker, CreateLineMarker, CreateImageMarker, CreatePolygonMarker, CreateTextMarker,
     CreateWindowMarker;
@@ -747,6 +779,18 @@ static MarkerClass polygonMarkerClass = {
     .pointProc = PointInPolygonMarker,
     .regionProc = RegionInPolygonMarker,
     .exportProc = PolygonMarkerExport,
+};
+
+static MarkerClass arcMarkerClass = {
+    .optionSpecs = arcMarkerOptionSpecs,
+    .monoOptionSpecs = arcMarkerMonoOptionSpecs,
+    .configProc = ConfigurePolygonMarker,
+    .drawProc = DrawArcMarker,
+    .freeProc = FreePolygonMarker,
+    .mapProc = MapArcMarker,
+    .pointProc = PointInArcMarker,
+    .regionProc = RegionInArcMarker,
+    .exportProc = ArcMarkerExport,
 };
 
 static MarkerClass textMarkerClass = {
@@ -1044,6 +1088,8 @@ static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point
     if (markerPtr->classUid == rbcLineMarkerUid) {
         minArgs = 4;
         maxArgs = 0;
+    } else if (markerPtr->classUid == rbcArcMarkerUid) {
+        minArgs = maxArgs = 4;
     } else if (markerPtr->classUid == rbcPolygonMarkerUid) {
         minArgs = 6;
         maxArgs = 0;
@@ -1418,6 +1464,8 @@ static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid)
         markerPtr = CreateImageMarker(); /* image */
     } else if (classUid == rbcTextMarkerUid) {
         markerPtr = CreateTextMarker(); /* text */
+    } else if (classUid == rbcArcMarkerUid) {
+        markerPtr = CreateArcMarker();
     } else if (classUid == rbcPolygonMarkerUid) {
         markerPtr = CreatePolygonMarker(); /* polygon */
     } else if (classUid == rbcWindowMarkerUid) {
@@ -4980,6 +5028,11 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
 
     graphPtr = markerPtr->graphPtr;
     pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    if ((markerPtr->classUid == rbcArcMarkerUid) &&
+        (!FINITE(pmPtr->start) || !FINITE(pmPtr->extent))) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("arc angles must be finite", -1));
+        return TCL_ERROR;
+    }
     memset(&newOutline, 0, sizeof(newOutline));
     memset(&newFill, 0, sizeof(newFill));
     newOutlineGC = NULL;
@@ -5076,6 +5129,9 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
     }
     newFillGC = Tk_GetGC(graphPtr->tkwin, fillMask, &gcValues);
     outlineOnly = (fillMask == 0);
+    if ((markerPtr->classUid == rbcArcMarkerUid) && (pmPtr->arcStyle == ARC_OPEN)) {
+        outlineOnly = TRUE;
+    }
     drawable = Tk_WindowId(graphPtr->tkwin);
     /*
      * Erase an old immediately drawn XOR polygon before replacing its
@@ -5083,7 +5139,7 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
      */
     if (pmPtr->xorState && (drawable != None) && (pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) &&
         (pmPtr->nOutlinePts > 0)) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        DrawImmediatePolygonOutline(pmPtr, drawable);
         pmPtr->xorState = FALSE;
     }
     /*
@@ -5126,9 +5182,9 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
      * no fill GC attributes were requested.
      */
     if (pmPtr->xor &&outlineOnly && !(graphPtr->flags & RESET_AXES) && (drawable != None)) {
-        MapPolygonMarker(markerPtr);
+        (*markerPtr->classPtr->mapProc)(markerPtr);
         if ((pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) && (pmPtr->nOutlinePts > 0)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+            DrawImmediatePolygonOutline(pmPtr, drawable);
             pmPtr->xorState = TRUE;
         }
         return TCL_OK;
@@ -5184,7 +5240,7 @@ static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
         (pmPtr->nOutlinePts > 0)) {
         drawable = Tk_WindowId(graphPtr->tkwin);
         if (drawable != None) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+            DrawImmediatePolygonOutline(pmPtr, drawable);
         }
         pmPtr->xorState = FALSE;
     }
@@ -5263,6 +5319,222 @@ static Marker *CreatePolygonMarker(void) {
  *
  *----------------------------------------------------------------------
  */
+/* Arc geometry is constructed after mapping the opposite box corners. Angles
+ * are display-space angles, unaffected by log/descending/inverted axes.
+ * Flattening uses a 0.15 pixel chord-error target, capped at 8192 segments
+ * for extreme off-screen boxes. All backends consume the same geometry. */
+static void MapArcMarker(Marker *markerPtr) {
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    Graph *graphPtr = markerPtr->graphPtr;
+    Point2D a, b, *screenPts, *srcPtr, *endPtr;
+    Extents2D exts;
+    double cx, cy, rx, ry, sweep, angle, radius, step;
+    const double radians = 0.017453292519943295;
+    Tcl_Size i, steps, nVertices;
+    int full;
+
+    if (pmPtr->screenPts != NULL) ckfree(pmPtr->screenPts);
+    if (pmPtr->fillPts != NULL) ckfree(pmPtr->fillPts);
+    if (pmPtr->outlinePts != NULL) ckfree(pmPtr->outlinePts);
+    pmPtr->screenPts = pmPtr->fillPts = NULL;
+    pmPtr->outlinePts = NULL;
+    pmPtr->nArcPts = pmPtr->nFillPts = pmPtr->nOutlinePts = 0;
+    markerPtr->clipped = TRUE;
+    if ((markerPtr->nWorldPts != 2) || (pmPtr->extent == 0.0)) return;
+    a = MapPoint(graphPtr, markerPtr->worldPts, &markerPtr->axes);
+    b = MapPoint(graphPtr, markerPtr->worldPts + 1, &markerPtr->axes);
+    cx = a.x * 0.5 + b.x * 0.5 + markerPtr->xOffset;
+    cy = a.y * 0.5 + b.y * 0.5 + markerPtr->yOffset;
+    rx = fabs(a.x * 0.5 - b.x * 0.5);
+    ry = fabs(a.y * 0.5 - b.y * 0.5);
+    if (!FINITE(cx) || !FINITE(cy) || !FINITE(rx) || !FINITE(ry) ||
+        (rx == 0.0) || (ry == 0.0)) return;
+    sweep = MAX(-360.0, MIN(360.0, pmPtr->extent));
+    full = (fabs(sweep) == 360.0);
+    radius = MAX(rx, ry);
+    /* sqrt bound is conservative for the ellipse's chord error. */
+    step = MIN(0.1, sqrt(1.2 / radius));
+    steps = (Tcl_Size)MIN(8192.0, MAX(1.0, ceil(fabs(sweep) * radians / step)));
+    nVertices = steps + 1;
+    if (!full && (pmPtr->arcStyle != ARC_OPEN)) {
+        nVertices += (pmPtr->arcStyle == ARC_PIESLICE) ? 2 : 1;
+    }
+    screenPts = Tcl_AttemptAlloc((size_t)nVertices * sizeof(*screenPts));
+    if (screenPts == NULL) return;
+    for (i = 0; i <= steps; i++) {
+        angle = (fmod(pmPtr->start, 360.0) + sweep * ((double)i / steps)) * radians;
+        screenPts[i].x = cx + rx * cos(angle);
+        screenPts[i].y = cy - ry * sin(angle);
+    }
+    if (full) {
+        screenPts[steps] = screenPts[0];
+    } else if (pmPtr->arcStyle != ARC_OPEN) {
+        if (pmPtr->arcStyle == ARC_PIESLICE) {
+            screenPts[steps + 1].x = cx;
+            screenPts[steps + 1].y = cy;
+        }
+        screenPts[nVertices - 1] = screenPts[0];
+    }
+    pmPtr->screenPts = screenPts;
+    pmPtr->nArcPts = nVertices;
+    Rbc_GraphExtents(graphPtr, &exts);
+    if ((pmPtr->arcStyle != ARC_OPEN) && (pmPtr->fill.fgColor != NULL)) {
+        Point2D *fillPts;
+        Tcl_Size fillCapacity;
+        Tcl_Size nFillPts;
+
+        if (nVertices <= (TCL_SIZE_MAX - 1) / 3) {
+            fillCapacity = nVertices * 3 + 1;
+            if ((size_t)fillCapacity <= SIZE_MAX / sizeof(*fillPts)) {
+                fillPts = Tcl_AttemptAlloc((size_t)fillCapacity * sizeof(*fillPts));
+                if (fillPts != NULL) {
+                    nFillPts = Rbc_PolyRectClip(&exts, screenPts, nVertices, fillPts, fillCapacity);
+                    if (nFillPts >= 3) {
+                        pmPtr->fillPts = fillPts;
+                        pmPtr->nFillPts = nFillPts;
+                        pmPtr->core.clipped = FALSE;
+                    } else {
+                        ckfree(fillPts);
+                    }
+                }
+            }
+        }
+    }
+    if ((pmPtr->outline.fgColor != NULL) && (pmPtr->lineWidth > 0)) {
+        Segment2D *outlinePts;
+        Segment2D *segPtr;
+
+        if ((size_t)nVertices <= SIZE_MAX / sizeof(*outlinePts)) {
+            outlinePts = Tcl_AttemptAlloc((size_t)nVertices * sizeof(*outlinePts));
+            if (outlinePts != NULL) {
+                segPtr = outlinePts;
+                endPtr = screenPts + nVertices;
+                for (srcPtr = screenPts; srcPtr + 1 < endPtr; srcPtr++) {
+                    Point2D *nextPtr;
+
+                    nextPtr = srcPtr + 1;
+                    if (Rbc_LineRectClip(&exts, srcPtr, nextPtr, segPtr)) {
+                        segPtr++;
+                    }
+                }
+                pmPtr->nOutlinePts = (Tcl_Size)(segPtr - outlinePts);
+                if (pmPtr->nOutlinePts > 0) {
+                    pmPtr->outlinePts = outlinePts;
+                    pmPtr->core.clipped = FALSE;
+                } else {
+                    ckfree(outlinePts);
+                }
+            }
+        }
+    }
+}
+
+static int PointInArcMarker(Marker *markerPtr, Point2D *samplePtr) {
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    if (markerPtr->nWorldPts != 2) return FALSE;
+    if ((pmPtr->nFillPts >= 3) && Rbc_PointInPolygon(samplePtr, pmPtr->fillPts, pmPtr->nFillPts)) return TRUE;
+    return Rbc_PointInSegments(samplePtr, pmPtr->outlinePts, pmPtr->nOutlinePts,
+        MAX((double)markerPtr->graphPtr->halo, pmPtr->lineWidth * 0.5));
+}
+
+static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    Tcl_Size i;
+    if ((markerPtr->nWorldPts != 2) || (pmPtr->nArcPts == 0) || (pmPtr->nFillPts == 0 && pmPtr->nOutlinePts == 0)) return FALSE;
+    if (enclosed) {
+        for (i = 0; i < pmPtr->nArcPts; i++) {
+            Point2D *p = pmPtr->screenPts + i;
+            if (p->x < extsPtr->left || p->x > extsPtr->right ||
+                p->y < extsPtr->top || p->y > extsPtr->bottom) return FALSE;
+        }
+        return TRUE;
+    }
+    if ((pmPtr->nFillPts >= 3) && Rbc_RegionInPolygon(extsPtr, pmPtr->fillPts, pmPtr->nFillPts, FALSE)) return TRUE;
+    for (i = 0; i < pmPtr->nOutlinePts; i++) {
+        if (Rbc_LineRectClip(extsPtr, &pmPtr->outlinePts[i].p, &pmPtr->outlinePts[i].q, NULL)) return TRUE;
+    }
+    return FALSE;
+}
+
+/* Join adjacent clipped segments into continuous paths: dash phase and joins
+ * must not restart at every flattened curve vertex. */
+static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
+    Graph *graphPtr = pmPtr->core.graphPtr;
+    Rbc_RenderContext *ctx;
+    Point2D *points;
+    Tcl_Size i, n;
+    if (pmPtr->nOutlinePts == 0) return;
+    points = Tcl_AttemptAlloc((size_t)(pmPtr->nOutlinePts + 1) * sizeof(*points));
+    if (points == NULL) return;
+    ctx = exportPtr ? Rbc_RenderBeginExport(exportPtr, pmPtr->outline.fgColor, pmPtr->lineWidth,
+        &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle) :
+        (pmPtr->xor ? NULL : Rbc_RenderBegin(graphPtr, drawable, pmPtr->outline.fgColor,
+            pmPtr->lineWidth, &pmPtr->dashes, pmPtr->outline.bgColor));
+    if (ctx != NULL) {
+        Rbc_RenderLineStyle(ctx, pmPtr->capStyle, pmPtr->joinStyle);
+        Rbc_RenderDashBackground(ctx, pmPtr->outline.bgColor);
+    }
+    for (i = 0; i < pmPtr->nOutlinePts;) {
+        n = 0;
+        points[n++] = pmPtr->outlinePts[i].p;
+        do {
+            points[n++] = pmPtr->outlinePts[i++].q;
+        } while (i < pmPtr->nOutlinePts && points[n-1].x == pmPtr->outlinePts[i].p.x &&
+                 points[n-1].y == pmPtr->outlinePts[i].p.y);
+        if (ctx != NULL) {
+            Rbc_RenderPolyline(ctx, points, n);
+        } else if (exportPtr == NULL) {
+            XPoint *xp = Tcl_AttemptAlloc((size_t)n * sizeof(*xp));
+            Tcl_Size j;
+            if (xp == NULL) continue;
+            for (j = 0; j < n; j++) {
+                xp[j].x = (short)points[j].x;
+                xp[j].y = (short)points[j].y;
+            }
+            XDrawLines(graphPtr->display, drawable, pmPtr->outlineGC, xp, (int)n, CoordModeOrigin);
+            ckfree(xp);
+        }
+    }
+    if (ctx != NULL) Rbc_RenderEnd(ctx);
+    ckfree(points);
+}
+
+static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable) {
+    if (pmPtr->core.classUid == rbcArcMarkerUid) {
+        int savedXor = pmPtr->xor;
+        pmPtr->xor = TRUE; /* Old XOR geometry must bypass Cairo when erased. */
+        StrokeArcMarker(pmPtr, drawable, NULL);
+        pmPtr->xor = savedXor;
+    } else {
+        Rbc_Draw2DSegments(pmPtr->core.graphPtr->display, drawable, pmPtr->outlineGC,
+                          pmPtr->outlinePts, pmPtr->nOutlinePts);
+    }
+}
+
+static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    Tcl_Size count = pmPtr->nOutlinePts;
+    pmPtr->nOutlinePts = 0;
+    DrawPolygonMarker(markerPtr, drawable);
+    pmPtr->nOutlinePts = count;
+    StrokeArcMarker(pmPtr, drawable, NULL);
+}
+
+static void ArcMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
+    PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
+    Tcl_Size count = pmPtr->nOutlinePts;
+    pmPtr->nOutlinePts = 0;
+    PolygonMarkerExport(markerPtr, exportPtr);
+    pmPtr->nOutlinePts = count;
+    StrokeArcMarker(pmPtr, None, exportPtr);
+}
+
+static Marker *CreateArcMarker(void) {
+    Marker *markerPtr = CreatePolygonMarker();
+    if (markerPtr != NULL) markerPtr->classPtr = &arcMarkerClass;
+    return markerPtr;
+}
+
 static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr) {
     Tcl_HashEntry *hPtr;
 
@@ -5555,6 +5827,7 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     } typeMap[] = {{"text", &rbcTextMarkerUid},
                    {"line", &rbcLineMarkerUid},
                    {"polygon", &rbcPolygonMarkerUid},
+                   {"arc", &rbcArcMarkerUid},
                    {"image", &rbcImageMarkerUid},
                    {"bitmap", &rbcBitmapMarkerUid},
                    {"window", &rbcWindowMarkerUid},
@@ -5735,7 +6008,8 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
         }
         if ((markerPtr->classUid == rbcBitmapMarkerUid) || (markerPtr->classUid == rbcLineMarkerUid) ||
             (markerPtr->classUid == rbcWindowMarkerUid) || (markerPtr->classUid == rbcPolygonMarkerUid) ||
-            (markerPtr->classUid == rbcTextMarkerUid) || (markerPtr->classUid == rbcImageMarkerUid)) {
+            (markerPtr->classUid == rbcTextMarkerUid) || (markerPtr->classUid == rbcImageMarkerUid) ||
+            (markerPtr->classUid == rbcArcMarkerUid)) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj(markerPtr->name, -1));
         }
     }

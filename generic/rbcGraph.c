@@ -43,6 +43,7 @@ Rbc_Uid rbcBitmapMarkerUid;
 Rbc_Uid rbcImageMarkerUid;
 Rbc_Uid rbcTextMarkerUid;
 Rbc_Uid rbcPolygonMarkerUid;
+Rbc_Uid rbcArcMarkerUid;
 Rbc_Uid rbcWindowMarkerUid;
 
 #define DEF_GRAPH_ASPECT_RATIO "0.0"
@@ -3502,6 +3503,7 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBitmapMarkerUid = (Rbc_Uid)Tk_GetUid("BitmapMarker");
     rbcImageMarkerUid = (Rbc_Uid)Tk_GetUid("ImageMarker");
     rbcTextMarkerUid = (Rbc_Uid)Tk_GetUid("TextMarker");
+    rbcArcMarkerUid = (Rbc_Uid)Tk_GetUid("ArcMarker");
     rbcPolygonMarkerUid = (Rbc_Uid)Tk_GetUid("PolygonMarker");
     rbcWindowMarkerUid = (Rbc_Uid)Tk_GetUid("WindowMarker");
     rbcXAxisUid = (Rbc_Uid)Tk_GetUid("X");
