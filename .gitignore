@@ -22,3 +22,4 @@ configure~
 /*.svg
 /*.ps
 /*.eps
+/docs/examples/*.tcl
