@@ -48,6 +48,36 @@ With -decimate none, mapping and drawing remain proportional to the complete sou
 
 CSV output may be requested with -csv file.
 
+## Marker benchmark
+
+`markers.tcl` measures line, polygon, arc, text, bitmap and image markers. The default cases include:
+
+| Arc case | Geometry | Appearance |
+| --- | --- | --- |
+| `arc-fill` | Full ellipse | Solid fill, no outline |
+| `arc-outline` | Full ellipse | Outline only |
+| `arc-open` | Open arc, start 30°, extent 240° | Outline only |
+| `arc-chord-fill` | Chord, start 30°, extent 120° | Solid fill, no outline |
+| `arc-pieslice-fill` | Pie sector, start 30°, extent 120° | Solid fill, no outline |
+
+Markers occupy the same grid cells as the existing line/polygon cases. Arc boxes use both cell dimensions,
+so displayed shapes may be elliptical rather than circular. Fill and outline work are measured separately.
+
+Focused native/Cairo smoke runs (Linux or Windows MSYS2/UCRT64 Bash):
+
+```sh
+tclsh tests/benchmark/markers.tcl -renderer native -profile smoke -cases arc-fill,arc-outline,arc-open,arc-chord-fill,arc-pieslice-fill -csv markers-native.csv
+tclsh tests/benchmark/markers.tcl -renderer cairo -profile smoke -cases arc-fill,arc-outline,arc-open,arc-chord-fill,arc-pieslice-fill -csv markers-cairo.csv
+```
+
+The suite's `run.tcl -benchmarks markers` includes these cases automatically in every profile. Counts, sizes,
+warmup and iterations use the existing profile defaults and can be overridden as for the other marker cases.
+`create-ms` includes construction, initial mapping and first display; `redraw-med` measures already-mapped drawing;
+`axis-remap` includes remapping and redraw. Cairo arcs use curved paths, while native arcs use flattened geometry.
+Both build the flattened geometry used for picking during mapping, so that cost is included in creation/remapping.
+These are screen-rendering benchmarks, not SVG/PostScript export benchmarks. Historical CSVs lack the new arc rows;
+collect new runs on both renderers before comparing them.
+
 ## Native versus Cairo
 
 Use `-renderer native|cairo` and `-antialias default|none|gray` on the suite or any individual benchmark. Defaults are

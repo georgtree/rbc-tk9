@@ -267,6 +267,43 @@ stacking calculations\&.
 .PP
 -hide and -hideplot are independent, so changing the normal visibility of an element does not alter its
 -hideplot state\&.
+.SS "CIRCLES, ELLIPSES AND ARC MARKERS"
+.PP
+The new arc marker supports full circles/ellipses, open curves, filled chords and pie sectors\&.
+-coords {x1 y1 x2 y2} specifies opposite corners of the ellipse bounding rectangle\&. -start sets
+the starting angle and -extent the signed sweep in degrees; their defaults are 0 and 360\&.
+Positive sweeps run counterclockwise from the display's positive X direction\&. The box is mapped
+before constructing the ellipse, preserving its displayed shape on logarithmic or inverted axes\&.
+Equal displayed width and height produce a circle\&.
+.PP
+-style arc draws the curve only, chord connects the endpoints directly, and pieslice connects
+them through the centre\&. The default is pieslice\&. Full sweeps have no radial seam\&. Fill and outline
+colors, foreground/background color pairs, stipples, line width, dashes, caps, joins and XOR follow
+polygon-marker conventions\&. Common marker options, clipping, picking and bindings are supported\&.
+See \fI::rbc::MARKER\fP for the complete interface\&.
+.PP
+.RS 4n
+.nf
+\&.g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
+\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style pieslice -fill orange
+\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style chord -fill lightblue
+\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
+.fi
+.RE
+.PP
+The private renderer interface now provides Rbc_RenderArc() and Rbc_RenderFillArc() with a shared
+mapped ellipse description\&. Cairo draws curved paths, SVG emits elliptical arc commands, and PostScript
+emits transformed arc/arcn paths\&. These backends clip the original curve without adding boundary
+edges, preserve continuous dashes through clipped portions, and keep stroke widths and stipple patterns
+independent of the ellipse aspect ratio\&. SVG and PostScript arc export do not require Cairo\&.
+.PP
+Native rendering, including XOR, and hit testing retain flattened geometry with a 0\&.15-pixel
+chord-error target and an 8192-segment limit\&. At extreme zoom, picking can differ from the curved path;
+native dashes can restart after leaving and re-entering the plot\&.
+.PP
+tests/benchmark/markers\&.tcl includes separate ellipse-fill, ellipse-outline, open-arc, chord-fill and
+pieslice-fill workloads in all profiles\&. They report creation, already-mapped redraw and axis-remap
+timings for native and Cairo renderers\&. See tests/benchmark/README\&.md for case names and commands\&.
 .SS "ARROWHEADS FOR LINE MARKERS"
 .PP
 Line markers now support arrowheads through the -arrow and -arrowshape options\&.

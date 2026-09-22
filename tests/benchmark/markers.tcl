@@ -16,15 +16,16 @@ namespace eval ::rbcMarkersBenchmark {
 proc ::rbcMarkersBenchmark::ParseArgs {argv} {
     variable options
     set parsed [argparse -inline -exact -long\
-                        -help {Benchmark RBC marker rendering for line, polygon, text, bitmap, and image marker\
+                        -help {Benchmark RBC marker rendering for line, polygon, arc, text, bitmap, and image marker\
                                        primitives.} {
             {-renderer= -enum {native cairo} -default native -help {Select the graph renderer}}
             {-antialias= -enum {default none gray} -default default -help {Select Cairo antialiasing}}
             {-profile= -enum {smoke standard stress} -default standard -help {Select benchmark workload profile}}
             {-counts= -validate {[::rbcBenchmark::IsCountList $arg 1]} -errormsg {-counts must contain integers >= 1}}
             {-sizes= -validate {[::rbcBenchmark::IsSizeList $arg]} -errormsg {-sizes must contain WIDTHxHEIGHT values}}
-            {-cases= -validate {[::rbcBenchmark::IsEnumList $arg {line polygon-fill polygon-outline text-0 text-45\
-                                                                          bitmap image}]}\
+            {-cases= -validate {[::rbcBenchmark::IsEnumList $arg {line polygon-fill polygon-outline arc-fill\
+                                                                          arc-outline arc-open arc-chord-fill\
+                                                                          arc-pieslice-fill text-0 text-45 bitmap image}]}\
                      -errormsg {invalid marker benchmark case}}
             {-iterations= -type integer -validate {$arg >= 1} -errormsg {-iterations must be >= 1}}
             {-warmup= -type integer -validate {$arg >= 0} -errormsg {-warmup must be >= 0}}
@@ -32,8 +33,9 @@ proc ::rbcMarkersBenchmark::ParseArgs {argv} {
         } $argv]
     ::rbcBenchmark::SetRendererOptions $parsed
     set profile [dict get $parsed profile]
-    set options [dict merge [dict create cases {line polygon-fill polygon-outline text-0 text-45 bitmap image} csv\
-                                     {}] [::rbcBenchmark::ProfileDefaults markers $profile] $parsed]
+    set options [dict merge [dict create cases {line polygon-fill polygon-outline arc-fill arc-outline\
+                                                   arc-open arc-chord-fill arc-pieslice-fill text-0 text-45 bitmap image}\
+                                     csv {}] [::rbcBenchmark::ProfileDefaults markers $profile] $parsed]
     foreach key {counts cases} {
         dict set options $key [::rbcBenchmark::ParseList [dict get $options $key]]
     }
@@ -87,6 +89,31 @@ proc ::rbcMarkersBenchmark::CreateMarkers {caseName n} {
                                                                               [expr {$y+$dy}]]\
                             -fill {} -outline black -linewidth 1 -under no
                 }
+                arc-fill {
+                    $graph marker create arc -name $name -coords [list [expr {$x-$dx}] [expr {$y-$dy}]\
+                                                                       [expr {$x+$dx}] [expr {$y+$dy}]]\
+                            -style chord -start 0 -extent 360 -fill steelblue -outline {} -linewidth 0 -under no
+                }
+                arc-outline {
+                    $graph marker create arc -name $name -coords [list [expr {$x-$dx}] [expr {$y-$dy}]\
+                                                                       [expr {$x+$dx}] [expr {$y+$dy}]]\
+                            -style chord -start 0 -extent 360 -fill {} -outline black -linewidth 1 -under no
+                }
+                arc-open {
+                    $graph marker create arc -name $name -coords [list [expr {$x-$dx}] [expr {$y-$dy}]\
+                                                                       [expr {$x+$dx}] [expr {$y+$dy}]]\
+                            -style arc -start 30 -extent 240 -fill {} -outline black -linewidth 1 -under no
+                }
+                arc-chord-fill {
+                    $graph marker create arc -name $name -coords [list [expr {$x-$dx}] [expr {$y-$dy}]\
+                                                                       [expr {$x+$dx}] [expr {$y+$dy}]]\
+                            -style chord -start 30 -extent 120 -fill steelblue -outline {} -linewidth 0 -under no
+                }
+                arc-pieslice-fill {
+                    $graph marker create arc -name $name -coords [list [expr {$x-$dx}] [expr {$y-$dy}]\
+                                                                       [expr {$x+$dx}] [expr {$y+$dy}]]\
+                            -style pieslice -start 30 -extent 120 -fill steelblue -outline {} -linewidth 0 -under no
+                }
                 text-0 {
                     $graph marker create text -name $name -coords [list $x $y] -text M123 -font TkSmallCaptionFont\
                             -rotate 0 -anchor center -under no
@@ -139,6 +166,11 @@ proc ::rbcMarkersBenchmark::PrintHeader {} {
 -bufferelements is disabled.
 
 Each case creates many markers of one concrete type.
+Arc cases isolate filled ellipses (arc-fill), ellipse outlines (arc-outline),
+open curves (arc-open), filled chords (arc-chord-fill), and filled sectors
+(arc-pieslice-fill). Fill cases disable outlines; outline cases disable fills.
+Native arcs use flattened geometry; Cairo arcs use curved paths. Both retain
+flattened geometry for picking, which remains part of creation/remapping work.
 
 Data preparation is outside timing.
 

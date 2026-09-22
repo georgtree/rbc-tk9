@@ -269,6 +269,37 @@ stacking calculations.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-hide</span></code> and <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> are independent, so changing the normal visibility of an element does not alter its
 <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code> state.</p>
 </section>
+<section id="circles-ellipses-and-arc-markers">
+<span id="r-tcltk9upgrade-circles-ellipses-and-arc-markers"></span><span id="r-3a3atcltk9upgradeqzcircles2c20ellipses20and20arc20markers"></span><h3>Circles, ellipses and arc markers<a class="headerlink" href="#circles-ellipses-and-arc-markers" title="Link to this heading">¶</a></h3>
+<p>The new <code class="docutils literal notranslate"><span class="pre">arc</span></code> marker supports full circles/ellipses, open curves, filled chords and pie sectors.
+<code class="docutils literal notranslate"><span class="pre">-coords</span> <span class="pre">{x1</span> <span class="pre">y1</span> <span class="pre">x2</span> <span class="pre">y2}</span></code> specifies opposite corners of the ellipse bounding rectangle. <code class="docutils literal notranslate"><span class="pre">-start</span></code> sets
+the starting angle and <code class="docutils literal notranslate"><span class="pre">-extent</span></code> the signed sweep in degrees; their defaults are <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">360</span></code>.
+Positive sweeps run counterclockwise from the display’s positive X direction. The box is mapped
+before constructing the ellipse, preserving its displayed shape on logarithmic or inverted axes.
+Equal displayed width and height produce a circle.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-style</span> <span class="pre">arc</span></code> draws the curve only, <code class="docutils literal notranslate"><span class="pre">chord</span></code> connects the endpoints directly, and <code class="docutils literal notranslate"><span class="pre">pieslice</span></code> connects
+them through the centre. The default is <code class="docutils literal notranslate"><span class="pre">pieslice</span></code>. Full sweeps have no radial seam. Fill and outline
+colors, foreground/background color pairs, stipples, line width, dashes, caps, joins and XOR follow
+polygon-marker conventions. Common marker options, clipping, picking and bindings are supported.
+See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for the complete interface.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>lightblue<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>navy
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>pieslice<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>orange
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>chord<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>lightblue
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>start<span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">-</span>extent<span class="w"> </span><span class="mi">120</span><span class="w"> </span><span class="o">-</span>style<span class="w"> </span>arc<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>The private renderer interface now provides <code class="docutils literal notranslate"><span class="pre">Rbc_RenderArc()</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillArc()</span></code> with a shared
+mapped ellipse description. Cairo draws curved paths, SVG emits elliptical arc commands, and PostScript
+emits transformed <code class="docutils literal notranslate"><span class="pre">arc</span></code>/<code class="docutils literal notranslate"><span class="pre">arcn</span></code> paths. These backends clip the original curve without adding boundary
+edges, preserve continuous dashes through clipped portions, and keep stroke widths and stipple patterns
+independent of the ellipse aspect ratio. SVG and PostScript arc export do not require Cairo.</p>
+<p>Native rendering, including XOR, and hit testing retain flattened geometry with a 0.15-pixel
+chord-error target and an 8192-segment limit. At extreme zoom, picking can differ from the curved path;
+native dashes can restart after leaving and re-entering the plot.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tests/benchmark/markers.tcl</span></code> includes separate ellipse-fill, ellipse-outline, open-arc, chord-fill and
+pieslice-fill workloads in all profiles. They report creation, already-mapped redraw and axis-remap
+timings for native and Cairo renderers. See <code class="docutils literal notranslate"><span class="pre">tests/benchmark/README.md</span></code> for case names and commands.</p>
+</section>
 <section id="arrowheads-for-line-markers">
 <span id="r-tcltk9upgrade-arrowheads-for-line-markers"></span><span id="r-3a3atcltk9upgradeqzarrowheads20for20line20markers"></span><h3>Arrowheads for line markers<a class="headerlink" href="#arrowheads-for-line-markers" title="Link to this heading">¶</a></h3>
 <p>Line markers now support arrowheads through the <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> options.</p>
@@ -759,6 +790,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#polar-and-smith-charts">Polar and Smith charts</a></li>
 <li><a class="reference internal" href="#area-closure-and-transparency">Area closure and transparency</a></li>
 <li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
+<li><a class="reference internal" href="#circles-ellipses-and-arc-markers">Circles, ellipses and arc markers</a></li>
 <li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
 <li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>
