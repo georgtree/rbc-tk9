@@ -1,0 +1,46 @@
+package require rbc
+package require tcltest
+
+namespace eval graphCursorDestroy {
+    namespace import ::tcltest::*
+
+    foreach kind {graph barchart stripchart polar} {
+        foreach mapped {0 1} {
+            foreach deletion {command interpreter} {
+                test cursorDestroy-$kind-$mapped-$deletion {cursor remains valid when teardown realizes an unmapped graph} -setup {
+                    interp create cursorChild
+                    interp eval cursorChild [list set auto_path $::auto_path]
+                    interp eval cursorChild {package require rbc}
+                    interp eval cursorChild [list set kind $kind]
+                    interp eval cursorChild [list set mapped $mapped]
+                    interp eval cursorChild {
+                        set cursor crosshair
+                        if {[tk windowingsystem] eq {x11}} {
+                            # Avoid another widget retaining the same cursor.
+                            set cursor {crosshair #123456 #abcdef}
+                        }
+                        ::rbc::$kind .g -cursor $cursor
+                        if {$mapped} {
+                            pack .g
+                            update
+                        }
+                        # Do not query winfo id: it would realize the window.
+                    }
+                } -body {
+                    if {$deletion eq {command}} {
+                        interp eval cursorChild {rename .g {}; update}
+                        set gone [interp eval cursorChild {expr {![winfo exists .g]}}]
+                    } else {
+                        set gone 1
+                    }
+                    interp delete cursorChild
+                    update
+                    list $gone [interp exists cursorChild]
+                } -cleanup {
+                    if {[interp exists cursorChild]} {interp delete cursorChild}
+                } -result {1 0}
+            }
+        }
+    }
+    cleanupTests
+}

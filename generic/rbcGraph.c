@@ -1044,6 +1044,12 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
         Tk_Window tkwin;
 
         tkwin = graphPtr->tkwin;
+        /*
+         * Tk_DestroyWindow may realize an uncreated window to deliver
+         * DestroyNotify. Clear its borrowed cursor before freeing the
+         * option-owned cursor, or XCreateWindow can receive a stale XID.
+         */
+        Tk_UndefineCursor(tkwin);
         if (graphPtr->gridPtr != NULL) {
             Rbc_DestroyGrid(graphPtr);
         }
