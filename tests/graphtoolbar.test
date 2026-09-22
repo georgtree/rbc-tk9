@@ -5425,4 +5425,80 @@ foreach type {graph stripchart polar barchart} {
     } -cleanup {destroy $widget} -result 1
 }
 
+# Query the pointer deterministically without warping the user's mouse or
+# sending Leave/Motion events. Only this object's winfo calls are intercepted.
+foreach location {inside margin covered hidden} {
+    foreach mode {current closest} {
+        test crosshairsCleanup-$mode-$location\
+                {periodic cleanup handles missed events and preserves application markers} -setup {
+            set widget [graphtoolbar .gtb -crosshairs -crosshairsmode $mode]
+            pack .gtb
+            set graph [$widget subwidget graph]
+            $graph axis configure x -min 0 -max 10
+            $graph axis configure y -min 0 -max 10
+            update
+            set objectNs [info object namespace $widget]
+            lassign [$graph transform 5 5] px py
+            if {$location eq {margin}} {
+                set px 0
+                set py 0
+            }
+            namespace eval $objectNs [list set CleanupProbePosition [list [expr {[winfo rootx $graph] + $px}]\
+                                                                             [expr {[winfo rooty $graph] + $py}]]]
+            namespace eval $objectNs [list set CleanupProbeWindow [expr {$location eq {covered} ? ".other" : $graph}]]
+            namespace eval $objectNs [list set CleanupProbeMapped [expr {$location ne {hidden}}]]
+            proc ${objectNs}::winfo {operation args} {
+                variable CleanupProbePosition
+                variable CleanupProbeWindow
+                variable CleanupProbeMapped
+                switch -- $operation {
+                    pointerxy {return $CleanupProbePosition}
+                    containing {return $CleanupProbeWindow}
+                    ismapped {return $CleanupProbeMapped}
+                    default {return [::winfo $operation {*}$args]}
+                }
+            }
+            namespace eval $objectNs {my DeleteCrosshairsMarkers}
+            $graph marker create text -name gtbCrosshairsCleanupText -coords {5 5} -text STALE
+            $graph marker create line -name gtbCrosshairsCleanupLine -coords {4 4 6 6}
+            $graph marker create text -name applicationMarker -coords {2 2} -text KEEP
+        } -body {
+            set timer [namespace eval $objectNs {set CrosshairsCleanupAfter}]
+            lassign [after info $timer] callback type
+            # Execute the scheduled callback without waiting or dispatching
+            # pointer events. It must cancel its old ID and rearm once.
+            uplevel #0 $callback
+            set next [namespace eval $objectNs {set CrosshairsCleanupAfter}]
+            namespace eval $objectNs {my ScheduleCrosshairsCleanup}
+            list [expr {$type eq {timer}}]\
+                [expr {[llength [$graph marker names gtbCrosshairs*]] == ($location eq {inside} ? 2 : 0)}]\
+                [$graph marker exists applicationMarker]\
+                [expr {$next ne $timer && $next eq [namespace eval $objectNs {set CrosshairsCleanupAfter}]}]\
+                [catch {after info $timer}]
+        } -cleanup {
+            destroy $widget
+        } -result {1 1 1 1 1}
+    }
+}
+
+test crosshairsCleanup-destroy {destroy cancels the independent periodic callback} -setup {
+    set widget [graphtoolbar .gtb -crosshairs]
+    set objectNs [info object namespace $widget]
+    set timer [namespace eval $objectNs {set CrosshairsCleanupAfter}]
+} -body {
+    destroy $widget
+    catch {after info $timer}
+} -cleanup {
+    catch {destroy $widget}
+} -result 1
+
+test crosshairsCleanup-disabled {no periodic callback without the crosshairs feature} -setup {
+    set widget [graphtoolbar .gtb]
+    set objectNs [info object namespace $widget]
+} -body {
+    namespace eval $objectNs {info exists CrosshairsCleanupAfter}
+} -cleanup {
+    destroy $widget
+} -result 0
+
 cleanupTests

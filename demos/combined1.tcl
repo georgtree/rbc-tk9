@@ -121,7 +121,7 @@ bind [$scatterGraph subwidget graph] <<RbcAxisChanged>> +[list syncAxes %W %d y 
 
 ### map everything
 grid .header -row 0 -columnspan 2 -sticky ew
-grid .details -row 1 -sticky ew -padx 15
+grid .details -row 1 -columnspan 2 -sticky ew
 grid $scatterGraph -row 3 -column 0 -sticky nsew
 grid $topHistGraph -row 2 -column 0 -sticky nsew
 grid $rightHistGraph -row 3 -column 1 -sticky nsew

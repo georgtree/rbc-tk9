@@ -283,14 +283,18 @@ namespace eval ::rbc::graphtoolbar {
         beneath a stationary pointer.
 
         Refresh requests are combined into an idle callback. The callback reads the actual pointer position at that
-        time; it does not reuse coordinates from the last motion event. No polling timer or synthetic pointer-motion
-        event is required.
+        time; it does not reuse coordinates from the last motion event. No synthetic pointer-motion event is required.
+
+        As a fallback for missed pointer-leave events, a one-second timer checks for leftover crosshair markers.
+        It removes them when the physical pointer is outside the plotting area, another window covers the pointer,
+        or the graph is hidden. This check only deletes private crosshair markers; it does not rebuild annotations,
+        repeat closest-point searches, or remove application markers.
 
         Refreshing respects temporary crosshair suspension during interactions such as rectangle zooming and
         panning. It does not recreate annotations while the context menu is posted. When a refresh finds that the
         pointer is outside the graph's plotting area or over another window, it removes stale annotations.
 
-        Pending refresh callbacks are cancelled when the toolbar is destroyed.
+        Pending refresh callbacks and the cleanup timer are cancelled when the toolbar is destroyed.
 
         ### Streaming graphs
         Automatic refresh requires no additional option or application binding. Enable enhanced crosshairs and select
@@ -1348,7 +1352,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
     variable CrosshairsSelector ClosestCoordSelector
-    variable CrosshairsRefreshAfter CrosshairsRefreshTag CrosshairsRefreshTop
+    variable CrosshairsRefreshAfter CrosshairsRefreshTag CrosshairsRefreshTop CrosshairsCleanupAfter
     variable AxisScaleInfo SavedToolbarStates
     variable ContextMenuPosted
     classmethod unknown {w args} {
@@ -1577,6 +1581,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     destructor {
         # Cancel asynchronous work before the object namespace disappears.
         my CancelCrosshairsRefresh
+        if {[info exists CrosshairsCleanupAfter]} {
+            after cancel $CrosshairsCleanupAfter
+            unset CrosshairsCleanupAfter
+        }
         foreach timer {titleTimer} {
             if {[info exists ZoomInfo($timer)]} {
                 after cancel $ZoomInfo($timer)
@@ -2994,6 +3002,50 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         my AddBindTag $graph $CrosshairsRefreshTag
         my AddBindTag $CrosshairsRefreshTop $CrosshairsRefreshTag
+        my ScheduleCrosshairsCleanup
+    }
+
+    method ScheduleCrosshairsCleanup {} {
+        # Keeps one periodic check for missed pointer-leave events.
+        #
+        # Returns: Nothing.
+        if {![info exists CrosshairsCleanupAfter]} {
+            set CrosshairsCleanupAfter [after 1000 [namespace code {my CleanupCrosshairsAtPointer}]]
+        }
+    }
+
+    method CleanupCrosshairsAtPointer {} {
+        # Removes stale annotations without rebuilding current/closest results.
+        #
+        # Check the physical pointer, including whether another window covers
+        # the plot. Hidden graphs must not retain annotations either.
+        #
+        # Returns: Nothing.
+        if {[info exists CrosshairsCleanupAfter]} {
+            after cancel $CrosshairsCleanupAfter
+            unset CrosshairsCleanupAfter
+        }
+        if {![info exists Subwidgets(graph)] || ![winfo exists $Subwidgets(graph)]} {
+            return
+        }
+        set graph $Subwidgets(graph)
+        try {
+            if {![llength [$graph marker names gtbCrosshairs*]]} {
+                return
+            }
+            if {![winfo ismapped $graph]} {
+                my DeleteCrosshairsMarkers
+                return
+            }
+            lassign [winfo pointerxy $graph] rootX rootY
+            set x [expr {$rootX - [winfo rootx $graph]}]
+            set y [expr {$rootY - [winfo rooty $graph]}]
+            if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
+                my DeleteCrosshairsMarkers
+            }
+        } finally {
+            my ScheduleCrosshairsCleanup
+        }
     }
 
     method CancelCrosshairsRefresh {} {
