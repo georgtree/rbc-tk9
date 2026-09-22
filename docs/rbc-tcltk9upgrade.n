@@ -12,6 +12,11 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "CONFIGURABLE LOGARITHMIC BAR BASELINE"
+.PP
+Bar elements honor a positive graph -baseline on logarithmic Y axes, including automatic limits,
+inverted graphs and exports\&. Non-positive settings retain the historical logarithmic baseline of 1\&.0\&.
+Stack totals remain additive from zero\&. See \fI::rbc::BARELEMENT\fP for details\&.
 .SS "STATIC MINGW-W64 THREADING RUNTIME"
 .PP
 --enable-winpthreads-static embeds the genuine libwinpthread\&.a archive in the RBC DLL and checks

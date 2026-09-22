@@ -1077,6 +1077,16 @@ error:
     return TCL_ERROR;
 }
 
+/* Use the historical log baseline only when the configured value is unusable. */
+static double GetBarBaseline(Element *elemPtr) {
+    double baseline = elemPtr->graphPtr->baseline;
+
+    if (elemPtr->axes.y->logScale && (baseline <= 0.0)) {
+        baseline = 1.0;
+    }
+    return baseline;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1099,7 +1109,7 @@ error:
 static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Graph *graphPtr = elemPtr->graphPtr;
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
-    double middle, barWidth;
+    double middle, barWidth, baseline;
     Tcl_Size nPoints;
 
     extsPtr->top = extsPtr->left = DBL_MAX;
@@ -1117,8 +1127,9 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     extsPtr->right = barPtr->core.x.max + middle;
     extsPtr->top = barPtr->core.y.min;
     extsPtr->bottom = barPtr->core.y.max;
-    if (extsPtr->bottom < graphPtr->baseline) {
-        extsPtr->bottom = graphPtr->baseline;
+    baseline = GetBarBaseline(elemPtr);
+    if (extsPtr->bottom < baseline) {
+        extsPtr->bottom = baseline;
     }
     /*
      * Handle "stacked" bar elements specially.
@@ -1135,8 +1146,20 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     }
     /* Fix y-min limits for barchart */
     if (elemPtr->axes.y->logScale) {
-        if ((extsPtr->top <= 0.0) || (extsPtr->top > 1.0)) {
-            extsPtr->top = 1.0;
+        if (extsPtr->top <= 0.0) {
+            Tcl_Size i;
+
+            extsPtr->top = baseline;
+            for (i = 0; i < nPoints; i++) {
+                double value = barPtr->core.y.valueArr[i];
+
+                if (FINITE(value) && (value > 0.0) && (value < extsPtr->top)) {
+                    extsPtr->top = value;
+                }
+            }
+        }
+        if (extsPtr->top > baseline) {
+            extsPtr->top = baseline;
         }
     } else {
         if (extsPtr->top > 0.0) {
@@ -1622,7 +1645,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     if (barPtr->barWidth > 0.0) {
         barWidth = barPtr->barWidth;
     }
-    baseline = (barPtr->core.axes.y->logScale) ? 1.0 : graphPtr->baseline;
+    baseline = GetBarBaseline(elemPtr);
     barOffset = barWidth * 0.5;
     /*
      * Create an array of rectangles representing the screen coordinates
@@ -1685,7 +1708,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
                     /*
                      * The stack accumulator starts at zero, because stacked values are
                      * additive data quantities.  Zero itself cannot be drawn on a
-                     * logarithmic axis, so use the established log-bar baseline (1.0)
+                     * logarithmic axis, so use the effective log-bar baseline
                      * only as the lower edge of the first visible stacked segment.
                      */
                     if (barPtr->core.axes.y->logScale && (previousY <= 0.0)) {
@@ -2246,13 +2269,13 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;
-            if (y < graphPtr->baseline) {
+            if (y < GetBarBaseline(&barPtr->core)) {
                 anchorPos.x -= rectPtr->width;
             }
         } else {
             anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
             anchorPos.y = rectPtr->y;
-            if (y < graphPtr->baseline) {
+            if (y < GetBarBaseline(&barPtr->core)) {
                 anchorPos.y += rectPtr->height;
             }
         }
@@ -2553,13 +2576,13 @@ static void BarValuesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Bar *
         if (graphPtr->inverted) {
             anchorPos.y = rectPtr->y + rectPtr->height * 0.5;
             anchorPos.x = rectPtr->x + rectPtr->width;
-            if (y < graphPtr->baseline) {
+            if (y < GetBarBaseline(&barPtr->core)) {
                 anchorPos.x -= rectPtr->width;
             }
         } else {
             anchorPos.x = rectPtr->x + rectPtr->width * 0.5;
             anchorPos.y = rectPtr->y;
-            if (y < graphPtr->baseline) {
+            if (y < GetBarBaseline(&barPtr->core)) {
                 anchorPos.y += rectPtr->height;
             }
         }

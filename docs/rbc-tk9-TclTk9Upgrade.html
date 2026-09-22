@@ -48,6 +48,12 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="configurable-logarithmic-bar-baseline">
+<span id="r-tcltk9upgrade-configurable-logarithmic-bar-baseline"></span><span id="r-3a3atcltk9upgradeqzconfigurable20logarithmic20bar20baseline"></span><h3>Configurable logarithmic bar baseline<a class="headerlink" href="#configurable-logarithmic-bar-baseline" title="Link to this heading">¶</a></h3>
+<p>Bar elements honor a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> on logarithmic Y axes, including automatic limits,
+inverted graphs and exports. Non-positive settings retain the historical logarithmic baseline of <code class="docutils literal notranslate"><span class="pre">1.0</span></code>.
+Stack totals remain additive from zero. See <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-namespaceqz3a3arbc3a3abarelement"><span class="std std-ref">::rbc::BARELEMENT</span></a> for details.</p>
+</section>
 <section id="static-mingw-w64-threading-runtime">
 <span id="r-tcltk9upgrade-static-mingw-w64-threading-runtime"></span><span id="r-3a3atcltk9upgradeqzstatic20mingw2dw6420threading20runtime"></span><h3>Static MinGW-w64 threading runtime<a class="headerlink" href="#static-mingw-w64-threading-runtime" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">--enable-winpthreads-static</span></code> embeds the genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> archive in the RBC DLL and checks
@@ -738,6 +744,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#tcl-only-vector-loading">Tcl-only vector loading</a></li>
 <li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>

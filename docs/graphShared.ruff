@@ -4210,10 +4210,12 @@ namespace eval ::rbc::BARELEMENT {
         Bar elements support logarithmic axes, with additional domain restrictions imposed by their rectangular
         geometry.
 
-        On a logarithmic Y axis, the drawable baseline is `1.0` rather than the graph's linear `-baseline` value:
+        On a logarithmic Y axis, a positive graph `-baseline` sets the drawable baseline. Zero (the default)
+        or a negative setting uses `1.0` instead. For example, to draw bars from `0.01`:
         ```tcl
         .b element create values -x {1 2 3} -y {0.1 100 10}
         .b yaxis configure -logscale yes
+        .b configure -baseline 0.01
         ```
 
         #ruffopt excludedformats nroff
@@ -4223,8 +4225,10 @@ namespace eval ::rbc::BARELEMENT {
         Non-positive Y data cannot be mapped to the logarithmic axis and are omitted.
 
         In `stacked` mode, stack values remain ordinary additive data quantities. The stack accumulator therefore
-        starts from zero, but the first visible stacked segment uses 1.0 as its drawable lower edge because zero
-        cannot be represented on a logarithmic axis.
+        starts from zero, but the first visible stacked segment uses the effective baseline as its drawable lower
+        edge because zero cannot be represented on a logarithmic axis. Changing the baseline does not add an
+        offset to stacked totals. Automatic limits include the effective baseline; inverted graphs, value labels,
+        SVG and PostScript use the same baseline as on-screen bars.
 
         On a logarithmic X axis, the complete horizontal extent of a bar must remain inside the positive logarithmic
         domain. A bar is omitted when its left edge, `x - barWidth/2`, is not positive.

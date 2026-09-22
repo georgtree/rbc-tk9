@@ -1,0 +1,137 @@
+# Positive bar baselines on logarithmic Y axes.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval barBaseline {
+    namespace import ::tcltest::*
+
+    proc Create {kind inverted} {
+        ::rbc::$kind .bl -width 440 -height 360 -invertxy $inverted \
+            -plotbackground white -baseline 0 -barmode infront
+        .bl axis configure x -min 0 -max 2 -loose no
+        .bl axis configure y -logscale yes -min 0.001 -max 1000 -loose no
+        .bl legend configure -hide yes
+        .bl grid configure -hide yes
+        .bl bar create e -data {1 10} -barwidth 0.8 -borderwidth 0 \
+            -foreground red -background red
+        pack .bl
+        update
+    }
+
+    proc Bounds {name lower upper} {
+        update idletasks
+        lassign [.bl transform 1 [expr {sqrt($lower * $upper)}]] px py
+        if {![.bl element closest $px $py hit -halo 2 $name]} {
+            return 0
+        }
+        lassign [.bl transform 1 $lower] lx ly
+        lassign [.bl transform 1 $upper] ux uy
+        if {[.bl cget -invertxy]} {
+            return [expr {abs($hit(left) - min($lx, $ux)) <= 2 &&
+                          abs($hit(right) - max($lx, $ux)) <= 2}]
+        }
+        return [expr {abs($hit(top) - min($ly, $uy)) <= 2 &&
+                      abs($hit(bottom) - max($ly, $uy)) <= 2}]
+    }
+
+    foreach kind {graph barchart stripchart} {
+        foreach inverted {no yes} {
+            test barBaseline-map-$kind-$inverted {changing baseline remaps bars, including fallback and downward bars} -setup {
+                Create $kind $inverted
+            } -body {
+                set result {}
+                foreach {baseline effective} {0 1 0.01 0.01 100 100 -5 1 1 1} {
+                    .bl configure -baseline $baseline
+                    lappend result [Bounds e $effective 10]
+                }
+                set result
+            } -cleanup {
+                destroy .bl
+            } -result {1 1 1 1 1}
+
+            test barBaseline-pixels-$kind-$inverted {on-screen rectangle follows updated baseline} -setup {
+                Create $kind $inverted
+                set photo [image create photo]
+            } -body {
+                set result {}
+                foreach baseline {0 0.01 100} {
+                    .bl configure -baseline $baseline
+                    update
+                    .bl snap $photo
+                    foreach y {0.1 2 30} {
+                        lassign [.bl transform 1 $y] px py
+                        lappend result [$photo get [expr {round($px)}] [expr {round($py)}]]
+                    }
+                }
+                set result
+            } -cleanup {
+                destroy .bl
+                if {[info exists photo]} {catch {image delete $photo}}
+            } -result {{255 255 255} {255 0 0} {255 255 255} {255 0 0} {255 0 0} {255 255 255} {255 255 255} {255 255 255} {255 0 0}}
+
+            test barBaseline-limits-$kind-$inverted {automatic limits include baselines above and below data} -setup {
+                Create $kind $inverted
+                .bl axis configure y -min {} -max {}
+            } -body {
+                set result {}
+                foreach baseline {0.01 1000} {
+                    .bl configure -baseline $baseline
+                    update
+                    lassign [.bl axis limits y] lo hi
+                    lappend result [expr {$lo <= min($baseline, 10) && $hi >= max($baseline, 10)}]
+                }
+                # Omitted non-positive data must not hide a smaller positive value.
+                .bl configure -baseline 2
+                .bl element configure e -data {0.5 -1 1 0.1}
+                update
+                lassign [.bl axis limits y] lo hi
+                lappend result [expr {$lo <= 0.1 && $hi >= 2}]
+                set result
+            } -cleanup {
+                destroy .bl
+            } -result {1 1 1}
+
+            test barBaseline-stacked-$kind-$inverted {baseline changes first edge without offsetting totals} -setup {
+                Create $kind $inverted
+                .bl configure -barmode stacked -baseline 0.01
+                .bl element configure e -data {1 3}
+                .bl bar create second -data {1 5} -borderwidth 0
+            } -body {
+                # Elements are mapped in reverse display order.
+                list [Bounds second 0.01 5] [Bounds e 5 8]
+            } -cleanup {
+                destroy .bl
+            } -result {1 1}
+        }
+    }
+
+    foreach format {svg postscript} {
+        test barBaseline-export-$format {export remaps the same bar when only baseline changes} -setup {
+            Create barchart no
+        } -body {
+            set original [.bl $format output]
+            .bl configure -baseline 0.01
+            set changed [.bl $format output]
+            list [expr {$original ne $changed}] [Bounds e 0.01 10]
+        } -cleanup {
+            destroy .bl
+        } -result {1 1}
+    }
+
+    test barBaseline-linear {linear baseline remains unchanged by logarithmic fallback policy} -setup {
+        Create barchart no
+        .bl axis configure y -logscale no -min -10 -max 20
+        .bl configure -baseline -5
+    } -body {
+        update
+        lassign [.bl transform 1 0] px py
+        set found [.bl element closest $px $py hit -halo 2 e]
+        lassign [.bl transform 1 -5] bx by
+        list $found [expr {$found && abs($hit(bottom) - $by) <= 2}]
+    } -cleanup {
+        destroy .bl
+    } -result {1 1}
+
+    cleanupTests
+}

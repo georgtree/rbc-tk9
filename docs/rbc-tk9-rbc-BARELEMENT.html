@@ -437,16 +437,20 @@ the normal pen.</p>
 <span id="r-rbc-barelement-logarithmic-axes"></span><span id="r-3a3arbc3a3abarelementqzlogarithmic20axes"></span><h2>Logarithmic axes<a class="headerlink" href="#logarithmic-axes" title="Link to this heading">¶</a></h2>
 <p>Bar elements support logarithmic axes, with additional domain restrictions imposed by their rectangular
 geometry.</p>
-<p>On a logarithmic Y axis, the drawable baseline is <code class="docutils literal notranslate"><span class="pre">1.0</span></code> rather than the graph’s linear <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> value:</p>
+<p>On a logarithmic Y axis, a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> sets the drawable baseline. Zero (the default)
+or a negative setting uses <code class="docutils literal notranslate"><span class="pre">1.0</span></code> instead. For example, to draw bars from <code class="docutils literal notranslate"><span class="pre">0.01</span></code>:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>x<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">0.1</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span>
 <span class="nv">.b</span><span class="w"> </span>yaxis<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>logscale<span class="w"> </span>yes
+<span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>baseline<span class="w"> </span><span class="mf">0.01</span>
 </pre></div>
 </div>
 <p><img alt="barchart_logscale" src="images/barchart_logscale.svg" /></p>
 <p>Non-positive Y data cannot be mapped to the logarithmic axis and are omitted.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">stacked</span></code> mode, stack values remain ordinary additive data quantities. The stack accumulator therefore
-starts from zero, but the first visible stacked segment uses 1.0 as its drawable lower edge because zero
-cannot be represented on a logarithmic axis.</p>
+starts from zero, but the first visible stacked segment uses the effective baseline as its drawable lower
+edge because zero cannot be represented on a logarithmic axis. Changing the baseline does not add an
+offset to stacked totals. Automatic limits include the effective baseline; inverted graphs, value labels,
+SVG and PostScript use the same baseline as on-screen bars.</p>
 <p>On a logarithmic X axis, the complete horizontal extent of a bar must remain inside the positive logarithmic
 domain. A bar is omitted when its left edge, <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">barWidth/2</span></code>, is not positive.</p>
 <p>This means that merely having a positive X center is not sufficient when the bar width would extend through

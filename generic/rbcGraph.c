@@ -203,7 +203,7 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_GRAPH_BAR_WIDTH, -1, offsetof(Graph, barWidth), 0, NULL,
      GRAPH_BAR_WIDTH_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-baseline", "baseline", "Baseline", DEF_GRAPH_BAR_BASELINE, -1, offsetof(Graph, baseline), 0,
-     NULL, GRAPH_REDRAW_MASK},
+     NULL, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
     {TK_OPTION_SYNONYM, "-bm", NULL, NULL, NULL, -1, -1, 0, "-bottommargin", 0},

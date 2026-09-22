@@ -486,6 +486,8 @@ on all four graph widget types\&.
 │ -baseline value            │ baseline            │ Baseline            │ Sets the baseline from which bars   │
 │                            │                     │                     │ are drawn\&. The value must be        │
 │                            │                     │                     │ finite\&. The default is 0\&.0\&.         │
+│                            │                     │                     │ Logarithmic Y axes use positive     │
+│                            │                     │                     │ values directly; otherwise use 1\&.0\&. │
 │ -borderwidth width         │ borderWidth         │ BorderWidth         │ Sets the width of the 3-D border    │
 │                            │                     │                     │ around the outside of the widget\&.   │
 │                            │                     │                     │ The appearance of the border is     │

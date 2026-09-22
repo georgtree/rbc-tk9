@@ -12,6 +12,12 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
+        ### Configurable logarithmic bar baseline
+
+        Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,
+        inverted graphs and exports. Non-positive settings retain the historical logarithmic baseline of `1.0`.
+        Stack totals remain additive from zero. See [::rbc::BARELEMENT] for details.
+
         ### Static MinGW-w64 threading runtime
 
         `--enable-winpthreads-static` embeds the genuine `libwinpthread.a` archive in the RBC DLL and checks
