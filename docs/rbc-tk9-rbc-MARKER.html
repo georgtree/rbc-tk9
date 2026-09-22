@@ -566,10 +566,16 @@ do not select their empty interiors. Point picking uses the graph halo or half t
 whichever is larger. <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">find</span> <span class="pre">enclosed</span></code> requires the complete mapped path inside the search box;
 <code class="docutils literal notranslate"><span class="pre">overlapping</span></code> checks the clipped fill and outline centreline. Marker bindings and <code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">get</span> <span class="pre">current</span></code>
 work as for other marker types.</p>
-<p>Native, Cairo, SVG and PostScript use the same flattened curve geometry. The chord-error target is
-0.15 display pixels, with at most 8192 segments for extreme off-screen boxes. Cairo antialiasing applies
-normally. Exported curves are vector polylines/polygons. Dashes remain continuous within each visible
-path; leaving and re-entering the plot can restart the dash pattern.</p>
+<p>Cairo draws curved ellipse paths with the graph’s antialiasing setting. SVG exports elliptical arc
+commands; PostScript exports transformed <code class="docutils literal notranslate"><span class="pre">arc</span></code>/<code class="docutils literal notranslate"><span class="pre">arcn</span></code> paths. These backends clip the original curve to
+the plot without adding outline edges along the clip boundary. Line width and dash lengths remain in
+display units when the ellipse is stretched, and stipple patterns retain their widget-space origin.
+Dashes follow the complete curve continuously, including portions outside the plot. Full ellipses have
+a closed outline without a radial seam.</p>
+<p>Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error
+target of 0.15 display pixels and at most 8192 segments for extreme off-screen boxes. The native dash
+pattern may restart when a curve leaves and re-enters the plot. At extreme zoom, the hit-test
+approximation can differ from the curved path. Switching renderers does not change marker options.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Full ellipse
 .g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
 # Sector connected to the centre

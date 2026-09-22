@@ -203,4 +203,194 @@ namespace eval arcMarker {
         } -cleanup {destroy .arc} -result ArcMarker
     }
 }
+
+namespace eval arcMarker {
+    proc SvgArcPaths {svg} {
+        set paths {}
+        foreach path [regexp -all -inline {<path\s[^>]*>} $svg] {
+            if {[string first { A } $path] >= 0} {lappend paths $path}
+        }
+        return $paths
+    }
+    proc PsArcBody {ps} {
+        set start [string first {% Marker "a" is a ArcMarker marker} $ps]
+        if {$start < 0} {error {Arc marker missing from PostScript}}
+        set end [string first {% Unset clipping} $ps $start]
+        if {$end < 0} {error {End of plot clip missing from PostScript}}
+        string range $ps $start [expr {$end-1}]
+    }
+
+    test arc-7.1 {SVG full ellipses use two curved sections and no radial seam} -setup {
+        Setup
+        .arc marker configure a -fill {}
+    } -body {
+        set result {}
+        foreach style {arc chord pieslice} {
+            foreach extent {360 -360 720 -720} {
+                .arc marker configure a -style $style -extent $extent
+                set paths [SvgArcPaths [.arc svg output]]
+                set path [lindex $paths 0]
+                lappend result [expr {[llength $paths] == 1 && [regexp -all { A } $path] == 2 &&
+                    [string first { L } $path] < 0 && [string first { Z} $path] >= 0}]
+            }
+        }
+        lsort -unique $result
+    } -cleanup {destroy .arc} -result 1
+
+    test arc-7.2 {SVG sweep and large-arc flags preserve positive and negative sweeps} -setup {
+        Setup
+        .arc marker configure a -fill {} -style arc -start 30
+    } -body {
+        set result {}
+        foreach extent {90 -90 270 -270} {
+            .arc marker configure a -extent $extent
+            set path [lindex [SvgArcPaths [.arc svg output]] 0]
+            regexp { A \S+ \S+ 0 ([01]) ([01]) } $path -> large sweep
+            lappend result [list $large $sweep]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{0 0} {0 1} {1 0} {1 1}}
+
+    test arc-7.3 {SVG sector/chord closure and ignored open-arc fill} -setup {
+        Setup
+        .arc marker configure a -extent 120 -fill #123456 -outline {}
+    } -body {
+        set result {}
+        foreach style {pieslice chord arc} {
+            .arc marker configure a -style $style
+            set paths [SvgArcPaths [.arc svg output]]
+            set path [lindex $paths 0]
+            lappend result [list [llength $paths] [expr {[string first { L } $path] >= 0}] \
+                [expr {[string first { Z} $path] >= 0}]]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{1 1 1} {1 0 1} {0 0 0}}
+
+    test arc-7.4 {clipped SVG ellipse retains its original path and continuous two-color dashes} -setup {
+        Setup
+        .arc marker configure a -coords {-5 2 15 8} -fill {} -outline {red blue} -dashes {6 4}
+    } -body {
+        set svg [.arc svg output]
+        set paths [SvgArcPaths $svg]
+        set a [lindex $paths 0]
+        set b [lindex $paths 1]
+        regexp {d="([^"]+)"} $a -> geometryA
+        regexp {d="([^"]+)"} $b -> geometryB
+        list [llength $paths] [expr {$geometryA eq $geometryB}] \
+            [regexp -all { A } $a] [expr {[string first { L } $a] < 0}] \
+            [expr {[string first {clip-path="url(#rbcPlot)"} $svg] >= 0}] \
+            [expr {[string first {stroke-dasharray="6 4"} $b] >= 0}]
+    } -cleanup {destroy .arc} -result {2 1 2 1 1 1}
+
+    test arc-7.5 {PostScript uses arc/arcn, restores the CTM, and closes only closed styles} -setup {
+        Setup
+        .arc marker configure a -fill {} -extent 90 -start 30
+    } -body {
+        set result {}
+        foreach {style extent} {arc 90 chord -90 pieslice 270 pieslice 360} {
+            .arc marker configure a -style $style -extent $extent
+            set ps [PsArcBody [.arc postscript output]]
+            regexp {0 0 1 \S+ \S+ (arc|arcn)\nsetmatrix} $ps -> direction
+            lappend result [list $direction [regexp -all { lineto} $ps] \
+                [regexp -all {closepath} $ps] [expr {[string first {setmatrix} $ps] < [string first {DashesProc stroke} $ps]}]]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{arcn 0 0 1} {arc 0 1 1} {arcn 1 1 1} {arcn 0 1 1}}
+
+    test arc-7.6 {stipple exports retain curved fill paths in SVG and PostScript} -setup {
+        Setup
+        .arc marker configure a -fill {red blue} -stipple gray50 -outline {} -extent 250
+    } -body {
+        set svg [.arc svg output]
+        set paths [SvgArcPaths $svg]
+        set ps [PsArcBody [.arc postscript output]]
+        list [llength $paths] [expr {[string first {fill="url(#rbcPattern} [lindex $paths 0]] >= 0}] \
+            [regexp {arcn\nsetmatrix} $ps] [expr {[string first {StippleFill} $ps] >= 0}]
+    } -cleanup {destroy .arc} -result {1 1 1 1}
+
+    test arc-7.7 {resized SVG export remaps ellipse then restores screen geometry} -setup {
+        Setup
+        update
+    } -body {
+        set before [.arc transform 5 5]
+        set width [.arc svg cget -width]
+        set height [.arc svg cget -height]
+        set original [SvgArcPaths [.arc svg output]]
+        set enlarged [SvgArcPaths [.arc svg output -width 800 -height 600]]
+        update idletasks
+        set screenRestored [expr {$before eq [.arc transform 5 5]}]
+        set restored [SvgArcPaths [.arc svg output -width $width -height $height]]
+        update idletasks
+        list [expr {$original ne $enlarged}] [expr {$original eq $restored}]\
+                [expr {$screenRestored && $before eq [.arc transform 5 5]}]
+    } -cleanup {
+        destroy .arc
+    } -result {1 1 1}
+
+    test arc-7.8 {curved exports do not depend on the screen renderer} -constraints arcCairo -setup {
+        Setup native
+        .arc marker configure a -extent -270 -style chord -dashes {4 3}
+    } -body {
+        set svg [SvgArcPaths [.arc svg output]]
+        set ps [PsArcBody [.arc postscript output]]
+        .arc configure -renderer cairo
+        update
+        list [expr {$svg eq [SvgArcPaths [.arc svg output]]}] \
+            [expr {$ps eq [PsArcBody [.arc postscript output]]}]
+    } -cleanup {destroy .arc} -result {1 1}
+
+    test arc-8.1 {Cairo eccentric ellipse keeps constant stroke width} -constraints arcCairo -setup {
+        Setup cairo
+        .arc configure -antialias none
+        .arc marker configure a -coords {1 4 9 6} -fill {} -linewidth 6
+        set photo [image create photo]
+        update
+    } -body {
+        .arc snap $photo
+        lassign [.arc transform 9 5] right cy
+        lassign [.arc transform 5 6] cx top
+        set horizontal 0
+        set vertical 0
+        for {set d -8} {$d <= 8} {incr d} {
+            if {[$photo get [expr {round($right)+$d}] [expr {round($cy)}]] eq {0 0 0}} {incr horizontal}
+            if {[$photo get [expr {round($cx)}] [expr {round($top)+$d}]] eq {0 0 0}} {incr vertical}
+        }
+        expr {$horizontal >= 5 && $horizontal <= 7 && $vertical >= 5 && $vertical <= 7}
+    } -cleanup {image delete $photo; destroy .arc} -result 1
+
+    test arc-8.2 {Cairo clips the curve without outlining the clip rectangle} -constraints arcCairo -setup {
+        Setup cairo
+        .arc marker configure a -coords {-10 -10 20 20} -fill {} -linewidth 6
+        set photo [image create photo]
+        update
+    } -body {
+        .arc snap $photo
+        list [Pixel $photo 0 0] [Pixel $photo 1 0] [Pixel $photo -1 0]
+    } -cleanup {image delete $photo; destroy .arc} -result {{255 255 255} {255 255 255} {255 255 255}}
+
+    test arc-8.3 {Cairo stipple stays fixed in widget pixels when ellipse is stretched} -constraints arcCairo -setup {
+        Setup cairo
+        .arc marker configure a -fill {red blue} -stipple gray50 -outline {}
+        set photo [image create photo]
+        update
+    } -body {
+        lassign [.arc transform 5 5] cx cy
+        set samples {}
+        foreach coords {{2 2 8 8} {1 3 9 7}} {
+            .arc marker configure a -coords $coords
+            update
+            .arc snap $photo
+            set colors {}
+            for {set y -5} {$y <= 5} {incr y} {
+                for {set x -5} {$x <= 5} {incr x} {
+                    lappend colors [$photo get [expr {round($cx)+$x}] [expr {round($cy)+$y}]]
+                }
+            }
+            lappend samples $colors
+        }
+        list [expr {[lindex $samples 0] eq [lindex $samples 1]}] \
+            [lsort -unique [lindex $samples 0]]
+    } -cleanup {image delete $photo; destroy .arc} -result {1 {{0 0 255} {255 0 0}}}
+}
+
 cleanupTests

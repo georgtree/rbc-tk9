@@ -542,9 +542,11 @@ typedef struct {
     double start, extent;
     int arcStyle;
     Tcl_Size nArcPts;
+    Rbc_RenderArcGeometry arc; /* Unclipped ellipse for curved renderers. */
 } PolygonMarker;
 
-enum { ARC_OPEN, ARC_CHORD, ARC_PIESLICE };
+enum { ARC_OPEN = RBC_RENDER_ARC_OPEN, ARC_CHORD = RBC_RENDER_ARC_CHORD,
+       ARC_PIESLICE = RBC_RENDER_ARC_PIESLICE };
 static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
 
 #define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                                     \
@@ -5322,7 +5324,8 @@ static Marker *CreatePolygonMarker(void) {
 /* Arc geometry is constructed after mapping the opposite box corners. Angles
  * are display-space angles, unaffected by log/descending/inverted axes.
  * Flattening uses a 0.15 pixel chord-error target, capped at 8192 segments
- * for extreme off-screen boxes. All backends consume the same geometry. */
+ * for extreme off-screen boxes. These vertices serve native drawing and
+ * picking; curved renderers consume the original mapped ellipse. */
 static void MapArcMarker(Marker *markerPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
@@ -5339,6 +5342,7 @@ static void MapArcMarker(Marker *markerPtr) {
     pmPtr->screenPts = pmPtr->fillPts = NULL;
     pmPtr->outlinePts = NULL;
     pmPtr->nArcPts = pmPtr->nFillPts = pmPtr->nOutlinePts = 0;
+    memset(&pmPtr->arc, 0, sizeof(pmPtr->arc));
     markerPtr->clipped = TRUE;
     if ((markerPtr->nWorldPts != 2) || (pmPtr->extent == 0.0)) return;
     a = MapPoint(graphPtr, markerPtr->worldPts, &markerPtr->axes);
@@ -5350,6 +5354,23 @@ static void MapArcMarker(Marker *markerPtr) {
     if (!FINITE(cx) || !FINITE(cy) || !FINITE(rx) || !FINITE(ry) ||
         (rx == 0.0) || (ry == 0.0)) return;
     sweep = MAX(-360.0, MIN(360.0, pmPtr->extent));
+    pmPtr->arc.cx = cx;
+    pmPtr->arc.cy = cy;
+    pmPtr->arc.rx = rx;
+    pmPtr->arc.ry = ry;
+    pmPtr->arc.start = fmod(pmPtr->start, 360.0);
+    pmPtr->arc.extent = sweep;
+    pmPtr->arc.style = (Rbc_RenderArcStyle)pmPtr->arcStyle;
+    /* Conservative visibility must not depend on the flattened path. At high
+     * zoom its chord error can exceed the usual target or omit a thin sliver.
+     * The true curve is clipped by the drawing/export context itself. */
+    Rbc_GraphExtents(graphPtr, &exts);
+    if (((pmPtr->arcStyle != ARC_OPEN) && (pmPtr->fill.fgColor != NULL)) ||
+        ((pmPtr->outline.fgColor != NULL) && (pmPtr->lineWidth > 0))) {
+        double margin = pmPtr->outline.fgColor != NULL ? pmPtr->lineWidth * 0.5 : 0.0;
+        markerPtr->clipped = (cx + rx + margin < exts.left || cx - rx - margin > exts.right ||
+                              cy + ry + margin < exts.top || cy - ry - margin > exts.bottom);
+    }
     full = (fabs(sweep) == 360.0);
     radius = MAX(rx, ry);
     /* sqrt bound is conservative for the ellipse's chord error. */
@@ -5463,9 +5484,7 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
     Rbc_RenderContext *ctx;
     Point2D *points;
     Tcl_Size i, n;
-    if (pmPtr->nOutlinePts == 0) return;
-    points = Tcl_AttemptAlloc((size_t)(pmPtr->nOutlinePts + 1) * sizeof(*points));
-    if (points == NULL) return;
+    if ((pmPtr->arc.extent == 0.0) || (pmPtr->outline.fgColor == NULL) || (pmPtr->lineWidth <= 0)) return;
     ctx = exportPtr ? Rbc_RenderBeginExport(exportPtr, pmPtr->outline.fgColor, pmPtr->lineWidth,
         &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle) :
         (pmPtr->xor ? NULL : Rbc_RenderBegin(graphPtr, drawable, pmPtr->outline.fgColor,
@@ -5473,7 +5492,13 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
     if (ctx != NULL) {
         Rbc_RenderLineStyle(ctx, pmPtr->capStyle, pmPtr->joinStyle);
         Rbc_RenderDashBackground(ctx, pmPtr->outline.bgColor);
+        Rbc_RenderArc(ctx, &pmPtr->arc);
+        Rbc_RenderEnd(ctx);
+        return;
     }
+    if (pmPtr->nOutlinePts == 0) return;
+    points = Tcl_AttemptAlloc((size_t)(pmPtr->nOutlinePts + 1) * sizeof(*points));
+    if (points == NULL) return;
     for (i = 0; i < pmPtr->nOutlinePts;) {
         n = 0;
         points[n++] = pmPtr->outlinePts[i].p;
@@ -5481,9 +5506,7 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
             points[n++] = pmPtr->outlinePts[i++].q;
         } while (i < pmPtr->nOutlinePts && points[n-1].x == pmPtr->outlinePts[i].p.x &&
                  points[n-1].y == pmPtr->outlinePts[i].p.y);
-        if (ctx != NULL) {
-            Rbc_RenderPolyline(ctx, points, n);
-        } else if (exportPtr == NULL) {
+        {
             XPoint *xp = Tcl_AttemptAlloc((size_t)n * sizeof(*xp));
             Tcl_Size j;
             if (xp == NULL) continue;
@@ -5495,7 +5518,6 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
             ckfree(xp);
         }
     }
-    if (ctx != NULL) Rbc_RenderEnd(ctx);
     ckfree(points);
 }
 
@@ -5513,19 +5535,33 @@ static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable)
 
 static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
-    Tcl_Size count = pmPtr->nOutlinePts;
-    pmPtr->nOutlinePts = 0;
-    DrawPolygonMarker(markerPtr, drawable);
-    pmPtr->nOutlinePts = count;
+    if (pmPtr->arc.extent == 0.0) return;
+    if ((pmPtr->arc.style != RBC_RENDER_ARC_OPEN) && (pmPtr->fill.fgColor != NULL)) {
+        Rbc_RenderFillStyle style = {pmPtr->fill.fgColor, pmPtr->fill.bgColor, pmPtr->stipple, 1.0, FALSE};
+        Rbc_RenderContext *ctx = pmPtr->xor ? NULL : Rbc_RenderBeginFill(markerPtr->graphPtr, drawable, &style);
+        if (ctx != NULL) {
+            Rbc_RenderFillArc(ctx, &pmPtr->arc);
+            Rbc_RenderEnd(ctx);
+        } else {
+            /* Existing polygon fill is the native/resource-failure fallback. */
+            Tcl_Size count = pmPtr->nOutlinePts;
+            pmPtr->nOutlinePts = 0;
+            DrawPolygonMarker(markerPtr, drawable);
+            pmPtr->nOutlinePts = count;
+        }
+    }
     StrokeArcMarker(pmPtr, drawable, NULL);
 }
 
 static void ArcMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
-    Tcl_Size count = pmPtr->nOutlinePts;
-    pmPtr->nOutlinePts = 0;
-    PolygonMarkerExport(markerPtr, exportPtr);
-    pmPtr->nOutlinePts = count;
+    if (pmPtr->arc.extent == 0.0) return;
+    if ((pmPtr->arc.style != RBC_RENDER_ARC_OPEN) && (pmPtr->fill.fgColor != NULL)) {
+        Rbc_RenderFillStyle style = {pmPtr->fill.fgColor, pmPtr->fill.bgColor, pmPtr->stipple, 1.0, FALSE};
+        Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(markerPtr->graphPtr, exportPtr, &style);
+        Rbc_RenderFillArc(ctx, &pmPtr->arc);
+        Rbc_RenderEnd(ctx);
+    }
     StrokeArcMarker(pmPtr, None, exportPtr);
 }
 

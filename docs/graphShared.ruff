@@ -5393,10 +5393,17 @@ namespace eval ::rbc::MARKER {
         `overlapping` checks the clipped fill and outline centreline. Marker bindings and `marker get current`
         work as for other marker types.
 
-        Native, Cairo, SVG and PostScript use the same flattened curve geometry. The chord-error target is
-        0.15 display pixels, with at most 8192 segments for extreme off-screen boxes. Cairo antialiasing applies
-        normally. Exported curves are vector polylines/polygons. Dashes remain continuous within each visible
-        path; leaving and re-entering the plot can restart the dash pattern.
+        Cairo draws curved ellipse paths with the graph's antialiasing setting. SVG exports elliptical arc
+        commands; PostScript exports transformed `arc`/`arcn` paths. These backends clip the original curve to
+        the plot without adding outline edges along the clip boundary. Line width and dash lengths remain in
+        display units when the ellipse is stretched, and stipple patterns retain their widget-space origin.
+        Dashes follow the complete curve continuously, including portions outside the plot. Full ellipses have
+        a closed outline without a radial seam.
+
+        Native drawing (including XOR) and hit testing retain the flattened geometry, with a chord-error
+        target of 0.15 display pixels and at most 8192 segments for extreme off-screen boxes. The native dash
+        pattern may restart when a curve leaves and re-enters the plot. At extreme zoom, the hit-test
+        approximation can differ from the curved path. Switching renderers does not change marker options.
 
         ```
         # Full ellipse

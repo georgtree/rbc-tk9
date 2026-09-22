@@ -24,7 +24,7 @@ typedef struct {
     int backgroundOnly;
 } Rbc_RenderFillStyle;
 
-/* Fill contexts support FillPolygon/FillRectangles and End. Screen creation
+/* Fill contexts support FillPolygon/FillRectangles/FillArc and End. Screen creation
  * may return NULL for native fallback; export does not require Cairo. */
 Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const Rbc_RenderFillStyle *style);
 Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext *exportPtr,
@@ -33,6 +33,27 @@ Rbc_RenderContext *Rbc_RenderBeginExportFill(Graph *graphPtr, Rbc_ExportContext 
 void Rbc_RenderSetFillTile(Rbc_RenderContext *ctx, Rbc_Tile tile);
 void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
+
+/* Ellipse in mapped display coordinates. Zero degrees points right; positive
+ * sweeps turn counterclockwise. |extent| >= 360 is one closed ellipse, without
+ * a radial seam. The renderer constructs the complete path under the context's
+ * clip; callers must not clip/flatten it first. Geometry transforms do not
+ * scale stroke width, dashes, or fill patterns. This is a private C interface. */
+typedef enum {
+    RBC_RENDER_ARC_OPEN, RBC_RENDER_ARC_CHORD, RBC_RENDER_ARC_PIESLICE
+} Rbc_RenderArcStyle;
+
+typedef struct {
+    double cx, cy, rx, ry;
+    double start, extent;
+    Rbc_RenderArcStyle style;
+} Rbc_RenderArcGeometry;
+
+/* Use a stroke context for Arc and a fill context for FillArc. FillArc ignores
+ * OPEN. Non-finite/degenerate geometry draws nothing. Screen contexts may be
+ * unavailable (native renderer); callers retain their native fallback. */
+void Rbc_RenderArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
+void Rbc_RenderFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 
 /* Semantic symbol descriptions for export; colors are resolved by the caller. */
 typedef enum {
@@ -94,7 +115,7 @@ typedef struct {
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
-/* Export stroke context: Polyline, Segments, LineStyle, DashBackground and End only.
+/* Export stroke context: Polyline, Segments, Arc, LineStyle, DashBackground and End only.
  * Available without Cairo; borrows export state and dispatches to its backend. */
 Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                             const Rbc_Dashes *dashes, int capStyle, int joinStyle);

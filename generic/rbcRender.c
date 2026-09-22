@@ -49,6 +49,8 @@ typedef struct {
     void (*symbolPoints)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     const Rbc_RenderOutputOps *output;
     void (*end)(Rbc_RenderContext *);
+    void (*arc)(Rbc_RenderContext *, const Rbc_RenderArcGeometry *);
+    void (*fillArc)(Rbc_RenderContext *, const Rbc_RenderArcGeometry *);
 } Rbc_RenderOps;
 
 struct Rbc_RenderContext {
@@ -100,10 +102,12 @@ static void CairoDashBackground(Rbc_RenderContext *ctx, const XColor *color);
 static void CairoFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 static void CairoFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count);
 static void CairoEnd(Rbc_RenderContext *ctx);
+static void CairoArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
+static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 
 static const Rbc_RenderOps cairoOps = {
     CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground,
-    CairoFillPolygon, CairoFillRectangles, NULL, NULL, CairoEnd
+    CairoFillPolygon, CairoFillRectangles, NULL, NULL, CairoEnd, CairoArc, CairoFillArc
 };
 
 #ifdef WIN32
@@ -393,6 +397,56 @@ static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Siz
         cairo_line_to(ctx->cr, points[i].x, points[i].y);
     }
     StrokeRenderPath(ctx);
+}
+
+/* Restore the CTM before painting so ellipse aspect ratio changes geometry
+ * only, not line width/dash lengths or the stipple's widget-space origin. */
+static void CairoArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    double start = -arc->start * M_PI / 180.0;
+    double end = -(arc->start + arc->extent) * M_PI / 180.0;
+
+    cairo_new_path(ctx->cr);
+    cairo_save(ctx->cr);
+    cairo_translate(ctx->cr, arc->cx, arc->cy);
+    cairo_scale(ctx->cr, arc->rx, arc->ry);
+    if (arc->extent > 0.0) {
+        cairo_arc_negative(ctx->cr, 0.0, 0.0, 1.0, start, end);
+    } else {
+        cairo_arc(ctx->cr, 0.0, 0.0, 1.0, start, end);
+    }
+    cairo_restore(ctx->cr);
+    if (fabs(arc->extent) == 360.0) {
+        cairo_close_path(ctx->cr);
+    } else if (arc->style != RBC_RENDER_ARC_OPEN) {
+        if (arc->style == RBC_RENDER_ARC_PIESLICE) {
+            cairo_line_to(ctx->cr, arc->cx, arc->cy);
+        }
+        cairo_close_path(ctx->cr);
+    }
+}
+
+static void CairoArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    CairoArcPath(ctx, arc);
+    StrokeRenderPath(ctx);
+}
+
+static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+    const XColor *foreground = style->foreground;
+
+    cairo_save(ctx->cr);
+    /* Match existing area fills and their widget-aligned stipple origin. */
+    cairo_translate(ctx->cr, -0.5, -0.5);
+    cairo_set_fill_rule(ctx->cr, CAIRO_FILL_RULE_EVEN_ODD);
+    if (ctx->bitmapPattern != NULL) {
+        cairo_set_source(ctx->cr, ctx->bitmapPattern);
+    } else if (style->opacity != 1.0) {
+        cairo_set_source_rgba(ctx->cr, foreground->red / 65535.0, foreground->green / 65535.0,
+                              foreground->blue / 65535.0, style->opacity);
+    }
+    CairoArcPath(ctx, arc);
+    cairo_fill(ctx->cr);
+    cairo_restore(ctx->cr);
 }
 
 /* Marker options use X cap/join constants; keep them out of Cairo callers. */
@@ -1199,11 +1253,9 @@ static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color
     }
 }
 
-static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+static void PostScriptFillPath(Rbc_RenderContext *ctx) {
     const Rbc_RenderFillStyle *style = &ctx->fillStyle;
 
-    Rbc_PathToPostScript(ctx->psToken, (Point2D *)points, count);
-    Rbc_AppendToPostScript(ctx->psToken, "closepath\n", (char *)NULL);
     if (style->background != NULL) {
         Rbc_BackgroundToPostScript(ctx->psToken, (XColor *)style->background);
         Rbc_AppendToPostScript(ctx->psToken, "Fill\n", (char *)NULL);
@@ -1217,6 +1269,40 @@ static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points,
     } else {
         Rbc_AppendToPostScript(ctx->psToken, "Fill\n", (char *)NULL);
     }
+}
+
+static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    Rbc_PathToPostScript(ctx->psToken, (Point2D *)points, count);
+    Rbc_AppendToPostScript(ctx->psToken, "closepath\n", (char *)NULL);
+    PostScriptFillPath(ctx);
+}
+
+/* The current path survives setmatrix, unlike grestore. Save the CTM on the
+ * operand stack while constructing the unit-circle arc, then restore it before
+ * stroking/filling so widths, dash lengths and stipples stay in display units. */
+static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    Rbc_FormatToPostScript(ctx->psToken,
+        "newpath matrix currentmatrix\n%g %g translate %g %g scale\n0 0 1 %g %g %s\nsetmatrix\n",
+        arc->cx, arc->cy, arc->rx, arc->ry, -arc->start, -(arc->start + arc->extent),
+        arc->extent > 0.0 ? "arcn" : "arc");
+    if (fabs(arc->extent) == 360.0) {
+        Rbc_AppendToPostScript(ctx->psToken, "closepath\n", (char *)NULL);
+    } else if (arc->style != RBC_RENDER_ARC_OPEN) {
+        if (arc->style == RBC_RENDER_ARC_PIESLICE) {
+            Rbc_FormatToPostScript(ctx->psToken, "%g %g lineto\n", arc->cx, arc->cy);
+        }
+        Rbc_AppendToPostScript(ctx->psToken, "closepath\n", (char *)NULL);
+    }
+}
+
+static void PostScriptArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    PostScriptArcPath(ctx, arc);
+    Rbc_AppendToPostScript(ctx->psToken, "DashesProc stroke\n", (char *)NULL);
+}
+
+static void PostScriptFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    PostScriptArcPath(ctx, arc);
+    PostScriptFillPath(ctx);
 }
 
 static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
@@ -1362,7 +1448,8 @@ static void PostScriptEnd(Rbc_RenderContext *ctx) {
 
 static const Rbc_RenderOps postScriptOps = {PostScriptPolyline,       PostScriptSegments,    PostScriptLineStyle,
                                             PostScriptDashBackground, PostScriptFillPolygon, PostScriptFillRectangles,
-                                            PostScriptSymbolPoints,   &postScriptOutputOps,  PostScriptEnd};
+                                            PostScriptSymbolPoints,   &postScriptOutputOps,  PostScriptEnd,
+                                            PostScriptArc, PostScriptFillArc};
 
 Rbc_RenderContext *Rbc_RenderBeginExport(Rbc_ExportContext *exportPtr, const XColor *color, int lineWidth,
                                          const Rbc_Dashes *dashes, int capStyle, int joinStyle) {
@@ -1535,6 +1622,32 @@ void Rbc_RenderFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
 void Rbc_RenderFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     if (count > 0) {
         ctx->ops->fillRectangles(ctx, rectangles, count);
+    }
+}
+
+static int NormalizeRenderArc(const Rbc_RenderArcGeometry *arc, Rbc_RenderArcGeometry *normalized) {
+    if ((arc == NULL) || !FINITE(arc->cx) || !FINITE(arc->cy) || !FINITE(arc->rx) || !FINITE(arc->ry) ||
+        !FINITE(arc->start) || !FINITE(arc->extent) || (arc->rx <= 0.0) || (arc->ry <= 0.0) ||
+        (arc->extent == 0.0) || (arc->style < RBC_RENDER_ARC_OPEN) || (arc->style > RBC_RENDER_ARC_PIESLICE)) {
+        return FALSE;
+    }
+    *normalized = *arc;
+    normalized->start = fmod(arc->start, 360.0);
+    normalized->extent = MAX(-360.0, MIN(360.0, arc->extent));
+    return TRUE;
+}
+
+void Rbc_RenderArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    Rbc_RenderArcGeometry normalized;
+    if ((ctx != NULL) && NormalizeRenderArc(arc, &normalized)) {
+        ctx->ops->arc(ctx, &normalized);
+    }
+}
+
+void Rbc_RenderFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    Rbc_RenderArcGeometry normalized;
+    if ((ctx != NULL) && NormalizeRenderArc(arc, &normalized) && (normalized.style != RBC_RENDER_ARC_OPEN)) {
+        ctx->ops->fillArc(ctx, &normalized);
     }
 }
 
@@ -1766,6 +1879,61 @@ static void SvgFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
         Rbc_ExportFormat(ctx->exportPtr, "\" fill=\"url(#rbcPattern%u)\" fill-rule=\"evenodd\"/>\n", id);
     } else {
         SvgPolygon(ctx->exportPtr, points, count, foreground, ctx->fillStyle.opacity);
+    }
+}
+
+static void SvgArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *arc) {
+    double start = arc->start * M_PI / 180.0;
+    double end = (arc->start + arc->extent) * M_PI / 180.0;
+    double x = arc->cx + arc->rx * cos(start);
+    double y = arc->cy - arc->ry * sin(start);
+    int sweep = arc->extent < 0.0;
+
+    Rbc_ExportFormat(token, "<path d=\"M %g %g", x, y);
+    if (fabs(arc->extent) == 360.0) {
+        Rbc_ExportFormat(token, " A %g %g 0 0 %d %g %g A %g %g 0 0 %d %g %g Z",
+            arc->rx, arc->ry, sweep, arc->cx - arc->rx * cos(start), arc->cy + arc->ry * sin(start),
+            arc->rx, arc->ry, sweep, x, y);
+    } else {
+        Rbc_ExportFormat(token, " A %g %g 0 %d %d %g %g", arc->rx, arc->ry, fabs(arc->extent) > 180.0,
+            sweep, arc->cx + arc->rx * cos(end), arc->cy - arc->ry * sin(end));
+        if (arc->style == RBC_RENDER_ARC_PIESLICE) {
+            Rbc_ExportFormat(token, " L %g %g", arc->cx, arc->cy);
+        }
+        if (arc->style != RBC_RENDER_ARC_OPEN) {
+            Rbc_ExportAppend(token, " Z", (char *)NULL);
+        }
+    }
+    Rbc_ExportAppend(token, "\"", (char *)NULL);
+}
+
+static void SvgArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    int pass, first = ctx->svgHasOffColor && ctx->svgDashes.values[0] ? 0 : 1;
+
+    for (pass = first; pass < 2; pass++) {
+        SvgArcPath(ctx->exportPtr, arc);
+        SvgStrokeAttributes(ctx, pass == 0);
+        Rbc_ExportAppend(ctx->exportPtr, "/>\n", (char *)NULL);
+    }
+}
+
+static void SvgFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    unsigned int id = 0;
+    const Rbc_RenderFillStyle *style = &ctx->fillStyle;
+
+    if (style->stipple != None || style->backgroundOnly) {
+        id = SvgFillPattern(ctx, style->foreground);
+        if (id == 0) {
+            return;
+        }
+    }
+    SvgArcPath(ctx->exportPtr, arc);
+    if (id != 0) {
+        Rbc_ExportFormat(ctx->exportPtr, " fill=\"url(#rbcPattern%u)\" fill-rule=\"evenodd\"/>\n", id);
+    } else {
+        Rbc_ExportAppend(ctx->exportPtr, " fill=\"", (char *)NULL);
+        SvgColor(ctx->exportPtr, style->foreground);
+        Rbc_ExportFormat(ctx->exportPtr, "\" fill-opacity=\"%g\" fill-rule=\"evenodd\"/>\n", style->opacity);
     }
 }
 
@@ -2515,4 +2683,4 @@ static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
 
 static const Rbc_RenderOps svgOps = {SvgPolyline,       SvgSegments,    SvgLineStyle,
                                      SvgDashBackground, SvgFillPolygon, SvgFillRectangles,
-                                     SvgSymbolPoints,   &svgOutputOps,  PostScriptEnd};
+                                     SvgSymbolPoints,   &svgOutputOps,  PostScriptEnd, SvgArc, SvgFillArc};
