@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "TclTk9Upgrade" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "TclTk9Upgrade" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 TclTk9Upgrade - Commands in namespace TclTk9Upgrade
 .SH "TCL/TK 9 UPGRADE AND ADDITIONS"
@@ -67,11 +67,11 @@ constructor or graph-level configure/cget\&. The graph retains -representation a
 .fi
 .RE
 .PP
-Option-database patterns likewise include the grid component, for example
-option add *Polar\&.grid\&.AngleMajorTicks {0 90 180 270}\&. Polar grids are now visible by default, including Smith charts\&.
+Option-database patterns likewise include the grid component, for example option add
+*Polar\&.grid\&.AngleMajorTicks {0 90 180 270}\&. Polar grids are now visible by default, including Smith charts\&.
 Grid -hide yes hides both grid lines and their coordinate labels on screen and in exports\&. The toolbar keeps
-its -smithgrid constructor convenience option and reads subsequent
-changes from the grid component\&. See \fI::rbc::GRID\fP for full option tables and formatter details\&.
+its -smithgrid constructor convenience option and reads subsequent changes from the grid component\&. See
+\fI::rbc::GRID\fP for full option tables and formatter details\&.
 .SS "OPTIONAL CAIRO RENDERING"
 .PP
 Configure with --enable-cairo to build the antialiased renderer\&. Cairo-enabled builds default to

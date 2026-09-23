@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc::STRIPELEMENT" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc::STRIPELEMENT" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::STRIPELEMENT - Commands in namespace rbc::STRIPELEMENT
 .SH "STRIP ELEMENT STRIPELEMENT OPTIONS"

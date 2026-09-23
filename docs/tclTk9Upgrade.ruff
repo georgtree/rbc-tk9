@@ -71,11 +71,11 @@ namespace eval TclTk9Upgrade {
         .p grid configure -smithgrid admittance -smithrealmajorticks {0 0.5 1 2}
         ```
 
-        Option-database patterns likewise include the grid component, for example
-        `option add *Polar.grid.AngleMajorTicks {0 90 180 270}`. Polar grids are now visible by default, including Smith charts.
+        Option-database patterns likewise include the grid component, for example `option add
+        *Polar.grid.AngleMajorTicks {0 90 180 270}`. Polar grids are now visible by default, including Smith charts.
         Grid `-hide yes` hides both grid lines and their coordinate labels on screen and in exports. The toolbar keeps
-        its `-smithgrid` constructor convenience option and reads subsequent
-        changes from the grid component. See [::rbc::GRID] for full option tables and formatter details.
+        its `-smithgrid` constructor convenience option and reads subsequent changes from the grid component. See
+        [::rbc::GRID] for full option tables and formatter details.
 
         ### Optional Cairo rendering
 

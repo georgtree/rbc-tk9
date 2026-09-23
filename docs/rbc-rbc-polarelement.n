@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc::POLARELEMENT" 3tcl 0\&.5\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc::POLARELEMENT" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::POLARELEMENT - Commands in namespace rbc::POLARELEMENT
 .SH "POLAR ELEMENT POLARELEMENT OPTIONS"
