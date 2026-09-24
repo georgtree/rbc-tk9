@@ -46,7 +46,7 @@
 <p>Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
 and graphical elements support SVG and PostScript export.</p>
-<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.5.0</strong>.</p>
+<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.8.0</strong>.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation</a></p></li>
@@ -84,7 +84,7 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 compatibility is not a target of this fork.</p>
 <p>The full <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads Tk and <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code>, including its <code class="docutils literal notranslate"><span class="pre">argparse</span></code> dependency.
 For vector-only use in <code class="docutils literal notranslate"><span class="pre">tclsh</span></code>, load the Tcl-only package instead:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::vector<span class="w"> </span><span class="mf">0.5</span>.0
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::vector
 <span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>samples
 <span class="nv">samples</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
 </pre></div>
@@ -322,11 +322,11 @@ still be installed.</p>
 <span id="r-installation-locations"></span><span id="r-installation20locations"></span><h3>Installation locations<a class="headerlink" href="#installation-locations" title="Link to this heading">¶</a></h3>
 <p>With the default directory layout, installation places:</p>
 <ul class="simple">
-<li><p>The package library, <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, runtime scripts, and supporting resources in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.5.0</span></code>.</p></li>
-<li><p>Demos in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.5.0/demos</span></code>.</p></li>
+<li><p>The package library, <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, runtime scripts, and supporting resources in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.8.0</span></code>.</p></li>
+<li><p>Demos in <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/rbc0.8.0/demos</span></code>.</p></li>
 <li><p>Manual pages in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/man/mann</span></code>.</p></li>
 </ul>
-<p>HTML documentation, image resources and the license are installed in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/rbc0.5.0/doc</span></code>.
+<p>HTML documentation, image resources and the license are installed in <code class="docutils literal notranslate"><span class="pre">PREFIX/share/rbc0.8.0/doc</span></code>.
 Override <code class="docutils literal notranslate"><span class="pre">DOC_INSTALL_DIR</span></code> to choose a different location.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> is omitted, the build system normally inherits the prefix from the selected Tcl configuration.</p>
 <p>For other configure options, run:</p>
@@ -364,7 +364,7 @@ make<span class="w"> </span>dist-zip
 <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>, runtime resources, demos, public headers, stub library, manual pages and HTML documentation
 with its images. They do not create a source archive or write into the configured installation prefix.
 They use the generated documentation already present in <code class="docutils literal notranslate"><span class="pre">docs/</span></code>; run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code> first if it needs updating.</p>
-<p>Output defaults to <code class="docutils literal notranslate"><span class="pre">dist/rbc0.5.0.tar.gz</span></code> (and <code class="docutils literal notranslate"><span class="pre">dist/rbc0.5.0.zip</span></code> for <code class="docutils literal notranslate"><span class="pre">dist-zip</span></code>) in the build directory.
+<p>Output defaults to <code class="docutils literal notranslate"><span class="pre">dist/rbc0.8.0.tar.gz</span></code> (and <code class="docutils literal notranslate"><span class="pre">dist/rbc0.8.0.zip</span></code> for <code class="docutils literal notranslate"><span class="pre">dist-zip</span></code>) in the build directory.
 The archive directly contains <code class="docutils literal notranslate"><span class="pre">lib/</span></code>, <code class="docutils literal notranslate"><span class="pre">include/</span></code>, <code class="docutils literal notranslate"><span class="pre">share/</span></code>, and any installed <code class="docutils literal notranslate"><span class="pre">bin/</span></code> files. Extract it into
 the intended installation prefix, or merge these directories into that prefix. For example, for an MSYS2
 UCRT64 installation, merge them into <code class="docutils literal notranslate"><span class="pre">C:/msys64/ucrt64</span></code>, not into its <code class="docutils literal notranslate"><span class="pre">lib</span></code> subdirectory.</p>
@@ -373,7 +373,7 @@ UCRT64 installation, merge them into <code class="docutils literal notranslate">
 archive. <code class="docutils literal notranslate"><span class="pre">DESTDIR</span></code> is not included in archive paths. The archive contains the current build’s binaries and
 requires matching platform, architecture, Tcl/Tk and any dynamically linked dependencies; it does not bundle them.</p>
 <p>For separately named release builds:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>dist-zip<span class="w"> </span><span class="nv">DIST_NAME</span><span class="o">=</span>rbc0.5.0-windows-x86_64<span class="w"> </span><span class="nv">DIST_ROOT</span><span class="o">=</span>/path/to/releases
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>dist-zip<span class="w"> </span><span class="nv">DIST_NAME</span><span class="o">=</span>rbc0.8.0-windows-x86_64<span class="w"> </span><span class="nv">DIST_ROOT</span><span class="o">=</span>/path/to/releases
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">dist-clean</span></code> removes that distribution’s staging directory and archives. Source releases can be obtained
@@ -387,7 +387,7 @@ from the repository’s GitHub source archives.</p>
 <section id="loading-the-package">
 <span id="r-loading-the-package"></span><span id="r-loading20the20package"></span><h2>Loading the package<a class="headerlink" href="#loading-the-package" title="Link to this heading">¶</a></h2>
 <p>Start the Tcl/Tk interpreter associated with your build and run:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc<span class="w"> </span><span class="mf">0.5</span>.0
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
 </pre></div>
 </div>
 <p>To check the versions in use:</p>
@@ -398,7 +398,7 @@ from the repository’s GitHub source archives.</p>
 </div>
 <p>If Rbc is installed outside Tcl’s normal package search locations, add its library directory before loading it:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">lappend</span><span class="w"> </span>auto_path<span class="w"> </span><span class="o">/</span>path<span class="o">/</span>to<span class="o">/</span>prefix<span class="o">/</span>lib
-<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc<span class="w"> </span><span class="mf">0.5</span>.0
+<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
 </pre></div>
 </div>
 <p>The same applies to <code class="docutils literal notranslate"><span class="pre">argparse</span></code> if it is installed in a separate location.</p>
@@ -461,7 +461,7 @@ interactive checks that are separate from the automated suite.</p>
 </pre></div>
 </div>
 <p>After installation, use the matching Tcl/Tk 9 interpreter:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>wish9.0<span class="w"> </span>/path/to/prefix/lib/rbc0.5.0/demos/demos.tcl
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>wish9.0<span class="w"> </span>/path/to/prefix/lib/rbc0.8.0/demos/demos.tcl
 </pre></div>
 </div>
 <p>The executable may instead be named <code class="docutils literal notranslate"><span class="pre">wish</span></code>, depending on the Tcl/Tk installation. On Windows, use the corresponding

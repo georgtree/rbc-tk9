@@ -24,7 +24,7 @@ Use the rbc::vector package in a Tcl-only interpreter:
 .PP
 .RS 4n
 .nf
-package require rbc::vector 0\&.5\&.0
+package require rbc::vector
 ::rbc::vector create samples
 samples set {1 2 3}
 samples expr {samples * 2}

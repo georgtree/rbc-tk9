@@ -12,7 +12,7 @@ Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and
 and window and image utilities\&. Graphs update automatically when their attached vectors change\&. All types of plots
 and graphical elements support SVG and PostScript export\&.
 .PP
-This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.5\&.0\fP\&.
+This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.8\&.0\fP\&.
 .TP
 \(bu
 \fISource code\fP [URL: https://github\&.com/georgtree/rbc-tk9]
@@ -78,7 +78,7 @@ For vector-only use in tclsh, load the Tcl-only package instead:
 .PP
 .RS 4n
 .nf
-package require rbc::vector 0\&.5\&.0
+package require rbc::vector
 ::rbc::vector create samples
 samples set {1 2 3}
 .fi
@@ -359,15 +359,15 @@ still be installed\&.
 With the default directory layout, installation places:
 .TP
 \(bu
-The package library, pkgIndex\&.tcl, runtime scripts, and supporting resources in PREFIX/lib/rbc0\&.5\&.0\&.
+The package library, pkgIndex\&.tcl, runtime scripts, and supporting resources in PREFIX/lib/rbc0\&.8\&.0\&.
 .TP
 \(bu
-Demos in PREFIX/lib/rbc0\&.5\&.0/demos\&.
+Demos in PREFIX/lib/rbc0\&.8\&.0/demos\&.
 .TP
 \(bu
 Manual pages in PREFIX/share/man/mann\&.
 .PP
-HTML documentation, image resources and the license are installed in PREFIX/share/rbc0\&.5\&.0/doc\&.
+HTML documentation, image resources and the license are installed in PREFIX/share/rbc0\&.8\&.0/doc\&.
 Override DOC_INSTALL_DIR to choose a different location\&.
 .PP
 If --prefix is omitted, the build system normally inherits the prefix from the selected Tcl configuration\&.
@@ -420,7 +420,7 @@ pkgIndex\&.tcl, runtime resources, demos, public headers, stub library, manual p
 with its images\&. They do not create a source archive or write into the configured installation prefix\&.
 They use the generated documentation already present in docs/; run make doc first if it needs updating\&.
 .PP
-Output defaults to dist/rbc0\&.5\&.0\&.tar\&.gz (and dist/rbc0\&.5\&.0\&.zip for dist-zip) in the build directory\&.
+Output defaults to dist/rbc0\&.8\&.0\&.tar\&.gz (and dist/rbc0\&.8\&.0\&.zip for dist-zip) in the build directory\&.
 The archive directly contains lib/, include/, share/, and any installed bin/ files\&. Extract it into
 the intended installation prefix, or merge these directories into that prefix\&. For example, for an MSYS2
 UCRT64 installation, merge them into C:/msys64/ucrt64, not into its lib subdirectory\&.
@@ -434,7 +434,7 @@ For separately named release builds:
 .PP
 .RS 4n
 .nf
-make dist-zip DIST_NAME=rbc0\&.5\&.0-windows-x86_64 DIST_ROOT=/path/to/releases
+make dist-zip DIST_NAME=rbc0\&.8\&.0-windows-x86_64 DIST_ROOT=/path/to/releases
 .fi
 .RE
 .PP
@@ -456,7 +456,7 @@ Start the Tcl/Tk interpreter associated with your build and run:
 .PP
 .RS 4n
 .nf
-package require rbc 0\&.5\&.0
+package require rbc
 .fi
 .RE
 .PP
@@ -475,7 +475,7 @@ If Rbc is installed outside Tcl's normal package search locations, add its libra
 .RS 4n
 .nf
 lappend auto_path /path/to/prefix/lib
-package require rbc 0\&.5\&.0
+package require rbc
 .fi
 .RE
 .PP
@@ -579,7 +579,7 @@ After installation, use the matching Tcl/Tk 9 interpreter:
 .PP
 .RS 4n
 .nf
-wish9\&.0 /path/to/prefix/lib/rbc0\&.5\&.0/demos/demos\&.tcl
+wish9\&.0 /path/to/prefix/lib/rbc0\&.8\&.0/demos/demos\&.tcl
 .fi
 .RE
 .PP

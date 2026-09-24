@@ -6,7 +6,7 @@ Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
 and graphical elements support SVG and PostScript export.
 
-This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.5.0**.
+This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.0**.
 
 - [Source code](https://github.com/georgtree/rbc-tk9)
 - [Documentation](https://georgtree.github.io/rbc-tk9/)
@@ -52,7 +52,7 @@ The full `package require rbc` loads Tk and `graphtoolbar.tcl`, including its `a
 For vector-only use in `tclsh`, load the Tcl-only package instead:
 
 ```tcl
-package require rbc::vector 0.5.0
+package require rbc::vector
 ::rbc::vector create samples
 samples set {1 2 3}
 ```
@@ -298,11 +298,11 @@ still be installed.
 
 With the default directory layout, installation places:
 
-- The package library, `pkgIndex.tcl`, runtime scripts, and supporting resources in `PREFIX/lib/rbc0.5.0`.
-- Demos in `PREFIX/lib/rbc0.5.0/demos`.
+- The package library, `pkgIndex.tcl`, runtime scripts, and supporting resources in `PREFIX/lib/rbc0.8.0`.
+- Demos in `PREFIX/lib/rbc0.8.0/demos`.
 - Manual pages in `PREFIX/share/man/mann`.
 
-HTML documentation, image resources and the license are installed in `PREFIX/share/rbc0.5.0/doc`.
+HTML documentation, image resources and the license are installed in `PREFIX/share/rbc0.8.0/doc`.
 Override `DOC_INSTALL_DIR` to choose a different location.
 
 If `--prefix` is omitted, the build system normally inherits the prefix from the selected Tcl configuration.
@@ -348,7 +348,7 @@ These GNU make targets build RBC and stage the **same files as `make install`**,
 with its images. They do not create a source archive or write into the configured installation prefix.
 They use the generated documentation already present in `docs/`; run `make doc` first if it needs updating.
 
-Output defaults to `dist/rbc0.5.0.tar.gz` (and `dist/rbc0.5.0.zip` for `dist-zip`) in the build directory.
+Output defaults to `dist/rbc0.8.0.tar.gz` (and `dist/rbc0.8.0.zip` for `dist-zip`) in the build directory.
 The archive directly contains `lib/`, `include/`, `share/`, and any installed `bin/` files. Extract it into
 the intended installation prefix, or merge these directories into that prefix. For example, for an MSYS2
 UCRT64 installation, merge them into `C:/msys64/ucrt64`, not into its `lib` subdirectory.
@@ -361,7 +361,7 @@ requires matching platform, architecture, Tcl/Tk and any dynamically linked depe
 For separately named release builds:
 
 ```sh
-make dist-zip DIST_NAME=rbc0.5.0-windows-x86_64 DIST_ROOT=/path/to/releases
+make dist-zip DIST_NAME=rbc0.8.0-windows-x86_64 DIST_ROOT=/path/to/releases
 ```
 
 `make dist-clean` removes that distribution's staging directory and archives. Source releases can be obtained
@@ -379,7 +379,7 @@ The tests use GNU make, a POSIX shell, `install` and `tar`; ZIP checks also requ
 
 Start the Tcl/Tk interpreter associated with your build and run:
 ```tcl
-package require rbc 0.5.0
+package require rbc
 ```
 
 To check the versions in use:
@@ -392,7 +392,7 @@ puts "Rbc: [package provide rbc]"
 If Rbc is installed outside Tcl's normal package search locations, add its library directory before loading it:
 ```tcl
 lappend auto_path /path/to/prefix/lib
-package require rbc 0.5.0
+package require rbc
 ```
 
 The same applies to `argparse` if it is installed in a separate location.
@@ -469,7 +469,7 @@ make shell SCRIPT=demos/graph1.tcl
 
 After installation, use the matching Tcl/Tk 9 interpreter:
 ```sh
-wish9.0 /path/to/prefix/lib/rbc0.5.0/demos/demos.tcl
+wish9.0 /path/to/prefix/lib/rbc0.8.0/demos/demos.tcl
 ```
 
 The executable may instead be named `wish`, depending on the Tcl/Tk installation. On Windows, use the corresponding
