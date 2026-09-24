@@ -335,6 +335,8 @@ rbc - Commands in namespace rbc
 .br
 \fBvector names\fP \fIpattern\fP
 .br
+\fBvector rename\fP \fIoldName newName\fP
+.br
 \fBwinop\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBwinop changes\fP \fIwindow\fP
@@ -4299,6 +4301,9 @@ Evaluates a vector expression\&. expression may contain scalars, vectors, vector
 .TP
 \fInames\fP
 Gives back the names of existing vectors\&. If pattern is supplied, only vector names matching the Tcl glob pattern are returned\&.
+.TP
+\fIrename\fP
+Renames a whole vector and its instance command without copying values or replacing the underlying C vector\&. Existing C clients and graph bindings remain attached; storage, type, length, index offset and notification settings are retained\&. Subsequent vector lookups and expressions use the new name\&. C callers must re-query borrowed name strings from Rbc_NameOfVector or Rbc_NameOfVectorId after renaming\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -4425,6 +4430,55 @@ Optional Tcl glob pattern\&.
 \fBReturn value\fR
 .PP
 A list of vector names\&.
+.PP
+.RS -4n
+\fBvector rename\fR (::rbc)
+.RE
+.PP
+Renames a whole vector and its instance command without copying values or replacing the underlying C vector\&.
+Existing C clients and graph bindings remain attached; storage, type, length, index offset and notification
+settings are retained\&. Subsequent vector lookups and expressions use the new name\&. C callers must re-query
+borrowed name strings from Rbc_NameOfVector or Rbc_NameOfVectorId after renaming\&.
+.RS 4n
+\fBvector rename\fP \fIoldName newName\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+oldName
+Existing vector name; searched in the current namespace, then the global namespace\&.
+.TP
+newName
+Literal destination name, relative to the current namespace unless fully qualified\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Parentheses are always literal here, including numeric forms such as v(1); ranges are not accepted\&.
+The destination namespace must exist\&. Existing vectors or commands are never overwritten\&. Renaming to the
+same qualified vector name succeeds without changes\&. A vector without an instance command remains commandless\&.
+.PP
+Any mapped array keeps its original name and association\&. Use the instance variable operation separately
+to change that mapping\&. Moving the vector to another namespace does not move its mapped array\&.
+.PP
+.RS 4n
+.nf
+::rbc::vector create samples -variable {}
+samples set {1 2 3}
+::rbc::vector rename samples v(out)
+v(out) range 0 end
+.fi
+.RE
+.PP
+Unlike Tcl's ordinary rename, this operation also updates the RBC vector registry\&. Command rename traces
+still run; their own changes are not rolled back if they delete or modify the command during the operation\&.
+Do not rename live vectors managed by NgspiceTclBridge: the bridge treats command renaming as invalidation\&.
+.PP
+\fBReturn value\fR
+.PP
+The fully qualified new vector name\&.
 .PP
 .RS -4n
 \fBwinop\fR (::rbc)

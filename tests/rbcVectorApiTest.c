@@ -427,8 +427,9 @@ static int OwnershipCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]
 }
 
 static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const subcommands[] = {"create",        "exists",     "free",   "inspect", "ownership", "range",
-                                              "resetvolatile", "resetwrong", "resize", "write", "writerange", "initfull", NULL};
+    static const char *const subcommands[] = {"create",     "exists",        "free",       "inspect", "ownership",
+                                              "range",      "resetvolatile", "resetwrong", "resize",  "write",
+                                              "writerange", "initfull",      "identity",   NULL};
     enum {
         CMD_CREATE,
         CMD_EXISTS,
@@ -441,7 +442,8 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         CMD_RESIZE,
         CMD_WRITE,
         CMD_WRITERANGE,
-        CMD_INITFULL
+        CMD_INITFULL,
+        CMD_IDENTITY
     };
     int index;
 
@@ -454,6 +456,21 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         return TCL_ERROR;
     }
     switch (index) {
+    case CMD_IDENTITY: {
+        Rbc_Vector *vecPtr;
+        void *storage;
+        if (objc != 3) {
+            Tcl_WrongNumArgs(interp, 2, objv, "name");
+            return TCL_ERROR;
+        }
+        if (GetVector(interp, objv[2], &vecPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        storage = Rbc_VectorGetType(vecPtr) == RBC_VECTOR_REAL ? (void *)Rbc_VectorData(vecPtr)
+                                                               : (void *)Rbc_VectorComplexData(vecPtr);
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%p %p", (void *)vecPtr, storage));
+        return TCL_OK;
+    }
     case CMD_INITFULL: {
         const char *version;
         if (objc != 2) {

@@ -274,6 +274,34 @@ namespace eval ::rbc::vector {
         # Returns: The scalar value or list of vector values produced by the expression.
     }
 
+    proc rename {oldName newName} {
+        # Renames a whole vector and its instance command without copying values or replacing the underlying C vector.
+        # Existing C clients and graph bindings remain attached; storage, type, length, index offset and notification
+        # settings are retained. Subsequent vector lookups and expressions use the new name. C callers must re-query
+        # borrowed name strings from Rbc_NameOfVector or Rbc_NameOfVectorId after renaming.
+        # oldName - existing vector name; searched in the current namespace, then the global namespace.
+        # newName - literal destination name, relative to the current namespace unless fully qualified.
+        # Returns: The fully qualified new vector name.
+        #
+        # Parentheses are always literal here, including numeric forms such as `v(1)`; ranges are not accepted.
+        # The destination namespace must exist. Existing vectors or commands are never overwritten. Renaming to the
+        # same qualified vector name succeeds without changes. A vector without an instance command remains commandless.
+        #
+        # Any mapped array keeps its original name and association. Use the instance `variable` operation separately
+        # to change that mapping. Moving the vector to another namespace does not move its mapped array.
+        #
+        # ```tcl
+        # ::rbc::vector create samples -variable {}
+        # samples set {1 2 3}
+        # ::rbc::vector rename samples v(out)
+        # v(out) range 0 end
+        # ```
+        #
+        # Unlike Tcl's ordinary `rename`, this operation also updates the RBC vector registry. Command rename traces
+        # still run; their own changes are not rolled back if they delete or modify the command during the operation.
+        # Do not rename live vectors managed by NgspiceTclBridge: the bridge treats command renaming as invalidation.
+    }
+
     proc names {args} {
         # Gives back the names of existing vectors. If `pattern` is supplied, only vector names matching the Tcl glob
         # pattern are returned.

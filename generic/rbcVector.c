@@ -24,6 +24,7 @@ static Tcl_ObjCmdProc2 VectorCreateObjCmd;
 static Tcl_ObjCmdProc2 VectorDestroyObjCmd;
 static Tcl_ObjCmdProc2 VectorExprObjCmd;
 static Tcl_ObjCmdProc2 VectorNamesObjCmd;
+static Tcl_ObjCmdProc2 VectorRenameObjCmd;
 static Tcl_CmdDeleteProc VectorInstDeleteProc;
 static Tcl_InterpDeleteProc VectorInterpDeleteProc;
 
@@ -185,10 +186,155 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     return TCL_OK;
 }
 
+/*
+ * -----------------------------------------------------------------------
+ * VectorRenameTrace -- Track command deletion while user rename traces run.
+ * The vector may be freed synchronously; never dereference it after deletion.
+ * -----------------------------------------------------------------------
+ */
+static void VectorRenameTrace(ClientData clientData, Tcl_Interp *interp, const char *oldName, const char *newName,
+                              int flags) {
+    int *deletedPtr = clientData;
+    (void)interp;
+    (void)oldName;
+    (void)newName;
+    if (flags & TCL_TRACE_DELETE) {
+        *deletedPtr = 1;
+    }
+}
+
+/*
+ * -----------------------------------------------------------------------
+ * VectorRenameObjCmd --
+ *
+ *      Rename a whole vector and its instance command without replacing its
+ *      C object, storage or clients. Names are literal (not slice syntax).
+ *      The mapped array variable keeps its existing name and association.
+ *
+ * Results:
+ *      TCL_OK with the qualified destination name, or TCL_ERROR. Collisions
+ *      are rejected before mutation. User command traces may themselves
+ *      mutate/delete commands; detect these changes rather than use stale
+ *      pointers or overwrite a vector created by a trace.
+ * -----------------------------------------------------------------------
+ */
+static int VectorRenameObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    VectorInterpData *dataPtr = clientData;
+    VectorObject *vPtr = GetVectorObject(dataPtr, Tcl_GetString(objv[2]), NS_SEARCH_BOTH);
+    Tcl_DString qualified;
+    Tcl_Namespace *nsPtr;
+    const char *tail, *name, *p;
+    Tcl_Size depth = 0;
+    Tcl_HashEntry *entry;
+    int fresh, code = TCL_ERROR;
+
+    (void)objc;
+    if (vPtr == NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't find vector \"%s\"", Tcl_GetString(objv[2])));
+        return TCL_ERROR;
+    }
+    name = BuildQualifiedName(interp, Tcl_GetString(objv[3]), &qualified);
+    if (ParseQualifiedName(interp, name, &nsPtr, &tail) != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown namespace in \"%s\"", name));
+        goto done;
+    }
+    for (p = tail; *p != '\0'; p++) {
+        if (*p == '(') {
+            depth++;
+        } else if (*p == ')' && depth > 0) {
+            depth--;
+        } else if (!VECTOR_CHAR(*p)) {
+            break;
+        }
+    }
+    if (*tail == '\0' || *p != '\0' || depth != 0) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector name \"%s\"", name));
+        goto done;
+    }
+    /* Use the same canonical namespace spelling as vector creation/lookups. */
+    {
+        Tcl_DString canonical;
+        GetQualifiedName(nsPtr, tail, &canonical);
+        Tcl_DStringSetLength(&qualified, 0);
+        Tcl_DStringAppend(&qualified, Tcl_DStringValue(&canonical), -1);
+        Tcl_DStringFree(&canonical);
+        name = Tcl_DStringValue(&qualified);
+    }
+    if (strcmp(vPtr->name, name) == 0) {
+        code = TCL_OK;
+        goto done;
+    }
+    if (Tcl_FindHashEntry(&dataPtr->vectorTable, name) != NULL ||
+        Tcl_FindCommand(interp, name, NULL, TCL_GLOBAL_ONLY) != NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector or command \"%s\" already exists", name));
+        goto done;
+    }
+    if (vPtr->cmdToken != NULL) {
+        Tcl_Command token = vPtr->cmdToken;
+        Tcl_Obj *oldCommand = Tcl_NewObj();
+        Tcl_Obj *newCommand = Tcl_NewStringObj(name, -1);
+        Tcl_Obj *args[] = {Tcl_NewStringObj("::rename", -1), oldCommand, newCommand};
+        int deleted = 0;
+        for (int i = 0; i < 3; i++) {
+            Tcl_IncrRefCount(args[i]);
+        }
+        Tcl_GetCommandFullName(interp, token, oldCommand);
+        if (Tcl_CommandTraceInfo(interp, Tcl_GetString(oldCommand), TCL_TRACE_RENAME | TCL_TRACE_DELETE,
+                                 VectorRenameTrace, NULL) != NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector rename is already in progress", -1));
+            code = TCL_ERROR;
+        } else {
+            Tcl_TraceCommand(interp, Tcl_GetString(oldCommand), TCL_TRACE_RENAME | TCL_TRACE_DELETE, VectorRenameTrace,
+                             &deleted);
+            code = Tcl_EvalObjv(interp, 3, args, TCL_EVAL_GLOBAL);
+            if (!deleted) {
+                Tcl_Obj *current = Tcl_NewObj();
+                Tcl_IncrRefCount(current);
+                Tcl_GetCommandFullName(interp, token, current);
+                Tcl_UntraceCommand(interp, Tcl_GetString(current), TCL_TRACE_RENAME | TCL_TRACE_DELETE,
+                                   VectorRenameTrace, &deleted);
+                if (code == TCL_OK && strcmp(Tcl_GetString(current), name) != 0) {
+                    Tcl_SetObjResult(interp, Tcl_NewStringObj("vector command changed during rename", -1));
+                    code = TCL_ERROR;
+                }
+                Tcl_DecrRefCount(current);
+            } else {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("vector was deleted during rename", -1));
+                code = TCL_ERROR;
+            }
+        }
+        for (int i = 0; i < 3; i++) {
+            Tcl_DecrRefCount(args[i]);
+        }
+        if (code != TCL_OK) {
+            goto done;
+        }
+    }
+    /* Traces can create a destination vector even after the initial check. */
+    entry = Tcl_CreateHashEntry(&dataPtr->vectorTable, name, &fresh);
+    if (!fresh) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" was created during rename", name));
+        code = TCL_ERROR;
+        goto done;
+    }
+    Tcl_SetHashValue(entry, vPtr);
+    Tcl_DeleteHashEntry(vPtr->hashPtr);
+    vPtr->hashPtr = entry;
+    vPtr->name = Tcl_GetHashKey(&dataPtr->vectorTable, entry);
+    code = TCL_OK;
+done:
+    if (code == TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(name, -1));
+    }
+    Tcl_DStringFree(&qualified);
+    return code;
+}
+
 static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switches...?"}, VectorCreateObjCmd},
                                            {{"destroy", 2, 0, "?vecName?..."}, VectorDestroyObjCmd},
                                            {{"expr", 3, 3, "expression"}, VectorExprObjCmd},
                                            {{"names", 2, 3, "?pattern?..."}, VectorNamesObjCmd},
+                                           {{"rename", 4, 4, "oldName newName"}, VectorRenameObjCmd},
                                            {{NULL, 0, 0, NULL}, NULL}};
 
 /*
@@ -3287,16 +3433,16 @@ int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Siz
  *
  * Rbc_NameOfVectorId --
  *
- *      Returns the name of the vector (and array variable).
+ *      Returns the current registered vector name, independent of its array mapping.
  *
  * Parameters:
  *      Rbc_VectorId clientId - Client token identifying the vector
  *
  * Results:
- *      The name of the array variable is returned.
+ *      A borrowed name, valid until rename or destruction, or NULL for a disconnected client.
  *
  * Side effects:
- *      TODO: Side Effects
+ *      None
  *
  *--------------------------------------------------------------
  */
@@ -3481,16 +3627,16 @@ int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size length) {
  *
  * Rbc_NameOfVector --
  *
- *      TODO: Description
+ *      Returns the current registered vector name.
  *
  * Parameters:
  *      Rbc_Vector *vecPtr - Vector to query.
  *
  * Results:
- *      TODO: Results
+ *      A borrowed name, valid until the vector is renamed or destroyed.
  *
  * Side effects:
- *      TODO: Side Effects
+ *      None
  *
  *--------------------------------------------------------------
  */

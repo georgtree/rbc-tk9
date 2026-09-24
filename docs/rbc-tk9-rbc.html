@@ -2578,6 +2578,8 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned.</p>
 </dd>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20rename"><span class="std std-ref">rename</span></a></dt><dd><p>Renames a whole vector and its instance command without copying values or replacing the underlying C vector. Existing C clients and graph bindings remain attached; storage, type, length, index offset and notification settings are retained. Subsequent vector lookups and expressions use the new name. C callers must re-query borrowed name strings from Rbc_NameOfVector or Rbc_NameOfVectorId after renaming.</p>
+</dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
@@ -2667,8 +2669,42 @@ pattern are returned.</p>
 <p class="rubric">Return value</p>
 <p>A list of vector names.</p>
 </section>
+<section id="vector-rename">
+<span id="r-symbolqz3a3arbc3a3avector20rename"></span><span id="index-286"></span><span id="index-285"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">rename</span></code><a class="headerlink" href="#vector-rename" title="Link to this heading">¶</a></h3>
+<p>Renames a whole vector and its instance command without copying values or replacing the underlying C vector.
+Existing C clients and graph bindings remain attached; storage, type, length, index offset and notification
+settings are retained. Subsequent vector lookups and expressions use the new name. C callers must re-query
+borrowed name strings from Rbc_NameOfVector or Rbc_NameOfVectorId after renaming.</p>
+<pre class="literal-block"><strong>vector rename</strong> <em>oldName newName</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">oldName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Existing vector name; searched in the current namespace, then the global namespace.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">newName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Literal destination name, relative to the current namespace unless fully qualified.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Parentheses are always literal here, including numeric forms such as <code class="docutils literal notranslate"><span class="pre">v(1)</span></code>; ranges are not accepted.
+The destination namespace must exist. Existing vectors or commands are never overwritten. Renaming to the
+same qualified vector name succeeds without changes. A vector without an instance command remains commandless.</p>
+<p>Any mapped array keeps its original name and association. Use the instance <code class="docutils literal notranslate"><span class="pre">variable</span></code> operation separately
+to change that mapping. Moving the vector to another namespace does not move its mapped array.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>samples<span class="w"> </span><span class="o">-</span>variable<span class="w"> </span><span class="k">{}</span>
+<span class="nv">samples</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>rename<span class="w"> </span>samples<span class="w"> </span>v<span class="k">(</span><span class="nv">out</span><span class="k">)</span>
+<span class="nv">v</span><span class="k">(</span><span class="nv">out</span><span class="k">)</span><span class="w"> </span>range<span class="w"> </span><span class="mi">0</span><span class="w"> </span>end
+</pre></div>
+</div>
+<p>Unlike Tcl’s ordinary <code class="docutils literal notranslate"><span class="pre">rename</span></code>, this operation also updates the RBC vector registry. Command rename traces
+still run; their own changes are not rolled back if they delete or modify the command during the operation.
+Do not rename live vectors managed by NgspiceTclBridge: the bridge treats command renaming as invalidation.</p>
+<p class="rubric">Return value</p>
+<p>The fully qualified new vector name.</p>
+</section>
 <section id="winop">
-<span id="r-symbolqz3a3arbc3a3awinop"></span><span id="index-286"></span><span id="index-285"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span></code><a class="headerlink" href="#winop" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop"></span><span id="index-288"></span><span id="index-287"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span></code><a class="headerlink" href="#winop" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -2712,7 +2748,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="winop-changes">
-<span id="r-symbolqz3a3arbc3a3awinop20changes"></span><span id="index-288"></span><span id="index-287"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code><a class="headerlink" href="#winop-changes" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20changes"></span><span id="index-290"></span><span id="index-289"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code><a class="headerlink" href="#winop-changes" title="Link to this heading">¶</a></h3>
 <p>Realizes a Tk window if necessary. For a toplevel window, also requests backing-store and save-under
 attributes from the underlying window system.</p>
 <pre class="literal-block"><strong>winop changes</strong> <em>window</em></pre>
@@ -2726,7 +2762,7 @@ attributes from the underlying window system.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-colormap">
-<span id="r-symbolqz3a3arbc3a3awinop20colormap"></span><span id="index-290"></span><span id="index-289"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code><a class="headerlink" href="#winop-colormap" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20colormap"></span><span id="index-292"></span><span id="index-291"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code><a class="headerlink" href="#winop-colormap" title="Link to this heading">¶</a></h3>
 <p>Gives back information about color cells in the colormap associated with a Tk window. This operation is
 available only on non-Windows builds and examines up to 256 colormap entries.</p>
 <pre class="literal-block"><strong>winop colormap</strong> <em>window</em></pre>
@@ -2740,7 +2776,7 @@ available only on non-Windows builds and examines up to 256 colormap entries.</p
 <p>A flat list of color and pixel-value pairs in the form <code class="docutils literal notranslate"><span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">color</span> <span class="pre">pixel</span> <span class="pre">...</span></code>.</p>
 </section>
 <section id="winop-convolve">
-<span id="r-symbolqz3a3arbc3a3awinop20convolve"></span><span id="index-292"></span><span id="index-291"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winop-convolve" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20convolve"></span><span id="index-294"></span><span id="index-293"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winop-convolve" title="Link to this heading">¶</a></h3>
 <p>Applies a two-dimensional convolution kernel to a Tk photo image. <code class="docutils literal notranslate"><span class="pre">filter</span></code> must be a non-empty square list
 of finite numeric values. The output has the same dimensions as the source photo. The source and destination
 may be the same image.</p>
@@ -2761,7 +2797,7 @@ may be the same image.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-image">
-<span id="r-symbolqz3a3arbc3a3awinop20image"></span><span id="index-294"></span><span id="index-293"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span></code><a class="headerlink" href="#winop-image" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20image"></span><span id="index-296"></span><span id="index-295"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span></code><a class="headerlink" href="#winop-image" title="Link to this heading">¶</a></h3>
 <p>Dispatches grouped image-processing operations. See <a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html#r-namespaceqz3a3arbc3a3awinopimage"><span class="std std-ref">WINOPIMAGE</span></a> for the available subcommands.</p>
 <pre class="literal-block"><strong>winop image</strong> <em>subcommand ?arg ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2774,7 +2810,7 @@ may be the same image.</p>
 <p>Result of the selected image operation.</p>
 </section>
 <section id="winop-lower">
-<span id="r-symbolqz3a3arbc3a3awinop20lower"></span><span id="index-296"></span><span id="index-295"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">lower</span></code><a class="headerlink" href="#winop-lower" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20lower"></span><span id="index-298"></span><span id="index-297"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">lower</span></code><a class="headerlink" href="#winop-lower" title="Link to this heading">¶</a></h3>
 <p>Lowers one or more Tk windows to the bottom of their stacking order. Supplying no window names has no
 effect.</p>
 <pre class="literal-block"><strong>winop lower</strong> <em>?window ...?</em></pre>
@@ -2788,7 +2824,7 @@ effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-map">
-<span id="r-symbolqz3a3arbc3a3awinop20map"></span><span id="index-298"></span><span id="index-297"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">map</span></code><a class="headerlink" href="#winop-map" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20map"></span><span id="index-300"></span><span id="index-299"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">map</span></code><a class="headerlink" href="#winop-map" title="Link to this heading">¶</a></h3>
 <p>Maps one or more windows through the underlying window system. Tk path names are the portable form of window
 identifier. Supplying no windows has no effect.</p>
 <pre class="literal-block"><strong>winop map</strong> <em>?window ...?</em></pre>
@@ -2802,7 +2838,7 @@ identifier. Supplying no windows has no effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-move">
-<span id="r-symbolqz3a3arbc3a3awinop20move"></span><span id="index-300"></span><span id="index-299"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">move</span></code><a class="headerlink" href="#winop-move" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20move"></span><span id="index-302"></span><span id="index-301"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">move</span></code><a class="headerlink" href="#winop-move" title="Link to this heading">¶</a></h3>
 <p>Moves a Tk window to the specified coordinates using Tk’s window-moving operation. <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are parsed as
 Tk screen distances.</p>
 <pre class="literal-block"><strong>winop move</strong> <em>window x y</em></pre>
@@ -2822,7 +2858,7 @@ Tk screen distances.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-quantize">
-<span id="r-symbolqz3a3arbc3a3awinop20quantize"></span><span id="index-302"></span><span id="index-301"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">quantize</span></code><a class="headerlink" href="#winop-quantize" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20quantize"></span><span id="index-304"></span><span id="index-303"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">quantize</span></code><a class="headerlink" href="#winop-quantize" title="Link to this heading">¶</a></h3>
 <p>Reduces the number of colors in a Tk photo image. <code class="docutils literal notranslate"><span class="pre">nColors</span></code> must be between <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">256</span></code>. If omitted it
 defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>. The destination is resized to the source dimensions when necessary.</p>
 <pre class="literal-block"><strong>winop quantize</strong> <em>srcPhoto destPhoto ?nColors?</em></pre>
@@ -2842,14 +2878,14 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 <p>Nothing.</p>
 </section>
 <section id="winop-query">
-<span id="r-symbolqz3a3arbc3a3awinop20query"></span><span id="index-304"></span><span id="index-303"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code><a class="headerlink" href="#winop-query" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20query"></span><span id="index-306"></span><span id="index-305"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code><a class="headerlink" href="#winop-query" title="Link to this heading">¶</a></h3>
 <p>Gives back the current pointer location in root-screen coordinates.</p>
 <pre class="literal-block"><strong>winop query</strong></pre>
 <p class="rubric">Return value</p>
 <p>Pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, or an empty result if the underlying pointer query fails.</p>
 </section>
 <section id="winop-raise">
-<span id="r-symbolqz3a3arbc3a3awinop20raise"></span><span id="index-306"></span><span id="index-305"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code><a class="headerlink" href="#winop-raise" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20raise"></span><span id="index-308"></span><span id="index-307"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code><a class="headerlink" href="#winop-raise" title="Link to this heading">¶</a></h3>
 <p>Raises one or more Tk windows to the top of their stacking order. Supplying no window names has no effect.</p>
 <pre class="literal-block"><strong>winop raise</strong> <em>?window ...?</em></pre>
 <p class="rubric">Parameters</p>
@@ -2862,7 +2898,7 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 <p>Nothing.</p>
 </section>
 <section id="winop-readjpeg">
-<span id="r-symbolqz3a3arbc3a3awinop20readjpeg"></span><span id="index-308"></span><span id="index-307"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winop-readjpeg" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20readjpeg"></span><span id="index-310"></span><span id="index-309"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winop-readjpeg" title="Link to this heading">¶</a></h3>
 <p>Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not
 compiled into Rbc.</p>
 <pre class="literal-block"><strong>winop readjpeg</strong> <em>fileName photoName</em></pre>
@@ -2879,7 +2915,7 @@ compiled into Rbc.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-resample">
-<span id="r-symbolqz3a3arbc3a3awinop20resample"></span><span id="index-310"></span><span id="index-309"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">resample</span></code><a class="headerlink" href="#winop-resample" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20resample"></span><span id="index-312"></span><span id="index-311"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">resample</span></code><a class="headerlink" href="#winop-resample" title="Link to this heading">¶</a></h3>
 <p>Copies or resamples a source photo into a destination photo. The destination’s existing dimensions determine
 the requested output size. One filter is used in both directions; two filters independently select horizontal
 and vertical filtering. With no filter, <code class="docutils literal notranslate"><span class="pre">none</span></code> is used. See <a class="reference internal" href="rbc-tk9-rbc-winop.html#r-3a3arbc3a3awinopqzimage20resampling"><span class="std std-ref">Image resampling</span></a>.</p>
@@ -2903,7 +2939,7 @@ and vertical filtering. With no filter, <code class="docutils literal notranslat
 <p>Nothing.</p>
 </section>
 <section id="winop-snap">
-<span id="r-symbolqz3a3arbc3a3awinop20snap"></span><span id="index-312"></span><span id="index-311"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">snap</span></code><a class="headerlink" href="#winop-snap" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20snap"></span><span id="index-314"></span><span id="index-313"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">snap</span></code><a class="headerlink" href="#winop-snap" title="Link to this heading">¶</a></h3>
 <p>Captures a window into an existing Tk photo image. Optional positive width and height values request a
 resampled output size. If either dimension is omitted, the corresponding window dimension is used.</p>
 <pre class="literal-block"><strong>winop snap</strong> <em>window photoName ?width? ?height?</em></pre>
@@ -2926,7 +2962,7 @@ resampled output size. If either dimension is omitted, the corresponding window 
 <p>Nothing.</p>
 </section>
 <section id="winop-subsample">
-<span id="r-symbolqz3a3arbc3a3awinop20subsample"></span><span id="index-314"></span><span id="index-313"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winop-subsample" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20subsample"></span><span id="index-316"></span><span id="index-315"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winop-subsample" title="Link to this heading">¶</a></h3>
 <p>Extracts a rectangular source region and copies or resamples it into a destination photo. <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> must
 be non-negative, while <code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> must be positive. The region must lie completely inside the
 source image. The default filter is <code class="docutils literal notranslate"><span class="pre">box</span></code>. See <a class="reference internal" href="rbc-tk9-rbc-winop.html#r-3a3arbc3a3awinopqzsubsampling"><span class="std std-ref">Subsampling</span></a>.</p>
@@ -2962,7 +2998,7 @@ source image. The default filter is <code class="docutils literal notranslate"><
 <p>Nothing.</p>
 </section>
 <section id="winop-unmap">
-<span id="r-symbolqz3a3arbc3a3awinop20unmap"></span><span id="index-316"></span><span id="index-315"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">unmap</span></code><a class="headerlink" href="#winop-unmap" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20unmap"></span><span id="index-318"></span><span id="index-317"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">unmap</span></code><a class="headerlink" href="#winop-unmap" title="Link to this heading">¶</a></h3>
 <p>Unmaps one or more windows through the underlying window system. Tk path names are the portable form of
 window identifier. Supplying no windows has no effect.</p>
 <pre class="literal-block"><strong>winop unmap</strong> <em>?window ...?</em></pre>
@@ -2976,7 +3012,7 @@ window identifier. Supplying no windows has no effect.</p>
 <p>Nothing.</p>
 </section>
 <section id="winop-warpto">
-<span id="r-symbolqz3a3arbc3a3awinop20warpto"></span><span id="index-318"></span><span id="index-317"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">warpto</span></code><a class="headerlink" href="#winop-warpto" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinop20warpto"></span><span id="index-320"></span><span id="index-319"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">warpto</span></code><a class="headerlink" href="#winop-warpto" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the pointer position. With no argument, returns the current root-screen position. An
 <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> argument moves the pointer to those root-screen coordinates. A Tk window pathname moves the pointer to
 the center of that window, which must be mapped. The resulting pointer position is returned.</p>
@@ -2991,7 +3027,7 @@ the center of that window, which must be mapped. The resulting pointer position 
 <p>Current pointer position in the form <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>.</p>
 </section>
 <section id="winopimage">
-<span id="r-symbolqz3a3arbc3a3awinopimage"></span><span id="index-320"></span><span id="index-319"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code><a class="headerlink" href="#winopimage" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage"></span><span id="index-322"></span><span id="index-321"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code><a class="headerlink" href="#winopimage" title="Link to this heading">¶</a></h3>
 <p>A
 command
 ensemble.</p>
@@ -3017,7 +3053,7 @@ ensemble.</p>
 <p>Refer to the documentation of each subcommand for details.</p>
 </section>
 <section id="winopimage-convolve">
-<span id="r-symbolqz3a3arbc3a3awinopimage20convolve"></span><span id="index-322"></span><span id="index-321"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winopimage-convolve" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20convolve"></span><span id="index-324"></span><span id="index-323"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">convolve</span></code><a class="headerlink" href="#winopimage-convolve" title="Link to this heading">¶</a></h3>
 <p>Applies a two-dimensional convolution kernel to a Tk photo image. This is the grouped form of
 <a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20convolve"><span class="std std-ref">winop convolve</span></a>.</p>
 <pre class="literal-block"><strong>WINOPIMAGE convolve</strong> <em>srcPhoto destPhoto filter</em></pre>
@@ -3037,7 +3073,7 @@ ensemble.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-gradient">
-<span id="r-symbolqz3a3arbc3a3awinopimage20gradient"></span><span id="index-324"></span><span id="index-323"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">gradient</span></code><a class="headerlink" href="#winopimage-gradient" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20gradient"></span><span id="index-326"></span><span id="index-325"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">gradient</span></code><a class="headerlink" href="#winopimage-gradient" title="Link to this heading">¶</a></h3>
 <p>Generates a gradient directly into an existing Tk photo image. <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> are Tk colors. <code class="docutils literal notranslate"><span class="pre">type</span></code> may
 be <code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">radial</span></code>, <code class="docutils literal notranslate"><span class="pre">rectangular</span></code>, or <code class="docutils literal notranslate"><span class="pre">blank</span></code>. The current dimensions of <code class="docutils literal notranslate"><span class="pre">photo</span></code> determine the generated
 image size.</p>
@@ -3061,7 +3097,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-readjpeg">
-<span id="r-symbolqz3a3arbc3a3awinopimage20readjpeg"></span><span id="index-326"></span><span id="index-325"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winopimage-readjpeg" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20readjpeg"></span><span id="index-328"></span><span id="index-327"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winopimage-readjpeg" title="Link to this heading">¶</a></h3>
 <p>Reads a JPEG file into an existing Tk photo image. This is the grouped form of
 <a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20readjpeg"><span class="std std-ref">winop readjpeg</span></a>.</p>
 <pre class="literal-block"><strong>WINOPIMAGE readjpeg</strong> <em>fileName photoName</em></pre>
@@ -3078,7 +3114,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-resample">
-<span id="r-symbolqz3a3arbc3a3awinopimage20resample"></span><span id="index-328"></span><span id="index-327"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">resample</span></code><a class="headerlink" href="#winopimage-resample" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20resample"></span><span id="index-330"></span><span id="index-329"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">resample</span></code><a class="headerlink" href="#winopimage-resample" title="Link to this heading">¶</a></h3>
 <p>Copies or resamples a source photo into a destination photo. This is the grouped form of
 <a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20resample"><span class="std std-ref">winop resample</span></a>.</p>
 <pre class="literal-block"><strong>WINOPIMAGE resample</strong> <em>srcPhoto destPhoto ?horzFilter? ?vertFilter?</em></pre>
@@ -3101,7 +3137,7 @@ image size.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-rotate">
-<span id="r-symbolqz3a3arbc3a3awinopimage20rotate"></span><span id="index-330"></span><span id="index-329"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">rotate</span></code><a class="headerlink" href="#winopimage-rotate" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20rotate"></span><span id="index-332"></span><span id="index-331"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">rotate</span></code><a class="headerlink" href="#winopimage-rotate" title="Link to this heading">¶</a></h3>
 <p>Rotates a Tk photo image by a finite angle expressed in degrees. <code class="docutils literal notranslate"><span class="pre">angle</span></code> may be a Tcl numeric expression. The
 destination photo is resized to contain the rotated result.</p>
 <pre class="literal-block"><strong>WINOPIMAGE rotate</strong> <em>srcPhoto destPhoto angle</em></pre>
@@ -3121,7 +3157,7 @@ destination photo is resized to contain the rotated result.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-snap">
-<span id="r-symbolqz3a3arbc3a3awinopimage20snap"></span><span id="index-332"></span><span id="index-331"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">snap</span></code><a class="headerlink" href="#winopimage-snap" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20snap"></span><span id="index-334"></span><span id="index-333"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">snap</span></code><a class="headerlink" href="#winopimage-snap" title="Link to this heading">¶</a></h3>
 <p>Captures a window into an existing Tk photo image. This is the grouped form of <a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20snap"><span class="std std-ref">winop snap</span></a>.</p>
 <pre class="literal-block"><strong>WINOPIMAGE snap</strong> <em>window photoName ?width? ?height?</em></pre>
 <p class="rubric">Parameters</p>
@@ -3143,7 +3179,7 @@ destination photo is resized to contain the rotated result.</p>
 <p>Nothing.</p>
 </section>
 <section id="winopimage-subsample">
-<span id="r-symbolqz3a3arbc3a3awinopimage20subsample"></span><span id="index-334"></span><span id="index-333"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winopimage-subsample" title="Link to this heading">¶</a></h3>
+<span id="r-symbolqz3a3arbc3a3awinopimage20subsample"></span><span id="index-336"></span><span id="index-335"></span><h3><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">subsample</span></code><a class="headerlink" href="#winopimage-subsample" title="Link to this heading">¶</a></h3>
 <p>Extracts and optionally resamples a rectangular region of a source photo. This is the grouped form of
 <a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20subsample"><span class="std std-ref">winop subsample</span></a>.</p>
 <pre class="literal-block"><strong>WINOPIMAGE subsample</strong> <em>srcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?</em></pre>
@@ -3337,6 +3373,7 @@ destination photo is resized to contain the rotated result.</p>
 <li><a class="reference internal" href="#vector-destroy"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code></a></li>
 <li><a class="reference internal" href="#vector-expr"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code></a></li>
 <li><a class="reference internal" href="#vector-names"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#vector-rename"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">rename</span></code></a></li>
 <li><a class="reference internal" href="#winop"><code class="docutils literal notranslate"><span class="pre">winop</span></code></a></li>
 <li><a class="reference internal" href="#winop-changes"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code></a></li>
 <li><a class="reference internal" href="#winop-colormap"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code></a></li>
