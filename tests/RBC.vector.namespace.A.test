@@ -1,0 +1,47 @@
+# RBC.vector.namespace.A.test -- instance commands must be deleted by token.
+package require rbc::vector
+package require tcltest
+namespace import ::tcltest::*
+
+test vectorNamespace-1 {destroy a vector from outside its namespace without leaving a command} -setup {
+    namespace eval ::vectorTokenTest {
+        ::rbc::vector create values -variable {}
+        values set {1 2 3}
+    }
+} -body {
+    ::rbc::vector destroy ::vectorTokenTest::values
+    list [info commands ::vectorTokenTest::values] [::rbc::vector names ::vectorTokenTest::*]
+} -result {{} {}} -cleanup {
+    namespace delete ::vectorTokenTest
+}
+
+test vectorNamespace-2 {destroy must not delete an unrelated caller-local command with the same tail} -setup {
+    namespace eval ::vectorTokenTest {
+        ::rbc::vector create sample -variable {} -type complex
+        sample set {{1 2}}
+    }
+    namespace eval ::vectorTokenCaller {
+        proc sample {} {return preserved}
+    }
+} -body {
+    namespace eval ::vectorTokenCaller {::rbc::vector destroy ::vectorTokenTest::sample}
+    list [info commands ::vectorTokenTest::sample] [::vectorTokenCaller::sample]
+} -result {{} preserved} -cleanup {
+    namespace delete ::vectorTokenTest ::vectorTokenCaller
+}
+
+test vectorNamespace-3 {recreate a named vector from outside its namespace} -setup {
+    namespace eval ::vectorTokenTest {
+        ::rbc::vector create values -variable {}
+        values set {1 2 3}
+    }
+} -body {
+    ::rbc::vector create ::vectorTokenTest::values -variable {}
+    set values [::vectorTokenTest::values index :]
+    ::rbc::vector destroy ::vectorTokenTest::values
+    list $values [info commands ::vectorTokenTest::values]
+} -result {{1.0 2.0 3.0} {}} -cleanup {
+    namespace delete ::vectorTokenTest
+}
+
+cleanupTests

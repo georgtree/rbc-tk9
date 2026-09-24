@@ -2744,16 +2744,18 @@ void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, doubl
 static void DeleteCommand(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
     Tcl_CmdInfo cmdInfo;
-    const char *cmdName;
+    Tcl_Command token = vPtr->cmdToken;
 
-    cmdName = Tcl_GetCommandName(interp, vPtr->cmdToken);
-    if (Tcl_GetCommandInfo(interp, cmdName, &cmdInfo)) {
-        /* Disable the callback before deleting the Tcl command.*/
-        cmdInfo.deleteProc = NULL;
-        Tcl_SetCommandInfo(interp, cmdName, &cmdInfo);
-        Tcl_DeleteCommand(interp, cmdName);
-    }
+    /* A command's short name is relative to the caller's namespace. Use the
+     * token so deleting a vector from another namespace cannot leave a
+     * dangling instance command (or delete an unrelated same-name command). */
     vPtr->cmdToken = 0;
+    if (token != NULL && Tcl_GetCommandInfoFromToken(token, &cmdInfo)) {
+        /* Disable the callback before deleting the Tcl command. */
+        cmdInfo.deleteProc = NULL;
+        Tcl_SetCommandInfoFromToken(token, &cmdInfo);
+        Tcl_DeleteCommandFromToken(interp, token);
+    }
 }
 
 /*
