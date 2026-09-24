@@ -1023,8 +1023,14 @@ Rbc. The caller remains responsible for that storage.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType</span></code> follows the Tcl-level mapping convention: a newly created real vector receives its
-traditional automatic Tcl array mapping, while a newly created complex vector does not.</p>
+<p>Both <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType</span></code> accept literal names with balanced parentheses,
+including numeric names such as <code class="docutils literal notranslate"><span class="pre">v(1)</span></code>; C constructors receive the length separately and never interpret
+name suffixes as sizes. Newly created real vectors receive an automatic Tcl array mapping only when their
+name contains no parentheses. Complex vectors never receive an automatic mapping. <code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2</span></code>
+accepts a separate array name or NULL; explicit array names must not contain parentheses.</p>
+<p>Public lookup, existence, client-token and deletion APIs accept these vector names without encoding.
+Lookup paths that accept ranges use the same exact-name precedence as Tcl vector references. No stubs ABI
+change or additional C function is required.</p>
 <p>For example:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">CreateTimeVector</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>

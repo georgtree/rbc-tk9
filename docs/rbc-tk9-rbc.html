@@ -2099,7 +2099,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20type"><span class="std std-ref">type</span></a></dt><dd><p>Returns the immutable numeric type of the vector. <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">variable</span></a></dt><dd><p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name removes the current mapping. Real vectors normally receive an automatic array mapping at creation. Complex vectors do not receive an automatic mapping, but an explicit mapping is supported. Ordinary complex array elements use <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> representation. The calculated array indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code> are not supported for complex vectors.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">variable</span></a></dt><dd><p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name removes the current mapping. Array names must not contain parentheses; invalid names preserve the old mapping. Real vectors receive an automatic mapping only when their names contain no parentheses. Complex vectors do not receive an automatic mapping, but an explicit mapping is supported. Ordinary complex array elements use <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> representation. The calculated array indices <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code> are not supported for complex vectors.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -2546,7 +2546,8 @@ vector.</p>
 <section id="vecinst-variable">
 <span id="r-symbolqz3a3arbc3a3avecinst20variable"></span><span id="index-274"></span><span id="index-273"></span><h3><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code><a class="headerlink" href="#vecinst-variable" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
-removes the current mapping. Real vectors normally receive an automatic array mapping at creation.
+removes the current mapping. Array names must not contain parentheses; invalid names preserve the old
+mapping. Real vectors receive an automatic mapping only when their names contain no parentheses.
 Complex vectors do not receive an automatic mapping, but an explicit mapping is supported.
 Ordinary complex array elements use <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> representation. The calculated array indices <code class="docutils literal notranslate"><span class="pre">min</span></code>,
 <code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">sum</span></code>, and <code class="docutils literal notranslate"><span class="pre">prod</span></code> are not supported for complex vectors.</p>
@@ -2595,17 +2596,20 @@ ensemble.</p>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">size</span></code><span class="colon">:</span></dt>
 <dd class="field-odd"><p>Sets the initial length when no size is included in the vector specification. <code class="docutils literal notranslate"><span class="pre">size</span></code> must be zero or greater.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">type</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Selects the numeric vector type. <code class="docutils literal notranslate"><span class="pre">type</span></code> must be <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code>. The default for a new vector is <code class="docutils literal notranslate"><span class="pre">real</span></code>. The option applies to every vector named by the command. A vector’s type cannot be changed after creation.</p>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-literal</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>If true, treats every name literally instead of interpreting a numeric final parenthesized group as a size or range. Use with <code class="docutils literal notranslate"><span class="pre">-length</span></code> for names such as <code class="docutils literal notranslate"><span class="pre">v(1)</span></code>. Defaults to false; an exact existing name always wins over suffix interpretation.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-variable</span> <span class="pre">varName</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Sets the Tcl array variable associated with the vector. This option can only be used when creating one vector. Real vectors receive an automatic array mapping when this option is omitted. Complex vectors do not receive an automatic array mapping, but an explicit mapping is supported.</p>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">type</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Selects the numeric vector type. <code class="docutils literal notranslate"><span class="pre">type</span></code> must be <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code>. The default for a new vector is <code class="docutils literal notranslate"><span class="pre">real</span></code>. The option applies to every vector named by the command. A vector’s type cannot be changed after creation.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-watchunset</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>If true, unsetting the complete associated array variable destroys the vector.</p>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-variable</span> <span class="pre">varName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Sets the Tcl array variable associated with the vector. This option can only be used when creating one vector. Real vectors with no parentheses in their names receive an automatic mapping when this option is omitted. Array names must not contain parentheses; an empty name disables mapping. Complex vectors do not receive an automatic array mapping, but an explicit mapping is supported.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector name or vector specification. A specification may have the form <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">name(size)</span></code>, or <code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code>.</p>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-watchunset</span> <span class="pre">boolean</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>If true, unsetting the complete associated array variable destroys the vector.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">vecName</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector name or vector specification. A specification may have the form <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">name(size)</span></code>, or <code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Description</p>

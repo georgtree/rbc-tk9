@@ -25,6 +25,16 @@ namespace eval TclTk9Upgrade {
         both options to embed Cairo dependencies and the threading runtime. The option is off by default
         and requires a MinGW-w64 toolchain and target `objdump`. Windows system libraries remain dynamic.
 
+        ### Literal parentheses in vector names
+
+        Real and complex vectors accept names such as `v(out)` directly, with references such as
+        `v(out)(1:20)` selecting a range. Exact existing names take precedence over range interpretation.
+        Creation retains numeric size/range suffixes; `-literal true` permits literal names such as `v(1)`.
+        Parenthesized names default to no Tcl array mapping; `-variable` can select a separate array name without
+        parentheses. Mathematical functions keep expression precedence; braces inside an expression disambiguate
+        a vector name such as `{sin(x)}`. Public C constructors and lookup APIs support the same names without
+        changing the stubs ABI. See [::rbc::vector] for examples and the naming rules.
+
         ### Tcl-only vector loading
 
         `package require rbc::vector` loads vectors from the same shared library without initializing Tk or

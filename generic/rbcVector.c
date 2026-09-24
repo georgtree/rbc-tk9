@@ -277,8 +277,10 @@ static int GetSizeFromString(Tcl_Interp *interp, const char *string, Tcl_Size *v
  *
  * VectorCreateObjCmd --
  *
- *      processes the Tcl 'vector create' command, and calls
- *      vectorCreate to actually create the vector
+ *      Processes Tcl vector creation. Existing literal names take precedence;
+ *      otherwise a numeric final group specifies the legacy size/range.
+ *      -literal disables suffix parsing. Parenthesized names have no automatic
+ *      array mapping; -variable may specify a separate array name.
  *
  *        vector create a
  *        vector create b(20)
@@ -336,6 +338,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     VectorTypeOption typeOption;
     int freeOnUnset;
     int flush;
+    int literal;
     Tcl_Size defLen;
     Tcl_Obj **objNameArray; /* holds all vector names specified */
     Tcl_Size count;
@@ -344,6 +347,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     const Tcl_ArgvInfo argsTable[] = {{TCL_ARGV_STRING, "-command", NULL, &cmdName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-flush", ParseBool, &flush, NULL, "-flush"},
                                       {TCL_ARGV_GENFUNC, "-length", ParseVectorLength, &defLen, NULL, "-length"},
+                                      {TCL_ARGV_GENFUNC, "-literal", ParseBool, &literal, NULL, "-literal"},
                                       {TCL_ARGV_GENFUNC, "-type", ParseVectorType, &typeOption, NULL, "-type"},
                                       {TCL_ARGV_STRING, "-variable", NULL, &varName, NULL, NULL},
                                       {TCL_ARGV_GENFUNC, "-watchunset", ParseBool, &freeOnUnset, NULL, "-watchunset"},
@@ -358,6 +362,7 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
     freeOnUnset = 0; /* value of the user level '-watchunset' switch */
     defLen = 0;      /* default vector length */
     flush = FALSE;
+    literal = FALSE;
     typeOption.type = RBC_VECTOR_REAL;
     typeOption.specified = FALSE;
     count = objc - 1; /* start at "create" */
@@ -416,13 +421,35 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         vecName = Tcl_DStringValue(&ds);
         size = defLen; /* set to default value */
         first = last = 0;
-        leftParen = strchr(vecName, '(');
-        rightParen = strchr(vecName, ')');
-        if (((leftParen != NULL) && (rightParen == NULL)) || ((leftParen == NULL) && (rightParen != NULL)) ||
-            (leftParen > rightParen)) {
-            Tcl_AppendStringsToObj(resultPtr, "bad vector specification \"", vecName, "\"", NULL);
-            Tcl_SetObjResult(interp, resultPtr);
-            goto error;
+        /* An exact existing name wins over the legacy name(size) syntax.
+         * Otherwise only a numeric final group is a size/range suffix.
+         * -literal permits numeric parentheses in a new vector's name. */
+        leftParen = NULL;
+        rightParen = NULL;
+        if (!literal && GetVectorObject(dataPtr, vecName, NS_SEARCH_BOTH) == NULL) {
+            Tcl_Size depth = 0;
+            char *group = NULL;
+            for (char *p = vecName; *p != '\0'; p++) {
+                if (*p == '(') {
+                    if (depth++ == 0) {
+                        group = p;
+                    }
+                } else if (*p == ')') {
+                    if (depth == 0) {
+                        break;
+                    }
+                    if (--depth == 0 && p[1] == '\0') {
+                        const char *q = group + 1;
+                        while (isspace(UCHAR(*q))) {
+                            q++;
+                        }
+                        if (isdigit(UCHAR(*q)) || *q == '+' || *q == '-' || *q == ':' || *q == ')') {
+                            leftParen = group;
+                            rightParen = p;
+                        }
+                    }
+                }
+            }
         }
         if (leftParen != NULL) {
             int result;
@@ -488,9 +515,9 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         /*
          * actually create the vector:
          */
-        if (effectiveType == RBC_VECTOR_COMPLEX) {
+        if (effectiveType == RBC_VECTOR_COMPLEX || strchr(vecName, '(') != NULL) {
             /*
-             * Complex vectors don't receive an automatic Tcl array mapping,
+             * Complex vectors and names with parentheses don't receive an automatic Tcl array mapping,
              * but an explicitly requested mapping is allowed.
              */
             createVarName = (varName == NULL) ? NULL : varName;
@@ -808,6 +835,14 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     isNew = 0;
     nsPtr = NULL;
     vPtr = NULL;
+    if (varName != NULL && (strchr(varName, '(') != NULL || strchr(varName, ')') != NULL)) {
+        Tcl_SetObjResult(
+            interp,
+            Tcl_NewStringObj(
+                "mapped array name must not contain parentheses; use a separate array name or an empty name", -1));
+        Tcl_DecrRefCount(resultPtr);
+        return NULL;
+    }
     /* process the vector name: */
     vecName = BuildQualifiedName(interp, vecName, &qualVecNamePtr);
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
@@ -826,19 +861,29 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         } while (hPtr != NULL);
         isAutoName = 1;
     } else {
-        /* check correct vector name syntax: */
+        /* Parentheses are permitted in literal names, but must balance.
+         * Keep operators/whitespace out of names so expression tokenization
+         * and the legacy range syntax remain unambiguous. */
         const char *p;
-
+        Tcl_Size depth = 0;
         for (p = vecNameTail; *p != '\0'; p++) {
-            if (!VECTOR_CHAR(*p)) {
-                Tcl_AppendStringsToObj(resultPtr, "bad vector name \"", vecName,
-                                       "\": must contain digits, letters, underscore, or period", NULL);
-                Tcl_SetObjResult(interp, resultPtr);
-                goto error;
+            if (*p == '(') {
+                depth++;
+            } else if (*p == ')' && depth > 0) {
+                depth--;
+            } else if (!VECTOR_CHAR(*p)) {
+                break;
             }
         }
+        if (*p != '\0' || depth != 0 || p == vecNameTail) {
+            Tcl_AppendStringsToObj(resultPtr, "bad vector name \"", vecName,
+                                   "\": must contain digits, letters, underscore, or period with balanced parentheses",
+                                   NULL);
+            Tcl_SetObjResult(interp, resultPtr);
+            goto error;
+        }
         qualVecName = (char *)vecName;
-        vPtr = Rbc_VectorParseElement(NULL, dataPtr, qualVecName, NULL, NS_SEARCH_CURRENT);
+        vPtr = GetVectorObject(dataPtr, qualVecName, NS_SEARCH_CURRENT);
     }
     /*
      * A vector's numeric type is immutable.  Only reject a mismatch
@@ -1145,6 +1190,13 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
     const char *result;
     Tcl_Namespace *varNsPtr;
 
+    if (name != NULL && (strchr(name, '(') != NULL || strchr(name, ')') != NULL)) {
+        Tcl_SetObjResult(
+            interp,
+            Tcl_NewStringObj(
+                "mapped array name must not contain parentheses; use a separate array name or an empty name", -1));
+        return TCL_ERROR;
+    }
     if (vPtr->arrayName != NULL) {
         UnmapVariable(vPtr);
     }
@@ -1912,20 +1964,23 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
  *
  * Rbc_VectorParseElement --
  *
- *      TODO: Description
+ *      Resolves the longest existing vector name at a balanced boundary,
+ *      then parses an optional index/range suffix. Literal parentheses are
+ *      part of the name; exact names take precedence over range syntax.
  *
  * Parameters:
- *      Tcl_Interp *interp
- *      VectorInterpData *dataPtr - Interpreter-specific data.
- *      const char *string - name of the vector
- *      char **endPtr - ?
- *      int flags - NS_SEARCH_CURRENT nd such ...
+ *      Tcl_Interp *interp - Optional interpreter for error reporting.
+ *      VectorInterpData *dataPtr - Interpreter-specific vector registry.
+ *      const char *start - Vector reference, possibly followed by expression text.
+ *      const char **endPtr - Optional address receiving the first unconsumed character.
+ *      int flags - Namespace search flags.
  *
  * Results:
- *      A vector object
+ *      The vector object, or NULL on lookup/range failure.
  *
  * Side effects:
- *      TODO: Side Effects
+ *      Sets first/last to the selected range on success; a failed range
+ *      restores the previous selection. The input string is never modified.
  *
  * ----------------------------------------------------------------------
  */
@@ -1939,19 +1994,45 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
 
     assert(dataPtr != NULL);
     assert(start != NULL);
-    /*
-     * Find the end of the vector name.
-     */
+    /* Find the longest existing name ending at a balanced boundary.
+     * The next parenthesized group, if any, is an index/range. This gives
+     * exact names precedence over ranges, including literal numeric names.
+     * Stop at operators: range expressions are parsed separately below. */
+    const char *nameEnd = NULL;
+    Tcl_Size nameDepth = 0;
+    vPtr = NULL;
     p = start;
-    while (VECTOR_CHAR(*p)) {
+    while (*p != '\0') {
+        if (*p == '(') {
+            nameDepth++;
+        } else if (*p == ')' && nameDepth > 0) {
+            nameDepth--;
+        } else if (!VECTOR_CHAR(*p)) {
+            break;
+        }
         p++;
+        if (nameDepth == 0 && (!VECTOR_CHAR(*p) || *p == '\0')) {
+            VectorObject *candidate;
+            nameObjPtr = Tcl_NewStringObj(start, (Tcl_Size)(p - start));
+            Tcl_IncrRefCount(nameObjPtr);
+            candidate = GetVectorObject(dataPtr, Tcl_GetString(nameObjPtr), flags);
+            Tcl_DecrRefCount(nameObjPtr);
+            if (candidate != NULL) {
+                vPtr = candidate;
+                nameEnd = p;
+            }
+        }
     }
-    /*
-     * Copy only the vector-name portion. Do not write into start.
-     */
+    if (nameEnd != NULL) {
+        p = nameEnd;
+    } else {
+        p = start;
+        while (VECTOR_CHAR(*p)) {
+            p++;
+        }
+    }
     nameObjPtr = Tcl_NewStringObj(start, (Tcl_Size)(p - start));
     Tcl_IncrRefCount(nameObjPtr);
-    vPtr = GetVectorObject(dataPtr, Tcl_GetString(nameObjPtr), flags);
     if (vPtr == NULL) {
         if (interp != NULL) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't find vector \"%s\"", Tcl_GetString(nameObjPtr)));
@@ -2011,6 +2092,16 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
          * Advance beyond the closing parenthesis.
          */
         p++;
+    }
+    /* Standalone references must consume the complete argument. Expression
+     * callers receive endPtr and parse the remaining operators themselves. */
+    if (endPtr == NULL && *p != '\0') {
+        if (interp != NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("extra characters after vector name", -1));
+        }
+        vPtr->first = oldFirst;
+        vPtr->last = oldLast;
+        return NULL;
     }
     if (endPtr != NULL) {
         *endPtr = p;
@@ -3332,7 +3423,7 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
  *--------------------------------------------------------------
  */
 int Rbc_CreateVector(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_Vector **vecPtrPtr) {
-    return Rbc_CreateVector2(interp, name, name, name, size, RBC_VECTOR_REAL, vecPtrPtr);
+    return Rbc_CreateVectorWithType(interp, name, size, RBC_VECTOR_REAL, vecPtrPtr);
 }
 
 int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_VectorType type,
@@ -3341,10 +3432,10 @@ int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *name, Tcl_Size size
 
     /*
      * Match the Tcl-level creation semantics: real vectors receive
-     * their traditional automatic array mapping, complex vectors do
-     * not.
+     * their traditional automatic array mapping unless their name contains
+     * parentheses; complex vectors do not.
      */
-    varName = (type == RBC_VECTOR_REAL) ? name : NULL;
+    varName = (type == RBC_VECTOR_REAL && strchr(name, '(') == NULL) ? name : NULL;
     return Rbc_CreateVector2(interp, name, name, varName, size, type, vecPtrPtr);
 }
 

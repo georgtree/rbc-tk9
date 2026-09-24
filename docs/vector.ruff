@@ -76,7 +76,7 @@ namespace eval ::rbc::vector {
         when the requested type is the same as its current type. Omitting `-type` when referring to an existing vector
         preserves its current type.
 
-        Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
+        Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
         array mapping, but one may be requested explicitly with `-variable` or later with [VECINST variable][::rbc::VECINST variable].
 
         ## Graph and spline integration
@@ -157,6 +157,61 @@ namespace eval ::rbc::vector {
 
         Vector names may be namespace-qualified.
 
+        ## Parentheses in vector names
+
+        Vector names may contain balanced parentheses, including nested groups. This permits signal names such as
+        `v(out)` and `i(device)` without encoding them. The other name-character restrictions remain unchanged.
+        ```tcl
+        ::rbc::vector create v(out)
+        v(out) set {1 2 3 4}
+        v(out) index 1:2
+        # -> 2.0 3.0
+        ::rbc::vector create selected
+        selected set v(out)(1:2)
+        selected expr {v(out)(1:2) * 2}
+        ```
+
+        Name lookup selects the longest existing name before interpreting an optional final parenthesized group
+        as an index or range. Thus `v(out)(1:2)` selects elements of `v(out)`, unless a vector literally named
+        `v(out)(1:2)` exists, in which case the exact name wins. Use the instance command's `index` or `range`
+        operation when a literal name and a range reference would otherwise be identical.
+
+        Creation preserves the legacy numeric suffix forms: `x(100)` creates `x` with 100 elements, and
+        `v(out)(2:4)` creates `v(out)` with three elements at offset 2. A nonnumeric suffix such as `(out)` is
+        part of the name. To create a literal numeric name, use `-literal true` and specify its length separately:
+        ```tcl
+        ::rbc::vector create v(1) -literal true -length 100
+        v(1) index 0:9
+        ```
+        The default is `-literal false`. An exact existing vector name takes precedence even without this option.
+        The special name `#auto` still requests an automatically generated name.
+        Numeric suffixes begin with a digit, sign or colon (ignoring leading whitespace); invalid numeric sizes
+        and ranges remain errors. `-literal true` disables suffix interpretation for every supplied name.
+
+        Names containing parentheses do not receive an automatic Tcl array mapping, for either numeric type.
+        Tcl interprets `$v(out)(1:2)` as array element `v(out)` followed by literal text `(1:2)`, not as an element
+        of an array named `v(out)`. Use the vector command, or request a separate array name:
+        ```tcl
+        ::rbc::vector create v(out) -variable outValues
+        v(out) set {1 2 3}
+        set samples $outValues(0:2)
+        ```
+        Explicit mapped array names must not contain parentheses. `-variable {}` disables mapping. This rule also
+        applies to [VECINST variable][::rbc::VECINST variable]; a rejected name leaves an existing mapping intact.
+
+        In vector expressions, known mathematical function calls retain precedence. If a vector is named `sin(x)`,
+        `sin(x)` still calls the function, while `{sin(x)}` or `"sin(x)"` inside the expression denotes the vector:
+        ```tcl
+        selected expr {{sin(x)} + 1}
+        selected expr {{sin(x)(0:2)} * 2}
+        ```
+        The outer braces delimit the Tcl expression argument; the inner braces quote a vector reference for RBC.
+        This quoting is also useful for names beginning with digits, which otherwise start numeric expressions.
+
+        Vector-producing instance operations such as `dup`, `normalize`, `populate` and `split` also accept literal
+        destination names with parentheses and do not create automatic array mappings for them.
+
+
         ## Vector instances
         The examples and command descriptions below use `VECINST` to denote the Tcl command associated with an
         individual vector.
@@ -179,11 +234,15 @@ namespace eval ::rbc::vector {
         #   modified.
         # -length size - sets the initial length when no size is included in the vector specification. `size` must be
         #   zero or greater.
+        # -literal boolean - if true, treats every name literally instead of interpreting a numeric final
+        #   parenthesized group as a size or range. Use with `-length` for names such as `v(1)`. Defaults to false;
+        #   an exact existing name always wins over suffix interpretation.
         # -type type - selects the numeric vector type. `type` must be `real` or `complex`. The default for a new
         #   vector is `real`. The option applies to every vector named by the command. A vector's type cannot be
         #   changed after creation.
         # -variable varName - sets the Tcl array variable associated with the vector. This option can only be used
-        #   when creating one vector. Real vectors receive an automatic array mapping when this option is omitted.
+        #   when creating one vector. Real vectors with no parentheses in their names receive an automatic mapping
+        #   when this option is omitted. Array names must not contain parentheses; an empty name disables mapping.
         #   Complex vectors do not receive an automatic array mapping, but an explicit mapping is supported.
         # -watchunset boolean - if true, unsetting the complete associated array variable destroys the vector.
         # Returns: The name of the last vector created.
@@ -1203,8 +1262,15 @@ namespace eval ::rbc::VECINST {
         }
         ```
 
-        `Rbc_CreateVectorWithType` follows the Tcl-level mapping convention: a newly created real vector receives its
-        traditional automatic Tcl array mapping, while a newly created complex vector does not.
+        Both `Rbc_CreateVector` and `Rbc_CreateVectorWithType` accept literal names with balanced parentheses,
+        including numeric names such as `v(1)`; C constructors receive the length separately and never interpret
+        name suffixes as sizes. Newly created real vectors receive an automatic Tcl array mapping only when their
+        name contains no parentheses. Complex vectors never receive an automatic mapping. `Rbc_CreateVector2`
+        accepts a separate array name or NULL; explicit array names must not contain parentheses.
+
+        Public lookup, existence, client-token and deletion APIs accept these vector names without encoding.
+        Lookup paths that accept ranges use the same exact-name precedence as Tcl vector references. No stubs ABI
+        change or additional C function is required.
 
         For example:
         ```c
@@ -1582,7 +1648,8 @@ namespace eval ::rbc::VECINST {
 
     proc variable {args} {
         # Queries or changes the Tcl array variable associated with the vector. Supplying an empty variable name
-        # removes the current mapping. Real vectors normally receive an automatic array mapping at creation.
+        # removes the current mapping. Array names must not contain parentheses; invalid names preserve the old
+        # mapping. Real vectors receive an automatic mapping only when their names contain no parentheses.
         # Complex vectors do not receive an automatic mapping, but an explicit mapping is supported.
         # Ordinary complex array elements use `{real imag}` representation. The calculated array indices `min`,
         # `max`, `mean`, `sum`, and `prod` are not supported for complex vectors.

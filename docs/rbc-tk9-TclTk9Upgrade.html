@@ -61,6 +61,16 @@ a linked probe for unwanted winpthreads imports. It is independent of <code clas
 both options to embed Cairo dependencies and the threading runtime. The option is off by default
 and requires a MinGW-w64 toolchain and target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>. Windows system libraries remain dynamic.</p>
 </section>
+<section id="literal-parentheses-in-vector-names">
+<span id="r-tcltk9upgrade-literal-parentheses-in-vector-names"></span><span id="r-3a3atcltk9upgradeqzliteral20parentheses20in20vector20names"></span><h3>Literal parentheses in vector names<a class="headerlink" href="#literal-parentheses-in-vector-names" title="Link to this heading">¶</a></h3>
+<p>Real and complex vectors accept names such as <code class="docutils literal notranslate"><span class="pre">v(out)</span></code> directly, with references such as
+<code class="docutils literal notranslate"><span class="pre">v(out)(1:20)</span></code> selecting a range. Exact existing names take precedence over range interpretation.
+Creation retains numeric size/range suffixes; <code class="docutils literal notranslate"><span class="pre">-literal</span> <span class="pre">true</span></code> permits literal names such as <code class="docutils literal notranslate"><span class="pre">v(1)</span></code>.
+Parenthesized names default to no Tcl array mapping; <code class="docutils literal notranslate"><span class="pre">-variable</span></code> can select a separate array name without
+parentheses. Mathematical functions keep expression precedence; braces inside an expression disambiguate
+a vector name such as <code class="docutils literal notranslate"><span class="pre">{sin(x)}</span></code>. Public C constructors and lookup APIs support the same names without
+changing the stubs ABI. See <a class="reference internal" href="rbc-tk9-rbc-vector.html#r-namespaceqz3a3arbc3a3avector"><span class="std std-ref">::rbc::vector</span></a> for examples and the naming rules.</p>
+</section>
 <section id="tcl-only-vector-loading">
 <span id="r-tcltk9upgrade-tcl-only-vector-loading"></span><span id="r-3a3atcltk9upgradeqztcl2donly20vector20loading"></span><h3>Tcl-only vector loading<a class="headerlink" href="#tcl-only-vector-loading" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::vector</span></code> loads vectors from the same shared library without initializing Tk or
@@ -777,6 +787,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
+<li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>
 <li><a class="reference internal" href="#tcl-only-vector-loading">Tcl-only vector loading</a></li>
 <li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>

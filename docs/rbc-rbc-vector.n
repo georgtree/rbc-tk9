@@ -96,7 +96,7 @@ A vector's type cannot be changed after creation\&. Supplying -type for an exist
 when the requested type is the same as its current type\&. Omitting -type when referring to an existing vector
 preserves its current type\&.
 .PP
-Real vectors retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
+Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
 array mapping, but one may be requested explicitly with -variable or later with \fIVECINST variable\fP\&.
 .SH "GRAPH AND SPLINE INTEGRATION"
 .PP
@@ -202,6 +202,74 @@ through 14\&.
 The special name #auto requests an automatically generated vector name\&.
 .PP
 Vector names may be namespace-qualified\&.
+.SH "PARENTHESES IN VECTOR NAMES"
+.PP
+Vector names may contain balanced parentheses, including nested groups\&. This permits signal names such as
+v(out) and i(device) without encoding them\&. The other name-character restrictions remain unchanged\&.
+.PP
+.RS 4n
+.nf
+::rbc::vector create v(out)
+v(out) set {1 2 3 4}
+v(out) index 1:2
+# -> 2\&.0 3\&.0
+::rbc::vector create selected
+selected set v(out)(1:2)
+selected expr {v(out)(1:2) * 2}
+.fi
+.RE
+.PP
+Name lookup selects the longest existing name before interpreting an optional final parenthesized group
+as an index or range\&. Thus v(out)(1:2) selects elements of v(out), unless a vector literally named
+v(out)(1:2) exists, in which case the exact name wins\&. Use the instance command's index or range
+operation when a literal name and a range reference would otherwise be identical\&.
+.PP
+Creation preserves the legacy numeric suffix forms: x(100) creates x with 100 elements, and
+v(out)(2:4) creates v(out) with three elements at offset 2\&. A nonnumeric suffix such as (out) is
+part of the name\&. To create a literal numeric name, use -literal true and specify its length separately:
+.PP
+.RS 4n
+.nf
+::rbc::vector create v(1) -literal true -length 100
+v(1) index 0:9
+.fi
+.RE
+.PP
+The default is -literal false\&. An exact existing vector name takes precedence even without this option\&.
+The special name #auto still requests an automatically generated name\&.
+Numeric suffixes begin with a digit, sign or colon (ignoring leading whitespace); invalid numeric sizes
+and ranges remain errors\&. -literal true disables suffix interpretation for every supplied name\&.
+.PP
+Names containing parentheses do not receive an automatic Tcl array mapping, for either numeric type\&.
+Tcl interprets $v(out)(1:2) as array element v(out) followed by literal text (1:2), not as an element
+of an array named v(out)\&. Use the vector command, or request a separate array name:
+.PP
+.RS 4n
+.nf
+::rbc::vector create v(out) -variable outValues
+v(out) set {1 2 3}
+set samples $outValues(0:2)
+.fi
+.RE
+.PP
+Explicit mapped array names must not contain parentheses\&. -variable {} disables mapping\&. This rule also
+applies to \fIVECINST variable\fP; a rejected name leaves an existing mapping intact\&.
+.PP
+In vector expressions, known mathematical function calls retain precedence\&. If a vector is named sin(x),
+sin(x) still calls the function, while {sin(x)} or "sin(x)" inside the expression denotes the vector:
+.PP
+.RS 4n
+.nf
+selected expr {{sin(x)} + 1}
+selected expr {{sin(x)(0:2)} * 2}
+.fi
+.RE
+.PP
+The outer braces delimit the Tcl expression argument; the inner braces quote a vector reference for RBC\&.
+This quoting is also useful for names beginning with digits, which otherwise start numeric expressions\&.
+.PP
+Vector-producing instance operations such as dup, normalize, populate and split also accept literal
+destination names with parentheses and do not create automatic array mappings for them\&.
 .SH "VECTOR INSTANCES"
 .PP
 The examples and command descriptions below use VECINST to denote the Tcl command associated with an

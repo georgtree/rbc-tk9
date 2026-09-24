@@ -44,7 +44,7 @@ namespace eval ::vectorCreateCleanup {
             {::vectorCreateCleanup::v -type complex}
             {::vectorCreateCleanup::missing::v}
             {::vectorCreateCleanup::bad?name}
-            {::vectorCreateCleanup::new(bad)}
+            {::vectorCreateCleanup::new(1bad)}
         } {
             lappend result [catch {::rbc::vector create {*}$arguments} message] \
                 [expr {$message ne {}}]

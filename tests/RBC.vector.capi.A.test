@@ -217,4 +217,22 @@ namespace eval vector.capi {
     } -cleanup {
         CleanupVectors ::CapiOwnedReal ::CapiOwnedComplex
     } -result {1 1 7.0 {{7.0 -7.0}}}
+
+    test RBC.vector.capi.A.5.1 {
+        public C API: literal parentheses with compatibility and typed constructors
+    } -body {
+        set result {}
+        foreach {name type} {::CapiName(out) real ::CapiName(1) typed-real ::CapiName(ac) complex} {
+            ::rbccapitest create $name $type 3
+            set info [::rbccapitest inspect $name]
+            lappend result [dict get $info name] [dict get $info length] [::rbccapitest exists $name]
+            ::rbccapitest free $name
+            lappend result [info commands $name]
+        }
+        lappend result [info exists ::CapiName]
+        set result
+    } -cleanup {
+        CleanupVectors ::CapiName(out) ::CapiName(1) ::CapiName(ac)
+    } -result {::CapiName(out) 3 1 {} ::CapiName(1) 3 1 {} ::CapiName(ac) 3 1 {} 0}
+
 }

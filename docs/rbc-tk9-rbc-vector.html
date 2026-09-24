@@ -104,7 +104,7 @@ imaginary component. For example, <code class="docutils literal notranslate"><sp
 <p>A vector’s type cannot be changed after creation. Supplying <code class="docutils literal notranslate"><span class="pre">-type</span></code> for an existing vector is permitted only
 when the requested type is the same as its current type. Omitting <code class="docutils literal notranslate"><span class="pre">-type</span></code> when referring to an existing vector
 preserves its current type.</p>
-<p>Real vectors retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
+<p>Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
 array mapping, but one may be requested explicitly with <code class="docutils literal notranslate"><span class="pre">-variable</span></code> or later with <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">VECINST variable</span></a>.</p>
 </section>
 <section id="graph-and-spline-integration">
@@ -172,6 +172,55 @@ through 14.</p>
 <p>The special name <code class="docutils literal notranslate"><span class="pre">#auto</span></code> requests an automatically generated vector name.</p>
 <p>Vector names may be namespace-qualified.</p>
 </section>
+<section id="parentheses-in-vector-names">
+<span id="r-rbc-vector-parentheses-in-vector-names"></span><span id="r-3a3arbc3a3avectorqzparentheses20in20vector20names"></span><h2>Parentheses in vector names<a class="headerlink" href="#parentheses-in-vector-names" title="Link to this heading">¶</a></h2>
+<p>Vector names may contain balanced parentheses, including nested groups. This permits signal names such as
+<code class="docutils literal notranslate"><span class="pre">v(out)</span></code> and <code class="docutils literal notranslate"><span class="pre">i(device)</span></code> without encoding them. The other name-character restrictions remain unchanged.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>v<span class="k">(</span><span class="nv">out</span><span class="k">)</span>
+<span class="nv">v</span><span class="k">(</span><span class="nv">out</span><span class="k">)</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="nv">v</span><span class="k">(</span><span class="nv">out</span><span class="k">)</span><span class="w"> </span>index<span class="w"> </span><span class="mi">1</span><span class="o">:</span><span class="mi">2</span>
+<span class="c"># -&gt; 2.0 3.0</span>
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>selected
+<span class="nv">selected</span><span class="w"> </span>set<span class="w"> </span>v<span class="k">(</span><span class="nv">out</span><span class="k">)(</span><span class="nv">1</span><span class="o">:</span><span class="mi">2</span><span class="k">)</span>
+<span class="nv">selected</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">v</span><span class="k">(</span><span class="nv">out</span><span class="k">)(</span><span class="nv">1</span><span class="o">:</span><span class="mi">2</span><span class="k">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>Name lookup selects the longest existing name before interpreting an optional final parenthesized group
+as an index or range. Thus <code class="docutils literal notranslate"><span class="pre">v(out)(1:2)</span></code> selects elements of <code class="docutils literal notranslate"><span class="pre">v(out)</span></code>, unless a vector literally named
+<code class="docutils literal notranslate"><span class="pre">v(out)(1:2)</span></code> exists, in which case the exact name wins. Use the instance command’s <code class="docutils literal notranslate"><span class="pre">index</span></code> or <code class="docutils literal notranslate"><span class="pre">range</span></code>
+operation when a literal name and a range reference would otherwise be identical.</p>
+<p>Creation preserves the legacy numeric suffix forms: <code class="docutils literal notranslate"><span class="pre">x(100)</span></code> creates <code class="docutils literal notranslate"><span class="pre">x</span></code> with 100 elements, and
+<code class="docutils literal notranslate"><span class="pre">v(out)(2:4)</span></code> creates <code class="docutils literal notranslate"><span class="pre">v(out)</span></code> with three elements at offset 2. A nonnumeric suffix such as <code class="docutils literal notranslate"><span class="pre">(out)</span></code> is
+part of the name. To create a literal numeric name, use <code class="docutils literal notranslate"><span class="pre">-literal</span> <span class="pre">true</span></code> and specify its length separately:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>v<span class="k">(</span><span class="nv">1</span><span class="k">)</span><span class="w"> </span><span class="o">-</span>literal<span class="w"> </span>true<span class="w"> </span><span class="o">-</span>length<span class="w"> </span><span class="mi">100</span>
+<span class="nv">v</span><span class="k">(</span><span class="nv">1</span><span class="k">)</span><span class="w"> </span>index<span class="w"> </span><span class="mi">0</span><span class="o">:</span><span class="mi">9</span>
+</pre></div>
+</div>
+<p>The default is <code class="docutils literal notranslate"><span class="pre">-literal</span> <span class="pre">false</span></code>. An exact existing vector name takes precedence even without this option.
+The special name <code class="docutils literal notranslate"><span class="pre">#auto</span></code> still requests an automatically generated name.
+Numeric suffixes begin with a digit, sign or colon (ignoring leading whitespace); invalid numeric sizes
+and ranges remain errors. <code class="docutils literal notranslate"><span class="pre">-literal</span> <span class="pre">true</span></code> disables suffix interpretation for every supplied name.</p>
+<p>Names containing parentheses do not receive an automatic Tcl array mapping, for either numeric type.
+Tcl interprets <code class="docutils literal notranslate"><span class="pre">$v(out)(1:2)</span></code> as array element <code class="docutils literal notranslate"><span class="pre">v(out)</span></code> followed by literal text <code class="docutils literal notranslate"><span class="pre">(1:2)</span></code>, not as an element
+of an array named <code class="docutils literal notranslate"><span class="pre">v(out)</span></code>. Use the vector command, or request a separate array name:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>v<span class="k">(</span><span class="nv">out</span><span class="k">)</span><span class="w"> </span><span class="o">-</span>variable<span class="w"> </span>outValues
+<span class="nv">v</span><span class="k">(</span><span class="nv">out</span><span class="k">)</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<span class="k">set</span><span class="w"> </span>samples<span class="w"> </span><span class="nv">$outValues</span><span class="k">(</span><span class="nv">0</span><span class="o">:</span><span class="mi">2</span><span class="k">)</span>
+</pre></div>
+</div>
+<p>Explicit mapped array names must not contain parentheses. <code class="docutils literal notranslate"><span class="pre">-variable</span> <span class="pre">{}</span></code> disables mapping. This rule also
+applies to <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">VECINST variable</span></a>; a rejected name leaves an existing mapping intact.</p>
+<p>In vector expressions, known mathematical function calls retain precedence. If a vector is named <code class="docutils literal notranslate"><span class="pre">sin(x)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sin(x)</span></code> still calls the function, while <code class="docutils literal notranslate"><span class="pre">{sin(x)}</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sin(x)&quot;</span></code> inside the expression denotes the vector:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">selected</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{{</span><span class="nv">sin</span><span class="k">(</span><span class="nv">x</span><span class="k">)}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nv">1</span><span class="k">}</span>
+<span class="nv">selected</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{{</span><span class="nv">sin</span><span class="k">(</span><span class="nv">x</span><span class="k">)(</span><span class="nv">0</span><span class="o">:</span><span class="mi">2</span><span class="k">)}</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">2</span><span class="k">}</span>
+</pre></div>
+</div>
+<p>The outer braces delimit the Tcl expression argument; the inner braces quote a vector reference for RBC.
+This quoting is also useful for names beginning with digits, which otherwise start numeric expressions.</p>
+<p>Vector-producing instance operations such as <code class="docutils literal notranslate"><span class="pre">dup</span></code>, <code class="docutils literal notranslate"><span class="pre">normalize</span></code>, <code class="docutils literal notranslate"><span class="pre">populate</span></code> and <code class="docutils literal notranslate"><span class="pre">split</span></code> also accept literal
+destination names with parentheses and do not create automatic array mappings for them.</p>
+</section>
 <section id="vector-instances">
 <span id="r-rbc-vector-vector-instances"></span><span id="r-3a3arbc3a3avectorqzvector20instances"></span><h2>Vector instances<a class="headerlink" href="#vector-instances" title="Link to this heading">¶</a></h2>
 <p>The examples and command descriptions below use <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> to denote the Tcl command associated with an
@@ -202,6 +251,7 @@ individual vector.</p>
 <li><a class="reference internal" href="#vector-types">Vector types</a></li>
 <li><a class="reference internal" href="#graph-and-spline-integration">Graph and spline integration</a></li>
 <li><a class="reference internal" href="#vector-creation-forms">Vector creation forms</a></li>
+<li><a class="reference internal" href="#parentheses-in-vector-names">Parentheses in vector names</a></li>
 <li><a class="reference internal" href="#vector-instances">Vector instances</a></li>
 </ul>
 </li>
