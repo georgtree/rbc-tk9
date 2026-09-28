@@ -425,7 +425,8 @@ environment. The automated runner sets native as the option-database default to 
 Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
 build default: Cairo when enabled, native otherwise.
 
-Run the Tcl-only package-loading, public vector C API, literal-name and namespace tests without a display:
+Run the Tcl-only package-loading, public vector C API, literal-name, namespace, rename, and expression callback tests
+without a display:
 ```sh
 make test-vector
 ```

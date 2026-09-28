@@ -877,6 +877,77 @@ namespace eval ::rbc::VECINST {
 
         No implicit ordering of complex numbers is introduced for these operations.
 
+        ### Tcl callbacks with map
+        `map(commandPrefix, expression)` applies a Tcl command to each element of a vector expression and returns
+        a temporary vector of the same length. Its result can be used with the other expression functions and
+        operators, or assigned with [VECINST expr][::rbc::VECINST expr]. It does not create a named vector.
+
+        The command prefix is a nonempty Tcl list containing a command name and any fixed arguments. RBC appends
+        exactly one argument for the current element and invokes the command in the expression caller's Tcl frame.
+        A real input element is passed as a scalar. A complex input element is passed as one `{real imaginary}` list;
+        the callback is responsible for unpacking it.
+
+        ```tcl
+        package require rbc::vector
+        rbc::vector create x y
+        x set {1 2 3}
+
+        proc adjust {gain offset value} {
+            expr {$gain * $value + $offset}
+        }
+        y expr {map({adjust 2.0 0.5}, x) + 1}
+        # y contains 3.5 5.5 7.5
+        ```
+
+        The first argument can be a bare command name, a braced or quoted prefix, a Tcl variable, or a bracketed
+        command substitution. Prefix substitutions are evaluated once per `map` call. Use braces to protect fixed
+        arguments containing commas, spaces, or parentheses. The prefix is a list, not a script; its elements are
+        passed directly as command arguments without concatenation or another round of substitution.
+
+        ```tcl
+        set callback [list adjust 2.0 0.5]
+        rbc::vector expr {map($callback, x)}
+        rbc::vector expr {map([list adjust 2.0 0.5], x + 1)}
+        rbc::vector expr {map({apply {{value} {expr {$value * $value}}}}, x)}
+        ```
+
+        A callback must return a real number or a two-element list of real numbers representing a complex value.
+        If every result is scalar, the result vector is real, even when the input is complex. If any result is a pair
+        (including a pair with zero imaginary part), the result vector is complex; scalar results are promoted with
+        zero imaginary part. Empty input invokes no callbacks and returns an empty real vector. Callback results
+        are converted to double precision; arbitrary expression strings, nonnumeric values, NaN, and infinities are
+        rejected. A real destination still cannot store a complex expression result.
+
+        ```tcl
+        rbc::vector create z -type complex
+        z set {{3 4} {5 -12}}
+        proc conjugate {value} {
+            lassign $value re im
+            list $re [expr {-$im}]
+        }
+        rbc::vector expr {map(conjugate, z)}
+        # -> {3.0 -4.0} {5.0 12.0}
+        rbc::vector expr {map({apply {{value} {
+            lassign $value re im
+            expr {hypot($re, $im)}
+        }}}, z)}
+        # -> 5.0 13.0
+        ```
+
+        Callbacks run in element order, starting at zero within the evaluated input (also for slices). An error stops
+        iteration. Tcl callback errors retain their message and error code, with the element index added to the error
+        stack. Invalid values and unexpected Tcl completion codes are errors too. Expression assignment occurs only
+        after successful evaluation; callback side effects are not rolled back on failure.
+
+        The input expression is copied before callbacks start. Changing or destroying a source vector therefore does
+        not change those captured input values. If a callback destroys the assignment destination, evaluation reports
+        an error instead of assigning to a stale vector or a same-name replacement. Renaming the destination with
+        `rbc::vector rename` retains its identity and permits the assignment to complete.
+
+        `map` invokes Tcl once per element and is intended for custom transformations and convenience. Built-in
+        mathematical functions are faster for operations they already support. As with other function names, a vector
+        literally named `map(x)` must be quoted as `{map(x)}` or `"map(x)"` when used as an expression operand.
+
         ### Expression results
         The result of `vector expr` is returned to the caller. Complex values are returned as `{real imag}` pairs:
         ```tcl

@@ -1,0 +1,235 @@
+# Tcl callbacks inside vector expressions. No Tk/display required.
+package require rbc::vector
+package require tcltest
+namespace import ::tcltest::*
+
+proc MapTest {script} {
+    namespace eval ::mapTest {}
+    try { namespace eval ::mapTest $script } finally {
+        foreach v [::rbc::vector names ::mapTest::*] { catch {::rbc::vector destroy $v} }
+        namespace delete ::mapTest
+    }
+}
+
+test vectorMap-1 {command prefix and arithmetic around a full expression argument} -body {
+    MapTest {
+        rbc::vector create x y
+        x set {1 2 3}
+        proc adjust {gain offset value} { expr {$gain * $value + $offset} }
+        y expr {map({adjust 2 0.5}, x + 1) * 2}
+        list [y range 0 end] [x range 0 end]
+    }
+} -result {{9.0 13.0 17.0} {1.0 2.0 3.0}}
+
+test vectorMap-2 {bare and quoted prefixes resolve commands and variables in the caller frame} -body {
+    MapTest {
+        proc scale {gain value} { expr {$gain * $value} }
+        proc twice {value} { expr {2 * $value} }
+        proc evaluate {} {
+            set gain 3
+            list [rbc::vector expr {map(twice, 2)}] [rbc::vector expr {map("scale $gain", 2)}]
+        }
+        evaluate
+    }
+} -result {4.0 6.0}
+
+test vectorMap-3 {variable and bracket prefixes; bracket script runs only once} -body {
+    MapTest {
+        rbc::vector create x
+        x set {1 2 3}
+        set prefix {apply {{value} {expr {$value + 1}}}}
+        set calls 0
+        list [rbc::vector expr {map($prefix, x)}] \
+            [rbc::vector expr {map([incr calls; set prefix], x)}] $calls
+    }
+} -result {{2.0 3.0 4.0} {2.0 3.0 4.0} 1}
+
+test vectorMap-4 {complex input is one pair argument, complex output composes with native functions} -body {
+    MapTest {
+        rbc::vector create z -type complex
+        z set {{3 4} {5 -12}}
+        proc conjugate {value} {
+            lassign $value re im
+            list $re [expr {-$im}]
+        }
+        list [rbc::vector expr {map(conjugate, z)}] [rbc::vector expr {abs(map(conjugate, z))}]
+    }
+} -result {{{3.0 -4.0} {5.0 12.0}} {5.0 13.0}}
+
+test vectorMap-5 {complex to real output can be assigned to a real vector} -body {
+    MapTest {
+        rbc::vector create z -type complex
+        rbc::vector create out
+        z set {{3 4} {5 12}}
+        out expr {map({apply {{value} {lassign $value re im; expr {hypot($re, $im)}}}}, z)}
+        list [out type] [out range 0 end]
+    }
+} -result {real {5.0 13.0}}
+
+test vectorMap-6 {mixed return types promote earlier and later scalars, even with zero imaginary part} -body {
+    MapTest {
+        rbc::vector create x
+        x set {1 2 3}
+        proc mixed {value} {
+            if {$value == 2} { return [list $value 0] }
+            return $value
+        }
+        rbc::vector expr {map(mixed, x)}
+    }
+} -result {{1.0 0.0} {2.0 0.0} {3.0 0.0}}
+
+test vectorMap-7 {nested map, slices, and literal parenthesis names} -body {
+    MapTest {
+        rbc::vector create v(1) -literal true
+        v(1) set {1 2 3 4}
+        proc twice {value} { expr {2 * $value} }
+        rbc::vector expr {map(twice, map(twice, v(1)(1:2)))}
+    }
+} -result {8.0 12.0}
+
+test vectorMap-8 {empty input invokes no callback and produces an empty real result} -body {
+    MapTest {
+        rbc::vector create z -type complex
+        rbc::vector create out
+        out set {9}
+        out expr {map(nonexistentCommand, z)}
+        list [out type] [out length]
+    }
+} -result {real 0}
+
+test vectorMap-9 {invalid callback results fail at the element and leave destination unchanged} -body {
+    MapTest {
+        rbc::vector create x out
+        x set {1 2 3}
+        out set {9 8}
+        set calls 0
+        proc invalid {value} {
+            variable calls
+            incr calls
+            if {$value == 2} { return {not a number} }
+            return $value
+        }
+        set code [catch {out expr {map(invalid, x)}} message options]
+        list $code $message [dict get $options -errorcode] [out range 0 end] $calls
+    }
+} -result {1 {map callback must return a number or {real imag} pair at element 1} {RBC VECTOR MAP VALUE} {9.0 8.0} 2}
+
+test vectorMap-10 {callback Tcl error details survive with the element index} -body {
+    MapTest {
+        proc fail {value} { return -code error -errorcode {CUSTOM CALLBACK} {callback failed} }
+        catch {rbc::vector expr {map(fail, 1)}} message options
+        list $message [dict get $options -errorcode] \
+            [string match {*vector map callback at element 0*} [dict get $options -errorinfo]]
+    }
+} -result {{callback failed} {CUSTOM CALLBACK} 1}
+
+test vectorMap-11 {non-numeric expressions and non-finite components are not accepted as numbers} -body {
+    MapTest {
+        set result {}
+        foreach value {{1+2} {2 bad} {1 2 3} {} Inf {1 Inf}} {
+            set prefix [list apply {{result ignored} {return $result}} $value]
+            lappend result [catch {rbc::vector expr {map($prefix, 1)}}]
+        }
+        set result
+    }
+} -result {1 1 1 1 1 1}
+
+test vectorMap-12 {complex result rejected by real destination without partial assignment} -body {
+    MapTest {
+        rbc::vector create out
+        out set {9}
+        set code [catch {out expr {map({apply {{x} {list $x 1}}}, 2)}} message]
+        list $code $message [out range 0 end]
+    }
+} -result {1 {can't store complex expression result in real vector} 9.0}
+
+test vectorMap-13 {source deletion and replacement do not change captured input} -body {
+    MapTest {
+        rbc::vector create x
+        x set {1 2 3}
+        proc replaceSource {value} {
+            rbc::vector destroy x
+            rbc::vector create x
+            x set {99}
+            return $value
+        }
+        list [rbc::vector expr {map(replaceSource, x)}] [x range 0 end]
+    }
+} -result {{1.0 2.0 3.0} 99.0}
+
+test vectorMap-14 {destination destruction and same-name recreation do not use stale storage} -body {
+    MapTest {
+        rbc::vector create out
+        proc replaceDestination {value} {
+            rbc::vector destroy out
+            rbc::vector create out
+            out set {99}
+            return $value
+        }
+        set code [catch {out expr {map(replaceDestination, 2)}} message]
+        list $code $message [out range 0 end]
+    }
+} -result {1 {expression destination vector was destroyed} 99.0}
+
+test vectorMap-15 {destination rename preserves the C entity during evaluation} -body {
+    MapTest {
+        rbc::vector create out -variable {}
+        proc moveDestination {value} {
+            rbc::vector rename out moved
+            return $value
+        }
+        out expr {map(moveDestination, 2)}
+        moved range 0 end
+    }
+} -result 2.0
+
+test vectorMap-16 {recursive expressions use independent temporaries and destination guards} -body {
+    MapTest {
+        rbc::vector create x
+        x set {1 2 3}
+        proc recursive {value} {
+            x expr {x + 10}
+            rbc::vector expr {map({apply {{v} {expr {$v * 2}}}}, $value)}
+        }
+        x expr {map(recursive, x)}
+        x range 0 end
+    }
+} -result {2.0 4.0 6.0}
+
+test vectorMap-17 {prefix argument boundaries are retained; no script concatenation} -body {
+    MapTest {
+        proc check {text value} { expr {$text eq {a; error unsafe} ? $value : 0} }
+        rbc::vector expr {map({check {a; error unsafe}}, 3)}
+    }
+} -result 3.0
+
+test vectorMap-18 {malformed map syntax and empty or malformed list prefixes are rejected} -body {
+    MapTest {
+        set result {}
+        set bad [format %c 123]
+        foreach expression [list {map()} {map({}, 1)} {map(foo)} {map(foo,)} \
+            {map(foo, 1, 2)} {map(foo, 1} {map($bad, 1)} {map([list foo, 1)}] {
+            lappend result [catch {rbc::vector expr $expression}]
+        }
+        set result
+    }
+} -result {1 1 1 1 1 1 1 1}
+
+test vectorMap-19 {unexpected callback completion codes are errors} -body {
+    MapTest {
+        proc stop {value} { return -code break }
+        catch {rbc::vector expr {map(stop, 1)}} message options
+        list $message [dict get $options -errorcode]
+    }
+} -result {{map callback returned Tcl completion code 3} {RBC VECTOR MAP COMPLETION}}
+
+test vectorMap-20 {a literal vector named map(x) can still be quoted} -body {
+    MapTest {
+        rbc::vector create map(x) -literal true
+        map(x) set {1 2}
+        rbc::vector expr {{map(x)} + 1}
+    }
+} -result {2.0 3.0}
+
+rename MapTest {}
+cleanupTests

@@ -2187,7 +2187,8 @@ static double Round(double value) {
  *      desired form then an error is returned.
  *
  * Side effects:
- *      None.
+ *      Tcl substitutions and map callbacks may have arbitrary side effects.
+ *      A deleted destination is detected before committing the result.
  *
  *--------------------------------------------------------------
  */
@@ -2217,15 +2218,36 @@ static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, Vecto
     return TCL_ERROR;
 }
 
+/*
+ * ExpressionDestinationChanged -- Record destruction while Tcl substitutions or map callbacks run.
+ * The vector frees this client after the destroy notification; the stack flag outlives the callback.
+ */
+static void ExpressionDestinationChanged(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
+    (void)interp;
+    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
+        *(int *)clientData = TRUE;
+    }
+}
+
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     VectorInterpData *dataPtr;
     VectorObject *vPtr;
     Value value;
     int result;
+    int destroyed = FALSE;
+    VectorClient *clientPtr = NULL;
 
     vPtr = (VectorObject *)vecPtr;
     dataPtr = (vecPtr != NULL) ? vPtr->dataPtr : Rbc_VectorGetInterpData(interp);
     value.vPtr = Rbc_VectorNew(dataPtr);
+    if (vPtr != NULL) {
+        clientPtr = RbcCalloc(1, sizeof(VectorClient));
+        clientPtr->magic = VECTOR_MAGIC;
+        clientPtr->serverPtr = vPtr;
+        clientPtr->proc = ExpressionDestinationChanged;
+        clientPtr->clientData = &destroyed;
+        clientPtr->linkPtr = Rbc_ChainAppend(vPtr->chainPtr, clientPtr);
+    }
     result = EvaluateExpression(interp, string, &value);
     if (result != TCL_OK) {
         goto done;
@@ -2235,6 +2257,11 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
          * Propagate an allocation/size failure instead of silently
          * reporting a successful vector expression.
          */
+        if (destroyed) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("expression destination vector was destroyed", -1));
+            result = TCL_ERROR;
+            goto done;
+        }
         result = CopyExpressionResult(interp, vPtr, value.vPtr);
         if (result != TCL_OK) {
             goto done;
@@ -2252,6 +2279,9 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     result = TCL_OK;
 
 done:
+    if ((clientPtr != NULL) && !destroyed) {
+        Rbc_FreeVectorId((Rbc_VectorId)clientPtr);
+    }
     Rbc_VectorFree(value.vPtr);
     return result;
 }
@@ -2851,7 +2881,7 @@ static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
     return result;
 }
 
-static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
+static int ParseBracketScript(Tcl_Interp *interp, const char *string, const char **termPtr) {
     Tcl_Parse parse;
     const char *scanPtr;
     const char *commandEnd;
@@ -2886,7 +2916,11 @@ static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char 
     }
     *termPtr = closePtr + 1;
     scriptLength = (Tcl_Size)(closePtr - string);
-    result = Tcl_EvalEx(interp, string, scriptLength, 0);
+    return Tcl_EvalEx(interp, string, scriptLength, 0);
+}
+
+static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
+    int result = ParseBracketScript(interp, string, termPtr);
     if (result != TCL_OK) {
         return result;
     }
@@ -3262,6 +3296,211 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
 /*
  *----------------------------------------------------------------------
  *
+ * ParseMapPrefix -- Parse one Tcl command prefix without numeric conversion.
+ * Braces, quotes, a variable, or a bracketed script yield one list value.
+ * A bare command name ends at whitespace, a comma, or a parenthesis.
+ * Returns a retained object on success. Substitutions run once, in the caller's frame.
+ *
+ *----------------------------------------------------------------------
+ */
+static Tcl_Obj *ParseMapPrefix(Tcl_Interp *interp, const char **nextPtr) {
+    const char *p = *nextPtr, *endPtr;
+    Tcl_Obj *prefix;
+    Tcl_Parse parse;
+    int result;
+
+    while (isspace(UCHAR(*p))) {
+        p++;
+    }
+    if ((*p == '{') || (*p == '"')) {
+        result = (*p == '{') ? Tcl_ParseBraces(interp, p, -1, &parse, 0, &endPtr)
+                             : Tcl_ParseQuotedString(interp, p, -1, &parse, 0, &endPtr);
+        if (result == TCL_OK) {
+            result = Tcl_EvalTokensStandard(interp, parse.tokenPtr, parse.numTokens);
+        }
+        Tcl_FreeParse(&parse);
+        if (result != TCL_OK) {
+            return NULL;
+        }
+        prefix = Tcl_GetObjResult(interp);
+    } else if (*p == '$') {
+        const char *text = Tcl_ParseVar(interp, p, &endPtr);
+        if (text == NULL) {
+            return NULL;
+        }
+        prefix = Tcl_NewStringObj(text, -1);
+    } else if (*p == '[') {
+        if (ParseBracketScript(interp, p + 1, &endPtr) != TCL_OK) {
+            return NULL;
+        }
+        prefix = Tcl_GetObjResult(interp);
+    } else {
+        endPtr = p;
+        while (*endPtr && !isspace(UCHAR(*endPtr)) && (*endPtr != ',') && (*endPtr != '(') && (*endPtr != ')')) {
+            endPtr++;
+        }
+        prefix = Tcl_NewStringObj(p, endPtr - p);
+    }
+    Tcl_IncrRefCount(prefix);
+    *nextPtr = endPtr;
+    return prefix;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * MapVector -- Apply a Tcl command prefix to every element of an expression temporary.
+ * The input is already detached from named vectors. Results use separate real storage,
+ * promoted to complex if any callback returns a pair. Callback errors retain their Tcl
+ * error details with a zero-based element index added to the error stack. No named vector
+ * is written here; the outer expression commits only after successful evaluation.
+ *
+ *----------------------------------------------------------------------
+ */
+static int MapVector(Tcl_Interp *interp, Tcl_Obj *prefix, VectorObject *vPtr) {
+    Tcl_Obj **prefixObjv, **objv;
+    Tcl_Size objc, i, j;
+    VectorObject *resultPtr;
+    int result = TCL_ERROR;
+
+    if (Tcl_ListObjGetElements(interp, prefix, &objc, &prefixObjv) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (objc == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("map command prefix must not be empty", -1));
+        return TCL_ERROR;
+    }
+    if ((size_t)objc >= SIZE_MAX / sizeof(Tcl_Obj *)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("map command prefix is too large", -1));
+        return TCL_ERROR;
+    }
+    objv = Tcl_AttemptAlloc(((size_t)objc + 1) * sizeof(Tcl_Obj *));
+    if (objv == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate map command arguments", -1));
+        return TCL_ERROR;
+    }
+    /* Keep our own references: recursive Tcl evaluation can shimmer the prefix object. */
+    for (j = 0; j < objc; j++) {
+        objv[j] = prefixObjv[j];
+        Tcl_IncrRefCount(objv[j]);
+    }
+    resultPtr = Rbc_VectorNew(vPtr->dataPtr);
+    if (Rbc_VectorChangeLength(resultPtr, vPtr->length) != TCL_OK) {
+        goto done;
+    }
+    /* Promotion copies the whole allocation, including elements not visited yet. */
+    for (i = 0; i < resultPtr->length; i++) {
+        resultPtr->data.real[i] = 0.0;
+    }
+    for (i = 0; i < vPtr->length; i++) {
+        Tcl_Obj *value, **parts;
+        Tcl_Size count;
+        Rbc_Complex number;
+        int pair = FALSE;
+        int code;
+
+        objv[objc] = Rbc_NewVectorValueObj(vPtr, i);
+        Tcl_IncrRefCount(objv[objc]);
+        code = Tcl_EvalObjv(interp, objc + 1, objv, 0);
+        Tcl_DecrRefCount(objv[objc]);
+        if (code != TCL_OK) {
+            if (code != TCL_ERROR) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("map callback returned Tcl completion code %d", code));
+                Tcl_SetErrorCode(interp, "RBC", "VECTOR", "MAP", "COMPLETION", NULL);
+            }
+            goto elementError;
+        }
+        value = Tcl_GetObjResult(interp);
+        number.imag = 0.0;
+        if (Tcl_GetDoubleFromObj(NULL, value, &number.real) != TCL_OK) {
+            if ((Tcl_ListObjGetElements(NULL, value, &count, &parts) != TCL_OK) || (count != 2) ||
+                (Tcl_GetDoubleFromObj(NULL, parts[0], &number.real) != TCL_OK) ||
+                (Tcl_GetDoubleFromObj(NULL, parts[1], &number.imag) != TCL_OK)) {
+                Tcl_SetObjResult(
+                    interp,
+                    Tcl_ObjPrintf(
+                        "map callback must return a number or {real imag} pair at element %" TCL_SIZE_MODIFIER "d", i));
+                Tcl_SetErrorCode(interp, "RBC", "VECTOR", "MAP", "VALUE", NULL);
+                goto elementError;
+            }
+            pair = TRUE;
+        }
+        if (!ComplexValueIsFinite(number)) {
+            Tcl_SetObjResult(
+                interp,
+                Tcl_ObjPrintf("map callback returned a non-finite number at element %" TCL_SIZE_MODIFIER "d", i));
+            Tcl_SetErrorCode(interp, "RBC", "VECTOR", "MAP", "VALUE", NULL);
+            goto elementError;
+        }
+        if (pair && (PromoteExpressionVectorToComplex(resultPtr) != TCL_OK)) {
+            goto elementError;
+        }
+        if (resultPtr->type == RBC_VECTOR_COMPLEX) {
+            resultPtr->data.complex[i] = number;
+        } else {
+            resultPtr->data.real[i] = number.real;
+        }
+        continue;
+
+    elementError:
+        Tcl_AppendObjToErrorInfo(interp,
+                                 Tcl_ObjPrintf("\n    (vector map callback at element %" TCL_SIZE_MODIFIER "d)", i));
+        goto done;
+    }
+    result = CopyExpressionVector(vPtr, resultPtr);
+    if (result == TCL_OK) {
+        Tcl_ResetResult(interp);
+    }
+
+done:
+    Rbc_VectorFree(resultPtr);
+    for (j = 0; j < objc; j++) {
+        Tcl_DecrRefCount(objv[j]);
+    }
+    Tcl_Free(objv);
+    return result;
+}
+
+/*
+ * ParseMapFunction -- Parse map(commandPrefix, expression), then evaluate the callbacks.
+ * The comma and closing parenthesis are mandatory; the second argument is a full vector expression.
+ */
+static int ParseMapFunction(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
+    const char *p = parsePtr->nextPtr;
+    Tcl_Obj *prefix = ParseMapPrefix(interp, &p);
+    int result = TCL_ERROR;
+
+    if (prefix == NULL) {
+        return TCL_ERROR;
+    }
+    while (isspace(UCHAR(*p))) {
+        p++;
+    }
+    if (*p != ',') {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("expected map(commandPrefix, expression)", -1));
+        goto done;
+    }
+    parsePtr->nextPtr = (char *)p + 1;
+    if (NextValue(interp, parsePtr, -1, valuePtr) != TCL_OK) {
+        goto done;
+    }
+    if (parsePtr->token != CLOSE_PAREN) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("expected closing parenthesis after map expression", -1));
+        goto done;
+    }
+    result = MapVector(interp, prefix, valuePtr->vPtr);
+    if (result == TCL_OK) {
+        parsePtr->token = VALUE;
+    }
+
+done:
+    Tcl_DecrRefCount(prefix);
+    return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * ParseMathFunction --
  *
  *      This procedure is invoked to parse a math function from an
@@ -3312,6 +3551,10 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
     }
     if (*p != '(') {
         return TCL_RETURN; /* Must start with open parenthesis */
+    }
+    if (((p - parsePtr->nextPtr) == 3) && (strncmp(parsePtr->nextPtr, "map", 3) == 0)) {
+        parsePtr->nextPtr = p + 1;
+        return ParseMapFunction(interp, parsePtr, valuePtr);
     }
     dataPtr = valuePtr->vPtr->dataPtr;
     *p = '\0';

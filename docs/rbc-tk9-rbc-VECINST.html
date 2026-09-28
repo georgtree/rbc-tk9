@@ -643,6 +643,69 @@ generated independently in the range <code class="docutils literal notranslate">
 <p>No implicit ordering of complex numbers is introduced for these operations.</p>
 </section>
 </section>
+<section id="tcl-callbacks-with-map">
+<span id="r-rbc-vecinst-tcl-callbacks-with-map"></span><span id="r-3a3arbc3a3avecinstqztcl20callbacks20with20map"></span><h3>Tcl callbacks with map<a class="headerlink" href="#tcl-callbacks-with-map" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">map(commandPrefix,</span> <span class="pre">expression)</span></code> applies a Tcl command to each element of a vector expression and returns
+a temporary vector of the same length. Its result can be used with the other expression functions and
+operators, or assigned with <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst20expr"><span class="std std-ref">VECINST expr</span></a>. It does not create a named vector.</p>
+<p>The command prefix is a nonempty Tcl list containing a command name and any fixed arguments. RBC appends
+exactly one argument for the current element and invokes the command in the expression caller’s Tcl frame.
+A real input element is passed as a scalar. A complex input element is passed as one <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imaginary}</span></code> list;
+the callback is responsible for unpacking it.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::vector
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x<span class="w"> </span>y
+<span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+
+<span class="k">proc</span><span class="w"> </span>adjust<span class="w"> </span><span class="k">{</span><span class="nv">gain</span><span class="w"> </span>offset<span class="w"> </span>value<span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="k">expr</span><span class="w"> </span><span class="k">{</span><span class="nv">$gain</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">$value</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nv">$offset</span><span class="k">}</span>
+<span class="k">}</span>
+<span class="nv">y</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">({</span><span class="nv">adjust</span><span class="w"> </span><span class="mf">2.0</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span>,<span class="w"> </span><span class="nv">x</span><span class="k">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
+<span class="c"># y contains 3.5 5.5 7.5</span>
+</pre></div>
+</div>
+<p>The first argument can be a bare command name, a braced or quoted prefix, a Tcl variable, or a bracketed
+command substitution. Prefix substitutions are evaluated once per <code class="docutils literal notranslate"><span class="pre">map</span></code> call. Use braces to protect fixed
+arguments containing commas, spaces, or parentheses. The prefix is a list, not a script; its elements are
+passed directly as command arguments without concatenation or another round of substitution.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>callback<span class="w"> </span><span class="k">[</span><span class="nb">list</span><span class="w"> </span>adjust<span class="w"> </span><span class="mf">2.0</span><span class="w"> </span><span class="mf">0.5</span><span class="k">]</span>
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">(</span><span class="nv">$callback</span>,<span class="w"> </span><span class="nv">x</span><span class="k">)}</span>
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">([</span><span class="nb">list</span><span class="w"> </span>adjust<span class="w"> </span><span class="mf">2.0</span><span class="w"> </span><span class="mf">0.5</span><span class="k">]</span>,<span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="k">)}</span>
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">({apply</span><span class="w"> </span><span class="k">{{</span><span class="nv">value</span><span class="k">}</span><span class="w"> </span><span class="k">{expr</span><span class="w"> </span><span class="k">{</span><span class="nv">$value</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nv">$value</span><span class="k">}}}}</span>,<span class="w"> </span><span class="nv">x</span><span class="k">)}</span>
+</pre></div>
+</div>
+<p>A callback must return a real number or a two-element list of real numbers representing a complex value.
+If every result is scalar, the result vector is real, even when the input is complex. If any result is a pair
+(including a pair with zero imaginary part), the result vector is complex; scalar results are promoted with
+zero imaginary part. Empty input invokes no callbacks and returns an empty real vector. Callback results
+are converted to double precision; arbitrary expression strings, nonnumeric values, NaN, and infinities are
+rejected. A real destination still cannot store a complex expression result.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">z</span><span class="w"> </span>set<span class="w"> </span><span class="k">{{</span><span class="nv">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span><span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="o">-</span><span class="mi">12</span><span class="k">}}</span>
+<span class="k">proc</span><span class="w"> </span>conjugate<span class="w"> </span><span class="k">{</span><span class="nv">value</span><span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">lassign</span><span class="w"> </span><span class="nv">$value</span><span class="w"> </span>re<span class="w"> </span>im
+<span class="w">    </span><span class="nb">list</span><span class="w"> </span><span class="nv">$re</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">-$im</span><span class="k">}]</span>
+<span class="k">}</span>
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">(</span><span class="nv">conjugate</span>,<span class="w"> </span>z<span class="k">)}</span>
+<span class="c"># -&gt; {3.0 -4.0} {5.0 12.0}</span>
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">map</span><span class="k">({apply</span><span class="w"> </span><span class="k">{{</span><span class="nv">value</span><span class="k">}</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">lassign</span><span class="w"> </span><span class="nv">$value</span><span class="w"> </span>re<span class="w"> </span>im
+<span class="w">    </span><span class="k">expr</span><span class="w"> </span><span class="k">{</span><span class="nv">hypot</span><span class="k">(</span><span class="nv">$re</span>,<span class="w"> </span><span class="nv">$im</span><span class="k">)}</span>
+<span class="k">}}}</span>,<span class="w"> </span><span class="nv">z</span><span class="k">)}</span>
+<span class="c"># -&gt; 5.0 13.0</span>
+</pre></div>
+</div>
+<p>Callbacks run in element order, starting at zero within the evaluated input (also for slices). An error stops
+iteration. Tcl callback errors retain their message and error code, with the element index added to the error
+stack. Invalid values and unexpected Tcl completion codes are errors too. Expression assignment occurs only
+after successful evaluation; callback side effects are not rolled back on failure.</p>
+<p>The input expression is copied before callbacks start. Changing or destroying a source vector therefore does
+not change those captured input values. If a callback destroys the assignment destination, evaluation reports
+an error instead of assigning to a stale vector or a same-name replacement. Renaming the destination with
+<code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">rename</span></code> retains its identity and permits the assignment to complete.</p>
+<p><code class="docutils literal notranslate"><span class="pre">map</span></code> invokes Tcl once per element and is intended for custom transformations and convenience. Built-in
+mathematical functions are faster for operations they already support. As with other function names, a vector
+literally named <code class="docutils literal notranslate"><span class="pre">map(x)</span></code> must be quoted as <code class="docutils literal notranslate"><span class="pre">{map(x)}</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;map(x)&quot;</span></code> when used as an expression operand.</p>
+</section>
 <section id="expression-results">
 <span id="r-rbc-vecinst-expression-results"></span><span id="r-3a3arbc3a3avecinstqzexpression20results"></span><h3>Expression results<a class="headerlink" href="#expression-results" title="Link to this heading">¶</a></h3>
 <p>The result of <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code> is returned to the caller. Complex values are returned as <code class="docutils literal notranslate"><span class="pre">{real</span> <span class="pre">imag}</span></code> pairs:</p>
@@ -1143,6 +1206,7 @@ interface and are intentionally not documented here.</p>
 <li><a class="reference internal" href="#mathematical-functions-on-complex-vectors">Mathematical functions on complex vectors</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#tcl-callbacks-with-map">Tcl callbacks with map</a></li>
 <li><a class="reference internal" href="#expression-results">Expression results</a></li>
 </ul>
 </li>
