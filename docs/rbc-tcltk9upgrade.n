@@ -45,6 +45,13 @@ package require rbc loads the native widgets without loading argparse or the too
 ::rbc::graphtoolbar now need package require rbc::graphtoolbar, before any namespace import ::rbc::*\&.
 The toolbar package requires the matching Rbc version and loads argparse\&. Repeated requires preserve existing
 widgets\&. Toolbar demos, tests, and documentation generation load this optional package explicitly\&.
+.SS "BACKWARD-COMPATIBLE GRAPH HELPERS"
+.PP
+The historical graph\&.tcl helpers are available again after package require rbc, without requiring argparse\&.
+Existing calls such as Rbc_ZoomStack \&.g and Rbc_Crosshairs \&.g work on native graphs\&. These helpers are retained
+for backward compatibility; new applications should prefer rbc::graphtoolbar\&. Using both interaction systems
+on the same graph is not recommended\&. Pending callbacks and helper state are cleaned up on widget destruction\&.
+See \fIGRAPHINST\fP for the complete legacy command list and reserved binding/marker names\&.
 .SS "X AND Y ERROR BANDS FOR LINES AND STRIPS"
 .PP
 Cartesian line and strip elements support -errorband x|y, filling between symmetric -xerror or

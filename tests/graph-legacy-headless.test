@@ -1,0 +1,170 @@
+# Lifecycle logic can be checked without Tk. GUI/API integration is in graph-legacy.test.
+package require tcltest
+namespace import ::tcltest::*
+namespace eval ::legacyHeadlessTest {
+    variable sourceFile [file normalize [file join [file dirname [info script]] .. library graph.tcl]]
+    proc New {} {
+        variable sourceFile
+        interp create legacyChild
+        interp eval legacyChild [list source $sourceFile]
+        interp eval legacyChild {
+            set tags {}
+            set exists 1
+            array set bindings {}
+            proc winfo {op path} {
+                return $::exists
+            }
+            proc bindtags {path args} {
+                if {[llength $args]} {
+                    set ::tags [lindex $args 0]
+                }
+                return $::tags
+            }
+            proc bind {tag args} {
+                if {![llength $args]} {
+                    set events {}
+                    foreach key [array names ::bindings] {
+                        if {[lindex $key 0] eq $tag} {
+                            lappend events [lindex $key 1]
+                        }
+                    }
+                    return $events
+                }
+                set key [list $tag [lindex $args 0]]
+                if {[llength $args] == 2} {
+                    if {[lindex $args 1] eq {}} {
+                        unset -nocomplain ::bindings($key)
+                    } else {
+                        set ::bindings($key) [lindex $args 1]
+                    }
+                }
+                if {[info exists ::bindings($key)]} {
+                    return $::bindings($key)
+                }
+                return {}
+            }
+        }
+    }
+    proc Clean {} {
+        interp delete legacyChild
+    }
+
+    test graphLegacyHeadless-1 {script defines compatibility API without requiring Tk or argparse or setting options} \
+            -setup {New} -body {
+        interp eval legacyChild {
+            list [llength [info commands Rbc_*]] [package provide argparse] [package provide Tk]
+        }
+    } -cleanup {Clean} -result {8 {} {}}
+
+    test graphLegacyHeadless-2 {repeated attachment and job replacement do not duplicate work} -setup {New} -body {
+        interp eval legacyChild {
+            ::rbc::LegacyAttach .g
+            ::rbc::LegacyAttach .g
+            set old [::rbc::LegacySchedule .g title 10000 {error stale}]
+            set new [::rbc::LegacySchedule .g title 10000 {error pending}]
+            list [llength [bindtags .g]] [expr {$old ni [after info]}] [expr {$new in [after info]}]
+        }
+    } -cleanup {Clean} -result {1 1 1}
+
+    test graphLegacyHeadless-3 {destroy cancels jobs, clears exact widget state and leaves other widgets intact}\
+            -setup {New} -body {
+        interp eval legacyChild {
+            set g {.g[1]}
+            ::rbc::LegacyAttach $g
+            set id [::rbc::LegacySchedule $g marching 10000 {error stale}]
+            set ::rbc::zoomInfo($g,corner) B
+            set ::rbc::zoomInfo(.g1,corner) A
+            set ::rbc::psdata($g.width) 500
+            set ::rbc::psdata(.g1.width) 600
+            ::rbc::LegacyDestroy $g $g
+            list [expr {$id ni [after info]}] [array size ::rbc::legacyTimers] [array names ::rbc::zoomInfo]\
+                    [array names ::rbc::psdata] [bind legacy-rbc-$g]
+        }
+    } -cleanup {Clean} -result {1 0 .g1,corner .g1.width {}}
+
+    test graphLegacyHeadless-4 {child destruction does not clear parent graph or dialog state} -setup {New} -body {
+        interp eval legacyChild {
+            set id [::rbc::LegacySchedule .g title 10000 {error stale}]
+            set ::rbc::psdata(.g.width) 500
+            ::rbc::LegacyDestroy .g .g.child
+            ::rbc::LegacyDialogDestroyed .g .g.top .g.top.child
+            list [expr {$id in [after info]}] $::rbc::psdata(.g.width)
+        }
+    } -cleanup {Clean} -result {1 500}
+
+    test graphLegacyHeadless-5 {timer dispatch runs once and releases its bookkeeping} -setup {New} -body {
+        interp eval legacyChild {
+            set calls 0
+            ::rbc::LegacySchedule .g title 0 {incr ::calls}
+            after 10 {set ::finished 1}
+            vwait ::finished
+            list $calls [array size ::rbc::legacyTimers]
+        }
+    } -cleanup {Clean} -result {1 0}
+
+    test graphLegacyHeadless-6 {a vanished widget is not called by the timer dispatcher} -setup {New} -body {
+        interp eval legacyChild {
+            set calls 0
+            ::rbc::LegacySchedule .g title 0 {incr ::calls}
+            set exists 0
+            after 10 {set ::finished 1}
+            vwait ::finished
+            list $calls [array size ::rbc::legacyTimers]
+        }
+    } -cleanup {Clean} -result {0 0}
+
+    test graphLegacyHeadless-7 {removal restores oldest limits and cancels only zoom jobs} -setup {New} -body {
+        interp eval legacyChild {
+            proc .g {args} {
+                if {[lrange $args 0 1] eq {marker exists}} {
+                    return 0
+                }
+                lappend ::calls $args
+            }
+            set calls {}
+            ::rbc::ZoomStack .g
+            set ::rbc::zoomInfo(.g,stack) [list [list [list .g axis configure x -min 2 -max 8]]\
+                                                   [list [list .g axis configure x -min {} -max {}]]]
+            set ::rbc::zoomInfo(.g2,stack) keep
+            set marching [::rbc::LegacySchedule .g marching 10000 {error stale}]
+            set title [::rbc::LegacySchedule .g title 10000 {error stale}]
+            set other [::rbc::LegacySchedule .g {flash e} 10000 {error pending}]
+            bind select-region-.g <Motion> {error stale}
+            ::rbc::AddBindTag .g select-region-.g
+            Rbc_RemoveZoomStack .g
+            Rbc_RemoveZoomStack .g
+            list $calls [expr {$marching ni [after info] && $title ni [after info]}]\
+                    [expr {$other in [after info]}] $::rbc::zoomInfo(.g2,stack)\
+                    [info exists ::rbc::zoomInfo(.g,stack)] [bind zoom-.g] [bind select-region-.g] [bindtags .g]
+        }
+    } -cleanup {Clean} -result {{{axis configure x -min {} -max {}}} 1 1 keep 0 {} {} legacy-rbc-.g}
+
+    test graphLegacyHeadless-8 {repeated setup retains history and replaces old event bindings} -setup {New} -body {
+        interp eval legacyChild {
+            proc .g {args} {return 0}
+            ::rbc::ZoomStack .g
+            set ::rbc::zoomInfo(.g,stack) history
+            set ::rbc::zoomInfo(.g,corner) B
+            set id [::rbc::LegacySchedule .g marching 10000 {error stale}]
+            ::rbc::ZoomStack .g ButtonPress-2 ButtonPress-4
+            list $::rbc::zoomInfo(.g,stack) $::rbc::zoomInfo(.g,corner)\
+                    [expr {$id ni [after info]}] [lsort [bind zoom-.g]]
+        }
+    } -cleanup {Clean} -result {history A 1 {<ButtonPress-2> <ButtonPress-4>}}
+
+    test graphLegacyHeadless-9 {removal treats bracket characters literally and permits enabling again} -setup {New}\
+            -body {
+        interp eval legacyChild {
+            set g {.g[1]}
+            proc $g {args} {return 0}
+            ::rbc::ZoomStack $g
+            set ::rbc::zoomInfo(.g1,stack) keep
+            Rbc_RemoveZoomStack $g
+            set removed [expr {"zoom-$g" ni [bindtags $g]}]
+            Rbc_ZoomStack $g
+            list $removed $::rbc::zoomInfo(.g1,stack) $::rbc::zoomInfo($g,stack) [expr {"zoom-$g" in [bindtags $g]}]
+        }
+    } -cleanup {Clean} -result {1 keep {} 1}
+
+    cleanupTests
+}

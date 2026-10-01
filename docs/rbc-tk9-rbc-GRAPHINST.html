@@ -1059,10 +1059,51 @@ events unless an axis is configured or its effective limits change.</p>
 for mapping and layout updates, including resizing without changed numeric limits. Log/linear switching is
 always covered by <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisChanged&gt;&gt;</span></code>, but only generates <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcAxisLimitsChanged&gt;&gt;</span></code> if the resulting numeric
 bounds change. Logarithmic bounds are reported in data units, just as by <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">limits</span></code>.</p>
+</section>
+</section>
+<section id="legacy-graph-helpers-backward-compatibility">
+<span id="r-rbc-graphinst-legacy-graph-helpers-backward-compatibility"></span><span id="r-3a3arbc3a3agraphinstqzlegacy20graph20helpers2028backward20compatibility29"></span><h2>Legacy graph helpers (backward compatibility)<a class="headerlink" href="#legacy-graph-helpers-backward-compatibility" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> also loads <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code>, providing the historical global <code class="docutils literal notranslate"><span class="pre">Rbc_*</span></code> helper commands for
+existing applications. These are a backward-compatibility option, not the recommended interface for new
+applications. They use only Tcl/Tk and native RBC commands; they do not require argparse.
+<code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::vector</span></code> does not load them.</p>
+<p>For new interactive graph interfaces, prefer <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code>. <strong>Using the legacy helpers
+together with ``rbc::graphtoolbar`` is not recommended, especially on the toolbar’s embedded graph:</strong> both manage
+mouse/legend bindings, markers, and axis limits. Both packages can be loaded in one application, with each
+interaction system used on separate widgets.</p>
+<p>The following commands operate on an already-created native graph widget:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_ActiveLegend</span> <span class="pre">graph</span></code>: highlight legend entries on pointer entry; click to toggle element highlighting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_Crosshairs</span> <span class="pre">graph</span></code>: enable red crosshairs following pointer motion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetCrosshairs</span> <span class="pre">graph</span> <span class="pre">on|off</span></code>: enable or disable the legacy crosshair bindings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span> <span class="pre">graph</span></code>: select two corners with button 1 to zoom; button 3 cancels selection or restores the previous limits. Cartesian x/x2 and y/y2 axes are handled. This is not the toolbar’s polar/Smith control.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_RemoveZoomStack</span> <span class="pre">graph</span></code>: disable legacy zoom, cancel its timers and pending selection, and restore the axis limits saved before the first completed zoom (including automatic limits). Other legacy features and application markers remain active. Repeated removal is harmless; <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span></code> enables zoom again.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_ClosestPoint</span> <span class="pre">graph</span></code>: Control-button-2 displays and briefly flashes the closest data point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_PrintKey</span> <span class="pre">graph</span></code>: Shift-button-3 release opens the legacy PostScript dialog.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptDialog</span> <span class="pre">graph</span></code>: open that dialog directly. Print retains the historical behavior of writing <code class="docutils literal notranslate"><span class="pre">out.ps</span></code> in the current directory, replacing that file if it already exists. Reset rereads the graph’s current PostScript settings into the dialog. Cancel closes it.</p></li>
+</ul>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
+<span class="nv">rbc</span><span class="o">::</span>graph<span class="w"> </span>.g
+<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+<span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="k">}</span>
+<span class="nv">Rbc_ActiveLegend</span><span class="w"> </span>.g
+<span class="nv">Rbc_Crosshairs</span><span class="w"> </span>.g
+<span class="nv">Rbc_ZoomStack</span><span class="w"> </span>.g
+<span class="nv">Rbc_ClosestPoint</span><span class="w"> </span>.g
+<span class="nv">Rbc_PrintKey</span><span class="w"> </span>.g
+</pre></div>
+</div>
+<p>The helpers retain their global command names; no <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">import</span></code> is necessary. Loading the package only
+defines the helpers: it does not enable interactions or change global option-database defaults. Requiring the
+package again does not reset existing interaction state. Repeating <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span></code> preserves that graph’s
+completed zoom history and current axis limits, while cancelling an unfinished selection. Timers, private
+bindings, and per-widget state are cleared when the graph is destroyed.</p>
+<p>The helpers reserve marker names <code class="docutils literal notranslate"><span class="pre">zoomTitle</span></code>, <code class="docutils literal notranslate"><span class="pre">zoomOutline</span></code>, <code class="docutils literal notranslate"><span class="pre">zoomText_A</span></code>, <code class="docutils literal notranslate"><span class="pre">zoomText_B</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcClosest_*</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">line.rbcClosest_*</span></code>, and bindtags beginning with <code class="docutils literal notranslate"><span class="pre">legacy-rbc-</span></code>, <code class="docutils literal notranslate"><span class="pre">crosshairs-</span></code>, <code class="docutils literal notranslate"><span class="pre">zoom-</span></code>, <code class="docutils literal notranslate"><span class="pre">print-</span></code>,
+<code class="docutils literal notranslate"><span class="pre">closest-point-</span></code>, and <code class="docutils literal notranslate"><span class="pre">select-region-</span></code>. Their <code class="docutils literal notranslate"><span class="pre">rbc::*</span></code> implementation procedures and state arrays are private.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
-</section>
 </section>
 
 
@@ -1110,6 +1151,7 @@ bounds change. Logarithmic bounds are reported in data units, just as by <code c
 <li><a class="reference internal" href="#axis-event-delivery-and-data">Axis event delivery and data</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#legacy-graph-helpers-backward-compatibility">Legacy graph helpers (backward compatibility)</a></li>
 </ul>
 </li>
 </ul>

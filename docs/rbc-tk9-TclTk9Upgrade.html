@@ -86,6 +86,14 @@ without a graphical display. Binary dependencies remain required. See <a class="
 The toolbar package requires the matching Rbc version and loads argparse. Repeated requires preserve existing
 widgets. Toolbar demos, tests, and documentation generation load this optional package explicitly.</p>
 </section>
+<section id="backward-compatible-graph-helpers">
+<span id="r-tcltk9upgrade-backward-compatible-graph-helpers"></span><span id="r-3a3atcltk9upgradeqzbackward2dcompatible20graph20helpers"></span><h3>Backward-compatible graph helpers<a class="headerlink" href="#backward-compatible-graph-helpers" title="Link to this heading">¶</a></h3>
+<p>The historical <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code> helpers are available again after <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>, without requiring argparse.
+Existing calls such as <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span> <span class="pre">.g</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_Crosshairs</span> <span class="pre">.g</span></code> work on native graphs. These helpers are retained
+for backward compatibility; new applications should prefer <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code>. Using both interaction systems
+on the same graph is not recommended. Pending callbacks and helper state are cleaned up on widget destruction.
+See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-namespaceqz3a3arbc3a3agraphinst"><span class="std std-ref">GRAPHINST</span></a> for the complete legacy command list and reserved binding/marker names.</p>
+</section>
 <section id="x-and-y-error-bands-for-lines-and-strips">
 <span id="r-tcltk9upgrade-x-and-y-error-bands-for-lines-and-strips"></span><span id="r-3a3atcltk9upgradeqzx20and20y20error20bands20for20lines20and20strips"></span><h3>X and Y error bands for lines and strips<a class="headerlink" href="#x-and-y-error-bands-for-lines-and-strips" title="Link to this heading">¶</a></h3>
 <p>Cartesian line and strip elements support <code class="docutils literal notranslate"><span class="pre">-errorband</span> <span class="pre">x|y</span></code>, filling between symmetric <code class="docutils literal notranslate"><span class="pre">-xerror</span></code> or
@@ -797,6 +805,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>
 <li><a class="reference internal" href="#tcl-only-vector-loading">Tcl-only vector loading</a></li>
 <li><a class="reference internal" href="#optional-toolbar-package">Optional toolbar package</a></li>
+<li><a class="reference internal" href="#backward-compatible-graph-helpers">Backward-compatible graph helpers</a></li>
 <li><a class="reference internal" href="#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
 <li><a class="reference internal" href="#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
 <li><a class="reference internal" href="#msvc-builds-on-windows">MSVC builds on Windows</a></li>

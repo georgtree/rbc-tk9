@@ -50,6 +50,14 @@ namespace eval TclTk9Upgrade {
         The toolbar package requires the matching Rbc version and loads argparse. Repeated requires preserve existing
         widgets. Toolbar demos, tests, and documentation generation load this optional package explicitly.
 
+        ### Backward-compatible graph helpers
+
+        The historical `graph.tcl` helpers are available again after `package require rbc`, without requiring argparse.
+        Existing calls such as `Rbc_ZoomStack .g` and `Rbc_Crosshairs .g` work on native graphs. These helpers are retained
+        for backward compatibility; new applications should prefer `rbc::graphtoolbar`. Using both interaction systems
+        on the same graph is not recommended. Pending callbacks and helper state are cleaned up on widget destruction.
+        See [GRAPHINST][::rbc::GRAPHINST] for the complete legacy command list and reserved binding/marker names.
+
         ### X and Y error bands for lines and strips
 
         Cartesian line and strip elements support `-errorband x|y`, filling between symmetric `-xerror` or

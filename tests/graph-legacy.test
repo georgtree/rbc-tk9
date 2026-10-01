@@ -1,0 +1,186 @@
+# Backward-compatible graph.tcl helpers on native graph widgets.
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+namespace eval ::legacyGraphTest {
+    proc New {} {
+        catch {destroy .legacyGraph}
+        ::rbc::graph .legacyGraph -width 400 -height 300
+        pack .legacyGraph
+        .legacyGraph element create e -xdata {0 5 10} -ydata {0 5 10} -label signal
+        .legacyGraph axis configure x -min 0 -max 10
+        .legacyGraph axis configure y -min 0 -max 10
+        update
+        return .legacyGraph
+    }
+    proc Timers {g} {
+        set ids {}
+        foreach key [array names ::rbc::legacyTimers] {
+            if {[lindex $key 0] eq $g} {
+                lappend ids $::rbc::legacyTimers($key)
+            }
+        }
+        return $ids
+    }
+    proc Clean {} {
+        catch {destroy .legacyGraph}
+        update idletasks
+    }
+
+    test graphLegacy-1 {legacy public helpers are loaded by rbc} -body {
+        set result {}
+        foreach name {ActiveLegend Crosshairs ResetCrosshairs ZoomStack RemoveZoomStack PrintKey ClosestPoint\
+                              PostScriptDialog} {
+            lappend result [expr {[info commands ::Rbc_$name] ne {}}]
+        }
+        set result
+    } -result {1 1 1 1 1 1 1 1}
+
+    test graphLegacy-2 {repeated setup keeps a single binding tag per feature} -setup {
+        set g [New]
+    } -body {
+        foreach n {1 2} {
+            Rbc_Crosshairs $g
+            Rbc_ZoomStack $g
+            Rbc_ClosestPoint $g
+            Rbc_PrintKey $g
+            Rbc_ActiveLegend $g
+        }
+        set tags [bindtags $g]
+        list [expr {[llength $tags] == [llength [lsort -unique $tags]]}]\
+                [expr {[bind print-$g <Shift-ButtonRelease-3>] ne {}}] [expr {[$g legend bind all <Enter>] ne {}}]
+    } -cleanup {Clean} -result {1 1 1}
+
+    test graphLegacy-3 {crosshairs can be enabled and disabled through legacy entry points} -setup {
+        set g [New]
+    } -body {
+        Rbc_Crosshairs $g
+        set enabled [expr {[lsearch -exact [bindtags $g] crosshairs-$g] >= 0}]
+        Rbc_ResetCrosshairs $g off
+        list $enabled [expr {[lsearch -exact [bindtags $g] crosshairs-$g] < 0}]
+    } -cleanup {Clean} -result {1 1}
+
+    test graphLegacy-4 {zoom rectangle, axis changes, and reset preserve original limits} -setup {
+        set g [New]
+    } -body {
+        Rbc_ZoomStack $g
+        $g marker create text -name zoomApplication -coords {1 1} -text keep
+        lassign [$g transform 2 3] ax ay
+        lassign [$g transform 7 8] bx by
+        ::rbc::SetZoomPoint $g $ax $ay
+        ::rbc::GetCoords $g $bx $by B
+        ::rbc::Box $g
+        set outline [$g marker exists zoomOutline]
+        ::rbc::SetZoomPoint $g $bx $by
+        set zoomed [expr {abs([$g axis cget x -min] - 2) < 0.1 && abs([$g axis cget y -max] - 8) < 0.1}]
+        ::rbc::ResetZoom $g
+        list $outline $zoomed [expr {[$g axis cget x -min] == 0 && [$g axis cget y -max] == 10}]\
+                [$g marker exists zoomApplication]
+    } -cleanup {Clean} -result {1 1 1 1}
+
+    test graphLegacy-5 {reinitializing a pending zoom cancels marching and clears modal state} -setup {
+        set g [New]
+    } -body {
+        Rbc_ZoomStack $g
+        lassign [$g transform 2 3] ax ay
+        lassign [$g transform 7 8] bx by
+        ::rbc::SetZoomPoint $g $ax $ay
+        ::rbc::GetCoords $g $bx $by B
+        ::rbc::Box $g
+        set ids [Timers $g]
+        Rbc_ZoomStack $g
+        set cancelled 1
+        foreach id $ids { if {$id in [after info]} { set cancelled 0 } }
+        list [expr {[llength $ids] > 0}] $cancelled [Timers $g] [$g marker exists zoomOutline]\
+                [expr {[lsearch -exact [bindtags $g] select-region-$g] < 0}]
+    } -cleanup {Clean} -result {1 1 {} 0 1}
+
+    test graphLegacy-6 {closest-point completion removes both text and connector markers} -setup {
+        set g [New]
+    } -body {
+        lassign [$g transform 5 5] x y
+        ::rbc::FindElement $g $x $y
+        set before [lsort [$g marker names *rbcClosest_*]]
+        ::rbc::FlashPoint $g e 1 1
+        list $before [$g marker names *rbcClosest_*] [Timers $g]
+    } -cleanup {Clean} -result {{line.rbcClosest_e rbcClosest_e} {} {}}
+
+    test graphLegacy-6.1 {closest-point lookup at the last sample does not activate a nonexistent following point}\
+            -setup {
+        set g [New]
+    } -body {
+        lassign [$g transform 10 10] x y
+        ::rbc::FindElement $g $x $y
+        list [lsort [$g marker names *rbcClosest_*]] [llength [Timers $g]]
+    } -cleanup {Clean} -result {{line.rbcClosest_e rbcClosest_e} 1}
+
+    test graphLegacy-7 {closest-point lookup with no data uses Tk bell rather than an undefined command} -setup {
+        set g [New]
+    } -body {
+        $g element delete e
+        ::rbc::FindElement $g 100 100
+        $g marker names *rbcClosest_*
+    } -cleanup {Clean} -result {}
+
+    test graphLegacy-8 {destroying a graph cancels jobs and clears all legacy state and bindings} -setup {
+        set g [New]
+    } -body {
+        Rbc_ZoomStack $g
+        Rbc_Crosshairs $g
+        ::rbc::FlashPoint $g e 1 10
+        ::rbc::LegacySchedule $g title 2000 [list ::rbc::DestroyZoomTitle $g]
+        set ids [Timers $g]
+        destroy $g
+        set cancelled 1
+        foreach id $ids {
+            if {$id in [after info]} {
+                set cancelled 0
+            }
+        }
+        set state [array names ::rbc::zoomInfo $g,*]
+        set bindings [bind legacy-rbc-$g]
+        New
+        list $cancelled [Timers $g] $state $bindings
+    } -cleanup {Clean} -result {1 {} {} {}}
+
+    test graphLegacy-9 {PostScript dialog is reusable, resettable, and does not change the namespace path} -setup {
+        set g [New]
+    } -body {
+        set before [namespace eval ::rbc {namespace path}]
+        Rbc_PostScriptDialog $g
+        Rbc_PostScriptDialog $g
+        set ::rbc::psdata($g.landscape) 1
+        $g.top.reset invoke
+        set reset [expr {$::rbc::psdata($g.landscape) == [$g postscript cget -landscape]}]
+        destroy $g.top
+        list $reset [expr {$before eq [namespace eval ::rbc {namespace path}]}] [array names ::rbc::psdata $g.*]
+    } -cleanup {Clean} -result {1 1 {}}
+
+    test graphLegacy-10 {repeated setup preserves nested zooms; removal restores all axes and keeps other features}\
+            -setup {
+        set g [New]
+    } -body {
+        Rbc_ZoomStack $g
+        Rbc_Crosshairs $g
+        $g marker create text -name zoomApplication -coords {1 1} -text keep
+        foreach limits {{1 9} {2 8}} {
+            lassign $limits lo hi
+            lassign [$g transform $lo $lo] ax ay
+            lassign [$g transform $hi $hi] bx by
+            ::rbc::SetZoomPoint $g $ax $ay
+            ::rbc::SetZoomPoint $g $bx $by
+            update idletasks
+        }
+        set before [$g axis cget x -min]
+        Rbc_ZoomStack $g
+        set preserved [expr {[llength $::rbc::zoomInfo($g,stack)] == 2 && [$g axis cget x -min] == $before}]
+        Rbc_RemoveZoomStack $g
+        Rbc_RemoveZoomStack $g
+        set restored [expr {[$g axis cget x -min] == 0 && [$g axis cget x -max] == 10 && [$g axis cget y -min] == 0 &&\
+                                    [$g axis cget y -max] == 10}]
+        list $preserved $restored [$g marker exists zoomApplication] [expr {"crosshairs-$g" in [bindtags $g]}]\
+                [Timers $g] [info exists ::rbc::zoomInfo($g,stack)] [bind zoom-$g]
+    } -cleanup {Clean} -result {1 1 1 1 {} 0 {}}
+
+    cleanupTests
+}

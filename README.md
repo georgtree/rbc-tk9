@@ -48,7 +48,13 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.
 
-`package require rbc` loads Tk and the native Rbc widgets and commands, without requiring argparse.
+`package require rbc` loads Tk, the native Rbc widgets and commands, and the legacy `graph.tcl` helpers,
+without requiring argparse. The global `Rbc_ActiveLegend`, `Rbc_Crosshairs`, `Rbc_ResetCrosshairs`, `Rbc_ZoomStack`,
+`Rbc_ClosestPoint`, `Rbc_PrintKey`, and `Rbc_PostScriptDialog` commands are retained for **backward compatibility**.
+They are not enabled until called on a graph. For new applications, prefer the optional toolbar below.
+**Using these helpers together with `rbc::graphtoolbar` on the same graph is not recommended**, because their
+bindings and interaction state can interfere. Separate widgets may use separate interaction systems.
+See **Legacy graph helpers** in the graph documentation for usage and cleanup behavior.
 Load the optional toolbar explicitly, before importing Rbc commands:
 
 ```tcl
@@ -408,7 +414,7 @@ package require rbc
 When using the optional toolbar or benchmarks, the same applies to `argparse` if it is installed separately.
 
 When installing a prebuilt package, preserve the complete package directory, including `pkgIndex.tcl`, the shared
-library, `graphtoolbar.tcl`, PostScript prologs, and bitmap resources. Copying only the DLL or shared library is not
+library, `graph.tcl`, `graphtoolbar.tcl`, PostScript prologs, and bitmap resources. Copying only the DLL or shared library is not
 sufficient.
 
 ### Using an uninstalled build

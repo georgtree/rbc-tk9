@@ -30,9 +30,9 @@ namespace eval vectorLoad {
             v expr {v * 2}
             list [v range 0 end] [package provide Tk] [package provide rbc] \
                 [package provide argparse] [info commands ::rbc::graph] \
-                [info commands ::rbc::graphtoolbar] [info commands ::rbc::spline]
+                [info commands ::rbc::graphtoolbar] [info commands ::rbc::spline] [info commands ::Rbc_ZoomStack]
         }
-    } -cleanup {Clean} -result {{2.0 4.0 6.0} {} {} {} {} {} {}}
+    } -cleanup {Clean} -result {{2.0 4.0 6.0} {} {} {} {} {} {} {}}
 
     test vectorLoad-repeat {repeated requires preserve vectors and array access} -setup {
         New
@@ -180,9 +180,9 @@ namespace eval vectorLoad {
             package require rbc
             ::rbc::graph .g
             list [winfo exists .g] [package provide argparse] [package provide rbc::graphtoolbar] \
-                [info commands ::rbc::graphtoolbar]
+                [info commands ::rbc::graphtoolbar] [info commands ::Rbc_ZoomStack]
         }
-    } -cleanup {Clean} -result {1 {} {} {}}
+    } -cleanup {Clean} -result {1 {} {} {} ::Rbc_ZoomStack}
 
     test vectorLoad-toolbar-failure {missing toolbar dependency leaves native widgets usable} \
             -constraints vectorLoadGui -setup {

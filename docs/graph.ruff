@@ -3,6 +3,7 @@ namespace eval ::rbc {
 
     variable _ruff_ns_opts {
         -includeimports false
+        -excludeprocs {^(ActivateLegend|DeactivateLegend|HighlightLegend|Crosshairs|InitStack|ZoomStack|RemoveZoomStack|PrintKey|ClosestPoint|AddBindTag|RemoveBindTag|FindElement|FlashPoint|GetCoords|MarkPoint|DestroyZoomTitle|PopZoom|PushZoom|ResetZoom|ZoomTitleNext|ZoomTitleLast|SetZoomPoint|MarchingAnts|Box|PostScriptDialog|ResetPostScript|Legacy.*)$}
     }
 
     proc graph {pathName args} {
@@ -1219,6 +1220,56 @@ namespace eval ::rbc::GRAPHINST {
         for mapping and layout updates, including resizing without changed numeric limits. Log/linear switching is
         always covered by `<<RbcAxisChanged>>`, but only generates `<<RbcAxisLimitsChanged>>` if the resulting numeric
         bounds change. Logarithmic bounds are reported in data units, just as by `axis limits`.
+
+        ## Legacy graph helpers (backward compatibility)
+
+        `package require rbc` also loads `graph.tcl`, providing the historical global `Rbc_*` helper commands for
+        existing applications. These are a backward-compatibility option, not the recommended interface for new
+        applications. They use only Tcl/Tk and native RBC commands; they do not require argparse.
+        `package require rbc::vector` does not load them.
+
+        For new interactive graph interfaces, prefer `package require rbc::graphtoolbar`. **Using the legacy helpers
+        together with `rbc::graphtoolbar` is not recommended, especially on the toolbar's embedded graph:** both manage
+        mouse/legend bindings, markers, and axis limits. Both packages can be loaded in one application, with each
+        interaction system used on separate widgets.
+
+        The following commands operate on an already-created native graph widget:
+
+        - `Rbc_ActiveLegend graph`: highlight legend entries on pointer entry; click to toggle element highlighting.
+        - `Rbc_Crosshairs graph`: enable red crosshairs following pointer motion.
+        - `Rbc_ResetCrosshairs graph on|off`: enable or disable the legacy crosshair bindings.
+        - `Rbc_ZoomStack graph`: select two corners with button 1 to zoom; button 3 cancels selection or restores
+          the previous limits. Cartesian x/x2 and y/y2 axes are handled. This is not the toolbar's polar/Smith control.
+        - `Rbc_RemoveZoomStack graph`: disable legacy zoom, cancel its timers and pending selection, and restore
+          the axis limits saved before the first completed zoom (including automatic limits). Other legacy features
+          and application markers remain active. Repeated removal is harmless; `Rbc_ZoomStack` enables zoom again.
+        - `Rbc_ClosestPoint graph`: Control-button-2 displays and briefly flashes the closest data point.
+        - `Rbc_PrintKey graph`: Shift-button-3 release opens the legacy PostScript dialog.
+        - `Rbc_PostScriptDialog graph`: open that dialog directly. Print retains the historical behavior of writing
+          `out.ps` in the current directory, replacing that file if it already exists. Reset rereads the graph's
+          current PostScript settings into the dialog. Cancel closes it.
+
+        ```tcl
+        package require rbc
+        rbc::graph .g
+        pack .g -fill both -expand yes
+        .g element create signal -xdata {0 1 2} -ydata {0 1 0}
+        Rbc_ActiveLegend .g
+        Rbc_Crosshairs .g
+        Rbc_ZoomStack .g
+        Rbc_ClosestPoint .g
+        Rbc_PrintKey .g
+        ```
+
+        The helpers retain their global command names; no `namespace import` is necessary. Loading the package only
+        defines the helpers: it does not enable interactions or change global option-database defaults. Requiring the
+        package again does not reset existing interaction state. Repeating `Rbc_ZoomStack` preserves that graph's
+        completed zoom history and current axis limits, while cancelling an unfinished selection. Timers, private
+        bindings, and per-widget state are cleared when the graph is destroyed.
+
+        The helpers reserve marker names `zoomTitle`, `zoomOutline`, `zoomText_A`, `zoomText_B`, `rbcClosest_*`, and
+        `line.rbcClosest_*`, and bindtags beginning with `legacy-rbc-`, `crosshairs-`, `zoom-`, `print-`,
+        `closest-point-`, and `select-region-`. Their `rbc::*` implementation procedures and state arrays are private.
     }
 
     proc axis {args} {
