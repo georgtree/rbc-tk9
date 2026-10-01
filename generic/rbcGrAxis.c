@@ -280,7 +280,7 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
     {TK_OPTION_FONT, "-tickfont", "tickFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, tickTextStyle.font), 0,
      NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_PIXELS, "-ticklength", "tickLength", "TickLength", DEF_AXIS_TICK_LENGTH, -1, offsetof(Axis, tickLength),
-     0, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+     TK_OPTION_NEG_OK, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-tickshadow", "tickShadow", "Shadow", NULL, offsetof(Axis, tickShadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_TICK_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-title", "title", "Title", NULL, -1, offsetof(Axis, title), TK_OPTION_NULL_OK, NULL,

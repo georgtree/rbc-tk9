@@ -1,0 +1,60 @@
+# Signed screen distances remain valid with Tk 9.0 and Tk 9.1 (TIP 698).
+# See license.terms for details.
+package provide graph.signedpixels
+
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval graph.signedpixels {
+
+    foreach type {text window bitmap image line polygon arc} {
+        test graph.signedpixels-marker-$type {negative marker offsets at creation and reconfiguration} -setup {
+            ::rbc::graph .signedPixels
+        } -body {
+            .signedPixels marker create $type -name m -xoffset -7 -yoffset -11
+            set initial [list [.signedPixels marker cget m -xoffset] [.signedPixels marker cget m -yoffset]]
+            .signedPixels marker configure m -xoffset -2m -yoffset -3p
+            set units [list [.signedPixels marker cget m -xoffset] [.signedPixels marker cget m -yoffset]]
+            .signedPixels marker configure m -xoffset 4 -yoffset 6
+            list $initial $units [.signedPixels marker cget m -xoffset] [.signedPixels marker cget m -yoffset]
+        } -cleanup {
+            destroy .signedPixels
+        } -result {{-7 -11} {-2m -3p} 4 6}
+
+        test signedPixels-marker-units-$type {negative unit offsets at marker creation} -setup {
+            ::rbc::graph .signedPixels
+        } -body {
+            .signedPixels marker create $type -name m -xoffset -2m -yoffset -3p
+            list [.signedPixels marker cget m -xoffset] [.signedPixels marker cget m -yoffset]
+        } -cleanup {
+            destroy .signedPixels
+        } -result {-2m -3p}
+    }
+
+    test graph.signedpixels-axis-1 {signed tick lengths at creation and reconfiguration} -setup {
+        ::rbc::graph .signedPixels
+    } -body {
+        .signedPixels axis create signed -ticklength -9
+        set initial [.signedPixels axis cget signed -ticklength]
+        .signedPixels axis configure signed -ticklength -2m
+        set units [expr {[.signedPixels axis cget signed -ticklength] == [winfo pixels .signedPixels -2m]}]
+        .signedPixels axis configure x y -ticklength -7
+        pack .signedPixels
+        update idletasks
+        list $initial $units [.signedPixels axis cget x -ticklength] [.signedPixels axis cget y -ticklength]
+    } -cleanup {
+        destroy .signedPixels
+    } -result {-9 1 -7 -7}
+
+    test graph.signedpixels-axis-2 {negative unit tick length at axis creation} -setup {
+        ::rbc::graph .signedPixels
+    } -body {
+        .signedPixels axis create signed -ticklength -3p
+        expr {[.signedPixels axis cget signed -ticklength] == [winfo pixels .signedPixels -3p]}
+    } -cleanup {
+        destroy .signedPixels
+    } -result 1
+
+    cleanupTests
+}

@@ -211,9 +211,9 @@ static const Tk_OptionSpec textMarkerOptionSpecs[] = {
      NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
-     offsetof(Marker, xOffset), 0, NULL, 0},
+     offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
-     offsetof(Marker, yOffset), 0, NULL, 0},
+     offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
@@ -266,9 +266,9 @@ static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-window", "window", "Window", DEF_MARKER_WINDOW, -1, offsetof(WindowMarker, pathName),
      TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
-     offsetof(Marker, xOffset), 0, NULL, 0},
+     offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
-     offsetof(Marker, yOffset), 0, NULL, 0},
+     offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
@@ -337,9 +337,9 @@ static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
-     offsetof(Marker, xOffset), 0, NULL, 0},
+     offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
-     offsetof(Marker, yOffset), 0, NULL, 0},
+     offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
@@ -391,9 +391,9 @@ static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
-     offsetof(Marker, xOffset), 0, NULL, 0},
+     offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
-     offsetof(Marker, yOffset), 0, NULL, 0},
+     offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
@@ -481,10 +481,10 @@ static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
-     offsetof(Marker, xOffset), 0, NULL, 0},
+     offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(LineMarker, xor), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
-     offsetof(Marker, yOffset), 0, NULL, 0},
+     offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /*
@@ -624,7 +624,7 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
          DEF_MARKER_X_OFFSET,                                                                                            \
          offsetof(Marker, xOffsetObjPtr),                                                                                \
          offsetof(Marker, xOffset),                                                                                      \
-         0,                                                                                                              \
+         TK_OPTION_NEG_OK,                                                                                                              \
          NULL,                                                                                                           \
          0},                                                                                                             \
         {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(PolygonMarker, xor), 0, NULL, 0},         \
@@ -635,7 +635,7 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
          DEF_MARKER_Y_OFFSET,                                                                                            \
          offsetof(Marker, yOffsetObjPtr),                                                                                \
          offsetof(Marker, yOffset),                                                                                      \
-         0,                                                                                                              \
+         TK_OPTION_NEG_OK,                                                                                                              \
          NULL,                                                                                                           \
          0}
 

@@ -22,6 +22,11 @@
 
 #include <tk.h>
 
+/* Tk 9.1 requires signed pixel options to opt in; Tk 9.0 allows them. */
+#ifndef TK_OPTION_NEG_OK
+#define TK_OPTION_NEG_OK 0
+#endif
+
 #if !defined(INT2PTR)
 #define INT2PTR(p) ((void *)(ptrdiff_t)(p))
 #endif
