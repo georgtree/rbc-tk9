@@ -1,4 +1,4 @@
-package require rbc
+package require rbc::graphtoolbar
 namespace import rbc::*
 package require tcltest
 namespace import tcltest::*

@@ -143,3 +143,9 @@ treeview1.tcl
 scripts/bgtest.tcl
 scripts/demo.tcl
 
+
+PACKAGE REQUIREMENTS
+
+Demos using graphtoolbar explicitly require rbc::graphtoolbar, which also loads
+rbc, Tk, and argparse. Native-widget demos require rbc and do not need argparse.
+When adapting a demo, require rbc::graphtoolbar before namespace import rbc::*.

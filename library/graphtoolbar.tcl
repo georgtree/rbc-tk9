@@ -27,13 +27,19 @@ namespace eval ::rbc::graphtoolbar {
         - PNG snapshots, PostScript and SVG output.
         - Either a permanently visible toolbar or a right-click context menu.
 
+        Load this optional package with `package require rbc::graphtoolbar`. It loads `rbc`, Tk, and argparse.
+        Plain `package require rbc` provides the native widgets without loading the toolbar or requiring argparse.
+        Require the toolbar package before importing `::rbc::*` so the import includes the toolbar command.
+
         The command is exported from the `::rbc` namespace and may normally be used as:
         ```tcl
+        package require rbc::graphtoolbar
         ::rbc::graphtoolbar .gtb ?option ...?
         ```
 
         or, after importing the Rbc commands:
         ```tcl
+        package require rbc::graphtoolbar
         namespace import ::rbc::*
         graphtoolbar .gtb ?option ...?
         ```
@@ -44,7 +50,7 @@ namespace eval ::rbc::graphtoolbar {
 
         ```tcl
         package require Tk
-        package require rbc
+        package require rbc::graphtoolbar
 
         ::rbc::graphtoolbar .gtb -width 800 -height 500 -zoom -zoomwheel -pan -crosshairs -crosshairsmode closest\
                 -scaletoggle all -activelegend

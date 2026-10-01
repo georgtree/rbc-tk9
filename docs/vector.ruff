@@ -25,7 +25,8 @@ namespace eval ::rbc::vector {
         This loads the same Rbc shared library but initializes only its vector commands and C API. It does not
         require Tk, a graphical display, argparse, or graphtoolbar. Real and complex vectors, expressions,
         array access, and vector client notifications use the same implementation as the full package.
-        Graphs, winop, spline, and graphtoolbar are available through the full `rbc` package instead.
+        Graphs, winop, and spline are available through the full `rbc` package. The optional toolbar is loaded
+        separately with `package require rbc::graphtoolbar` and requires argparse.
 
         Loading `package require rbc` later adds the graphical components without recreating the vector
         command or existing vectors. Full loading also provides `rbc::vector`, so either order is supported.

@@ -57,12 +57,17 @@ surface and a set of coordinated interactive graph-navigation facilities.</p>
 <li><p>PNG snapshots, PostScript and SVG output.</p></li>
 <li><p>Either a permanently visible toolbar or a right-click context menu.</p></li>
 </ul>
+<p>Load this optional package with <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code>. It loads <code class="docutils literal notranslate"><span class="pre">rbc</span></code>, Tk, and argparse.
+Plain <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> provides the native widgets without loading the toolbar or requiring argparse.
+Require the toolbar package before importing <code class="docutils literal notranslate"><span class="pre">::rbc::*</span></code> so the import includes the toolbar command.</p>
 <p>The command is exported from the <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> namespace and may normally be used as:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
+<span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
 </pre></div>
 </div>
 <p>or, after importing the Rbc commands:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
+<span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
 <span class="nv">graphtoolbar</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
 </pre></div>
 </div>
@@ -71,7 +76,7 @@ surface and a set of coordinated interactive graph-navigation facilities.</p>
 <p>The following creates a normal graph with rectangle zoom, wheel zoom, panning, crosshair annotations, active
 legend entries, and interactive axis scale selection:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>Tk
-<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
+<span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
 
 <span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span><span class="w"> </span><span class="o">-</span>zoom<span class="w"> </span><span class="o">-</span>zoomwheel<span class="w"> </span><span class="o">-</span>pan<span class="w"> </span><span class="o">-</span>crosshairs<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>closest<span class="w"> </span><span class="o">-</span>scaletoggle<span class="w"> </span>all<span class="w"> </span><span class="o">-</span>activelegend
 
@@ -333,7 +338,7 @@ point. Custom closest callbacks receive <code class="docutils literal notranslat
 <p><code class="docutils literal notranslate"><span class="pre">-closestcommand</span></code> configures a Tcl command prefix for custom closest-point annotations. A nonempty prefix adds
 <strong>Custom</strong> to the toolbar menu and context menu. Select it with <code class="docutils literal notranslate"><span class="pre">-coordclosestmark</span> <span class="pre">custom</span></code>.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>DescribePoint<span class="w"> </span><span class="k">{</span><span class="nv">element</span><span class="w"> </span>x<span class="w"> </span>y<span class="w"> </span>info<span class="k">}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;%s\nX: %.4g\nY: %.4g&quot;</span><span class="w"> </span><span class="nv">$element</span><span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="k">]</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;</span><span class="o">%</span><span class="s2">s\nX: </span><span class="o">%</span><span class="s2">.4g\nY: </span><span class="o">%</span><span class="s2">.4g&quot;</span><span class="w"> </span><span class="nv">$element</span><span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="k">]</span>
 <span class="k">}</span>
 
 <span class="nv">.gtb</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>closestcommand<span class="w"> </span><span class="o">::</span>DescribePoint

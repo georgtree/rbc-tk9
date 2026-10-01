@@ -199,11 +199,11 @@ active pen.</p>
 <p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code> finds the visible element or data point nearest to a window coordinate.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;element </span><span class="o">=</span><span class="s2"> $info(name)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;index   </span><span class="o">=</span><span class="s2"> $info(index)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;x       </span><span class="o">=</span><span class="s2"> $info(x)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;y       </span><span class="o">=</span><span class="s2"> $info(y)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;distance </span><span class="o">=</span><span class="s2"> $info(dist)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;element </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(name)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;index   </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(index)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;x       </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(x)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;y       </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(y)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;distance </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(dist)&quot;</span>
 <span class="k">}</span>
 </pre></div>
 </div>
@@ -259,7 +259,7 @@ Its value is the parameter value associated with the source data index reported 
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nb">info</span><span class="w"> </span>exists<span class="w"> </span>info<span class="k">(</span><span class="nv">param</span><span class="k">)]}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">        </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;parameter </span><span class="o">=</span><span class="s2"> $info(param)&quot;</span>
+<span class="w">        </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;parameter </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(param)&quot;</span>
 <span class="w">    </span><span class="k">}</span>
 <span class="k">}</span>
 </pre></div>

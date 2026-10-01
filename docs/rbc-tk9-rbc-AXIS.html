@@ -217,7 +217,7 @@ major tick, Rbc appends two arguments:</p>
 <p>The result returned by the command becomes the displayed label.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">proc</span><span class="w"> </span>formatTick<span class="w"> </span><span class="k">{</span><span class="nv">graph</span><span class="w"> </span>label<span class="k">}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s2">&quot;$label V&quot;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s2">&quot;</span><span class="o">$</span><span class="s2">label V&quot;</span>
 <span class="k">}</span>
 
 <span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>y<span class="w"> </span><span class="o">-</span>command<span class="w"> </span>formatTick

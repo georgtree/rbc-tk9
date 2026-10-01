@@ -43,6 +43,13 @@ namespace eval TclTk9Upgrade {
         with the updated stub library. `make test-vector` runs the package-loading and public C API tests
         without a graphical display. Binary dependencies remain required. See [::rbc::vector] for details.
 
+        ### Optional toolbar package
+
+        `package require rbc` loads the native widgets without loading argparse or the toolbar. Applications using
+        `::rbc::graphtoolbar` now need `package require rbc::graphtoolbar`, before any `namespace import ::rbc::*`.
+        The toolbar package requires the matching Rbc version and loads argparse. Repeated requires preserve existing
+        widgets. Toolbar demos, tests, and documentation generation load this optional package explicitly.
+
         ### X and Y error bands for lines and strips
 
         Cartesian line and strip elements support `-errorband x|y`, filling between symmetric `-xerror` or

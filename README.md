@@ -42,13 +42,22 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 ### Running Rbc
 
 - Tcl and Tk 9.0.
-- The Tcl [argparse package](https://github.com/georgtree/argparse).
+- The Tcl [argparse package](https://github.com/georgtree/argparse), only for the optional `rbc::graphtoolbar` package.
 - A graphical environment supported by the Tk installation.
 
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.
 
-The full `package require rbc` loads Tk and `graphtoolbar.tcl`, including its `argparse` dependency.
+`package require rbc` loads Tk and the native Rbc widgets and commands, without requiring argparse.
+Load the optional toolbar explicitly, before importing Rbc commands:
+
+```tcl
+package require rbc::graphtoolbar
+namespace import ::rbc::*
+```
+
+This also loads the matching `rbc` package and argparse. Applications using `graphtoolbar` must add this require;
+the command name remains `::rbc::graphtoolbar`. Requiring the toolbar repeatedly preserves existing widgets.
 For vector-only use in `tclsh`, load the Tcl-only package instead:
 
 ```tcl
@@ -100,7 +109,8 @@ trees.
 `--with-tcl` and `--with-tk` take the **directories containing** `tclConfig.sh` and `tkConfig.sh`, not the configuration
 filenames themselves.
 
-Install `argparse` for the same Tcl interpreter before running Rbc, its tests, or its demos.
+Install `argparse` for the same Tcl interpreter before running toolbar demos, toolbar tests, benchmarks, or
+generating the complete documentation. Native Rbc widgets and vector-only use do not need argparse.
 
 ### Linux
 
@@ -395,7 +405,7 @@ lappend auto_path /path/to/prefix/lib
 package require rbc
 ```
 
-The same applies to `argparse` if it is installed in a separate location.
+When using the optional toolbar or benchmarks, the same applies to `argparse` if it is installed separately.
 
 When installing a prebuilt package, preserve the complete package directory, including `pkgIndex.tcl`, the shared
 library, `graphtoolbar.tcl`, PostScript prologs, and bitmap resources. Copying only the DLL or shared library is not

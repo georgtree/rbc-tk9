@@ -65,7 +65,7 @@ Rbc contains selected components derived from BLT\&. It is not a complete replac
 Tcl and Tk 9\&.0\&.
 .TP
 \(bu
-The Tcl \fIargparse package\fP [URL: https://github\&.com/georgtree/argparse]\&.
+The Tcl \fIargparse package\fP [URL: https://github\&.com/georgtree/argparse], only for the optional rbc::graphtoolbar package\&.
 .TP
 \(bu
 A graphical environment supported by the Tk installation\&.
@@ -73,7 +73,18 @@ A graphical environment supported by the Tk installation\&.
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC\&. Tcl/Tk 8\&.x
 compatibility is not a target of this fork\&.
 .PP
-The full package require rbc loads Tk and graphtoolbar\&.tcl, including its argparse dependency\&.
+package require rbc loads Tk and the native Rbc widgets and commands, without requiring argparse\&.
+Load the optional toolbar explicitly, before importing Rbc commands:
+.PP
+.RS 4n
+.nf
+package require rbc::graphtoolbar
+namespace import ::rbc::*
+.fi
+.RE
+.PP
+This also loads the matching rbc package and argparse\&. Applications using graphtoolbar must add this require;
+the command name remains ::rbc::graphtoolbar\&. Requiring the toolbar repeatedly preserves existing widgets\&.
 For vector-only use in tclsh, load the Tcl-only package instead:
 .PP
 .RS 4n
@@ -137,7 +148,8 @@ trees\&.
 --with-tcl and --with-tk take the \fBdirectories containing\fP tclConfig\&.sh and tkConfig\&.sh, not the configuration
 filenames themselves\&.
 .PP
-Install argparse for the same Tcl interpreter before running Rbc, its tests, or its demos\&.
+Install argparse for the same Tcl interpreter before running toolbar demos, toolbar tests, benchmarks, or
+generating the complete documentation\&. Native Rbc widgets and vector-only use do not need argparse\&.
 .SS LINUX
 .PP
 For example, using Tcl/Tk build trees and a user-local installation prefix:
@@ -479,7 +491,7 @@ package require rbc
 .fi
 .RE
 .PP
-The same applies to argparse if it is installed in a separate location\&.
+When using the optional toolbar or benchmarks, the same applies to argparse if it is installed separately\&.
 .PP
 When installing a prebuilt package, preserve the complete package directory, including pkgIndex\&.tcl, the shared
 library, graphtoolbar\&.tcl, PostScript prologs, and bitmap resources\&. Copying only the DLL or shared library is not

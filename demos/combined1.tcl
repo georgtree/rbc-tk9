@@ -1,5 +1,5 @@
 package require Tk
-package require rbc
+package require rbc::graphtoolbar
 package require math::statistics
 package require math::constants
 namespace import ::math::statistics::*

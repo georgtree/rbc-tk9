@@ -179,8 +179,8 @@ parameter is independent of the coordinate representation and is not used when m
 </div>
 <p>A closest-point query can then recover both the plotted Smith-chart quantities and the corresponding frequency:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="w"> </span><span class="o">-</span>interpolate<span class="w"> </span>no<span class="w"> </span>S11<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;frequency </span><span class="o">=</span><span class="s2"> $info(param)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Gamma     </span><span class="o">=</span><span class="s2"> $info(gamma)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;frequency </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(param)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Gamma     </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(gamma)&quot;</span>
 <span class="k">}</span>
 </pre></div>
 </div>

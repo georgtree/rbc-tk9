@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 package require Tk
-package require rbc
+package require rbc::graphtoolbar
 namespace import rbc::*
 
 # The script can be run from any location. It loads the files it needs from the demo directory.
@@ -31,7 +31,7 @@ ExpandableText .details 800 {Availible actions} {
 ### Create the graph and configure its options
 set graph [graphtoolbar .g -width 800 -height 500 -type graph -controlmode context -zoom -zoomtitle -zoommark\
                    -crosshairs -crosshairsmode current -scaletoggle y -activelegend -zoomwheel -pan]
-proc MultiplexView {widget args} { 
+proc MultiplexView {widget args} {
     $widget graph axis view y {*}$args
 }
 ttk::scrollbar .xbar -command [list $graph graph axis view x] -orient horizontal 

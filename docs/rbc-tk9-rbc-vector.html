@@ -61,7 +61,8 @@
 <p>This loads the same Rbc shared library but initializes only its vector commands and C API. It does not
 require Tk, a graphical display, argparse, or graphtoolbar. Real and complex vectors, expressions,
 array access, and vector client notifications use the same implementation as the full package.
-Graphs, winop, spline, and graphtoolbar are available through the full <code class="docutils literal notranslate"><span class="pre">rbc</span></code> package instead.</p>
+Graphs, winop, and spline are available through the full <code class="docutils literal notranslate"><span class="pre">rbc</span></code> package. The optional toolbar is loaded
+separately with <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code> and requires argparse.</p>
 <p>Loading <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> later adds the graphical components without recreating the vector
 command or existing vectors. Full loading also provides <code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code>, so either order is supported.
 A failed Tk load leaves the vector core usable and full loading can be retried. Package versions

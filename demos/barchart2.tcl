@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 package require Tk
-package require rbc
+package require rbc::graphtoolbar
 namespace import rbc::*
 
 ### The script can be run from any location. It loads the files it needs from the demo directory.

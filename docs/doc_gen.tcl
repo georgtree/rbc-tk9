@@ -1,7 +1,7 @@
 package require ruff
 package require fileutil
 package require textutil::adjust
-package require rbc
+package require rbc::graphtoolbar
 
 proc readmeTableCells {line} {
     set cells {}
@@ -142,6 +142,14 @@ class MyTclLexer(TclLexer):
     def get_tokens_unprocessed(self, text):
         for i, t, v in super().get_tokens_unprocessed(text):
             if v == "=":
+                yield i, Operator, v   # or Name.Builtin
+            elif v == "$":
+                yield i, Operator, v   # or Name.Builtin
+            elif v == "\\":
+                yield i, Operator, v   # or Name.Builtin
+            elif v == "%":
+                yield i, Operator, v   # or Name.Builtin
+            elif v == "'":
                 yield i, Operator, v   # or Name.Builtin
             else:
                 yield i, t, v

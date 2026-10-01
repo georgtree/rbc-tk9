@@ -11,7 +11,7 @@
 # ==============================================================================
 
 package require Tk
-package require rbc
+package require rbc::graphtoolbar
 namespace import rbc::*
 
 

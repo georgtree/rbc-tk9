@@ -39,6 +39,12 @@ loading argparse and graphtoolbar\&. Full package require rbc can follow without
 client subscriptions; the reverse loading order also works\&. C consumers can use Rbc_VectorInitStubs
 with the updated stub library\&. make test-vector runs the package-loading and public C API tests
 without a graphical display\&. Binary dependencies remain required\&. See \fI::rbc::vector\fP for details\&.
+.SS "OPTIONAL TOOLBAR PACKAGE"
+.PP
+package require rbc loads the native widgets without loading argparse or the toolbar\&. Applications using
+::rbc::graphtoolbar now need package require rbc::graphtoolbar, before any namespace import ::rbc::*\&.
+The toolbar package requires the matching Rbc version and loads argparse\&. Repeated requires preserve existing
+widgets\&. Toolbar demos, tests, and documentation generation load this optional package explicitly\&.
 .SS "X AND Y ERROR BANDS FOR LINES AND STRIPS"
 .PP
 Cartesian line and strip elements support -errorband x|y, filling between symmetric -xerror or

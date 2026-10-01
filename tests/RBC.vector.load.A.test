@@ -161,5 +161,75 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{6.0 7.0} 2 1 1}
 
+    test vectorLoad-toolbar-registration {vector-only loading advertises but does not load the toolbar} -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            set version [package require rbc::vector]
+            list [expr {[package ifneeded rbc::graphtoolbar $version] ne {}}] \
+                [package provide rbc::graphtoolbar] [package provide argparse] [package provide Tk]
+        }
+    } -cleanup {Clean} -result {1 {} {} {}}
+
+    test vectorLoad-no-argparse {native widgets load even when argparse cannot load} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package ifneeded argparse 999.0 {error {argparse deliberately unavailable}}
+            package require rbc
+            ::rbc::graph .g
+            list [winfo exists .g] [package provide argparse] [package provide rbc::graphtoolbar] \
+                [info commands ::rbc::graphtoolbar]
+        }
+    } -cleanup {Clean} -result {1 {} {} {}}
+
+    test vectorLoad-toolbar-failure {missing toolbar dependency leaves native widgets usable} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package ifneeded argparse 999.0 {error {argparse deliberately unavailable}}
+            set failed [catch {package require rbc::graphtoolbar} message]
+            ::rbc::graph .g
+            list $failed [string match {*argparse deliberately unavailable*} $message] \
+                [package provide rbc::graphtoolbar] [winfo exists .g] \
+                [expr {[package provide rbc] ne {}}]
+        }
+    } -cleanup {Clean} -result {1 1 {} 1 1}
+
+    test vectorLoad-toolbar-upgrade {adding toolbar preserves native widgets and repeat require preserves toolbar} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            set version [package require rbc]
+            ::rbc::vector create v
+            v set {1 2 3}
+            ::rbc::graph .g
+            .g element create e -xdata v -ydata v
+            set toolbarVersion [package require rbc::graphtoolbar]
+            ::rbc::graphtoolbar .toolbar -width 200 -height 150
+            set deleted 0
+            trace add command .toolbar delete {apply {{args} {set ::deleted 1}}}
+            package require rbc::graphtoolbar
+            list [expr {$version eq $toolbarVersion}] [v range 0 end] [.g element names] \
+                [winfo exists .toolbar] $deleted [expr {[package provide argparse] ne {}}]
+        }
+    } -cleanup {Clean} -result {1 {1.0 2.0 3.0} e 1 0 1}
+
+    test vectorLoad-toolbar-first {toolbar-only require loads native widgets and exports the existing command} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            set version [package require rbc::graphtoolbar]
+            namespace import ::rbc::*
+            list [expr {$version eq [package provide rbc]}] \
+                [expr {$version eq [package provide rbc::vector]}] \
+                [namespace origin graphtoolbar] [expr {[info commands ::rbc::graph] ne {}}]
+        }
+    } -cleanup {Clean} -result {1 1 ::rbc::graphtoolbar::graphtoolbar 1}
+
     cleanupTests
 }

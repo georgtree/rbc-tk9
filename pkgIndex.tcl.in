@@ -11,7 +11,12 @@ package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ [list apply {{dir version} {
     package require Tk
     ::rbc::_initTk
     set ::rbc::library [file normalize $dir]
+}} $dir @PACKAGE_VERSION@]
+
+package ifneeded rbc::graphtoolbar @PACKAGE_VERSION@ [list apply {{dir version} {
+    package require -exact rbc $version
     source [file join $dir graphtoolbar.tcl]
+    package provide rbc::graphtoolbar $version
 }} $dir @PACKAGE_VERSION@]
 
 unset rbcLib
