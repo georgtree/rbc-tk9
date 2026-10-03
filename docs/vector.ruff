@@ -452,7 +452,6 @@ namespace eval ::rbc::VECINST {
         indices and ranges work with an explicitly mapped complex vector.
 
         ## Fourier transforms
-
         `fft` and `ifft` work with `package require rbc::vector`; Tk and an external FFT library are not required.
         The source can be real or complex. Destinations must already exist: use either one complex vector or
         two distinct real vectors. Transform commands never create vectors, interpret `#auto` as a request to
@@ -489,7 +488,6 @@ namespace eval ::rbc::VECINST {
         vector mutations. Both split results are installed before notifications are issued.
 
         ### Length and zero padding
-
         The initial implementation uses a radix-2 algorithm. The default transform length is the input length,
         which must be a positive power of two. A one-element transform is valid; an empty input is an error.
         `-length auto` pads with zeros to the next power of two. `-length size` requires a positive power of two
@@ -509,7 +507,6 @@ namespace eval ::rbc::VECINST {
         does not crop time-domain output or reconstruct an omitted negative-frequency half-spectrum.
 
         ### Sign, scaling and frequency bins
-
         For N samples, forward bin k is the sum of `x[j] * exp(-2*pi*i*j*k/N)` over j from 0 to N-1.
         The inverse uses the positive exponential and divides by N. Thus `ifft(fft(x))` reproduces x up to
         floating-point rounding, or x followed by zeros if padding was requested. Neither transform applies a
@@ -536,7 +533,6 @@ namespace eval ::rbc::VECINST {
         storage. The operation runs synchronously and does not process Tcl events during computation.
 
         ### Frequency-bin generation
-
         Use an existing real vector to generate frequencies for a transform length N:
 
         ```tcl
@@ -551,15 +547,18 @@ namespace eval ::rbc::VECINST {
         is in seconds, or cycles per sample when it is 1. Full ordering, the default, matches the unshifted FFT:
         for even N it uses integer bins `0, ..., N/2-1, -N/2, ..., -1`, and for odd N it uses
         `0, ..., (N-1)/2, -(N-1)/2, ..., -1`. Each bin is divided by N and the sample interval.
-        The even-length Nyquist bin is negative in full ordering. `-onesided true` instead returns
-        `floor(N/2)+1` nonnegative bins, including positive Nyquist for even N. There is no Nyquist bin for odd N.
-        Both forms return `{0}` for N=1. Any positive integer length is accepted, including non-powers of two.
+
+        The even-length Nyquist bin is negative in full ordering. `-onesided true` instead returns `floor(N/2)+1`
+        nonnegative bins, including positive Nyquist for even N. There is no Nyquist bin for odd N.  Both forms return
+        `{0}` for N=1. Any positive integer length is accepted, including non-powers of two.
 
         Supply the actual transform length, including padding, rather than the number of original samples.
         This command only generates an axis: it neither computes nor truncates an FFT and it never doubles
         spectral amplitudes. Pair a one-sided axis with the first `floor(N/2)+1` FFT bins. Such a reduced spectrum
         represents real signals through conjugate symmetry; it generally loses independent information from
-        complex signals. The frequency values follow the standard FFT bin convention documented by
+        complex signals. 
+
+        The frequency values follow the standard FFT bin convention documented by
         [NumPy fftfreq](https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html).
 
         ### Window generation
@@ -595,11 +594,13 @@ namespace eval ::rbc::VECINST {
         These are the conventional window definitions; no extra normalization by sum, energy or sampled peak
         is applied. Some short or odd periodic windows, and even symmetric windows, do not contain a coefficient
         equal to 1. Symmetric Hann, Blackman and Bartlett windows have zero endpoints; the periodic form normally
-        omits the final zero. Hamming endpoints are 0.08 in symmetric form. The periodic/symmetric convention is
-        also described in [SciPy window documentation](https://docs.scipy.org/doc/scipy/reference/signal.windows.html).
+        omits the final zero. Hamming endpoints are 0.08 in symmetric form. 
+
+        The periodic/symmetric convention is also described in 
+        [SciPy window documentation](https://docs.scipy.org/doc/scipy/reference/signal.windows.html), that was used as
+        a reference.
 
         ### Window scaling
-
         Windowing changes amplitude and energy. Use the coefficients applied to the original L samples to compute
         coherent gain `sum(w)/L` and energy `sum(w*w)`. Padding does not add coefficients to these sums.
 
@@ -612,10 +613,12 @@ namespace eval ::rbc::VECINST {
         For an isolated complex tone exactly on a frequency bin, divide its unscaled FFT magnitude by
         `windowSum` to recover amplitude. Real-tone one-sided amplitude conventions additionally double the
         interior positive-frequency bins, but not DC or the even-length Nyquist bin. Leakage or overlapping
-        components can still affect a tone's measured amplitude. A two-sided periodogram PSD convention is
-        `abs(X[k])^2 / (sampleRate * windowEnergy)`, where `sampleRate = 1/delta`. One-sided PSD for real signals
-        doubles interior bins only. These are scaling conventions for scripts, not additional generator behavior.
-        Check for zero sums or energy before division: for example, a symmetric two-sample Hann window is all zero.
+        components can still affect a tone's measured amplitude. 
+
+        A two-sided periodogram PSD convention is `abs(X[k])^2 / (sampleRate * windowEnergy)`, where `sampleRate =
+        1/delta`. One-sided PSD for real signals doubles interior bins only. These are scaling conventions for scripts,
+        not additional generator behavior.  Check for zero sums or energy before division: for example, a symmetric
+        two-sample Hann window is all zero.
 
         Both generators preserve vector identity, type, index offset and client bindings, and return the qualified
         destination name. They replace all coefficients at once, refresh caches and notify clients. Invalid input,
@@ -1998,6 +2001,9 @@ namespace eval ::rbc::VECINST {
         delete delete
         dup dup
         expr expr
+        fft fft
+        fftfreq fftfreq
+        ifft ifft
         index index
         length length
         merge merge
@@ -2013,6 +2019,7 @@ namespace eval ::rbc::VECINST {
         split split
         type type
         variable variable
+        window window
     }
     proc window {args} {
         # Fills this existing real vector with unscaled window coefficients.

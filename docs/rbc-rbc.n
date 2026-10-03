@@ -95,8 +95,6 @@ rbc - Commands in namespace rbc
 .br
 \fBELEMENT type\fP \fIelemName\fP
 .br
-\fBFlashPoint\fP \fIgraph name index count\fP
-.br
 \fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
 \fBGRAPHINST\fP \fIsubcommand \&.\&.\&.\fP
@@ -247,10 +245,6 @@ rbc - Commands in namespace rbc
 .br
 \fBPOSTSCRIPT output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
 .br
-\fBRemoveZoomStack\fP \fIgraph\fP
-.br
-\fBResetPostScript\fP \fIgraph\fP
-.br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBspline natural\fP \fIx y splX splY\fP
@@ -293,6 +287,16 @@ rbc - Commands in namespace rbc
 .br
 \fBVECINST expr\fP \fIexpression\fP
 .br
+\fBVECINST fft\fP \fIdestComplex ?-imaginput vecName? ?-length auto|size?\fP
+.br
+\fBVECINST fft\fP \fI-real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?\fP
+.br
+\fBVECINST fftfreq\fP \fIlength ?-delta interval? ?-onesided boolean?\fP
+.br
+\fBVECINST ifft\fP \fIdestComplex ?-imaginput vecName? ?-length auto|size?\fP
+.br
+\fBVECINST ifft\fP \fI-real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?\fP
+.br
 \fBVECINST index\fP \fIindex\fP
 .br
 \fBVECINST index\fP \fIindex value\fP
@@ -330,6 +334,8 @@ rbc - Commands in namespace rbc
 \fBVECINST type\fP
 .br
 \fBVECINST variable\fP \fIvarName\fP
+.br
+\fBVECINST window\fP \fItype length ?-periodic boolean?\fP
 .br
 \fBvector\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -392,8 +398,6 @@ rbc - Commands in namespace rbc
 \fBWINOPIMAGE snap\fP \fIwindow photoName ?width? ?height?\fP
 .br
 \fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
-.br
-\fBZoomTitleNext\fP \fIgraph\fP
 .br
 .SH ::RBC
 .SH COMMANDS
@@ -1356,30 +1360,6 @@ Name of the element\&.
 \fBReturn value\fR
 .PP
 Element class name\&.
-.PP
-.RS -4n
-\fBFlashPoint\fR (::rbc)
-.RE
-.RS 4n
-\fBFlashPoint\fP \fIgraph name index count\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.TP
-name
-Not documented\&.
-.TP
-index
-Not documented\&.
-.TP
-count
-Not documented\&.
-.RE
 .PP
 .RS -4n
 \fBgraph\fR (::rbc)
@@ -3220,36 +3200,6 @@ Value for the configuration option\&.
 Generated PostScript when no filename is supplied, otherwise nothing\&.
 .PP
 .RS -4n
-\fBRemoveZoomStack\fR (::rbc)
-.RE
-.RS 4n
-\fBRemoveZoomStack\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
-\fBResetPostScript\fR (::rbc)
-.RE
-.RS 4n
-\fBResetPostScript\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
-.PP
-.RS -4n
 \fBspline\fR (::rbc)
 .RE
 .PP
@@ -3581,6 +3531,15 @@ Copies this vector into another vector\&. A newly created destination inherits t
 \fIexpr\fP
 Evaluates expression and stores the result in this vector\&.
 .TP
+\fIfft\fP
+Computes the full forward discrete Fourier transform of this real or complex vector\&.
+.TP
+\fIfftfreq\fP
+Fills this existing real vector with FFT bin frequencies\&.
+.TP
+\fIifft\fP
+Computes the full inverse discrete Fourier transform, normalized by the transform length\&.
+.TP
 \fIindex\fP
 Reads or writes a vector value or range\&. With no value argument, returns the value or values selected by index\&. With value, assigns that numeric value to every element selected by index\&. The special ++end index may be used when setting a value to append one new element\&.
 .TP
@@ -3625,6 +3584,9 @@ Returns the immutable numeric type of the vector\&. real or complex\&.
 .TP
 \fIvariable\fP
 Queries or changes the Tcl array variable associated with the vector\&. Supplying an empty variable name removes the current mapping\&. Array names must not contain parentheses; invalid names preserve the old mapping\&. Real vectors receive an automatic mapping only when their names contain no parentheses\&. Complex vectors do not receive an automatic mapping, but an explicit mapping is supported\&. Ordinary complex array elements use {real imag} representation\&. The calculated array indices min, max, mean, sum, and prod are not supported for complex vectors\&.
+.TP
+\fIwindow\fP
+Fills this existing real vector with unscaled window coefficients\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -3882,6 +3844,121 @@ Vector expression\&.
 \fBReturn value\fR
 .PP
 Nothing\&.
+.PP
+.RS -4n
+\fBVECINST fft\fR (::rbc)
+.RE
+.PP
+Computes the full forward discrete Fourier transform of this real or complex vector\&.
+.RS 4n
+\fBVECINST fft\fP \fIdestComplex ?-imaginput vecName? ?-length auto|size?\fP
+.br
+\fBVECINST fft\fP \fI-real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-imag destImag
+Existing real destination for imaginary components; requires -real\&.
+.TP
+-imaginput vecName
+Real vector supplying imaginary input components; the source must also be real\&.
+.TP
+-length auto|size
+Zero-pad to the next power of two or a specified power of two\&. The default uses the input length and rejects a non-power-of-two length\&. The requested size cannot truncate input\&.
+.TP
+-real destReal
+Existing real destination for real components; requires -imag\&.
+.TP
+destComplex
+Existing complex destination, mutually exclusive with split destinations\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+See the Fourier transforms section for fixed-type, aliasing, padding, normalization and bin-order rules\&.
+Options may precede or follow the positional destination\&. Option names must be complete; duplicates
+are errors\&. -- ends option parsing for a positional destination beginning with a hyphen\&.
+.PP
+\fBReturn value\fR
+.PP
+Fully qualified destination name, or a list {destReal destImag} of qualified names\&.
+.PP
+.RS -4n
+\fBVECINST fftfreq\fR (::rbc)
+.RE
+.PP
+Fills this existing real vector with FFT bin frequencies\&.
+.RS 4n
+\fBVECINST fftfreq\fP \fIlength ?-delta interval? ?-onesided boolean?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-delta interval
+Finite positive sample interval\&. Defaults to 1, giving cycles per sample\&.
+.TP
+-onesided boolean
+If true, returns floor(length/2)+1 nonnegative bins\&. Defaults to false, giving the full FFT order with negative frequencies in the latter part of the vector\&.
+.TP
+length
+Positive transform length, including any FFT padding; need not be a power of two\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+For even lengths, full ordering labels Nyquist negatively; one-sided ordering labels it positively\&.
+No data transform, amplitude scaling or resampling is performed\&. Options must be spelled in full;
+repeated options are errors\&. See Frequency-bin generation for examples and ordering details\&.
+.PP
+\fBReturn value\fR
+.PP
+Fully qualified name of this vector\&.
+.PP
+.RS -4n
+\fBVECINST ifft\fR (::rbc)
+.RE
+.PP
+Computes the full inverse discrete Fourier transform, normalized by the transform length\&.
+.RS 4n
+\fBVECINST ifft\fP \fIdestComplex ?-imaginput vecName? ?-length auto|size?\fP
+.br
+\fBVECINST ifft\fP \fI-real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-imag destImag
+Existing real destination for imaginary components; requires -real\&.
+.TP
+-imaginput vecName
+Real vector supplying imaginary input components; the source must also be real\&.
+.TP
+-length auto|size
+Explicit zero padding of the frequency-bin input, as for fft\&.
+.TP
+-real destReal
+Existing real destination for real components; requires -imag\&.
+.TP
+destComplex
+Existing complex destination, mutually exclusive with split destinations\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Input is a complete spectrum, not a half-spectrum\&. Real input is interpreted as a spectrum with zero
+imaginary components\&. A complex destination remains complex even when its imaginary values are zero\&.
+See the Fourier transforms section for details and round-trip examples\&.
+.PP
+\fBReturn value\fR
+.PP
+Fully qualified destination name, or a list {destReal destImag} of qualified names\&.
 .PP
 .RS -4n
 \fBVECINST index\fR (::rbc)
@@ -4334,6 +4411,38 @@ Optional Tcl array variable name\&.
 \fBReturn value\fR
 .PP
 Name of the currently mapped variable, or an empty result if no variable is mapped\&.
+.PP
+.RS -4n
+\fBVECINST window\fR (::rbc)
+.RE
+.PP
+Fills this existing real vector with unscaled window coefficients\&.
+.RS 4n
+\fBVECINST window\fP \fItype length ?-periodic boolean?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+-periodic boolean
+True (default) for spectral analysis, false for a symmetric window\&.
+.TP
+length
+Positive coefficient count, usually the original signal length before FFT padding\&.
+.TP
+type
+Rectangular, hann, hamming, blackman or bartlett\&. Full names are required\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Every window of length one is {1}\&. Coefficients are not renormalized to unit sum, energy or sampled
+peak\&. Multiply the signal by this vector explicitly\&. See Window generation and Window scaling\&.
+.PP
+\fBReturn value\fR
+.PP
+Fully qualified name of this vector\&.
 .PP
 .RS -4n
 \fBvector\fR (::rbc)
@@ -5273,21 +5382,6 @@ Optional vertical resampling filter\&.
 \fBReturn value\fR
 .PP
 Nothing\&.
-.PP
-.RS -4n
-\fBZoomTitleNext\fR (::rbc)
-.RE
-.RS 4n
-\fBZoomTitleNext\fP \fIgraph\fP
-.br
-.RE
-.PP
-\fBParameters\fR
-.RS 4n
-.TP
-graph
-Not documented\&.
-.RE
 
 
 .SH SEE ALSO

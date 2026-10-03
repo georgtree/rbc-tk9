@@ -3,11 +3,7 @@ namespace eval ::rbc {
 
     variable _ruff_ns_opts {
         -includeimports false
-        -excludeprocs {^(ActivateLegend|DeactivateLegend|HighlightLegend|Crosshairs|InitStack|ZoomStack|\
-                                 RemoveZoomStack|PrintKey|ClosestPoint|AddBindTag|RemoveBindTag|FindElement|\
-                                 FlashPoint|GetCoords|MarkPoint|DestroyZoomTitle|PopZoom|PushZoom|ResetZoom|\
-                                 ZoomTitleNext|ZoomTitleLast|SetZoomPoint|MarchingAnts|Box|PostScriptDialog|\
-                                 ResetPostScript|Legacy.*)$}
+        -excludeprocs {^(ActivateLegend|DeactivateLegend|HighlightLegend|Crosshairs|InitStack|ZoomStack|RemoveZoomStack|PrintKey|ClosestPoint|AddBindTag|RemoveBindTag|FindElement|FlashPoint|GetCoords|MarkPoint|DestroyZoomTitle|PopZoom|PushZoom|ResetZoom|ZoomTitleNext|ZoomTitleLast|SetZoomPoint|MarchingAnts|Box|PostScriptDialog|ResetPostScript|Legacy.*)$}
     }
 
     proc graph {pathName args} {
