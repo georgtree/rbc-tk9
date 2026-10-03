@@ -1,0 +1,174 @@
+# RBC.vector.window.A.test --
+#
+###Abstract
+# This file tests the window instance operation of the vector rbc component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide vector.window
+package require rbc::vector
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+source [file join [file dirname [info script]] fftTestSupport.tcl]
+
+namespace eval vector.window {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Check known samples of all windows in periodic and symmetric forms.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach {kind length periodic expected} {
+		rectangular 4 true  {1 1 1 1}
+		hann        4 true  {0 0.5 1 0.5}
+		hamming     4 true  {0.08 0.54 1 0.54}
+		blackman    4 true  {0 0.34 1 0.34}
+		bartlett    4 true  {0 0.5 1 0.5}
+		rectangular 4 false {1 1 1 1}
+		hann        4 false {0 0.75 0.75 0}
+		hamming     4 false {0.08 0.77 0.77 0.08}
+		blackman    4 false {0 0.63 0.63 0}
+		bartlett    4 false {0 0.6666666666666666 0.6666666666666666 0}
+		hann        5 false {0 0.5 1 0.5 0}
+		hamming     5 false {0.08 0.54 1 0.54 0.08}
+		blackman    5 false {0 0.34 1 0.34 0}
+		bartlett    5 false {0 0.5 1 0.5 0}
+		hann        2 false {0 0}
+		hamming     2 false {0.08 0.08}
+		blackman    2 false {0 0}
+		bartlett    2 false {0 0}
+		hann        2 true  {0 1}
+	} {
+		incr case
+		test RBC.vector.window.A.1.$case {
+			vector window: known coefficients
+		} -setup {
+			vector create ::WindowTest
+		} -body {
+			set name [::WindowTest window $kind $length -periodic $periodic]
+			list $name [::WindowTest type] [::vector.fft::Near [::WindowTest range 0 end] $expected]
+		} -cleanup {
+			vector destroy ::WindowTest
+		} -result {::WindowTest real 1}
+	}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Define singleton windows and the periodic extension relation for odd sizes.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach kind {rectangular hann hamming blackman bartlett} {
+		incr case
+		test RBC.vector.window.A.2.$case {
+			vector window: one sample is unity in either form
+		} -setup {
+			vector create ::WindowTest
+		} -body {
+			::WindowTest window $kind 1
+			set periodic [::WindowTest range 0 end]
+			::WindowTest window $kind 1 -periodic false
+			list $periodic [::WindowTest range 0 end]
+		} -cleanup {
+			vector destroy ::WindowTest
+		} -result {1.0 1.0}
+
+		test RBC.vector.window.A.3.$case {
+			vector window: periodic form is extended symmetric form without last sample
+		} -setup {
+			vector create ::WindowTest
+		} -body {
+			::WindowTest window $kind 7
+			set periodic [::WindowTest range 0 end]
+			::WindowTest window $kind 8 -periodic false
+			set symmetric [::WindowTest range 0 end]
+			list [::vector.fft::Near $periodic [lrange $symmetric 0 end-1]] [expr {$symmetric eq [lreverse $symmetric]}]
+		} -cleanup {
+			vector destroy ::WindowTest
+		} -result {1 1}
+	}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Invalid options and lengths leave values/type unchanged.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach args {
+		{unknown 4} {han 4} {hann 0} {hann -2} {hann 1.5} {hann auto}
+		{hann 4 -periodic} {hann 4 -periodic invalid} {hann 4 -unknown true}
+		{hann 4 -periodic true -periodic false} {hann 4611686018427387904}
+	} {
+		incr case
+		test RBC.vector.window.A.4.$case {
+			vector window: invalid input is transactional
+		} -setup {
+			vector create ::WindowTest
+			::WindowTest set {9 8}
+		} -body {
+			set rc [catch {::WindowTest window {*}$args}]
+			list $rc [::WindowTest range 0 end]
+		} -cleanup {
+			vector destroy ::WindowTest
+		} -result {1 {9.0 8.0}}
+	}
+
+	test RBC.vector.window.A.4.12 {
+		vector window: complex destination is rejected
+	} -setup {
+		vector create ::WindowTest -type complex
+		::WindowTest set {{9 8}}
+	} -body {
+		set rc [catch {::WindowTest window hann 4}]
+		list $rc [::WindowTest type] [::WindowTest range 0 end]
+	} -cleanup {
+		vector destroy ::WindowTest
+	} -result {1 complex {{9.0 8.0}}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Window generation integrates with expressions, padding and frequency bins.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.window.A.5.1 {
+		vector window: periodic Hann coherent gain and energy
+	} -setup {
+		vector create ::WindowTest
+	} -body {
+		::WindowTest window hann 16
+		list [expr {abs([vector expr {mean(::WindowTest)}]-0.5)<1e-12}]\
+                [expr {abs([vector expr {sum(::WindowTest*::WindowTest)}]-6.0)<1e-12}]
+	} -cleanup {
+		vector destroy ::WindowTest
+	} -result {1 1}
+
+	test RBC.vector.window.A.5.2 {
+		vector window: generate before padding and use actual FFT length for frequencies
+	} -setup {
+		::vector.fft::Setup
+	} -body {
+		::FftInput set {1 1 1}
+		::FftReal window hann [::FftInput length]
+		::FftInput expr {::FftInput * ::FftReal}
+		::FftInput fft ::FftOut -length auto
+		::FftImag fftfreq [::FftOut length] -delta 0.25
+		list [::FftReal length] [::FftOut length]\
+                [::vector.fft::Near [::FftOut range 0 end] [::vector.fft::Dft {0 0.75 0.75 0}]]\
+                [::FftImag range 0 end]
+	} -cleanup {
+		::vector.fft::Cleanup
+	} -result {3 4 1 {0.0 1.0 -2.0 -1.0}}
+
+	test RBC.vector.window.A.5.3 {
+		vector window: preserve offset, refresh cache and create no vectors
+	} -setup {
+		vector create ::WindowTest
+		::WindowTest set {99}
+		::WindowTest offset 5
+	} -body {
+		set names [lsort [vector names]]
+		set old $::WindowTest(5)
+		::WindowTest window hann 4
+		list $old [::WindowTest offset] $::WindowTest(5) $::WindowTest(max) [expr {$names eq [lsort [vector names]]}]
+	} -cleanup {
+		vector destroy ::WindowTest
+	} -result {99.0 5 0.0 1.0 1}
+
+	cleanupTests
+}

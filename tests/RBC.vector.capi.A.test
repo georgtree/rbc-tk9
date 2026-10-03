@@ -274,4 +274,37 @@ namespace eval vector.capi {
         CleanupVectors ::CapiFftInput ::CapiFftReal ::CapiFftImag
     } -result {1 1 {1.0 1.0 1.0 1.0} {0.0 0.0 0.0 0.0}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Frequency/window generators retain existing C entities when replacing data.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.capi.A.7.1 {
+        public C API: frequency generation retains destination identity
+    } -setup {
+        CleanupVectors ::CapiFrequency
+        vector create ::CapiFrequency
+        ::CapiFrequency set {9 8}
+    } -body {
+        set before [lindex [::rbccapitest identity ::CapiFrequency] 0]
+        ::CapiFrequency fftfreq 4
+        list [expr {$before eq [lindex [::rbccapitest identity ::CapiFrequency] 0]}] \
+            [::CapiFrequency range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiFrequency
+    } -result {1 {0.0 0.25 -0.5 -0.25}}
+
+    test RBC.vector.capi.A.7.2 {
+        public C API: window generation retains destination identity
+    } -setup {
+        CleanupVectors ::CapiWindow
+        vector create ::CapiWindow
+        ::CapiWindow set {9 8}
+    } -body {
+        set before [lindex [::rbccapitest identity ::CapiWindow] 0]
+        ::CapiWindow window bartlett 4
+        list [expr {$before eq [lindex [::rbccapitest identity ::CapiWindow] 0]}] \
+            [::CapiWindow range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiWindow
+    } -result {1 {0.0 0.5 1.0 0.5}}
+
 }

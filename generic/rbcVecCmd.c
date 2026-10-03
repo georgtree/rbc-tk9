@@ -158,6 +158,7 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{"dup", 3, 3, "vecname"}, DupOp},
                                                    {{"expr", 3, 3, "expression"}, ExprOp},
                                                    {{"fft", 3, 0, "?destComplex? ?-real destReal -imag destImag? ?-imaginput vecName? ?-length auto|size?"}, Rbc_VectorFftOp},
+                                                   {{"fftfreq", 3, 0, "length ?-delta interval? ?-onesided boolean?"}, Rbc_VectorFftfreqOp},
                                                    {{"ifft", 3, 0, "?destComplex? ?-real destReal -imag destImag? ?-imaginput vecName? ?-length auto|size?"}, Rbc_VectorFftOp},
                                                    {{"index", 3, 4, "index ?value?"}, IndexOp},
                                                    {{"length", 2, 3, "?newSize?"}, LengthOp},
@@ -174,6 +175,7 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{"split", 2, 0, "?vecName?..."}, SplitOp},
                                                    {{"type", 2, 2, ""}, TypeOp},
                                                    {{"variable", 2, 3, "?varName?"}, VariableOp},
+                                                   {{"window", 4, 0, "type length ?-periodic boolean?"}, Rbc_VectorWindowOp},
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {

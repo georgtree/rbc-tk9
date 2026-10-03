@@ -122,53 +122,59 @@ value to append one element:</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fft</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ifft</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">index</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">normalize</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fftfreq</span></code></p></td>
 <td><p>Not supported</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">offset</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ifft</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">populate</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">index</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">range</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">search</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seq</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
-<td><p>Supported</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">normalize</span></code></p></td>
 <td><p>Not supported</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">split</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">offset</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">populate</span></code></p></td>
 <td><p>Supported</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variable</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">random</span></code></p></td>
 <td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">range</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">search</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seq</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></td>
+<td><p>Not supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">split</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">variable</span></code></p></td>
+<td><p>Supported</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">window</span></code></p></td>
+<td><p>Not supported</p></td>
 </tr>
 </tbody>
 </table>
@@ -254,6 +260,85 @@ it for a physical frequency spectrum. No sample-time vector or resampling is imp
 <p>Inputs must be finite. Non-finite input, non-finite results, invalid arguments, and temporary allocation
 failures return an error without replacing destination data. Runtime is O(N log N), with O(N) temporary
 storage. The operation runs synchronously and does not process Tcl events during computation.</p>
+</section>
+<section id="frequency-bin-generation">
+<span id="r-rbc-vecinst-frequency-bin-generation"></span><span id="r-3a3arbc3a3avecinstqzfrequency2dbin20generation"></span><h3>Frequency-bin generation<a class="headerlink" href="#frequency-bin-generation" title="Link to this heading">¶</a></h3>
+<p>Use an existing real vector to generate frequencies for a transform length N:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>frequencies
+<span class="nv">frequencies</span><span class="w"> </span>fftfreq<span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">-</span>delta<span class="w"> </span><span class="mf">0.125</span>
+<span class="c"># {0 1 2 3 -4 -3 -2 -1}, in cycles per time unit.</span>
+<span class="nv">frequencies</span><span class="w"> </span>fftfreq<span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">-</span>delta<span class="w"> </span><span class="mf">0.125</span><span class="w"> </span><span class="o">-</span>onesided<span class="w"> </span>true
+<span class="c"># {0 1 2 3 4}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">-delta</span></code> is the finite, positive sample interval, defaulting to 1. Frequencies are in Hz when the interval
+is in seconds, or cycles per sample when it is 1. Full ordering, the default, matches the unshifted FFT:
+for even N it uses integer bins <code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">...,</span> <span class="pre">N/2-1,</span> <span class="pre">-N/2,</span> <span class="pre">...,</span> <span class="pre">-1</span></code>, and for odd N it uses
+<code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">...,</span> <span class="pre">(N-1)/2,</span> <span class="pre">-(N-1)/2,</span> <span class="pre">...,</span> <span class="pre">-1</span></code>. Each bin is divided by N and the sample interval.
+The even-length Nyquist bin is negative in full ordering. <code class="docutils literal notranslate"><span class="pre">-onesided</span> <span class="pre">true</span></code> instead returns
+<code class="docutils literal notranslate"><span class="pre">floor(N/2)+1</span></code> nonnegative bins, including positive Nyquist for even N. There is no Nyquist bin for odd N.
+Both forms return <code class="docutils literal notranslate"><span class="pre">{0}</span></code> for N=1. Any positive integer length is accepted, including non-powers of two.</p>
+<p>Supply the actual transform length, including padding, rather than the number of original samples.
+This command only generates an axis: it neither computes nor truncates an FFT and it never doubles
+spectral amplitudes. Pair a one-sided axis with the first <code class="docutils literal notranslate"><span class="pre">floor(N/2)+1</span></code> FFT bins. Such a reduced spectrum
+represents real signals through conjugate symmetry; it generally loses independent information from
+complex signals. The frequency values follow the standard FFT bin convention documented by
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html">NumPy fftfreq</a>.</p>
+</section>
+<section id="window-generation">
+<span id="r-rbc-vecinst-window-generation"></span><span id="r-3a3arbc3a3avecinstqzwindow20generation"></span><h3>Window generation<a class="headerlink" href="#window-generation" title="Link to this heading">¶</a></h3>
+<p>Generate coefficients in an existing real vector, then multiply the signal by that vector before padding:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span>weights<span class="w"> </span>windowed<span class="w"> </span>frequencies<span class="w"> </span>magnitude<span class="w"> </span>positiveMagnitude
+<span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>spectrum<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
+<span class="nv">signal</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="k">}</span>
+<span class="nv">weights</span><span class="w"> </span>window<span class="w"> </span>hann<span class="w"> </span><span class="k">[</span><span class="nv">signal</span><span class="w"> </span>length<span class="k">]</span>
+<span class="nv">windowed</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">signal</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>weights<span class="k">}</span>
+<span class="nv">windowed</span><span class="w"> </span>fft<span class="w"> </span>spectrum<span class="w"> </span><span class="o">-</span>length<span class="w"> </span>auto
+<span class="nv">frequencies</span><span class="w"> </span>fftfreq<span class="w"> </span><span class="k">[</span><span class="nv">spectrum</span><span class="w"> </span>length<span class="k">]</span><span class="w"> </span><span class="o">-</span>delta<span class="w"> </span><span class="mf">0.001</span><span class="w"> </span><span class="o">-</span>onesided<span class="w"> </span>true
+<span class="nv">magnitude</span><span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">abs</span><span class="k">(</span><span class="nv">spectrum</span><span class="k">)}</span>
+<span class="nv">positiveMagnitude</span><span class="w"> </span>set<span class="w"> </span><span class="k">[</span><span class="nv">magnitude</span><span class="w"> </span>range<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{[</span><span class="nv">spectrum</span><span class="w"> </span>length<span class="k">]</span><span class="o">/</span><span class="nv">2</span><span class="k">}]]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span> <span class="pre">length</span> <span class="pre">?-periodic</span> <span class="pre">boolean?</span></code> replaces the receiving vector with the requested coefficients.
+The types are <code class="docutils literal notranslate"><span class="pre">rectangular</span></code>, <code class="docutils literal notranslate"><span class="pre">hann</span></code>, <code class="docutils literal notranslate"><span class="pre">hamming</span></code>, <code class="docutils literal notranslate"><span class="pre">blackman</span></code> and <code class="docutils literal notranslate"><span class="pre">bartlett</span></code>. The default <code class="docutils literal notranslate"><span class="pre">-periodic</span> <span class="pre">true</span></code>
+is suitable for spectral analysis. <code class="docutils literal notranslate"><span class="pre">-periodic</span> <span class="pre">false</span></code> produces a symmetric window, suitable for filter
+design. For N&gt;1 the periodic form is the first N coefficients of the symmetric N+1 window. Both forms
+accept any positive length. Every length-one window is <code class="docutils literal notranslate"><span class="pre">{1}</span></code>. Zero and negative lengths are errors.</p>
+<p>For sample k from 0 to N-1, set D=N for periodic windows and D=N-1 for symmetric windows. For N&gt;1:</p>
+<ul class="simple">
+<li><p>Rectangular: <code class="docutils literal notranslate"><span class="pre">w[k]</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p></li>
+<li><p>Hann: <code class="docutils literal notranslate"><span class="pre">w[k]</span> <span class="pre">=</span> <span class="pre">0.5</span> <span class="pre">-</span> <span class="pre">0.5*cos(2*pi*k/D)</span></code>.</p></li>
+<li><p>Hamming: <code class="docutils literal notranslate"><span class="pre">w[k]</span> <span class="pre">=</span> <span class="pre">0.54</span> <span class="pre">-</span> <span class="pre">0.46*cos(2*pi*k/D)</span></code>.</p></li>
+<li><p>Blackman: <code class="docutils literal notranslate"><span class="pre">w[k]</span> <span class="pre">=</span> <span class="pre">0.42</span> <span class="pre">-</span> <span class="pre">0.5*cos(2*pi*k/D)</span> <span class="pre">+</span> <span class="pre">0.08*cos(4*pi*k/D)</span></code>.</p></li>
+<li><p>Bartlett: <code class="docutils literal notranslate"><span class="pre">w[k]</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">abs(2*k/D</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+<p>These are the conventional window definitions; no extra normalization by sum, energy or sampled peak
+is applied. Some short or odd periodic windows, and even symmetric windows, do not contain a coefficient
+equal to 1. Symmetric Hann, Blackman and Bartlett windows have zero endpoints; the periodic form normally
+omits the final zero. Hamming endpoints are 0.08 in symmetric form. The periodic/symmetric convention is
+also described in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/signal.windows.html">SciPy window documentation</a>.</p>
+</section>
+<section id="window-scaling">
+<span id="r-rbc-vecinst-window-scaling"></span><span id="r-3a3arbc3a3avecinstqzwindow20scaling"></span><h3>Window scaling<a class="headerlink" href="#window-scaling" title="Link to this heading">¶</a></h3>
+<p>Windowing changes amplitude and energy. Use the coefficients applied to the original L samples to compute
+coherent gain <code class="docutils literal notranslate"><span class="pre">sum(w)/L</span></code> and energy <code class="docutils literal notranslate"><span class="pre">sum(w*w)</span></code>. Padding does not add coefficients to these sums.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>coherentGain<span class="w"> </span><span class="k">[</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">mean</span><span class="k">(</span><span class="nv">weights</span><span class="k">)}]</span>
+<span class="k">set</span><span class="w"> </span>windowSum<span class="w"> </span><span class="k">[</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sum</span><span class="k">(</span><span class="nv">weights</span><span class="k">)}]</span>
+<span class="k">set</span><span class="w"> </span>windowEnergy<span class="w"> </span><span class="k">[</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>expr<span class="w"> </span><span class="k">{</span><span class="nv">sum</span><span class="k">(</span><span class="nv">weights</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>weights<span class="k">)}]</span>
+</pre></div>
+</div>
+<p>For an isolated complex tone exactly on a frequency bin, divide its unscaled FFT magnitude by
+<code class="docutils literal notranslate"><span class="pre">windowSum</span></code> to recover amplitude. Real-tone one-sided amplitude conventions additionally double the
+interior positive-frequency bins, but not DC or the even-length Nyquist bin. Leakage or overlapping
+components can still affect a tone’s measured amplitude. A two-sided periodogram PSD convention is
+<code class="docutils literal notranslate"><span class="pre">abs(X[k])^2</span> <span class="pre">/</span> <span class="pre">(sampleRate</span> <span class="pre">*</span> <span class="pre">windowEnergy)</span></code>, where <code class="docutils literal notranslate"><span class="pre">sampleRate</span> <span class="pre">=</span> <span class="pre">1/delta</span></code>. One-sided PSD for real signals
+doubles interior bins only. These are scaling conventions for scripts, not additional generator behavior.
+Check for zero sums or energy before division: for example, a symmetric two-sample Hann window is all zero.</p>
+<p>Both generators preserve vector identity, type, index offset and client bindings, and return the qualified
+destination name. They replace all coefficients at once, refresh caches and notify clients. Invalid input,
+unrepresentable allocation sizes, allocation failures or non-finite frequency results leave data unchanged.
+Frequency underflow follows ordinary double arithmetic and may round extremely small bins to zero.
+The commands perform no implicit vector creation or resampling and do not interpret <code class="docutils literal notranslate"><span class="pre">#auto</span></code>.</p>
 </section>
 </section>
 <section id="vector-expressions">
@@ -1278,6 +1363,9 @@ interface and are intentionally not documented here.</p>
 <li><a class="reference internal" href="#fourier-transforms">Fourier transforms</a><ul>
 <li><a class="reference internal" href="#length-and-zero-padding">Length and zero padding</a></li>
 <li><a class="reference internal" href="#sign-scaling-and-frequency-bins">Sign, scaling and frequency bins</a></li>
+<li><a class="reference internal" href="#frequency-bin-generation">Frequency-bin generation</a></li>
+<li><a class="reference internal" href="#window-generation">Window generation</a></li>
+<li><a class="reference internal" href="#window-scaling">Window scaling</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#vector-expressions">Vector expressions</a><ul>

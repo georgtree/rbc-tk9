@@ -20,6 +20,14 @@ compatible input/output overlap is supported\&. The full spectrum uses the conve
 sign and a 1/N-normalized inverse\&. Power-of-two lengths are required, with explicit -length auto|size
 zero padding\&. No external FFT dependency or Tk initialization is needed\&. See \fI::rbc::VECINST\fP for syntax,
 frequency-bin ordering, normalization and sampling requirements\&.
+.SS "FFT FREQUENCY BINS AND WINDOWS"
+.PP
+Existing real vectors provide fftfreq length ?-delta interval? ?-onesided boolean? and
+window type length ?-periodic boolean?\&. Frequency axes match full FFT ordering or its nonnegative
+half\&. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+with symmetric form available explicitly\&. Generate windows at the original sample count before padding,
+and frequency bins at the actual transform length\&. Neither operation creates vectors or changes types\&.
+See \fI::rbc::VECINST\fP for formulas, examples and amplitude/energy normalization\&.
 .SS "CONFIGURABLE LOGARITHMIC BAR BASELINE"
 .PP
 Bar elements honor a positive graph -baseline on logarithmic Y axes, including automatic limits,

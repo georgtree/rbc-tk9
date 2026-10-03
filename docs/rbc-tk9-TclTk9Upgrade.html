@@ -57,6 +57,15 @@ sign and a 1/N-normalized inverse. Power-of-two lengths are required, with expli
 zero padding. No external FFT dependency or Tk initialization is needed. See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for syntax,
 frequency-bin ordering, normalization and sampling requirements.</p>
 </section>
+<section id="fft-frequency-bins-and-windows">
+<span id="r-tcltk9upgrade-fft-frequency-bins-and-windows"></span><span id="r-3a3atcltk9upgradeqzfft20frequency20bins20and20windows"></span><h3>FFT frequency bins and windows<a class="headerlink" href="#fft-frequency-bins-and-windows" title="Link to this heading">¶</a></h3>
+<p>Existing real vectors provide <code class="docutils literal notranslate"><span class="pre">fftfreq</span> <span class="pre">length</span> <span class="pre">?-delta</span> <span class="pre">interval?</span> <span class="pre">?-onesided</span> <span class="pre">boolean?</span></code> and
+<code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span> <span class="pre">length</span> <span class="pre">?-periodic</span> <span class="pre">boolean?</span></code>. Frequency axes match full FFT ordering or its nonnegative
+half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+with symmetric form available explicitly. Generate windows at the original sample count before padding,
+and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
+See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for formulas, examples and amplitude/energy normalization.</p>
+</section>
 <section id="configurable-logarithmic-bar-baseline">
 <span id="r-tcltk9upgrade-configurable-logarithmic-bar-baseline"></span><span id="r-3a3atcltk9upgradeqzconfigurable20logarithmic20bar20baseline"></span><h3>Configurable logarithmic bar baseline<a class="headerlink" href="#configurable-logarithmic-bar-baseline" title="Link to this heading">¶</a></h3>
 <p>Bar elements honor a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> on logarithmic Y axes, including automatic limits,
@@ -810,6 +819,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
 <li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
+<li><a class="reference internal" href="#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>

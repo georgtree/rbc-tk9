@@ -1,0 +1,149 @@
+# RBC.vector.fftfreq.A.test --
+#
+###Abstract
+# This file tests the fftfreq instance operation of the vector rbc component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide vector.fftfreq
+package require rbc::vector
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+source [file join [file dirname [info script]] fftTestSupport.tcl]
+
+namespace eval vector.fftfreq {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Verify full FFT ordering, positive one-sided bins, and parity edge cases.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach {length delta onesided expected} {
+		8 0.125 false {0 1 2 3 -4 -3 -2 -1}
+		8 0.125 true  {0 1 2 3 4}
+		5 0.2   false {0 1 2 -2 -1}
+		5 0.2   true  {0 1 2}
+		2 0.5   false {0 -1}
+		2 0.5   true  {0 1}
+		1 1.0   false {0}
+		1 1.0   true  {0}
+	} {
+		incr case
+		test RBC.vector.fftfreq.A.1.$case {
+			vector fftfreq: full and one-sided bin ordering
+		} -setup {
+			vector create ::FrequencyTest
+		} -body {
+			set name [::FrequencyTest fftfreq $length -delta $delta -onesided $onesided]
+			list $name [::FrequencyTest type] [::vector.fft::Near [::FrequencyTest range 0 end] $expected]
+		} -cleanup {
+			vector destroy ::FrequencyTest
+		} -result {::FrequencyTest real 1}
+	}
+
+	test RBC.vector.fftfreq.A.2.1 {
+		vector fftfreq: default interval and ordering
+	} -setup {
+		vector create ::FrequencyTest
+	} -body {
+		::FrequencyTest fftfreq 4
+		::FrequencyTest range 0 end
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result {0.0 0.25 -0.5 -0.25}
+
+	test RBC.vector.fftfreq.A.2.2 {
+		vector fftfreq: large interval does not overflow the denominator
+	} -setup {
+		vector create ::FrequencyTest
+	} -body {
+		::FrequencyTest fftfreq 8 -delta 1e308
+		set value [::FrequencyTest index 1]
+		expr {$value > 0 && $value < 1e-308 && abs($value/1.25e-309 - 1) < 1e-12}
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result 1
+
+	test RBC.vector.fftfreq.A.2.3 {
+		vector fftfreq: small interval with finite bins does not overflow reciprocal
+	} -setup {
+		vector create ::FrequencyTest
+	} -body {
+		::FrequencyTest fftfreq 2 -delta 3e-309 -onesided true
+		set value [::FrequencyTest index 1]
+		expr {$value > 1e308 && $value < 1.8e308 && abs($value/1.6666666666666666e308 - 1) < 1e-12}
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result 1
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Invalid lengths, intervals, switches and types leave the destination intact.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach args {
+		{0} {-1} {1.5} {auto} {4 -delta 0} {4 -delta -1} {4 -delta Inf}
+		{4 -delta NaN} {4 -delta invalid} {4 -delta 1e-320} {4 -delta}
+		{4 -onesided} {4 -onesided invalid} {4 -unknown 1}
+		{4 -delta 1 -delta 2} {4 -onesided false -onesided true}
+		{4611686018427387904} {4 -onesided true extra}
+	} {
+		incr case
+		test RBC.vector.fftfreq.A.3.$case {
+			vector fftfreq: invalid input leaves values unchanged
+		} -setup {
+			vector create ::FrequencyTest
+			::FrequencyTest set {9 8}
+		} -body {
+			set rc [catch {::FrequencyTest fftfreq {*}$args}]
+			list $rc [::FrequencyTest range 0 end]
+		} -cleanup {
+			vector destroy ::FrequencyTest
+		} -result {1 {9.0 8.0}}
+	}
+
+	test RBC.vector.fftfreq.A.3.19 {
+		vector fftfreq: complex destination is rejected
+	} -setup {
+		vector create ::FrequencyTest -type complex
+		::FrequencyTest set {{9 8}}
+	} -body {
+		set rc [catch {::FrequencyTest fftfreq 8}]
+		list $rc [::FrequencyTest type] [::FrequencyTest range 0 end]
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result {1 complex {{9.0 8.0}}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Retain offsets and mapped arrays while resizing and updating cached extrema.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.fftfreq.A.4.1 {
+		vector fftfreq: offset and mapped cache consistency
+	} -setup {
+		vector create ::FrequencyTest
+		::FrequencyTest set {99}
+		::FrequencyTest offset 5
+	} -body {
+		set old $::FrequencyTest(5)
+		::FrequencyTest fftfreq 4
+		list $old [::FrequencyTest offset] $::FrequencyTest(5) $::FrequencyTest(min) $::FrequencyTest(max)
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result {99.0 5 0.0 -0.5 0.25}
+
+	test RBC.vector.fftfreq.A.4.2 {
+		vector fftfreq: no vector creation for either ordering
+	} -setup {
+		vector create ::FrequencyTest
+	} -body {
+		set before [lsort [vector names]]
+		::FrequencyTest fftfreq 8
+		::FrequencyTest fftfreq 8 -onesided true
+		expr {$before eq [lsort [vector names]]}
+	} -cleanup {
+		vector destroy ::FrequencyTest
+	} -result 1
+
+	cleanupTests
+}

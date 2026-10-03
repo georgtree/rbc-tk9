@@ -79,6 +79,7 @@ Most vector instance operations support complex vectors\&. The following table s
 │ dup       │ Supported       │
 │ expr      │ Supported       │
 │ fft       │ Supported       │
+│ fftfreq   │ Not supported   │
 │ ifft      │ Supported       │
 │ index     │ Supported       │
 │ length    │ Supported       │
@@ -95,6 +96,7 @@ Most vector instance operations support complex vectors\&. The following table s
 │ split     │ Supported       │
 │ type      │ Supported       │
 │ variable  │ Supported       │
+│ window    │ Not supported   │
 └───────────┴─────────────────┘
 .fi
 .RE
@@ -197,6 +199,106 @@ it for a physical frequency spectrum\&. No sample-time vector or resampling is i
 Inputs must be finite\&. Non-finite input, non-finite results, invalid arguments, and temporary allocation
 failures return an error without replacing destination data\&. Runtime is O(N log N), with O(N) temporary
 storage\&. The operation runs synchronously and does not process Tcl events during computation\&.
+.SS "FREQUENCY-BIN GENERATION"
+.PP
+Use an existing real vector to generate frequencies for a transform length N:
+.PP
+.RS 4n
+.nf
+rbc::vector create frequencies
+frequencies fftfreq 8 -delta 0\&.125
+# {0 1 2 3 -4 -3 -2 -1}, in cycles per time unit\&.
+frequencies fftfreq 8 -delta 0\&.125 -onesided true
+# {0 1 2 3 4}
+.fi
+.RE
+.PP
+-delta is the finite, positive sample interval, defaulting to 1\&. Frequencies are in Hz when the interval
+is in seconds, or cycles per sample when it is 1\&. Full ordering, the default, matches the unshifted FFT:
+for even N it uses integer bins 0, \&.\&.\&., N/2-1, -N/2, \&.\&.\&., -1, and for odd N it uses
+0, \&.\&.\&., (N-1)/2, -(N-1)/2, \&.\&.\&., -1\&. Each bin is divided by N and the sample interval\&.
+The even-length Nyquist bin is negative in full ordering\&. -onesided true instead returns
+floor(N/2)+1 nonnegative bins, including positive Nyquist for even N\&. There is no Nyquist bin for odd N\&.
+Both forms return {0} for N=1\&. Any positive integer length is accepted, including non-powers of two\&.
+.PP
+Supply the actual transform length, including padding, rather than the number of original samples\&.
+This command only generates an axis: it neither computes nor truncates an FFT and it never doubles
+spectral amplitudes\&. Pair a one-sided axis with the first floor(N/2)+1 FFT bins\&. Such a reduced spectrum
+represents real signals through conjugate symmetry; it generally loses independent information from
+complex signals\&. The frequency values follow the standard FFT bin convention documented by
+\fINumPy fftfreq\fP [URL: https://numpy\&.org/doc/stable/reference/generated/numpy\&.fft\&.fftfreq\&.html]\&.
+.SS "WINDOW GENERATION"
+.PP
+Generate coefficients in an existing real vector, then multiply the signal by that vector before padding:
+.PP
+.RS 4n
+.nf
+rbc::vector create signal weights windowed frequencies magnitude positiveMagnitude
+rbc::vector create spectrum -type complex
+signal set {0 1 0 -1 0 1 0 -1}
+weights window hann [signal length]
+windowed expr {signal * weights}
+windowed fft spectrum -length auto
+frequencies fftfreq [spectrum length] -delta 0\&.001 -onesided true
+magnitude expr {abs(spectrum)}
+positiveMagnitude set [magnitude range 0 [expr {[spectrum length]/2}]]
+.fi
+.RE
+.PP
+window type length ?-periodic boolean? replaces the receiving vector with the requested coefficients\&.
+The types are rectangular, hann, hamming, blackman and bartlett\&. The default -periodic true
+is suitable for spectral analysis\&. -periodic false produces a symmetric window, suitable for filter
+design\&. For N>1 the periodic form is the first N coefficients of the symmetric N+1 window\&. Both forms
+accept any positive length\&. Every length-one window is {1}\&. Zero and negative lengths are errors\&.
+.PP
+For sample k from 0 to N-1, set D=N for periodic windows and D=N-1 for symmetric windows\&. For N>1:
+.TP
+\(bu
+Rectangular: w[k] = 1\&.
+.TP
+\(bu
+Hann: w[k] = 0\&.5 - 0\&.5*cos(2*pi*k/D)\&.
+.TP
+\(bu
+Hamming: w[k] = 0\&.54 - 0\&.46*cos(2*pi*k/D)\&.
+.TP
+\(bu
+Blackman: w[k] = 0\&.42 - 0\&.5*cos(2*pi*k/D) + 0\&.08*cos(4*pi*k/D)\&.
+.TP
+\(bu
+Bartlett: w[k] = 1 - abs(2*k/D - 1)\&.
+.PP
+These are the conventional window definitions; no extra normalization by sum, energy or sampled peak
+is applied\&. Some short or odd periodic windows, and even symmetric windows, do not contain a coefficient
+equal to 1\&. Symmetric Hann, Blackman and Bartlett windows have zero endpoints; the periodic form normally
+omits the final zero\&. Hamming endpoints are 0\&.08 in symmetric form\&. The periodic/symmetric convention is
+also described in \fISciPy window documentation\fP [URL: https://docs\&.scipy\&.org/doc/scipy/reference/signal\&.windows\&.html]\&.
+.SS "WINDOW SCALING"
+.PP
+Windowing changes amplitude and energy\&. Use the coefficients applied to the original L samples to compute
+coherent gain sum(w)/L and energy sum(w*w)\&. Padding does not add coefficients to these sums\&.
+.PP
+.RS 4n
+.nf
+set coherentGain [rbc::vector expr {mean(weights)}]
+set windowSum [rbc::vector expr {sum(weights)}]
+set windowEnergy [rbc::vector expr {sum(weights * weights)}]
+.fi
+.RE
+.PP
+For an isolated complex tone exactly on a frequency bin, divide its unscaled FFT magnitude by
+windowSum to recover amplitude\&. Real-tone one-sided amplitude conventions additionally double the
+interior positive-frequency bins, but not DC or the even-length Nyquist bin\&. Leakage or overlapping
+components can still affect a tone's measured amplitude\&. A two-sided periodogram PSD convention is
+abs(X[k])^2 / (sampleRate * windowEnergy), where sampleRate = 1/delta\&. One-sided PSD for real signals
+doubles interior bins only\&. These are scaling conventions for scripts, not additional generator behavior\&.
+Check for zero sums or energy before division: for example, a symmetric two-sample Hann window is all zero\&.
+.PP
+Both generators preserve vector identity, type, index offset and client bindings, and return the qualified
+destination name\&. They replace all coefficients at once, refresh caches and notify clients\&. Invalid input,
+unrepresentable allocation sizes, allocation failures or non-finite frequency results leave data unchanged\&.
+Frequency underflow follows ordinary double arithmetic and may round extremely small bins to zero\&.
+The commands perform no implicit vector creation or resampling and do not interpret #auto\&.
 .SH "VECTOR EXPRESSIONS"
 .PP
 Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors\&.

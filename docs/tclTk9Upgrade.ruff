@@ -21,6 +21,15 @@ namespace eval TclTk9Upgrade {
         zero padding. No external FFT dependency or Tk initialization is needed. See [::rbc::VECINST] for syntax,
         frequency-bin ordering, normalization and sampling requirements.
 
+        ### FFT frequency bins and windows
+
+        Existing real vectors provide `fftfreq length ?-delta interval? ?-onesided boolean?` and
+        `window type length ?-periodic boolean?`. Frequency axes match full FFT ordering or its nonnegative
+        half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+        with symmetric form available explicitly. Generate windows at the original sample count before padding,
+        and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
+        See [::rbc::VECINST] for formulas, examples and amplitude/energy normalization.
+
         ### Configurable logarithmic bar baseline
 
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,

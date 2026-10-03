@@ -396,3 +396,216 @@ error:
     }
     return TCL_ERROR;
 }
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * FftStoreReal --
+ *
+ *      Commits completed real generator data using the same storage and
+ *      notification rules as fft. The caller has checked the vector type
+ *      and all values before this routine takes ownership of the array.
+ *
+ * Results:
+ *      TCL_OK and the vector's qualified name.
+ *
+ * Side effects:
+ *      Replaces storage, invalidates cached values and notifies clients.
+ *
+ * -----------------------------------------------------------------------
+ */
+static int FftStoreReal(VectorObject *vPtr, Tcl_Interp *interp, double *data, Tcl_Size length) {
+    void *oldData;
+    Tcl_FreeProc *oldFree;
+    Tcl_Obj *nameObj = Tcl_NewStringObj(vPtr->name, -1);
+
+    Tcl_IncrRefCount(nameObj);
+    FftInstall(vPtr, data, length, &oldData, &oldFree);
+    if ((oldData != NULL) && (oldFree != TCL_STATIC)) {
+        if (oldFree == TCL_DYNAMIC) {
+            ckfree(oldData);
+        } else {
+            oldFree(oldData);
+        }
+    }
+    if (vPtr->flush) {
+        Rbc_VectorFlushCache(vPtr);
+    }
+    Rbc_VectorUpdateClients(vPtr);
+    Tcl_SetObjResult(interp, nameObj);
+    Tcl_DecrRefCount(nameObj);
+    return TCL_OK;
+}
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * Rbc_VectorFftfreqOp --
+ *
+ *      Fills an existing real vector with bin frequencies for a positive
+ *      transform length. Full order includes a negative Nyquist bin for
+ *      even lengths. One-sided order contains floor(N/2)+1 nonnegative
+ *      bins, including positive Nyquist when N is even.
+ *
+ * Results:
+ *      TCL_OK and the destination name, or TCL_ERROR without mutation.
+ *
+ * Side effects:
+ *      On success, resizes and updates this vector without changing its
+ *      identity, type, offset or bindings. Does not compute an FFT.
+ *
+ * -----------------------------------------------------------------------
+ */
+int Rbc_VectorFftfreqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    static const char *const options[] = {"-delta", "-onesided", NULL};
+    Tcl_Size length, count, i, positive;
+    double delta = 1.0;
+    double *data;
+    int oneSided = FALSE;
+    unsigned int seen = 0;
+
+    if (Tcl_GetSizeIntFromObj(interp, objv[2], &length) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (length <= 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("frequency length must be positive", -1));
+        return TCL_ERROR;
+    }
+    for (i = 3; i < objc; i += 2) {
+        int option;
+
+        if (Tcl_GetIndexFromObj(interp, objv[i], options, "option", TCL_EXACT, &option) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (seen & (1u << option)) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("duplicate option \"%s\"", Tcl_GetString(objv[i])));
+            return TCL_ERROR;
+        }
+        seen |= 1u << option;
+        if (i + 1 == objc) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("missing value for \"%s\"", Tcl_GetString(objv[i])));
+            return TCL_ERROR;
+        }
+        if (option == 0) {
+            if (Tcl_GetDoubleFromObj(interp, objv[i + 1], &delta) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        } else if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &oneSided) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (!FINITE(delta) || (delta <= 0.0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("sample interval must be finite and positive", -1));
+        return TCL_ERROR;
+    }
+    count = oneSided ? length / 2 + 1 : length;
+    positive = (length - 1) / 2 + 1;
+    data = FftAllocate(interp, count, sizeof(*data));
+    if (data == NULL) {
+        return TCL_ERROR;
+    }
+    for (i = 0; i < count; i++) {
+        Tcl_Size bin = (oneSided || (i < positive)) ? i : i - length;
+
+        /* Divide in this order to avoid overflowing N*delta or 1/delta. */
+        data[i] = ((double)bin / (double)length) / delta;
+        if (!FINITE(data[i])) {
+            ckfree(data);
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("non-finite frequency bin", -1));
+            return TCL_ERROR;
+        }
+    }
+    return FftStoreReal(vPtr, interp, data, count);
+}
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * Rbc_VectorWindowOp --
+ *
+ *      Generates unscaled rectangular, Hann, Hamming, Blackman or Bartlett
+ *      coefficients in an existing real vector. Periodic windows use N in
+ *      the denominator; symmetric windows use N-1. A length-one window is
+ *      always {1}. Any positive length is permitted, independently of the
+ *      radix-2 restriction on the FFT itself.
+ *
+ * Results:
+ *      TCL_OK and the destination name, or TCL_ERROR without mutation.
+ *
+ * Side effects:
+ *      Commits all coefficients at once and notifies vector clients.
+ *
+ * -----------------------------------------------------------------------
+ */
+int Rbc_VectorWindowOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    static const char *const windows[] = {"rectangular", "hann", "hamming", "blackman", "bartlett", NULL};
+    static const char *const options[] = {"-periodic", NULL};
+    enum { RECTANGULAR, HANN, HAMMING, BLACKMAN, BARTLETT };
+    Tcl_Size length, i;
+    int kind, periodic = TRUE, seen = FALSE;
+    double denominator, pi = acos(-1.0);
+    double *data;
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], windows, "window", TCL_EXACT, &kind) != TCL_OK ||
+        Tcl_GetSizeIntFromObj(interp, objv[3], &length) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (length <= 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("window length must be positive", -1));
+        return TCL_ERROR;
+    }
+    for (i = 4; i < objc; i += 2) {
+        int option;
+
+        if (Tcl_GetIndexFromObj(interp, objv[i], options, "option", TCL_EXACT, &option) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (seen) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("duplicate option \"-periodic\"", -1));
+            return TCL_ERROR;
+        }
+        seen = TRUE;
+        if (i + 1 == objc) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("missing value for \"-periodic\"", -1));
+            return TCL_ERROR;
+        }
+        if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &periodic) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    data = FftAllocate(interp, length, sizeof(*data));
+    if (data == NULL) {
+        return TCL_ERROR;
+    }
+    denominator = (double)(periodic ? length : length - 1);
+    for (i = 0; i < length; i++) {
+        if ((length == 1) || (kind == RECTANGULAR)) {
+            data[i] = 1.0;
+        } else {
+            /* Fold about the centre for identical symmetric coefficients.
+             * Sine-squared forms avoid cancellation near the endpoints. */
+            Tcl_Size mirror = (periodic ? length : length - 1) - i;
+            double x = (double)((i < mirror) ? i : mirror) / denominator;
+            double sine = sin(pi * x);
+            double square = sine * sine;
+
+            switch (kind) {
+            case HANN:
+                data[i] = square;
+                break;
+            case HAMMING:
+                data[i] = 0.08 + 0.92 * square;
+                break;
+            case BLACKMAN:
+                data[i] = square * (0.68 - 0.32 * cos(2.0 * pi * x));
+                break;
+            case BARTLETT:
+                data[i] = 2.0 * x;
+                break;
+            default:
+                Tcl_Panic("bad FFT window type");
+            }
+        }
+    }
+    return FftStoreReal(vPtr, interp, data, length);
+}
