@@ -1,0 +1,131 @@
+# RBC.vector.ifft.A.test --
+#
+###Abstract
+# This file tests the ifft instance operation of the vector rbc component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide vector.ifft
+package require rbc::vector
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+source [file join [file dirname [info script]] fftTestSupport.tcl]
+
+namespace eval vector.ifft {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Check inverse normalization against a direct DFT, not only round trips.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach values {{{3 -4}} {{1 0} {0 0}} {{1 2} {-3 4} {5 -6} {7 8}}} {
+		incr case
+		test RBC.vector.ifft.A.1.$case {
+			vector ifft: independent complex reference
+		} -setup {::vector.fft::Setup} -body {
+			::FftComplex set $values
+			set name [::FftComplex ifft ::FftOut]
+			list $name [::vector.fft::Near [::FftOut range 0 end] [::vector.fft::Dft $values 1]]
+		} -cleanup {::vector.fft::Cleanup} -result {::FftOut 1}
+	}
+
+	test RBC.vector.ifft.A.1.4 {
+		vector ifft: real input to complex output
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftInput ifft ::FftOut
+		::vector.fft::Near [::FftOut range 0 end] [::vector.fft::Dft {1 2 3 4} 1]
+	} -cleanup {::vector.fft::Cleanup} -result 1
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Verify round trips for all input/output representations and padding.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.ifft.A.2.1 {
+		vector ifft: in-place complex round trip retains complex type
+	} -setup {::vector.fft::Setup} -body {
+		set values {{1 2} {3 -4} {-5 6} {7 8} {-9 -10} {0 1} {2 0} {0.5 -0.5}}
+		::FftComplex set $values
+		::FftComplex fft ::FftComplex
+		::FftComplex ifft ::FftComplex
+		list [::FftComplex type] [::vector.fft::Near [::FftComplex range 0 end] $values]
+	} -cleanup {::vector.fft::Cleanup} -result {complex 1}
+
+	test RBC.vector.ifft.A.2.2 {
+		vector ifft: split spectrum into complex output
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftInput fft -real ::FftReal -imag ::FftImag
+		set name [::FftReal ifft -imaginput ::FftImag ::FftOut]
+		list $name [::vector.fft::Near [::FftOut range 0 end] {1 2 3 4}]
+	} -cleanup {::vector.fft::Cleanup} -result {::FftOut 1}
+
+	test RBC.vector.ifft.A.2.3 {
+		vector ifft: split input and output can overlap
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftInput fft -real ::FftReal -imag ::FftImag
+		set names [::FftReal ifft -imaginput ::FftImag -real ::FftReal -imag ::FftImag]
+		list $names [::vector.fft::Near [::vector.fft::SplitValues] {1 2 3 4}]
+	} -cleanup {::vector.fft::Cleanup} -result {{::FftReal ::FftImag} 1}
+
+	test RBC.vector.ifft.A.2.4 {
+		vector ifft: complex spectrum into real and imaginary components
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1 2 3}
+		::FftInput fft ::FftOut -length auto
+		::FftOut ifft -real ::FftReal -imag ::FftImag
+		list [::FftReal length] [::vector.fft::Near [::vector.fft::SplitValues] {1 2 3 0}]
+	} -cleanup {::vector.fft::Cleanup} -result {4 1}
+
+	test RBC.vector.ifft.A.2.5 {
+		vector ifft: explicitly padded inverse transforms the supplied full spectrum
+	} -setup {::vector.fft::Setup} -body {
+		::FftComplex set {{1 2} {3 -4} {5 6}}
+		::FftComplex ifft ::FftOut -length 8
+		::vector.fft::Near [::FftOut range 0 end] [::vector.fft::Dft {{1 2} {3 -4} {5 6} 0 0 0 0 0} 1]
+	} -cleanup {::vector.fft::Cleanup} -result 1
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Preserve output on errors and avoid avoidable overflow during normalization.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.ifft.A.3.1 {
+		vector ifft: real positional destination is rejected without a type change
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1 2}
+		set rc [catch {::FftInput ifft ::FftInput} message]
+		list $rc $message [::FftInput type] [::FftInput range 0 end]
+	} -cleanup {::vector.fft::Cleanup} -result {1 {FFT destination must be a complex vector} real {1.0 2.0}}
+
+	test RBC.vector.ifft.A.3.2 {
+		vector ifft: complex input cannot also have an imaginary input vector
+	} -setup {::vector.fft::Setup} -body {
+		::FftComplex set {{1 2} {3 4}}
+		set rc [catch {::FftComplex ifft ::FftOut -imaginput ::FftImagInput} message]
+		list $rc $message [::FftOut length]
+	} -cleanup {::vector.fft::Cleanup} -result {1 {FFT -imaginput requires two real input vectors} 0}
+
+	test RBC.vector.ifft.A.3.3 {
+		vector ifft: normalization precedes additions for large finite input
+	} -setup {::vector.fft::Setup} -body {
+		::FftInput set {1e308 1e308}
+		::FftInput ifft ::FftOut
+		::vector.fft::Near [::FftOut range 0 end] {1e308 0}
+	} -cleanup {::vector.fft::Cleanup} -result 1
+
+	test RBC.vector.ifft.A.3.4 {
+		vector ifft: larger deterministic complex round trip
+	} -setup {::vector.fft::Setup} -body {
+		set values {}
+		for {set i 0} {$i < 1024} {incr i} {
+			lappend values [list [expr {sin($i*0.13)+cos($i*0.37)}] [expr {cos($i*0.07)}]]
+		}
+		::FftComplex set $values
+		::FftComplex fft ::FftOut
+		::FftOut ifft ::FftOut
+		::vector.fft::Near [::FftOut range 0 end] $values 1e-12
+	} -cleanup {::vector.fft::Cleanup} -result 1
+
+	cleanupTests
+}

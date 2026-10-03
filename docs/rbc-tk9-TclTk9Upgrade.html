@@ -48,6 +48,15 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="vector-fft-and-inverse-fft">
+<span id="r-tcltk9upgrade-vector-fft-and-inverse-fft"></span><span id="r-3a3atcltk9upgradeqzvector20fft20and20inverse20fft"></span><h3>Vector FFT and inverse FFT<a class="headerlink" href="#vector-fft-and-inverse-fft" title="Link to this heading">¶</a></h3>
+<p>Real and complex vectors provide <code class="docutils literal notranslate"><span class="pre">fft</span></code> and <code class="docutils literal notranslate"><span class="pre">ifft</span></code> instance operations. Results are written into an
+existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
+compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
+sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit <code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">auto|size</span></code>
+zero padding. No external FFT dependency or Tk initialization is needed. See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for syntax,
+frequency-bin ordering, normalization and sampling requirements.</p>
+</section>
 <section id="configurable-logarithmic-bar-baseline">
 <span id="r-tcltk9upgrade-configurable-logarithmic-bar-baseline"></span><span id="r-3a3atcltk9upgradeqzconfigurable20logarithmic20bar20baseline"></span><h3>Configurable logarithmic bar baseline<a class="headerlink" href="#configurable-logarithmic-bar-baseline" title="Link to this heading">¶</a></h3>
 <p>Bar elements honor a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> on logarithmic Y axes, including automatic limits,
@@ -800,6 +809,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>

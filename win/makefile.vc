@@ -54,6 +54,7 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcTile.obj \
     $(TMP_DIR)\rbcUtil.obj \
     $(TMP_DIR)\rbcVecMath.obj \
+    $(TMP_DIR)\rbcVecFft.obj \
     $(TMP_DIR)\rbcVecCmd.obj \
     $(TMP_DIR)\rbcVector.obj \
     $(TMP_DIR)\rbcWindow.obj \

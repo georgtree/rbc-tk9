@@ -235,4 +235,43 @@ namespace eval vector.capi {
         CleanupVectors ::CapiName(out) ::CapiName(1) ::CapiName(ac)
     } -result {::CapiName(out) 3 1 {} ::CapiName(1) 3 1 {} ::CapiName(ac) 3 1 {} 0}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: FFT storage replacement retains C identity for both complex and split destinations.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.capi.A.6.1 {
+        public C API: complex FFT destination retains its entity
+    } -setup {
+        CleanupVectors ::CapiFftInput ::CapiFftOutput
+        vector create ::CapiFftInput
+        vector create ::CapiFftOutput -type complex
+        ::CapiFftInput set {1 0 0 0}
+        update idletasks
+    } -body {
+        set before [lindex [::rbccapitest identity ::CapiFftOutput] 0]
+        ::CapiFftInput fft ::CapiFftOutput
+        list [expr {$before eq [lindex [::rbccapitest identity ::CapiFftOutput] 0]}] \
+            [::CapiFftOutput length]
+
+    } -cleanup {
+        CleanupVectors ::CapiFftInput ::CapiFftOutput
+    } -result {1 4}
+
+    test RBC.vector.capi.A.6.2 {
+        public C API: split FFT destinations retain both entities
+    } -setup {
+        CleanupVectors ::CapiFftInput ::CapiFftReal ::CapiFftImag
+        vector create ::CapiFftInput ::CapiFftReal ::CapiFftImag
+        ::CapiFftInput set {1 0 0 0}
+        update idletasks
+    } -body {
+        set real [lindex [::rbccapitest identity ::CapiFftReal] 0]
+        set imag [lindex [::rbccapitest identity ::CapiFftImag] 0]
+        ::CapiFftInput fft -real ::CapiFftReal -imag ::CapiFftImag
+        list [expr {$real eq [lindex [::rbccapitest identity ::CapiFftReal] 0]}] \
+            [expr {$imag eq [lindex [::rbccapitest identity ::CapiFftImag] 0]}] \
+            [::CapiFftReal range 0 end] [::CapiFftImag range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiFftInput ::CapiFftReal ::CapiFftImag
+    } -result {1 1 {1.0 1.0 1.0 1.0} {0.0 0.0 0.0 0.0}}
+
 }

@@ -1,0 +1,222 @@
+# RBC.vector.fft.A.test --
+#
+###Abstract
+# This file tests the fft instance operation of the vector rbc component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide vector.fft
+package require rbc::vector
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+source [file join [file dirname [info script]] fftTestSupport.tcl]
+
+namespace eval vector.fft {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Check real signals against an independent DFT, including DC and Nyquist.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach values {{1} {1 0} {1 0 0 0} {2 2 2 2 2 2 2 2} {1 -1 1 -1 1 -1 1 -1} {0 1 0 -1} {1 -2 3 0.5 -4 6 0 -1}} {
+		incr case
+		test RBC.vector.fft.A.1.$case {
+			vector fft: real input and full complex output
+		} -setup {Setup} -body {
+			::FftInput set $values
+			set name [::FftInput fft ::FftOut]
+			list $name [::FftOut type] [Near [::FftOut range 0 end] [Dft $values]]\
+				[expr {[::FftOut length] == [llength $values]}] [Near [::FftInput range 0 end] $values]
+		} -cleanup {Cleanup} -result {::FftOut complex 1 1 1}
+	}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Check complex input, split input/output, and overlapping storage.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.fft.A.2.1 {
+		vector fft: general complex input
+	} -setup {Setup} -body {
+		set values {{1 2} {-3 0.5} {4 -1} {0 7} {2 3} {8 -2} {-1 -1} {0.5 2}}
+		::FftComplex set $values
+		::FftComplex fft ::FftOut
+		Near [::FftOut range 0 end] [Dft $values]
+	} -cleanup {Cleanup} -result 1
+
+	test RBC.vector.fft.A.2.2 {
+		vector fft: separate real inputs and outputs
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftImagInput set {4 -3 2 -1}
+		set names [::FftInput fft -imaginput ::FftImagInput -real ::FftReal -imag ::FftImag]
+		list $names [Near [SplitValues] [Dft {{1 4} {2 -3} {3 2} {4 -1}}]] [::FftReal type] [::FftImag type]
+	} -cleanup {Cleanup} -result {{::FftReal ::FftImag} 1 real real}
+
+	test RBC.vector.fft.A.2.3 {
+		vector fft: in-place complex output
+	} -setup {Setup} -body {
+		set values {{1 2} {3 -4} {-5 6} {7 8}}
+		::FftComplex set $values
+		::FftComplex fft ::FftComplex
+		Near [::FftComplex range 0 end] [Dft $values]
+	} -cleanup {Cleanup} -result 1
+
+	test RBC.vector.fft.A.2.4 {
+		vector fft: split destinations alias both inputs in reverse order
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftImagInput set {4 -3 2 -1}
+		::FftInput fft -imaginput ::FftImagInput -real ::FftImagInput -imag ::FftInput
+		set values {}
+		foreach re [::FftImagInput range 0 end] im [::FftInput range 0 end] {
+			lappend values [list $re $im]
+		}
+		Near $values [Dft {{1 4} {2 -3} {3 2} {4 -1}}]
+	} -cleanup {Cleanup} -result 1
+
+	test RBC.vector.fft.A.2.5 {
+		vector fft: complex input split into real destinations
+	} -setup {Setup} -body {
+		set values {{1 4} {2 -3} {3 2} {4 -1}}
+		::FftComplex set $values
+		::FftComplex fft -real ::FftReal -imag ::FftImag
+		Near [SplitValues] [Dft $values]
+	} -cleanup {Cleanup} -result 1
+
+	test RBC.vector.fft.A.2.6 {
+		vector fft: padded complex transform can replace its own input
+	} -setup {Setup} -body {
+		set values {{1 2} {3 -4} {5 6}}
+		::FftComplex set $values
+		::FftComplex fft ::FftComplex -length auto
+		list [::FftComplex length] [Near [::FftComplex range 0 end] [Dft [concat $values {0}]]]
+	} -cleanup {Cleanup} -result {4 1}
+
+	test RBC.vector.fft.A.2.7 {
+		vector fft: separate real inputs into one complex output
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftImagInput set {4 -3 2 -1}
+		::FftInput fft ::FftOut -imaginput ::FftImagInput
+		Near [::FftOut range 0 end] [Dft {{1 4} {2 -3} {3 2} {4 -1}}]
+	} -cleanup {Cleanup} -result 1
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Verify explicit zero padding, including supplied sample count and offsets.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.fft.A.3.1 {
+		vector fft: automatic length rounds up and preserves source
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3}
+		::FftInput fft ::FftOut -length auto
+		list [::FftOut length] [Near [::FftOut range 0 end] [Dft {1 2 3 0}]] [::FftInput length]
+	} -cleanup {Cleanup} -result {4 1 3}
+
+	test RBC.vector.fft.A.3.2 {
+		vector fft: specified length and split output
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3}
+		::FftInput fft -length 8 -real ::FftReal -imag ::FftImag
+		list [::FftReal length] [Near [SplitValues] [Dft {1 2 3 0 0 0 0 0}]]
+	} -cleanup {Cleanup} -result {8 1}
+
+	test RBC.vector.fft.A.3.3 {
+		vector fft: sample order ignores source index offset and preserves destination offset
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3 4}
+		::FftInput offset -10
+		::FftOut offset 5
+		::FftInput fft ::FftOut
+		list [::FftOut offset] [Near [::FftOut range 5 end] [Dft {1 2 3 4}]]
+	} -cleanup {Cleanup} -result {5 1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Reject invalid options/types/lengths without altering either destination.
+	# ------------------------------------------------------------------------------------
+	set case 0
+	foreach options {
+		{::FftReal} {::FftInput} {::FftMissing} {#auto} {-real ::FftReal} {-imag ::FftImag}
+		{-real ::FftReal -imag ::FftReal} {-real ::FftOut -imag ::FftImag}
+		{::FftOut -real ::FftReal -imag ::FftImag} {::FftOut -unknown 1}
+		{::FftOut -length} {::FftOut -length 4 -length 8} {::FftOut -length 0}
+		{::FftOut -length -2} {::FftOut -length 3} {::FftOut -length 2}
+		{::FftOut -length 4.5} {::FftOut -imaginput ::FftOut}
+		{::FftOut -imaginput ::FftImagInput} {::FftOut ::FftComplex}
+		{::FftOut -length 4611686018427387904}
+	} {
+		incr case
+		test RBC.vector.fft.A.4.$case {
+			vector fft: invalid arguments leave all vector data unchanged
+		} -setup {Setup} -body {
+			::FftInput set {1 2 3 4}
+			::FftOut set {{7 8}}
+			::FftReal set {9 10}
+			::FftImag set {11}
+			set names [lsort [::rbc::vector names]]
+			set rc [catch {::FftInput fft {*}$options}]
+			list $rc [::FftOut range 0 end] [::FftReal range 0 end] [::FftImag range 0 end]\
+                    [expr {$names eq [lsort [::rbc::vector names]]}]
+		} -cleanup {Cleanup} -result {1 {{7.0 8.0}} {9.0 10.0} 11.0 1}
+	}
+
+	test RBC.vector.fft.A.5.1 {
+		vector fft: non-power-of-two input requires explicit padding
+	} -setup {Setup} -body {
+		::FftInput set {1 2 3}
+		catch {::FftInput fft ::FftOut} message
+		set message
+	} -cleanup {Cleanup} -result {FFT length must be a positive power of two; use -length auto to pad}
+
+	test RBC.vector.fft.A.5.2 {
+		vector fft: empty input has no transform
+	} -setup {Setup} -body {
+		catch {::FftInput fft ::FftOut -length auto} message
+		set message
+	} -cleanup {Cleanup} -result {FFT input vector must not be empty}
+
+	test RBC.vector.fft.A.5.3 {
+		vector fft: non-finite input does not replace split outputs
+	} -setup {Setup} -body {
+		::FftInput set {1 Inf}
+		::FftReal set {9}
+		::FftImag set {8}
+		set rc [catch {::FftInput fft -real ::FftReal -imag ::FftImag} message]
+		list $rc $message [::FftReal range 0 end] [::FftImag range 0 end]
+	} -cleanup {Cleanup} -result {1 {non-finite FFT input at index 1} 9.0 8.0}
+
+	test RBC.vector.fft.A.5.4 {
+		vector fft: numerical overflow does not replace destination
+	} -setup {Setup} -body {
+		::FftInput set {1e308 1e308}
+		::FftOut set {{9 8}}
+		set rc [catch {::FftInput fft ::FftOut} message]
+		list $rc $message [::FftOut range 0 end]
+	} -cleanup {Cleanup} -result {1 {non-finite FFT result} {{9.0 8.0}}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Respect namespace resolution, parentheses names, and mapped-array caches.
+	# ------------------------------------------------------------------------------------
+	test RBC.vector.fft.A.6.1 {
+		vector fft: caller namespace and parentheses names
+	} -setup {Setup} -body {
+		namespace eval ::FftNames {
+			::rbc::vector create {v(in)}
+			::rbc::vector create {v(out)} -type complex
+			v(in) set {1 0}
+			list [v(in) fft v(out)] [v(out) range 0 end]
+		}
+	} -cleanup {Cleanup} -result {::FftNames::v(out) {{1.0 0.0} {1.0 0.0}}}
+
+	test RBC.vector.fft.A.6.2 {
+		vector fft: replacing real output refreshes mapped values and extrema
+	} -setup {Setup} -body {
+		::FftInput set {1 0 0 0}
+		::FftReal set {99}
+		set before $::FftReal(0)
+		::FftInput fft -real ::FftReal -imag ::FftImag
+		list $before $::FftReal(0) $::FftReal(min) $::FftReal(max) [::FftReal length]
+	} -cleanup {Cleanup} -result {99.0 1.0 1.0 1.0 4}
+
+	cleanupTests
+}

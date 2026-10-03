@@ -381,6 +381,8 @@ namespace eval ::rbc::VECINST {
         | `delete`    | Supported       |
         | `dup`       | Supported       |
         | `expr`      | Supported       |
+        | `fft`       | Supported       |
+        | `ifft`      | Supported       |
         | `index`     | Supported       |
         | `length`    | Supported       |
         | `merge`     | Supported       |
@@ -412,6 +414,8 @@ namespace eval ::rbc::VECINST {
         │ delete    │ Supported       │
         │ dup       │ Supported       │
         │ expr      │ Supported       │
+        │ fft       │ Supported       │
+        │ ifft      │ Supported       │
         │ index     │ Supported       │
         │ length    │ Supported       │
         │ merge     │ Supported       │
@@ -442,6 +446,90 @@ namespace eval ::rbc::VECINST {
 
         The calculated Tcl array indices `min`, `max`, `mean`, `sum`, and `prod` remain real-only. Ordinary numeric
         indices and ranges work with an explicitly mapped complex vector.
+
+        ## Fourier transforms
+
+        `fft` and `ifft` work with `package require rbc::vector`; Tk and an external FFT library are not required.
+        The source can be real or complex. Destinations must already exist: use either one complex vector or
+        two distinct real vectors. Transform commands never create vectors, interpret `#auto` as a request to
+        create one, or change a vector's type.
+
+        ```tcl
+        package require rbc::vector
+        rbc::vector create signal spectrumReal spectrumImag
+        rbc::vector create spectrum reconstructed -type complex
+        signal set {1 2 3 4}
+
+        # Complete complex spectrum, followed by an inverse transform.
+        signal fft spectrum
+        spectrum ifft reconstructed
+
+        # The same spectrum stored as separate real and imaginary components.
+        signal fft -real spectrumReal -imag spectrumImag
+        spectrumReal ifft -imaginput spectrumImag reconstructed
+
+        # Reuse the two real vectors as inverse destinations.
+        spectrumReal ifft -imaginput spectrumImag -real spectrumReal -imag spectrumImag
+        ```
+
+        A positional destination must be complex, even when the input is real. `-real` and `-imag` must be supplied
+        together and refer to different real vectors. Both commands also accept `-imaginput` for a real source;
+        the supplied imaginary-input vector must be real and have the same length. All references use RBC vector
+        lookup in the caller's namespace, including literal names with parentheses. Partial vector ranges are
+        rejected; copy a range into a vector first when a transform of a subset is required.
+
+        Input/output overlap is supported with matching types. For example, `spectrum fft spectrum` is valid for
+        a complex vector; `signal fft signal` is an error when `signal` is real. Existing destination C entities,
+        names, types, index offsets and client bindings are retained. Data pointers may change. C clients must
+        reacquire data pointers after an update. Mapped-array caches and vector clients are updated as for other
+        vector mutations. Both split results are installed before notifications are issued.
+
+        ### Length and zero padding
+
+        The initial implementation uses a radix-2 algorithm. The default transform length is the input length,
+        which must be a positive power of two. A one-element transform is valid; an empty input is an error.
+        `-length auto` pads with zeros to the next power of two. `-length size` requires a positive power of two
+        at least as large as the input length. Smaller lengths are errors: input is never silently truncated.
+        Both real and imaginary components are padded with zeros.
+
+        ```tcl
+        signal set {1 2 3}
+        signal fft spectrum -length auto
+        # spectrum has 4 bins.
+        spectrum ifft reconstructed
+        # reconstructed is approximately {{1 0} {2 0} {3 0} {0 0}}.
+        ```
+
+        The inverse returns the transform length, including padding. The original unpadded length is not stored
+        as vector metadata. `ifft -length` pads the supplied frequency-bin array before taking its inverse; it
+        does not crop time-domain output or reconstruct an omitted negative-frequency half-spectrum.
+
+        ### Sign, scaling and frequency bins
+
+        For N samples, forward bin k is the sum of `x[j] * exp(-2*pi*i*j*k/N)` over j from 0 to N-1.
+        The inverse uses the positive exponential and divides by N. Thus `ifft(fft(x))` reproduces x up to
+        floating-point rounding, or x followed by zeros if padding was requested. Neither transform applies a
+        window, removes the mean, doubles bins, or performs amplitude, power or power-spectral-density scaling.
+
+        All N bins are returned in unshifted order: DC at index 0, positive frequencies next, then negative
+        frequencies. For even N, index N/2 is the Nyquist bin. For uniform sample interval dt, indices below
+        N/2 correspond to `k/(N*dt)` and indices above N/2 to `(k-N)/(N*dt)`; the Nyquist bin represents the
+        shared positive/negative Nyquist frequency. These are storage positions, independent of vector offsets.
+        A real input has conjugate-symmetric bins; complex inputs generally do not.
+
+        ```tcl
+        rbc::vector create magnitude phase
+        magnitude expr {abs(spectrum)}
+        phase expr {arg(spectrum)}
+        ```
+
+        These expressions give raw magnitude and phase in radians. Calibrated amplitude and power spectra need
+        additional normalization. FFT assumes uniform sampling; resample adaptive simulation output before using
+        it for a physical frequency spectrum. No sample-time vector or resampling is implicit in these commands.
+
+        Inputs must be finite. Non-finite input, non-finite results, invalid arguments, and temporary allocation
+        failures return an error without replacing destination data. Runtime is O(N log N), with O(N) temporary
+        storage. The operation runs synchronously and does not process Tcl events during computation.
 
         ## Vector expressions
         Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.
@@ -1555,6 +1643,39 @@ namespace eval ::rbc::VECINST {
         # Evaluates `expression` and stores the result in this vector.
         # expression - vector expression.
         # Returns: Nothing.
+    }
+
+    proc fft {args} {
+        # Computes the full forward discrete Fourier transform of this real or complex vector.
+        # destComplex - existing complex destination, mutually exclusive with split destinations.
+        # -real destReal - existing real destination for real components; requires `-imag`.
+        # -imag destImag - existing real destination for imaginary components; requires `-real`.
+        # -imaginput vecName - real vector supplying imaginary input components; the source must also be real.
+        # -length auto|size - zero-pad to the next power of two or a specified power of two. The default uses
+        #   the input length and rejects a non-power-of-two length. The requested size cannot truncate input.
+        #
+        # See the Fourier transforms section for fixed-type, aliasing, padding, normalization and bin-order rules.
+        # Options may precede or follow the positional destination. Option names must be complete; duplicates
+        # are errors. `--` ends option parsing for a positional destination beginning with a hyphen.
+        # Returns: Fully qualified destination name, or a list `{destReal destImag}` of qualified names.
+        # Synopsis: destComplex ?-imaginput vecName? ?-length auto|size?
+        # Synopsis: -real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?
+    }
+
+    proc ifft {args} {
+        # Computes the full inverse discrete Fourier transform, normalized by the transform length.
+        # destComplex - existing complex destination, mutually exclusive with split destinations.
+        # -real destReal - existing real destination for real components; requires `-imag`.
+        # -imag destImag - existing real destination for imaginary components; requires `-real`.
+        # -imaginput vecName - real vector supplying imaginary input components; the source must also be real.
+        # -length auto|size - explicit zero padding of the frequency-bin input, as for `fft`.
+        #
+        # Input is a complete spectrum, not a half-spectrum. Real input is interpreted as a spectrum with zero
+        # imaginary components. A complex destination remains complex even when its imaginary values are zero.
+        # See the Fourier transforms section for details and round-trip examples.
+        # Returns: Fully qualified destination name, or a list `{destReal destImag}` of qualified names.
+        # Synopsis: destComplex ?-imaginput vecName? ?-length auto|size?
+        # Synopsis: -real destReal -imag destImag ?-imaginput vecName? ?-length auto|size?
     }
 
     proc index {args} {

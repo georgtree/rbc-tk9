@@ -5,6 +5,6 @@ if {[package provide Tk] ne {}} {
     error {vectorAll.tcl must start in a Tcl-only interpreter}
 }
 ::tcltest::configure -testdir [file dirname [file normalize [info script]]]\
-        -file {RBC.vector.load.A.test RBC.vector.capi.A.test RBC.vector.parentheses.A.test RBC.vector.namespace.A.test RBC.vector.rename.A.test RBC.vector.map.A.test graph-legacy-headless.test} -singleproc 1
+        -file {RBC.vector.load.A.test RBC.vector.capi.A.test RBC.vector.parentheses.A.test RBC.vector.namespace.A.test RBC.vector.rename.A.test RBC.vector.map.A.test RBC.vector.fft.A.test RBC.vector.ifft.A.test graph-legacy-headless.test} -singleproc 1
 ::tcltest::configure {*}$argv
 ::tcltest::runAllTests

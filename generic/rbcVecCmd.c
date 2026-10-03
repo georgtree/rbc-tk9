@@ -157,6 +157,8 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{"delete", 3, 0, "index ?index?..."}, DeleteOp},
                                                    {{"dup", 3, 3, "vecname"}, DupOp},
                                                    {{"expr", 3, 3, "expression"}, ExprOp},
+                                                   {{"fft", 3, 0, "?destComplex? ?-real destReal -imag destImag? ?-imaginput vecName? ?-length auto|size?"}, Rbc_VectorFftOp},
+                                                   {{"ifft", 3, 0, "?destComplex? ?-real destReal -imag destImag? ?-imaginput vecName? ?-length auto|size?"}, Rbc_VectorFftOp},
                                                    {{"index", 3, 4, "index ?value?"}, IndexOp},
                                                    {{"length", 2, 3, "?newSize?"}, LengthOp},
                                                    {{"merge", 3, 0, "vecName ?vecName?..."}, MergeOp},
@@ -175,7 +177,7 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) ||
+    return ((proc == Rbc_VectorFftOp) || (proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) ||
             (proc == DeleteOp) || (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) ||
             (proc == OffsetOp) || (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) ||
             (proc == SearchOp) || (proc == SeqOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) ||

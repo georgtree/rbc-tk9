@@ -12,6 +12,15 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
+        ### Vector FFT and inverse FFT
+
+        Real and complex vectors provide `fft` and `ifft` instance operations. Results are written into an
+        existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
+        compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
+        sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit `-length auto|size`
+        zero padding. No external FFT dependency or Tk initialization is needed. See [::rbc::VECINST] for syntax,
+        frequency-bin ordering, normalization and sampling requirements.
+
         ### Configurable logarithmic bar baseline
 
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,
