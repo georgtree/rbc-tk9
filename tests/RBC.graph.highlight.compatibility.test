@@ -1,0 +1,37 @@
+# Historical signed highlight thickness is supported on both Tk 9.0 and 9.1.
+# See license.terms for details.
+package provide graph.highlight.compatibility
+
+package require rbc
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval ::graph.highlight.compatibility {
+
+    foreach type {graph barchart stripchart} {
+        foreach value {-2 -2.5 -1m} {
+            test highlightCompatibility-$type-create-$value {signed thickness at creation and reconfiguration} -body {
+                ::rbc::$type .highlightCompatibility -highlightthickness $value
+                set initial [.highlightCompatibility cget -highlightthickness]
+                .highlightCompatibility configure -highlightthickness 3
+                .highlightCompatibility configure -highlightthickness $value
+                list $initial [.highlightCompatibility cget -highlightthickness]
+            } -cleanup {
+                catch {destroy .highlightCompatibility}
+            } -result [list $value $value]
+        }
+
+        test highlightCompatibility-$type-rollback {failed transaction preserves signed thickness} -setup {
+            ::rbc::$type .highlightCompatibility -highlightthickness -2.5
+        } -body {
+            set before [.highlightCompatibility cget -width]
+            set rc [catch {.highlightCompatibility configure -highlightthickness -4 -width invalid}]
+            list $rc [.highlightCompatibility cget -highlightthickness] \
+                [expr {$before eq [.highlightCompatibility cget -width]}]
+        } -cleanup {
+            destroy .highlightCompatibility
+        } -result {1 -2.5 1}
+    }
+
+    cleanupTests
+}

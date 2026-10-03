@@ -76,20 +76,20 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 <section id="running-rbc">
 <span id="r-running-rbc"></span><span id="r-running20rbc"></span><h3>Running Rbc<a class="headerlink" href="#running-rbc" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>Tcl and Tk 9.0.</p></li>
+<li><p>Tcl and Tk 9.0/9.1</p></li>
 <li><p>The Tcl <a class="reference external" href="https://github.com/georgtree/argparse">argparse package</a>, only for the optional <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code> package.</p></li>
 <li><p>A graphical environment supported by the Tk installation.</p></li>
 </ul>
 <p>The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.</p>
 <p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads Tk, the native Rbc widgets and commands, and the legacy <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code> helpers,
-without requiring argparse. The global <code class="docutils literal notranslate"><span class="pre">Rbc_ActiveLegend</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Crosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetCrosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span></code>,
-<code class="docutils literal notranslate"><span class="pre">Rbc_ClosestPoint</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_PrintKey</span></code>, and <code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptDialog</span></code> commands are retained for <strong>backward compatibility</strong>.
-They are not enabled until called on a graph. For new applications, prefer the optional toolbar below.
-<strong>Using these helpers together with ``rbc::graphtoolbar`` on the same graph is not recommended</strong>, because their
-bindings and interaction state can interfere. Separate widgets may use separate interaction systems.
-See <strong>Legacy graph helpers</strong> in the graph documentation for usage and cleanup behavior.
-Load the optional toolbar explicitly, before importing Rbc commands:</p>
+without requiring argparse.</p>
+<p>The global <code class="docutils literal notranslate"><span class="pre">Rbc_ActiveLegend</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Crosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetCrosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ClosestPoint</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Rbc_PrintKey</span></code>, and <code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptDialog</span></code> commands are retained for <strong>backward compatibility</strong>.  They are not enabled
+until called on a graph. For new applications, prefer the optional toolbar below. <strong>Using these helpers together with
+``rbc::graphtoolbar`` on the same graph is not recommended</strong>, because their bindings and interaction state can
+interfere. Separate widgets may use separate interaction systems.  See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqzlegacy20graph20helpers"><span class="std std-ref">Legacy graph helpers</span></a> in the graph
+documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing Rbc commands:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
 <span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
 </pre></div>

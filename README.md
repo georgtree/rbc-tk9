@@ -41,7 +41,7 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 
 ### Running Rbc
 
-- Tcl and Tk 9.0.
+- Tcl and Tk 9.0/9.1
 - The Tcl [argparse package](https://github.com/georgtree/argparse), only for the optional `rbc::graphtoolbar` package.
 - A graphical environment supported by the Tk installation.
 
@@ -49,13 +49,14 @@ The build environments described here are Linux with X11 Tk and Windows with MSY
 compatibility is not a target of this fork.
 
 `package require rbc` loads Tk, the native Rbc widgets and commands, and the legacy `graph.tcl` helpers,
-without requiring argparse. The global `Rbc_ActiveLegend`, `Rbc_Crosshairs`, `Rbc_ResetCrosshairs`, `Rbc_ZoomStack`,
-`Rbc_ClosestPoint`, `Rbc_PrintKey`, and `Rbc_PostScriptDialog` commands are retained for **backward compatibility**.
-They are not enabled until called on a graph. For new applications, prefer the optional toolbar below.
-**Using these helpers together with `rbc::graphtoolbar` on the same graph is not recommended**, because their
-bindings and interaction state can interfere. Separate widgets may use separate interaction systems.
-See **Legacy graph helpers** in the graph documentation for usage and cleanup behavior.
-Load the optional toolbar explicitly, before importing Rbc commands:
+without requiring argparse. 
+
+The global `Rbc_ActiveLegend`, `Rbc_Crosshairs`, `Rbc_ResetCrosshairs`, `Rbc_ZoomStack`, `Rbc_ClosestPoint`,
+`Rbc_PrintKey`, and `Rbc_PostScriptDialog` commands are retained for **backward compatibility**.  They are not enabled
+until called on a graph. For new applications, prefer the optional toolbar below. **Using these helpers together with
+`rbc::graphtoolbar` on the same graph is not recommended**, because their bindings and interaction state can
+interfere. Separate widgets may use separate interaction systems.  See [Legacy graph helpers] in the graph
+documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing Rbc commands:
 
 ```tcl
 package require rbc::graphtoolbar

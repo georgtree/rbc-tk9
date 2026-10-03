@@ -3,7 +3,11 @@ namespace eval ::rbc {
 
     variable _ruff_ns_opts {
         -includeimports false
-        -excludeprocs {^(ActivateLegend|DeactivateLegend|HighlightLegend|Crosshairs|InitStack|ZoomStack|RemoveZoomStack|PrintKey|ClosestPoint|AddBindTag|RemoveBindTag|FindElement|FlashPoint|GetCoords|MarkPoint|DestroyZoomTitle|PopZoom|PushZoom|ResetZoom|ZoomTitleNext|ZoomTitleLast|SetZoomPoint|MarchingAnts|Box|PostScriptDialog|ResetPostScript|Legacy.*)$}
+        -excludeprocs {^(ActivateLegend|DeactivateLegend|HighlightLegend|Crosshairs|InitStack|ZoomStack|\
+                                 RemoveZoomStack|PrintKey|ClosestPoint|AddBindTag|RemoveBindTag|FindElement|\
+                                 FlashPoint|GetCoords|MarkPoint|DestroyZoomTitle|PopZoom|PushZoom|ResetZoom|\
+                                 ZoomTitleNext|ZoomTitleLast|SetZoomPoint|MarchingAnts|Box|PostScriptDialog|\
+                                 ResetPostScript|Legacy.*)$}
     }
 
     proc graph {pathName args} {
@@ -1221,8 +1225,7 @@ namespace eval ::rbc::GRAPHINST {
         always covered by `<<RbcAxisChanged>>`, but only generates `<<RbcAxisLimitsChanged>>` if the resulting numeric
         bounds change. Logarithmic bounds are reported in data units, just as by `axis limits`.
 
-        ## Legacy graph helpers (backward compatibility)
-
+        ## Legacy graph helpers
         `package require rbc` also loads `graph.tcl`, providing the historical global `Rbc_*` helper commands for
         existing applications. These are a backward-compatibility option, not the recommended interface for new
         applications. They use only Tcl/Tk and native RBC commands; they do not require argparse.

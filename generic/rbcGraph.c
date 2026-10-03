@@ -239,8 +239,10 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      GRAPH_REDRAW_MASK},
     {TK_OPTION_COLOR, "-highlightcolor", "highlightColor", "HighlightColor", DEF_GRAPH_HIGHLIGHT_COLOR, -1,
      offsetof(Graph, highlightColor), 0, NULL, GRAPH_REDRAW_MASK},
+    /* Preserve historical signed values on Tk 9.1 as well as Tk 9.0. */
     {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
-     offsetof(Graph, highlightWidthObjPtr), -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
+     offsetof(Graph, highlightWidthObjPtr), -1, TK_OPTION_NEG_OK, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted), 0,
      NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,

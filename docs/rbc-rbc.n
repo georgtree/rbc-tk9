@@ -95,6 +95,8 @@ rbc - Commands in namespace rbc
 .br
 \fBELEMENT type\fP \fIelemName\fP
 .br
+\fBFlashPoint\fP \fIgraph name index count\fP
+.br
 \fBgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
 .br
 \fBGRAPHINST\fP \fIsubcommand \&.\&.\&.\fP
@@ -245,6 +247,10 @@ rbc - Commands in namespace rbc
 .br
 \fBPOSTSCRIPT output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
 .br
+\fBRemoveZoomStack\fP \fIgraph\fP
+.br
+\fBResetPostScript\fP \fIgraph\fP
+.br
 \fBspline\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBspline natural\fP \fIx y splX splY\fP
@@ -386,6 +392,8 @@ rbc - Commands in namespace rbc
 \fBWINOPIMAGE snap\fP \fIwindow photoName ?width? ?height?\fP
 .br
 \fBWINOPIMAGE subsample\fP \fIsrcPhoto destPhoto x y width height ?horzFilter? ?vertFilter?\fP
+.br
+\fBZoomTitleNext\fP \fIgraph\fP
 .br
 .SH ::RBC
 .SH COMMANDS
@@ -1348,6 +1356,30 @@ Name of the element\&.
 \fBReturn value\fR
 .PP
 Element class name\&.
+.PP
+.RS -4n
+\fBFlashPoint\fR (::rbc)
+.RE
+.RS 4n
+\fBFlashPoint\fP \fIgraph name index count\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+graph
+Not documented\&.
+.TP
+name
+Not documented\&.
+.TP
+index
+Not documented\&.
+.TP
+count
+Not documented\&.
+.RE
 .PP
 .RS -4n
 \fBgraph\fR (::rbc)
@@ -3186,6 +3218,36 @@ Value for the configuration option\&.
 \fBReturn value\fR
 .PP
 Generated PostScript when no filename is supplied, otherwise nothing\&.
+.PP
+.RS -4n
+\fBRemoveZoomStack\fR (::rbc)
+.RE
+.RS 4n
+\fBRemoveZoomStack\fP \fIgraph\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+graph
+Not documented\&.
+.RE
+.PP
+.RS -4n
+\fBResetPostScript\fR (::rbc)
+.RE
+.RS 4n
+\fBResetPostScript\fP \fIgraph\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+graph
+Not documented\&.
+.RE
 .PP
 .RS -4n
 \fBspline\fR (::rbc)
@@ -5211,6 +5273,21 @@ Optional vertical resampling filter\&.
 \fBReturn value\fR
 .PP
 Nothing\&.
+.PP
+.RS -4n
+\fBZoomTitleNext\fR (::rbc)
+.RE
+.RS 4n
+\fBZoomTitleNext\fP \fIgraph\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+graph
+Not documented\&.
+.RE
 
 
 .SH SEE ALSO

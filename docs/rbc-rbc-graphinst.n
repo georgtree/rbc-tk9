@@ -1100,7 +1100,7 @@ These events do not report every change in tick-label placement or screen geomet
 for mapping and layout updates, including resizing without changed numeric limits\&. Log/linear switching is
 always covered by <<RbcAxisChanged>>, but only generates <<RbcAxisLimitsChanged>> if the resulting numeric
 bounds change\&. Logarithmic bounds are reported in data units, just as by axis limits\&.
-.SH "LEGACY GRAPH HELPERS (BACKWARD COMPATIBILITY)"
+.SH "LEGACY GRAPH HELPERS"
 .PP
 package require rbc also loads graph\&.tcl, providing the historical global Rbc_* helper commands for
 existing applications\&. These are a backward-compatibility option, not the recommended interface for new
