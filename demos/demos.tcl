@@ -260,6 +260,20 @@ proc MainWindow {win DemoDir} {
         |
         |Example of a few graph widgets combined together.
     }]
+    set Caption(fft1.tcl) [MakeLine {
+        |Fast Fourier Transform demonstration elements demonstration
+        |
+        |demo fft1.tcl
+        |
+        |Real-valued signal, windowing, amplitude spectrum, PSD, and IFFT reconstruction.
+    }]
+    set Caption(simplify1.tcl) [MakeLine {
+        |Demonstration of [vector simplify] command
+        |
+        |demo simplify1.tcl
+        |
+        |Simplify paired real vectors with a tolerance in data coordinates.
+    }]
 
     # create canvas with scrollbars
     ttk::frame $win
@@ -273,8 +287,8 @@ proc MainWindow {win DemoDir} {
     ttk::frame $win.c.targetFrame
     set i 0
     foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 polar2 barchart1 barchart2 barchart3 barchart4\
-                          barchart5 mixed1 combined1 stripchart1 winop1 winop2 spline1 cairoGraph1 cairoBar1 graph6\
-                          graph7} {
+                          barchart5 mixed1 combined1 stripchart1 fft1 simplify1 winop1 winop2 spline1 cairoGraph1\
+                          cairoBar1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
         incr i

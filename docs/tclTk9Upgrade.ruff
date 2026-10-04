@@ -12,48 +12,18 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
-        ### Vector polyline simplification
-
-        `rbc::vector::simplify x y destX destY tolerance` (also `rbc::vector simplify`) reduces a polyline
-        into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
-        in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
-        in-place output is supported without replacing vector identities or graph bindings. This headless
-        operation is independent of graph rendering decimation. See [::rbc::vector simplify] and the interactive
-        `demos/simplify1.tcl` example.
-
-        ### Vector FFT and inverse FFT
-
-        Real and complex vectors provide `fft` and `ifft` instance operations. Results are written into an
-        existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
-        compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
-        sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit `-length auto|size`
-        zero padding. No external FFT dependency or Tk initialization is needed. See [::rbc::VECINST] for syntax,
-        frequency-bin ordering, normalization and sampling requirements.
-
-        ### FFT frequency bins and windows
-
-        Existing real vectors provide `fftfreq length ?-delta interval? ?-onesided boolean?` and
-        `window type length ?-periodic boolean?`. Frequency axes match full FFT ordering or its nonnegative
-        half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
-        with symmetric form available explicitly. Generate windows at the original sample count before padding,
-        and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
-        See [::rbc::VECINST] for formulas, examples and amplitude/energy normalization.
-
         ### Configurable logarithmic bar baseline
-
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,
         inverted graphs and exports. Non-positive settings retain the historical logarithmic baseline of `1.0`.
         Stack totals remain additive from zero. See [::rbc::BARELEMENT] for details.
 
         ### Static MinGW-w64 threading runtime
-
         `--enable-winpthreads-static` embeds the genuine `libwinpthread.a` archive in the RBC DLL and checks
         a linked probe for unwanted winpthreads imports. It is independent of `--enable-cairo-static`; combine
         both options to embed Cairo dependencies and the threading runtime. The option is off by default
         and requires a MinGW-w64 toolchain and target `objdump`. Windows system libraries remain dynamic.
 
         ### Literal parentheses in vector names
-
         Real and complex vectors accept names such as `v(out)` directly, with references such as
         `v(out)(1:20)` selecting a range. Exact existing names take precedence over range interpretation.
         Creation retains numeric size/range suffixes; `-literal true` permits literal names such as `v(1)`.
@@ -63,7 +33,6 @@ namespace eval TclTk9Upgrade {
         changing the stubs ABI. See [::rbc::vector] for examples and the naming rules.
 
         ### Tcl-only vector loading
-
         `package require rbc::vector` loads vectors from the same shared library without initializing Tk or
         loading argparse and graphtoolbar. Full `package require rbc` can follow without replacing vectors or
         client subscriptions; the reverse loading order also works. C consumers can use `Rbc_VectorInitStubs`
@@ -71,14 +40,12 @@ namespace eval TclTk9Upgrade {
         without a graphical display. Binary dependencies remain required. See [::rbc::vector] for details.
 
         ### Optional toolbar package
-
         `package require rbc` loads the native widgets without loading argparse or the toolbar. Applications using
         `::rbc::graphtoolbar` now need `package require rbc::graphtoolbar`, before any `namespace import ::rbc::*`.
         The toolbar package requires the matching Rbc version and loads argparse. Repeated requires preserve existing
         widgets. Toolbar demos, tests, and documentation generation load this optional package explicitly.
 
         ### Backward-compatible graph helpers
-
         The historical `graph.tcl` helpers are available again after `package require rbc`, without requiring argparse.
         Existing calls such as `Rbc_ZoomStack .g` and `Rbc_Crosshairs .g` work on native graphs. These helpers are retained
         for backward compatibility; new applications should prefer `rbc::graphtoolbar`. Using both interaction systems
@@ -86,7 +53,6 @@ namespace eval TclTk9Upgrade {
         See [GRAPHINST][::rbc::GRAPHINST] for the complete legacy command list and reserved binding/marker names.
 
         ### X and Y error bands for lines and strips
-
         Cartesian line and strip elements support `-errorband x|y`, filling between symmetric `-xerror` or
         `-yerror` bounds, or the corresponding absolute low/high endpoints. The default `none` disables bands.
         Independent `-errorbandpattern`, `-errorbandforeground`,
@@ -96,7 +62,6 @@ namespace eval TclTk9Upgrade {
         trace decimation and split at invalid data. See [::rbc::LINEELEMENT] for details and examples.
 
         ### Symbols on reduced traces
-
         Line, stripchart, and polar elements accept `-symbolpoints all|reduced`. The default `all` preserves
         original-sample symbols. With positive `-reduce`, `reduced` restricts symbols, error bars and value labels to original
         samples retained by trace simplification; generated smoothing vertices never acquire symbols. Exact
@@ -106,14 +71,12 @@ namespace eval TclTk9Upgrade {
         and in SVG/PostScript exports. Active symbols and labels bypass this density limit.
 
         ### MSVC builds on Windows
-
         The `win/makefile.vc` build supports MSVC and Nmake with Tcl/Tk 9, including optional Cairo via
         `CAIRO=1` and `CAIRODIR`. It provides build, test, install and shell targets independently of the
         MSYS2 build. Matching MSVC-built Tcl/Tk source trees and libraries are required; Cairo runtime
         DLLs and their dependencies must be available when loading RBC. See `win/README.md` for commands.
 
         ### Polar/Smith grid configuration
-
         Polar/Smith tick lists, label anchors, label formatter commands, and `-smithgrid` are now grid component
         options. Use `graphPath grid configure` and `graphPath grid cget`. They are no longer accepted by the graph
         constructor or graph-level `configure`/`cget`. The graph retains `-representation` and `-aspect`.
@@ -130,7 +93,6 @@ namespace eval TclTk9Upgrade {
         [::rbc::GRID] for full option tables and formatter details.
 
         ### Optional Cairo rendering
-
         Configure with `--enable-cairo` to build the antialiased renderer. Cairo-enabled builds default to
         `-renderer cairo`; builds without Cairo default to `-renderer native`. Applications can select either
         available renderer explicitly or through Tk's option database.
@@ -155,7 +117,6 @@ namespace eval TclTk9Upgrade {
         Benchmark scripts have their own explicit `-renderer` and `-antialias` settings and CSV comparison tools.
 
         ### Display decimation and streaming updates
-
         Line and strip elements support `-decimate none|auto`; `none` remains the default. Eligible monotonic
         waveforms retain first/minimum/maximum/last representatives in each physical data-X pixel, preserving
         narrow extrema rather than averaging them away. Source data and PostScript resolution remain unchanged.
@@ -165,7 +126,6 @@ namespace eval TclTk9Upgrade {
         monotonic tail appends, while unsupported data combinations use the full or fallback mapping paths.
 
         ### Graph interaction and toolbar
-
         `graphtoolbar` provides zooming, panning, closest-point annotations, legend controls and configurable
         pointer appearance. Windows touchpad scrolling is supported alongside mouse-wheel zoom. Consecutive
         axis-scroll actions retain their selected axis when rescaling moves it away from the pointer.
@@ -186,7 +146,6 @@ namespace eval TclTk9Upgrade {
         switching, tick configuration and styling; synchronization handlers must account for queued feedback.
 
         ### Custom closest-point annotations
-
         The toolbar's `-closestcommand` accepts a Tcl command prefix receiving `element x y info` and returning
         annotation text. Configuring it adds Custom to the available formats; `-coordclosestmark custom`
         selects it. Empty results suppress the annotation. Ordinary coordinates follow the element's mapped
@@ -200,7 +159,6 @@ namespace eval TclTk9Upgrade {
         (degrees). Format changes refresh the annotation without requiring another pointer movement.
 
         ### Complex vectors
-
         The vector subsystem now supports both real and complex numeric vectors. Complex vectors are created explicitly
         with `-type complex`, and Tcl-level complex values use the form `{real imag}`:
 
@@ -287,7 +245,6 @@ namespace eval TclTk9Upgrade {
         PostScript output as well as on-screen drawing.
 
         ### Area closure and transparency
-
         Line and Polar elements support `-areaclose baseline|chord|origin`. The default `baseline` retains the
         bottom-of-plot closure; `chord` joins the endpoints directly, and `origin` closes through Cartesian
         `{0 0}`. These choices control the fill polygon without adding segments to the visible trace. They apply
@@ -321,7 +278,6 @@ namespace eval TclTk9Upgrade {
         `-hideplot` state.
 
         ### Circles, ellipses and arc markers
-
         The new `arc` marker supports full circles/ellipses, open curves, filled chords and pie sectors.
         `-coords {x1 y1 x2 y2}` specifies opposite corners of the ellipse bounding rectangle. `-start` sets
         the starting angle and `-extent` the signed sweep in degrees; their defaults are `0` and `360`.
@@ -396,7 +352,6 @@ namespace eval TclTk9Upgrade {
         interfaces without requiring applications to reconstruct bar geometry themselves.
 
         ### Custom element value labels
-
         Value labels accept `-valueoffset {dx dy}` on elements and pens. Signed integer pixel offsets move
         the label anchor right/down, independently of axis inversion and text rotation. The default `{0 0}`
         preserves existing placement in both renderers and PostScript.
@@ -410,8 +365,31 @@ namespace eval TclTk9Upgrade {
         The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
         configuration rollback, numerical boundaries and resource lifetime management.
 
-        ### Tcl 9 command and object API
+        ### Vector polyline simplification
+        `rbc::vector::simplify x y destX destY tolerance` (also `rbc::vector simplify`) reduces a polyline
+        into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
+        in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
+        in-place output is supported without replacing vector identities or graph bindings. This headless
+        operation is independent of graph rendering decimation. See [::rbc::vector simplify] and the interactive
+        `demos/simplify1.tcl` example.
 
+        ### Vector FFT and inverse FFT
+        Real and complex vectors provide `fft` and `ifft` instance operations. Results are written into an
+        existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
+        compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
+        sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit `-length auto|size`
+        zero padding. No external FFT dependency or Tk initialization is needed. See [::rbc::VECINST] for syntax,
+        frequency-bin ordering, normalization and sampling requirements.
+
+        ### FFT frequency bins and windows
+        Existing real vectors provide `fftfreq length ?-delta interval? ?-onesided boolean?` and
+        `window type length ?-periodic boolean?`. Frequency axes match full FFT ordering or its nonnegative
+        half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+        with symmetric form available explicitly. Generate windows at the original sample count before padding,
+        and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
+        See [::rbc::VECINST] for formulas, examples and amplitude/energy normalization.
+
+        ### Tcl 9 command and object API
         - Converted command implementations to the Tcl 9 object-based command interface.
         - Updated command callbacks to use `Tcl_Size` argument counts where appropriate.
         - Migrated command creation to `Tcl_CreateObjCommand2()` for Tcl 9 large-argument support.
@@ -422,7 +400,6 @@ namespace eval TclTk9Upgrade {
         - Removed several local copies or emulations of Tcl internal parsing structures and functions.
 
         ### 64-bit and `Tcl_Size` support
-
         A large part of the original code assumed that collection sizes, vector lengths and indexes fit in an
         `int`. These assumptions were systematically removed.
 
@@ -439,7 +416,6 @@ namespace eval TclTk9Upgrade {
         This removes a large class of silent truncation and overflow problems that were possible with large datasets.
 
         ### Modern Tk option handling
-
         The graph subsystem previously relied heavily on the legacy Tk configuration API. Most of it has been replaced
         with the modern Tk option-table interface.
 
@@ -514,7 +490,6 @@ namespace eval TclTk9Upgrade {
         objects while retaining the established option-database behavior.
 
         ### Graph object and resource lifetime
-
         Configuration modernization exposed a number of ownership and rollback problems that were corrected at the same
         time.
 
@@ -528,7 +503,6 @@ namespace eval TclTk9Upgrade {
         - Removed substantial amounts of obsolete and unreachable compatibility code.
 
         ### Axis and coordinate-system modernization
-
         The axis implementation received extensive numerical and behavioral cleanup.
 
         - Hardened coordinate mapping against integer overflow and extreme coordinate ranges.
@@ -553,7 +527,6 @@ namespace eval TclTk9Upgrade {
         - Smoothing no longer bridges invalid log-domain gaps.
 
         ### Line, bar and element processing
-
         The internal representation and processing of graph elements were extensively updated.
 
         - Modernized element option handling.
@@ -593,7 +566,6 @@ namespace eval TclTk9Upgrade {
           resolution.
 
         ### Spline subsystem
-
         The spline subsystem was subsequently extended with direct complex-vector parametric interpolation.
 
         - Added `spline parametric natural source result samples`.
@@ -607,7 +579,6 @@ namespace eval TclTk9Upgrade {
         - The original scalar real-vector spline interface remains unchanged.
 
         ### Vector subsystem
-
         Vector handling was updated substantially beyond the minimum required for compilation with Tcl 9.
 
         - Added Tcl 9 sized vector indexing.
@@ -636,7 +607,6 @@ namespace eval TclTk9Upgrade {
           a precise changed interval.
 
         ### Geometry, text and drawing
-
         Many drawing routines inherited assumptions from old X11 APIs where coordinates and dimensions were commonly
         stored in narrow integer types.
 
@@ -657,7 +627,6 @@ namespace eval TclTk9Upgrade {
         when calling APIs that inherently require integer coordinates.
 
         ### Image and bitmap handling
-
         The image-processing code was significantly updated for current Tk behavior.
 
         - Updated photo-image access and processing.
@@ -670,7 +639,6 @@ namespace eval TclTk9Upgrade {
         - Isolated native bitmap-handle access behind Rbc Windows helper functions.
 
         ### Named-font changes
-
         Graph widgets now register Tk's world-change callback. Reconfiguring a named font refreshes cached
         text-marker geometry, title and axis layout, legends and value-label drawing resources, including
         external legends and named/active pens. Redraws are scheduled through the normal idle mechanism.
@@ -678,7 +646,6 @@ namespace eval TclTk9Upgrade {
         [Named fonts and display scaling][::rbc::GRAPHINST::Named fonts and display scaling].
 
         ### SVG output
-
         Graph widgets now provide `svg cget`, `svg configure`, and `svg output`, with independent width,
         height and decoration settings. SVG export uses vector geometry and editable text and does not
         require Cairo. Solid area opacity and photo-marker alpha are preserved. Photos are embedded as PNG;
@@ -688,7 +655,6 @@ namespace eval TclTk9Upgrade {
         a file. See [::rbc::SVG] for commands, options and capture limitations.
 
         ### PostScript output
-
         The PostScript subsystem was modernized and hardened alongside the graph code.
 
         PostScript drawing now passes through the common renderer interface: strokes, fills, symbols,
@@ -710,7 +676,6 @@ namespace eval TclTk9Upgrade {
         - Updated coordinate and size handling for the modernized graph structures.
 
         ### Windows drawing backend
-
         The Windows drawing implementation received a substantial cleanup.
 
         Obsolete compatibility code and dead drawing implementations were removed, and the remaining native drawing
@@ -773,7 +738,6 @@ namespace eval TclTk9Upgrade {
         existing behavior.
 
         ### Remaining private Tk dependencies
-
         Complete elimination of private Tk interfaces is currently not practical without either changes in Tk itself or
         a significant drawing-backend redesign.
 
@@ -789,7 +753,6 @@ namespace eval TclTk9Upgrade {
         around those specific includes; warnings remain enabled for Rbc's own source code.
 
         ### C safety and hardening
-
         The Tcl/Tk 9 work also included a wider C safety audit.
 
         - Replaced unsafe `sprintf()` usage with bounded or object-based formatting.
@@ -805,7 +768,6 @@ namespace eval TclTk9Upgrade {
         - Removed dead `#ifdef notdef` and otherwise unreachable implementations where they no longer served a purpose.
 
         ### Bindings and tags
-
         The graph binding infrastructure was corrected and expanded during the migration.
 
         - Fixed axis bindings.
@@ -817,7 +779,6 @@ namespace eval TclTk9Upgrade {
         - Added regression tests for the affected binding paths.
 
         ### Regression testing
-
         The modernization was accompanied by a substantial expansion of the test suite.
 
         New regression coverage was added for areas including:

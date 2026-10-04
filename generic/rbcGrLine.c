@@ -432,7 +432,7 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define DEF_LINE_PEN_WIDTH "1"
 #define DEF_LINE_PIXELS "0.125i"
 #define DEF_LINE_REDUCE "0.0"
-#define DEF_LINE_SCALE_SYMBOLS "yes"
+#define DEF_LINE_SCALE_SYMBOLS "no"
 #define DEF_LINE_SMOOTH "linear"
 #define DEF_LINE_STATE "normal"
 #define DEF_LINE_STIPPLE (char *)NULL

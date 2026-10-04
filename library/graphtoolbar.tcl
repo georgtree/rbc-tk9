@@ -506,12 +506,10 @@ namespace eval ::rbc::graphtoolbar {
         ::rbc::graphtoolbar .gtb -zoom -zoommark -crosshairs
         ```
 
-        The package itself also installs:
-        ```tcl
-        option add *Element.ScaleSymbols no widgetDefault
-        ```
-
-        so graph elements default to fixed-size symbols rather than scaling their symbols with the graph.
+        Graph elements default to fixed-size symbols in the native option table (`-scalesymbols no`).
+        Loading this package does not change the `ScaleSymbols` option-database setting. To enable scaling
+        for subsequently created elements, use `option add *Element.ScaleSymbols yes userDefault`, or pass
+        `-scalesymbols yes` when creating or configuring an individual element.
 
         ### Zoom option-database resources
 
@@ -645,8 +643,6 @@ namespace eval ::rbc::graphtoolbar {
         For the dictionary properties a later configuration containing only some recognized keys updates those keys
         while retaining the other current values. Unknown dictionary keys are rejected.
     }
-
-    option add *Element.ScaleSymbols no widgetDefault
 
     # bitmap pointer default options
     option add *gtbPointerOutline black widgetDefault

@@ -12,30 +12,6 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
-.SS "VECTOR POLYLINE SIMPLIFICATION"
-.PP
-rbc::vector::simplify x y destX destY tolerance (also rbc::vector simplify) reduces a polyline
-into two existing real vectors using Douglas-Peucker simplification\&. Tolerance is a Euclidean distance
-in data coordinates, measured to finite replacement segments\&. Endpoints and point order are retained;
-in-place output is supported without replacing vector identities or graph bindings\&. This headless
-operation is independent of graph rendering decimation\&. See \fI::rbc::vector simplify\fP and the interactive
-demos/simplify1\&.tcl example\&.
-.SS "VECTOR FFT AND INVERSE FFT"
-.PP
-Real and complex vectors provide fft and ifft instance operations\&. Results are written into an
-existing complex vector or two existing real vectors\&. Vector types and C identities remain fixed;
-compatible input/output overlap is supported\&. The full spectrum uses the conventional negative forward
-sign and a 1/N-normalized inverse\&. Power-of-two lengths are required, with explicit -length auto|size
-zero padding\&. No external FFT dependency or Tk initialization is needed\&. See \fI::rbc::VECINST\fP for syntax,
-frequency-bin ordering, normalization and sampling requirements\&.
-.SS "FFT FREQUENCY BINS AND WINDOWS"
-.PP
-Existing real vectors provide fftfreq length ?-delta interval? ?-onesided boolean? and
-window type length ?-periodic boolean?\&. Frequency axes match full FFT ordering or its nonnegative
-half\&. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
-with symmetric form available explicitly\&. Generate windows at the original sample count before padding,
-and frequency bins at the actual transform length\&. Neither operation creates vectors or changes types\&.
-See \fI::rbc::VECINST\fP for formulas, examples and amplitude/energy normalization\&.
 .SS "CONFIGURABLE LOGARITHMIC BAR BASELINE"
 .PP
 Bar elements honor a positive graph -baseline on logarithmic Y axes, including automatic limits,
@@ -411,6 +387,30 @@ Empty results hide individual labels; clearing the option restores -valueformat\
 .PP
 The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
 configuration rollback, numerical boundaries and resource lifetime management\&.
+.SS "VECTOR POLYLINE SIMPLIFICATION"
+.PP
+rbc::vector::simplify x y destX destY tolerance (also rbc::vector simplify) reduces a polyline
+into two existing real vectors using Douglas-Peucker simplification\&. Tolerance is a Euclidean distance
+in data coordinates, measured to finite replacement segments\&. Endpoints and point order are retained;
+in-place output is supported without replacing vector identities or graph bindings\&. This headless
+operation is independent of graph rendering decimation\&. See \fI::rbc::vector simplify\fP and the interactive
+demos/simplify1\&.tcl example\&.
+.SS "VECTOR FFT AND INVERSE FFT"
+.PP
+Real and complex vectors provide fft and ifft instance operations\&. Results are written into an
+existing complex vector or two existing real vectors\&. Vector types and C identities remain fixed;
+compatible input/output overlap is supported\&. The full spectrum uses the conventional negative forward
+sign and a 1/N-normalized inverse\&. Power-of-two lengths are required, with explicit -length auto|size
+zero padding\&. No external FFT dependency or Tk initialization is needed\&. See \fI::rbc::VECINST\fP for syntax,
+frequency-bin ordering, normalization and sampling requirements\&.
+.SS "FFT FREQUENCY BINS AND WINDOWS"
+.PP
+Existing real vectors provide fftfreq length ?-delta interval? ?-onesided boolean? and
+window type length ?-periodic boolean?\&. Frequency axes match full FFT ordering or its nonnegative
+half\&. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+with symmetric form available explicitly\&. Generate windows at the original sample count before padding,
+and frequency bins at the actual transform length\&. Neither operation creates vectors or changes types\&.
+See \fI::rbc::VECINST\fP for formulas, examples and amplitude/energy normalization\&.
 .SS "TCL 9 COMMAND AND OBJECT API"
 .TP
 \(bu

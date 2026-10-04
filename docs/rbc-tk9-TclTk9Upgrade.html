@@ -48,33 +48,6 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
-<section id="vector-polyline-simplification">
-<span id="r-tcltk9upgrade-vector-polyline-simplification"></span><span id="r-3a3atcltk9upgradeqzvector20polyline20simplification"></span><h3>Vector polyline simplification<a class="headerlink" href="#vector-polyline-simplification" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">destX</span> <span class="pre">destY</span> <span class="pre">tolerance</span></code> (also <code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">simplify</span></code>) reduces a polyline
-into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
-in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
-in-place output is supported without replacing vector identities or graph bindings. This headless
-operation is independent of graph rendering decimation. See <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avector20simplify"><span class="std std-ref">::rbc::vector simplify</span></a> and the interactive
-<code class="docutils literal notranslate"><span class="pre">demos/simplify1.tcl</span></code> example.</p>
-</section>
-<section id="vector-fft-and-inverse-fft">
-<span id="r-tcltk9upgrade-vector-fft-and-inverse-fft"></span><span id="r-3a3atcltk9upgradeqzvector20fft20and20inverse20fft"></span><h3>Vector FFT and inverse FFT<a class="headerlink" href="#vector-fft-and-inverse-fft" title="Link to this heading">¶</a></h3>
-<p>Real and complex vectors provide <code class="docutils literal notranslate"><span class="pre">fft</span></code> and <code class="docutils literal notranslate"><span class="pre">ifft</span></code> instance operations. Results are written into an
-existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
-compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
-sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit <code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">auto|size</span></code>
-zero padding. No external FFT dependency or Tk initialization is needed. See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for syntax,
-frequency-bin ordering, normalization and sampling requirements.</p>
-</section>
-<section id="fft-frequency-bins-and-windows">
-<span id="r-tcltk9upgrade-fft-frequency-bins-and-windows"></span><span id="r-3a3atcltk9upgradeqzfft20frequency20bins20and20windows"></span><h3>FFT frequency bins and windows<a class="headerlink" href="#fft-frequency-bins-and-windows" title="Link to this heading">¶</a></h3>
-<p>Existing real vectors provide <code class="docutils literal notranslate"><span class="pre">fftfreq</span> <span class="pre">length</span> <span class="pre">?-delta</span> <span class="pre">interval?</span> <span class="pre">?-onesided</span> <span class="pre">boolean?</span></code> and
-<code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span> <span class="pre">length</span> <span class="pre">?-periodic</span> <span class="pre">boolean?</span></code>. Frequency axes match full FFT ordering or its nonnegative
-half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
-with symmetric form available explicitly. Generate windows at the original sample count before padding,
-and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
-See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for formulas, examples and amplitude/energy normalization.</p>
-</section>
 <section id="configurable-logarithmic-bar-baseline">
 <span id="r-tcltk9upgrade-configurable-logarithmic-bar-baseline"></span><span id="r-3a3atcltk9upgradeqzconfigurable20logarithmic20bar20baseline"></span><h3>Configurable logarithmic bar baseline<a class="headerlink" href="#configurable-logarithmic-bar-baseline" title="Link to this heading">¶</a></h3>
 <p>Bar elements honor a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> on logarithmic Y axes, including automatic limits,
@@ -400,6 +373,33 @@ Empty results hide individual labels; clearing the option restores <code class="
 <span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
 <p>The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
 configuration rollback, numerical boundaries and resource lifetime management.</p>
+<section id="vector-polyline-simplification">
+<span id="r-tcltk9upgrade-vector-polyline-simplification"></span><span id="r-3a3atcltk9upgradeqzvector20polyline20simplification"></span><h3>Vector polyline simplification<a class="headerlink" href="#vector-polyline-simplification" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">destX</span> <span class="pre">destY</span> <span class="pre">tolerance</span></code> (also <code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">simplify</span></code>) reduces a polyline
+into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
+in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
+in-place output is supported without replacing vector identities or graph bindings. This headless
+operation is independent of graph rendering decimation. See <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avector20simplify"><span class="std std-ref">::rbc::vector simplify</span></a> and the interactive
+<code class="docutils literal notranslate"><span class="pre">demos/simplify1.tcl</span></code> example.</p>
+</section>
+<section id="vector-fft-and-inverse-fft">
+<span id="r-tcltk9upgrade-vector-fft-and-inverse-fft"></span><span id="r-3a3atcltk9upgradeqzvector20fft20and20inverse20fft"></span><h3>Vector FFT and inverse FFT<a class="headerlink" href="#vector-fft-and-inverse-fft" title="Link to this heading">¶</a></h3>
+<p>Real and complex vectors provide <code class="docutils literal notranslate"><span class="pre">fft</span></code> and <code class="docutils literal notranslate"><span class="pre">ifft</span></code> instance operations. Results are written into an
+existing complex vector or two existing real vectors. Vector types and C identities remain fixed;
+compatible input/output overlap is supported. The full spectrum uses the conventional negative forward
+sign and a 1/N-normalized inverse. Power-of-two lengths are required, with explicit <code class="docutils literal notranslate"><span class="pre">-length</span> <span class="pre">auto|size</span></code>
+zero padding. No external FFT dependency or Tk initialization is needed. See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for syntax,
+frequency-bin ordering, normalization and sampling requirements.</p>
+</section>
+<section id="fft-frequency-bins-and-windows">
+<span id="r-tcltk9upgrade-fft-frequency-bins-and-windows"></span><span id="r-3a3atcltk9upgradeqzfft20frequency20bins20and20windows"></span><h3>FFT frequency bins and windows<a class="headerlink" href="#fft-frequency-bins-and-windows" title="Link to this heading">¶</a></h3>
+<p>Existing real vectors provide <code class="docutils literal notranslate"><span class="pre">fftfreq</span> <span class="pre">length</span> <span class="pre">?-delta</span> <span class="pre">interval?</span> <span class="pre">?-onesided</span> <span class="pre">boolean?</span></code> and
+<code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span> <span class="pre">length</span> <span class="pre">?-periodic</span> <span class="pre">boolean?</span></code>. Frequency axes match full FFT ordering or its nonnegative
+half. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; periodic form is the default,
+with symmetric form available explicitly. Generate windows at the original sample count before padding,
+and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
+See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for formulas, examples and amplitude/energy normalization.</p>
+</section>
 <section id="tcl-9-command-and-object-api">
 <span id="r-tcltk9upgrade-tcl-9-command-and-object-api"></span><span id="r-3a3atcltk9upgradeqztcl20920command20and20object20api"></span><h3>Tcl 9 command and object API<a class="headerlink" href="#tcl-9-command-and-object-api" title="Link to this heading">¶</a></h3>
 <ul class="simple">
@@ -827,9 +827,6 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
-<li><a class="reference internal" href="#vector-polyline-simplification">Vector polyline simplification</a></li>
-<li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
-<li><a class="reference internal" href="#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>
@@ -855,6 +852,9 @@ relevant rendering code is replaced with an independent backend.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
+<li><a class="reference internal" href="#vector-polyline-simplification">Vector polyline simplification</a></li>
+<li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
+<li><a class="reference internal" href="#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
 <li><a class="reference internal" href="#modern-tk-option-handling">Modern Tk option handling</a></li>

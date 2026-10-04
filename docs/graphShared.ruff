@@ -1996,7 +1996,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-fill color`           | Sets the symbol fill color. `defcolor` uses the trace color. An empty value leaves the symbol unfilled. |
         | `-outline color`        | Sets the symbol outline color. `defcolor` uses the trace color.                                         |
         | `-outlinewidth width`   | Sets the non-negative symbol outline width. The default is `1`.                                         |
-        | `-scalesymbols boolean` | Controls whether symbol sizes change as the graph axis ranges change. The default is `yes`.             |
+        | `-scalesymbols boolean` | Controls whether symbol sizes change as the graph axis ranges change. The default is `no`.              |
         | `-maxsymbols number`    | Reduces the density of displayed symbols. `0` displays symbols at all eligible points.                  |
 
         #ruffopt includedformats nroff
@@ -2010,7 +2010,7 @@ namespace eval ::rbc::LINEELEMENT {
         │ -outline color          │ Sets the symbol outline color. defcolor uses the trace color.                    │
         │ -outlinewidth width     │ Sets the non-negative symbol outline width. The default is 1.                    │
         │ -scalesymbols boolean   │ Controls whether symbol sizes change as the graph axis ranges change. The        │
-        │                         │ default is yes.                                                                  │
+        │                         │ default is no.                                                                   │
         │ -maxsymbols number      │ Reduces the density of displayed symbols. 0 displays symbols at all eligible     │
         │                         │ points.                                                                          │
         └─────────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
@@ -2522,7 +2522,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-pen penName`          | `pen`            | `Pen`            | Specifies a named line pen containing the element's normal drawing attributes. An empty value uses the element's built-in pen.                                                                                    |
         | `-pixels size`          | `pixels`         | `Pixels`         | Sets the requested symbol size. The default is `0.125i`.                                                                                                                                                          |
         | `-reduce tolerance`     | `reduce`         | `Reduce`         | Sets the screen-space tolerance used to reduce the number of points in the displayed trace. A non-positive value disables reduction. The default is `0.0`.                                                        |
-        | `-scalesymbols boolean` | `scaleSymbols`   | `ScaleSymbols`   | Controls whether symbol sizes are automatically scaled as the axis ranges change. The default is `yes`.                                                                                                           |
+        | `-scalesymbols boolean` | `scaleSymbols`   | `ScaleSymbols`   | Controls whether symbol sizes are automatically scaled as the axis ranges change. The default is `no`.                                                                                                            |
         | `-showerrorbars value`  | `showErrorBars`  | `ShowErrorBars`  | Selects which error bars are displayed: X, Y, both, or neither. The default is `both`.                                                                                                                            |
         | `-showvalues value`     | `showValues`     | `ShowValues`     | Selects which coordinate values are displayed next to data points. The default is `no`.                                                                                                                           |
         | `-smooth mode`          | `smooth`         | `Smooth`         | Selects line smoothing. Accepted modes are `linear`, `step`, `natural`, `cubic`, `quadratic`, and `catrom`. The default is `linear`.                                                                              |
@@ -2646,7 +2646,7 @@ namespace eval ::rbc::LINEELEMENT {
         │                         │                  │                  │ number of points in the displayed trace. A non-positive │
         │                         │                  │                  │ value disables reduction. The default is 0.0.           │
         │ -scalesymbols boolean   │ scaleSymbols     │ ScaleSymbols     │ Controls whether symbol sizes are automatically scaled  │
-        │                         │                  │                  │ as the axis ranges change. The default is yes.          │
+        │                         │                  │                  │ as the axis ranges change. The default is no.           │
         │ -showerrorbars value    │ showErrorBars    │ ShowErrorBars    │ Selects which error bars are displayed: X, Y, both, or  │
         │                         │                  │                  │ neither. The default is both.                           │
         │ -showvalues value       │ showValues       │ ShowValues       │ Selects which coordinate values are displayed next to   │
@@ -2973,7 +2973,7 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-outlinewidth width`   | `outlineWidth`  | `OutlineWidth`  | Sets the non-negative width of symbol outlines. The default is `1`.                                                                                                                                               |
         | `-pen penName`          | `pen`           | `Pen`           | Specifies a named line pen containing the element's normal drawing attributes. An empty value uses the element's built-in pen.                                                                                    |
         | `-pixels size`          | `pixels`        | `Pixels`        | Sets the requested symbol size. The default is `0.125i`.                                                                                                                                                          |
-        | `-scalesymbols boolean` | `scaleSymbols`  | `ScaleSymbols`  | Controls whether symbol sizes are automatically scaled as the axis ranges change. The default is `yes`.                                                                                                           |
+        | `-scalesymbols boolean` | `scaleSymbols`  | `ScaleSymbols`  | Controls whether symbol sizes are automatically scaled as the axis ranges change. The default is `no`.                                                                                                            |
         | `-showerrorbars value`  | `showErrorBars` | `ShowErrorBars` | Selects which error bars are displayed: X, Y, both, or neither. The default is `both`.                                                                                                                            |
         | `-showvalues value`     | `showValues`    | `ShowValues`    | Selects which coordinate values are displayed next to data points. The default is `no`.                                                                                                                           |
         | `-smooth mode`          | `smooth`        | `Smooth`        | Selects line smoothing. Accepted modes are `linear`, `step`, `natural`, `cubic`, `quadratic`, and `catrom`. The default is `linear`.                                                                              |
@@ -3090,7 +3090,7 @@ namespace eval ::rbc::STRIPELEMENT {
         │                       │               │                │ 0.125i.                                         │
         │ -scalesymbols boolean │ scaleSymbols  │ ScaleSymbols   │ Controls whether symbol sizes are automatically │
         │                       │               │                │ scaled as the axis ranges change. The default   │
-        │                       │               │                │ is yes.                                         │
+        │                       │               │                │ is no.                                          │
         │ -showerrorbars value  │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y,   │
         │                       │               │                │ both, or neither. The default is both.          │
         │ -showvalues value     │ showValues    │ ShowValues     │ Selects which coordinate values are displayed   │

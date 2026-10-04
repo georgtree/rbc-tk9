@@ -535,7 +535,7 @@ Symbol appearance is controlled by:
 │ -outline color          │ Sets the symbol outline color\&. defcolor uses the trace color\&.                    │
 │ -outlinewidth width     │ Sets the non-negative symbol outline width\&. The default is 1\&.                    │
 │ -scalesymbols boolean   │ Controls whether symbol sizes change as the graph axis ranges change\&. The        │
-│                         │ default is yes\&.                                                                  │
+│                         │ default is no\&.                                                                   │
 │ -maxsymbols number      │ Reduces the density of displayed symbols\&. 0 displays symbols at all eligible     │
 │                         │ points\&.                                                                          │
 └─────────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
@@ -1062,7 +1062,7 @@ The complete line-element option set is:
 │                         │                  │                  │ number of points in the displayed trace\&. A non-positive │
 │                         │                  │                  │ value disables reduction\&. The default is 0\&.0\&.           │
 │ -scalesymbols boolean   │ scaleSymbols     │ ScaleSymbols     │ Controls whether symbol sizes are automatically scaled  │
-│                         │                  │                  │ as the axis ranges change\&. The default is yes\&.          │
+│                         │                  │                  │ as the axis ranges change\&. The default is no\&.           │
 │ -showerrorbars value    │ showErrorBars    │ ShowErrorBars    │ Selects which error bars are displayed: X, Y, both, or  │
 │                         │                  │                  │ neither\&. The default is both\&.                           │
 │ -showvalues value       │ showValues       │ ShowValues       │ Selects which coordinate values are displayed next to   │

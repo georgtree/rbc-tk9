@@ -25,7 +25,9 @@ namespace eval ::snapshot {
         {name cairoGraph1 exclude {.native}}
         {name cairoBar1 exclude {.native}}
         {name mixed1}
+        {name simplify1}
         {name combined1 height 150}
+        {name fft1}
     }
 }
 

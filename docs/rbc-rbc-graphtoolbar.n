@@ -656,15 +656,10 @@ option add *gtbZoomTextBoxFill lightyellow userDefault
 .fi
 .RE
 .PP
-The package itself also installs:
-.PP
-.RS 4n
-.nf
-option add *Element\&.ScaleSymbols no widgetDefault
-.fi
-.RE
-.PP
-so graph elements default to fixed-size symbols rather than scaling their symbols with the graph\&.
+Graph elements default to fixed-size symbols in the native option table (-scalesymbols no)\&.
+Loading this package does not change the ScaleSymbols option-database setting\&. To enable scaling
+for subsequently created elements, use option add *Element\&.ScaleSymbols yes userDefault, or pass
+-scalesymbols yes when creating or configuring an individual element\&.
 .SS "ZOOM OPTION-DATABASE RESOURCES"
 .PP
 .RS 4n

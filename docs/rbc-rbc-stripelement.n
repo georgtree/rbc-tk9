@@ -324,7 +324,7 @@ The complete strip-element option set is:
 │                       │               │                │ 0\&.125i\&.                                         │
 │ -scalesymbols boolean │ scaleSymbols  │ ScaleSymbols   │ Controls whether symbol sizes are automatically │
 │                       │               │                │ scaled as the axis ranges change\&. The default   │
-│                       │               │                │ is yes\&.                                         │
+│                       │               │                │ is no\&.                                          │
 │ -showerrorbars value  │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y,   │
 │                       │               │                │ both, or neither\&. The default is both\&.          │
 │ -showvalues value     │ showValues    │ ShowValues     │ Selects which coordinate values are displayed   │

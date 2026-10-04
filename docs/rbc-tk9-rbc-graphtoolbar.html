@@ -469,11 +469,10 @@ therefore customize the graphtoolbar before creating a widget:</p>
 <span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>zoom<span class="w"> </span><span class="o">-</span>zoommark<span class="w"> </span><span class="o">-</span>crosshairs
 </pre></div>
 </div>
-<p>The package itself also installs:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Element.ScaleSymbols<span class="w"> </span>no<span class="w"> </span>widgetDefault
-</pre></div>
-</div>
-<p>so graph elements default to fixed-size symbols rather than scaling their symbols with the graph.</p>
+<p>Graph elements default to fixed-size symbols in the native option table (<code class="docutils literal notranslate"><span class="pre">-scalesymbols</span> <span class="pre">no</span></code>).
+Loading this package does not change the <code class="docutils literal notranslate"><span class="pre">ScaleSymbols</span></code> option-database setting. To enable scaling
+for subsequently created elements, use <code class="docutils literal notranslate"><span class="pre">option</span> <span class="pre">add</span> <span class="pre">*Element.ScaleSymbols</span> <span class="pre">yes</span> <span class="pre">userDefault</span></code>, or pass
+<code class="docutils literal notranslate"><span class="pre">-scalesymbols</span> <span class="pre">yes</span></code> when creating or configuring an individual element.</p>
 <section id="zoom-option-database-resources">
 <span id="r-rbc-graphtoolbar-zoom-option-database-resources"></span><span id="r-3a3arbc3a3agraphtoolbarqzzoom20option2ddatabase20resources"></span><h3>Zoom option-database resources<a class="headerlink" href="#zoom-option-database-resources" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default">

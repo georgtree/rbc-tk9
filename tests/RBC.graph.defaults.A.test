@@ -1,0 +1,242 @@
+# RBC.graph.defaults.A.test --
+#
+###Abstract
+# Tests native defaults and option-database initialization after removal of
+# TK_OPTION_DONT_SET_DEFAULT. Each test uses a fresh interpreter so toolbar
+# loading and application resource settings cannot mask the native defaults.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.defaults
+package require rbc
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.defaults {
+    proc Setup {} {
+        interp create defaultsChild
+        interp eval defaultsChild [list set auto_path $::auto_path]
+        interp eval defaultsChild {
+            package require rbc
+            wm withdraw .
+            option clear
+            proc Check {command expected} {
+                set failures {}
+                dict for {option value} $expected {
+                    set actual [{*}$command $option]
+                    if {$actual ne $value && !([string is double -strict $actual] && [string is double -strict $value]\
+                                                       && double($actual) == double($value))} {
+                        lappend failures [list $option $actual $value]
+                    }
+                }
+                return $failures
+            }
+        }
+    }
+    proc Cleanup {} {
+        if {[interp exists defaultsChild]} {
+            interp delete defaultsChild
+        }
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Audit all 30 entries changed by 438325a against their prior initialized values.
+    # Graph: nine entries, initialized to zero/NULL, explicit TRUE/reliefs, or text-style center.
+    # Axis: twelve entries, including axis-specific hidden and bar-axis step values.
+    # Line: five entries; scaleSymbols was zero even though its table declared "yes".
+    # Bar: four entries, initialized to zero or flat relief.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach kind {graph barchart stripchart} {
+        incr case
+        test RBC.graph.defaults.A.1.$case {
+            graph defaults: audited graph, axis and element values
+        } -setup {
+            Setup
+            interp eval defaultsChild [list set kind $kind]
+        } -body {
+            interp eval defaultsChild {
+                ::rbc::$kind .g
+                .g element create curve
+                set failures [Check {.g cget} {
+                    -aspect 0 -bufferelements 1 -buffergraph 1 -data {} -datacommand {}
+                    -invertxy 0 -justify center -plotrelief sunken -relief flat
+                }]
+                foreach axis {x y x2 y2} {
+                    set hidden [expr {$axis in {x2 y2}}]
+                    set step [expr {$kind eq "barchart" && $axis in {x x2} ? 1 : 0}]
+                    set expected [dict create -autorange 0 -descending 0 -hide $hidden -justify center -logscale 0\
+                                          -relief flat -rotate 0 -shiftby 0 -showticks 1 -stepsize $step -title {}\
+                                          -titlealternate 0]
+                    lappend failures {*}[Check [list .g axis cget $axis] $expected]
+                }
+                .g axis create custom
+                lappend failures {*}[Check {.g axis cget custom} {-hide 0 -stepsize 0}]
+                set expected {-hide 0 -hideplot 0 -labelrelief flat}
+                if {$kind eq "barchart"} {
+                    dict set expected -barwidth 0
+                } else {
+                    dict set expected -reduce 0
+                    dict set expected -scalesymbols 0
+                }
+                lappend failures {*}[Check {.g element cget curve} $expected]
+                set failures
+            }
+        } -cleanup {
+            Cleanup
+        } -result {}
+    }
+
+    set case 0
+    foreach kind {graph stripchart polar} {
+        incr case
+        test RBC.graph.defaults.A.2.$case {
+            graph defaults: native scaling default agrees with configure metadata
+        } -setup {
+            Setup
+            interp eval defaultsChild [list set kind $kind]
+        } -body {
+            interp eval defaultsChild {
+                ::rbc::$kind .g
+                .g element create curve
+                set spec [.g element configure curve -scalesymbols]
+                list [expr {![lindex $spec 3]}] [.g element cget curve -scalesymbols]
+            }
+        } -cleanup {
+            Cleanup
+        } -result {1 0}
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Every audited entry still honors option-database values at creation time.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach {target option resource value} {
+        graph -aspect Aspect 2
+        graph -bufferelements BufferElements 0
+        graph -buffergraph BufferGraph 0
+        graph -data Data payload
+        graph -datacommand DataCommand list
+        graph -invertxy InvertXY 1
+        graph -justify Justify left
+        graph -plotrelief PlotRelief raised
+        graph -relief Relief groove
+        axis -autorange AutoRange 10
+        axis -descending Descending 1
+        axis -hide Hide 1
+        axis -justify Justify right
+        axis -logscale LogScale 1
+        axis -relief Relief raised
+        axis -rotate Rotate 20
+        axis -shiftby ShiftBy 2
+        axis -showticks ShowTicks 0
+        axis -stepsize StepSize 3
+        axis -title Title Custom
+        axis -titlealternate TitleAlternate 1
+        line -reduce Reduce 0.25
+        line -hide Hide 1
+        line -hideplot HidePlot 1
+        line -labelrelief LabelRelief raised
+        line -scalesymbols ScaleSymbols 1
+        bar -barwidth BarWidth 0.5
+        bar -hide Hide 1
+        bar -hideplot HidePlot 1
+        bar -labelrelief LabelRelief raised
+    } {
+        incr case
+        test RBC.graph.defaults.A.3.$case {
+            graph defaults: removed initialization flags do not block resource lookup
+        } -setup {
+            Setup
+            interp eval defaultsChild [list set target $target]
+            interp eval defaultsChild [list set option $option]
+            interp eval defaultsChild [list set value $value]
+            # Use the resource name rather than class where classes are shared
+            # (e.g. plotRelief and relief both have class Relief).
+            set resource [string tolower [string index $resource 0]][string range $resource 1 end]
+            interp eval defaultsChild [list option add *$resource $value userDefault]
+        } -body {
+            interp eval defaultsChild {
+                if {$target eq "bar"} {
+                    rbc::barchart .g
+                } else {
+                    rbc::graph .g
+                }
+                switch -- $target {
+                    graph {
+                        set command {.g cget}
+                    }
+                    axis {
+                        .g axis create custom
+                        set command {.g axis cget custom}
+                    }
+                    default {
+                        .g element create curve
+                        set command {.g element cget curve}
+                    }
+                }
+                Check $command [dict create $option $value]
+            }
+        } -cleanup {
+            Cleanup
+        } -result {}
+    }
+
+    test RBC.graph.defaults.A.4.1 {
+        graph defaults: explicit scaling options override the option database
+    } -setup {
+        Setup
+    } -body {
+        interp eval defaultsChild {
+            option add *Element.ScaleSymbols yes userDefault
+            rbc::graph .g
+            .g element create inherited
+            .g element create explicit -scalesymbols no
+            set result [list [.g element cget inherited -scalesymbols] [.g element cget explicit -scalesymbols]]
+            .g element configure explicit -scalesymbols yes
+            lappend result [.g element cget explicit -scalesymbols]
+        }
+    } -cleanup {
+        Cleanup
+    } -result {1 0 1}
+
+    test RBC.graph.defaults.A.4.2 {
+        graph defaults: loading toolbar does not overwrite a widgetDefault resource
+    } -setup {
+        Setup
+    } -body {
+        interp eval defaultsChild {
+            option add *Element.ScaleSymbols yes widgetDefault
+            rbc::graph .before
+            .before element create curve
+            package require rbc::graphtoolbar
+            rbc::graph .after
+            .after element create curve
+            list [.before element cget curve -scalesymbols] [.after element cget curve -scalesymbols]
+        }
+    } -cleanup {
+        Cleanup
+    } -result {1 1}
+
+    test RBC.graph.defaults.A.4.3 {
+        graph defaults: toolbar and plain RBC have the same native scaling default
+    } -setup {
+        Setup
+    } -body {
+        interp eval defaultsChild {
+            rbc::graph .before
+            .before element create curve
+            package require rbc::graphtoolbar
+            rbc::graph .after
+            .after element create curve
+            list [.before element cget curve -scalesymbols] [.after element cget curve -scalesymbols]
+        }
+    } -cleanup {
+        Cleanup
+    } -result {0 0}
+
+    cleanupTests
+}
