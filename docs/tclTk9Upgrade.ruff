@@ -12,6 +12,15 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
+        ### Vector polyline simplification
+
+        `rbc::vector::simplify x y destX destY tolerance` (also `rbc::vector simplify`) reduces a polyline
+        into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
+        in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
+        in-place output is supported without replacing vector identities or graph bindings. This headless
+        operation is independent of graph rendering decimation. See [::rbc::vector simplify] and the interactive
+        `demos/simplify1.tcl` example.
+
         ### Vector FFT and inverse FFT
 
         Real and complex vectors provide `fft` and `ifft` instance operations. Results are written into an

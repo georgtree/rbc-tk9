@@ -25,6 +25,7 @@ static Tcl_ObjCmdProc2 VectorDestroyObjCmd;
 static Tcl_ObjCmdProc2 VectorExprObjCmd;
 static Tcl_ObjCmdProc2 VectorNamesObjCmd;
 static Tcl_ObjCmdProc2 VectorRenameObjCmd;
+static Tcl_ObjCmdProc2 VectorSimplifyObjCmd;
 static Tcl_CmdDeleteProc VectorInstDeleteProc;
 static Tcl_InterpDeleteProc VectorInterpDeleteProc;
 
@@ -183,6 +184,12 @@ int Rbc_VectorInit(Tcl_Interp *interp) {
     rbcNaN = MakeNaN();
     dataPtr = Rbc_VectorGetInterpData(interp);
     Tcl_CreateObjCommand2(interp, "rbc::vector", VectorObjCmd, dataPtr, NULL);
+    if (Tcl_FindNamespace(interp, "::rbc::vector", NULL, 0) == NULL) {
+        if (Tcl_CreateNamespace(interp, "::rbc::vector", NULL, NULL) == NULL) {
+            return TCL_ERROR;
+        }
+    }
+    Tcl_CreateObjCommand2(interp, "::rbc::vector::simplify", VectorSimplifyObjCmd, dataPtr, NULL);
     return TCL_OK;
 }
 
@@ -330,11 +337,297 @@ done:
     return code;
 }
 
+/*
+ * -----------------------------------------------------------------------
+ *
+ * SimplifyDistance --
+ *
+ *      Euclidean distance from P to the closed segment AB, not its infinite
+ *      supporting line. Coincident endpoints and backtracking are supported.
+ *      Scale differences before projection; do not square data coordinates.
+ *
+ * Results:
+ *      A nonnegative distance. Long double reduces intermediate overflow;
+ *      the fallback also works on platforms where it has double precision.
+ *
+ * -----------------------------------------------------------------------
+ */
+static long double SimplifyDistance(double ax, double ay, double bx, double by, double px, double py) {
+    long double dx = (long double)bx - ax, dy = (long double)by - ay;
+    long double ux = (long double)px - ax, uy = (long double)py - ay;
+    long double scale, length, projection, factor = 1.0L;
+
+    if (!isfinite(dx) || !isfinite(dy) || !isfinite(ux) || !isfinite(uy)) {
+        dx = (long double)bx * 0.5L - (long double)ax * 0.5L;
+        dy = (long double)by * 0.5L - (long double)ay * 0.5L;
+        ux = (long double)px * 0.5L - (long double)ax * 0.5L;
+        uy = (long double)py * 0.5L - (long double)ay * 0.5L;
+        factor = 2.0L;
+    }
+    scale = fmaxl(fmaxl(fabsl(dx), fabsl(dy)), fmaxl(fabsl(ux), fabsl(uy)));
+    if (scale == 0.0L) {
+        return 0.0L;
+    }
+    dx /= scale;
+    dy /= scale;
+    ux /= scale;
+    uy /= scale;
+    length = hypotl(dx, dy);
+    if (length == 0.0L) {
+        return hypotl(ux, uy) * scale * factor;
+    }
+    dx /= length;
+    dy /= length;
+    projection = ux * dx + uy * dy;
+    if (projection <= 0.0L) {
+        return hypotl(ux, uy) * scale * factor;
+    }
+    if (projection >= length) {
+        return hypotl(ux - length * dx, uy - length * dy) * scale * factor;
+    }
+    return fabsl(ux * dy - uy * dx) * scale * factor;
+}
+
+/*
+ * SimplifyDeleted -- Invalidate a temporary client handle before destruction
+ * frees the client record. Update notifications do not change the handle.
+ */
+static void SimplifyDeleted(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
+    Rbc_VectorId *idPtr = clientData;
+    (void)interp;
+    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
+        /* Vector destruction owns and frees its remaining client records. */
+        *idPtr = NULL;
+    }
+}
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * SimplifyFlush --
+ *
+ *      Clear a destination's mapped array after both results are installed.
+ *      Unset/write traces may delete either destination: use a client ID
+ *      to check its lifetime before restoring the mapping or notifying it.
+ *
+ * Results:
+ *      None. User trace side effects are not rolled back.
+ *
+ * -----------------------------------------------------------------------
+ */
+static void SimplifyFlush(Rbc_VectorId *idPtr) {
+    VectorObject *vPtr = (*idPtr != NULL) ? (*idPtr)->serverPtr : NULL;
+    Tcl_Interp *interp;
+    Tcl_DString name;
+    int flags;
+
+    if ((vPtr == NULL) || !vPtr->flush || (vPtr->arrayName == NULL)) {
+        return;
+    }
+    interp = vPtr->interp;
+    flags = vPtr->varFlags;
+    Tcl_DStringInit(&name);
+    Tcl_DStringAppend(&name, vPtr->arrayName, -1);
+    Tcl_UntraceVar2(interp, Tcl_DStringValue(&name), NULL, TRACE_ALL | flags, (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
+    Tcl_UnsetVar2(interp, Tcl_DStringValue(&name), NULL, flags);
+    vPtr = (*idPtr != NULL) ? (*idPtr)->serverPtr : NULL;
+    if ((vPtr != NULL) && (vPtr->arrayName != NULL) && (strcmp(vPtr->arrayName, Tcl_DStringValue(&name)) == 0)) {
+        Tcl_SetVar2(interp, Tcl_DStringValue(&name), "end", "", flags);
+        vPtr = (*idPtr != NULL) ? (*idPtr)->serverPtr : NULL;
+        if ((vPtr != NULL) && (vPtr->arrayName != NULL) && (strcmp(vPtr->arrayName, Tcl_DStringValue(&name)) == 0)) {
+            Tcl_TraceVar2(interp, Tcl_DStringValue(&name), NULL, TRACE_ALL | flags, (Tcl_VarTraceProc *)VectorVarTrace,
+                          vPtr);
+        }
+    }
+    Tcl_DStringFree(&name);
+}
+
+/*
+ * -----------------------------------------------------------------------
+ *
+ * VectorSimplifyObjCmd --
+ *
+ *      Iterative Douglas-Peucker simplification of paired real vectors.
+ *      All four names identify existing, whole vectors. The two outputs
+ *      must differ, but may overlap either input. Tolerance is a finite,
+ *      nonnegative distance in data coordinates; endpoints are retained.
+ *
+ * Results:
+ *      TCL_OK with the retained point count, or TCL_ERROR. Validation and
+ *      allocation errors leave both destinations unchanged.
+ *
+ * Side effects:
+ *      Both output arrays are installed before invoking free procedures,
+ *      variable traces or client notifications. Vector identities, offsets
+ *      and bindings are retained. No Tk or event processing is required.
+ *
+ * -----------------------------------------------------------------------
+ */
+static int VectorSimplifyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    VectorInterpData *dataPtr = clientData;
+    VectorObject *vectors[4];
+    Rbc_VectorId ids[2] = {NULL, NULL};
+    double *output[2] = {NULL, NULL};
+    void *oldData[2];
+    Tcl_FreeProc *oldFree[2];
+    Tcl_Size *stack = NULL;
+    Tcl_Size length, capacity, count = 0, low, top, i;
+    double tolerance;
+    int k;
+
+    /* The dispatcher removes its own command word for the subcommand form. */
+    if (objc != 6) {
+        Tcl_WrongNumArgs(interp, 1, objv, "x y destX destY tolerance");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetDoubleFromObj(interp, objv[5], &tolerance) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (!isfinite(tolerance) || (tolerance < 0.0)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("tolerance must be finite and nonnegative", -1));
+        return TCL_ERROR;
+    }
+    for (k = 0; k < 4; k++) {
+        const char *name = Tcl_GetString(objv[k + 1]);
+
+        vectors[k] = GetVectorObject(dataPtr, name, NS_SEARCH_BOTH);
+        if (vectors[k] == NULL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't find vector \"%s\"", name));
+            return TCL_ERROR;
+        }
+        if (vectors[k]->type != RBC_VECTOR_REAL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("simplify requires real vectors", -1));
+            return TCL_ERROR;
+        }
+    }
+    if (vectors[0]->length != vectors[1]->length) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("x and y vectors must have equal lengths", -1));
+        return TCL_ERROR;
+    }
+    if (vectors[2] == vectors[3]) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("simplify destinations must be distinct vectors", -1));
+        return TCL_ERROR;
+    }
+    length = vectors[0]->length;
+    for (i = 0; i < length; i++) {
+        if (!isfinite(vectors[0]->data.real[i]) || !isfinite(vectors[1]->data.real[i])) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("simplify requires finite coordinates", -1));
+            return TCL_ERROR;
+        }
+    }
+    capacity = (length > 0) ? length : 1;
+    if (((Tcl_WideUInt)capacity > SIZE_MAX / sizeof(double)) ||
+        ((Tcl_WideUInt)capacity > SIZE_MAX / sizeof(Tcl_Size))) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("simplify allocation size is too large", -1));
+        return TCL_ERROR;
+    }
+    output[0] = Tcl_AttemptAlloc((size_t)capacity * sizeof(double));
+    output[1] = Tcl_AttemptAlloc((size_t)capacity * sizeof(double));
+    stack = Tcl_AttemptAlloc((size_t)capacity * sizeof(Tcl_Size));
+    if ((output[0] == NULL) || (output[1] == NULL) || (stack == NULL)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate simplify storage", -1));
+        goto error;
+    }
+    if (length > 0) {
+        output[0][count] = vectors[0]->data.real[0];
+        output[1][count++] = vectors[1]->data.real[0];
+    }
+    low = 0;
+    top = (length > 1) ? 0 : -1;
+    stack[0] = length - 1;
+    while (top >= 0) {
+        Tcl_Size high = stack[top], split = -1;
+        long double farthest = tolerance;
+        const double *x = vectors[0]->data.real, *y = vectors[1]->data.real;
+
+        for (i = low + 1; i < high; i++) {
+            long double distance = SimplifyDistance(x[low], y[low], x[high], y[high], x[i], y[i]);
+
+            if (distance > farthest) {
+                farthest = distance;
+                split = i;
+            }
+        }
+        if (split >= 0) {
+            stack[++top] = split;
+        } else {
+            output[0][count] = x[high];
+            output[1][count++] = y[high];
+            low = high;
+            top--;
+        }
+    }
+    for (k = 0; k < 2; k++) {
+        ids[k] = Rbc_AllocVectorId(interp, vectors[k + 2]->name);
+        if (ids[k] == NULL) {
+            goto error;
+        }
+        Rbc_SetVectorChangedProc(ids[k], SimplifyDeleted, &ids[k]);
+    }
+    for (k = 0; k < 2; k++) {
+        VectorObject *vPtr = vectors[k + 2];
+
+        oldData[k] = vPtr->data.raw;
+        oldFree[k] = vPtr->freeProc;
+        vPtr->data.real = output[k];
+        vPtr->freeProc = TCL_DYNAMIC;
+        vPtr->length = count;
+        vPtr->size = capacity;
+        vPtr->first = 0;
+        vPtr->last = count - 1;
+        vPtr->min = vPtr->max = rbcNaN;
+        vPtr->minIndex = vPtr->maxIndex = -1;
+        vPtr->notifyFlags |= UPDATE_RANGE;
+    }
+    ckfree(stack);
+    for (k = 0; k < 2; k++) {
+        if ((oldData[k] != NULL) && (oldFree[k] != TCL_STATIC)) {
+            if (oldFree[k] == TCL_DYNAMIC) {
+                ckfree(oldData[k]);
+            } else {
+                oldFree[k](oldData[k]);
+            }
+        }
+    }
+    for (k = 0; k < 2; k++) {
+        SimplifyFlush(&ids[k]);
+        if (ids[k] != NULL) {
+            Rbc_VectorUpdateClients(ids[k]->serverPtr);
+        }
+        if (ids[k] != NULL) {
+            Rbc_FreeVectorId(ids[k]);
+        }
+    }
+    Tcl_SetObjResult(interp, Tcl_NewWideIntObj(count));
+    return TCL_OK;
+
+error:
+    for (k = 0; k < 2; k++) {
+        if (output[k] != NULL) {
+            ckfree(output[k]);
+        }
+        if (ids[k] != NULL) {
+            Rbc_FreeVectorId(ids[k]);
+        }
+    }
+    if (stack != NULL) {
+        ckfree(stack);
+    }
+    return TCL_ERROR;
+}
+
+/* Allow the same operation through the conventional vector dispatcher. */
+static int VectorSimplifyOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
+                            Tcl_Obj *const objv[]) {
+    return VectorSimplifyObjCmd(clientData, interp, objc - 1, objv + 1);
+}
+
 static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switches...?"}, VectorCreateObjCmd},
                                            {{"destroy", 2, 0, "?vecName?..."}, VectorDestroyObjCmd},
                                            {{"expr", 3, 3, "expression"}, VectorExprObjCmd},
                                            {{"names", 2, 3, "?pattern?..."}, VectorNamesObjCmd},
                                            {{"rename", 4, 4, "oldName newName"}, VectorRenameObjCmd},
+                                           {{"simplify", 7, 7, "x y destX destY tolerance"}, VectorSimplifyOp},
                                            {{NULL, 0, 0, NULL}, NULL}};
 
 /*

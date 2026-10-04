@@ -48,6 +48,15 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="vector-polyline-simplification">
+<span id="r-tcltk9upgrade-vector-polyline-simplification"></span><span id="r-3a3atcltk9upgradeqzvector20polyline20simplification"></span><h3>Vector polyline simplification<a class="headerlink" href="#vector-polyline-simplification" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">destX</span> <span class="pre">destY</span> <span class="pre">tolerance</span></code> (also <code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">simplify</span></code>) reduces a polyline
+into two existing real vectors using Douglas-Peucker simplification. Tolerance is a Euclidean distance
+in data coordinates, measured to finite replacement segments. Endpoints and point order are retained;
+in-place output is supported without replacing vector identities or graph bindings. This headless
+operation is independent of graph rendering decimation. See <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avector20simplify"><span class="std std-ref">::rbc::vector simplify</span></a> and the interactive
+<code class="docutils literal notranslate"><span class="pre">demos/simplify1.tcl</span></code> example.</p>
+</section>
 <section id="vector-fft-and-inverse-fft">
 <span id="r-tcltk9upgrade-vector-fft-and-inverse-fft"></span><span id="r-3a3atcltk9upgradeqzvector20fft20and20inverse20fft"></span><h3>Vector FFT and inverse FFT<a class="headerlink" href="#vector-fft-and-inverse-fft" title="Link to this heading">¶</a></h3>
 <p>Real and complex vectors provide <code class="docutils literal notranslate"><span class="pre">fft</span></code> and <code class="docutils literal notranslate"><span class="pre">ifft</span></code> instance operations. Results are written into an
@@ -818,6 +827,7 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#vector-polyline-simplification">Vector polyline simplification</a></li>
 <li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
 <li><a class="reference internal" href="#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>

@@ -303,6 +303,48 @@ namespace eval ::rbc::vector {
         # Do not rename live vectors managed by NgspiceTclBridge: the bridge treats command renaming as invalidation.
     }
 
+    proc simplify {x y destX destY tolerance} {
+        # Simplifies a two-dimensional polyline using the iterative Douglas-Peucker algorithm.
+        # Also available directly as `::rbc::vector::simplify x y destX destY tolerance`.
+        # x - existing real vector containing X coordinates.
+        # y - existing real vector containing Y coordinates, with the same length as x.
+        # destX - existing real vector receiving retained X coordinates.
+        # destY - distinct existing real vector receiving retained Y coordinates.
+        # tolerance - finite nonnegative Euclidean distance in the input coordinate units.
+        # Returns: Number of retained points, also the new length of both destinations.
+        #
+        # Each discarded point is within tolerance of its replacement line segment, subject to floating-point
+        # rounding. Distances are to finite segments, so backtracking and coincident endpoints are supported.
+        # The original point order and first/last samples are retained; no new coordinates are interpolated.
+        # Empty inputs produce empty outputs; one-point inputs retain that point. At zero tolerance only
+        # points lying on replacement segments can be removed. Points exactly at tolerance may be removed.
+        #
+        # All names are literal whole-vector names, resolved in the caller's namespace and then globally.
+        # Names containing parentheses are supported; slice syntax is not interpreted. No vector is created,
+        # and `#auto` has no special meaning. The destinations may alias either input, including swapped
+        # in-place outputs, but must be distinct from each other. Offsets, types, C identities and graph
+        # bindings are retained. Values are paired by storage position, irrespective of index offsets.
+        #
+        # Complex vectors, unequal input lengths, NaN/Inf coordinates and invalid tolerances are errors.
+        # Validation and allocation errors leave both destinations unchanged. Both outputs are installed
+        # before mapped-array traces or client notifications run; user callback side effects are not rolled back.
+        #
+        # ```tcl
+        # rbc::vector create x y xs ys
+        # x set {0 1 2 3 4}
+        # y set {0 0.1 0 1 1}
+        # set kept [rbc::vector::simplify x y xs ys 0.2]
+        # # xs = {0 2 3 4}, ys = {0 0 1 1}, kept = 4
+        # ```
+        #
+        # X and Y share the same distance metric without automatic axis normalization. Rescale coordinates
+        # first when their units differ substantially. This operation does not depend on Tk, zoom, logarithmic
+        # axes or display pixels. Graph `-decimate` options instead optimize rendering in display coordinates
+        # and do not modify source vectors. Simplification is not a resampler or an extrema-preserving filter.
+        # Worst-case running time is quadratic; temporary storage is linear in input length, with no recursive
+        # C calls. See `demos/simplify1.tcl` for an interactive tolerance example.
+    }
+
     proc names {args} {
         # Gives back the names of existing vectors. If `pattern` is supplied, only vector names matching the Tcl glob
         # pattern are returned.

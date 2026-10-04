@@ -12,6 +12,14 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "VECTOR POLYLINE SIMPLIFICATION"
+.PP
+rbc::vector::simplify x y destX destY tolerance (also rbc::vector simplify) reduces a polyline
+into two existing real vectors using Douglas-Peucker simplification\&. Tolerance is a Euclidean distance
+in data coordinates, measured to finite replacement segments\&. Endpoints and point order are retained;
+in-place output is supported without replacing vector identities or graph bindings\&. This headless
+operation is independent of graph rendering decimation\&. See \fI::rbc::vector simplify\fP and the interactive
+demos/simplify1\&.tcl example\&.
 .SS "VECTOR FFT AND INVERSE FFT"
 .PP
 Real and complex vectors provide fft and ifft instance operations\&. Results are written into an

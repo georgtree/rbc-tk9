@@ -307,4 +307,24 @@ namespace eval vector.capi {
         CleanupVectors ::CapiWindow
     } -result {1 {0.0 0.5 1.0 0.5}}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Simplification preserves both output C entities while replacing their storage.
+    # ------------------------------------------------------------------------------------
+    test RBC.vector.capi.A.10.1 {
+        public C API: simplify retains both destination identities
+    } -setup {
+        vector create ::CapiSimpX ::CapiSimpY ::CapiSimpU ::CapiSimpV
+        ::CapiSimpX set {0 1 2}
+        ::CapiSimpY set {3 3 3}
+    } -body {
+        set u [lindex [::rbccapitest identity ::CapiSimpU] 0]
+        set v [lindex [::rbccapitest identity ::CapiSimpV] 0]
+        rbc::vector::simplify ::CapiSimpX ::CapiSimpY ::CapiSimpU ::CapiSimpV 0
+        list [expr {$u eq [lindex [::rbccapitest identity ::CapiSimpU] 0]}] \
+            [expr {$v eq [lindex [::rbccapitest identity ::CapiSimpV] 0]}] \
+            [::CapiSimpU range 0 end] [::CapiSimpV range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiSimpX ::CapiSimpY ::CapiSimpU ::CapiSimpV
+    } -result {1 1 {0.0 2.0} {3.0 3.0}}
+
 }

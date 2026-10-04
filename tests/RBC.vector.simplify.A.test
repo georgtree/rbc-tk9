@@ -1,0 +1,241 @@
+# RBC.vector.simplify.A.test --
+#
+###Abstract
+# This file tests paired-vector Douglas-Peucker simplification.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide vector.simplify
+package require rbc::vector
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+testConstraint simplifyTk [expr {[package provide Tk] ne {} && [info commands ::rbc::graph] ne {}}]
+
+namespace eval vector.simplify {
+    proc Setup {x y} {
+        ::rbc::vector create ::SimpX ::SimpY ::SimpU ::SimpV -flush yes
+        ::SimpX set $x
+        ::SimpY set $y
+        ::SimpU set {99 98}
+        ::SimpV set {97 96}
+    }
+    proc Values {name} {
+        if {[$name length] == 0} {
+            return
+        }
+        return [$name range 0 end]
+    }
+    proc Cleanup {} {
+        foreach v [::rbc::vector names ::Simp*] {
+            ::rbc::vector destroy $v
+        }
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Endpoints, threshold, degenerate paths and finite-segment distances.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach {x y tolerance expectedX expectedY} {
+        {} {} 0 {} {}
+        {3} {4} 0 {3.0} {4.0}
+        {1 2} {3 4} 100 {1.0 2.0} {3.0 4.0}
+        {0 1 2 3} {0 0 0 0} 0 {0.0 3.0} {0.0 0.0}
+        {0 1 2} {0 1 0} 1 {0.0 2.0} {0.0 0.0}
+        {0 1 2} {0 1 0} 0.99 {0.0 1.0 2.0} {0.0 1.0 0.0}
+        {0 1 2} {0 1 0} 0 {0.0 1.0 2.0} {0.0 1.0 0.0}
+        {0 0 0} {0 1 0} 0.5 {0.0 0.0 0.0} {0.0 1.0 0.0}
+        {1 1 1 1} {2 2 2 2} 0 {1.0 1.0} {2.0 2.0}
+        {0 2 1} {0 0 0} 0.5 {0.0 2.0 1.0} {0.0 0.0 0.0}
+        {3 2 1 0} {0 0 0 0} 0 {3.0 0.0} {0.0 0.0}
+        {0 0 0} {0 1 2} 0 {0.0 0.0} {0.0 2.0}
+        {0 1 2 3 4} {0 1 0 -1 0} 0.1 {0.0 1.0 3.0 4.0} {0.0 1.0 -1.0 0.0}
+        {-1e308 0 1e308} {0 1e308 0} 1e307 {-1e308 0.0 1e308} {0.0 1e308 0.0}
+        {0 1e-300 2e-300} {0 1e-300 0} 1e-301 {0.0 1e-300 2e-300} {0.0 1e-300 0.0}
+    } {
+        incr case
+        test RBC.vector.simplify.A.1.$case {
+            vector simplify: retain ordered samples within tolerance
+        } -setup {
+            Setup $x $y
+        } -body {
+            set n [rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV $tolerance]
+            list $n [Values ::SimpU] [Values ::SimpV]
+        } -cleanup {
+            Cleanup
+        } -result [list [llength $expectedX] [lmap value $expectedX {expr {double($value)}}]\
+                           [lmap value $expectedY {expr {double($value)}}]]
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Aliasing, literal names, namespace lookup, and persistent mappings.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach outputs {{::SimpX ::SimpY} {::SimpY ::SimpX} {::SimpX ::SimpV} {::SimpU ::SimpY}} {
+        incr case
+        test RBC.vector.simplify.A.2.$case {
+            vector simplify: either destination may alias either input
+        } -setup {
+            Setup {0 1 2} {3 3 3}
+        } -body {
+            lassign $outputs u v
+            set n [rbc::vector simplify ::SimpX ::SimpY $u $v 0]
+            list $n [$u range 0 end] [$v range 0 end]
+        } -cleanup {
+            Cleanup
+        } -result {2 {0.0 2.0} {3.0 3.0}}
+    }
+
+    test RBC.vector.simplify.A.2.5 {
+        vector simplify: relative literal names containing parentheses
+    } -setup {
+        namespace eval local {
+            rbc::vector create x(1) y(out) u v -literal yes
+            x(1) set {0 1 2}
+            y(out) set {1 1 1}
+        }
+    } -body {
+        namespace eval local {
+            list [rbc::vector::simplify x(1) y(out) u v 0] [u range 0 end] [v range 0 end]
+        }
+    } -cleanup {
+        namespace delete local
+    } -result {2 {0.0 2.0} {1.0 1.0}}
+
+    test RBC.vector.simplify.A.2.6 {
+        vector simplify: offsets, cached extrema and arrays survive resizing
+    } -setup {
+        Setup {0 1 2} {3 3 3}
+        ::SimpU offset 5
+        ::SimpV offset -2
+    } -body {
+        set old [list $::SimpU(5) $::SimpV(-2) $::SimpU(max)]
+        set names [lsort [vector names]]
+        rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV 0
+        list $old [::SimpU offset] [::SimpV offset] $::SimpU(5) $::SimpV(-2) $::SimpU(min) $::SimpU(max)\
+                [expr {$names eq [lsort [vector names]]}]
+    } -cleanup {
+        Cleanup
+    } -result {{99.0 97.0 99.0} 5 -2 0.0 3.0 0.0 2.0 1}
+
+    test RBC.vector.simplify.A.2.7 {
+        vector simplify: equal input vectors are allowed
+    } -setup {
+        Setup {0 1 2} {}
+    } -body {
+        rbc::vector::simplify ::SimpX ::SimpX ::SimpU ::SimpV 0
+        list [::SimpU range 0 end] [::SimpV range 0 end]
+    } -cleanup {
+        Cleanup
+    } -result {{0.0 2.0} {0.0 2.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Errors preserve both outputs; no implicit creation or range parsing.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach args {
+        {::SimpX ::SimpY ::SimpU ::SimpV -1}
+        {::SimpX ::SimpY ::SimpU ::SimpV Inf}
+        {::SimpX ::SimpY ::SimpU ::SimpV NaN}
+        {::SimpX ::SimpY ::SimpU ::SimpV invalid}
+        {::SimpX ::SimpY ::SimpU ::SimpU 0}
+        {::SimpMissing ::SimpY ::SimpU ::SimpV 0}
+        {::SimpX ::SimpY ::SimpMissing ::SimpV 0}
+        {::SimpX ::SimpY ::SimpU #auto 0}
+        {::SimpX(0:1) ::SimpY ::SimpU ::SimpV 0}
+        {::SimpX ::SimpY ::SimpU(0) ::SimpV 0}
+        {::SimpX ::SimpY ::SimpU ::SimpV}
+        {::SimpX ::SimpY ::SimpU ::SimpV 0 extra}
+    } {
+        incr case
+        test RBC.vector.simplify.A.3.$case {
+            vector simplify: invalid arguments are transactional
+        } -setup {
+            Setup {0 1 2} {0 1 0}
+        } -body {
+            set names [lsort [vector names]]
+            list [catch {rbc::vector::simplify {*}$args}] [::SimpU range 0 end] [::SimpV range 0 end]\
+                    [expr {$names eq [lsort [vector names]]}]
+        } -cleanup {
+            Cleanup
+        } -result {1 {99.0 98.0} {97.0 96.0} 1}
+    }
+
+    set case 0
+    foreach change {
+        {::SimpY set {0}}
+        {::SimpX set {0 Inf 2}}
+        {::SimpY set {0 -Inf 0}}
+        {vector destroy ::SimpX; vector create ::SimpX -type complex; ::SimpX set {{0 0} {1 0} {2 0}}}
+        {vector destroy ::SimpV; vector create ::SimpV -type complex; ::SimpV set {{97 0} {96 0}}}
+    } {
+        incr case
+        test RBC.vector.simplify.A.4.$case {
+            vector simplify: incompatible input data or types preserve destinations
+        } -setup {
+            Setup {0 1 2} {0 1 0}
+            eval $change
+        } -body {
+            set before [list [::SimpU range 0 end] [::SimpV range 0 end]]
+            set rc [catch {rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV 0}]
+            list $rc [expr {$before eq [list [::SimpU range 0 end] [::SimpV range 0 end]]}]
+        } -cleanup {
+            Cleanup
+        } -result {1 1}
+    }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Both outputs are committed before traces; trace deletion is safe.
+    # ------------------------------------------------------------------------------------
+    proc Observe {args} {
+        set ::SimpSeen [list [::SimpU range 0 end] [::SimpV range 0 end]]
+    }
+    proc Remove {args} {
+        ::rbc::vector destroy ::SimpU ::SimpV
+    }
+    test RBC.vector.simplify.A.5.1 {
+        vector simplify: an unset trace sees both completed results
+    } -setup {
+        Setup {0 1 2} {3 3 3}
+        trace add variable ::SimpU unset [namespace current]::Observe
+    } -body {
+        rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV 0
+        set ::SimpSeen
+    } -cleanup {
+        Cleanup
+        unset -nocomplain ::SimpSeen
+    } -result {{0.0 2.0} {3.0 3.0}}
+
+    test RBC.vector.simplify.A.5.2 {
+        vector simplify: an unset trace can destroy both destinations
+    } -setup {
+        Setup {0 1 2} {3 3 3}
+        trace add variable ::SimpU unset [namespace current]::Remove
+    } -body {
+        list [rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV 0] [info commands ::SimpU] [info commands ::SimpV]
+    } -cleanup {
+        Cleanup
+    } -result {2 {} {}}
+
+    test RBC.vector.simplify.A.6.1 {
+        vector simplify: graph bindings retain their destination vectors
+    } -constraints simplifyTk -setup {
+        Setup {0 1 2} {3 3 3}
+        rbc::graph .simplifyGraph
+        .simplifyGraph element create curve -xdata ::SimpU -ydata ::SimpV
+    } -body {
+        rbc::vector::simplify ::SimpX ::SimpY ::SimpU ::SimpV 0
+        update idletasks
+        list [.simplifyGraph element cget curve -xdata] [.simplifyGraph element cget curve -ydata] [::SimpU length]\
+                [::SimpV length]
+    } -cleanup {
+        destroy .simplifyGraph
+        Cleanup
+    } -result {::SimpU ::SimpV 2 2}
+
+    cleanupTests
+}
