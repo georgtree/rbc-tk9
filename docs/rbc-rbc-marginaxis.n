@@ -54,14 +54,14 @@ physical margins become:
 .PP
 .RS 4n
 .nf
-┌─────────┬──────────────────────────────────────┐
-│ Command │ Physical margin with -invertxy yes   │
-├─────────┼──────────────────────────────────────┤
-│ xaxis   │ left                                 │
-│ x2axis  │ right                                │
-│ yaxis   │ bottom                               │
-│ y2axis  │ top                                  │
-└─────────┴──────────────────────────────────────┘
+┌─────────┬────────────────────────────────────┐
+│ Command │ Physical margin with -invertxy yes │
+├─────────┼────────────────────────────────────┤
+│ xaxis   │ left                               │
+│ x2axis  │ right                              │
+│ yaxis   │ bottom                             │
+│ y2axis  │ top                                │
+└─────────┴────────────────────────────────────┘
 .fi
 .RE
 .PP

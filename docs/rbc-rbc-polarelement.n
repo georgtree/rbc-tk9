@@ -656,14 +656,19 @@ Polar-specific additions below\&.
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬─────────────────┬─────────────────┬────────────────────────────────────────────────────┐
-│ Option                │ Database name   │ Database class  │ Description                                        │
-├───────────────────────┼─────────────────┼─────────────────┼────────────────────────────────────────────────────┤
-│ -datacoordinates mode │ dataCoordinates │ DataCoordinates │ cartesian (default), or polar (radians/radius)\&.    │
-│ -cdata vectorName     │ cData           │ CData           │ Complex vector; empty selects real pairs\&.          │
-│ -cdataformat format   │ cDataFormat     │ CDataFormat     │ gamma, impedance, or admittance\&. Default gamma\&.    │
-│ -z0 value             │ z0              │ Z0              │ Positive finite reference impedance\&. Default 50\&.0\&. │
-└───────────────────────┴─────────────────┴─────────────────┴────────────────────────────────────────────────────┘
+┌───────────────────────┬─────────────────┬─────────────────┬──────────────────────────────────────────────────────────┐
+│ Option                │ Database name   │ Database class  │ Description                                              │
+├───────────────────────┼─────────────────┼─────────────────┼──────────────────────────────────────────────────────────┤
+│ -datacoordinates mode │ dataCoordinates │ DataCoordinates │ Real input pairs: cartesian (default) or polar (theta in │
+│                       │                 │                 │ radians, radius)\&.                                        │
+│ -cdata vectorName     │ cData           │ CData           │ Specifies a complex Rbc vector used as the element data  │
+│                       │                 │                 │ source\&. An empty value selects ordinary X/Y data mode\&.   │
+│ -cdataformat format   │ cDataFormat     │ CDataFormat     │ Specifies how complex data are interpreted: gamma,       │
+│                       │                 │                 │ impedance, or admittance\&. The default is gamma\&.          │
+│ -z0 value             │ z0              │ Z0              │ Specifies the positive finite reference impedance used   │
+│                       │                 │                 │ for impedance/admittance conversion\&. The default is      │
+│                       │                 │                 │ 50\&.0\&.                                                    │
+└───────────────────────┴─────────────────┴─────────────────┴──────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

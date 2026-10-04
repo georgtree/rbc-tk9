@@ -39,7 +39,7 @@ Rbc provides seven marker types:
 │ bitmap  │ Displays a Tk bitmap                           │
 │ image   │ Displays a Tk image                            │
 │ line    │ Displays one or more connected line segments   │
-│ arc     │ Displays an ellipse, open arc, chord or sector   │
+│ arc     │ Displays an ellipse, open arc, chord or sector │
 │ polygon │ Displays a filled and/or outlined polygon      │
 │ text    │ Displays text                                  │
 │ window  │ Displays an embedded Tk window                 │
@@ -67,17 +67,17 @@ The number of coordinates depends on the marker type:
 .PP
 .RS 4n
 .nf
-┌─────────────┬─────────────────────────┐
-│ Marker type │ Coordinates             │
-├─────────────┼─────────────────────────┤
-│ bitmap      │ One or two X-Y pairs    │
-│ image       │ One or two X-Y pairs    │
-│ line        │ Two or more X-Y pairs   │
-│ arc         │ Two opposite corners    │
-│ polygon     │ Three or more X-Y pairs │
-│ text        │ One X-Y pair            │
-│ window      │ One X-Y pair            │
-└─────────────┴─────────────────────────┘
+┌─────────────┬─────────────────────────────────────────────────┐
+│ Marker type │ Coordinates                                     │
+├─────────────┼─────────────────────────────────────────────────┤
+│ bitmap      │ One or two X-Y pairs                            │
+│ image       │ One or two X-Y pairs                            │
+│ line        │ Two or more X-Y pairs                           │
+│ arc         │ Two opposite corners of an ellipse bounding box │
+│ polygon     │ Three or more X-Y pairs                         │
+│ text        │ One X-Y pair                                    │
+│ window      │ One X-Y pair                                    │
+└─────────────┴─────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -168,43 +168,37 @@ option valid for one marker type is not necessarily valid for another\&.
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────┐
-│ Option                │ Database name │ Database class │ Description                                         │
-├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────┤
-│ -bindtags tagList     │ bindTags      │ BindTags       │ Specifies additional binding tags associated with   │
-│                       │               │                │ the marker\&. The marker name is always an implicit   │
-│                       │               │                │ binding tag\&. The default class tag depends on the   │
-│                       │               │                │ marker type\&.                                        │
-│ -coords coordList     │ coords        │ Coords         │ Specifies the graph coordinates of the marker\&. The  │
-│                       │               │                │ required number of coordinates depends on the       │
-│                       │               │                │ marker type\&. The default is empty\&.                  │
-│                       │               │                │ Each coordinate accepts a Tcl numeric expression;   │
-│                       │               │                │ Inf, +Inf and -Inf select elastic bounds\&.           │
-│ -element elementName  │ element       │ Element        │ Associates the marker with an element\&. The marker   │
-│                       │               │                │ is displayed only while that element is displayed\&.  │
-│                       │               │                │ An empty value removes the association\&.             │
-│ -hide boolean         │ hide          │ Hide           │ Specifies whether the marker is hidden\&. The default │
-│                       │               │                │ is no\&.                                              │
-│ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis used to map marker coordinates\&.│
-│                       │               │                │ The axis must exist and must be an X axis\&. The      │
-│                       │               │                │ default is x\&.                                       │
-│ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis used to map marker coordinates\&.│
-│                       │               │                │ The axis must exist and must be a Y axis\&. The       │
-│                       │               │                │ default is y\&.                                       │
-│ -name markerName      │ —             │ —              │ Specifies the marker name\&. During creation, an      │
-│                       │               │                │ omitted name is generated automatically\&.            │
-│                       │               │                │ Reconfiguring -name renames the marker; the new     │
-│                       │               │                │ name must be non-empty, must not begin with -, and  │
-│                       │               │                │ must not already belong to another marker\&.          │
-│ -state state          │ state         │ State          │ Specifies the marker state: normal, active, or      │
-│                       │               │                │ disabled\&. The default is normal\&.                    │
-│ -under boolean        │ under         │ Under          │ Specifies whether the marker is drawn below graph   │
-│                       │               │                │ elements rather than above them\&. The default is no\&. │
-│ -xoffset distance     │ xOffset       │ XOffset        │ Adds a horizontal screen-coordinate offset after    │
-│                       │               │                │ the marker has been mapped\&. The default is 0\&.       │
-│ -yoffset distance     │ yOffset       │ YOffset        │ Adds a vertical screen-coordinate offset after the  │
-│                       │               │                │ marker has been mapped\&. The default is 0\&.           │
-└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
+│ Option               │ Database name │ Database class │ Description                                                  │
+├──────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────┤
+│ -bindtags tagList    │ bindTags      │ BindTags       │ Specifies additional binding tags associated with the        │
+│                      │               │                │ marker\&. The marker name is always an implicit binding tag\&.   │
+│                      │               │                │ The default class tag depends on the marker type\&.            │
+│ -coords coordList    │ coords        │ Coords         │ Specifies the graph coordinates of the marker\&. The required  │
+│                      │               │                │ number of coordinates depends on the marker type\&. The        │
+│                      │               │                │ default is empty\&. Each coordinate accepts a Tcl numeric      │
+│                      │               │                │ expression; Inf, +Inf and -Inf select elastic bounds\&.        │
+│ -element elementName │ element       │ Element        │ Associates the marker with an element\&. The marker is         │
+│                      │               │                │ displayed only while that element is displayed\&. An empty     │
+│                      │               │                │ value removes the association\&.                               │
+│ -hide boolean        │ hide          │ Hide           │ Specifies whether the marker is hidden\&. The default is no\&.   │
+│ -mapx axisName       │ mapX          │ MapX           │ Specifies the X axis used to map marker coordinates\&. The     │
+│                      │               │                │ axis must exist and must be an X axis\&. The default is x\&.     │
+│ -mapy axisName       │ mapY          │ MapY           │ Specifies the Y axis used to map marker coordinates\&. The     │
+│                      │               │                │ axis must exist and must be a Y axis\&. The default is y\&.      │
+│ -name markerName     │ —             │ —              │ Specifies the marker name\&. During creation, an omitted name  │
+│                      │               │                │ is generated automatically\&. Reconfiguring -name renames the  │
+│                      │               │                │ marker; the new name must be non-empty, must not begin with  │
+│                      │               │                │ -, and must not already belong to another marker\&.            │
+│ -state state         │ state         │ State          │ Specifies the marker state: normal, active, or disabled\&. The │
+│                      │               │                │ default is normal\&.                                           │
+│ -under boolean       │ under         │ Under          │ Specifies whether the marker is drawn below graph elements   │
+│                      │               │                │ rather than above them\&. The default is no\&.                   │
+│ -xoffset distance    │ xOffset       │ XOffset        │ Adds a horizontal screen-coordinate offset after the marker  │
+│                      │               │                │ has been mapped\&. The default is 0\&.                           │
+│ -yoffset distance    │ yOffset       │ YOffset        │ Adds a vertical screen-coordinate offset after the marker    │
+│                      │               │                │ has been mapped\&. The default is 0\&.                           │
+└──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SS "BITMAP MARKER OPTIONS"
@@ -221,24 +215,23 @@ In addition to the common marker options, bitmap markers support:
 .PP
 .RS 4n
 .nf
-┌──────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────┐
-│ Option               │ Database name │ Database class │ Description                                         │
-├──────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────┤
-│ -anchor anchor       │ anchor        │ Anchor         │ Specifies how the bitmap is positioned relative to  │
-│                      │               │                │ its reference coordinates\&. The default is center\&.   │
-│ -background color    │ —             │ —              │ Specifies the bitmap background color\&. This is a    │
-│                      │               │                │ synonym for -fill\&.                                  │
-│ -bg color            │ —             │ —              │ Synonym for -background\&.                            │
-│ -bitmap bitmap       │ bitmap        │ Bitmap         │ Specifies the Tk bitmap to display\&.                 │
-│ -fill color          │ background    │ Background     │ Specifies the bitmap background color\&.              │
-│ -foreground color    │ —             │ —              │ Specifies the bitmap foreground color\&. This is a    │
-│                      │               │                │ synonym for -outline\&.                               │
-│ -fg color            │ —             │ —              │ Synonym for -foreground\&.                            │
-│ -mask bitmap         │ mask          │ Mask           │ Specifies an optional bitmap mask\&.                  │
-│ -outline color       │ foreground    │ Foreground     │ Specifies the bitmap foreground color\&.              │
-│ -rotate degrees      │ rotate        │ Rotate         │ Specifies the rotation angle in degrees\&. The        │
-│                      │               │                │ default is 0\&.                                       │
-└──────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────┘
+┌───────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────────┐
+│ Option            │ Database name │ Database class │ Description                                                     │
+├───────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────────────┤
+│ -anchor anchor    │ anchor        │ Anchor         │ Specifies how the bitmap is positioned relative to its          │
+│                   │               │                │ reference coordinates\&. The default is center\&.                   │
+│ -background color │ —             │ —              │ Specifies the bitmap background color\&. This is a synonym for    │
+│                   │               │                │ -fill\&.                                                          │
+│ -bg color         │ —             │ —              │ Synonym for -background\&.                                        │
+│ -bitmap bitmap    │ bitmap        │ Bitmap         │ Specifies the Tk bitmap to display\&.                             │
+│ -fill color       │ background    │ Background     │ Specifies the bitmap background color\&.                          │
+│ -foreground color │ —             │ —              │ Specifies the bitmap foreground color\&. This is a synonym for    │
+│                   │               │                │ -outline\&.                                                       │
+│ -fg color         │ —             │ —              │ Synonym for -foreground\&.                                        │
+│ -mask bitmap      │ mask          │ Mask           │ Specifies an optional bitmap mask\&.                              │
+│ -outline color    │ foreground    │ Foreground     │ Specifies the bitmap foreground color\&.                          │
+│ -rotate degrees   │ rotate        │ Rotate         │ Specifies the rotation angle in degrees\&. The default is 0\&.      │
+└───────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SS "IMAGE MARKER OPTIONS"
@@ -256,13 +249,13 @@ In addition to the common marker options, image markers support:
 .PP
 .RS 4n
 .nf
-┌──────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────┐
-│ Option           │ Database name │ Database class │ Description                                         │
-├──────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────┤
-│ -anchor anchor   │ anchor        │ Anchor         │ Specifies how the image is positioned relative to   │
-│                  │               │                │ its coordinate\&. The default is center\&.              │
-│ -image imageName │ image         │ Image          │ Specifies the Tk image to display\&.                  │
-└──────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────┘
+┌──────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────────┐
+│ Option           │ Database name │ Database class │ Description                                                      │
+├──────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────────┤
+│ -anchor anchor   │ anchor        │ Anchor         │ Specifies how the image is positioned relative to its            │
+│                  │               │                │ coordinate\&. The default is center\&.                               │
+│ -image imageName │ image         │ Image          │ Specifies the Tk image to display\&.                               │
+└──────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SS "LINE MARKER OPTIONS"
@@ -279,38 +272,38 @@ In addition to the common marker options, line markers support:
 .PP
 .RS 4n
 .nf
-┌────────────────────────┬──────────────┬────────────────┬──────────────────────────────────────────────────────┐
-│ Option                 │ Database name│ Database class │ Description                                          │
-├────────────────────────┼──────────────┼────────────────┼──────────────────────────────────────────────────────┤
-│ -arrow position        │ arrow        │ Arrow          │ Specifies whether arrowheads are drawn at the ends   │
-│                        │              │                │ of the line marker\&. Accepted values are none, first, │
-│                        │              │                │ last, and both\&. The default is none\&.                 │
-│ -arrowshape {a b c}    │ arrowShape   │ ArrowShape     │ Specifies the arrowhead geometry as three screen     │
-│                        │              │                │ distances\&. a is the distance from the arrowhead      │
-│                        │              │                │ neck to its tip, b is the distance from the trailing │
-│                        │              │                │ points to the tip, and c is the distance from the    │
-│                        │              │                │ line edge to the trailing points\&. The default is     │
-│                        │              │                │ {8 10 3}\&.                                            │
-│ -cap style             │ cap          │ Cap            │ Specifies the line cap style\&. Accepted styles are    │
-│                        │              │                │ butt, projecting, and round\&. The default is butt\&.    │
-│ -dashes dashList       │ dashes       │ Dashes         │ Specifies the dash pattern\&. An empty value selects   │
-│                        │              │                │ a solid line\&.                                        │
-│                        │              │                │ Each numeric list item accepts a Tcl integer         │
-│                        │              │                │ expression\&.                                          │
-│ -dashoffset distance   │ dashOffset   │ DashOffset     │ Specifies the offset into the dash pattern\&. The      │
-│                        │              │                │ default is 0\&.                                        │
-│ -fill color            │ fill         │ Fill           │ Specifies the color used for the off portions of a   │
-│                        │              │                │ dashed line\&. An empty value uses ordinary on/off     │
-│                        │              │                │ dashes\&. The default is empty\&.                        │
-│ -join style            │ join         │ Join           │ Specifies how adjacent segments are joined\&.          │
-│                        │              │                │ Accepted styles are bevel, miter, and round\&. The     │
-│                        │              │                │ default is miter\&.                                    │
-│ -linewidth distance    │ lineWidth    │ LineWidth      │ Specifies the line width\&. The default is 1\&.          │
-│ -outline color         │ outline      │ Outline        │ Specifies the primary line color\&. Arrowheads use     │
-│                        │              │                │ this color\&. The default is black\&.                    │
-│ -xor boolean           │ xor          │ Xor            │ Specifies whether the line is drawn using XOR        │
-│                        │              │                │ drawing\&. The default is no\&.                          │
-└────────────────────────┴──────────────┴────────────────┴──────────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
+│ Option               │ Database name │ Database class │ Description                                                  │
+├──────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────┤
+│ -arrow position      │ arrow         │ Arrow          │ Specifies whether arrowheads are drawn at the ends of the    │
+│                      │               │                │ line marker\&. position must be none, first, last, or both\&.    │
+│                      │               │                │ first draws an arrowhead at the first coordinate, last at    │
+│                      │               │                │ the final coordinate, and both at both ends\&. The shaft is    │
+│                      │               │                │ shortened to the neck of each arrowhead so that it does not  │
+│                      │               │                │ protrude through the arrowhead\&. Arrowheads use the marker's  │
+│                      │               │                │ -outline color\&. The default is none\&.                         │
+│ -arrowshape {a b c}  │ arrowShape    │ ArrowShape     │ Specifies the arrowhead geometry as three screen distances\&.  │
+│                      │               │                │ a is the distance from the arrowhead neck to its tip, b is   │
+│                      │               │                │ the distance from the trailing points to the tip, and c is   │
+│                      │               │                │ the distance from the outside edge of the line to the        │
+│                      │               │                │ trailing points\&. The default is {8 10 3}\&.                    │
+│ -cap style           │ cap           │ Cap            │ Specifies the line cap style\&. Accepted styles are butt,      │
+│                      │               │                │ projecting, and round\&. The default is butt\&.                  │
+│ -dashes dashList     │ dashes        │ Dashes         │ Specifies the dash pattern\&. An empty value selects a solid   │
+│                      │               │                │ line\&. Each numeric list item accepts a Tcl integer           │
+│                      │               │                │ expression\&.                                                  │
+│ -dashoffset distance │ dashOffset    │ DashOffset     │ Specifies the offset into the dash pattern\&. The default is   │
+│                      │               │                │ 0\&.                                                           │
+│ -fill color          │ fill          │ Fill           │ Specifies the color used for the off portions of a dashed    │
+│                      │               │                │ line\&. An empty value uses ordinary on/off dashes\&. The        │
+│                      │               │                │ default is empty\&.                                            │
+│ -join style          │ join          │ Join           │ Specifies how adjacent segments are joined\&. Accepted styles  │
+│                      │               │                │ are bevel, miter, and round\&. The default is miter\&.           │
+│ -linewidth distance  │ lineWidth     │ LineWidth      │ Specifies the line width\&. The default is 1\&.                  │
+│ -outline color       │ outline       │ Outline        │ Specifies the primary line color\&. The default is black\&.      │
+│ -xor boolean         │ xor           │ Xor            │ Specifies whether the line is drawn using XOR drawing\&. The   │
+│                      │               │                │ default is no\&.                                               │
+└──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SH ARROWHEADS
@@ -356,15 +349,18 @@ two opposite corners of the bounding rectangle in graph coordinates\&. Either co
 an empty coordinate list hides the marker\&. The rectangle is mapped through -mapx and -mapy first,
 then the ellipse is constructed in display coordinates\&. This keeps the shape elliptical on logarithmic
 axes\&. Equal displayed width and height produce a circle; equal graph-coordinate spans need not do so\&.
-.TS
-tab(|) box;
-l l l l.
-Option | Resource name | Resource class | Description
-_
--start angle | start | Start | Starting angle in degrees\&. Default: 0\&.
--extent angle | extent | Extent | Signed sweep in degrees\&. Default: 360\&.
--style style | style | Style | arc, chord, or pieslice\&. Default: pieslice\&.
-.TE
+.PP
+.RS 4n
+.nf
+┌───────────────┬───────────────┬────────────────┬─────────────────────────────────────────────┐
+│ Option        │ Resource name │ Resource class │ Description                                 │
+├───────────────┼───────────────┼────────────────┼─────────────────────────────────────────────┤
+│ -start angle  │ start         │ Start          │ Starting angle in degrees\&. Default: 0\&.      │
+│ -extent angle │ extent        │ Extent         │ Signed sweep in degrees\&. Default: 360\&.      │
+│ -style style  │ style         │ Style          │ arc, chord, or pieslice\&. Default: pieslice\&. │
+└───────────────┴───────────────┴────────────────┴─────────────────────────────────────────────┘
+.fi
+.RE
 .PP
 Zero degrees points right on the display\&. Positive sweeps run counterclockwise; negative sweeps run
 clockwise\&. This display-angle convention also applies with descending or inverted axes\&. Angles must be
@@ -431,39 +427,33 @@ In addition to the common marker options, polygon markers support:
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬──────────────┬────────────────┬────────────────────────────────────────────────────┐
-│ Option                │ Database name│ Database class │ Description                                        │
-├───────────────────────┼──────────────┼────────────────┼────────────────────────────────────────────────────┤
-│ -cap style            │ cap          │ Cap            │ Specifies the outline cap style\&. Accepted styles   │
-│                       │              │                │ are butt, projecting, and round\&. The default is    │
-│                       │              │                │ butt\&.                                              │
-│ -dashes dashList      │ dashes       │ Dashes         │ Specifies the dash pattern used for the polygon    │
-│                       │              │                │ outline\&. An empty value selects a solid outline\&.   │
-│                       │              │                │ Each numeric list item accepts a Tcl integer       │
-│                       │              │                │ expression\&.                                        │
-│ -fill colorList       │ fill         │ Fill           │ Specifies the polygon fill colors\&. The value may   │
-│                       │              │                │ contain one foreground color or a foreground and   │
-│                       │              │                │ background color\&. With -stipple, the second color  │
-│                       │              │                │ supplies the stipple background\&. An empty value    │
-│                       │              │                │ disables filling\&. The default foreground color is  │
-│                       │              │                │ red\&.                                               │
-│ -join style           │ join         │ Join           │ Specifies how adjacent outline segments are        │
-│                       │              │                │ joined\&. Accepted styles are bevel, miter, and      │
-│                       │              │                │ round\&. The default is miter\&.                       │
-│ -linewidth distance   │ lineWidth    │ LineWidth      │ Specifies the width of the polygon outline\&. The    │
-│                       │              │                │ value must be non-negative\&. The default is 1\&.      │
-│ -outline colorList    │ outline      │ Outline        │ Specifies the polygon outline colors\&. The value    │
-│                       │              │                │ may contain one foreground color or a foreground   │
-│                       │              │                │ and background color\&. For dashed outlines, the     │
-│                       │              │                │ second color is used for the off portions of the   │
-│                       │              │                │ dash pattern\&. An empty value disables the outline  │
-│                       │              │                │ color\&. The default foreground color is black\&.      │
-│ -stipple bitmap       │ stipple      │ Stipple        │ Specifies an optional stipple bitmap used when     │
-│                       │              │                │ filling the polygon\&. An empty value selects an     │
-│                       │              │                │ unstippled fill\&.                                   │
-│ -xor boolean          │ xor          │ Xor            │ Specifies whether the polygon outline uses XOR     │
-│                       │              │                │ drawing\&. The default is no\&.                        │
-└───────────────────────┴──────────────┴────────────────┴────────────────────────────────────────────────────┘
+┌─────────────────────┬───────────────┬────────────────┬───────────────────────────────────────────────────────────────┐
+│ Option              │ Database name │ Database class │ Description                                                   │
+├─────────────────────┼───────────────┼────────────────┼───────────────────────────────────────────────────────────────┤
+│ -cap style          │ cap           │ Cap            │ Specifies the outline cap style\&. Accepted styles are butt,    │
+│                     │               │                │ projecting, and round\&. The default is butt\&.                   │
+│ -dashes dashList    │ dashes        │ Dashes         │ Specifies the dash pattern used for the polygon outline\&. An   │
+│                     │               │                │ empty value selects a solid outline\&. Each numeric list item   │
+│                     │               │                │ accepts a Tcl integer expression\&.                             │
+│ -fill colorList     │ fill          │ Fill           │ Specifies the polygon fill colors\&. The value may contain one  │
+│                     │               │                │ foreground color or a foreground and background color\&. With   │
+│                     │               │                │ -stipple, the second color supplies the stipple background\&.   │
+│                     │               │                │ An empty value disables filling\&. The default foreground color │
+│                     │               │                │ is red\&.                                                       │
+│ -join style         │ join          │ Join           │ Specifies how adjacent outline segments are joined\&. Accepted  │
+│                     │               │                │ styles are bevel, miter, and round\&. The default is miter\&.     │
+│ -linewidth distance │ lineWidth     │ LineWidth      │ Specifies the width of the polygon outline\&. The value must be │
+│                     │               │                │ non-negative\&. The default is 1\&.                               │
+│ -outline colorList  │ outline       │ Outline        │ Specifies the polygon outline colors\&. The value may contain   │
+│                     │               │                │ one foreground color or a foreground and background color\&.    │
+│                     │               │                │ For dashed outlines, the second color is used for the off     │
+│                     │               │                │ portions of the dash pattern\&. An empty value disables the     │
+│                     │               │                │ outline color\&. The default foreground color is black\&.         │
+│ -stipple bitmap     │ stipple       │ Stipple        │ Specifies an optional stipple bitmap used when filling the    │
+│                     │               │                │ polygon\&. An empty value selects an unstippled fill\&.           │
+│ -xor boolean        │ xor           │ Xor            │ Specifies whether the polygon outline uses XOR drawing\&. The   │
+│                     │               │                │ default is no\&.                                                │
+└─────────────────────┴───────────────┴────────────────┴───────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SS "TEXT MARKER OPTIONS"
@@ -480,31 +470,29 @@ In addition to the common marker options, text markers support:
 .PP
 .RS 4n
 .nf
-┌──────────────────────┬───────────────┬──────────────────────┬────────────────────────────────────────────────────┐
-│ Option               │ Database name │ Database class       │ Description                                        │
-├──────────────────────┼───────────────┼──────────────────────┼────────────────────────────────────────────────────┤
-│ -anchor anchor       │ anchor        │ Anchor               │ Specifies how the text is positioned relative to   │
-│                      │               │                      │ its coordinate\&. The default is center\&.             │
-│ -background color    │ background    │ MarkerBackground     │ Specifies the text background color\&. This is a     │
-│                      │               │                      │ synonym for -fill\&.                                 │
-│ -bg color            │ —             │ —                    │ Synonym for -background\&.                           │
-│ -fill color          │ —             │ —                    │ Specifies the text background color\&.               │
-│ -font font           │ font          │ Font                 │ Specifies the font used to draw the text\&.          │
-│ -foreground color    │ foreground    │ Foreground           │ Specifies the text color\&. This is a synonym for    │
-│                      │               │                      │ -outline\&.                                          │
-│ -fg color            │ —             │ —                    │ Synonym for -foreground\&.                           │
-│ -justify justify     │ justify       │ Justify              │ Specifies justification of multiline text\&. The     │
-│                      │               │                      │ default is left\&.                                   │
-│ -outline color       │ —             │ —                    │ Specifies the text color\&. The default is black\&.    │
-│ -padx padding        │ padX          │ PadX                 │ Specifies horizontal padding around the text\&. The  │
-│                      │               │                      │ default is 4\&.                                      │
-│ -pady padding        │ padY          │ PadY                 │ Specifies vertical padding around the text\&. The    │
-│                      │               │                      │ default is 4\&.                                      │
-│ -rotate degrees      │ rotate        │ Rotate               │ Specifies the text rotation angle in degrees\&. The  │
-│                      │               │                      │ default is 0\&.                                      │
-│ -shadow shadow       │ shadow        │ Shadow               │ Specifies the text shadow\&.                         │
-│ -text text           │ text          │ Text                 │ Specifies the text to display\&.                     │
-└──────────────────────┴───────────────┴──────────────────────┴────────────────────────────────────────────────────┘
+┌───────────────────┬───────────────┬──────────────────┬───────────────────────────────────────────────────────────────┐
+│ Option            │ Database name │ Database class   │ Description                                                   │
+├───────────────────┼───────────────┼──────────────────┼───────────────────────────────────────────────────────────────┤
+│ -anchor anchor    │ anchor        │ Anchor           │ Specifies how the text is positioned relative to its          │
+│                   │               │                  │ coordinate\&. The default is center\&.                            │
+│ -background color │ background    │ MarkerBackground │ Specifies the text background color\&. This is a synonym for    │
+│                   │               │                  │ -fill\&.                                                        │
+│ -bg color         │ —             │ —                │ Synonym for -background\&.                                      │
+│ -fill color       │ —             │ —                │ Specifies the text background color\&.                          │
+│ -font font        │ font          │ Font             │ Specifies the font used to draw the text\&.                     │
+│ -foreground color │ foreground    │ Foreground       │ Specifies the text color\&. This is a synonym for -outline\&.     │
+│ -fg color         │ —             │ —                │ Synonym for -foreground\&.                                      │
+│ -justify justify  │ justify       │ Justify          │ Specifies justification of multiline text\&. The default is     │
+│                   │               │                  │ left\&.                                                         │
+│ -outline color    │ —             │ —                │ Specifies the text color\&. The default is black\&.               │
+│ -padx padding     │ padX          │ PadX             │ Specifies horizontal padding around the text\&. The default is  │
+│                   │               │                  │ 4\&.                                                            │
+│ -pady padding     │ padY          │ PadY             │ Specifies vertical padding around the text\&. The default is 4\&. │
+│ -rotate degrees   │ rotate        │ Rotate           │ Specifies the text rotation angle in degrees\&. The default is  │
+│                   │               │                  │ 0\&.                                                            │
+│ -shadow shadow    │ shadow        │ Shadow           │ Specifies the text shadow\&.                                    │
+│ -text text        │ text          │ Text             │ Specifies the text to display\&.                                │
+└───────────────────┴───────────────┴──────────────────┴───────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SS "WINDOW MARKER OPTIONS"
@@ -524,23 +512,21 @@ In addition to the common marker options, window markers support:
 .PP
 .RS 4n
 .nf
-┌──────────────────┬───────────────┬────────────────┬────────────────────────────────────────────────────┐
-│ Option           │ Database name │ Database class │ Description                                        │
-├──────────────────┼───────────────┼────────────────┼────────────────────────────────────────────────────┤
-│ -anchor anchor   │ anchor        │ Anchor         │ Specifies how the window is positioned relative to │
-│                  │               │                │ its coordinate\&. The default is center\&.             │
-│ -height distance │ height        │ Height         │ Specifies an explicit positive height for the      │
-│                  │               │                │ embedded window\&. When left at its initial default  │
-│                  │               │                │ of 0, the child's requested height is used\&.        │
-│                  │               │                │ Explicitly configuring 0 is not accepted\&.          │
-│ -width distance  │ width         │ Width          │ Specifies an explicit positive width for the       │
-│                  │               │                │ embedded window\&. When left at its initial default  │
-│                  │               │                │ of 0, the child's requested width is used\&.         │
-│                  │               │                │ Explicitly configuring 0 is not accepted\&.          │
-│ -window pathName │ window        │ Window         │ Specifies the Tk window managed by the marker\&. The │
-│                  │               │                │ window must be a direct child of the graph widget\&. │
-│                  │               │                │ An empty value removes the managed window\&.         │
-└──────────────────┴───────────────┴────────────────┴────────────────────────────────────────────────────┘
+┌──────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────────┐
+│ Option           │ Database name │ Database class │ Description                                                      │
+├──────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────────┤
+│ -anchor anchor   │ anchor        │ Anchor         │ Specifies how the window is positioned relative to its           │
+│                  │               │                │ coordinate\&. The default is center\&.                               │
+│ -height distance │ height        │ Height         │ Specifies an explicit positive height for the embedded window\&.   │
+│                  │               │                │ When left at its initial default of 0, the child's requested     │
+│                  │               │                │ height is used\&. Explicitly configuring 0 is not accepted\&.        │
+│ -width distance  │ width         │ Width          │ Specifies an explicit positive width for the embedded window\&.    │
+│                  │               │                │ When left at its initial default of 0, the child's requested     │
+│                  │               │                │ width is used\&. Explicitly configuring 0 is not accepted\&.         │
+│ -window pathName │ window        │ Window         │ Specifies the Tk window managed by the marker\&. The window must   │
+│                  │               │                │ be a direct child of the graph widget\&. An empty value removes    │
+│                  │               │                │ the managed window\&.                                              │
+└──────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SH "OPTION DATABASE"
@@ -550,17 +536,17 @@ class:
 .PP
 .RS 4n
 .nf
-┌─────────────┬─────────────────┐
-│ Marker type │ Resource class  │
-├─────────────┼─────────────────┤
-│ bitmap      │ BitmapMarker    │
-│ image       │ ImageMarker     │
-│ line        │ LineMarker      │
-│ arc         │ ArcMarker       │
-│ polygon     │ PolygonMarker   │
-│ text        │ TextMarker      │
-│ window      │ WindowMarker    │
-└─────────────┴─────────────────┘
+┌─────────────┬────────────────┐
+│ Marker type │ Resource class │
+├─────────────┼────────────────┤
+│ bitmap      │ BitmapMarker   │
+│ image       │ ImageMarker    │
+│ line        │ LineMarker     │
+│ arc         │ ArcMarker      │
+│ polygon     │ PolygonMarker  │
+│ text        │ TextMarker     │
+│ window      │ WindowMarker   │
+└─────────────┴────────────────┘
 .fi
 .RE
 .PP

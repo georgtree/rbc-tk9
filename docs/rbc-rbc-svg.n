@@ -50,15 +50,14 @@ for example \&./-plot\&.svg\&. There is no -- filename separator\&.
 .PP
 .RS 4n
 .nf
-┌──────────────────────┬─────────┬────────────────────────────────────────────────┐
-│ Option               │ Default │ Description                                    │
-├──────────────────────┼─────────┼────────────────────────────────────────────────┤
-│ -width distance      │ 0       │ Non-negative width; zero uses the graph width\&. │
-│ -height distance     │ 0       │ Non-negative height; zero uses graph height\&.   │
-│ -decorations boolean │ 1       │ Include backgrounds and relief borders\&. False  │
-│                      │         │ uses white backgrounds\&. Axes, labels and       │
-│                      │         │ symbols remain visible\&.                        │
-└──────────────────────┴─────────┴────────────────────────────────────────────────┘
+┌──────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Default │ Description                                                                         │
+├──────────────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────┤
+│ -width distance      │ 0       │ Non-negative output width\&. Zero uses the graph width\&.                               │
+│ -height distance     │ 0       │ Non-negative output height\&. Zero uses the graph height\&.                             │
+│ -decorations boolean │ 1       │ Include graph/legend backgrounds and relief borders\&. False uses white backgrounds;  │
+│                      │         │ axes, labels and symbols remain visible\&.                                            │
+└──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

@@ -32,18 +32,19 @@ In particular, the following LINEELEMENT options are not available for strip ele
 .PP
 .RS 4n
 .nf
-┌─────────────────────┬─────────────────────────────────────────────────────────┐
-│ Option              │ Line-element feature                                    │
-├─────────────────────┼─────────────────────────────────────────────────────────┤
-│ -areabackground     │ area-fill stipple background                            │
-│ -areaforeground     │ area-fill foreground                                    │
-│ -areapattern        │ area filling with a solid or stipple pattern            │
-│ -areaopacity        │ Cairo/SVG solid area fill opacity                       │
-│ -areatile           │ tiled area filling                                      │
-│ -param              │ per-point parameter mapping returned by ELEMENT closest │
-│ -state              │ line-element state option                               │
-│ -trace              │ filtering of increasing/decreasing X trace directions   │
-└─────────────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────┬─────────────────────────────────────────────────────────┐
+│ Option          │ Line-element feature                                    │
+├─────────────────┼─────────────────────────────────────────────────────────┤
+│ -areabackground │ area-fill stipple background                            │
+│ -areaforeground │ area-fill foreground                                    │
+│ -areapattern    │ area filling with a solid or stipple pattern            │
+│ -areaclose      │ area fill closure                                       │
+│ -areaopacity    │ Cairo/SVG solid area fill opacity                       │
+│ -areatile       │ tiled area filling                                      │
+│ -param          │ per-point parameter mapping returned by ELEMENT closest │
+│ -state          │ line-element state option                               │
+│ -trace          │ filtering of increasing/decreasing X trace directions   │
+└─────────────────┴─────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -235,163 +236,159 @@ The complete strip-element option set is:
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────┐
-│ Option                │ Database name │ Database class │ Description                                     │
-├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────┤
-│ -activepen penName    │ activePen     │ ActivePen      │ Specifies the named line pen used when the      │
-│                       │               │                │ element is active\&. An empty value disables the  │
-│                       │               │                │ named active pen\&. The default is activeLine\&.    │
-│ -bindtags tags        │ bindTags      │ BindTags       │ Specifies additional graph binding tags for the │
-│                       │               │                │ element\&. The default is all\&.                    │
-│ -color color          │ color         │ Color          │ Sets the built-in normal pen's trace color\&. The │
-│                       │               │                │ default is navy blue\&.                           │
-│ -dashes dashes        │ dashes        │ Dashes         │ Sets the built-in normal pen's trace dash       │
-│                       │               │                │ pattern\&. An empty value selects a solid line\&.   │
-│                       │               │                │ Each numeric list item accepts a Tcl integer    │
-│                       │               │                │ expression\&.                                     │
-│ -data data            │ data          │ Data           │ Supplies an even-length list of alternating X   │
-│                       │               │                │ and Y values\&.                                   │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -decimate mode        │ decimate      │ Decimate       │ Selects automatic screen-density trace          │
-│                       │               │                │ decimation\&. Accepted values are none and auto\&.  │
-│                       │               │                │ The default is none\&.                            │
-│ -errorband mode       │ errorBand     │ ErrorBand      │ Selects none (default), x or y; fills between   │
-│                       │               │                │ the selected error bounds\&.                      │
-│ -errorbandpattern     │ errorBandPatt │ ErrorBandPatte │ Solid (default), Tk bitmap stipple, or empty to │
-│ pattern               │ ern           │ rn             │ disable the pattern\&.                            │
-│ -errorbandforeground  │ errorBandFore │ ErrorBandForeg │ Band solid/stipple foreground; default black\&.   │
-│ color                 │ ground        │ round          │                                                 │
-│ -errorbandbackground  │ errorBandBack │ ErrorBandBackg │ Band stipple background; default white\&. Empty   │
-│ color                 │ ground        │ round          │ leaves gaps transparent\&.                        │
-│ -errorbandtile image  │ errorBandTile │ ErrorBandTile  │ Image tile, default empty; takes precedence     │
-│                       │               │                │ over the pattern\&.                               │
-│ -errorbandopacity     │ errorBandOpac │ ErrorBandOpaci │ Solid opacity 0 to 1 (default 1), Cairo/SVG     │
-│ value                 │ ity           │ ty             │ only\&. Native/PostScript ignore it\&.              │
-│ -errorbarcap width    │ errorBarCap   │ ErrorBarCap    │ Sets the requested error-bar cap width\&. A       │
-│                       │               │                │ positive value selects an explicit size; 0      │
-│                       │               │                │ automatically derives the size from the symbol  │
-│                       │               │                │ size\&. The default is 1\&.                         │
-│ -errorbarcolor color  │ errorBarColor │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the     │
-│                       │               │                │ trace color\&.                                    │
-│ -errorbarwidth width  │ errorBarWidth │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is   │
-│                       │               │                │ 1\&.                                              │
-│ -fill color           │ fill          │ Fill           │ Sets the symbol fill color\&. defcolor uses the   │
-│                       │               │                │ trace color; an empty value leaves symbols      │
-│                       │               │                │ unfilled\&.                                       │
-│ -hide boolean         │ hide          │ Hide           │ Controls whether the element is displayed\&. The  │
-│                       │               │                │ default is no\&.                                  │
-│ -hideplot boolean     │ hidePlot      │ HidePlot       │ Suppresses plotting of the element while keeping│
-│                       │               │                │ it in the display list and legend\&. A plot-hidden│
-│                       │               │                │ element does not contribute to automatic axis   │
-│                       │               │                │ limits and is ignored by closest searches and   │
-│                       │               │                │ element hit testing\&. The default is `no`\&.       │
-│ -label text           │ label         │ Label          │ Sets the element label used by the legend\&. The  │
-│                       │               │                │ initial label is the element name\&.              │
-│ -labelrelief relief   │ labelRelief   │ LabelRelief    │ Sets the relief used for the element's legend   │
-│                       │               │                │ label\&. The default is flat\&.                     │
-│ -linewidth width      │ lineWidth     │ LineWidth      │ Sets the built-in normal pen's trace width\&. The │
-│                       │               │                │ default is 1; 0 suppresses the trace\&.           │
-│ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis used to map the element's  │
-│                       │               │                │ X coordinates\&. The axis must exist and must be  │
-│                       │               │                │ an X axis\&. The default is x\&.                    │
-│ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis used to map the element's  │
-│                       │               │                │ Y coordinates\&. The axis must exist and must be  │
-│                       │               │                │ a Y axis\&. The default is y\&.                     │
-│ -reduce tolerance     │ reduce        │ Reduce         │ Sets the screen-space trace reduction tolerance │
-│                       │               │                │ in pixels\&. The default is 0 (disabled)\&. With    │
-│                       │               │                │ -symbolpoints reduced, symbols and value labels │
-│                       │               │                │ use surviving original samples\&.                 │
-│ -symbolpoints mode    │ symbolPoints  │ SymbolPoints   │ Selects all (default) or reduced original       │
-│                       │               │                │ samples for symbols and value labels\&. Reduced   │
-│                       │               │                │ selection requires a positive -reduce           │
-│                       │               │                │ tolerance\&.                                      │
-│ -maxsymbols number    │ maxSymbols    │ MaxSymbols     │ Requests a reduced symbol display density when  │
-│                       │               │                │ the element contains many points\&. 0 draws       │
-│                       │               │                │ symbols without this reduction\&. The default is  │
-│                       │               │                │ 0\&.                                              │
-│ -offdash color        │ offDash       │ OffDash        │ Sets the color used for the gaps of a dashed    │
-│                       │               │                │ trace\&. An empty value leaves the gaps           │
-│                       │               │                │ transparent; defcolor uses the trace color\&.     │
-│ -outline color        │ outline       │ Outline        │ Sets the symbol outline color\&. defcolor uses    │
-│                       │               │                │ the trace color\&.                                │
-│ -outlinewidth width   │ outlineWidth  │ OutlineWidth   │ Sets the non-negative width of symbol outlines\&. │
-│                       │               │                │ The default is 1\&.                               │
-│ -pen penName          │ pen           │ Pen            │ Specifies a named line pen containing the       │
-│                       │               │                │ element's normal drawing attributes\&. An empty   │
-│                       │               │                │ value uses the element's built-in pen\&.          │
-│ -pixels size          │ pixels        │ Pixels         │ Sets the requested symbol size\&. The default is  │
-│                       │               │                │ 0\&.125i\&.                                         │
-│ -scalesymbols boolean │ scaleSymbols  │ ScaleSymbols   │ Controls whether symbol sizes are automatically │
-│                       │               │                │ scaled as the axis ranges change\&. The default   │
-│                       │               │                │ is no\&.                                          │
-│ -showerrorbars value  │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y,   │
-│                       │               │                │ both, or neither\&. The default is both\&.          │
-│ -showvalues value     │ showValues    │ ShowValues     │ Selects which coordinate values are displayed   │
-│                       │               │                │ next to data points\&. The default is no\&.         │
-│ -smooth mode          │ smooth        │ Smooth         │ Selects line smoothing\&. Accepted modes are      │
-│                       │               │                │ linear, step, natural, cubic, quadratic, and    │
-│                       │               │                │ catrom\&. The default is linear\&.                  │
-│ -styles styles        │ styles        │ Styles         │ Specifies pens selected according to -weights\&.  │
-│                       │               │                │ Each style is either penName or {penName min    │
-│                       │               │                │ max}\&. Bare pen names receive successive         │
-│                       │               │                │ implicit weight ranges\&. An empty value disables │
-│                       │               │                │ weight-selected styles\&.                         │
-│ -symbol symbol        │ symbol        │ Symbol         │ Sets the symbol drawn at data points\&. The       │
-│                       │               │                │ default is circle\&.                              │
-│ -valueanchor anchor   │ valueAnchor   │ ValueAnchor    │ Sets the anchor used to position value labels   │
-│                       │               │                │ relative to their data points\&. The default is   │
-│                       │               │                │ s\&.                                              │
-│ -valuecolor color     │ valueColor    │ ValueColor     │ Sets the color used to draw value labels\&.       │
-│ -valuefont font       │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.        │
-│ -valuecommand cmd     │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. │
-│                       │               │                │ Default: empty\&.                                 │
-│ -valueoffset {dx dy}  │ valueOffset   │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                     │
-│ -valueformat format   │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value     │
-│                       │               │                │ labels\&. The default is %g\&.                      │
-│ -valuerotate degrees  │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in      │
-│                       │               │                │ degrees\&. The default is 0\&.0\&.                    │
-│ -valueshadow shadow   │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty   │
-│                       │               │                │ value disables the shadow\&.                      │
-│ -weights weights      │ weights       │ Weights        │ Supplies per-point numeric weights used to      │
-│                       │               │                │ select pens through -styles\&.                    │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -x data               │ xData         │ XData          │ Supplies the element's X coordinates as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -xdata data           │ —             │ —              │ Synonym for -x\&.                                 │
-│ -xerror data          │ xError        │ XError         │ Supplies symmetric X error magnitudes as a list │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -xhigh data           │ xHigh         │ XHigh          │ Supplies the upper X error endpoints as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -xlow data            │ xLow          │ XLow           │ Supplies the lower X error endpoints as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -y data               │ yData         │ YData          │ Supplies the element's Y coordinates as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -ydata data           │ —             │ —              │ Synonym for -y\&.                                 │
-│ -yerror data          │ yError        │ YError         │ Supplies symmetric Y error magnitudes as a list │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -yhigh data           │ yHigh         │ YHigh          │ Supplies the upper Y error endpoints as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-│ -ylow data            │ yLow          │ YLow           │ Supplies the lower Y error endpoints as a list  │
-│                       │               │                │ or Rbc vector\&.                                  │
-│                       │               │                │ Each literal list item accepts a Tcl numeric    │
-│                       │               │                │ expression\&.                                     │
-└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────┘
+┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
+│ Option                   │ Database name       │ Database class      │ Description                                   │
+├──────────────────────────┼─────────────────────┼─────────────────────┼───────────────────────────────────────────────┤
+│ -activepen penName       │ activePen           │ ActivePen           │ Specifies the named line pen used when the    │
+│                          │                     │                     │ element is active\&. An empty value disables    │
+│                          │                     │                     │ the named active pen\&. The default is          │
+│                          │                     │                     │ activeLine\&.                                   │
+│ -bindtags tags           │ bindTags            │ BindTags            │ Specifies additional graph binding tags for   │
+│                          │                     │                     │ the element\&. The default is all\&.              │
+│ -color color             │ color               │ Color               │ Sets the built-in normal pen's trace color\&.   │
+│                          │                     │                     │ The default is navy blue\&.                     │
+│ -dashes dashes           │ dashes              │ Dashes              │ Sets the built-in normal pen's trace dash     │
+│                          │                     │                     │ pattern\&. An empty value selects a solid line\&. │
+│                          │                     │                     │ Each numeric list item accepts a Tcl integer  │
+│                          │                     │                     │ expression\&.                                   │
+│ -data data               │ data                │ Data                │ Supplies an even-length list of alternating X │
+│                          │                     │                     │ and Y values\&. Each literal list item accepts  │
+│                          │                     │                     │ a Tcl numeric expression\&.                     │
+│ -decimate mode           │ decimate            │ Decimate            │ Selects automatic screen-density trace        │
+│                          │                     │                     │ decimation\&. Accepted values are none and      │
+│                          │                     │                     │ auto\&. The default is none\&. auto is applied    │
+│                          │                     │                     │ only when the strip element and current       │
+│                          │                     │                     │ display density are suitable\&.                 │
+│ -errorband mode          │ errorBand           │ ErrorBand           │ Selects none (default), x or y; fills between │
+│                          │                     │                     │ the selected error bounds\&.                    │
+│ -errorbandpattern        │ errorBandPattern    │ ErrorBandPattern    │ Solid (default), Tk bitmap stipple, or empty  │
+│ pattern                  │                     │                     │ to disable the pattern\&.                       │
+│ -errorbandforeground     │ errorBandForeground │ ErrorBandForeground │ Band solid/stipple foreground; default black\&. │
+│ color                    │                     │                     │                                               │
+│ -errorbandbackground     │ errorBandBackground │ ErrorBandBackground │ Band stipple background; default white\&. Empty │
+│ color                    │                     │                     │ leaves gaps transparent\&.                      │
+│ -errorbandtile image     │ errorBandTile       │ ErrorBandTile       │ Image tile, default empty; takes precedence   │
+│                          │                     │                     │ over the pattern\&.                             │
+│ -errorbandopacity value  │ errorBandOpacity    │ ErrorBandOpacity    │ Solid opacity 0 to 1 (default 1), Cairo/SVG   │
+│                          │                     │                     │ only\&. Native/PostScript ignore it\&.            │
+│ -errorbarcap width       │ errorBarCap         │ ErrorBarCap         │ Sets the requested error-bar cap width\&. A     │
+│                          │                     │                     │ positive value selects an explicit size; 0    │
+│                          │                     │                     │ automatically derives the size from the       │
+│                          │                     │                     │ symbol size\&. The default is 1\&.                │
+│ -errorbarcolor color     │ errorBarColor       │ ErrorBarColor       │ Sets the error-bar color\&. defcolor uses the   │
+│                          │                     │                     │ trace color\&.                                  │
+│ -errorbarwidth width     │ errorBarWidth       │ ErrorBarWidth       │ Sets the error-bar line width\&. The default is │
+│                          │                     │                     │ 1\&.                                            │
+│ -fill color              │ fill                │ Fill                │ Sets the symbol fill color\&. defcolor uses the │
+│                          │                     │                     │ trace color; an empty value leaves symbols    │
+│                          │                     │                     │ unfilled\&.                                     │
+│ -hide boolean            │ hide                │ Hide                │ Controls whether the element is displayed\&.    │
+│                          │                     │                     │ The default is no\&.                            │
+│ -hideplot boolean        │ hidePlot            │ HidePlot            │ Suppresses plotting of the element while      │
+│                          │                     │                     │ keeping it in the display list and legend\&. A  │
+│                          │                     │                     │ plot-hidden element does not contribute to    │
+│                          │                     │                     │ automatic axis limits and is ignored by       │
+│                          │                     │                     │ closest searches and element hit testing\&. The │
+│                          │                     │                     │ default is no\&.                                │
+│ -label text              │ label               │ Label               │ Sets the element label used by the legend\&.    │
+│                          │                     │                     │ The initial label is the element name\&.        │
+│ -labelrelief relief      │ labelRelief         │ LabelRelief         │ Sets the relief used for the element's legend │
+│                          │                     │                     │ label\&. The default is flat\&.                   │
+│ -linewidth width         │ lineWidth           │ LineWidth           │ Sets the built-in normal pen's trace width\&.   │
+│                          │                     │                     │ The default is 1; 0 suppresses the trace\&.     │
+│ -mapx axisName           │ mapX                │ MapX                │ Specifies the X axis used to map the          │
+│                          │                     │                     │ element's X coordinates\&. The axis must exist  │
+│                          │                     │                     │ and must be an X axis\&. The default is x\&.      │
+│ -mapy axisName           │ mapY                │ MapY                │ Specifies the Y axis used to map the          │
+│                          │                     │                     │ element's Y coordinates\&. The axis must exist  │
+│                          │                     │                     │ and must be a Y axis\&. The default is y\&.       │
+│ -reduce tolerance        │ reduce              │ Reduce              │ Sets the screen-space trace reduction         │
+│                          │                     │                     │ tolerance in pixels\&. The default is 0         │
+│                          │                     │                     │ (disabled)\&. With -symbolpoints reduced,       │
+│                          │                     │                     │ symbols and value labels use surviving        │
+│                          │                     │                     │ original samples\&.                             │
+│ -symbolpoints mode       │ symbolPoints        │ SymbolPoints        │ Selects all (default) or reduced original     │
+│                          │                     │                     │ samples for symbols and value labels\&. Reduced │
+│                          │                     │                     │ selection requires a positive -reduce         │
+│                          │                     │                     │ tolerance\&.                                    │
+│ -maxsymbols number       │ maxSymbols          │ MaxSymbols          │ Requests a reduced symbol display density     │
+│                          │                     │                     │ when the element contains many points\&. 0      │
+│                          │                     │                     │ draws symbols without this reduction\&. The     │
+│                          │                     │                     │ default is 0\&.                                 │
+│ -offdash color           │ offDash             │ OffDash             │ Sets the color used for the gaps of a dashed  │
+│                          │                     │                     │ trace\&. An empty value leaves the gaps         │
+│                          │                     │                     │ transparent; defcolor uses the trace color\&.   │
+│ -outline color           │ outline             │ Outline             │ Sets the symbol outline color\&. defcolor uses  │
+│                          │                     │                     │ the trace color\&.                              │
+│ -outlinewidth width      │ outlineWidth        │ OutlineWidth        │ Sets the non-negative width of symbol         │
+│                          │                     │                     │ outlines\&. The default is 1\&.                   │
+│ -pen penName             │ pen                 │ Pen                 │ Specifies a named line pen containing the     │
+│                          │                     │                     │ element's normal drawing attributes\&. An empty │
+│                          │                     │                     │ value uses the element's built-in pen\&.        │
+│ -pixels size             │ pixels              │ Pixels              │ Sets the requested symbol size\&. The default   │
+│                          │                     │                     │ is 0\&.125i\&.                                    │
+│ -scalesymbols boolean    │ scaleSymbols        │ ScaleSymbols        │ Controls whether symbol sizes are             │
+│                          │                     │                     │ automatically scaled as the axis ranges       │
+│                          │                     │                     │ change\&. The default is no\&.                    │
+│ -showerrorbars value     │ showErrorBars       │ ShowErrorBars       │ Selects which error bars are displayed: X, Y, │
+│                          │                     │                     │ both, or neither\&. The default is both\&.        │
+│ -showvalues value        │ showValues          │ ShowValues          │ Selects which coordinate values are displayed │
+│                          │                     │                     │ next to data points\&. The default is no\&.       │
+│ -smooth mode             │ smooth              │ Smooth              │ Selects line smoothing\&. Accepted modes are    │
+│                          │                     │                     │ linear, step, natural, cubic, quadratic, and  │
+│                          │                     │                     │ catrom\&. The default is linear\&.                │
+│ -styles styles           │ styles              │ Styles              │ Specifies pens selected according to          │
+│                          │                     │                     │ -weights\&. Each style is either penName or     │
+│                          │                     │                     │ {penName min max}\&. Bare pen names receive     │
+│                          │                     │                     │ successive implicit weight ranges\&. An empty   │
+│                          │                     │                     │ value disables weight-selected styles\&.        │
+│ -symbol symbol           │ symbol              │ Symbol              │ Sets the symbol drawn at data points\&. The     │
+│                          │                     │                     │ default is circle\&.                            │
+│ -valueanchor anchor      │ valueAnchor         │ ValueAnchor         │ Sets the anchor used to position value labels │
+│                          │                     │                     │ relative to their data points\&. The default is │
+│                          │                     │                     │ s\&.                                            │
+│ -valuecolor color        │ valueColor          │ ValueColor          │ Sets the color used to draw value labels\&.     │
+│ -valuefont font          │ valueFont           │ ValueFont           │ Sets the font used to draw value labels\&.      │
+│ -valuecommand cmd        │ valueCommand        │ ValueCommand        │ Formats value labels with a Tcl command       │
+│                          │                     │                     │ prefix\&. The default is empty\&.                 │
+│ -valueoffset {dx dy}     │ valueOffset         │ ValueOffset         │ Moves the label anchor by signed integer      │
+│                          │                     │                     │ pixels\&. Default: {0 0}\&.                       │
+│ -valueformat format      │ valueFormat         │ ValueFormat         │ Sets the printf-style format used for value   │
+│                          │                     │                     │ labels\&. The default is %g\&.                    │
+│ -valuerotate degrees     │ valueRotate         │ ValueRotate         │ Sets the rotation angle of value labels in    │
+│                          │                     │                     │ degrees\&. The default is 0\&.0\&.                  │
+│ -valueshadow shadow      │ valueShadow         │ ValueShadow         │ Specifies a shadow for value labels\&. An empty │
+│                          │                     │                     │ value disables the shadow\&.                    │
+│ -weights weights         │ weights             │ Weights             │ Supplies per-point numeric weights used to    │
+│                          │                     │                     │ select pens through -styles\&. Each literal     │
+│                          │                     │                     │ list item accepts a Tcl numeric expression\&.   │
+│ -x data                  │ xData               │ XData               │ Supplies the element's X coordinates as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -xdata data              │ —                   │ —                   │ Synonym for -x\&.                               │
+│ -xerror data             │ xError              │ XError              │ Supplies symmetric X error magnitudes as a    │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -xhigh data              │ xHigh               │ XHigh               │ Supplies the upper X error endpoints as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -xlow data               │ xLow                │ XLow                │ Supplies the lower X error endpoints as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -y data                  │ yData               │ YData               │ Supplies the element's Y coordinates as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -ydata data              │ —                   │ —                   │ Synonym for -y\&.                               │
+│ -yerror data             │ yError              │ YError              │ Supplies symmetric Y error magnitudes as a    │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -yhigh data              │ yHigh               │ YHigh               │ Supplies the upper Y error endpoints as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+│ -ylow data               │ yLow                │ YLow                │ Supplies the lower Y error endpoints as a     │
+│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ accepts a Tcl numeric expression\&.             │
+└──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
 .fi
 .RE
 

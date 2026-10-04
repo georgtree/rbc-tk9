@@ -513,7 +513,6 @@ namespace eval ::rbc::graphtoolbar {
 
         ### Zoom option-database resources
 
-        #ruffopt excludedformats nroff
         | Property             | Key           | Database name               | Database class               | Default          |
         |----------------------|---------------|-----------------------------|------------------------------|------------------|
         | `zoomtitleopts`      | `-font`       | `gtbZoomTitleFont`          | `GtbZoomTitleFont`           | `{Arial 18}`     |
@@ -537,38 +536,8 @@ namespace eval ::rbc::graphtoolbar {
         | `zoommarkboxopts`    | `-outline`    | `gtbZoomTextBoxOutline`     | `GtbZoomTextBoxOutline`      | `grey`           |
         | `zoommarkboxopts`    | `-linewidth`  | `gtbZoomTextBoxLineWidth`   | `GtbZoomTextBoxLineWidth`    | `1`              |
 
-        #ruffopt includedformats nroff
-        ```text
-        ┌───────────────────┬─────────────┬───────────────────────────┬────────────────────────────┬────────────────┐
-        │ Property          │ Key         │ Database name             │ Database class             │ Default        │
-        ├───────────────────┼─────────────┼───────────────────────────┼────────────────────────────┼────────────────┤
-        │ zoomtitleopts     │ -font       │ gtbZoomTitleFont          │ GtbZoomTitleFont           │ {Arial 18}     │
-        │ zoomtitleopts     │ -foreground │ gtbZoomTitleForeground    │ GtbZoomTitleForeground     │ black          │
-        │ zoomtitleopts     │ -shadow     │ gtbZoomTitleShadow        │ GtbZoomTitleShadow         │ yellow4        │
-        │ zoomtitleopts     │ -anchor     │ gtbZoomTitleAnchor        │ GtbZoomTitleAnchor         │ nw             │
-        │ zoomtitleopts     │ -coords     │ gtbZoomTitleCoords        │ GtbZoomTitleCoords         │ {-Inf Inf}     │
-        │ zoomboxopts       │ -dashes     │ gtbZoomOutlineDashes      │ GtbZoomOutlineDashes       │ 4              │
-        │ zoomboxopts       │ -linewidth  │ gtbZoomOutlineLineWidth   │ GtbZoomOutlineLineWidth    │ 1              │
-        │ zoomboxopts       │ -outline    │ gtbZoomOutlineColor       │ GtbZoomOutlineColor        │ grey           │
-        │ zoomboxopts       │ -xor        │ gtbZoomOutlineXor         │ GtbZoomOutlineXor          │ no             │
-        │ zoommarkopts      │ -font       │ gtbZoomTextFont           │ GtbZoomTextFont            │ {ArialNarrow 8}│
-        │ zoommarkopts      │ -anchor     │ gtbZoomTextAnchor         │ GtbZoomTextAnchor          │ ne             │
-        │ zoommarkopts      │ -foreground │ gtbZoomTextForeground     │ GtbZoomTextForeground      │ black          │
-        │ zoommarkopts      │ -justify    │ gtbZoomTextJustify        │ GtbZoomTextJustify         │ left           │
-        │ zoommarkopts      │ -padx       │ gtbZoomTextPadX           │ GtbZoomTextPadX            │ 4              │
-        │ zoommarkopts      │ -pady       │ gtbZoomTextPadY           │ GtbZoomTextPadY            │ 4              │
-        │ zoommarkopts      │ -formatx    │ gtbZoomTextXFormat        │ GtbZoomTextXFormat         │ .4g            │
-        │ zoommarkopts      │ -formaty    │ gtbZoomTextYFormat        │ GtbZoomTextYFormat         │ .4g            │
-        │ zoommarkboxopts   │ -fill       │ gtbZoomTextBoxFill        │ GtbZoomTextBoxFill         │ #FFEB3B        │
-        │ zoommarkboxopts   │ -outline    │ gtbZoomTextBoxOutline     │ GtbZoomTextBoxOutline      │ grey           │
-        │ zoommarkboxopts   │ -linewidth  │ gtbZoomTextBoxLineWidth   │ GtbZoomTextBoxLineWidth    │ 1              │
-        └───────────────────┴─────────────┴───────────────────────────┴────────────────────────────┴────────────────┘
-        ```
-        #ruffopt excludedformats {}
-
         ### Crosshair option-database resources
 
-        #ruffopt excludedformats nroff
         | Property                  | Key            | Database name                      | Database class                      | Default           |
         |---------------------------|----------------|------------------------------------|-------------------------------------|-------------------|
         | `crosshairsopts`          | `-linewidth`   | `gtbCrosshairsLineWidth`           | `GtbCrosshairsLineWidth`            | `1`               |
@@ -591,35 +560,6 @@ namespace eval ::rbc::graphtoolbar {
         | `crosshairsbarlineopts`   | `-arrowshape`  | `gtbCrosshairsBarLineArrowShape`   | `GtbCrosshairsBarLineArrowShape`    | `{8 10 3}`        |
         | `pointeropts`             | `-outline`     | `gtbPointerOutline`                 | `GtbPointerOutline`                | `black`           |
         | `pointeropts`             | `-rotate`      | `gtbPointerRotate`                  | `GtbPointerRotate`                 | `0`               |
-
-        #ruffopt includedformats nroff
-        ```text
-        ┌──────────────────────┬─────────────┬───────────────────────────────┬───────────────────────────────┬───────────────┐
-        │ Property             │ Key         │ Database name                 │ Database class                │ Default       │
-        ├──────────────────────┼─────────────┼───────────────────────────────┼───────────────────────────────┼───────────────┤
-        │ crosshairsopts       │ -linewidth  │ gtbCrosshairsLineWidth        │ GtbCrosshairsLineWidth        │ 1             │
-        │ crosshairsopts       │ -color      │ gtbCrosshairsColor            │ GtbCrosshairsColor            │ grey          │
-        │ crosshairsopts       │ -dashes     │ gtbCrosshairsDashes           │ GtbCrosshairsDashes           │ {}            │
-        │ crosshairsmarkopts   │ -font       │ gtbCrosshairsTextFont         │ GtbCrosshairsTextFont         │ ArialNarrow 8 │
-        │ crosshairsmarkopts   │ -anchor     │ gtbCrosshairsTextAnchor       │ GtbCrosshairsTextAnchor       │ nw            │
-        │ crosshairsmarkopts   │ -foreground │ gtbCrosshairsTextForeground   │ GtbCrosshairsTextForeground   │ black         │
-        │ crosshairsmarkopts   │ -justify    │ gtbCrosshairsTextJustify      │ GtbCrosshairsTextJustify      │ left          │
-        │ crosshairsmarkopts   │ -padx       │ gtbCrosshairsTextPadX         │ GtbCrosshairsTextPadX         │ 4             │
-        │ crosshairsmarkopts   │ -pady       │ gtbCrosshairsTextPadY         │ GtbCrosshairsTextPadY         │ 4             │
-        │ crosshairsmarkopts   │ -formatx    │ gtbCrosshairsTextXFormat      │ GtbCrosshairsTextXFormat      │ .4g           │
-        │ crosshairsmarkopts   │ -formaty    │ gtbCrosshairsTextYFormat      │ GtbCrosshairsTextYFormat      │ .4g           │
-        │ crosshairsmarkopts   │ -formatparam│ gtbCrosshairsTextParamFormat  │ GtbCrosshairsTextParamFormat  │ .4g           │
-        │ crosshairsmarkboxopts│ -fill       │ gtbCrosshairsTextBoxFill      │ GtbCrosshairsTextBoxFill      │ #FFEB3B       │
-        │ crosshairsmarkboxopts│ -outline    │ gtbCrosshairsTextBoxOutline   │ GtbCrosshairsTextBoxOutline   │ grey          │
-        │ crosshairsmarkboxopts│ -linewidth  │ gtbCrosshairsTextBoxLineWidth │ GtbCrosshairsTextBoxLineWidth │ 1             │
-        │ crosshairsbarlineopts│ -outline    │ gtbCrosshairsBarLineOutline   │ GtbCrosshairsBarLineOutline   │ black         │
-        │ crosshairsbarlineopts│ -linewidth  │ gtbCrosshairsBarLineWidth     │ GtbCrosshairsBarLineWidth     │ 1             │
-        │ crosshairsbarlineopts│ -arrowshape │ gtbCrosshairsBarLineArrowShape│ GtbCrosshairsBarLineArrowShape│ {8 10 3}      │
-        │ pointeropts          │ -outline    │ gtbPointerOutline              │ GtbPointerOutline            │ black         │
-        │ pointeropts          │ -rotate     │ gtbPointerRotate               │ GtbPointerRotate             │ 0             │
-        └──────────────────────┴─────────────┴───────────────────────────────┴───────────────────────────────┴───────────────┘
-        ```
-        #ruffopt excludedformats {}
 
         `crosshairsclosestopts` has no Tk option-database resources. Its built-in defaults are:
         ```tcl

@@ -1,0 +1,202 @@
+# RBC.docs.tables.A.test --
+#
+###Abstract
+# Tests Markdown-to-nroff table preprocessing without loading Tk or RBC.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide docs.tables
+package require tcltest
+namespace import tcltest::*
+source [file join [file dirname [info script]] .. docs tableHelpers.tcl]
+
+testConstraint docsRuff [expr {![catch {package require ruff}]}]
+
+namespace eval docs.tables {
+    variable sample {| Name | Description |
+| :--- | ---: |
+| `x` | first value |
+| y | second value |}
+
+    test RBC.docs.tables.A.1.1 {
+        docs tables: split escaped pipes, inline code and optional outer delimiters
+    } -body {
+        list [rbcDoc::TableCells {| `list|vector` | a\|b |}]\
+                [rbcDoc::TableCells {A | B}] [rbcDoc::TableCells {| | B |}]
+    } -result {{`list|vector` {a\|b}} {A B} {{} B}}
+
+    test RBC.docs.tables.A.1.2 {
+        docs tables: multiple backticks and escaped backticks do not split code cells
+    } -body {
+        rbcDoc::TableCells {| ``a`|b`` | c |}
+    } -result {``a`|b`` c}
+
+    test RBC.docs.tables.A.1.3 {
+        docs tables: original Markdown and nroff literal alternative have separate guards
+    } -body {
+        set text [rbcDoc::TablesForRuff $sample]
+        list [expr {[string first $sample $text] >= 0}] [regexp -all {#ruffopt excludedformats nroff} $text]\
+                [regexp -all {#ruffopt includedformats nroff} $text]\
+                [regexp -all {#ruffopt excludedformats \{\}} $text] [regexp -all {┌} $text] [regexp -all {└} $text]
+    } -result {1 1 1 1 1 1}
+
+    test RBC.docs.tables.A.1.4 {
+        docs tables: preprocessing is idempotent
+    } -body {
+        set text [rbcDoc::TablesForRuff $sample]
+        expr {$text eq [rbcDoc::TablesForRuff $text]}
+    } -result 1
+
+    test RBC.docs.tables.A.1.5 {
+        docs tables: tables inside backtick and tilde fences remain literal
+    } -body {
+        set text "````tcl\n```\n$sample\n````\n~~~\n$sample\n~~~"
+        expr {$text eq [rbcDoc::TablesForRuff $text]}
+    } -result 1
+
+    test RBC.docs.tables.A.1.6 {
+        docs tables: malformed table fails rather than dropping a column
+    } -body {
+        catch {rbcDoc::TablesForRuff "| A | B |\n| --- | --- |\n| only one |"} message
+        string match {*column count*line 3} $message
+    } -result 1
+
+    test RBC.docs.tables.A.1.7 {
+        docs tables: ordinary pipe text and non-separator lines are unchanged
+    } -body {
+        set text "Use a | b here.\nThis is prose.\n| A | B |\n| not | a delimiter |"
+        expr {$text eq [rbcDoc::TablesForRuff $text]}
+    } -result 1
+
+    test RBC.docs.tables.A.1.8 {
+        docs tables: indentation is retained in generated content
+    } -body {
+        set text [rbcDoc::TablesForRuff [join [lmap line [split $sample \n] {format {        %s} $line}] \n]]
+        expr {[regexp -all -line {^        [┌│├└]} $text] == 6}
+    } -result 1
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Preserve caller format restrictions and restore them after each table.
+    # ------------------------------------------------------------------------------------
+    set case 0
+    foreach guard {
+        {excludedformats {html}}
+        {includedformats {nroff sphinx}}
+        {includedformats nroff}
+    } {
+        incr case
+        test RBC.docs.tables.A.2.$case {
+            docs tables: generated alternatives restore the enclosing format guard
+        } -body {
+            set text [rbcDoc::TablesForRuff "#ruffopt $guard\n$sample\n\nAfter table."]
+            expr {[string first "#ruffopt [list {*}$guard]\n\n\nAfter table." $text] >= 0 &&
+                  [regexp -all {┌} $text] == 1}
+        } -result 1
+    }
+    set case 0
+    foreach guard {{excludedformats nroff} {includedformats {html sphinx}} {includedformats {}}} {
+        incr case
+        test RBC.docs.tables.A.3.$case {
+            docs tables: tables intentionally excluded from nroff stay unchanged
+        } -body {
+            set text "#ruffopt $guard\n$sample\n#ruffopt excludedformats {}"
+            expr {$text eq [rbcDoc::TablesForRuff $text]}
+        } -result 1
+    }
+
+    test RBC.docs.tables.A.4.1 {
+        docs tables: arbitrary column counts wrap within the configured total width
+    } -body {
+        set good 1
+        foreach columns {1 2 3 4 6} {
+            set row [lrepeat $columns [string repeat abcdef 10]]
+            set header [lrepeat $columns Heading]
+            set text "|[join $header |]|\n|[join [lrepeat $columns ---] |]|\n|[join $row |]|"
+            set output [rbcDoc::TablesForRuff $text 80]
+            foreach line [split $output \n] {
+                if {[regexp {^[┌│├└]} $line] && [string length $line] > 80} {
+                    set good 0
+                }
+            }
+        }
+        set good
+    } -result 1
+
+    test RBC.docs.tables.A.4.2 {
+        docs tables: invalid width and an impossible column budget are rejected
+    } -body {
+        list [catch {rbcDoc::TablesForRuff $sample -1}] [catch {rbcDoc::TablesForRuff $sample 5}]\
+                [catch {rbcDoc::TablesForRuff $sample invalid}]
+    } -result {1 1 1}
+
+    test RBC.docs.tables.A.5.1 {
+        docs tables: namespace preambles are restored after generation errors
+    } -setup {
+        namespace eval fixture {}
+        set fixture::_ruff_preamble $sample
+    } -body {
+        set saved [rbcDoc::PreparePreambles [list [namespace current]::fixture]]
+        set converted [regexp {┌} $fixture::_ruff_preamble]
+        catch {
+            try {
+                error {formatter failed}
+            } finally {
+                rbcDoc::RestorePreambles $saved
+            }
+        }
+        list $converted [expr {$fixture::_ruff_preamble eq $sample}]
+    } -cleanup {
+        namespace delete fixture
+    } -result {1 1}
+
+    test RBC.docs.tables.A.5.2 {
+        docs tables: conversion errors do not partially replace namespace preambles
+    } -setup {
+        namespace eval first {}
+        namespace eval second {}
+        set first::_ruff_preamble $sample
+        set second::_ruff_preamble "| A | B |\n| --- | --- |\n| broken |"
+    } -body {
+        set rc [catch {rbcDoc::PreparePreambles [list [namespace current]::first [namespace current]::second]}]
+        list $rc [expr {$first::_ruff_preamble eq $sample}]
+    } -cleanup {
+        namespace delete first second
+    } -result {1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Exercise Ruff itself when installed, checking each format selects one copy.
+    # ------------------------------------------------------------------------------------
+    test RBC.docs.tables.A.6.1 {
+        docs tables: Ruff emits literal nroff and native Sphinx tables without duplicates
+    } -constraints docsRuff -setup {
+        namespace eval ::RbcDocTableFixture {}
+        set ::RbcDocTableFixture::_ruff_preamble [rbcDoc::TablesForRuff {
+            | UniqueHeader | Description |
+            | --- | --- |
+            | UniqueCell | Some text |
+        }]
+        set directory [makeDirectory rbc-doc-tables]
+    } -body {
+        ruff::document ::RbcDocTableFixture -format nroff -outdir $directory -outfile table.n -pagesplit none\
+                -includesource false
+        ruff::document ::RbcDocTableFixture -format sphinx -outdir $directory -outfile table.rst -pagesplit none\
+                -includesource false
+        set channel [open [file join $directory table.n]]
+        set nroff [read $channel]
+        close $channel
+        set channel [open [file join $directory table.rst]]
+        set sphinx [read $channel]
+        close $channel
+        list [regexp -all UniqueHeader $nroff] [regexp -all UniqueCell $nroff]\
+                [regexp -all UniqueHeader $sphinx] [regexp -all UniqueCell $sphinx]\
+                [regexp {┌} $nroff] [regexp {┌} $sphinx] [regexp {list-table::} $sphinx]
+    } -cleanup {
+        namespace delete ::RbcDocTableFixture
+        removeDirectory rbc-doc-tables
+    } -result {1 1 1 1 1 0 1}
+
+    cleanupTests
+}

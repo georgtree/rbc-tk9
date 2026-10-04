@@ -171,18 +171,15 @@ The available modes are:
 .PP
 .RS 4n
 .nf
-┌─────────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Mode    │ Description                                                                                  │
-├─────────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
-│ normal  │ Equivalent to infront; bars retain the full width and are drawn according to element         │
-│         │ display order\&.                                                                               │
-│ infront │ Bars retain their ordinary position and width and may obscure bars drawn earlier\&.            │
-│ aligned │ Bars sharing an X coordinate are divided across the available bar width and displayed side   │
-│         │ by side\&.                                                                                     │
-│ overlap │ Bars sharing an X coordinate are offset while retaining enough width to overlap neighboring  │
-│         │ bars\&.                                                                                        │
-│ stacked │ Y values sharing an X coordinate are accumulated and drawn as successive vertical segments\&.  │
-└─────────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Mode    │ Description                                                                                         │
+├─────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ normal  │ Equivalent to infront; bars retain the full width and are drawn according to element display order\&. │
+│ infront │ Bars retain their ordinary position and width and may obscure bars drawn earlier\&.                   │
+│ aligned │ Bars sharing an X coordinate are divided across the available bar width and displayed side by side\&. │
+│ overlap │ Bars sharing an X coordinate are offset while retaining enough width to overlap neighboring bars\&.   │
+│ stacked │ Y values sharing an X coordinate are accumulated and drawn as successive vertical segments\&.         │
+└─────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -239,17 +236,18 @@ Its basic appearance is controlled directly by:
 .PP
 .RS 4n
 .nf
-┌──────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Option               │ Description                                                                                │
-├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
-│ -fillopacity value   │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.                                                │
-│ -foreground color    │ Sets the primary fill color of the bar\&. -fg is a synonym\&. The default is blue\&.             │
-│ -background color    │ Sets the 3-D border color and the background color used for opaque stippling\&. -bg is a     │
-│                      │ synonym\&. The default is navyblue\&.                                                          │
-│ -borderwidth width   │ Sets the non-negative width of the 3-D bar border\&. -bd is a synonym\&. The default is 2\&.     │
-│ -relief relief       │ Sets the relief of the 3-D border\&. The default is raised\&.                                  │
-│ -stipple bitmap      │ Fills bars through the specified Tk bitmap stipple\&. An empty value disables stippling\&.     │
-└──────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Option             │ Description                                                                                     │
+├────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ -fillopacity value │ Sets bar fill opacity from 0\&.0 (no fill) to 1\&.0 (opaque); partial opacity requires Cairo or     │
+│                    │ SVG\&.                                                                                            │
+│ -foreground color  │ Sets the primary fill color of the bar\&. -fg is a synonym\&. The default is blue\&.                  │
+│ -background color  │ Sets the 3-D border color and the background color used for opaque stippling\&. -bg is a synonym\&. │
+│                    │ The default is navyblue\&.                                                                        │
+│ -borderwidth width │ Sets the non-negative width of the 3-D bar border\&. -bd is a synonym\&. The default is 2\&.          │
+│ -relief relief     │ Sets the relief of the 3-D border\&. The default is raised\&.                                       │
+│ -stipple bitmap    │ Fills bars through the specified Tk bitmap stipple\&. An empty value disables stippling\&.          │
+└────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -375,14 +373,14 @@ Their appearance is controlled by:
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────┐
-│ Option                │ Description                                                                              │
-├───────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────┤
-│ -showerrorbars value  │ Selects whether X errors, Y errors, both, or neither are displayed\&. The default is both\&. │
-│ -errorbarcolor color  │ Sets the error-bar color\&. defcolor uses the normal bar color\&.                            │
-│ -errorbarwidth width  │ Sets the non-negative error-bar line width\&. The default is 1\&.                            │
-│ -errorbarcap width    │ Sets the non-negative requested cap width\&. The default is 1\&.                             │
-└───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Description                                                                              │
+├──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────┤
+│ -showerrorbars value │ Selects whether X errors, Y errors, both, or neither are displayed\&. The default is both\&. │
+│ -errorbarcolor color │ Sets the error-bar color\&. defcolor uses the normal bar color\&.                            │
+│ -errorbarwidth width │ Sets the non-negative error-bar line width\&. The default is 1\&.                            │
+│ -errorbarcap width   │ Sets the non-negative requested cap width\&. The default is 1\&.                             │
+└──────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -413,18 +411,18 @@ Label appearance is controlled by:
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬────────────────────────────────────────────────────────────────────────────┐
-│ Option                │ Description                                                                │
-├───────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ -valueanchor anchor   │ Sets the Tk anchor of the label\&. The default is s\&.                         │
-│ -valuecolor color     │ Sets the label color\&. The default is black\&.                                │
-│ -valuefont font       │ Sets the label font\&.                                                       │
-│ -valuecommand cmd     │ Formats value labels with a Tcl command prefix\&. Default: empty\&.            │
-│ -valueoffset {dx dy}  │ Pixel offset\&. Default: 0 0\&.                                                │
-│ -valueformat format   │ Sets the printf-style floating-point format\&. The default is %g\&.            │
-│ -valuerotate angle    │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.   │
-│ -valueshadow shadow   │ Specifies an optional text shadow\&. An empty value disables the shadow\&.     │
-└───────────────────────┴────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────┬──────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Description                                                              │
+├──────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ -valueanchor anchor  │ Sets the Tk anchor of the label\&. The default is s\&.                       │
+│ -valuecolor color    │ Sets the label color\&. The default is black\&.                              │
+│ -valuefont font      │ Sets the label font\&.                                                     │
+│ -valuecommand cmd    │ Formats value labels with a Tcl command prefix\&. The default is empty\&.    │
+│ -valueoffset {dx dy} │ Moves the label anchor by signed integer pixels\&. Default: {0 0}\&.         │
+│ -valueformat format  │ Sets the printf-style floating-point format\&. The default is %g\&.          │
+│ -valuerotate angle   │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&. │
+│ -valueshadow shadow  │ Specifies an optional text shadow\&. An empty value disables the shadow\&.   │
+└──────────────────────┴──────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -511,128 +509,111 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 .PP
 .RS 4n
 .nf
-┌─────────────────────────┬─────────────────┬──────────────────┬────────────────────────────────────────────────┐
-│ Option                  │ Database name   │ Database class   │ Description                                    │
-├─────────────────────────┼─────────────────┼──────────────────┼────────────────────────────────────────────────┤
-│ -activepen penName      │ activePen       │ ActivePen        │ Specifies the named bar pen used when the      │
-│                         │                 │                  │ element is active\&. An empty value disables the │
-│                         │                 │                  │ named active pen\&. The default is activeBar\&.    │
-│ -background color       │ background      │ Background       │ Sets the background color of bars and the      │
-│                         │                 │                  │ color used for their 3-D border\&. The default   │
-│                         │                 │                  │ is navy blue\&.                                  │
-│ -barwidth value         │ barWidth        │ BarWidth         │ Specifies the width of bars for this element\&.  │
-│                         │                 │                  │ A positive value overrides the graph widget's  │
-│                         │                 │                  │ -barwidth; 0\&.0 uses the graph's bar width\&. The │
-│                         │                 │                  │ default is 0\&.0\&.                                │
-│ -bd distance            │ —               │ —                │ Synonym for -borderwidth\&.                      │
-│ -bg color               │ —               │ —                │ Synonym for -background\&.                       │
-│ -bindtags tags          │ bindTags        │ BindTags         │ Specifies additional graph binding tags for    │
-│                         │                 │                  │ the element\&. The default is all\&.               │
-│ -borderwidth distance   │ borderWidth     │ BorderWidth      │ Sets the width of the 3-D border around bars\&.  │
-│                         │                 │                  │ The default is 2\&.                              │
-│ -data data              │ data            │ Data             │ Supplies an even-length list of alternating X  │
-│                         │                 │                  │ and Y values\&.                                  │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -errorbarcap width      │ errorBarCap     │ ErrorBarCap      │ Sets the requested error-bar cap width\&. A      │
-│                         │                 │                  │ positive value selects an explicit size; 0     │
-│                         │                 │                  │ automatically derives the size from the bar    │
-│                         │                 │                  │ width\&. The default is 1\&.                       │
-│ -errorbarcolor color    │ errorBarColor   │ ErrorBarColor    │ Sets the error-bar color\&. defcolor uses the    │
-│                         │                 │                  │ bar foreground color\&.                          │
-│ -errorbarwidth width    │ errorBarWidth   │ ErrorBarWidth    │ Sets the error-bar line width\&. The default is  │
-│                         │                 │                  │ 1\&.                                             │
-│ -fg color               │ —               │ —                │ Synonym for -foreground\&.                       │
-│ -fillopacity value      │ fillOpacity     │ FillOpacity      │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.    │
-│ -foreground color       │ foreground      │ Foreground       │ Sets the primary bar fill color\&. The default   │
-│                         │                 │                  │ is blue\&.                                       │
-│ -hide boolean           │ hide            │ Hide             │ Controls whether the element is displayed\&. The │
-│                         │                 │                  │ default is no\&.                                 │
-│ -hideplot boolean       │ hidePlot        │ HidePlot         │ Suppresses plotting of the element while       │
-│                         │                 │                  │ keeping it in the display list and legend\&.     │
-│                         │                 │                  │ A plot-hidden element does not contribute to   │
-│                         │                 │                  │ automatic axis limits and is ignored by closest│
-│                         │                 │                  │ searches and element hit testing\&. The default  │
-│                         │                 │                  │ is `no`\&.                                       │
-│ -label text             │ label           │ Label            │ Sets the element label used by the legend\&. The │
-│                         │                 │                  │ initial label is the element name\&.             │
-│ -labelrelief relief     │ labelRelief     │ LabelRelief      │ Sets the relief used for the element's legend  │
-│                         │                 │                  │ label\&. The default is flat\&.                    │
-│ -mapx axisName          │ mapX            │ MapX             │ Specifies the X axis used to map the element's │
-│                         │                 │                  │ X coordinates\&. The axis must exist and must be │
-│                         │                 │                  │ an X axis\&. The default is x\&.                   │
-│ -mapy axisName          │ mapY            │ MapY             │ Specifies the Y axis used to map the element's │
-│                         │                 │                  │ Y coordinates\&. The axis must exist and must be │
-│                         │                 │                  │ a Y axis\&. The default is y\&.                    │
-│ -pen penName            │ pen             │ Pen              │ Specifies a named bar pen containing the       │
-│                         │                 │                  │ element's normal drawing attributes\&. An empty  │
-│                         │                 │                  │ value uses the element's built-in pen\&.         │
-│ -relief relief          │ relief          │ Relief           │ Sets the relief used to draw bars\&. The default │
-│                         │                 │                  │ is raised\&.                                     │
-│ -showerrorbars value    │ showErrorBars   │ ShowErrorBars    │ Selects which error bars are displayed: X, Y,  │
-│                         │                 │                  │ both, or neither\&. The default is both\&.         │
-│ -showvalues value       │ showValues      │ ShowValues       │ Selects which coordinate values are displayed  │
-│                         │                 │                  │ next to bars\&. The default is no\&.               │
-│ -state state            │ state           │ State            │ Sets the element state\&. The default is normal\&. │
-│ -stipple bitmap         │ stipple         │ Stipple          │ Specifies a bitmap used to stipple the bar     │
-│                         │                 │                  │ fill\&. An empty value selects a solid fill\&.     │
-│ -styles styles          │ styles          │ Styles           │ Specifies pens selected according to -weights\&. │
-│                         │                 │                  │ Each style is either penName or {penName min   │
-│                         │                 │                  │ max}\&. Bare pen names receive successive        │
-│                         │                 │                  │ implicit weight ranges\&. An empty value         │
-│                         │                 │                  │ disables weight-selected styles\&.               │
-│ -valueanchor anchor     │ valueAnchor     │ ValueAnchor      │ Sets the anchor used to position value labels  │
-│                         │                 │                  │ relative to bars\&. The default is s\&.            │
-│ -valuecolor color       │ valueColor      │ ValueColor       │ Sets the color used to draw value labels\&.      │
-│ -valuefont font         │ valueFont       │ ValueFont        │ Sets the font used to draw value labels\&.       │
-│ -valuecommand cmd       │ valueCommand    │ ValueCommand     │ Formats value labels with a Tcl command        │
-│                         │                 │                  │ prefix\&. Default: empty\&.                        │
-│ -valueoffset {dx dy}    │ valueOffset     │ ValueOffset      │ Pixel offset\&. Default: 0 0\&.                    │
-│ -valueformat format     │ valueFormat     │ ValueFormat      │ Sets the printf-style format used for value    │
-│                         │                 │                  │ labels\&. The default is %g\&.                     │
-│ -valuerotate degrees    │ valueRotate     │ ValueRotate      │ Sets the rotation angle of value labels in     │
-│                         │                 │                  │ degrees\&. The default is 0\&.0\&.                   │
-│ -valueshadow shadow     │ valueShadow     │ ValueShadow      │ Specifies a shadow for value labels\&. An empty  │
-│                         │                 │                  │ value disables the shadow\&.                     │
-│ -weights weights        │ weights         │ Weights          │ Supplies per-point numeric weights used to     │
-│                         │                 │                  │ select pens through -styles\&.                   │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -x data                 │ xdata           │ Xdata            │ Supplies the element's X coordinates as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -xdata data             │ —               │ —                │ Synonym for -x\&.                                │
-│ -xerror data            │ xError          │ XError           │ Supplies symmetric X error magnitudes as a     │
-│                         │                 │                  │ list or Rbc vector\&.                            │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -xhigh data             │ xHigh           │ XHigh            │ Supplies the upper X error endpoints as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -xlow data              │ xLow            │ XLow             │ Supplies the lower X error endpoints as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -y data                 │ ydata           │ Ydata            │ Supplies the element's Y coordinates as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -ydata data             │ —               │ —                │ Synonym for -y\&.                                │
-│ -yerror data            │ yError          │ YError           │ Supplies symmetric Y error magnitudes as a     │
-│                         │                 │                  │ list or Rbc vector\&.                            │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -yhigh data             │ yHigh           │ YHigh            │ Supplies the upper Y error endpoints as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-│ -ylow data              │ yLow            │ YLow             │ Supplies the lower Y error endpoints as a list │
-│                         │                 │                  │ or Rbc vector\&.                                 │
-│                         │                 │                  │ Each literal list item accepts a Tcl numeric   │
-│                         │                 │                  │ expression\&.                                    │
-└─────────────────────────┴─────────────────┴──────────────────┴────────────────────────────────────────────────┘
+┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────┐
+│ Option                │ Database name │ Database class │ Description                                                 │
+├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────────┤
+│ -activepen penName    │ activePen     │ ActivePen      │ Specifies the named bar pen used when the element is        │
+│                       │               │                │ active\&. An empty value disables the named active pen\&. The   │
+│                       │               │                │ default is activeBar\&.                                       │
+│ -background color     │ background    │ Background     │ Sets the background color of bars and the color used for    │
+│                       │               │                │ their 3-D border\&. The default is navy blue\&.                 │
+│ -barwidth value       │ barWidth      │ BarWidth       │ Specifies the width of bars for this element\&. A positive    │
+│                       │               │                │ value overrides the graph widget's -barwidth; 0\&.0 uses the  │
+│                       │               │                │ graph's bar width\&. The default is 0\&.0\&.                      │
+│ -bd distance          │ —             │ —              │ Synonym for -borderwidth\&.                                   │
+│ -bg color             │ —             │ —              │ Synonym for -background\&.                                    │
+│ -bindtags tags        │ bindTags      │ BindTags       │ Specifies additional graph binding tags for the element\&.    │
+│                       │               │                │ The default is all\&.                                         │
+│ -borderwidth distance │ borderWidth   │ BorderWidth    │ Sets the width of the 3-D border around bars\&. The default   │
+│                       │               │                │ is 2\&.                                                       │
+│ -data data            │ data          │ Data           │ Supplies an even-length list of alternating X and Y values\&. │
+│                       │               │                │ Each literal list item accepts a Tcl numeric expression\&.    │
+│ -errorbarcap width    │ errorBarCap   │ ErrorBarCap    │ Sets the requested error-bar cap width\&. A positive value    │
+│                       │               │                │ selects an explicit size; 0 automatically derives the size  │
+│                       │               │                │ from the bar width\&. The default is 1\&.                       │
+│ -errorbarcolor color  │ errorBarColor │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the bar foreground  │
+│                       │               │                │ color\&.                                                      │
+│ -errorbarwidth width  │ errorBarWidth │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&.            │
+│ -fg color             │ —             │ —              │ Synonym for -foreground\&.                                    │
+│ -fillopacity value    │ fillOpacity   │ FillOpacity    │ Fill opacity from 0\&.0 to 1\&.0 (default)\&. Cairo/SVG support   │
+│                       │               │                │ partial opacity; native/PostScript only suppress zero\&.      │
+│ -foreground color     │ foreground    │ Foreground     │ Sets the primary bar fill color\&. The default is blue\&.       │
+│ -hide boolean         │ hide          │ Hide           │ Controls whether the element is displayed\&. The default is   │
+│                       │               │                │ no\&.                                                         │
+│ -hideplot boolean     │ hidePlot      │ HidePlot       │ Suppresses plotting of the element while keeping it in the  │
+│                       │               │                │ display list and legend\&. A plot-hidden bar does not         │
+│                       │               │                │ contribute to automatic axis limits, bar grouping or        │
+│                       │               │                │ stacking calculations, closest searches, or element hit     │
+│                       │               │                │ testing\&. The default is no\&.                                 │
+│ -label text           │ label         │ Label          │ Sets the element label used by the legend\&. The initial      │
+│                       │               │                │ label is the element name\&.                                  │
+│ -labelrelief relief   │ labelRelief   │ LabelRelief    │ Sets the relief used for the element's legend label\&. The    │
+│                       │               │                │ default is flat\&.                                            │
+│ -mapx axisName        │ mapX          │ MapX           │ Specifies the X axis used to map the element's X            │
+│                       │               │                │ coordinates\&. The axis must exist and must be an X axis\&. The │
+│                       │               │                │ default is x\&.                                               │
+│ -mapy axisName        │ mapY          │ MapY           │ Specifies the Y axis used to map the element's Y            │
+│                       │               │                │ coordinates\&. The axis must exist and must be a Y axis\&. The  │
+│                       │               │                │ default is y\&.                                               │
+│ -pen penName          │ pen           │ Pen            │ Specifies a named bar pen containing the element's normal   │
+│                       │               │                │ drawing attributes\&. An empty value uses the element's       │
+│                       │               │                │ built-in pen\&.                                               │
+│ -relief relief        │ relief        │ Relief         │ Sets the relief used to draw bars\&. The default is raised\&.   │
+│ -showerrorbars value  │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y, both, or      │
+│                       │               │                │ neither\&. The default is both\&.                               │
+│ -showvalues value     │ showValues    │ ShowValues     │ Selects which coordinate values are displayed next to bars\&. │
+│                       │               │                │ The default is no\&.                                          │
+│ -state state          │ state         │ State          │ Sets the element state\&. The default is normal\&.              │
+│ -stipple bitmap       │ stipple       │ Stipple        │ Specifies a bitmap used to stipple the bar fill\&. An empty   │
+│                       │               │                │ value selects a solid fill\&.                                 │
+│ -styles styles        │ styles        │ Styles         │ Specifies pens selected according to -weights\&. Each style   │
+│                       │               │                │ is either penName or {penName min max}\&. Bare pen names      │
+│                       │               │                │ receive successive implicit weight ranges\&. An empty value   │
+│                       │               │                │ disables weight-selected styles\&.                            │
+│ -valueanchor anchor   │ valueAnchor   │ ValueAnchor    │ Sets the anchor used to position value labels relative to   │
+│                       │               │                │ bars\&. The default is s\&.                                     │
+│ -valuecolor color     │ valueColor    │ ValueColor     │ Sets the color used to draw value labels\&.                   │
+│ -valuefont font       │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.                    │
+│ -valuecommand cmd     │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. The default │
+│                       │               │                │ is empty\&.                                                   │
+│ -valueoffset {dx dy}  │ valueOffset   │ ValueOffset    │ Moves the label anchor by signed integer pixels\&. Default:   │
+│                       │               │                │ {0 0}\&.                                                      │
+│ -valueformat format   │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value labels\&. The     │
+│                       │               │                │ default is %g\&.                                              │
+│ -valuerotate degrees  │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&. The     │
+│                       │               │                │ default is 0\&.0\&.                                             │
+│ -valueshadow shadow   │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value         │
+│                       │               │                │ disables the shadow\&.                                        │
+│ -weights weights      │ weights       │ Weights        │ Supplies per-point numeric weights used to select pens      │
+│                       │               │                │ through -styles\&. Each literal list item accepts a Tcl       │
+│                       │               │                │ numeric expression\&.                                         │
+│ -x data               │ xdata         │ Xdata          │ Supplies the element's X coordinates as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -xdata data           │ —             │ —              │ Synonym for -x\&.                                             │
+│ -xerror data          │ xError        │ XError         │ Supplies symmetric X error magnitudes as a list or Rbc      │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -xhigh data           │ xHigh         │ XHigh          │ Supplies the upper X error endpoints as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -xlow data            │ xLow          │ XLow           │ Supplies the lower X error endpoints as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -y data               │ ydata         │ Ydata          │ Supplies the element's Y coordinates as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -ydata data           │ —             │ —              │ Synonym for -y\&.                                             │
+│ -yerror data          │ yError        │ YError         │ Supplies symmetric Y error magnitudes as a list or Rbc      │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -yhigh data           │ yHigh         │ YHigh          │ Supplies the upper Y error endpoints as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+│ -ylow data            │ yLow          │ YLow           │ Supplies the lower Y error endpoints as a list or Rbc       │
+│                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
+│                       │               │                │ expression\&.                                                 │
+└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────┘
 .fi
 .RE
 

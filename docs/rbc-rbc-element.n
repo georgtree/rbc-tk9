@@ -235,18 +235,18 @@ On success, the named Tcl array receives:
 .PP
 .RS 4n
 .nf
-┌───────────────┬───────────────────────────────────────────────────────────────────────────┐
-│ Array element │ Description                                                               │
-├───────────────┼───────────────────────────────────────────────────────────────────────────┤
-│ name          │ Name of the closest element\&.                                              │
-│ index         │ Source data index associated with the result\&.                             │
-│ x             │ X coordinate of the result in graph coordinates\&.                          │
-│ y             │ Y coordinate of the result in graph coordinates\&.                          │
-│ dist          │ Distance from the requested window coordinate, measured in screen pixels\&. │
+┌────────────────┬───────────────────────────────────────────────────────────────────────────┐
+│ Array element  │ Description                                                               │
+├────────────────┼───────────────────────────────────────────────────────────────────────────┤
+│ name           │ Name of the closest element\&.                                              │
+│ index          │ Source data index associated with the result\&.                             │
+│ x              │ X coordinate of the result in graph coordinates\&.                          │
+│ y              │ Y coordinate of the result in graph coordinates\&.                          │
+│ dist           │ Distance from the requested window coordinate, measured in screen pixels\&. │
 │ xerror, yerror │ Optional symmetric error magnitudes at the source index\&.                  │
-│ xlow, xhigh   │ Optional absolute X error bounds at the source index\&.                     │
-│ ylow, yhigh   │ Optional absolute Y error bounds at the source index\&.                     │
-└───────────────┴───────────────────────────────────────────────────────────────────────────┘
+│ xlow, xhigh    │ Optional absolute X error bounds at the source index\&.                     │
+│ ylow, yhigh    │ Optional absolute Y error bounds at the source index\&.                     │
+└────────────────┴───────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -282,14 +282,14 @@ For a bar element, the result array also contains the physical bounds of the sel
 .PP
 .RS 4n
 .nf
-┌───────────────┬──────────────────────────────────────────────────────────────────────────────────────────┐
-│ Array element │ Description                                                                              │
-├───────────────┼──────────────────────────────────────────────────────────────────────────────────────────┤
-│ left          │ Physical widget X coordinate of the left edge of the selected bar rectangle\&.             │
-│ top           │ Physical widget Y coordinate of the top edge of the selected bar rectangle\&.              │
-│ right         │ Physical widget X coordinate of the right edge of the selected bar rectangle\&.            │
-│ bottom        │ Physical widget Y coordinate of the bottom edge of the selected bar rectangle\&.           │
-└───────────────┴──────────────────────────────────────────────────────────────────────────────────────────┘
+┌───────────────┬────────────────────────────────────────────────────────────────────────────────┐
+│ Array element │ Description                                                                    │
+├───────────────┼────────────────────────────────────────────────────────────────────────────────┤
+│ left          │ Physical widget X coordinate of the left edge of the selected bar rectangle\&.   │
+│ top           │ Physical widget Y coordinate of the top edge of the selected bar rectangle\&.    │
+│ right         │ Physical widget X coordinate of the right edge of the selected bar rectangle\&.  │
+│ bottom        │ Physical widget Y coordinate of the bottom edge of the selected bar rectangle\&. │
+└───────────────┴────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -312,14 +312,14 @@ closest accepts the following options:
 .PP
 .RS 4n
 .nf
-┌──────────────────────┬─────────────────────────────────────────────────────────────────────────────────────┐
-│ Option               │ Description                                                                         │
-├──────────────────────┼─────────────────────────────────────────────────────────────────────────────────────┤
-│ -halo distance       │ Sets the maximum non-negative screen distance for this search\&.                      │
-│ -along direction     │ Measures distance along x, y, or both\&. The default is both\&.                         │
-│ -interpolate boolean │ For line, strip, and polar elements, searches along the rendered trace when true    │
-│                      │ instead of considering only data points\&.                                            │
-└──────────────────────┴─────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Description                                                                                   │
+├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
+│ -halo distance       │ Sets the maximum non-negative screen distance for this search\&.                                │
+│ -along direction     │ Measures distance along x, y, or both\&. The default is both\&.                                   │
+│ -interpolate boolean │ For line and strip elements, searches along the rendered trace when true instead of           │
+│                      │ considering only data points\&.                                                                 │
+└──────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

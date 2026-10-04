@@ -217,23 +217,24 @@ the intended destination\&.
 .PP
 .RS 4n
 .nf
-┌──────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────┐
-│ Option                           │ Effect                                                                            │
-├──────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
-│ --enable-cairo                   │ Builds Cairo support and makes cairo the default renderer\&. Requires cairo-xlib on │
-│                                  │ Linux or cairo-win32 on Windows\&.                                                  │
-│ --disable-cairo                  │ Builds without Cairo; native is the renderer default\&. This is also the configure  │
-│                                  │ default when neither flag is supplied\&.                                            │
-│ --enable-cairo-static            │ Enables Cairo and links its non-system dependencies from static archives into the │
-│                                  │ RBC shared library\&. Requires GCC and GNU-compatible linker options\&.               │
-│ --disable-cairo-static           │ Disables forced static linking of Cairo dependencies\&. This is the default; Cairo  │
-│                                  │ support is controlled separately by --enable-cairo\&.                               │
-│ --enable-winpthreads-static      │ Embeds the MinGW-w64 winpthreads runtime in the DLL\&. Independent of Cairo;        │
-│                                  │ disabled by default\&. Requires genuine libwinpthread\&.a and target objdump\&.         │
-│ --enable-symbols                 │ Builds with debugging symbols for crash diagnosis\&.                                │
-│ --with-tcl=DIR, --with-tk=DIR    │ Select directories containing the matching Tcl/Tk configuration files\&.            │
-│ --prefix=DIR                     │ Selects the installation prefix\&.                                                  │
-└──────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────┐
+│ Option                   │ Effect                                                                                    │
+├──────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────┤
+│ --enable-cairo           │ Builds Cairo support and makes cairo the default renderer\&. Requires cairo-xlib on Linux   │
+│                          │ or cairo-win32 on Windows\&.                                                                │
+│ --disable-cairo          │ Builds without Cairo; native is the renderer default\&. This is also the configure default  │
+│                          │ when neither flag is supplied\&.                                                            │
+│ --enable-cairo-static    │ Enables Cairo and links its non-system dependencies from static archives into the RBC     │
+│                          │ shared library\&. Requires GCC and GNU-compatible linker options\&.                           │
+│ --disable-cairo-static   │ Disables forced static linking of Cairo dependencies\&. This is the default; Cairo support  │
+│                          │ is controlled separately by --enable-cairo\&.                                               │
+│ --enable-winpthreads-sta │ Embeds the MinGW-w64 winpthreads runtime in the DLL\&. Independent of Cairo; disabled by    │
+│ tic                      │ default\&. Requires genuine libwinpthread\&.a and target objdump\&.                             │
+│ --enable-symbols         │ Builds with debugging symbols for crash diagnosis\&.                                        │
+│ --with-tcl=DIR,          │ Select directories containing the matching Tcl/Tk configuration files\&.                    │
+│ --with-tk=DIR            │                                                                                           │
+│ --prefix=DIR             │ Selects the installation prefix\&.                                                          │
+└──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -688,7 +689,7 @@ A working Rbc build and its runtime dependencies\&.
 The Tcl ruff package with Sphinx and nroff output support\&.
 .TP
 \(bu
-Tcllib's fileutil package\&.
+Tcllib's fileutil and textutil::adjust packages\&.
 .TP
 \(bu
 Python Sphinx, with sphinx-build available through PATH\&.
@@ -709,6 +710,25 @@ make doc
 .PP
 The generator reads the \&.ruff sources and Tcl API documentation, writes Sphinx sources under docs/sphinx, builds
 HTML under docs, and generates the \&.n manual pages\&.
+.PP
+Write documentation tables once, in Markdown\&. docs/tableHelpers\&.tcl expands the README and every selected
+namespace's _ruff_preamble before Ruff runs\&. Each table keeps its Markdown form for Sphinx/HTML and receives a
+wrapped, boxed literal form for nroff, selected with generated #ruffopt guards\&. Existing format restrictions and
+fenced code examples are preserved\&. Preambles are restored after generation, including on errors\&.
+.PP
+Do not maintain a second hand-written nroff copy of a table\&. Tables may have any column count that fits the default
+120-character width (including borders, excluding source indentation)\&. Columns are sized automatically; long cells
+wrap\&. Alignment markers are accepted, while the nroff cells are left-aligned\&. Escape literal pipes as \\| or put them
+inside inline code\&. Table rows must have the same column count as the header\&. This preprocessing covers namespace
+preambles and the README; it does not rewrite procedure bodies or TclOO method documentation\&.
+.PP
+The helper regression tests require only Tcl, Tcllib and tcltest:
+.PP
+.RS 4n
+.nf
+tclsh9\&.0 tests/RBC\&.docs\&.tables\&.A\&.test
+.fi
+.RE
 .PP
 Review the generator output and resulting pages before publishing\&.  The current generator prints Sphinx diagnostics, so
 the Make command's exit status alone is not a complete documentation-build check\&.

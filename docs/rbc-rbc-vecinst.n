@@ -409,19 +409,19 @@ The following operators are supported, listed from highest to lowest precedence\
 .PP
 .RS 4n
 .nf
-┌───────────────────┬─────────────────────────────────────────┐
-│ Operators         │ Description                             │
-├───────────────────┼─────────────────────────────────────────┤
-│ - !               │ Unary minus and logical NOT             │
-│ ^                 │ Exponentiation                          │
-│ * / %             │ Multiplication, division, and remainder │
-│ + -               │ Addition and subtraction                │
-│ << >>             │ Circular left and right vector shift    │
-│ < > <= >=         │ Relational comparison                   │
-│ == !=             │ Equality and inequality comparison      │
-│ &&                │ Logical AND                             │
-│ ||                │ Logical OR                              │
-└───────────────────┴─────────────────────────────────────────┘
+┌───────────┬─────────────────────────────────────────┐
+│ Operators │ Description                             │
+├───────────┼─────────────────────────────────────────┤
+│ - !       │ Unary minus and logical NOT             │
+│ ^         │ Exponentiation                          │
+│ * / %     │ Multiplication, division, and remainder │
+│ + -       │ Addition and subtraction                │
+│ << >>     │ Circular left and right vector shift    │
+│ < > <= >= │ Relational comparison                   │
+│ == !=     │ Equality and inequality comparison      │
+│ &&        │ Logical AND                             │
+│ ||        │ Logical OR                              │
+└───────────┴─────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -540,32 +540,32 @@ the same length\&.
 .PP
 .RS 4n
 .nf
-┌──────────┬──────────────────────────────────────────────────────────────────────────────┐
-│ Function │ Description                                                                  │
-├──────────┼──────────────────────────────────────────────────────────────────────────────┤
-│ abs      │ Absolute value                                                               │
-│ arg      │ Phase angle of the component                                                 │
-│ acos     │ Arc cosine                                                                   │
-│ asin     │ Arc sine                                                                     │
-│ atan     │ Arc tangent                                                                  │
-│ ceil     │ Smallest integral value not less than the component                          │
-│ conj     │ Complex conjugate                                                            │
-│ cos      │ Cosine                                                                       │
-│ cosh     │ Hyperbolic cosine                                                            │
-│ exp      │ Exponential                                                                  │
-│ floor    │ Largest integral value not greater than the component                        │
-│ imag     │ Imaginary component                                                          │
-│ log      │ Natural logarithm                                                            │
-│ log10    │ Base-10 logarithm                                                            │
-│ random   │ Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component   │
-│ real     │ Real component                                                               │
-│ round    │ Rounds to the nearest integral value                                         │
-│ sin      │ Sine                                                                         │
-│ sinh     │ Hyperbolic sine                                                              │
-│ sqrt     │ Square root                                                                  │
-│ tan      │ Tangent                                                                      │
-│ tanh     │ Hyperbolic tangent                                                           │
-└──────────┴──────────────────────────────────────────────────────────────────────────────┘
+┌──────────┬────────────────────────────────────────────────────────────────────────────┐
+│ Function │ Description                                                                │
+├──────────┼────────────────────────────────────────────────────────────────────────────┤
+│ abs      │ Absolute value                                                             │
+│ acos     │ Arc cosine                                                                 │
+│ arg      │ Phase angle of the component                                               │
+│ asin     │ Arc sine                                                                   │
+│ atan     │ Arc tangent                                                                │
+│ ceil     │ Smallest integral value not less than the component                        │
+│ conj     │ Complex conjugate                                                          │
+│ cos      │ Cosine                                                                     │
+│ cosh     │ Hyperbolic cosine                                                          │
+│ exp      │ Exponential                                                                │
+│ floor    │ Largest integral value not greater than the component                      │
+│ imag     │ Imaginary component                                                        │
+│ log      │ Natural logarithm                                                          │
+│ log10    │ Base-10 logarithm                                                          │
+│ random   │ Generates a pseudo-random value in the range [0\&.0, 1\&.0) for each component │
+│ real     │ Real component                                                             │
+│ round    │ Rounds to the nearest integral value                                       │
+│ sin      │ Sine                                                                       │
+│ sinh     │ Hyperbolic sine                                                            │
+│ sqrt     │ Square root                                                                │
+│ tan      │ Tangent                                                                    │
+│ tanh     │ Hyperbolic tangent                                                         │
+└──────────┴────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -665,12 +665,12 @@ Vector functions transform their argument and return another vector\&.
 .PP
 .RS 4n
 .nf
-┌──────────┬─────────────────────────────────────────────────────┐
-│ Function │ Description                                         │
-├──────────┼─────────────────────────────────────────────────────┤
-│ norm     │ Normalizes the components to the range [0\&.0, 1\&.0]   │
-│ sort     │ Returns the components sorted in ascending order    │
-└──────────┴─────────────────────────────────────────────────────┘
+┌──────────┬───────────────────────────────────────────────────┐
+│ Function │ Description                                       │
+├──────────┼───────────────────────────────────────────────────┤
+│ norm     │ Normalizes the components to the range [0\&.0, 1\&.0] │
+│ sort     │ Returns the components sorted in ascending order  │
+└──────────┴───────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -936,44 +936,55 @@ The following vector functions are exported through the Rbc stubs interface:
 .PP
 .RS 4n
 .nf
-┌──────────────────────────────────────────────────────────┬───────────────────────────────────────────────────────┐
-│ Function                                                 │ Description                                           │
-├──────────────────────────────────────────────────────────┼───────────────────────────────────────────────────────┤
-│ int Rbc_CreateVector(Tcl_Interp *interp, const char      │ Creates a real vector with its Tcl command and        │
-│ *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)         │ traditional automatic array mapping\&.                  │
-│ int Rbc_GetVector(Tcl_Interp *interp, const char         │ Looks up an existing real or complex vector\&.          │
-│ *vecName, Rbc_Vector **vecPtrPtr)                        │                                                       │
-│ int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size        │ Changes the logical vector length while preserving    │
-│ nValues)                                                 │ its numeric type\&.                                     │
-│ char *Rbc_NameOfVector(Rbc_Vector *vecPtr)               │ Returns the vector name\&. The returned string belongs  │
-│                                                          │ to Rbc\&.                                               │
-│ int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, │ Replaces the storage and ownership contract of a real │
-│ Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc       │ vector\&.                                               │
-│ *freeProc)                                               │                                                       │
-│ double *Rbc_VectorData(Rbc_Vector *vecPtr)               │ Returns real-vector storage, or NULL for a complex    │
-│                                                          │ vector\&.                                               │
-│ Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)            │ Returns the logical number of vector values\&.          │
-│ Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)              │ Returns the vector capacity in values\&.                │
-│ int Rbc_VectorDirty(Rbc_Vector *vecPtr)                  │ Returns the vector update counter\&.                    │
-│ int Rbc_VectorExists2(Tcl_Interp *interp, const char     │ Returns non-zero if the named vector exists\&.          │
-│ *vecName)                                                │                                                       │
-│ void Rbc_FreeVector(Rbc_Vector *vecPtr)                  │ Destroys the vector and releases its resources\&.       │
-│ Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vecPtr)     │ Returns RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX\&.        │
-│ int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double        │ Returns the minimum and maximum of a real vector;     │
-│ *minPtr, double *maxPtr)                                 │ returns TCL_ERROR for a complex vector\&.               │
-│ int Rbc_CreateVectorWithType(Tcl_Interp *interp, const   │ Creates a real or complex vector of the requested     │
-│ char *vecName, Tcl_Size size, Rbc_VectorType type,       │ type\&.                                                 │
-│ Rbc_Vector **vecPtrPtr)                                  │                                                       │
-│ int Rbc_ResetComplexVector(Rbc_Vector *vecPtr,           │ Replaces the storage and ownership contract of a      │
-│ Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size         │ complex vector\&.                                       │
-│ arraySize, Tcl_FreeProc *freeProc)                       │                                                       │
-│ Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)   │ Returns complex-vector storage, or NULL for a real    │
-│                                                          │ vector\&.                                               │
-│ void Rbc_VectorChanged(Rbc_Vector *vecPtr)               │ Reports an in-place data change without changing      │
-│                                                          │ storage ownership\&.                                    │
-│ void Rbc_VectorChangedRange(Rbc_Vector *vecPtr,          │ Reports that an exact inclusive range of existing     │
-│ Tcl_Size first, Tcl_Size last)                           │ vector storage was modified in place\&.                 │
-└──────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────┐
+│ Function                                │ Description                                                                │
+├─────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
+│ int Rbc_CreateVector(Tcl_Interp         │ Creates a real vector using the traditional Tcl command and automatic      │
+│ *interp, const char *vecName, Tcl_Size  │ array mapping\&.                                                             │
+│ size, Rbc_Vector **vecPtrPtr)           │                                                                            │
+│ int Rbc_GetVector(Tcl_Interp *interp,   │ Looks up an existing real or complex vector\&.                               │
+│ const char *vecName, Rbc_Vector         │                                                                            │
+│ **vecPtrPtr)                            │                                                                            │
+│ int Rbc_ResizeVector(Rbc_Vector         │ Changes the logical vector length while preserving its numeric type\&.       │
+│ *vecPtr, Tcl_Size nValues)              │                                                                            │
+│ char *Rbc_NameOfVector(Rbc_Vector       │ Returns the vector name\&. The returned string belongs to Rbc\&.               │
+│ *vecPtr)                                │                                                                            │
+│ int Rbc_ResetVector(Rbc_Vector *vecPtr, │ Replaces the storage of a real vector\&.                                     │
+│ double *dataArr, Tcl_Size nValues,      │                                                                            │
+│ Tcl_Size arraySize, Tcl_FreeProc        │                                                                            │
+│ *freeProc)                              │                                                                            │
+│ double *Rbc_VectorData(Rbc_Vector       │ Returns real-vector storage, or NULL for a complex vector\&.                 │
+│ *vecPtr)                                │                                                                            │
+│ Tcl_Size Rbc_VectorLength(Rbc_Vector    │ Returns the logical number of vector values\&.                               │
+│ *vecPtr)                                │                                                                            │
+│ Tcl_Size Rbc_VectorSize(Rbc_Vector      │ Returns the current vector capacity in values\&.                             │
+│ *vecPtr)                                │                                                                            │
+│ int Rbc_VectorDirty(Rbc_Vector *vecPtr) │ Returns the vector update counter\&.                                         │
+│ int Rbc_VectorExists2(Tcl_Interp        │ Tests whether a named vector exists\&.                                       │
+│ *interp, const char *vecName)           │                                                                            │
+│ void Rbc_FreeVector(Rbc_Vector *vecPtr) │ Destroys the vector and releases its resources\&.                            │
+│ Rbc_VectorType                          │ Returns RBC_VECTOR_REAL or RBC_VECTOR_COMPLEX\&.                             │
+│ Rbc_VectorGetType(Rbc_Vector *vecPtr)   │                                                                            │
+│ int Rbc_VectorGetRange(Rbc_Vector       │ Returns the minimum and maximum of a real vector\&. Returns TCL_ERROR for a  │
+│ *vecPtr, double *minPtr, double         │ complex vector\&.                                                            │
+│ *maxPtr)                                │                                                                            │
+│ int Rbc_CreateVectorWithType(Tcl_Interp │ Creates a real or complex vector of the requested type\&.                    │
+│ *interp, const char *vecName, Tcl_Size  │                                                                            │
+│ size, Rbc_VectorType type, Rbc_Vector   │                                                                            │
+│ **vecPtrPtr)                            │                                                                            │
+│ int Rbc_ResetComplexVector(Rbc_Vector   │ Replaces the storage of a complex vector\&.                                  │
+│ *vecPtr, Rbc_Complex *dataArr, Tcl_Size │                                                                            │
+│ nValues, Tcl_Size arraySize,            │                                                                            │
+│ Tcl_FreeProc *freeProc)                 │                                                                            │
+│ Rbc_Complex                             │ Returns complex-vector storage, or NULL for a real vector\&.                 │
+│ *Rbc_VectorComplexData(Rbc_Vector       │                                                                            │
+│ *vecPtr)                                │                                                                            │
+│ void Rbc_VectorChanged(Rbc_Vector       │ Reports that the existing vector storage was modified in place without     │
+│ *vecPtr)                                │ changing its storage or ownership contract\&.                                │
+│ void Rbc_VectorChangedRange(Rbc_Vector  │ Reports that the inclusive range first through last of existing vector     │
+│ *vecPtr, Tcl_Size first, Tcl_Size last) │ storage was modified in place\&. Storage, length, capacity, type, and        │
+│                                         │ ownership remain unchanged\&.                                                │
+└─────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP
@@ -1139,19 +1150,19 @@ Both functions accept nValues, arraySize, and freeProc with the same ownership r
 .PP
 .RS 4n
 .nf
-┌────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────┐
-│ freeProc               │ Storage ownership                                                                    │
-├────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────┤
-│ TCL_VOLATILE           │ Rbc copies the supplied data into its own storage\&. The caller retains ownership of   │
-│                        │ dataArr and may reuse or release it immediately after the call returns\&.              │
-│ TCL_STATIC             │ Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid   │
-│                        │ for as long as the vector uses it\&.                                                   │
-│ TCL_DYNAMIC            │ Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage │
-│                        │ is replaced or the vector is destroyed\&. The array must therefore have been allocated │
-│                        │ with compatible Tcl allocation routines such as Tcl_Alloc\&.                           │
-│ custom Tcl_FreeProc *  │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when  │
-│                        │ the storage is no longer needed\&.                                                     │
-└────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ freeProc              │ Storage ownership                                                                            │
+├───────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
+│ TCL_VOLATILE          │ Rbc copies the supplied data into its own storage\&. The caller retains ownership of dataArr   │
+│                       │ and may reuse or release it immediately after the call returns\&.                              │
+│ TCL_STATIC            │ Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid for as    │
+│                       │ long as the vector uses it\&.                                                                  │
+│ TCL_DYNAMIC           │ Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage is      │
+│                       │ replaced or the vector is destroyed\&. The array must therefore have been allocated with       │
+│                       │ compatible Tcl allocation routines such as Tcl_Alloc\&.                                        │
+│ custom Tcl_FreeProc * │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when the      │
+│                       │ storage is no longer needed\&.                                                                 │
+└───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

@@ -275,55 +275,46 @@ Preview generation is disabled by default\&.
 .PP
 .RS 4n
 .nf
-┌─────────────────────────┬─────────────────┬─────────────────┬─────────────────────────────────────────────────┐
-│ Option                  │ Database name   │ Database class  │ Description                                     │
-├─────────────────────────┼─────────────────┼─────────────────┼─────────────────────────────────────────────────┤
-│ -center boolean         │ center          │ Center          │ Controls whether the plot is centered on the    │
-│                         │                 │                 │ page\&. The default is yes\&.                       │
-│ -colormap arrayName     │ colorMap        │ ColorMap        │ Specifies the name of a Tcl array used to       │
-│                         │                 │                 │ override PostScript color definitions\&. An empty │
-│                         │                 │                 │ value uses the colors generated automatically   │
-│                         │                 │                 │ from the graph's Tk colors\&.                     │
-│ -colormode mode         │ colorMode       │ ColorMode       │ Selects the output color mode\&. Accepted values  │
-│                         │                 │                 │ are non-empty prefixes of color, grayscale,     │
-│                         │                 │                 │ greyscale, and monochrome\&. The default is color\&.│
-│ -decorations boolean    │ decorations     │ Decorations     │ Controls whether graph backgrounds and 3-D      │
-│                         │                 │                 │ borders are included in the PostScript output\&.  │
-│                         │                 │                 │ The default is yes\&.                             │
-│ -fontmap arrayName      │ fontMap         │ FontMap         │ Specifies the name of a Tcl array used to map   │
-│                         │                 │                 │ Tk fonts to PostScript fonts\&. An empty value    │
-│                         │                 │                 │ uses automatic font translation\&.                │
-│ -footer boolean         │ footer          │ Footer          │ Controls whether identifying information such   │
-│                         │                 │                 │ as the date, user, and host is printed in the   │
-│                         │                 │                 │ PostScript footer\&. The default is no\&.           │
-│ -height distance        │ height          │ Height          │ Specifies the requested height of the           │
-│                         │                 │                 │ PostScript plot\&. 0 uses the current graph       │
-│                         │                 │                 │ height\&. The default is 0\&.                       │
-│ -landscape boolean      │ landscape       │ Landscape       │ Controls whether the plot is generated in       │
-│                         │                 │                 │ landscape orientation\&. The default is no\&.       │
-│ -maxpect boolean        │ maxpect         │ Maxpect         │ Controls whether the plot is scaled to the      │
-│                         │                 │                 │ largest size that fits on the page while        │
-│                         │                 │                 │ preserving its aspect ratio\&. The default is no\&. │
-│ -padx padding           │ padX            │ PadX            │ Specifies horizontal page padding as one or two │
-│                         │                 │                 │ non-negative screen distances\&. The default is   │
-│                         │                 │                 │ 1\&.0i\&.                                           │
-│ -pady padding           │ padY            │ PadY            │ Specifies vertical page padding as one or two   │
-│                         │                 │                 │ non-negative screen distances\&. The default is   │
-│                         │                 │                 │ 1\&.0i\&.                                           │
-│ -paperheight distance   │ paperHeight     │ PaperHeight     │ Specifies the positive paper height\&. The        │
-│                         │                 │                 │ default is 11\&.0i\&.                               │
-│ -paperwidth distance    │ paperWidth      │ PaperWidth      │ Specifies the positive paper width\&. The default │
-│                         │                 │                 │ is 8\&.5i\&.                                        │
-│ -preview boolean        │ preview         │ Preview         │ Controls whether a preview image is included in │
-│                         │                 │                 │ the generated output\&. The default is no\&.        │
-│ -previewformat format   │ previewFormat   │ PreviewFormat   │ Selects the preview format\&. Accepted values are │
-│                         │                 │                 │ non-empty prefixes of the formats supported on  │
-│                         │                 │                 │ the current platform: epsi, wmf, and tiff\&. The  │
-│                         │                 │                 │ default is epsi\&.                                │
-│ -width distance         │ width           │ Width           │ Specifies the requested width of the PostScript │
-│                         │                 │                 │ plot\&. 0 uses the current graph width\&. The       │
-│                         │                 │                 │ default is 0\&.                                   │
-└─────────────────────────┴─────────────────┴─────────────────┴─────────────────────────────────────────────────┘
+┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────┐
+│ Option                │ Database name │ Database class │ Description                                                 │
+├───────────────────────┼───────────────┼────────────────┼─────────────────────────────────────────────────────────────┤
+│ -center boolean       │ center        │ Center         │ Controls whether the plot is centered on the page\&. The      │
+│                       │               │                │ default is yes\&.                                             │
+│ -colormap arrayName   │ colorMap      │ ColorMap       │ Specifies the name of a Tcl array used to override          │
+│                       │               │                │ PostScript color definitions\&. An empty value uses the       │
+│                       │               │                │ colors generated automatically from the graph's Tk colors\&.  │
+│ -colormode mode       │ colorMode     │ ColorMode      │ Selects the output color mode\&. Accepted values are          │
+│                       │               │                │ non-empty prefixes of color, grayscale, greyscale, and      │
+│                       │               │                │ monochrome\&. The default is color\&.                           │
+│ -decorations boolean  │ decorations   │ Decorations    │ Controls whether graph backgrounds and 3-D borders are      │
+│                       │               │                │ included in the PostScript output\&. The default is yes\&.      │
+│ -fontmap arrayName    │ fontMap       │ FontMap        │ Specifies the name of a Tcl array used to map Tk fonts to   │
+│                       │               │                │ PostScript fonts\&. An empty value uses automatic font        │
+│                       │               │                │ translation\&.                                                │
+│ -footer boolean       │ footer        │ Footer         │ Controls whether identifying information such as the date,  │
+│                       │               │                │ user, and host is printed in the PostScript footer\&. The     │
+│                       │               │                │ default is no\&.                                              │
+│ -height distance      │ height        │ Height         │ Specifies the requested height of the PostScript plot\&. 0    │
+│                       │               │                │ uses the current graph height\&. The default is 0\&.            │
+│ -landscape boolean    │ landscape     │ Landscape      │ Controls whether the plot is generated in landscape         │
+│                       │               │                │ orientation\&. The default is no\&.                             │
+│ -maxpect boolean      │ maxpect       │ Maxpect        │ Controls whether the plot is scaled to the largest size     │
+│                       │               │                │ that fits on the page while preserving its aspect ratio\&.    │
+│                       │               │                │ The default is no\&.                                          │
+│ -padx padding         │ padX          │ PadX           │ Specifies horizontal page padding as one or two             │
+│                       │               │                │ non-negative screen distances\&. The default is 1\&.0i\&.         │
+│ -pady padding         │ padY          │ PadY           │ Specifies vertical page padding as one or two non-negative  │
+│                       │               │                │ screen distances\&. The default is 1\&.0i\&.                      │
+│ -paperheight distance │ paperHeight   │ PaperHeight    │ Specifies the positive paper height\&. The default is 11\&.0i\&.  │
+│ -paperwidth distance  │ paperWidth    │ PaperWidth     │ Specifies the positive paper width\&. The default is 8\&.5i\&.    │
+│ -preview boolean      │ preview       │ Preview        │ Controls whether a preview image is included in the         │
+│                       │               │                │ generated output\&. The default is no\&.                        │
+│ -previewformat format │ previewFormat │ PreviewFormat  │ Selects the preview format\&. Accepted values are non-empty   │
+│                       │               │                │ prefixes of the formats supported on the current platform:  │
+│                       │               │                │ epsi, wmf, and tiff\&. The default is epsi\&.                   │
+│ -width distance       │ width         │ Width          │ Specifies the requested width of the PostScript plot\&. 0     │
+│                       │               │                │ uses the current graph width\&. The default is 0\&.             │
+└───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .PP

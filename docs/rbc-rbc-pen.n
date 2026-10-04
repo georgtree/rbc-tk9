@@ -257,56 +257,55 @@ a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitt
 .PP
 .RS 4n
 .nf
-┌────────────────────────┬────────────────┬────────────────┬──────────────────────────────────────────────────────────┐
-│ Option                 │ Database name  │ Database class │ Description                                              │
-├────────────────────────┼────────────────┼────────────────┼──────────────────────────────────────────────────────────┤
-│ -color color           │ color          │ Color          │ Sets the trace color\&. The default is navy blue for       │
-│                        │                │                │ normal line pens and blue for activeLine\&.                │
-│ -dashes dashes         │ dashes         │ Dashes         │ Sets the trace dash pattern\&. An empty value selects a    │
-│                        │                │                │ solid line\&.                                              │
-│                        │                │                │ Each numeric list item accepts a Tcl integer expression\&. │
-│ -errorbarcap width     │ errorBarCap    │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A positive    │
-│                        │                │                │ value selects an explicit size; 0 automatically          │
-│                        │                │                │ derives the size from the symbol size\&. The default is 1\&. │
-│ -errorbarcolor color   │ errorBarColor  │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the trace        │
-│                        │                │                │ color\&.                                                   │
-│ -errorbarwidth width   │ errorBarWidth  │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&.         │
-│ -fill color            │ fill           │ Fill           │ Sets the symbol fill color\&. defcolor uses the trace      │
-│                        │                │                │ color; an empty value leaves symbols unfilled\&.           │
-│ -linewidth width       │ lineWidth      │ LineWidth      │ Sets the trace width\&. The default is 1; 0 suppresses     │
-│                        │                │                │ the trace\&.                                               │
-│ -offdash color         │ offDash        │ OffDash        │ Sets the color used for the gaps of a dashed trace\&. An   │
-│                        │                │                │ empty value leaves the gaps transparent; defcolor uses   │
-│                        │                │                │ the trace color\&.                                         │
-│ -outline color         │ outline        │ Outline        │ Sets the symbol outline color\&. defcolor uses the trace   │
-│                        │                │                │ color\&.                                                   │
-│ -outlinewidth width    │ outlineWidth   │ OutlineWidth   │ Sets the non-negative width of symbol outlines\&. The      │
-│                        │                │                │ default is 1\&.                                            │
-│ -pixels size           │ pixels         │ Pixels         │ Sets the requested symbol size\&. The default is 0\&.125i\&.   │
-│ -showerrorbars value   │ showErrorBars  │ ShowErrorBars  │ Selects which error bars are displayed: X, Y, both, or   │
-│                        │                │                │ neither\&. The default is both\&.                            │
-│ -showvalues value      │ showValues     │ ShowValues     │ Selects which coordinate values are displayed next to    │
-│                        │                │                │ data points\&. The default is no\&.                          │
-│ -symbol symbol         │ symbol         │ Symbol         │ Sets the symbol drawn at data points\&. The default is     │
-│                        │                │                │ circle\&.                                                  │
-│ -type type             │ —              │ —              │ Selects the pen type when the pen is created\&. line       │
-│                        │                │                │ creates a line pen; strip also creates a line pen\&. The   │
-│                        │                │                │ default is line\&.                                         │
-│ -valueanchor anchor    │ valueAnchor    │ ValueAnchor    │ Sets the anchor used to position value labels relative   │
-│                        │                │                │ to their data points\&. The default is s\&.                  │
-│ -valuecolor color      │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The default    │
-│                        │                │                │ is black\&.                                                │
-│ -valuefont font        │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.                 │
-│ -valuecommand cmd      │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. Default: │
-│                        │                │                │ empty\&.                                                   │
-│ -valueoffset {dx dy}   │ valueOffset    │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                              │
-│ -valueformat format    │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value labels\&.      │
-│                        │                │                │ The default is %g\&.                                       │
-│ -valuerotate degrees   │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&.      │
-│                        │                │                │ The default is 0\&.0\&.                                      │
-│ -valueshadow shadow    │ valueShadow    │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value      │
-│                        │                │                │ disables the shadow\&.                                     │
-└────────────────────────┴────────────────┴────────────────┴──────────────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
+│ Option               │ Database name │ Database class │ Description                                                  │
+├──────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────┤
+│ -color color         │ color         │ Color          │ Sets the trace color\&. The default is navy blue for normal    │
+│                      │               │                │ line pens and blue for activeLine\&.                           │
+│ -dashes dashes       │ dashes        │ Dashes         │ Sets the trace dash pattern\&. An empty value selects a solid  │
+│                      │               │                │ line\&. Each numeric list item accepts a Tcl integer           │
+│                      │               │                │ expression\&.                                                  │
+│ -errorbarcap width   │ errorBarCap   │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A positive value  │
+│                      │               │                │ selects an explicit size; 0 automatically derives the size   │
+│                      │               │                │ from the symbol size\&. The default is 1\&.                      │
+│ -errorbarcolor color │ errorBarColor │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the trace color\&.     │
+│ -errorbarwidth width │ errorBarWidth │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&.             │
+│ -fill color          │ fill          │ Fill           │ Sets the symbol fill color\&. defcolor uses the trace color;   │
+│                      │               │                │ an empty value leaves symbols unfilled\&.                      │
+│ -linewidth width     │ lineWidth     │ LineWidth      │ Sets the trace width\&. The default is 1; 0 suppresses the     │
+│                      │               │                │ trace\&.                                                       │
+│ -offdash color       │ offDash       │ OffDash        │ Sets the color used for the gaps of a dashed trace\&. An empty │
+│                      │               │                │ value leaves the gaps transparent; defcolor uses the trace   │
+│                      │               │                │ color\&.                                                       │
+│ -outline color       │ outline       │ Outline        │ Sets the symbol outline color\&. defcolor uses the trace       │
+│                      │               │                │ color\&.                                                       │
+│ -outlinewidth width  │ outlineWidth  │ OutlineWidth   │ Sets the non-negative width of symbol outlines\&. The default  │
+│                      │               │                │ is 1\&.                                                        │
+│ -pixels size         │ pixels        │ Pixels         │ Sets the requested symbol size\&. The default is 0\&.125i\&.       │
+│ -showerrorbars value │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y, both, or       │
+│                      │               │                │ neither\&. The default is both\&.                                │
+│ -showvalues value    │ showValues    │ ShowValues     │ Selects which coordinate values are displayed next to data   │
+│                      │               │                │ points\&. The default is no\&.                                   │
+│ -symbol symbol       │ symbol        │ Symbol         │ Sets the symbol drawn at data points\&. The default is circle\&. │
+│ -type type           │ —             │ —              │ Selects the pen type when the pen is created\&. line creates a │
+│                      │               │                │ line pen; strip also creates a line pen\&. The default is      │
+│                      │               │                │ line\&.                                                        │
+│ -valueanchor anchor  │ valueAnchor   │ ValueAnchor    │ Sets the anchor used to position value labels relative to    │
+│                      │               │                │ their data points\&. The default is s\&.                         │
+│ -valuecolor color    │ valueColor    │ ValueColor     │ Sets the color used to draw value labels\&. The default is     │
+│                      │               │                │ black\&.                                                       │
+│ -valuefont font      │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.                     │
+│ -valuecommand cmd    │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. The default  │
+│                      │               │                │ is empty\&.                                                    │
+│ -valueoffset {dx dy} │ valueOffset   │ ValueOffset    │ Moves the label anchor by signed integer pixels\&. Default: {0 │
+│                      │               │                │ 0}\&.                                                          │
+│ -valueformat format  │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value labels\&. The      │
+│                      │               │                │ default is %g\&.                                               │
+│ -valuerotate degrees │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&. The      │
+│                      │               │                │ default is 0\&.0\&.                                              │
+│ -valueshadow shadow  │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value disables │
+│                      │               │                │ the shadow\&.                                                  │
+└──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SH "BAR PENS"
@@ -381,57 +380,55 @@ See \fIBARELEMENT\fP for placement of value labels relative to the baseline and 
 .PP
 .RS 4n
 .nf
-┌───────────────────────┬────────────────┬────────────────┬──────────────────────────────────────────────────┐
-│ Option                │ Database name  │ Database class │ Description                                      │
-├───────────────────────┼────────────────┼────────────────┼──────────────────────────────────────────────────┤
-│ -background color     │ background     │ Background     │ Specifies the bar background and the color       │
-│                       │                │                │ resource used for its 3-D border\&. With a         │
-│                       │                │                │ stipple, it supplies the stipple background\&. An  │
-│                       │                │                │ empty value disables the background and 3-D      │
-│                       │                │                │ border\&. The default is navy blue; activeBar      │
-│                       │                │                │ defaults to red\&.                                 │
-│ -bg color             │ —              │ —              │ Synonym for -background\&.                         │
-│ -borderwidth width    │ borderWidth    │ BorderWidth    │ Sets the width of the 3-D border around bars\&.    │
-│                       │                │                │ The default is 2\&.                                │
-│ -bd width             │ —              │ —              │ Synonym for -borderwidth\&.                        │
-│ -errorbarcolor color  │ errorBarColor  │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the bar  │
-│                       │                │                │ foreground color\&.                                │
-│ -errorbarwidth width  │ errorBarWidth  │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&. │
-│ -errorbarcap width    │ errorBarCap    │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A     │
-│                       │                │                │ positive value selects an explicit size; 0       │
-│                       │                │                │ automatically derives the size from the bar      │
-│                       │                │                │ width\&. The default is 1\&.                         │
-│ -fillopacity value    │ fillOpacity    │ FillOpacity    │ Fill opacity 0\&.0-1\&.0; see Bar fill opacity\&.      │
-│ -foreground color     │ foreground     │ Foreground     │ Specifies the primary bar fill color\&. With a     │
-│                       │                │                │ stipple, it supplies the stipple foreground\&. An  │
-│                       │                │                │ empty value disables the foreground fill\&. The    │
-│                       │                │                │ default is blue; activeBar defaults to pink\&.     │
-│ -fg color             │ —              │ —              │ Synonym for -foreground\&.                         │
-│ -relief relief        │ relief         │ Relief         │ Sets the relief used to draw bars\&. The default   │
-│                       │                │                │ is raised\&.                                       │
-│ -showerrorbars value  │ showErrorBars  │ ShowErrorBars  │ Selects which error bars are displayed: X, Y,    │
-│                       │                │                │ both, or neither\&. The default is both\&.           │
-│ -showvalues value     │ showValues     │ ShowValues     │ Selects which coordinate values are displayed    │
-│                       │                │                │ next to bars\&. The default is no\&.                 │
-│ -stipple bitmap       │ stipple        │ Stipple        │ Specifies a bitmap used to stipple the bar fill\&. │
-│                       │                │                │ An empty value selects a solid fill\&.             │
-│ -type type            │ —              │ —              │ Selects the pen type when the pen is created\&.    │
-│                       │                │                │ The default is bar\&.                              │
-│ -valueanchor anchor   │ valueAnchor    │ ValueAnchor    │ Sets the anchor used to position value labels    │
-│                       │                │                │ relative to bars\&. The default is s\&.              │
-│ -valuecolor color     │ valueColor     │ ValueColor     │ Sets the color used to draw value labels\&. The    │
-│                       │                │                │ default is black\&.                                │
-│ -valuefont font       │ valueFont      │ ValueFont      │ Sets the font used to draw value labels\&.         │
-│ -valuecommand cmd     │ valueCommand   │ ValueCommand   │ Formats value labels with a Tcl command prefix\&.  │
-│                       │                │                │ Default: empty\&.                                  │
-│ -valueoffset {dx dy}  │ valueOffset    │ ValueOffset    │ Pixel offset\&. Default: 0 0\&.                      │
-│ -valueformat format   │ valueFormat    │ ValueFormat    │ Sets the printf-style format used for value      │
-│                       │                │                │ labels\&. The default is %g\&.                       │
-│ -valuerotate degrees  │ valueRotate    │ ValueRotate    │ Sets the rotation angle of value labels in       │
-│                       │                │                │ degrees\&. The default is 0\&.0\&.                     │
-│ -valueshadow shadow   │ valueShadow    │ ValueShadow    │ Specifies a shadow for value labels\&. An empty    │
-│                       │                │                │ value disables the shadow\&.                       │
-└───────────────────────┴────────────────┴────────────────┴──────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
+│ Option               │ Database name │ Database class │ Description                                                  │
+├──────────────────────┼───────────────┼────────────────┼──────────────────────────────────────────────────────────────┤
+│ -background color    │ background    │ Background     │ Specifies the bar background and the color resource used for │
+│                      │               │                │ its 3-D border\&. With a stipple, it supplies the stipple      │
+│                      │               │                │ background\&. An empty value disables the background and 3-D   │
+│                      │               │                │ border\&. The default is navy blue; activeBar defaults to red\&. │
+│ -bg color            │ —             │ —              │ Synonym for -background\&.                                     │
+│ -borderwidth width   │ borderWidth   │ BorderWidth    │ Sets the width of the 3-D border around bars\&. The default is │
+│                      │               │                │ 2\&.                                                           │
+│ -bd width            │ —             │ —              │ Synonym for -borderwidth\&.                                    │
+│ -errorbarcolor color │ errorBarColor │ ErrorBarColor  │ Sets the error-bar color\&. defcolor uses the bar foreground   │
+│                      │               │                │ color\&.                                                       │
+│ -errorbarwidth width │ errorBarWidth │ ErrorBarWidth  │ Sets the error-bar line width\&. The default is 1\&.             │
+│ -errorbarcap width   │ errorBarCap   │ ErrorBarCap    │ Sets the requested size of error-bar caps\&. A positive value  │
+│                      │               │                │ selects an explicit size; 0 automatically derives the size   │
+│                      │               │                │ from the bar width\&. The default is 1\&.                        │
+│ -fillopacity value   │ fillOpacity   │ FillOpacity    │ Fill opacity from 0\&.0 to 1\&.0 (default)\&. Cairo/SVG support    │
+│                      │               │                │ partial opacity; native/PostScript only suppress zero\&.       │
+│ -foreground color    │ foreground    │ Foreground     │ Specifies the primary bar fill color\&. With a stipple, it     │
+│                      │               │                │ supplies the stipple foreground\&. An empty value disables the │
+│                      │               │                │ foreground fill\&. The default is blue; activeBar defaults to  │
+│                      │               │                │ pink\&.                                                        │
+│ -fg color            │ —             │ —              │ Synonym for -foreground\&.                                     │
+│ -relief relief       │ relief        │ Relief         │ Sets the relief used to draw bars\&. The default is raised\&.    │
+│ -showerrorbars value │ showErrorBars │ ShowErrorBars  │ Selects which error bars are displayed: X, Y, both, or       │
+│                      │               │                │ neither\&. The default is both\&.                                │
+│ -showvalues value    │ showValues    │ ShowValues     │ Selects which coordinate values are displayed next to bars\&.  │
+│                      │               │                │ The default is no\&.                                           │
+│ -stipple bitmap      │ stipple       │ Stipple        │ Specifies a bitmap used to stipple the bar fill\&. An empty    │
+│                      │               │                │ value selects a solid fill\&.                                  │
+│ -type type           │ —             │ —              │ Selects the pen type when the pen is created\&. The default is │
+│                      │               │                │ bar\&.                                                         │
+│ -valueanchor anchor  │ valueAnchor   │ ValueAnchor    │ Sets the anchor used to position value labels relative to    │
+│                      │               │                │ bars\&. The default is s\&.                                      │
+│ -valuecolor color    │ valueColor    │ ValueColor     │ Sets the color used to draw value labels\&. The default is     │
+│                      │               │                │ black\&.                                                       │
+│ -valuefont font      │ valueFont     │ ValueFont      │ Sets the font used to draw value labels\&.                     │
+│ -valuecommand cmd    │ valueCommand  │ ValueCommand   │ Formats value labels with a Tcl command prefix\&. The default  │
+│                      │               │                │ is empty\&.                                                    │
+│ -valueoffset {dx dy} │ valueOffset   │ ValueOffset    │ Moves the label anchor by signed integer pixels\&. Default: {0 │
+│                      │               │                │ 0}\&.                                                          │
+│ -valueformat format  │ valueFormat   │ ValueFormat    │ Sets the printf-style format used for value labels\&. The      │
+│                      │               │                │ default is %g\&.                                               │
+│ -valuerotate degrees │ valueRotate   │ ValueRotate    │ Sets the rotation angle of value labels in degrees\&. The      │
+│                      │               │                │ default is 0\&.0\&.                                              │
+│ -valueshadow shadow  │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value disables │
+│                      │               │                │ the shadow\&.                                                  │
+└──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
 .fi
 .RE
 .SH "OPTION DATABASE"

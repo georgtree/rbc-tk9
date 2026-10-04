@@ -548,7 +548,7 @@ Documentation generation requires:
 
 - A working Rbc build and its runtime dependencies.
 - The Tcl `ruff` package with Sphinx and nroff output support.
-- Tcllib's `fileutil` package.
+- Tcllib's `fileutil` and `textutil::adjust` packages.
 - Python Sphinx, with `sphinx-build` available through `PATH`.
 - `ditaa` and its Java runtime when rendering diagrams that use the
   configured diagram generator.
@@ -565,11 +565,28 @@ make doc
 The generator reads the `.ruff` sources and Tcl API documentation, writes Sphinx sources under `docs/sphinx`, builds
 HTML under `docs`, and generates the `.n` manual pages.
 
-Review the generator output and resulting pages before publishing.  The current generator prints Sphinx diagnostics, so
+Write documentation tables once, in Markdown. `docs/tableHelpers.tcl` expands the README and every selected
+namespace's `_ruff_preamble` before Ruff runs. Each table keeps its Markdown form for Sphinx/HTML and receives a
+wrapped, boxed literal form for nroff, selected with generated `#ruffopt` guards. Existing format restrictions and
+fenced code examples are preserved. Preambles are restored after generation, including on errors.
+
+Do not maintain a second hand-written nroff copy of a table. Tables may have any column count that fits the default
+120-character width (including borders, excluding source indentation). Columns are sized automatically; long cells
+wrap. Alignment markers are accepted, while the nroff cells are left-aligned. Escape literal pipes as `\|` or put them
+inside inline code. Table rows must have the same column count as the header. This preprocessing covers namespace
+preambles and the README; it does not rewrite procedure bodies or TclOO method documentation.
+
+The helper regression tests require only Tcl, Tcllib and `tcltest`:
+
+```sh
+tclsh9.0 tests/RBC.docs.tables.A.test
+```
+
+Review the generator output and resulting pages before publishing. The current generator prints Sphinx diagnostics, so
 the Make command's exit status alone is not a complete documentation-build check.
 
-`README.md` supplies the shared introduction and build instructions.
-`docs/startPage.ruff` reads that file as the documentation preamble.
+`README.md` supplies the shared introduction and build instructions. `docs/startPage.ruff` reads that file as the
+documentation preamble.
 
 ## Reporting problems
 

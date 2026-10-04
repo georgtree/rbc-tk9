@@ -529,7 +529,7 @@ browse the local HTML documentation.</p>
 <ul class="simple">
 <li><p>A working Rbc build and its runtime dependencies.</p></li>
 <li><p>The Tcl <code class="docutils literal notranslate"><span class="pre">ruff</span></code> package with Sphinx and nroff output support.</p></li>
-<li><p>Tcllib’s <code class="docutils literal notranslate"><span class="pre">fileutil</span></code> package.</p></li>
+<li><p>Tcllib’s <code class="docutils literal notranslate"><span class="pre">fileutil</span></code> and <code class="docutils literal notranslate"><span class="pre">textutil::adjust</span></code> packages.</p></li>
 <li><p>Python Sphinx, with <code class="docutils literal notranslate"><span class="pre">sphinx-build</span></code> available through <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ditaa</span></code> and its Java runtime when rendering diagrams that use the configured diagram generator.</p></li>
 </ul>
@@ -541,6 +541,19 @@ different output or lack the required output formats.</p>
 </div>
 <p>The generator reads the <code class="docutils literal notranslate"><span class="pre">.ruff</span></code> sources and Tcl API documentation, writes Sphinx sources under <code class="docutils literal notranslate"><span class="pre">docs/sphinx</span></code>, builds
 HTML under <code class="docutils literal notranslate"><span class="pre">docs</span></code>, and generates the <code class="docutils literal notranslate"><span class="pre">.n</span></code> manual pages.</p>
+<p>Write documentation tables once, in Markdown. <code class="docutils literal notranslate"><span class="pre">docs/tableHelpers.tcl</span></code> expands the README and every selected
+namespace’s <code class="docutils literal notranslate"><span class="pre">_ruff_preamble</span></code> before Ruff runs. Each table keeps its Markdown form for Sphinx/HTML and receives a
+wrapped, boxed literal form for nroff, selected with generated <code class="docutils literal notranslate"><span class="pre">#ruffopt</span></code> guards. Existing format restrictions and
+fenced code examples are preserved. Preambles are restored after generation, including on errors.</p>
+<p>Do not maintain a second hand-written nroff copy of a table. Tables may have any column count that fits the default
+120-character width (including borders, excluding source indentation). Columns are sized automatically; long cells
+wrap. Alignment markers are accepted, while the nroff cells are left-aligned. Escape literal pipes as <code class="docutils literal notranslate"><span class="pre">\|</span></code> or put them
+inside inline code. Table rows must have the same column count as the header. This preprocessing covers namespace
+preambles and the README; it does not rewrite procedure bodies or TclOO method documentation.</p>
+<p>The helper regression tests require only Tcl, Tcllib and <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh9.0<span class="w"> </span>tests/RBC.docs.tables.A.test
+</pre></div>
+</div>
 <p>Review the generator output and resulting pages before publishing.  The current generator prints Sphinx diagnostics, so
 the Make command’s exit status alone is not a complete documentation-build check.</p>
 <p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> supplies the shared introduction and build instructions.

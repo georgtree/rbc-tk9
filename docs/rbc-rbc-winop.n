@@ -34,18 +34,18 @@ The current interface contains both direct image operations and an image subgrou
 .PP
 .RS 4n
 .nf
-┌───────────┬──────────────────────────┬────────────────────────────────┐
-│ Operation │ Direct form              │ image form                     │
-├───────────┼──────────────────────────┼────────────────────────────────┤
-│ convolve  │ ::rbc::winop convolve    │ ::rbc::winop image convolve    │
-│ gradient  │ —                        │ ::rbc::winop image gradient    │
-│ quantize  │ ::rbc::winop quantize    │ —                              │
-│ readjpeg  │ ::rbc::winop readjpeg    │ ::rbc::winop image readjpeg    │
-│ resample  │ ::rbc::winop resample    │ ::rbc::winop image resample    │
-│ rotate    │ —                        │ ::rbc::winop image rotate      │
-│ snap      │ ::rbc::winop snap        │ ::rbc::winop image snap        │
-│ subsample │ ::rbc::winop subsample   │ ::rbc::winop image subsample   │
-└───────────┴──────────────────────────┴────────────────────────────────┘
+┌───────────┬────────────────────────┬──────────────────────────────┐
+│ Operation │ Direct form            │ image form                   │
+├───────────┼────────────────────────┼──────────────────────────────┤
+│ convolve  │ ::rbc::winop convolve  │ ::rbc::winop image convolve  │
+│ gradient  │ —                      │ ::rbc::winop image gradient  │
+│ quantize  │ ::rbc::winop quantize  │ —                            │
+│ readjpeg  │ ::rbc::winop readjpeg  │ ::rbc::winop image readjpeg  │
+│ resample  │ ::rbc::winop resample  │ ::rbc::winop image resample  │
+│ rotate    │ —                      │ ::rbc::winop image rotate    │
+│ snap      │ ::rbc::winop snap      │ ::rbc::winop image snap      │
+│ subsample │ ::rbc::winop subsample │ ::rbc::winop image subsample │
+└───────────┴────────────────────────┴──────────────────────────────┘
 .fi
 .RE
 .PP
