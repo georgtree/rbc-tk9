@@ -383,10 +383,6 @@ preserves existing placement in both renderers and PostScript\&.
 Elements and named pens now accept -valuecommand, a Tcl command prefix receiving the graph pathname,
 element name, source index, X and Y\&. Its result replaces the -showvalues label on screen and in PostScript\&.
 Empty results hide individual labels; clearing the option restores -valueformat\&.
-.SH "IMPLEMENTATION MODERNIZATION"
-.PP
-The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
-configuration rollback, numerical boundaries and resource lifetime management\&.
 .SS "VECTOR POLYLINE SIMPLIFICATION"
 .PP
 rbc::vector::simplify x y destX destY tolerance (also rbc::vector simplify) reduces a polyline
@@ -411,6 +407,10 @@ half\&. Window types are rectangular, Hann, Hamming, Blackman and Bartlett; peri
 with symmetric form available explicitly\&. Generate windows at the original sample count before padding,
 and frequency bins at the actual transform length\&. Neither operation creates vectors or changes types\&.
 See \fI::rbc::VECINST\fP for formulas, examples and amplitude/energy normalization\&.
+.SH "IMPLEMENTATION MODERNIZATION"
+.PP
+The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
+configuration rollback, numerical boundaries and resource lifetime management\&.
 .SS "TCL 9 COMMAND AND OBJECT API"
 .TP
 \(bu

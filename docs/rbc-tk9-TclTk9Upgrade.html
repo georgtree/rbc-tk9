@@ -368,11 +368,6 @@ preserves existing placement in both renderers and PostScript.</p>
 element name, source index, X and Y. Its result replaces the <code class="docutils literal notranslate"><span class="pre">-showvalues</span></code> label on screen and in PostScript.
 Empty results hide individual labels; clearing the option restores <code class="docutils literal notranslate"><span class="pre">-valueformat</span></code>.</p>
 </section>
-</section>
-<section id="implementation-modernization">
-<span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
-<p>The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
-configuration rollback, numerical boundaries and resource lifetime management.</p>
 <section id="vector-polyline-simplification">
 <span id="r-tcltk9upgrade-vector-polyline-simplification"></span><span id="r-3a3atcltk9upgradeqzvector20polyline20simplification"></span><h3>Vector polyline simplification<a class="headerlink" href="#vector-polyline-simplification" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">destX</span> <span class="pre">destY</span> <span class="pre">tolerance</span></code> (also <code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">simplify</span></code>) reduces a polyline
@@ -400,6 +395,11 @@ with symmetric form available explicitly. Generate windows at the original sampl
 and frequency bins at the actual transform length. Neither operation creates vectors or changes types.
 See <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-namespaceqz3a3arbc3a3avecinst"><span class="std std-ref">::rbc::VECINST</span></a> for formulas, examples and amplitude/energy normalization.</p>
 </section>
+</section>
+<section id="implementation-modernization">
+<span id="r-tcltk9upgrade-implementation-modernization"></span><span id="r-3a3atcltk9upgradeqzimplementation20modernization"></span><h2>Implementation modernization<a class="headerlink" href="#implementation-modernization" title="Link to this heading">¶</a></h2>
+<p>The migration replaces obsolete Tcl/Tk interfaces, widens collection sizes and indexes, and improves
+configuration rollback, numerical boundaries and resource lifetime management.</p>
 <section id="tcl-9-command-and-object-api">
 <span id="r-tcltk9upgrade-tcl-9-command-and-object-api"></span><span id="r-3a3atcltk9upgradeqztcl20920command20and20object20api"></span><h3>Tcl 9 command and object API<a class="headerlink" href="#tcl-9-command-and-object-api" title="Link to this heading">¶</a></h3>
 <ul class="simple">
@@ -849,12 +849,12 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
 <li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
 <li><a class="reference internal" href="#vector-polyline-simplification">Vector polyline simplification</a></li>
 <li><a class="reference internal" href="#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
 <li><a class="reference internal" href="#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-modernization">Implementation modernization</a><ul>
 <li><a class="reference internal" href="#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
 <li><a class="reference internal" href="#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
 <li><a class="reference internal" href="#modern-tk-option-handling">Modern Tk option handling</a></li>
