@@ -138,6 +138,7 @@ namespace eval ::rbc::GRAPHINST {
         | `crosshairs`                         | interactive crosshairs                |
         | `postscript`                         | PostScript output                     |
         | `svg`                                | SVG output                            |
+        | `pdf`                                | PDF output                            |
 
         These component interfaces are documented separately.
 
@@ -764,6 +765,15 @@ namespace eval ::rbc::GRAPHINST {
 
         See [::rbc::SVG] for command syntax, options, examples and export limitations.
 
+        ## PDF output
+        The [PDF][::rbc::PDF] component writes a single-page PDF without Cairo or an external converter:
+        ```tcl
+        .g pdf output plot.pdf -width 16c -height 12c
+        set bytes [.g pdf output]
+        ```
+        It shares the graph export abstraction with SVG and PostScript. Returned data is a binary bytearray.
+        See [::rbc::PDF] for options, font/encoding restrictions and image-capture limitations.
+
         ## Named fonts and display scaling
         Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After `font configure`, pending
         idle work refreshes graph and axis titles, tick labels, legends (including external legends), text-marker
@@ -1095,6 +1105,14 @@ namespace eval ::rbc::GRAPHINST {
         # Performs a PostScript output operation for the graph.
         # Returns: Result of the selected PostScript operation.
         # Synopsis: operation ?args ...?
+    }
+
+    proc pdf {args} {
+        # Performs a PDF output operation. See [::rbc::PDF] for options and limitations.
+        # Returns: Option information, a PDF bytearray, or nothing when writing a file.
+        # Synopsis: cget option
+        # Synopsis: configure ?option? ?value ...?
+        # Synopsis: output ?file? ?option value ...?
     }
 
     proc svg {args} {

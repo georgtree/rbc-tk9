@@ -8,6 +8,7 @@ Screen rendering and document export use separate constructors.
 |---------------------------|----------------------------------------------------------------------------------------|
 | `rbcGrExport.c`           | Shared export setup/cleanup, drawing order, plot clipping and margins                  |
 | `rbcGrPs.c`               | PostScript command/options, page layout, EPS preamble/trailer, preview and file output |
+| `rbcGrPdf.c` | PDF options, binary file/bytearray output, document objects, resources and byte-offset cross-reference table |
 | `rbcGrSvg.c`              | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output    |
 | `rbcRender.c`             | Drawing dispatch and backend primitive implementations                                 |
 | `rbcPs.c`, `rbcGraph.pro` | Existing PostScript emitters and symbol procedures                                     |
@@ -40,3 +41,15 @@ and failed window capture uses the existing gray rectangle fallback. Font/color 
 
 Tests are in `tests/RBC.graph.svg.A.test` and `tests/RBC.graph.postscript.*.test`. The SVG tests also exercise
 alternating exports and recovery after an export error. Screen renderer tests remain separate.
+
+## Direct PDF backend
+
+`RBC_EXPORT_PDF` selects `pdfOps` and `pdfOutputOps` in `rbcRender.c`. It shares the export traversal and semantic
+style inputs with SVG/PostScript, but writes PDF operators directly. The document writer in `rbcGrPdf.c` owns
+resource storage. Stream lengths and cross-reference offsets count bytes; the returned document is a Tcl bytearray.
+Resource entries keep stable addresses because Tcl_DString may point into its own inline buffer. Each primitive
+balances its graphics-state saves/restores; the plot clip is shared across the traversal. The initial matrix maps
+graph pixels into physical points and flips Y without screen-rendering half-pixel translations.
+
+Regression tests: `tests/RBC.graph.pdf.A.test`. They validate all object offsets and stream lengths, binary file
+roundtrips, option isolation, resource growth, font errors before opening files, transparency and geometry restoration.

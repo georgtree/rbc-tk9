@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>::rbc::PDF &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="vector command" href="rbc-tk9-rbc-vector.html" />
+    <link rel="prev" title="Graph SVG SVG command" href="rbc-tk9-rbc-SVG.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-SVG.html" title="Graph SVG SVG command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">::rbc::PDF</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rbc-pdf">
+<span id="r-rbc-pdf"></span><span id="r-3a3arbc3a3apdf"></span><h1>::rbc::PDF<a class="headerlink" href="#rbc-pdf" title="Link to this heading">¶</a></h1>
+<p>The PDF component exports a single-page PDF 1.4 document directly, without Cairo, Ghostscript or another PDF
+library. It is available on graph, barchart, stripchart and polar widgets, independently of the screen
+renderer. Each widget has its own PDF settings, separate from SVG and PostScript settings.</p>
+<section id="generating-pdf">
+<span id="r-rbc-pdf-generating-pdf"></span><span id="r-3a3arbc3a3apdfqzgenerating20pdf"></span><h2>Generating PDF<a class="headerlink" href="#generating-pdf" title="Link to this heading">¶</a></h2>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>output<span class="w"> </span>plot.pdf
+<span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>output<span class="w"> </span>plot.pdf<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">16</span>c<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">12</span>c<span class="w"> </span><span class="o">-</span>decorations<span class="w"> </span>yes
+<span class="k">set</span><span class="w"> </span>bytes<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>output<span class="k">]</span>
+<span class="k">set</span><span class="w"> </span>channel<span class="w"> </span><span class="k">[</span><span class="nb">open</span><span class="w"> </span>copy.pdf<span class="w"> </span>wb<span class="k">]</span>
+<span class="nb">puts</span><span class="w"> </span><span class="o">-</span>nonewline<span class="w"> </span><span class="nv">$channel</span><span class="w"> </span><span class="nv">$bytes</span>
+<span class="nb">close</span><span class="w"> </span><span class="nv">$channel</span>
+</pre></div>
+</div>
+<p>Without a filename, output returns a binary Tcl bytearray. File output uses binary translation. Prefix a
+dash-leading filename with a directory, for example <code class="docutils literal notranslate"><span class="pre">./-plot.pdf</span></code>. There is no <code class="docutils literal notranslate"><span class="pre">--</span></code> separator. Rendering and
+text validation finish before the destination is opened. An I/O failure can still leave a partial file.</p>
+</section>
+<section id="pdf-options">
+<span id="r-rbc-pdf-pdf-options"></span><span id="r-3a3arbc3a3apdfqzpdf20options"></span><h2>PDF options<a class="headerlink" href="#pdf-options" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Non-negative width, in pixels or Tk screen-distance units. Zero uses the graph width.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span> <span class="pre">distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Non-negative height, in pixels or Tk screen-distance units. Zero uses the graph height.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Include backgrounds and relief borders. False uses white backgrounds; labels, axes and symbols remain visible.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Dimensions are stored as integer pixels, like SVG options. The export lays out the graph at those dimensions
+and converts the resulting coordinates to PDF points using the display’s horizontal pixels-per-inch value (the scale used by Tk screen distances).
+One PDF point is 1/72 inch. Physical distances are therefore subject to Tk’s integer-pixel rounding. With
+zero dimensions, the current widget size is used, or its requested size before layout. The page fits the
+graph; there are no paper-size, printer-margin, landscape or multipage options in this version.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">16</span>c<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">12</span>c
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>width<span class="k">]</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>decorations<span class="k">]</span>
+<span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>Query descriptors contain <code class="docutils literal notranslate"><span class="pre">{option</span> <span class="pre">name</span> <span class="pre">class</span> <span class="pre">default</span> <span class="pre">current}</span></code>. PDF options do not use the Tk option
+database. Invalid option/value lists leave settings unchanged. Validated output options remain configured
+even if later rendering or file writing fails. Export restores screen geometry and does not resize the widget.</p>
+</section>
+<section id="supported-content-and-limitations">
+<span id="r-rbc-pdf-supported-content-and-limitations"></span><span id="r-3a3arbc3a3apdfqzsupported20content20and20limitations"></span><h2>Supported content and limitations<a class="headerlink" href="#supported-content-and-limitations" title="Link to this heading">¶</a></h2>
+<p>Lines, error bars/bands, axes, grids, standard geometric symbols, arrows, polygon and arc markers, backgrounds,
+borders and legends use vector paths. Elliptical arcs use cubic Bezier approximations. Export uses full source
+geometry rather than screen-decimated traces. Solid fill opacity uses PDF transparency; stipples use vector
+tiling patterns. Image tiles and photo markers embed RGB images with soft masks for alpha. Resources are
+reused within each document. This first version writes uncompressed streams, so image-heavy PDFs can be large.</p>
+<p>Text is searchable, with Tk-derived positions, character advances, rotation and shadows. Fonts are not
+embedded. Courier and Times families map to the corresponding standard PDF fonts; other families map to
+Helvetica, retaining bold/italic variants when available through Tk’s PostScript font description. Viewer
+substitution can change glyph shapes. This version supports Windows-1252 characters, including Western
+European accents, the euro sign and common typographic punctuation. Unsupported characters cause an error
+instead of being silently replaced. Unicode font embedding and PostScript font/color maps are not supported.</p>
+<p>Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
+destination-dependent drawing may differ. Mapped window markers embed their current native pixels as raster
+images. Hidden or unmapped windows are omitted, and the exporter does not run the event loop. Process pending
+display work before exporting window markers. Native capture availability and visibility constraints apply.</p>
+</section>
+<section id="commands">
+<span id="r-rbc-pdf-commands"></span><span id="r-3a3arbc3a3apdfqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="cget">
+<span id="r-symbolqz3a3arbc3a3apdf3a3acget"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">cget</span></code><a class="headerlink" href="#cget" title="Link to this heading">¶</a></h3>
+<p>Queries a PDF option. Dimensions are returned as integer pixels.</p>
+<pre class="literal-block"><strong>cget</strong> <em>option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>PDF configuration option.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Current option value.</p>
+</section>
+<section id="configure">
+<span id="r-symbolqz3a3arbc3a3apdf3a3aconfigure"></span><span id="index-1"></span><h3><code class="docutils literal notranslate"><span class="pre">configure</span></code><a class="headerlink" href="#configure" title="Link to this heading">¶</a></h3>
+<p>Queries or atomically updates PDF settings. See <a class="reference internal" href="#r-3a3arbc3a3apdfqzpdf20options"><span class="std std-ref">PDF options</span></a>.</p>
+<pre class="literal-block"><strong>configure</strong> <em>option</em>
+<strong>configure</strong> <em>option value ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<p class="rubric">Return value</p>
+<p>Option descriptors when querying, otherwise nothing.</p>
+</section>
+<section id="output">
+<span id="r-symbolqz3a3arbc3a3apdf3a3aoutput"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">output</span></code><a class="headerlink" href="#output" title="Link to this heading">¶</a></h3>
+<p>Exports a single-page PDF. See <a class="reference internal" href="#r-3a3arbc3a3apdfqzsupported20content20and20limitations"><span class="std std-ref">Supported content and limitations</span></a>.</p>
+<pre class="literal-block"><strong>output</strong> <em>?fileName? ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">fileName</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional destination; prefix dash-leading names with ./.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional PDF configuration option.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">value</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>New option value, retained after validation.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Binary PDF bytearray without a filename, otherwise nothing.</p>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">::rbc::PDF</a><ul>
+<li><a class="reference internal" href="#generating-pdf">Generating PDF</a></li>
+<li><a class="reference internal" href="#pdf-options">PDF options</a></li>
+<li><a class="reference internal" href="#supported-content-and-limitations">Supported content and limitations</a></li>
+<li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-SVG.html"
+                          title="previous chapter">Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-vector.html"
+                          title="next chapter"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-PDF.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-vector.html" title="vector command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-SVG.html" title="Graph SVG SVG command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">::rbc::PDF</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

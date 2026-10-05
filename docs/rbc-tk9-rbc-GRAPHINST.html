@@ -125,6 +125,9 @@ element type used by the <code class="docutils literal notranslate"><span class=
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">svg</span></code></p></td>
 <td><p>SVG output</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pdf</span></code></p></td>
+<td><p>PDF output</p></td>
+</tr>
 </tbody>
 </table>
 <p>These component interfaces are documented separately.</p>
@@ -910,6 +913,16 @@ and without requiring Cairo. It is available on graph, stripchart, barchart and 
 </div>
 <p>See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> for command syntax, options, examples and export limitations.</p>
 </section>
+<section id="pdf-output">
+<span id="r-rbc-graphinst-pdf-output"></span><span id="r-3a3arbc3a3agraphinstqzpdf20output"></span><h2>PDF output<a class="headerlink" href="#pdf-output" title="Link to this heading">¶</a></h2>
+<p>The <span class="xref std std-ref">PDF</span> component writes a single-page PDF without Cairo or an external converter:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>output<span class="w"> </span>plot.pdf<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">16</span>c<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">12</span>c
+<span class="k">set</span><span class="w"> </span>bytes<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>pdf<span class="w"> </span>output<span class="k">]</span>
+</pre></div>
+</div>
+<p>It shares the graph export abstraction with SVG and PostScript. Returned data is a binary bytearray.
+See <span class="xref std std-ref">::rbc::PDF</span> for options, font/encoding restrictions and image-capture limitations.</p>
+</section>
 <section id="named-fonts-and-display-scaling">
 <span id="r-rbc-graphinst-named-fonts-and-display-scaling"></span><span id="r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"></span><h2>Named fonts and display scaling<a class="headerlink" href="#named-fonts-and-display-scaling" title="Link to this heading">¶</a></h2>
 <p>Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts. After <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">configure</span></code>, pending
@@ -1139,6 +1152,7 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
 <li><a class="reference internal" href="#buffering">Buffering</a></li>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
+<li><a class="reference internal" href="#pdf-output">PDF output</a></li>
 <li><a class="reference internal" href="#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
 <li><a class="reference internal" href="#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li><a class="reference internal" href="#application-data">Application data</a></li>

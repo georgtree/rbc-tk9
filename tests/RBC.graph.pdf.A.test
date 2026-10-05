@@ -1,0 +1,259 @@
+# RBC.graph.pdf.A.test --
+#
+###Abstract
+# Cairo-independent PDF export: options, byte offsets, binary output,
+# resources, supported drawing primitives, errors and geometry restoration.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.pdf
+package require rbc
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.pdf {
+    proc Setup {{kind graph}} {
+        rbc::$kind .pdf -width 420 -height 320 -renderer native -title {PDF test}
+        pack .pdf
+        update
+    }
+
+    # Validate every object offset, not just the PDF signature or trailer.
+    proc CheckDocument {document} {
+        if {![string match {%PDF-1.4*} $document] || ![regexp {startxref\n([0-9]+)\n%%EOF\n$} $document -> start]} {
+            return 0
+        }
+        set table [string range $document $start end]
+        if {![regexp {^xref\n0 ([0-9]+)\n} $table -> count]} {
+            return 0
+        }
+        set rows [split $table \n]
+        if {[lindex $rows 2] ne {0000000000 65535 f }} {
+            return 0
+        }
+        for {set id 1} {$id < $count} {incr id} {
+            scan [lindex $rows [expr {$id+2}]] {%d %d %s} offset generation state
+            if {$generation != 0 || $state ne "n" ||
+                [string range $document $offset [expr {$offset+[string length "$id 0 obj"]-1}]] ne "$id 0 obj"} {
+                return 0
+            }
+        }
+        # Each stream length must end immediately before its endstream.
+        set from 0
+        while {[regexp -start $from -indices {/Length ([0-9]+) >>\nstream\n} $document match digits]} {
+            lassign $match first last
+            set length [string range $document {*}$digits]
+            set end [expr {$last+1+$length}]
+            if {[string range $document $end [expr {$end+9}]] ne "\nendstream"} {
+                return 0
+            }
+            set from [expr {$end+10}]
+        }
+        return 1
+    }
+
+    # 1. Command options and validation are independent of other exporters.
+    test RBC.graph.pdf.A.1.1 {defaults and option descriptors} -setup {
+        Setup
+    } -body {
+        list [.pdf pdf cget -width] [.pdf pdf cget -height] [.pdf pdf cget -decorations] [.pdf pdf configure -width]\
+                [llength [.pdf pdf configure]]
+    } -cleanup {destroy .pdf} -result {0 0 1 {-width width Width 0 0} 3}
+
+    test RBC.graph.pdf.A.1.2 {transactional options and independent SVG settings} -setup {
+        Setup
+    } -body {
+        .pdf pdf configure -width 600 -height 400
+        set failed [catch {.pdf pdf configure -width 900 -decorations invalid}]
+        list $failed [.pdf pdf cget -width] [.pdf pdf cget -height] [.pdf svg cget -width]
+    } -cleanup {destroy .pdf} -result {1 600 400 0}
+
+    set case 0
+    foreach args {{-width -1} {-height -2} {-width} {-unknown 2}} {
+        test RBC.graph.pdf.A.1.3-[incr case] {invalid dimensions/options fail} -setup {
+            Setup
+        } -body {
+            catch {.pdf pdf output {*}$args}
+        } -cleanup {destroy .pdf} -result 1
+    }
+
+    # 2. All graph classes emit a standalone single-page PDF without Cairo.
+    foreach kind {graph barchart stripchart polar} {
+        test RBC.graph.pdf.A.2.1-$kind {valid document and classic cross-reference table} -setup {
+            Setup $kind
+        } -body {
+            set document [.pdf pdf output]
+            list [CheckDocument $document] [regexp {/Type /Pages /Kids \[3 0 R\] /Count 1} $document]
+        } -cleanup {destroy .pdf} -result {1 1}
+    }
+
+    test RBC.graph.pdf.A.2.2 {binary file and returned bytearray agree} -setup {
+        Setup
+        set filename [makeFile {} pdf-output.pdf]
+        set photo [image create photo -width 2 -height 2]
+        $photo put {{#000000 #ff0000} {#00ff00 #0000ff}}
+        .pdf marker create image -coords {0.5 0.5} -image $photo
+    } -body {
+        set memory [.pdf pdf output]
+        .pdf pdf output $filename
+        set channel [open $filename rb]
+        set disk [read $channel]
+        close $channel
+        list [expr {$disk eq $memory}] [CheckDocument $disk] [regexp {/Subtype /Image} $disk]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+        removeFile pdf-output.pdf
+    } -result {1 1 1}
+
+    test RBC.graph.pdf.A.2.3 {resized export restores geometry and remaps ellipse} -setup {
+        Setup
+        .pdf marker create arc -coords {0.2 0.2 0.8 0.8} -fill blue -outline red
+        update
+    } -body {
+        set before [.pdf transform 0.5 0.5]
+        set original [.pdf pdf output]
+        set enlarged [.pdf pdf output -width 800 -height 600]
+        set after [.pdf transform 0.5 0.5]
+        set restored [.pdf pdf output -width 0 -height 0]
+        list [expr {$before eq $after}] [expr {$original ne $enlarged}] [expr {$original eq $restored}]
+    } -cleanup {destroy .pdf} -result {1 1 1}
+
+    test RBC.graph.pdf.A.2.4 {physical dimensions are converted to PDF points} -setup {
+        Setup
+    } -body {
+        set document [.pdf pdf output -width 2i -height 1i]
+        regexp {/MediaBox \[0 0 ([0-9.]+) ([0-9.]+)\]} $document -> width height
+        expr {abs($width-144) < 1 && abs($height-72) < 1}
+    } -cleanup {destroy .pdf} -result 1
+
+    # 3. Exercise geometry, images, font encoding and resource-array growth.
+    test RBC.graph.pdf.A.3.1 {arrows, arc styles, symbols and opacity resources} -setup {
+        Setup
+        .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol diamond -color navy \
+            -areapattern solid -areaforeground blue -areaopacity 0.4
+        .pdf marker create line -coords {0.2 0.2 0.8 0.8} -arrow both -outline red
+        foreach style {arc chord pieslice} start {0 90 180} {
+            .pdf marker create arc -coords {0.2 0.2 0.8 0.8} -style $style -start $start -extent 60 -fill orange\
+                    -outline black
+        }
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/ExtGState /ca 0.40000000} $document]\
+                [regexp { c\n} $document] [regexp { re W n} $document]
+    } -cleanup {destroy .pdf} -result {1 1 1 1}
+
+    test RBC.graph.pdf.A.3.2 {WinAnsi text escapes PDF delimiters safely} -setup {
+        Setup
+        .pdf configure -title {Café (test) \ €}
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/WinAnsiEncoding} $document]\
+                [regexp {<E9> Tj} $document] [regexp {<80> Tj} $document]
+    } -cleanup {destroy .pdf} -result {1 1 1 1}
+
+    test RBC.graph.pdf.A.3.3 {unsupported Unicode fails before destination is opened} -setup {
+        Setup
+        set filename [makeFile sentinel pdf-error.pdf]
+        .pdf configure -title \u03a9
+        set before [.pdf transform 0.5 0.5]
+    } -body {
+        set code [catch {.pdf pdf output $filename -width 800} message]
+        set channel [open $filename r]
+        set contents [string trim [read $channel]]
+        close $channel
+        list $code $message $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
+    } -cleanup {
+        destroy .pdf
+        removeFile pdf-error.pdf
+    } -result {1 {PDF text contains a character outside Windows-1252} sentinel 1}
+
+    test RBC.graph.pdf.A.3.4 {many distinct resources survive storage growth} -setup {
+        Setup
+        set photos {}
+        for {set i 0} {$i < 40} {incr i} {
+            set p [image create photo -width 1 -height 1]
+            $p put [format "#%02x0000" $i]
+            lappend photos $p
+            .pdf marker create image -coords [list [expr {$i/40.0}] 0.5] -image $p
+        }
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp -all {/Subtype /Image} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete {*}$photos
+    } -result {1 40}
+
+    test RBC.graph.pdf.A.3.5 {stipple pattern and alpha soft mask} -setup {
+        Setup
+        .pdf marker create polygon -coords {0.1 0.1 0.9 0.1 0.9 0.9} -fill blue -stipple gray50
+        set photo [image create photo -width 2 -height 1]
+        $photo put {{#ff000080 #00ff0000}}
+        .pdf marker create image -coords {0.5 0.5} -image $photo
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/PatternType 1} $document] [regexp {/SMask} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+    } -result {1 1 1}
+
+    foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+        test RBC.graph.pdf.A.4.1-$symbol {geometric symbol exports through PDF callbacks} -setup {
+            Setup
+            .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol $symbol
+        } -body {
+            CheckDocument [.pdf pdf output]
+        } -cleanup {destroy .pdf} -result 1
+    }
+
+    test RBC.graph.pdf.A.4.2 {bar fill rectangles use mapped integer coordinates} -setup {
+        Setup barchart
+        .pdf element create bars -data {1 2 2 3} -foreground red
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {\n[0-9]+ [0-9]+ [0-9]+ [0-9]+ re f\n} $document]
+    } -cleanup {destroy .pdf} -result {1 1}
+
+    test RBC.graph.pdf.A.4.3 {photo tile creates a pattern with an image resource} -setup {
+        Setup
+        set photo [image create photo -width 2 -height 2]
+        $photo put {{red blue} {blue red}}
+        .pdf element create trace -data {0 0 0.5 1 1 0} -areatile $photo
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/PatternType 1} $document] [regexp {/Subtype /Image} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+    } -result {1 1 1}
+
+    test RBC.graph.pdf.A.4.4 {mapped window is captured as an image} -setup {
+        Setup
+        button .pdf.info -text Info
+        .pdf marker create window -coords {0.5 0.5} -window .pdf.info -width 60 -height 25
+        update
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/Subtype /Image} $document]
+    } -cleanup {destroy .pdf} -result {1 1}
+
+    Setup
+    set available [expr {![catch {.pdf configure -renderer cairo}]}]
+    destroy .pdf
+    testConstraint pdfCairo $available
+    test RBC.graph.pdf.A.4.5 {PDF output is independent of the screen renderer} -constraints pdfCairo -setup {
+        Setup
+        .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol circle
+    } -body {
+        set native [.pdf pdf output]
+        .pdf configure -renderer cairo
+        expr {$native eq [.pdf pdf output]}
+    } -cleanup {destroy .pdf} -result 1
+
+    cleanupTests
+}

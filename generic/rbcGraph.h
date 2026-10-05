@@ -457,6 +457,7 @@ struct GraphStruct {
                               * switching chain pointers.
                               */
     Margin margins[4];
+    int pdfWidth, pdfHeight, pdfDecorations; /* Independent PDF output options. */
     int svgWidth, svgHeight, svgDecorations; /* Independent SVG output options. */
     PostScript *postscript; /* PostScript options: see rbcGrPS.c */
     Legend *legend;         /* Legend information: see rbcGrLegd.c */
@@ -745,6 +746,7 @@ extern Rbc_Uid rbcWindowMarkerUid;
 extern Rbc_Uid rbcXAxisUid;
 extern Rbc_Uid rbcYAxisUid;
 
+int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 void Rbc_ExportBeginGraph(Graph *graphPtr);

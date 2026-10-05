@@ -1953,6 +1953,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     }
     graphPtr = RbcCalloc(1, sizeof(Graph));
     graphPtr->svgDecorations = TRUE;
+    graphPtr->pdfDecorations = TRUE;
     assert(graphPtr);
     /*
      * Initialize the graph data structure.
@@ -2872,6 +2873,7 @@ static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_Virtu
                                        {{"postscript", 2, 0, "oper ?args?"}, Rbc_PostScriptOp},
                                        {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
                                        {{"svg", 3, 0, "oper ?args?"}, Rbc_SvgOp},
+                                       {{"pdf", 3, 0, "oper ?args?"}, Rbc_PdfOp},
                                        {{"transform", 4, 4, "x y"}, TransformOp},
                                        {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
                                        {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},

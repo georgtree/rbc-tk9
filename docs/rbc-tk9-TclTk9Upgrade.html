@@ -646,6 +646,14 @@ external legends and named/active pens. Redraws are scheduled through the normal
 Explicit pixel sizes and configured axis limits are preserved. See
 <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"><span class="std std-ref">Named fonts and display scaling</span></a>.</p>
 </section>
+<section id="pdf-output">
+<span id="r-tcltk9upgrade-pdf-output"></span><span id="r-3a3atcltk9upgradeqzpdf20output"></span><h3>PDF output<a class="headerlink" href="#pdf-output" title="Link to this heading">¶</a></h3>
+<p>Graph, barchart, stripchart and polar widgets support <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">configure</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">output</span></code>.
+The exporter writes single-page PDF 1.4 directly through the shared rendering abstraction, without Cairo
+or an external converter. Paths, arcs, symbols, clipping, transparency, images and window snapshots are
+supported. This first version uses unembedded standard PDF fonts and Windows-1252 text; unsupported
+characters report an error. Output is a binary file or Tcl bytearray. See <span class="xref std std-ref">::rbc::PDF</span>.</p>
+</section>
 <section id="svg-output">
 <span id="r-tcltk9upgrade-svg-output"></span><span id="r-3a3atcltk9upgradeqzsvg20output"></span><h3>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h3>
 <p>Graph widgets now provide <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code>, and <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span></code>, with independent width,
@@ -867,6 +875,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#geometry-text-and-drawing">Geometry, text and drawing</a></li>
 <li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
 <li><a class="reference internal" href="#named-font-changes">Named-font changes</a></li>
+<li><a class="reference internal" href="#pdf-output">PDF output</a></li>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
 <li><a class="reference internal" href="#postscript-output">PostScript output</a></li>
 <li><a class="reference internal" href="#windows-drawing-backend">Windows drawing backend</a></li>

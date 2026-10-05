@@ -127,6 +127,12 @@ rbc - Commands in namespace rbc
 .br
 \fBGRAPHINST marker\fP \fIoperation ?args \&.\&.\&.?\fP
 .br
+\fBGRAPHINST pdf\fP \fIcget option\fP
+.br
+\fBGRAPHINST pdf\fP \fIconfigure ?option? ?value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST pdf\fP \fIoutput ?file? ?option value \&.\&.\&.?\fP
+.br
 \fBGRAPHINST pen\fP \fIoperation ?args \&.\&.\&.?\fP
 .br
 \fBGRAPHINST postscript\fP \fIoperation ?args \&.\&.\&.?\fP
@@ -220,6 +226,16 @@ rbc - Commands in namespace rbc
 \fBMARKER names\fP \fI?pattern \&.\&.\&.?\fP
 .br
 \fBMARKER type\fP \fImarkerName\fP
+.br
+\fBPDF\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBPDF cget\fP \fIoption\fP
+.br
+\fBPDF configure\fP \fIoption\fP
+.br
+\fBPDF configure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+\fBPDF output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
 .br
 \fBPEN\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -1460,6 +1476,9 @@ Performs an element operation using line elements explicitly, regardless of the 
 \fImarker\fP
 Performs an operation on graph markers\&.
 .TP
+\fIpdf\fP
+Performs a PDF output operation\&. See \fI::rbc::PDF\fP for options and limitations\&.
+.TP
 \fIpen\fP
 Performs an operation on graph pens\&. Pens define reusable drawing attributes for line and bar elements\&.
 .TP
@@ -1769,6 +1788,28 @@ Performs an operation on graph markers\&.
 \fBReturn value\fR
 .PP
 Result of the selected marker operation\&.
+.PP
+.RS -4n
+\fBGRAPHINST pdf\fR (::rbc)
+.RE
+.PP
+Performs a PDF output operation\&. See \fI::rbc::PDF\fP for options and limitations\&.
+.RS 4n
+\fBGRAPHINST pdf\fP \fIcget option\fP
+.br
+\fBGRAPHINST pdf\fP \fIconfigure ?option? ?value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST pdf\fP \fIoutput ?file? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Option information, a PDF bytearray, or nothing when writing a file\&.
 .PP
 .RS -4n
 \fBGRAPHINST pen\fR (::rbc)
@@ -2852,6 +2893,103 @@ Name of the marker\&.
 \fBReturn value\fR
 .PP
 Marker type: arc, bitmap, image, line, polygon, text, or window\&.
+.PP
+.RS -4n
+\fBPDF\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBPDF\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIcget\fP
+Queries a PDF option\&. Dimensions are returned as integer pixels\&.
+.TP
+\fIconfigure\fP
+Queries or atomically updates PDF settings\&. See \fIPDF options\fP\&.
+.TP
+\fIoutput\fP
+Exports a single-page PDF\&. See \fISupported content and limitations\fP\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBPDF cget\fR (::rbc)
+.RE
+.PP
+Queries a PDF option\&. Dimensions are returned as integer pixels\&.
+.RS 4n
+\fBPDF cget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+PDF configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current option value\&.
+.PP
+.RS -4n
+\fBPDF configure\fR (::rbc)
+.RE
+.PP
+Queries or atomically updates PDF settings\&. See \fIPDF options\fP\&.
+.RS 4n
+\fBPDF configure\fP \fIoption\fP
+.br
+\fBPDF configure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Option descriptors when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBPDF output\fR (::rbc)
+.RE
+.PP
+Exports a single-page PDF\&. See \fISupported content and limitations\fP\&.
+.RS 4n
+\fBPDF output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+Optional destination; prefix dash-leading names with \&./\&.
+.TP
+option
+Optional PDF configuration option\&.
+.TP
+value
+New option value, retained after validation\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binary PDF bytearray without a filename, otherwise nothing\&.
 .PP
 .RS -4n
 \fBPEN\fR (::rbc)
@@ -5499,6 +5637,8 @@ rbc-rbc-crosshairs(n)
 rbc-rbc-postscript(n)
 .br
 rbc-rbc-svg(n)
+.br
+rbc-rbc-pdf(n)
 .br
 rbc-rbc-vector(n)
 .br

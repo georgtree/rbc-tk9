@@ -5666,3 +5666,92 @@ namespace eval ::rbc::SVG {
     namespace export *
     namespace ensemble create
 }
+
+namespace eval ::rbc::PDF {
+    variable _ruff_preamble {
+        The PDF component exports a single-page PDF 1.4 document directly, without Cairo, Ghostscript or another PDF
+        library. It is available on graph, barchart, stripchart and polar widgets, independently of the screen
+        renderer. Each widget has its own PDF settings, separate from SVG and PostScript settings.
+
+        ## Generating PDF
+        ```tcl
+        .g pdf output plot.pdf
+        .g pdf output plot.pdf -width 16c -height 12c -decorations yes
+        set bytes [.g pdf output]
+        set channel [open copy.pdf wb]
+        puts -nonewline $channel $bytes
+        close $channel
+        ```
+
+        Without a filename, output returns a binary Tcl bytearray. File output uses binary translation. Prefix a
+        dash-leading filename with a directory, for example `./-plot.pdf`. There is no `--` separator. Rendering and
+        text validation finish before the destination is opened. An I/O failure can still leave a partial file.
+
+        ## PDF options
+
+        | Option | Default | Description |
+        | --- | --- | --- |
+        | `-width distance` | `0` | Non-negative width, in pixels or Tk screen-distance units. Zero uses the graph width. |
+        | `-height distance` | `0` | Non-negative height, in pixels or Tk screen-distance units. Zero uses the graph height. |
+        | `-decorations boolean` | `1` | Include backgrounds and relief borders. False uses white backgrounds; labels, axes and symbols remain visible. |
+
+        Dimensions are stored as integer pixels, like SVG options. The export lays out the graph at those dimensions
+        and converts the resulting coordinates to PDF points using the display's horizontal pixels-per-inch value (the scale used by Tk screen distances).
+        One PDF point is 1/72 inch. Physical distances are therefore subject to Tk's integer-pixel rounding. With
+        zero dimensions, the current widget size is used, or its requested size before layout. The page fits the
+        graph; there are no paper-size, printer-margin, landscape or multipage options in this version.
+
+        ```tcl
+        .g pdf configure -width 16c -height 12c
+        puts [.g pdf cget -width]
+        puts [.g pdf configure -decorations]
+        .g pdf configure -width 0 -height 0
+        ```
+
+        Query descriptors contain `{option name class default current}`. PDF options do not use the Tk option
+        database. Invalid option/value lists leave settings unchanged. Validated output options remain configured
+        even if later rendering or file writing fails. Export restores screen geometry and does not resize the widget.
+
+        ## Supported content and limitations
+        Lines, error bars/bands, axes, grids, standard geometric symbols, arrows, polygon and arc markers, backgrounds,
+        borders and legends use vector paths. Elliptical arcs use cubic Bezier approximations. Export uses full source
+        geometry rather than screen-decimated traces. Solid fill opacity uses PDF transparency; stipples use vector
+        tiling patterns. Image tiles and photo markers embed RGB images with soft masks for alpha. Resources are
+        reused within each document. This first version writes uncompressed streams, so image-heavy PDFs can be large.
+
+        Text is searchable, with Tk-derived positions, character advances, rotation and shadows. Fonts are not
+        embedded. Courier and Times families map to the corresponding standard PDF fonts; other families map to
+        Helvetica, retaining bold/italic variants when available through Tk's PostScript font description. Viewer
+        substitution can change glyph shapes. This version supports Windows-1252 characters, including Western
+        European accents, the euro sign and common typographic punctuation. Unsupported characters cause an error
+        instead of being silently replaced. Unicode font embedding and PostScript font/color maps are not supported.
+
+        Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
+        destination-dependent drawing may differ. Mapped window markers embed their current native pixels as raster
+        images. Hidden or unmapped windows are omitted, and the exporter does not run the event loop. Process pending
+        display work before exporting window markers. Native capture availability and visibility constraints apply.
+    }
+
+    proc cget {option} {
+        # Queries a PDF option. Dimensions are returned as integer pixels.
+        # option - PDF configuration option.
+        # Returns: Current option value.
+    }
+    proc configure {args} {
+        # Queries or atomically updates PDF settings. See [PDF options][PDF options].
+        # Returns: Option descriptors when querying, otherwise nothing.
+        # Synopsis:
+        # Synopsis: option
+        # Synopsis: option value ?option value ...?
+    }
+    proc output {args} {
+        # Exports a single-page PDF. See [Supported content and limitations][Supported content and limitations].
+        # fileName - optional destination; prefix dash-leading names with ./.
+        # option - optional PDF configuration option.
+        # value - new option value, retained after validation.
+        # Returns: Binary PDF bytearray without a filename, otherwise nothing.
+        # Synopsis: ?fileName? ?option value ...?
+    }
+    namespace export *
+    namespace ensemble create
+}

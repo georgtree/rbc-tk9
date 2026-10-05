@@ -55,6 +55,7 @@ Graph widgets contain several components with their own command interfaces:
 │ crosshairs                   │ interactive crosshairs                │
 │ postscript                   │ PostScript output                     │
 │ svg                          │ SVG output                            │
+│ pdf                          │ PDF output                            │
 └──────────────────────────────┴───────────────────────────────────────┘
 .fi
 .RE
@@ -874,6 +875,19 @@ set document [\&.g svg output]
 .RE
 .PP
 See \fI::rbc::SVG\fP for command syntax, options, examples and export limitations\&.
+.SH "PDF OUTPUT"
+.PP
+The \fIPDF\fP component writes a single-page PDF without Cairo or an external converter:
+.PP
+.RS 4n
+.nf
+\&.g pdf output plot\&.pdf -width 16c -height 12c
+set bytes [\&.g pdf output]
+.fi
+.RE
+.PP
+It shares the graph export abstraction with SVG and PostScript\&. Returned data is a binary bytearray\&.
+See \fI::rbc::PDF\fP for options, font/encoding restrictions and image-capture limitations\&.
 .SH "NAMED FONTS AND DISPLAY SCALING"
 .PP
 Graph, stripchart, barchart and polar widgets follow changes to named Tk fonts\&. After font configure, pending
@@ -1171,6 +1185,8 @@ rbc-rbc-crosshairs(n)
 rbc-rbc-postscript(n)
 .br
 rbc-rbc-svg(n)
+.br
+rbc-rbc-pdf(n)
 .br
 rbc-rbc-vector(n)
 .br

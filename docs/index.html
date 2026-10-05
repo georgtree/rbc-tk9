@@ -120,6 +120,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#geometry-text-and-drawing">Geometry, text and drawing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#image-and-bitmap-handling">Image and bitmap handling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#named-font-changes">Named-font changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#pdf-output">PDF output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#svg-output">SVG output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#postscript-output">PostScript output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#windows-drawing-backend">Windows drawing backend</a></li>
@@ -183,6 +184,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-legend"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-line"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-marker"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-pdf"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pdf</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-pen"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-postscript"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-snap"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code></a></li>
@@ -226,6 +228,10 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-get"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">get</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-names"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">names</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-type"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf"><code class="docutils literal notranslate"><span class="pre">PDF</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-cget"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-configure"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-output"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">output</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen"><code class="docutils literal notranslate"><span class="pre">PEN</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-cget"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">cget</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-configure"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code></a></li>
@@ -377,6 +383,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#bar-modes">Bar modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#buffering">Buffering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#svg-output">SVG output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#pdf-output">PDF output</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#numeric-values-and-expressions">Numeric values and expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#application-data">Application data</a></li>
@@ -610,6 +617,18 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-PDF.html">::rbc::PDF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#generating-pdf">Generating PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#pdf-options">PDF options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#supported-content-and-limitations">Supported content and limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
 </ul>
 </li>
 </ul>

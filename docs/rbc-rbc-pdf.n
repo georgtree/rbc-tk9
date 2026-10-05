@@ -1,0 +1,214 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::PDF" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::PDF - Commands in namespace rbc::PDF
+.SH SYNOPSIS
+\fBcget\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+\fBoutput\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.SH ::RBC::PDF
+.PP
+The PDF component exports a single-page PDF 1\&.4 document directly, without Cairo, Ghostscript or another PDF
+library\&. It is available on graph, barchart, stripchart and polar widgets, independently of the screen
+renderer\&. Each widget has its own PDF settings, separate from SVG and PostScript settings\&.
+.SH "GENERATING PDF"
+.PP
+.RS 4n
+.nf
+\&.g pdf output plot\&.pdf
+\&.g pdf output plot\&.pdf -width 16c -height 12c -decorations yes
+set bytes [\&.g pdf output]
+set channel [open copy\&.pdf wb]
+puts -nonewline $channel $bytes
+close $channel
+.fi
+.RE
+.PP
+Without a filename, output returns a binary Tcl bytearray\&. File output uses binary translation\&. Prefix a
+dash-leading filename with a directory, for example \&./-plot\&.pdf\&. There is no -- separator\&. Rendering and
+text validation finish before the destination is opened\&. An I/O failure can still leave a partial file\&.
+.SH "PDF OPTIONS"
+.PP
+.RS 4n
+.nf
+┌──────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────┐
+│ Option               │ Default │ Description                                                                         │
+├──────────────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────┤
+│ -width distance      │ 0       │ Non-negative width, in pixels or Tk screen-distance units\&. Zero uses the graph      │
+│                      │         │ width\&.                                                                              │
+│ -height distance     │ 0       │ Non-negative height, in pixels or Tk screen-distance units\&. Zero uses the graph     │
+│                      │         │ height\&.                                                                             │
+│ -decorations boolean │ 1       │ Include backgrounds and relief borders\&. False uses white backgrounds; labels, axes  │
+│                      │         │ and symbols remain visible\&.                                                         │
+└──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+Dimensions are stored as integer pixels, like SVG options\&. The export lays out the graph at those dimensions
+and converts the resulting coordinates to PDF points using the display's horizontal pixels-per-inch value (the scale used by Tk screen distances)\&.
+One PDF point is 1/72 inch\&. Physical distances are therefore subject to Tk's integer-pixel rounding\&. With
+zero dimensions, the current widget size is used, or its requested size before layout\&. The page fits the
+graph; there are no paper-size, printer-margin, landscape or multipage options in this version\&.
+.PP
+.RS 4n
+.nf
+\&.g pdf configure -width 16c -height 12c
+puts [\&.g pdf cget -width]
+puts [\&.g pdf configure -decorations]
+\&.g pdf configure -width 0 -height 0
+.fi
+.RE
+.PP
+Query descriptors contain {option name class default current}\&. PDF options do not use the Tk option
+database\&. Invalid option/value lists leave settings unchanged\&. Validated output options remain configured
+even if later rendering or file writing fails\&. Export restores screen geometry and does not resize the widget\&.
+.SH "SUPPORTED CONTENT AND LIMITATIONS"
+.PP
+Lines, error bars/bands, axes, grids, standard geometric symbols, arrows, polygon and arc markers, backgrounds,
+borders and legends use vector paths\&. Elliptical arcs use cubic Bezier approximations\&. Export uses full source
+geometry rather than screen-decimated traces\&. Solid fill opacity uses PDF transparency; stipples use vector
+tiling patterns\&. Image tiles and photo markers embed RGB images with soft masks for alpha\&. Resources are
+reused within each document\&. This first version writes uncompressed streams, so image-heavy PDFs can be large\&.
+.PP
+Text is searchable, with Tk-derived positions, character advances, rotation and shadows\&. Fonts are not
+embedded\&. Courier and Times families map to the corresponding standard PDF fonts; other families map to
+Helvetica, retaining bold/italic variants when available through Tk's PostScript font description\&. Viewer
+substitution can change glyph shapes\&. This version supports Windows-1252 characters, including Western
+European accents, the euro sign and common typographic punctuation\&. Unsupported characters cause an error
+instead of being silently replaced\&. Unicode font embedding and PostScript font/color maps are not supported\&.
+.PP
+Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
+destination-dependent drawing may differ\&. Mapped window markers embed their current native pixels as raster
+images\&. Hidden or unmapped windows are omitted, and the exporter does not run the event loop\&. Process pending
+display work before exporting window markers\&. Native capture availability and visibility constraints apply\&.
+.SH COMMANDS
+.PP
+.RS -4n
+\fBcget\fR (::rbc::PDF)
+.RE
+.PP
+Queries a PDF option\&. Dimensions are returned as integer pixels\&.
+.RS 4n
+\fBcget\fP \fIoption\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+option
+PDF configuration option\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Current option value\&.
+.PP
+.RS -4n
+\fBconfigure\fR (::rbc::PDF)
+.RE
+.PP
+Queries or atomically updates PDF settings\&. See \fIPDF options\fP\&.
+.RS 4n
+\fBconfigure\fP \fIoption\fP
+.br
+\fBconfigure\fP \fIoption value ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Option descriptors when querying, otherwise nothing\&.
+.PP
+.RS -4n
+\fBoutput\fR (::rbc::PDF)
+.RE
+.PP
+Exports a single-page PDF\&. See \fISupported content and limitations\fP\&.
+.RS 4n
+\fBoutput\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+fileName
+Optional destination; prefix dash-leading names with \&./\&.
+.TP
+option
+Optional PDF configuration option\&.
+.TP
+value
+New option value, retained after validation\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Binary PDF bytearray without a filename, otherwise nothing\&.
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphtoolbar(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-svg(n)
+.br
+rbc-rbc-pdf(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)
