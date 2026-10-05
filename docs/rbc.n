@@ -730,11 +730,11 @@ tclsh9\&.0 tests/RBC\&.docs\&.tables\&.A\&.test
 .fi
 .RE
 .PP
-Review the generator output and resulting pages before publishing\&.  The current generator prints Sphinx diagnostics, so
+Review the generator output and resulting pages before publishing\&. The current generator prints Sphinx diagnostics, so
 the Make command's exit status alone is not a complete documentation-build check\&.
 .PP
-README\&.md supplies the shared introduction and build instructions\&.
-docs/startPage\&.ruff reads that file as the documentation preamble\&.
+README\&.md supplies the shared introduction and build instructions\&. docs/startPage\&.ruff reads that file as the
+documentation preamble\&.
 .SH "REPORTING PROBLEMS"
 .PP
 Please use the \fIissue tracker\fP [URL: https://github\&.com/georgtree/rbc-tk9/issues]\&.

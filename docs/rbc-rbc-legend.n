@@ -24,18 +24,17 @@ For example:
 .RS 4n
 .nf
 graph \&.g
-
 \&.g element create signal1 -x {0 1 2 3} -y {1 4 2 5} -label "Input"
 \&.g element create signal2 -x {0 1 2 3} -y {3 2 5 4} -label "Output"
-\&.g legend configure -position rightmargin
+\&.g legend configure -position rightmargin -font {TimesNewRoman 10}
 .fi
 .RE
 .PP
 The legend is a single component of the graph\&. Unlike elements, markers, or pens, there are no named legend
 objects\&.
 .PP
-With -renderer cairo, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo\&.  They
-follow -antialias and the normal element pen, including dash colors and stipples\&.  Swatch stipples restart at
+With -renderer cairo, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo\&. They
+follow -antialias and the normal element pen, including dash colors and stipples\&. Swatch stipples restart at
 the sample origin\&. Text, backgrounds, and relief borders remain native\&. The same behavior applies to external
 legend windows\&.
 .SH "LEGEND ENTRIES"
@@ -89,17 +88,17 @@ For example:
 .PP
 .RS 4n
 .nf
-\&.g legend configure -position plotarea -anchor ne
+\&.g legend configure -position plotarea -anchor se
 .fi
 .RE
 .PP
-places the legend in the upper-right part of the plotting area\&.
+places the legend in the lower-right part of the plotting area\&.
 .PP
 An explicit screen position may also be used:
 .PP
 .RS 4n
 .nf
-\&.g legend configure -position @20,30 -anchor nw
+\&.g legend configure -position @100,100 -anchor se
 .fi
 .RE
 .PP
@@ -111,6 +110,8 @@ A pathname beginning with \&. selects an external legend window:
 .RS 4n
 .nf
 \&.g legend configure -position \&.legend
+grid \&.g -row 0 -column 0 -sticky news
+grid \&.legend -row 1 -column 0 -sticky news
 .fi
 .RE
 .PP

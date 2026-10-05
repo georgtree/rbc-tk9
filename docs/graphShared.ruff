@@ -3838,16 +3838,6 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
-        With `-renderer cairo`, line markers, arrowheads, and polygon/arc fills/outlines use `-antialias`. Solid and
-        stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported. Mapped outline segments
-        of line/polygon markers remain independent, as in native drawing; arcs use continuous paths. XOR markers remain
-        native. Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to the
-        plot; `-antialias` does not resample their pixels. Source image changes refresh the marker. Bitmap markers use
-        Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp; `-antialias` affects rotated
-        background polygons. An empty foreground uses Cairo with the native GC color. Text-marker backgrounds use
-        Cairo, including rotated edges, and clip to the plot. Text itself stays native. Window and non-photo image
-        markers keep their Tk rendering; line markers with an empty `-outline` use Cairo with the native GC color.
-
         Rbc provides seven marker types:
 
         | Type      | Description                                  |
@@ -3870,20 +3860,34 @@ namespace eval ::rbc::MARKER {
         Unlike elements and pens, the marker name is not a positional argument of `MARKER create`. Use `-name` to
         select an explicit name. If `-name` is omitted, Rbc generates a marker name.
 
+        Cairo rendering provides next features:
+        - Line markers, arrowheads, and polygon/arc fills/outlines use `-antialias`. 
+        - Solid and stippled fills, colored dash gaps, caps, clipping, and `-under` ordering are supported.
+        - Mapped outline segments of line/polygon markers remain independent, as in native drawing; arcs use continuous 
+          paths. 
+        - XOR markers remain native. 
+        - Photo image markers use Cairo alpha compositing with existing placement and scaling. They clip to the plot;
+          `-antialias` does not resample their pixels. Source image changes refresh the marker. 
+        - Bitmap markers use Cairo with existing scaling, rotation, and masks. Their mapped pixels stay sharp;
+          `-antialias` affects rotated background polygons. An empty foreground uses Cairo with the native GC color.
+        - Text-marker backgrounds use Cairo, including rotated edges, and clip to the plot. Text itself stays native. 
+        - Window and non-photo image markers keep their Tk rendering; line markers with an empty `-outline` use Cairo
+          with the native GC color.
+
         ## Marker coordinates
         Marker coordinates are graph coordinates and are mapped through the axes selected by `-mapx` and `-mapy`.
 
         The number of coordinates depends on the marker type:
 
-        | Marker type | Coordinates             |
-        |-------------|-------------------------|
-        | `bitmap`    | One or two X-Y pairs    |
-        | `image`     | One or two X-Y pairs    |
-        | `line`      | Two or more X-Y pairs   |
+        | Marker type | Coordinates                                     |
+        |-------------|-------------------------------------------------|
+        | `bitmap`    | One or two X-Y pairs                            |
+        | `image`     | One or two X-Y pairs                            |
+        | `line`      | Two or more X-Y pairs                           |
         | `arc`       | Two opposite corners of an ellipse bounding box |
-        | `polygon`   | Three or more X-Y pairs |
-        | `text`      | One X-Y pair            |
-        | `window`    | One X-Y pair            |
+        | `polygon`   | Three or more X-Y pairs                         |
+        | `text`      | One X-Y pair                                    |
+        | `window`    | One X-Y pair                                    |
 
         For bitmap and image markers, one X-Y pair specifies the marker position. Two pairs specify opposite corners
         of a bounding rectangle. Bitmap markers are scaled to that rectangle. Photo images are likewise scaled to the
@@ -3973,8 +3977,24 @@ namespace eval ::rbc::MARKER {
         Bitmap markers display a Tk bitmap.
 
         ```tcl
-        .g marker create bitmap -name bitmap1 -coords {1 2} -bitmap questhead
+        .g marker create bitmap -name bitmap1 -coords {0.5 0.5} -bitmap @demos/bitmaps/hobbes.xbm
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_bitmap_hobbes.svg)
+        #ruffopt excludedformats {}
+
+        Mask could be provided alonhside of bitmap to indicate the part of the bitmap that should be transparent:
+        ```tcl
+        .g marker create polygon -name poly1 -coords {0.4 0.4 0.4 0.6 0.6 0.6 0.6 0.4}
+        .g marker create bitmap -name bitmap1 -coords {0.45 0.5} -bitmap @demos/bitmaps/hobbes.xbm 
+        .g marker create bitmap -name bitmap2 -coords {0.55 0.5} -bitmap @demos/bitmaps/hobbes.xbm\
+                -mask @demos/bitmaps/hobbes_mask.xbm
+        ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_bitmap_hobbes_mask.svg)
+        #ruffopt excludedformats {}
 
         In addition to the common marker options, bitmap markers support:
 
@@ -4010,8 +4030,12 @@ namespace eval ::rbc::MARKER {
         Line markers draw connected line segments through their X-Y coordinate pairs.
 
         ```tcl
-        .g marker create line -name threshold -coords {-Inf 5 Inf 5} -outline red -linewidth 2
+        .g marker create line -name threshold -coords {-Inf 0.4 Inf 0.8} -outline red -linewidth 2
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_line.svg)
+        #ruffopt excludedformats {}
 
         In addition to the common marker options, line markers support:
 
@@ -4034,26 +4058,40 @@ namespace eval ::rbc::MARKER {
 
         For example:
         ```tcl
-        graph .g
-        pack .g
-        .g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
+        .g marker create line -name direction -coords {0 0 0.5 0.3 1 1} -outline red -linewidth 1 -arrow last
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_line_arrow.svg)
+        #ruffopt excludedformats {}
 
         The arrowhead shape may be adjusted with `-arrowshape`. It accepts three screen distances `{a b c}`:
         ```tcl
-        .g marker configure direction -arrow both -arrowshape {8 10 3}
+        .g marker configure direction -arrow both -arrowshape {15 20 8}
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_line_arrow_custom_shape.svg)
+        #ruffopt excludedformats {}
 
         `a` specifies the distance from the arrowhead neck to its tip, `b` specifies the distance from the trailing
         points to the tip, and `c` specifies the distance from the outside edge of the line to the trailing points.
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/line_arrow_diagram.svg)
+        #ruffopt excludedformats {}
 
         The arrowhead uses the line marker's `-outline` color. The line shaft is shortened to the neck of the arrowhead
         so that it does not protrude through the filled arrowhead.
 
         Screen-distance units accepted by Tk may also be used:
         ```tcl
-        .g marker configure direction -arrowshape {8p 10p 3p}
+        .g marker configure direction -arrow both -arrowshape {1.5c 2.0c 0.8c}
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_line_arrow_custom_shape_scr_distance.svg)
+        #ruffopt excludedformats {}
 
         ### Arc marker options
         Arc markers draw circles, ellipses, open arcs, chords and pie sectors. `-coords {x1 y1 x2 y2}` specifies
@@ -4104,21 +4142,30 @@ namespace eval ::rbc::MARKER {
 
         ```tcl
         # Full ellipse
-        .g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
+        .g marker create arc -coords {0.5 0.5 3.5 3.5} -fill lightblue -outline navy
         # Sector connected to the centre
-        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style pieslice -fill orange
+        .g marker create arc -coords {0.5 3.5 3.5 7.0} -start 30 -extent 120 -style pieslice -fill orange
         # Segment closed directly between endpoints
-        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style chord -fill lightblue
+        .g marker create arc -coords {4 0.5 7.5 3.5} -start 30 -extent 120 -style chord -fill lightblue
         # Open curve
-        .g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
+        .g marker create arc -coords {4 2 7.5 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_arc.svg)
+        #ruffopt excludedformats {}
 
         ### Polygon marker options
         Polygon markers draw the closed polygon formed by their coordinate pairs.
 
         ```tcl
-        .g marker create polygon -name region -coords {0 0 4 0 4 3 0 3} -fill lightblue -outline navy
+        .g marker create polygon -name region -coords {0 0 3 0 3 0.5 1 1 1 2 3 2.5 3 3 0 3} -fill lightblue\
+                -outline navy
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_polygon.svg)
+        #ruffopt excludedformats {}
 
         In addition to the common marker options, polygon markers support:
 
@@ -4166,8 +4213,12 @@ namespace eval ::rbc::MARKER {
 
         ```tcl
         button .g.info -text Info
-        .g marker create window -name infoMarker -coords {2 4} -window .g.info
+        .g marker create window -name infoMarker -coords {0.5 0.5} -window .g.info -width 2c -height 1c
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/marker_window.svg)
+        #ruffopt excludedformats {}
 
         In addition to the common marker options, window markers support:
 
@@ -4340,17 +4391,20 @@ namespace eval ::rbc::LEGEND {
         For example:
         ```tcl
         graph .g
-
         .g element create signal1 -x {0 1 2 3} -y {1 4 2 5} -label "Input"
         .g element create signal2 -x {0 1 2 3} -y {3 2 5 4} -label "Output"
-        .g legend configure -position rightmargin
+        .g legend configure -position rightmargin -font {TimesNewRoman 10}
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/legend.svg)
+        #ruffopt excludedformats {}
 
         The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
         objects.
 
-        With `-renderer cairo`, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo.  They
-        follow `-antialias` and the normal element pen, including dash colors and stipples.  Swatch stipples restart at
+        With `-renderer cairo`, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo. They
+        follow `-antialias` and the normal element pen, including dash colors and stipples. Swatch stipples restart at
         the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external
         legend windows.
 
@@ -4390,15 +4444,23 @@ namespace eval ::rbc::LEGEND {
 
         For example:
         ```tcl
-        .g legend configure -position plotarea -anchor ne
+        .g legend configure -position plotarea -anchor se
         ```
 
-        places the legend in the upper-right part of the plotting area.
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/legend_plotarea.svg)
+        #ruffopt excludedformats {}
+
+        places the legend in the lower-right part of the plotting area.
 
         An explicit screen position may also be used:
         ```tcl
-        .g legend configure -position @20,30 -anchor nw
+        .g legend configure -position @100,100 -anchor se
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/legend_position.svg)
+        #ruffopt excludedformats {}
 
         For an `@x,y` position, negative coordinates are measured from the opposite edge of the graph. For example, a
         negative X coordinate is relative to the right edge and a negative Y coordinate is relative to the bottom edge.
@@ -4406,7 +4468,13 @@ namespace eval ::rbc::LEGEND {
         A pathname beginning with `.` selects an external legend window:
         ```tcl
         .g legend configure -position .legend
+        grid .g -row 0 -column 0 -sticky news
+        grid .legend -row 1 -column 0 -sticky news
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/legend_external_window.png)
+        #ruffopt excludedformats {}
 
         Rbc creates the window at that pathname and draws the legend into it. If the external legend window is
         destroyed, the legend returns to `rightmargin`.
@@ -4420,6 +4488,10 @@ namespace eval ::rbc::LEGEND {
         ```tcl
         .g legend configure -columns 2
         ```
+
+        #ruffopt excludedformats nroff
+        ![element_active_points](images/legend_layout.svg)
+        #ruffopt excludedformats {}
 
         A value of `0` leaves that dimension automatic.
 

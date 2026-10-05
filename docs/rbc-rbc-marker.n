@@ -19,16 +19,6 @@ GRAPHINST marker
 Markers are graph annotations\&. They are independent of graph elements and do not contribute to the calculation
 of axis limits\&.
 .PP
-With -renderer cairo, line markers, arrowheads, and polygon/arc fills/outlines use -antialias\&. Solid and
-stippled fills, colored dash gaps, caps, clipping, and -under ordering are supported\&. Mapped outline segments
-of line/polygon markers remain independent, as in native drawing; arcs use continuous paths\&. XOR markers remain
-native\&. Photo image markers use Cairo alpha compositing with existing placement and scaling\&. They clip to the
-plot; -antialias does not resample their pixels\&. Source image changes refresh the marker\&. Bitmap markers use
-Cairo with existing scaling, rotation, and masks\&. Their mapped pixels stay sharp; -antialias affects rotated
-background polygons\&. An empty foreground uses Cairo with the native GC color\&. Text-marker backgrounds use
-Cairo, including rotated edges, and clip to the plot\&. Text itself stays native\&. Window and non-photo image
-markers keep their Tk rendering; line markers with an empty -outline use Cairo with the native GC color\&.
-.PP
 Rbc provides seven marker types:
 .PP
 .RS 4n
@@ -59,6 +49,32 @@ graph \&.g
 .PP
 Unlike elements and pens, the marker name is not a positional argument of MARKER create\&. Use -name to
 select an explicit name\&. If -name is omitted, Rbc generates a marker name\&.
+.PP
+Cairo rendering provides next features:
+.TP
+\(bu
+Line markers, arrowheads, and polygon/arc fills/outlines use -antialias\&.
+.TP
+\(bu
+Solid and stippled fills, colored dash gaps, caps, clipping, and -under ordering are supported\&.
+.TP
+\(bu
+Mapped outline segments of line/polygon markers remain independent, as in native drawing; arcs use continuous paths\&.
+.TP
+\(bu
+XOR markers remain native\&.
+.TP
+\(bu
+Photo image markers use Cairo alpha compositing with existing placement and scaling\&. They clip to the plot; -antialias does not resample their pixels\&. Source image changes refresh the marker\&.
+.TP
+\(bu
+Bitmap markers use Cairo with existing scaling, rotation, and masks\&. Their mapped pixels stay sharp; -antialias affects rotated background polygons\&. An empty foreground uses Cairo with the native GC color\&.
+.TP
+\(bu
+Text-marker backgrounds use Cairo, including rotated edges, and clip to the plot\&. Text itself stays native\&.
+.TP
+\(bu
+Window and non-photo image markers keep their Tk rendering; line markers with an empty -outline use Cairo with the native GC color\&.
 .SH "MARKER COORDINATES"
 .PP
 Marker coordinates are graph coordinates and are mapped through the axes selected by -mapx and -mapy\&.
@@ -207,7 +223,17 @@ Bitmap markers display a Tk bitmap\&.
 .PP
 .RS 4n
 .nf
-\&.g marker create bitmap -name bitmap1 -coords {1 2} -bitmap questhead
+\&.g marker create bitmap -name bitmap1 -coords {0\&.5 0\&.5} -bitmap @demos/bitmaps/hobbes\&.xbm
+.fi
+.RE
+.PP
+Mask could be provided alonhside of bitmap to indicate the part of the bitmap that should be transparent:
+.PP
+.RS 4n
+.nf
+\&.g marker create polygon -name poly1 -coords {0\&.4 0\&.4 0\&.4 0\&.6 0\&.6 0\&.6 0\&.6 0\&.4}
+\&.g marker create bitmap -name bitmap1 -coords {0\&.45 0\&.5} -bitmap @demos/bitmaps/hobbes\&.xbm
+\&.g marker create bitmap -name bitmap2 -coords {0\&.55 0\&.5} -bitmap @demos/bitmaps/hobbes\&.xbm -mask @demos/bitmaps/hobbes_mask\&.xbm
 .fi
 .RE
 .PP
@@ -264,7 +290,7 @@ Line markers draw connected line segments through their X-Y coordinate pairs\&.
 .PP
 .RS 4n
 .nf
-\&.g marker create line -name threshold -coords {-Inf 5 Inf 5} -outline red -linewidth 2
+\&.g marker create line -name threshold -coords {-Inf 0\&.4 Inf 0\&.8} -outline red -linewidth 2
 .fi
 .RE
 .PP
@@ -315,9 +341,7 @@ For example:
 .PP
 .RS 4n
 .nf
-graph \&.g
-pack \&.g
-\&.g marker create line -name direction -coords {0 0 5 4 10 2} -outline red -linewidth 2 -arrow last
+\&.g marker create line -name direction -coords {0 0 0\&.5 0\&.3 1 1} -outline red -linewidth 1 -arrow last
 .fi
 .RE
 .PP
@@ -325,7 +349,7 @@ The arrowhead shape may be adjusted with -arrowshape\&. It accepts three screen 
 .PP
 .RS 4n
 .nf
-\&.g marker configure direction -arrow both -arrowshape {8 10 3}
+\&.g marker configure direction -arrow both -arrowshape {15 20 8}
 .fi
 .RE
 .PP
@@ -339,7 +363,7 @@ Screen-distance units accepted by Tk may also be used:
 .PP
 .RS 4n
 .nf
-\&.g marker configure direction -arrowshape {8p 10p 3p}
+\&.g marker configure direction -arrow both -arrowshape {1\&.5c 2\&.0c 0\&.8c}
 .fi
 .RE
 .SS "ARC MARKER OPTIONS"
@@ -404,13 +428,13 @@ path\&. Switching renderers does not change marker options\&.
 .RS 4n
 .nf
 # Full ellipse
-\&.g marker create arc -coords {2 2 6 6} -fill lightblue -outline navy
+\&.g marker create arc -coords {0\&.5 0\&.5 3\&.5 3\&.5} -fill lightblue -outline navy
 # Sector connected to the centre
-\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style pieslice -fill orange
+\&.g marker create arc -coords {0\&.5 3\&.5 3\&.5 7\&.0} -start 30 -extent 120 -style pieslice -fill orange
 # Segment closed directly between endpoints
-\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style chord -fill lightblue
+\&.g marker create arc -coords {4 0\&.5 7\&.5 3\&.5} -start 30 -extent 120 -style chord -fill lightblue
 # Open curve
-\&.g marker create arc -coords {2 2 6 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
+\&.g marker create arc -coords {4 2 7\&.5 6} -start 30 -extent 120 -style arc -outline red -linewidth 2
 .fi
 .RE
 .SS "POLYGON MARKER OPTIONS"
@@ -419,7 +443,7 @@ Polygon markers draw the closed polygon formed by their coordinate pairs\&.
 .PP
 .RS 4n
 .nf
-\&.g marker create polygon -name region -coords {0 0 4 0 4 3 0 3} -fill lightblue -outline navy
+\&.g marker create polygon -name region -coords {0 0 3 0 3 0\&.5 1 1 1 2 3 2\&.5 3 3 0 3} -fill lightblue -outline navy
 .fi
 .RE
 .PP
@@ -504,7 +528,7 @@ The window must be managed by the graph marker\&.
 .RS 4n
 .nf
 button \&.g\&.info -text Info
-\&.g marker create window -name infoMarker -coords {2 4} -window \&.g\&.info
+\&.g marker create window -name infoMarker -coords {0\&.5 0\&.5} -window \&.g\&.info -width 2c -height 1c
 .fi
 .RE
 .PP

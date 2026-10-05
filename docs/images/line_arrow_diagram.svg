@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="600"
+   height="600"
+   viewBox="0 0 600 600"
+   version="1.1"
+   id="svg40"
+   sodipodi:docname="line_arrow_diagram.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview40"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.345"
+     inkscape:cx="232.71375"
+     inkscape:cy="248.69888"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg40" />
+  <rect
+     x="35"
+     y="7"
+     width="557"
+     height="561"
+     fill="#ffffff"
+     id="rect1" />
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="marker41"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path41" />
+    </marker>
+    <clipPath
+       id="rbcPlot"
+       clipPathUnits="userSpaceOnUse">
+      <rect
+         x="35"
+         y="7"
+         width="557"
+         height="561"
+         id="rect2" />
+    </clipPath>
+    <marker
+       style="overflow:visible"
+       id="marker41-4"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path41-8" />
+    </marker>
+  </defs>
+  <g
+     clip-path="url(#rbcPlot)"
+     id="g2">
+    <polyline
+       points="313,558 313,184.106 "
+       fill="none"
+       stroke="#add8e6"
+       stroke-width="38"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       id="polyline2" />
+    <polygon
+       points="313,16 142.818,393.954 294,310.015 332,310.015 483.182,393.954 "
+       fill="#add8e6"
+       fill-opacity="1"
+       fill-rule="evenodd"
+       id="polygon2" />
+  </g>
+  <rect
+     x="0"
+     y="0"
+     width="600"
+     height="8"
+     fill="#f0f0f0"
+     id="rect3" />
+  <rect
+     x="0"
+     y="8"
+     width="36"
+     height="558"
+     fill="#f0f0f0"
+     id="rect4" />
+  <rect
+     x="590"
+     y="8"
+     width="10"
+     height="558"
+     fill="#f0f0f0"
+     id="rect5" />
+  <rect
+     x="0"
+     y="566"
+     width="600"
+     height="34"
+     fill="#f0f0f0"
+     id="rect6" />
+  <rect
+     x="35"
+     y="566"
+     width="556"
+     height="1"
+     fill="#ffffff"
+     id="rect7" />
+  <rect
+     x="590"
+     y="7"
+     width="1"
+     height="560"
+     fill="#ffffff"
+     id="rect8" />
+  <polygon
+     points="35,567 35,7 591,7 590,8 36,8 36,566 "
+     fill="#a0a0a0"
+     fill-opacity="1"
+     fill-rule="evenodd"
+     id="polygon8" />
+  <g
+     transform="translate(44 587.5) rotate(-0) translate(-4.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g8">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="5"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text8">0</text>
+  </g>
+  <g
+     transform="translate(151.6 587.5) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g9">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text9">0.2</text>
+  </g>
+  <g
+     transform="translate(259.2 587.5) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g10">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text10">0.4</text>
+  </g>
+  <g
+     transform="translate(366.8 587.5) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g11">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text11">0.6</text>
+  </g>
+  <g
+     transform="translate(474.4 587.5) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g12">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text12">0.8</text>
+  </g>
+  <g
+     transform="translate(582 587.5) rotate(-0) translate(-4.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g13">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="5"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text13">1</text>
+  </g>
+  <polyline
+     points="44,570 582,570 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline13" />
+  <polyline
+     points="97.8,570 97.8,575 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline14" />
+  <polyline
+     points="44,570 44,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline15" />
+  <polyline
+     points="205.4,570 205.4,575 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline16" />
+  <polyline
+     points="151.6,570 151.6,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline17" />
+  <polyline
+     points="313,570 313,575 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline18" />
+  <polyline
+     points="259.2,570 259.2,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline19" />
+  <polyline
+     points="420.6,570 420.6,575 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline20" />
+  <polyline
+     points="366.8,570 366.8,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline21" />
+  <polyline
+     points="528.2,570 528.2,575 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline22" />
+  <polyline
+     points="474.4,570 474.4,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline23" />
+  <polyline
+     points="582,570 582,578 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline24" />
+  <g
+     transform="translate(17.5 558) rotate(-0) translate(-4.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g24">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="5"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text24">0</text>
+  </g>
+  <g
+     transform="translate(13.5 449.6) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g25">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text25">0.2</text>
+  </g>
+  <g
+     transform="translate(13.5 341.2) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g26">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text26">0.4</text>
+  </g>
+  <g
+     transform="translate(13.5 232.8) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g27">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text27">0.6</text>
+  </g>
+  <g
+     transform="translate(13.5 124.4) rotate(-0) translate(-8.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g28">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="13"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text28">0.8</text>
+  </g>
+  <g
+     transform="translate(17.5 16) rotate(-0) translate(-4.5 -7.5)"
+     font-family="Arial Narrow"
+     font-size="10.6573"
+     font-weight="normal"
+     font-style="normal"
+     id="g29">
+    <text
+       xml:space="preserve"
+       x="2"
+       y="12"
+       textLength="5"
+       lengthAdjust="spacingAndGlyphs"
+       fill="#000000"
+       id="text29">1</text>
+  </g>
+  <polyline
+     points="32,558 32,16 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline29" />
+  <polyline
+     points="32,503.8 27,503.8 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline30" />
+  <polyline
+     points="32,558 24,558 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline31" />
+  <polyline
+     points="32,395.4 27,395.4 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline32" />
+  <polyline
+     points="32,449.6 24,449.6 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline33" />
+  <polyline
+     points="32,287 27,287 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline34" />
+  <polyline
+     points="32,341.2 24,341.2 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline35" />
+  <polyline
+     points="32,178.6 27,178.6 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline36" />
+  <polyline
+     points="32,232.8 24,232.8 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline37" />
+  <polyline
+     points="32,70.2 27,70.2 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline38" />
+  <polyline
+     points="32,124.4 24,124.4 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline39" />
+  <polyline
+     points="32,16 24,16 "
+     fill="none"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     id="polyline40" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:0.999999;stroke-dasharray:none;marker-start:url(#marker41);marker-end:url(#marker41)"
+     d="M 142.818,18.989931 V 390.46406"
+     id="path40" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     d="M 313,16 142.818,15.967251"
+     id="path42" />
+  <text
+     xml:space="preserve"
+     style="font-size:26.6667px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     x="120.39216"
+     y="203.91449"
+     id="text42"><tspan
+       sodipodi:role="line"
+       id="tspan42"
+       x="120.39216"
+       y="203.91449">b</tspan></text>
+  <path
+     style="fill:#808080;stroke:#808080;stroke-width:1;stroke-dasharray:2,1;stroke-dashoffset:0"
+     d="M 312.99999,15.999999 V 557.99999"
+     id="path43" />
+  <path
+     style="fill:#808080;fill-opacity:0;stroke:#808080;stroke-width:1;stroke-dasharray:2, 1;stroke-dashoffset:0"
+     d="m 332,310.015 v 0 L 313,299.07063 294,310.015 v 0"
+     id="path44"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     d="m 483.18198,16.016375 -170.182,-0.03275"
+     id="path42-9" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:0.999997;stroke-dasharray:none;marker-start:url(#marker41-4);marker-end:url(#marker41-4)"
+     d="M 483.18198,19.535851 V 295.54506"
+     id="path40-2" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:0.999996;stroke-dasharray:none"
+     d="m 483.1824,299.10343 -170.18292,-0.0328"
+     id="path42-9-5" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:0.999987;stroke-dasharray:none;marker-start:url(#marker41);marker-end:url(#marker41)"
+     d="M 479.64126,431.2572 316.55178,431.2244"
+     id="path42-9-5-1" />
+  <text
+     xml:space="preserve"
+     style="font-size:26.6667px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     x="495.1604"
+     y="166.92848"
+     id="text42-1"><tspan
+       sodipodi:role="line"
+       id="tspan42-7"
+       x="495.1604"
+       y="166.92848">a</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:26.6667px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     x="390.76578"
+     y="423.4487"
+     id="text42-1-2"><tspan
+       sodipodi:role="line"
+       id="tspan42-7-7"
+       x="390.76578"
+       y="423.4487">c</tspan></text>
+  <path
+     style="fill:#000000;fill-opacity:0;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none;stroke-dashoffset:0"
+     d="M 483.182,431.2572 V 393.954"
+     id="path45" />
+  <text
+     xml:space="preserve"
+     style="font-size:26.6667px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+     x="261.52112"
+     y="497.65936"
+     id="text42-1-2-3"><tspan
+       sodipodi:role="line"
+       id="tspan42-7-7-2"
+       x="261.52112"
+       y="497.65936">-linewidth</tspan></text>
+  <path
+     style="fill:#000000;fill-opacity:0;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none;stroke-dashoffset:0;marker-start:url(#marker41);marker-end:url(#marker41-4)"
+     d="m 297.48462,511.89591 h 30.96997"
+     id="path47" />
+</svg>
