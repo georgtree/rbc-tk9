@@ -907,8 +907,9 @@ Explicit pixel sizes and configured axis limits are preserved\&. See
 Graph, barchart, stripchart and polar widgets support pdf cget, pdf configure and pdf output\&.
 The exporter writes single-page PDF 1\&.4 directly through the shared rendering abstraction, without Cairo
 or an external converter\&. Paths, arcs, symbols, clipping, transparency, images and window snapshots are
-supported\&. This first version uses unembedded standard PDF fonts and Windows-1252 text; unsupported
-characters report an error\&. Output is a binary file or Tcl bytearray\&. See \fI::rbc::PDF\fP\&.
+supported\&. TrueType and ordinary OpenType/CFF fonts are embedded with Unicode maps for searching/copying,
+including mathematical superscripts/subscripts and fallback characters\&. Font lookup follows Tk 9 font attributes
+using GDI on Windows and Fontconfig on X11\&. Unsupported or restricted fonts and missing glyphs report an error\&. Output is a binary file or Tcl bytearray\&. See \fI::rbc::PDF\fP\&.
 .SS "SVG OUTPUT"
 .PP
 Graph widgets now provide svg cget, svg configure, and svg output, with independent width,

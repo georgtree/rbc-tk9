@@ -651,8 +651,9 @@ Explicit pixel sizes and configured axis limits are preserved. See
 <p>Graph, barchart, stripchart and polar widgets support <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">configure</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">output</span></code>.
 The exporter writes single-page PDF 1.4 directly through the shared rendering abstraction, without Cairo
 or an external converter. Paths, arcs, symbols, clipping, transparency, images and window snapshots are
-supported. This first version uses unembedded standard PDF fonts and Windows-1252 text; unsupported
-characters report an error. Output is a binary file or Tcl bytearray. See <span class="xref std std-ref">::rbc::PDF</span>.</p>
+supported. TrueType and ordinary OpenType/CFF fonts are embedded with Unicode maps for searching/copying,
+including mathematical superscripts/subscripts and fallback characters. Font lookup follows Tk 9 font attributes
+using GDI on Windows and Fontconfig on X11. Unsupported or restricted fonts and missing glyphs report an error. Output is a binary file or Tcl bytearray. See <a class="reference internal" href="rbc-tk9-rbc-PDF.html#r-namespaceqz3a3arbc3a3apdf"><span class="std std-ref">::rbc::PDF</span></a>.</p>
 </section>
 <section id="svg-output">
 <span id="r-tcltk9upgrade-svg-output"></span><span id="r-3a3atcltk9upgradeqzsvg20output"></span><h3>SVG output<a class="headerlink" href="#svg-output" title="Link to this heading">¶</a></h3>

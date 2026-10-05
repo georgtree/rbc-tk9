@@ -8,6 +8,7 @@ Screen rendering and document export use separate constructors.
 |---------------------------|----------------------------------------------------------------------------------------|
 | `rbcGrExport.c`           | Shared export setup/cleanup, drawing order, plot clipping and margins                  |
 | `rbcGrPs.c`               | PostScript command/options, page layout, EPS preamble/trailer, preview and file output |
+| `rbcPdfFont.c` | Tk 9 font selection, native font programs, embedding, CID/character mappings and ToUnicode |
 | `rbcGrPdf.c` | PDF options, binary file/bytearray output, document objects, resources and byte-offset cross-reference table |
 | `rbcGrSvg.c`              | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output    |
 | `rbcRender.c`             | Drawing dispatch and backend primitive implementations                                 |
@@ -51,5 +52,16 @@ Resource entries keep stable addresses because Tcl_DString may point into its ow
 balances its graphics-state saves/restores; the plot clip is shared across the traversal. The initial matrix maps
 graph pixels into physical points and flips Y without screen-rendering half-pixel translations.
 
-Regression tests: `tests/RBC.graph.pdf.A.test`. They validate all object offsets and stream lengths, binary file
+PDF font state is document-local and freed on success and failure. `rbcPdfFont.c` uses the public Tk 9
+`font actual ... -- character` query (checked against Tk 9.0.3 and 9.1.0), not copied platform-private structures.
+References: `generic/tkFont.c`, `unix/tkUnixFont.c`, `unix/tkUnixRFont.c` and `win/tkWinFont.c` in Tk 9.
+Fontconfig finds scalable sfnt files on X11; GDI supplies individual tables on Windows. Collection faces are
+rebuilt into standalone sfnt programs with corrected checksums. TrueType uses Type0/CIDFontType2 resources,
+explicit CID-to-glyph maps and per-character widths. Name-keyed CFF uses embedded Type1C resources, split into
+255-character encodings when necessary. Both paths emit UTF-16BE ToUnicode maps, including supplementary scalars.
+Glyph codes and Unicode mappings are separate so characters sharing a glyph retain distinct extraction semantics.
+Complete font programs are embedded; subsetting, variable fonts, CID-keyed CFF/CFF2 and color fonts are not implemented.
+The font data reader checks table bounds and embedding permissions; fonts are not sourced from the PDF viewer.
+
+Regression tests: `tests/RBC.graph.pdf.A.test` and `tests/RBC.graph.pdf.font.A.test`. They validate all object offsets and stream lengths, binary file
 roundtrips, option isolation, resource growth, font errors before opening files, transparency and geometry restoration.

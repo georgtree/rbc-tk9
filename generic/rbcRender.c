@@ -3031,57 +3031,58 @@ static void PdfFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc)
     Rbc_ExportAppend(ctx->exportPtr, "Q\n", (char *)NULL);
 }
 
-/* WinAnsi is an explicit first-version boundary, not silent replacement.
- * Glyph positions use Tk advances even when the PDF standard font differs. */
-static int PdfCharacter(Tcl_UniChar ch) {
-    static const unsigned short extra[32] = {0x20ac, 0,      0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
-                                             0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0,      0x017d, 0,
-                                             0,      0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
-                                             0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0,      0x017e, 0x0178};
-    int i;
-    if ((ch >= 32 && ch <= 126) || (ch >= 160 && ch <= 255)) {
-        return (int)ch;
-    }
-    for (i = 0; i < 32; i++) {
-        if (extra[i] != 0 && ch == extra[i]) {
-            return 128 + i;
-        }
-    }
-    return -1;
-}
-
 static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = ctx->exportPtr;
-    Tcl_DString name;
     TextLayout *layout;
     Point2D anchor = {x, y};
-    double width, height, angle, size;
-    const char *font, *mapped;
-    char dictionary[180];
-    int bold, italic, fontId, pass;
+    double width, height, angle, size, advance;
+    int fontId, cid, digits, pass;
     Tcl_Size i;
 
     if (string == NULL || *string == '\0') {
         return;
     }
-    Tcl_DStringInit(&name);
-    size = Tk_PostscriptFontName(style->font, &name) / Rbc_PdfScale(token);
-    font = Tcl_DStringValue(&name);
-    bold = strstr(font, "Bold") != NULL;
-    italic = strstr(font, "Italic") != NULL || strstr(font, "Oblique") != NULL;
-    if (strncmp(font, "Courier", 7) == 0) {
-        mapped = bold ? (italic ? "Courier-BoldOblique" : "Courier-Bold") : (italic ? "Courier-Oblique" : "Courier");
-    } else if (strncmp(font, "Times", 5) == 0) {
-        mapped = bold ? (italic ? "Times-BoldItalic" : "Times-Bold") : (italic ? "Times-Italic" : "Times-Roman");
-    } else {
-        mapped =
-            bold ? (italic ? "Helvetica-BoldOblique" : "Helvetica-Bold") : (italic ? "Helvetica-Oblique" : "Helvetica");
-    }
-    snprintf(dictionary, sizeof(dictionary),
-             "<< /Type /Font /Subtype /Type1 /BaseFont /%s /Encoding /WinAnsiEncoding >>", mapped);
-    fontId = Rbc_PdfResource(token, 'F', dictionary, -1);
-    Tcl_DStringFree(&name);
     layout = Rbc_GetTextLayout(string, style);
+    /* Some core-X11 fonts measure unsupported Unicode as zero pixels. When
+     * Fontconfig finds a real fallback glyph, give it its outline advance
+     * instead of overprinting the next character. Normal Tk advances and
+     * genuine zero-width combining glyphs retain their original positions. */
+    for (i = 0; i < layout->nFrags; i++) {
+        TextFragment *fragment = layout->fragArr + i;
+        Tcl_Size n = 0;
+        while (n < fragment->count) {
+            Tcl_UniChar ch;
+            int consumed = Tcl_UtfToUniChar(fragment->text + n, &ch);
+            if (Rbc_PdfFontCharacter(token, style->font, ch, &fontId, &cid, &size, &digits, &advance) != TCL_OK) {
+                ckfree(layout);
+                return;
+            }
+            if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
+                double extra = ceil(advance);
+                if (extra > INT_MAX - fragment->width - (double)style->padLeft - style->padRight) {
+                    PdfError(token, "PDF fallback text is too wide");
+                    ckfree(layout);
+                    return;
+                }
+                fragment->width += (int)extra;
+            }
+            n += consumed;
+        }
+        layout->width = MAX(layout->width, fragment->width + style->padLeft + style->padRight);
+    }
+    for (i = 0; i < layout->nFrags; i++) {
+        TextFragment *fragment = layout->fragArr + i;
+        switch (style->justify) {
+        case TK_JUSTIFY_RIGHT:
+            fragment->x = layout->width - fragment->width - style->padRight;
+            break;
+        case TK_JUSTIFY_CENTER:
+            fragment->x = (layout->width - fragment->width) / 2;
+            break;
+        default:
+            fragment->x = style->padLeft;
+        }
+    }
     Rbc_GetBoundingBox(layout->width, layout->height, style->theta, &width, &height, NULL);
     anchor = Rbc_TranslatePoint(&anchor, ROUND(width), ROUND(height), style->anchor);
     angle = -style->theta * M_PI / 180.0;
@@ -3096,21 +3097,23 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
             continue;
         }
         PdfColor(token, color, FALSE);
-        Rbc_ExportFormat(token, "BT /F%d %.8f Tf\n", fontId, size);
+        Rbc_ExportAppend(token, "BT\n", (char *)NULL);
         for (i = 0; i < layout->nFrags; i++) {
             TextFragment *fragment = layout->fragArr + i;
             Tcl_Size n = 0;
+            int extra = 0;
             while (n < fragment->count) {
                 Tcl_UniChar ch;
                 int consumed = Tcl_UtfToUniChar(fragment->text + n, &ch);
-                int byte = PdfCharacter(ch);
-                if (byte < 0) {
-                    PdfError(token, "PDF text contains a character outside Windows-1252");
+                if (Rbc_PdfFontCharacter(token, style->font, ch, &fontId, &cid, &size, &digits, &advance) != TCL_OK) {
                     break;
                 }
-                Rbc_ExportFormat(token, "1 0 0 -1 %d %d Tm <%02X> Tj\n",
-                                 fragment->x + offset + Tk_TextWidth(style->font, fragment->text, n),
-                                 fragment->y + offset, byte);
+                Rbc_ExportFormat(token, "/F%d %.8f Tf\n1 0 0 -1 %d %d Tm <%0*X> Tj\n",
+                                 fontId, size, fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
+                                 fragment->y + offset, digits, cid);
+                if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
+                    extra += (int)ceil(advance);
+                }
                 n += consumed;
             }
         }

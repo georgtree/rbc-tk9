@@ -5668,6 +5668,10 @@ namespace eval ::rbc::SVG {
 }
 
 namespace eval ::rbc::PDF {
+    variable _ruff_ns_opts {
+        -heading {Graph PDF `PDF` command}
+        -excludeprocs {}
+    }
     variable _ruff_preamble {
         The PDF component exports a single-page PDF 1.4 document directly, without Cairo, Ghostscript or another PDF
         library. It is available on graph, barchart, stripchart and polar widgets, independently of the screen
@@ -5719,12 +5723,21 @@ namespace eval ::rbc::PDF {
         tiling patterns. Image tiles and photo markers embed RGB images with soft masks for alpha. Resources are
         reused within each document. This first version writes uncompressed streams, so image-heavy PDFs can be large.
 
-        Text is searchable, with Tk-derived positions, character advances, rotation and shadows. Fonts are not
-        embedded. Courier and Times families map to the corresponding standard PDF fonts; other families map to
-        Helvetica, retaining bold/italic variants when available through Tk's PostScript font description. Viewer
-        substitution can change glyph shapes. This version supports Windows-1252 characters, including Western
-        European accents, the euro sign and common typographic punctuation. Unsupported characters cause an error
-        instead of being silently replaced. Unicode font embedding and PostScript font/color maps are not supported.
+        Text uses embedded fonts and Unicode mappings for searching and copying. Mathematical symbols, Greek letters,
+        superscripts and subscripts are supported when an installed font supplies their glyphs. Tk 9's per-character
+        `font actual` query supplies the actual family, size and style, including fallback characters; the standard
+        Tk `font` command must be available. Character positions, advances, rotation and shadows retain Tk's layout.
+        Font lookup uses GDI on Windows and Fontconfig on X11, independently of Cairo. Core-X11 legacy fonts are
+        matched to scalable equivalents; if needed, Fontconfig selects another outline font containing the character.
+        If a legacy X11 font measures a missing glyph as zero, PDF uses the fallback glyph advance to avoid overlap.
+        Such substitution, synthesized styles and platform font matching can differ from the exact screen appearance.
+
+        TrueType outlines (including OpenType/TrueType and faces in collections) and ordinary name-keyed OpenType/CFF
+        fonts are embedded. Complete font programs are stored once per document, without subsetting or compression,
+        so PDFs can be larger than before. Font embedding permissions are respected. Variable fonts, CID-keyed CFF,
+        CFF2 and color/bitmap-only fonts are not supported. A missing glyph or unsupported/restricted font reports an
+        error before an output file is opened; unsupported characters are not silently replaced. PostScript font/color
+        maps are not used. PDF remains version 1.4; Unicode page text does not require PDF 2.0.
 
         Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
         destination-dependent drawing may differ. Mapped window markers embed their current native pixels as raster

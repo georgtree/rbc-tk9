@@ -5,8 +5,8 @@
 Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
 and graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
-PDF output uses standard, unembedded fonts and Windows-1252 text in this first implementation;
-unsupported characters report an error. See the PDF component documentation for details.
+PDF output embeds TrueType and ordinary OpenType/CFF fonts with searchable Unicode text, including mathematical
+superscripts and subscripts. See the PDF component documentation for supported font formats and limitations.
 
 This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.0**.
 
@@ -89,7 +89,10 @@ The full tests and documentation generation need a working graphical display. Th
 - GNU Make and a Unix-style shell.
 - Tcl/Tk development files, including `tclConfig.sh` and `tkConfig.sh`.
 - Matching Tk private headers.
-- On Linux, the X11 development headers and libraries.
+- On Linux, the X11 and Fontconfig development headers and libraries (for example, `libx11-dev` and
+  `libfontconfig1-dev` on Debian/Ubuntu). PDF font discovery uses Fontconfig, independently of Cairo. Configure uses
+  `pkg-config`; custom installations can set `FONTCONFIG_CFLAGS` and `FONTCONFIG_LIBS`. Windows uses GDI without an
+  additional font library.
 - For `--enable-cairo`, Cairo 1.12 or newer with its platform backend and development headers. Configure uses
   `pkg-config` unless both `CAIRO_CFLAGS` and `CAIRO_LIBS` are supplied.
 

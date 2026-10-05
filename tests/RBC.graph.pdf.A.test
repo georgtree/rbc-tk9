@@ -146,30 +146,30 @@ namespace eval graph.pdf {
                 [regexp { c\n} $document] [regexp { re W n} $document]
     } -cleanup {destroy .pdf} -result {1 1 1 1}
 
-    test RBC.graph.pdf.A.3.2 {WinAnsi text escapes PDF delimiters safely} -setup {
+    test RBC.graph.pdf.A.3.2 {embedded Unicode text escapes PDF delimiters safely} -setup {
         Setup
         .pdf configure -title {Café (test) \ €}
     } -body {
         set document [.pdf pdf output]
-        list [CheckDocument $document] [regexp {/WinAnsiEncoding} $document]\
-                [regexp {<E9> Tj} $document] [regexp {<80> Tj} $document]
+        list [CheckDocument $document] [regexp {/ToUnicode} $document]\
+                [regexp {<[0-9A-F]+> <00E9>} $document] [regexp {<[0-9A-F]+> <20AC>} $document]
     } -cleanup {destroy .pdf} -result {1 1 1 1}
 
-    test RBC.graph.pdf.A.3.3 {unsupported Unicode fails before destination is opened} -setup {
+    test RBC.graph.pdf.A.3.3 {missing glyph fails before destination is opened} -setup {
         Setup
         set filename [makeFile sentinel pdf-error.pdf]
-        .pdf configure -title \u03a9
+        .pdf configure -title \U0010ffff
         set before [.pdf transform 0.5 0.5]
     } -body {
         set code [catch {.pdf pdf output $filename -width 800} message]
         set channel [open $filename r]
         set contents [string trim [read $channel]]
         close $channel
-        list $code $message $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
+        list $code [string match {*PDF*} $message] $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
     } -cleanup {
         destroy .pdf
         removeFile pdf-error.pdf
-    } -result {1 {PDF text contains a character outside Windows-1252} sentinel 1}
+    } -result {1 1 sentinel 1}
 
     test RBC.graph.pdf.A.3.4 {many distinct resources survive storage growth} -setup {
         Setup

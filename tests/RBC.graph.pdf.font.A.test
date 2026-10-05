@@ -1,0 +1,196 @@
+# RBC.graph.pdf.font.A.test --
+#
+###Abstract
+# Embedded PDF fonts: Unicode maps, mathematical labels, font reuse,
+# fallback characters and export error recovery.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.pdf.font
+package require rbc
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.pdf.font {
+    proc Setup {} {
+        rbc::graph .pdfFont -width 640 -height 420 -renderer native
+        pack .pdfFont
+        update
+    }
+
+    # Follow xref offsets instead of scanning binary font programs for obj/endobj.
+    proc Objects {document} {
+        regexp {startxref\n([0-9]+)\n%%EOF\n$} $document -> start
+        set rows [split [string range $document $start end] \n]
+        scan [lindex $rows 1] {0 %d} count
+        set objects {}
+        for {set id 1} {$id < $count} {incr id} {
+            scan [lindex $rows [expr {$id+2}]] %d offset
+            if {$id+1 < $count} {
+                scan [lindex $rows [expr {$id+3}]] %d end
+            } else {
+                set end $start
+            }
+            dict set objects $id [string range $document $offset [expr {$end-1}]]
+        }
+        return $objects
+    }
+
+    # Decode the actual codes used by page text through each font's ToUnicode.
+    # This catches mismatched glyph-code widths and supplementary-plane maps.
+    proc Text {document} {
+        set objects [Objects $document]
+        set maps {}
+        dict for {id object} $objects {
+            if {[regexp {/ToUnicode ([0-9]+) 0 R} $object -> mapId]} {
+                set pairs [regexp -all -inline {<([0-9A-F]+)> <([0-9A-F]+)>} [dict get $objects $mapId]]
+                foreach {match code unicode} $pairs {
+                    if {$code eq "00" || $code eq "0000"} {continue}
+                    dict set maps $id $code [encoding convertfrom utf-16be [binary decode hex $unicode]]
+                }
+            }
+        }
+        set result {}
+        foreach {match id code} [regexp -all -inline {/F([0-9]+) [0-9.]+ Tf\n1 0 0 -1 [-0-9]+ [-0-9]+ Tm <([0-9A-F]+)> Tj} [dict get $objects 5]] {
+            append result [dict get $maps $id $code]
+        }
+        return $result
+    }
+
+    proc ProgramCount {document} {
+        set count 0
+        dict for {id object} [Objects $document] {
+            if {[regexp {/FontFile[23] [0-9]+ 0 R} $object]} {incr count}
+        }
+        return $count
+    }
+
+    # 1. Mathematical characters retain their Unicode identity in page text.
+    test RBC.graph.pdf.font.A.1.1 {superscripts, subscripts, Greek and mathematical signs} -setup {
+        Setup
+        set title {x² + y₁ − Ω = α; Vₒᵤₜ, µV/√Hz, 10⁻³}
+        .pdfFont configure -title $title
+    } -body {
+        set document [.pdfFont pdf output]
+        list [expr {[string first $title [Text $document]] >= 0}] [expr {[ProgramCount $document] > 0}]\
+                [expr {![regexp {/WinAnsiEncoding} $document]}]
+    } -cleanup {destroy .pdfFont} -result {1 1 1}
+
+    test RBC.graph.pdf.font.A.1.2 {fallback does not depend on preceding characters} -setup {
+        Setup
+    } -body {
+        set results {}
+        foreach title {Ω {y₁ Ω} {√ Ω} {Ω y₁}} {
+            .pdfFont configure -title $title
+            lappend results [expr {[string first $title [Text [.pdfFont pdf output]]] >= 0}]
+        }
+        set results
+    } -cleanup {destroy .pdfFont} -result {1 1 1 1}
+
+    # The font must be installed; the check itself uses the usual export path.
+    Setup
+    .pdfFont configure -title "mathematical italic \U0001d465"
+    testConstraint pdfSupplementary [expr {![catch {.pdfFont pdf output}]}]
+    destroy .pdfFont
+
+    test RBC.graph.pdf.font.A.1.3 {supplementary-plane Unicode uses UTF-16 surrogate pairs} -constraints pdfSupplementary -setup {
+        Setup
+        set title "mathematical italic \U0001d465"
+        .pdfFont configure -title $title
+    } -body {
+        set document [.pdfFont pdf output]
+        list [expr {[string first $title [Text $document]] >= 0}] [regexp {<D835DC65>} $document]
+    } -cleanup {destroy .pdfFont} -result {1 1}
+
+    test RBC.graph.pdf.font.A.1.4 {rotated multiline marker and axis labels remain searchable} -setup {
+        Setup
+        .pdfFont axis configure x -title {Time (µs)}
+        .pdfFont axis configure y -title {Voltage (V₁)}
+        .pdfFont marker create text -coords {0.5 0.5} -text "α²\nβ₁" -rotate 45
+    } -body {
+        set text [Text [.pdfFont pdf output]]
+        list [expr {[string first {Time (µs)} $text] >= 0}] [expr {[string first {Voltage (V₁)} $text] >= 0}]\
+                [expr {[string first {α²β₁} $text] >= 0}]
+    } -cleanup {destroy .pdfFont} -result {1 1 1}
+
+    testConstraint pdfSymbolFont [expr {[lsearch -nocase -exact [font families] Symbol] >= 0}]
+    test RBC.graph.pdf.font.A.1.5 {Windows Symbol encoding preserves Unicode extraction} -constraints pdfSymbolFont -setup {
+        Setup
+        .pdfFont configure -font {Symbol -20} -title {ΓΔ}
+    } -body {
+        expr {[string first {ΓΔ} [Text [.pdfFont pdf output]]] >= 0}
+    } -cleanup {destroy .pdfFont} -result 1
+
+    # 2. Document-local resources are reused, and named-font changes are honored.
+    test RBC.graph.pdf.font.A.2.1 {repeated labels reuse embedded programs} -setup {
+        Setup
+        .pdfFont configure -title {Repeat Ω²}
+    } -body {
+        set before [ProgramCount [.pdfFont pdf output]]
+        for {set i 0} {$i < 30} {incr i} {
+            .pdfFont marker create text -coords {0.5 0.5} -text {Repeat Ω²} -font [.pdfFont cget -font]
+        }
+        expr {[ProgramCount [.pdfFont pdf output]] == $before}
+    } -cleanup {destroy .pdfFont} -result 1
+
+    test RBC.graph.pdf.font.A.2.2 {named-font changes and repeated exports do not retain stale mappings} -setup {
+        Setup
+        set named [font create -family [font actual TkDefaultFont -family] -size -16]
+        .pdfFont configure -font $named -title {V₂ (Ω)}
+    } -body {
+        set small [.pdfFont pdf output]
+        font configure $named -size -28 -weight bold -slant italic
+        update
+        set large [.pdfFont pdf output]
+        list [expr {$small ne $large}] [expr {$large eq [.pdfFont pdf output]}]\
+                [expr {[string first {V₂ (Ω)} [Text $large]] >= 0}]
+    } -cleanup {
+        destroy .pdfFont
+        font delete $named
+    } -result {1 1 1}
+
+    test RBC.graph.pdf.font.A.2.3 {Unicode export survives resize and restores screen geometry} -setup {
+        Setup
+        .pdfFont configure -title {Spectrum (V²/Hz)}
+    } -body {
+        set original [.pdfFont pdf output]
+        set before [.pdfFont transform 0.5 0.5]
+        set enlarged [.pdfFont pdf output -width 900 -height 700]
+        set restored [.pdfFont pdf output -width 0 -height 0]
+        list [expr {$original ne $enlarged}] [expr {$original eq $restored}]\
+                [expr {$before eq [.pdfFont transform 0.5 0.5]}]
+    } -cleanup {destroy .pdfFont} -result {1 1 1}
+
+    test RBC.graph.pdf.font.A.2.4 {failed font lookup releases state and a subsequent export succeeds} -setup {
+        Setup
+    } -body {
+        set results {}
+        for {set i 0} {$i < 10} {incr i} {
+            .pdfFont configure -title \U0010ffff
+            lappend results [catch {.pdfFont pdf output}]
+            .pdfFont configure -title {Recovered Ω²}
+            lappend results [expr {[string first {Recovered Ω²} [Text [.pdfFont pdf output]]] >= 0}]
+        }
+        expr {[lsearch -exact $results 0] < 0}
+    } -cleanup {destroy .pdfFont} -result 1
+
+    # 3. Large encodings exercise CID growth and the 255-character CFF boundary.
+    test RBC.graph.pdf.font.A.3.1 {many distinct characters preserve all mappings} -setup {
+        Setup
+        set sample {}
+        for {set ch 32} {$ch < 384} {incr ch} {
+            if {$ch >= 127 && $ch < 160} {continue}
+            append sample [format %c $ch]
+        }
+        .pdfFont configure -title $sample
+    } -body {
+        set document [.pdfFont pdf output]
+        expr {[string first $sample [Text $document]] >= 0}
+    } -cleanup {destroy .pdfFont} -result 1
+}
+
+###Cleanup
+cleanupTests

@@ -67,7 +67,7 @@ AC_SUBST([SHLIB_SUFFIX])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
+TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
 TEA_ADD_HEADERS([generic/rbc.h generic/rbcVector.h generic/rbcDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
@@ -265,6 +265,30 @@ else
     TEA_ADD_LIBS([-lX11])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
+# Fontconfig resolves X11 font files for Cairo-independent PDF embedding.
+# Windows uses GDI and requires no additional font library.
+AC_ARG_VAR([FONTCONFIG_CFLAGS], [compiler flags for Fontconfig (X11 PDF fonts)])
+AC_ARG_VAR([FONTCONFIG_LIBS], [linker flags for Fontconfig (X11 PDF fonts)])
+AS_IF([test "x$TEA_PLATFORM" != xwindows], [
+    AS_IF([test -z "$FONTCONFIG_LIBS"], [
+        AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [no])
+        AS_IF([test "x$PKG_CONFIG" = xno || ! $PKG_CONFIG --exists fontconfig],
+            [AC_MSG_ERROR([Fontconfig is required for PDF fonts; install its development package or set FONTCONFIG_CFLAGS and FONTCONFIG_LIBS])])
+        AS_IF([test -z "$FONTCONFIG_CFLAGS"], [FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags fontconfig`])
+        FONTCONFIG_LIBS=`$PKG_CONFIG --libs fontconfig`
+    ])
+    rbc_font_cppflags=$CPPFLAGS
+    rbc_font_libs=$LIBS
+    CPPFLAGS="$CPPFLAGS $FONTCONFIG_CFLAGS"
+    LIBS="$FONTCONFIG_LIBS $LIBS"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <fontconfig/fontconfig.h>]],
+        [[FcPattern *pattern = FcPatternCreate(); FcPatternDestroy(pattern);]])], [],
+        [AC_MSG_ERROR([Fontconfig compile/link failed; check FONTCONFIG_CFLAGS, FONTCONFIG_LIBS and config.log])])
+    CPPFLAGS=$rbc_font_cppflags
+    LIBS=$rbc_font_libs
+    TEA_ADD_INCLUDES([$FONTCONFIG_CFLAGS])
+    TEA_ADD_LIBS([$FONTCONFIG_LIBS])
+])
 AC_SUBST(CLEANFILES)
 
 #--------------------------------------------------------------------

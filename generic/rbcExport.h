@@ -11,6 +11,7 @@ typedef struct {
     Tcl_DString storage;
     Tcl_DString *buffer;
     void *backendData;           /* State owned by the backend command (PostScript token or PDF document). */
+    void *fontData;              /* Document-local PDF font cache. */
     unsigned int nextResourceId; /* Document-local SVG definition identifiers. */
     int decorations;
     const char *error; /* First export error, static message. */
@@ -28,6 +29,11 @@ Tcl_Obj *Rbc_PdfDocument(Rbc_ExportContext *token, int width, int height);
 int Rbc_PdfResource(Rbc_ExportContext *token, char kind, const char *body, Tcl_Size length);
 int Rbc_PdfStream(Rbc_ExportContext *token, char kind, const char *dictionary,
                   const char *bytes, Tcl_Size length);
+void Rbc_PdfSetResource(Rbc_ExportContext *token, int id, const char *body, Tcl_Size length);
+int Rbc_PdfFontCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch,
+                         int *idPtr, int *cidPtr, double *sizePtr, int *digitsPtr, double *advancePtr);
+int Rbc_PdfFontsFinish(Rbc_ExportContext *token);
+void Rbc_PdfFontsFree(Rbc_ExportContext *token);
 double Rbc_PdfScale(Rbc_ExportContext *token);
 int Rbc_PdfHeight(Rbc_ExportContext *token);
 #endif

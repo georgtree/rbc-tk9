@@ -196,6 +196,7 @@ void Rbc_PdfFree(Rbc_ExportContext *token) {
     if (doc == NULL) {
         return;
     }
+    Rbc_PdfFontsFree(token);
     for (i = 0; i < doc->count; i++) {
         Tcl_DStringFree(&doc->resources[i]->body);
         ckfree(doc->resources[i]);
@@ -236,6 +237,14 @@ int Rbc_PdfResource(Rbc_ExportContext *token, char kind, const char *body, Tcl_S
     return doc->count++ + 6;
 }
 
+/* Resolve a reserved font object after all of its character codes are known. */
+void Rbc_PdfSetResource(Rbc_ExportContext *token, int id, const char *body, Tcl_Size length) {
+    PdfDocument *doc = (PdfDocument *)token->backendData;
+    Tcl_DString *target = &doc->resources[id - 6]->body;
+    Tcl_DStringSetLength(target, 0);
+    Tcl_DStringAppend(target, body, length);
+}
+
 /* Stream lengths always count bytes, including embedded NULs. */
 int Rbc_PdfStream(Rbc_ExportContext *token, char kind, const char *dictionary, const char *bytes, Tcl_Size length) {
     Tcl_DString body;
@@ -260,10 +269,14 @@ Tcl_Obj *Rbc_PdfDocument(Rbc_ExportContext *token, int width, int height) {
     Tcl_DString *content = token->buffer;
     Tcl_WideInt *offsets, xref;
     Tcl_Obj *result = NULL;
-    int i, id, total = doc->count + 6;
+    int i, id, total;
     static const char kinds[] = {'F', 'G', 'I', 'P'};
     static const char *names[] = {"Font", "ExtGState", "XObject", "Pattern"};
 
+    if (Rbc_PdfFontsFinish(token) != TCL_OK) {
+        return NULL;
+    }
+    total = doc->count + 6;
     Rbc_ExportAppend(token, "Q\n", (char *)NULL);
     offsets = (Tcl_WideInt *)ckalloc((size_t)total * sizeof(*offsets));
     Tcl_DStringInit(&document);

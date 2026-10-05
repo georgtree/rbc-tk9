@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>::rbc::PDF &#8212; rbc  documentation</title>
+    <title>Graph PDF PDF command &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
@@ -31,7 +31,7 @@
           <a href="rbc-tk9-rbc-SVG.html" title="Graph SVG SVG command"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">::rbc::PDF</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Graph PDF <code class="docutils literal notranslate"><span class="pre">PDF</span></code> command</a></li> 
       </ul>
     </div>  
 
@@ -40,8 +40,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="rbc-pdf">
-<span id="r-rbc-pdf"></span><span id="r-3a3arbc3a3apdf"></span><h1>::rbc::PDF<a class="headerlink" href="#rbc-pdf" title="Link to this heading">¶</a></h1>
+  <section id="graph-pdf-pdf-command">
+<span id="r-graph-pdf-pdf-command"></span><span id="r-graph20pdf2060pdf6020command"></span><span id="r-namespaceqz3a3arbc3a3apdf"></span><h1>Graph PDF <code class="docutils literal notranslate"><span class="pre">PDF</span></code> command<a class="headerlink" href="#graph-pdf-pdf-command" title="Link to this heading">¶</a></h1>
 <p>The PDF component exports a single-page PDF 1.4 document directly, without Cairo, Ghostscript or another PDF
 library. It is available on graph, barchart, stripchart and polar widgets, independently of the screen
 renderer. Each widget has its own PDF settings, separate from SVG and PostScript settings.</p>
@@ -110,12 +110,20 @@ borders and legends use vector paths. Elliptical arcs use cubic Bezier approxima
 geometry rather than screen-decimated traces. Solid fill opacity uses PDF transparency; stipples use vector
 tiling patterns. Image tiles and photo markers embed RGB images with soft masks for alpha. Resources are
 reused within each document. This first version writes uncompressed streams, so image-heavy PDFs can be large.</p>
-<p>Text is searchable, with Tk-derived positions, character advances, rotation and shadows. Fonts are not
-embedded. Courier and Times families map to the corresponding standard PDF fonts; other families map to
-Helvetica, retaining bold/italic variants when available through Tk’s PostScript font description. Viewer
-substitution can change glyph shapes. This version supports Windows-1252 characters, including Western
-European accents, the euro sign and common typographic punctuation. Unsupported characters cause an error
-instead of being silently replaced. Unicode font embedding and PostScript font/color maps are not supported.</p>
+<p>Text uses embedded fonts and Unicode mappings for searching and copying. Mathematical symbols, Greek letters,
+superscripts and subscripts are supported when an installed font supplies their glyphs. Tk 9’s per-character
+<code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">actual</span></code> query supplies the actual family, size and style, including fallback characters; the standard
+Tk <code class="docutils literal notranslate"><span class="pre">font</span></code> command must be available. Character positions, advances, rotation and shadows retain Tk’s layout.
+Font lookup uses GDI on Windows and Fontconfig on X11, independently of Cairo. Core-X11 legacy fonts are
+matched to scalable equivalents; if needed, Fontconfig selects another outline font containing the character.
+If a legacy X11 font measures a missing glyph as zero, PDF uses the fallback glyph advance to avoid overlap.
+Such substitution, synthesized styles and platform font matching can differ from the exact screen appearance.</p>
+<p>TrueType outlines (including OpenType/TrueType and faces in collections) and ordinary name-keyed OpenType/CFF
+fonts are embedded. Complete font programs are stored once per document, without subsetting or compression,
+so PDFs can be larger than before. Font embedding permissions are respected. Variable fonts, CID-keyed CFF,
+CFF2 and color/bitmap-only fonts are not supported. A missing glyph or unsupported/restricted font reports an
+error before an output file is opened; unsupported characters are not silently replaced. PostScript font/color
+maps are not used. PDF remains version 1.4; Unicode page text does not require PDF 2.0.</p>
 <p>Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
 destination-dependent drawing may differ. Mapped window markers embed their current native pixels as raster
 images. Hidden or unmapped windows are omitted, and the exporter does not run the event loop. Process pending
@@ -179,7 +187,7 @@ display work before exporting window markers. Native capture availability and vi
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">::rbc::PDF</a><ul>
+<li><a class="reference internal" href="#">Graph PDF <code class="docutils literal notranslate"><span class="pre">PDF</span></code> command</a><ul>
 <li><a class="reference internal" href="#generating-pdf">Generating PDF</a></li>
 <li><a class="reference internal" href="#pdf-options">PDF options</a></li>
 <li><a class="reference internal" href="#supported-content-and-limitations">Supported content and limitations</a></li>
@@ -238,7 +246,7 @@ display work before exporting window markers. Native capture availability and vi
           <a href="rbc-tk9-rbc-SVG.html" title="Graph SVG SVG command"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">::rbc::PDF</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Graph PDF <code class="docutils literal notranslate"><span class="pre">PDF</span></code> command</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

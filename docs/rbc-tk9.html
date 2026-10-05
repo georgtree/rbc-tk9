@@ -46,8 +46,8 @@
 <p>Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
 and graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
-PDF output uses standard, unembedded fonts and Windows-1252 text in this first implementation;
-unsupported characters report an error. See the PDF component documentation for details.</p>
+PDF output embeds TrueType and ordinary OpenType/CFF fonts with searchable Unicode text, including mathematical
+superscripts and subscripts. See the PDF component documentation for supported font formats and limitations.</p>
 <p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.8.0</strong>.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
@@ -118,7 +118,7 @@ External C extensions can use <code class="docutils literal notranslate"><span c
 <li><p>GNU Make and a Unix-style shell.</p></li>
 <li><p>Tcl/Tk development files, including <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code>.</p></li>
 <li><p>Matching Tk private headers.</p></li>
-<li><p>On Linux, the X11 development headers and libraries.</p></li>
+<li><p>On Linux, the X11 and Fontconfig development headers and libraries (for example, <code class="docutils literal notranslate"><span class="pre">libx11-dev</span></code> and <code class="docutils literal notranslate"><span class="pre">libfontconfig1-dev</span></code> on Debian/Ubuntu). PDF font discovery uses Fontconfig, independently of Cairo. Configure uses <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code>; custom installations can set <code class="docutils literal notranslate"><span class="pre">FONTCONFIG_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">FONTCONFIG_LIBS</span></code>. Windows uses GDI without an additional font library.</p></li>
 <li><p>For <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>, Cairo 1.12 or newer with its platform backend and development headers. Configure uses <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> unless both <code class="docutils literal notranslate"><span class="pre">CAIRO_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">CAIRO_LIBS</span></code> are supplied.</p></li>
 </ul>
 <p>Rbc still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
