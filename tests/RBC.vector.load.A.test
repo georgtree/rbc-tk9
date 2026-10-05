@@ -5,6 +5,13 @@ namespace eval vectorLoad {
     namespace import ::tcltest::*
     testConstraint vectorLoadGui [expr {[package provide Tk] ne {}}]
 
+    # Probe the same fresh-interpreter environment used by the toolbar tests.
+    set argparseProbe [interp create]
+    interp eval $argparseProbe [list set auto_path $::auto_path]
+    testConstraint argparse [interp eval $argparseProbe {expr {![catch {package require argparse}]}}]
+    interp delete $argparseProbe
+    unset argparseProbe
+
     proc New {} {
         catch {interp delete vectorCoreChild}
         interp create vectorCoreChild
@@ -199,7 +206,7 @@ namespace eval vectorLoad {
     } -cleanup {Clean} -result {1 1 {} 1 1}
 
     test vectorLoad-toolbar-upgrade {adding toolbar preserves native widgets and repeat require preserves toolbar} \
-            -constraints vectorLoadGui -setup {
+            -constraints {vectorLoadGui argparse} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -219,7 +226,7 @@ namespace eval vectorLoad {
     } -cleanup {Clean} -result {1 {1.0 2.0 3.0} e 1 0 1}
 
     test vectorLoad-toolbar-first {toolbar-only require loads native widgets and exports the existing command} \
-            -constraints vectorLoadGui -setup {
+            -constraints {vectorLoadGui argparse} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
