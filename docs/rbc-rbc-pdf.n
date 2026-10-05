@@ -47,6 +47,8 @@ text validation finish before the destination is opened\&. An I/O failure can st
 │                      │         │ height\&.                                                                             │
 │ -decorations boolean │ 1       │ Include backgrounds and relief borders\&. False uses white backgrounds; labels, axes  │
 │                      │         │ and symbols remain visible\&.                                                         │
+│ -embedfonts boolean  │ 1       │ Embed native fonts and Unicode mappings\&. False uses standard PDF fonts with         │
+│                      │         │ Windows-1252 text\&.                                                                  │
 └──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
 .fi
 .RE
@@ -77,7 +79,7 @@ geometry rather than screen-decimated traces\&. Solid fill opacity uses PDF tran
 tiling patterns\&. Image tiles and photo markers embed RGB images with soft masks for alpha\&. Resources are
 reused within each document\&. This first version writes uncompressed streams, so image-heavy PDFs can be large\&.
 .PP
-Text uses embedded fonts and Unicode mappings for searching and copying\&. Mathematical symbols, Greek letters,
+By default, text uses embedded fonts and Unicode mappings for searching and copying\&. Mathematical symbols, Greek letters,
 superscripts and subscripts are supported when an installed font supplies their glyphs\&. Tk 9's per-character
 font actual query supplies the actual family, size and style, including fallback characters; the standard
 Tk font command must be available\&. Character positions, advances, rotation and shadows retain Tk's layout\&.
@@ -92,6 +94,21 @@ so PDFs can be larger than before\&. Font embedding permissions are respected\&.
 CFF2 and color/bitmap-only fonts are not supported\&. A missing glyph or unsupported/restricted font reports an
 error before an output file is opened; unsupported characters are not silently replaced\&. PostScript font/color
 maps are not used\&. PDF remains version 1\&.4; Unicode page text does not require PDF 2\&.0\&.
+.PP
+To produce a smaller document without embedded font programs:
+.PP
+.RS 4n
+.nf
+\&.g pdf output compact\&.pdf -embedfonts no
+\&.g pdf configure -embedfonts yes
+.fi
+.RE
+.PP
+This mode substitutes standard Helvetica, Times or Courier faces, retaining bold/italic styles and Tk text
+positions\&. The PDF viewer supplies the fonts, so appearance can differ\&. Text is limited to Windows-1252;
+unsupported characters produce an error asking to enable -embedfonts, before opening the destination\&.
+Superscript/subscript or mathematical characters outside that repertoire require embedding\&. This setting
+is independent of SVG's -embedfonts, which defaults to false\&.
 .PP
 Non-photo Tk images use the same black/white off-screen capture technique as SVG; custom image types with
 destination-dependent drawing may differ\&. Mapped window markers embed their current native pixels as raster

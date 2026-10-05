@@ -3,6 +3,7 @@
  * See license.terms for details.
  */
 #include "rbcRender.h"
+#include "rbcFont.h"
 
 #ifdef RBC_HAVE_CAIRO
 #include <cairo.h>
@@ -2445,6 +2446,163 @@ static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
 }
 
 /* Preserve Tk layout and baseline positions while keeping SVG text editable. */
+/* Define document-local webfonts after collecting the used fallback faces.
+ * Hash the text document so inline SVG documents do not share incompatible
+ * character maps merely because their font resource numbers happen to match. */
+int Rbc_SvgFontsFinish(Rbc_ExportContext *token) {
+    Rbc_ExportFont *font;
+    const unsigned char *bytes = (const unsigned char *)Tcl_DStringValue(token->buffer);
+    Tcl_Size i, length = Tcl_DStringLength(token->buffer);
+    uint64_t hash = UINT64_C(14695981039346656037);
+    char prefix[64];
+
+    if (!token->embedFonts) {
+        return TCL_OK;
+    }
+    for (i = 0; i < length; i++) {
+        hash = (hash ^ bytes[i]) * UINT64_C(1099511628211);
+    }
+    for (font = Rbc_FirstExportFont(token); font != NULL; font = font->next) {
+        size_t j;
+        for (j = 0; j < font->length; j++) {
+            hash = (hash ^ font->bytes[j]) * UINT64_C(1099511628211);
+        }
+    }
+    snprintf(prefix, sizeof(prefix), "RbcFont%08x%08x", (unsigned int)(hash >> 32), (unsigned int)hash);
+    for (font = Rbc_FirstExportFont(token); font != NULL; font = font->next) {
+        Tcl_DString replaced;
+        char oldName[64], newName[128];
+        const char *start, *match;
+        snprintf(oldName, sizeof(oldName), "font-family=\"RbcEmbeddedFont%d\"", font->id);
+        snprintf(newName, sizeof(newName), "font-family=\"%s-%d\"", prefix, font->id);
+        Tcl_DStringInit(&replaced);
+        start = Tcl_DStringValue(token->buffer);
+        while ((match = strstr(start, oldName)) != NULL) {
+            Tcl_DStringAppend(&replaced, start, match - start);
+            Tcl_DStringAppend(&replaced, newName, -1);
+            start = match + strlen(oldName);
+        }
+        Tcl_DStringAppend(&replaced, start, -1);
+        Tcl_DStringSetLength(token->buffer, 0);
+        Tcl_DStringAppend(token->buffer, Tcl_DStringValue(&replaced), Tcl_DStringLength(&replaced));
+        Tcl_DStringFree(&replaced);
+    }
+    Rbc_ExportAppend(token, "<defs><style type=\"text/css\">\n", (char *)NULL);
+    for (font = Rbc_FirstExportFont(token); font != NULL; font = font->next) {
+        Tcl_DString program;
+        Tcl_DStringInit(&program);
+        if (Rbc_FontUnicodeProgram(token, font, &program) != TCL_OK) {
+            Tcl_DStringFree(&program);
+            return TCL_ERROR;
+        }
+        Rbc_ExportFormat(token, "@font-face { font-family: '%s-%d'; src: url(data:font/%s;base64,",
+                         prefix, font->id, font->isCff ? "otf" : "ttf");
+        SvgBase64(token, (const unsigned char *)Tcl_DStringValue(&program), Tcl_DStringLength(&program));
+        Rbc_ExportFormat(token, ") format('%s'); font-weight: normal; font-style: normal; }\n",
+                         font->isCff ? "opentype" : "truetype");
+        Tcl_DStringFree(&program);
+    }
+    Rbc_ExportAppend(token, "</style></defs>\n", (char *)NULL);
+    return TCL_OK;
+}
+
+static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    TextLayout *layout;
+    Point2D anchor = {x, y};
+    double width, height, size, advance;
+    Rbc_ExportFont *font;
+    int cid, pass;
+    Tcl_Size i;
+
+    if (string == NULL || *string == '\0') {
+        return;
+    }
+    layout = Rbc_GetTextLayout(string, style);
+    /* Some core-X11 fonts measure unsupported Unicode as zero pixels. When
+     * Fontconfig finds a real fallback glyph, give it its outline advance
+     * instead of overprinting the next character. Normal Tk advances and
+     * genuine zero-width combining glyphs retain their original positions. */
+    for (i = 0; i < layout->nFrags; i++) {
+        TextFragment *fragment = layout->fragArr + i;
+        Tcl_Size n = 0;
+        while (n < fragment->count) {
+            Tcl_UniChar ch;
+            int consumed = Tcl_UtfToUniChar(fragment->text + n, &ch);
+            if (Rbc_ExportFontCharacter(token, style->font, ch, &font, &cid, &size, &advance) != TCL_OK) {
+                ckfree(layout);
+                return;
+            }
+            if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
+                double extra = ceil(advance);
+                if (extra > INT_MAX - fragment->width - (double)style->padLeft - style->padRight) {
+                    SvgError(token, "SVG fallback text is too wide");
+                    ckfree(layout);
+                    return;
+                }
+                fragment->width += (int)extra;
+            }
+            n += consumed;
+        }
+        layout->width = MAX(layout->width, fragment->width + style->padLeft + style->padRight);
+    }
+    for (i = 0; i < layout->nFrags; i++) {
+        TextFragment *fragment = layout->fragArr + i;
+        switch (style->justify) {
+        case TK_JUSTIFY_RIGHT:
+            fragment->x = layout->width - fragment->width - style->padRight;
+            break;
+        case TK_JUSTIFY_CENTER:
+            fragment->x = (layout->width - fragment->width) / 2;
+            break;
+        default:
+            fragment->x = style->padLeft;
+        }
+    }
+    Rbc_GetBoundingBox(layout->width, layout->height, style->theta, &width, &height, NULL);
+    anchor = Rbc_TranslatePoint(&anchor, ROUND(width), ROUND(height), style->anchor);
+    Rbc_ExportFormat(token, "<g transform=\"translate(%g %g) rotate(%g) translate(%g %g)\" "
+                     "font-weight=\"normal\" font-style=\"normal\">\n",
+                     anchor.x + width / 2, anchor.y + height / 2, -style->theta,
+                     -layout->width / 2.0, -layout->height / 2.0);
+    for (pass = 0; pass < 2; pass++) {
+        const XColor *color =
+            pass == 0 ? style->shadow.color : ((style->state & STATE_ACTIVE) ? style->activeColor : style->color);
+        int offset = pass == 0 ? style->shadow.offset : 0;
+        if (color == NULL || (pass == 0 && offset <= 0)) {
+            continue;
+        }
+
+        for (i = 0; i < layout->nFrags; i++) {
+            TextFragment *fragment = layout->fragArr + i;
+            Tcl_Size n = 0;
+            int extra = 0;
+            Rbc_ExportAppend(token, "<text xml:space=\"preserve\" fill=\"", (char *)NULL);
+            SvgColor(token, color);
+            Rbc_ExportAppend(token, "\">", (char *)NULL);
+            while (n < fragment->count) {
+                Tcl_UniChar ch;
+                int consumed = Tcl_UtfToUniChar(fragment->text + n, &ch);
+                if (Rbc_ExportFontCharacter(token, style->font, ch, &font, &cid, &size, &advance) != TCL_OK) {
+                    break;
+                }
+                Rbc_ExportFormat(token, "<tspan font-family=\"RbcEmbeddedFont%d\" font-size=\"%.8f\" x=\"%d\" y=\"%d\">",
+                                 font->id, size, fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
+                                 fragment->y + offset);
+                SvgString(token, fragment->text + n, consumed);
+                Rbc_ExportAppend(token, "</tspan>", (char *)NULL);
+                if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
+                    extra += (int)ceil(advance);
+                }
+                n += consumed;
+            }
+            Rbc_ExportAppend(token, "</text>\n", (char *)NULL);
+        }
+    }
+    Rbc_ExportAppend(token, "</g>\n", (char *)NULL);
+    ckfree(layout);
+}
+
 static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = ctx->exportPtr;
     Tcl_InterpState saved;
@@ -2457,6 +2615,10 @@ static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
     TextLayout *layout;
     Point2D anchor = {x, y};
 
+    if (token->embedFonts) {
+        SvgEmbeddedText(ctx, string, style, x, y);
+        return;
+    }
     if (string == NULL || *string == '\0') {
         return;
     }

@@ -3563,7 +3563,7 @@ SVG configuration option\&.
 .PP
 \fBReturn value\fR
 .PP
-Current option value, as integer pixels for dimensions or 0/1 for decorations\&.
+Current option value, as integer pixels for dimensions or 0/1 for boolean options\&.
 .PP
 .RS -4n
 \fBSVG configure\fR (::rbc)

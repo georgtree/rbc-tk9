@@ -58,6 +58,7 @@ objects.</p>
 <p>Return the document as a Tcl string or write it directly to a file:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>document<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="k">]</span>
 <span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg
+<span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>portable.svg<span class="w"> </span><span class="o">-</span>embedfonts<span class="w"> </span>yes
 <span class="nv">.g</span><span class="w"> </span>svg<span class="w"> </span>output<span class="w"> </span>plot.svg<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">1200</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>decorations<span class="w"> </span>no
 </pre></div>
 </div>
@@ -91,6 +92,10 @@ for example <code class="docutils literal notranslate"><span class="pre">./-plot
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
 <td><p>Include graph/legend backgrounds and relief borders. False uses white backgrounds; axes, labels and symbols remain visible.</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-embedfonts</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>Embed native outline fonts and fallback faces as CSS webfonts. Disabled by default.</p></td>
+</tr>
 </tbody>
 </table>
 <p>Dimensions accept pixels or Tk screen distances, such as <code class="docutils literal notranslate"><span class="pre">6i</span></code> or <code class="docutils literal notranslate"><span class="pre">15c</span></code>, and are stored as integer pixels. Zero
@@ -107,7 +112,7 @@ on-screen widget.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">{</span><span class="nv">option</span><span class="w"> </span>name<span class="w"> </span>class<span class="w"> </span>default<span class="w"> </span>current<span class="k">}</span>
 </pre></div>
 </div>
-<p>Names/classes are <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">Width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>/<code class="docutils literal notranslate"><span class="pre">Height</span></code>, and <code class="docutils literal notranslate"><span class="pre">decorations</span></code>/<code class="docutils literal notranslate"><span class="pre">Decorations</span></code>. These describe the
+<p>Names/classes are <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">Width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code>/<code class="docutils literal notranslate"><span class="pre">Height</span></code>, <code class="docutils literal notranslate"><span class="pre">decorations</span></code>/<code class="docutils literal notranslate"><span class="pre">Decorations</span></code>, and <code class="docutils literal notranslate"><span class="pre">embedFonts</span></code>/<code class="docutils literal notranslate"><span class="pre">EmbedFonts</span></code>. These describe the
 query result only: SVG settings are not read from Tk’s option database. Set them with <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">configure</span></code> or <code class="docutils literal notranslate"><span class="pre">svg</span>
 <span class="pre">output</span></code>.</p>
 <p>Invalid option/value lists leave all SVG settings unchanged. Once an output option list has been
@@ -118,8 +123,21 @@ validated, its values remain configured even if subsequent rendering or file wri
 <p>SVG export supports traces, error bars, X/Y error bands, grids, axes, solid areas and bars, standard geometric symbols,
 line/polygon/text markers, legends, borders and editable text. Polar/Smith labels use the same layout and
 formatting as PostScript. Export remaps full source geometry rather than screen-decimated traces. Solid area
-fills preserve <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>; solid error bands preserve <code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code>. Fonts are referenced by family rather than embedded; text appearance depends on
-installed fonts in the SVG viewer. Text Rotation, baseline positions, measured widths and shadows are retained.</p>
+fills preserve <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code>; solid error bands preserve <code class="docutils literal notranslate"><span class="pre">-errorbandopacity</span></code>. By default, fonts are referenced by family;
+text appearance depends on installed fonts in the SVG viewer. Text rotation, baseline positions, measured
+widths and shadows are retained.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">-embedfonts</span> <span class="pre">yes</span></code>, SVG stores native TrueType/OpenType fonts as base64 CSS <code class="docutils literal notranslate"><span class="pre">&#64;font-face</span></code> data URLs.
+Text remains Unicode and editable, including mathematical symbols and fallback characters. Native font
+lookup, supported outline formats and embedding restrictions are the same as PDF’s embedded mode, described
+below. The exporter preserves Tk character positions; legacy zero-width missing glyphs receive the native
+fallback advance. Each used face is stored once per document. All outlines are retained, while the embedded
+character map covers the characters used in this export, including legacy Symbol mappings. Adding different
+characters later may require re-exporting or another font.</p>
+<p>Embedding increases file size and requires a viewer supporting CSS webfonts and data URLs. Some SVG importers
+ignore embedded webfonts; browser security policies may also block them. Such viewers can substitute fonts.
+Unlike converting text to paths, embedding preserves text selection and searching. A missing glyph or a
+restricted/unsupported font fails before the output file is opened. Use <code class="docutils literal notranslate"><span class="pre">-embedfonts</span> <span class="pre">no</span></code> for the original
+viewer-dependent font behavior.</p>
 <p>Photo image markers embed PNG data directly in the SVG, preserving RGB and alpha without external image
 files. Mapped scaling and plot clipping are retained. Bitmap markers (including rotation and explicit masks)
 export as vector pixel shapes. Bitmap element, active-pen and legend symbols reuse vector definitions within
@@ -153,7 +171,7 @@ dimensions and a matching <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>Current option value, as integer pixels for dimensions or 0/1 for decorations.</p>
+<p>Current option value, as integer pixels for dimensions or 0/1 for boolean options.</p>
 </section>
 <section id="configure">
 <span id="r-symbolqz3a3arbc3a3asvg3a3aconfigure"></span><span id="index-1"></span><h3><code class="docutils literal notranslate"><span class="pre">configure</span></code><a class="headerlink" href="#configure" title="Link to this heading">¶</a></h3>

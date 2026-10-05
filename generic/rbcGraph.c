@@ -1954,6 +1954,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr = RbcCalloc(1, sizeof(Graph));
     graphPtr->svgDecorations = TRUE;
     graphPtr->pdfDecorations = TRUE;
+    graphPtr->pdfEmbedFonts = TRUE;
     assert(graphPtr);
     /*
      * Initialize the graph data structure.

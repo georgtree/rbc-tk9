@@ -1,5 +1,5 @@
 /* Shared graph export traversal. See license.terms for details. */
-#include "rbcRender.h"
+#include "rbcFont.h"
 #include <stdarg.h>
 
 void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,
@@ -14,6 +14,7 @@ void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl
 }
 
 void Rbc_ExportFree(Rbc_ExportContext *exportPtr) {
+    Rbc_ExportFontsFree(exportPtr);
     Tcl_DStringFree(&exportPtr->storage);
 }
 

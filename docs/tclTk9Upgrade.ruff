@@ -651,7 +651,11 @@ namespace eval TclTk9Upgrade {
         or an external converter. Paths, arcs, symbols, clipping, transparency, images and window snapshots are
         supported. TrueType and ordinary OpenType/CFF fonts are embedded with Unicode maps for searching/copying,
         including mathematical superscripts/subscripts and fallback characters. Font lookup follows Tk 9 font attributes
-        using GDI on Windows and Fontconfig on X11. Unsupported or restricted fonts and missing glyphs report an error. Output is a binary file or Tcl bytearray. See [::rbc::PDF].
+        using GDI on Windows and Fontconfig on X11. PDF `-embedfonts` defaults to true; disabling it selects
+        standard Helvetica/Times/Courier fonts and Windows-1252 text, with an error for unsupported characters.
+        SVG offers the same option, defaulting to false. Enabling it embeds native fonts and fallback faces as CSS
+        webfonts while preserving Unicode text; viewers must support CSS webfonts and data URLs.
+        Unsupported or restricted fonts and missing glyphs report an error. Output is a binary file or Tcl bytearray. See [::rbc::PDF].
 
         ### SVG output
         Graph widgets now provide `svg cget`, `svg configure`, and `svg output`, with independent width,

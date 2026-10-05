@@ -457,8 +457,8 @@ struct GraphStruct {
                               * switching chain pointers.
                               */
     Margin margins[4];
-    int pdfWidth, pdfHeight, pdfDecorations; /* Independent PDF output options. */
-    int svgWidth, svgHeight, svgDecorations; /* Independent SVG output options. */
+    int pdfWidth, pdfHeight, pdfDecorations, pdfEmbedFonts; /* Independent PDF output options. */
+    int svgWidth, svgHeight, svgDecorations, svgEmbedFonts; /* Independent SVG output options. */
     PostScript *postscript; /* PostScript options: see rbcGrPS.c */
     Legend *legend;         /* Legend information: see rbcGrLegd.c */
     Crosshairs *crosshairs; /* Crosshairs information: see rbcGrHairs.c */

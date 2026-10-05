@@ -2,24 +2,25 @@
 #include "rbcRender.h"
 
 /* PDF options intentionally exclude printer/page-specific PostScript settings. */
-static const char *const pdfOptions[] = {"-width", "-height", "-decorations", NULL};
+static const char *const pdfOptions[] = {"-width", "-height", "-decorations", "-embedfonts", NULL};
 
 static Tcl_Obj *PdfOptionInfo(Graph *graphPtr, int index) {
-    static const char *const names[] = {"width", "height", "decorations"};
-    static const char *const classes[] = {"Width", "Height", "Decorations"};
-    int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight : graphPtr->pdfDecorations);
+    static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
+    static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};
+    int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight :
+                (index == 2 ? graphPtr->pdfDecorations : graphPtr->pdfEmbedFonts));
     Tcl_Obj *items[5];
 
     items[0] = Tcl_NewStringObj(pdfOptions[index], -1);
     items[1] = Tcl_NewStringObj(names[index], -1);
     items[2] = Tcl_NewStringObj(classes[index], -1);
-    items[3] = Tcl_NewIntObj(index == 2 ? 1 : 0);
+    items[3] = Tcl_NewIntObj(index >= 2 ? 1 : 0);
     items[4] = Tcl_NewIntObj(value);
     return Tcl_NewListObj(5, items);
 }
 
 static int SetPdfOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    int settings[3] = {graphPtr->pdfWidth, graphPtr->pdfHeight, graphPtr->pdfDecorations};
+    int settings[4] = {graphPtr->pdfWidth, graphPtr->pdfHeight, graphPtr->pdfDecorations, graphPtr->pdfEmbedFonts};
     Tcl_Size i;
 
     if (objc % 2) {
@@ -31,7 +32,7 @@ static int SetPdfOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         if (Tcl_GetIndexFromObj(interp, objv[i], pdfOptions, "PDF option", 0, &index) != TCL_OK) {
             return TCL_ERROR;
         }
-        if (index == 2) {
+        if (index >= 2) {
             if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
@@ -49,6 +50,7 @@ static int SetPdfOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     graphPtr->pdfWidth = settings[0];
     graphPtr->pdfHeight = settings[1];
     graphPtr->pdfDecorations = settings[2];
+    graphPtr->pdfEmbedFonts = settings[3];
     return TCL_OK;
 }
 
@@ -71,7 +73,8 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             return TCL_ERROR;
         }
         if (command == 0) {
-            int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight : graphPtr->pdfDecorations);
+            int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight :
+                (index == 2 ? graphPtr->pdfDecorations : graphPtr->pdfEmbedFonts));
             Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
         } else {
             Tcl_SetObjResult(interp, PdfOptionInfo(graphPtr, index));
@@ -81,7 +84,7 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     if (command == 1) {
         if (objc == 3) {
             Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-            for (index = 0; index < 3; index++) {
+            for (index = 0; index < 4; index++) {
                 Tcl_ListObjAppendElement(interp, list, PdfOptionInfo(graphPtr, index));
             }
             Tcl_SetObjResult(interp, list);
@@ -98,6 +101,7 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
         return TCL_ERROR;
     }
     Rbc_ExportInit(token, RBC_EXPORT_PDF, interp, graphPtr->tkwin, graphPtr->pdfDecorations);
+    token->embedFonts = graphPtr->pdfEmbedFonts;
     screenWidth = graphPtr->width;
     screenHeight = graphPtr->height;
     Rbc_ExportBeginGraph(graphPtr);
@@ -196,7 +200,6 @@ void Rbc_PdfFree(Rbc_ExportContext *token) {
     if (doc == NULL) {
         return;
     }
-    Rbc_PdfFontsFree(token);
     for (i = 0; i < doc->count; i++) {
         Tcl_DStringFree(&doc->resources[i]->body);
         ckfree(doc->resources[i]);

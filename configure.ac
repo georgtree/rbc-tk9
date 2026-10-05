@@ -67,7 +67,7 @@ AC_SUBST([SHLIB_SUFFIX])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
+TEA_ADD_SOURCES([rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcFont.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
 TEA_ADD_HEADERS([generic/rbc.h generic/rbcVector.h generic/rbcDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
@@ -265,15 +265,15 @@ else
     TEA_ADD_LIBS([-lX11])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-# Fontconfig resolves X11 font files for Cairo-independent PDF embedding.
+# Fontconfig resolves X11 font files for Cairo-independent PDF/SVG embedding.
 # Windows uses GDI and requires no additional font library.
-AC_ARG_VAR([FONTCONFIG_CFLAGS], [compiler flags for Fontconfig (X11 PDF fonts)])
-AC_ARG_VAR([FONTCONFIG_LIBS], [linker flags for Fontconfig (X11 PDF fonts)])
+AC_ARG_VAR([FONTCONFIG_CFLAGS], [compiler flags for Fontconfig (X11 export fonts)])
+AC_ARG_VAR([FONTCONFIG_LIBS], [linker flags for Fontconfig (X11 export fonts)])
 AS_IF([test "x$TEA_PLATFORM" != xwindows], [
     AS_IF([test -z "$FONTCONFIG_LIBS"], [
         AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [no])
         AS_IF([test "x$PKG_CONFIG" = xno || ! $PKG_CONFIG --exists fontconfig],
-            [AC_MSG_ERROR([Fontconfig is required for PDF fonts; install its development package or set FONTCONFIG_CFLAGS and FONTCONFIG_LIBS])])
+            [AC_MSG_ERROR([Fontconfig is required for PDF/SVG fonts; install its development package or set FONTCONFIG_CFLAGS and FONTCONFIG_LIBS])])
         AS_IF([test -z "$FONTCONFIG_CFLAGS"], [FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags fontconfig`])
         FONTCONFIG_LIBS=`$PKG_CONFIG --libs fontconfig`
     ])

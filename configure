@@ -1470,9 +1470,9 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   CPP         C preprocessor
   FONTCONFIG_CFLAGS
-              compiler flags for Fontconfig (X11 PDF fonts)
+              compiler flags for Fontconfig (X11 export fonts)
   FONTCONFIG_LIBS
-              linker flags for Fontconfig (X11 PDF fonts)
+              linker flags for Fontconfig (X11 export fonts)
   OBJDUMP     target objdump used to check static winpthreads DLL imports
   CAIRO_CFLAGS
               compiler flags for Cairo
@@ -5639,7 +5639,7 @@ printf "%s\n" "$ac_cv_c_bigendian" >&6; }
 #-----------------------------------------------------------------------
 
 
-    vars="rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c"
+    vars="rbcRender.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcFont.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -6025,7 +6025,7 @@ else
 
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-# Fontconfig resolves X11 font files for Cairo-independent PDF embedding.
+# Fontconfig resolves X11 font files for Cairo-independent PDF/SVG embedding.
 # Windows uses GDI and requires no additional font library.
 
 
@@ -6145,7 +6145,7 @@ fi
 
         if test "x$PKG_CONFIG" = xno || ! $PKG_CONFIG --exists fontconfig
 then :
-  as_fn_error $? "Fontconfig is required for PDF fonts; install its development package or set FONTCONFIG_CFLAGS and FONTCONFIG_LIBS" "$LINENO" 5
+  as_fn_error $? "Fontconfig is required for PDF/SVG fonts; install its development package or set FONTCONFIG_CFLAGS and FONTCONFIG_LIBS" "$LINENO" 5
 fi
         if test -z "$FONTCONFIG_CFLAGS"
 then :

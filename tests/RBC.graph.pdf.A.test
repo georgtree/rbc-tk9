@@ -61,7 +61,7 @@ namespace eval graph.pdf {
     } -body {
         list [.pdf pdf cget -width] [.pdf pdf cget -height] [.pdf pdf cget -decorations] [.pdf pdf configure -width]\
                 [llength [.pdf pdf configure]]
-    } -cleanup {destroy .pdf} -result {0 0 1 {-width width Width 0 0} 3}
+    } -cleanup {destroy .pdf} -result {0 0 1 {-width width Width 0 0} 4}
 
     test RBC.graph.pdf.A.1.2 {transactional options and independent SVG settings} -setup {
         Setup
@@ -165,7 +165,7 @@ namespace eval graph.pdf {
         set channel [open $filename r]
         set contents [string trim [read $channel]]
         close $channel
-        list $code [string match {*PDF*} $message] $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
+        list $code [string match {*font*} $message] $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
     } -cleanup {
         destroy .pdf
         removeFile pdf-error.pdf

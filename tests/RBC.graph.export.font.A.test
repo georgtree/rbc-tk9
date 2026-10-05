@@ -1,0 +1,132 @@
+# RBC.graph.export.font.A.test --
+#
+###Abstract
+# Optional PDF and SVG font embedding, fallback resources and error recovery.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.export.font
+package require rbc
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.export.font {
+    proc Setup {} {
+        rbc::graph .exportFont -width 640 -height 420 -renderer native
+        pack .exportFont
+        update
+    }
+
+    test RBC.graph.export.font.A.1.1 {embedding defaults and descriptors} -setup {
+        Setup
+    } -body {
+        list [.exportFont pdf cget -embedfonts] [.exportFont svg cget -embedfonts]\
+                [.exportFont pdf configure -embedfonts] [.exportFont svg configure -embedfonts]
+    } -cleanup {destroy .exportFont} -result {1 0 {-embedfonts embedFonts EmbedFonts 1 1} {-embedfonts embedFonts EmbedFonts 0 0}}
+
+    test RBC.graph.export.font.A.1.2 {boolean validation is atomic and exporters are independent} -setup {
+        Setup
+    } -body {
+        set failed [catch {.exportFont pdf configure -embedfonts no -width invalid}]
+        set failedSvg [catch {.exportFont svg configure -width 900 -embedfonts invalid}]
+        .exportFont svg configure -embedfonts yes
+        list $failed $failedSvg [.exportFont pdf cget -embedfonts] [.exportFont svg cget -embedfonts]\
+                [.exportFont svg cget -width]
+    } -cleanup {destroy .exportFont} -result {1 1 1 1 0}
+
+    test RBC.graph.export.font.A.2.1 {PDF standard fonts have WinAnsi text and no embedded programs} -setup {
+        Setup
+        .exportFont configure -title {Café €}
+    } -body {
+        set embedded [.exportFont pdf output]
+        set plain [.exportFont pdf output -embedfonts no]
+        list [regexp {/FontFile[23]} $embedded] [regexp {/WinAnsiEncoding} $plain]\
+                [regexp {/FontFile[23]|/ToUnicode} $plain] [expr {[string length $plain] < [string length $embedded]}]\
+                [.exportFont pdf cget -embedfonts]
+    } -cleanup {destroy .exportFont} -result {1 1 0 1 0}
+
+    test RBC.graph.export.font.A.2.2 {PDF unsupported Unicode preserves destination and screen geometry} -setup {
+        Setup
+        .exportFont configure -title {x₁ Ω}
+        set filename [makeFile sentinel export-font-error.pdf]
+        update idletasks
+        set before [.exportFont transform 0.5 0.5]
+    } -body {
+        set failed [catch {.exportFont pdf output $filename -embedfonts no -width 900} message]
+        set channel [open $filename r]
+        set contents [string trim [read $channel]]
+        close $channel
+        set restored [expr {$before eq [.exportFont transform 0.5 0.5]}]
+        list $failed [string match {*enable -embedfonts*} $message] $contents $restored\
+                [regexp {/FontFile[23]} [.exportFont pdf output -embedfonts yes -width 0]]
+    } -cleanup {
+        destroy .exportFont
+        removeFile export-font-error.pdf
+    } -result {1 1 sentinel 1 1}
+
+    test RBC.graph.export.font.A.3.1 {SVG default retains plain Unicode text without webfonts} -setup {
+        Setup
+        .exportFont configure -title {x₁ Ω & <}
+    } -body {
+        set document [.exportFont svg output]
+        list [regexp {@font-face|data:font/} $document] [expr {[string first {x₁ Ω &amp; &lt;} $document] >= 0}]
+    } -cleanup {destroy .exportFont} -result {0 1}
+
+    test RBC.graph.export.font.A.3.2 {SVG embeds all referenced faces and preserves Unicode text} -setup {
+        Setup
+        .exportFont configure -title {x² y₁ Ω α √ & <}
+    } -body {
+        set document [.exportFont svg output -embedfonts yes]
+        set defined [regexp -all -inline {font-family: '(RbcFont[0-9a-f]+-[0-9]+)'} $document]
+        set used [regexp -all -inline {font-family="(RbcFont[0-9a-f]+-[0-9]+)"} $document]
+        set allDefined 1
+        foreach {match family} $used {
+            if {$family ni $defined} {set allDefined 0}
+        }
+        set text [regsub -all {<[^>]*>} $document {}]
+        list [expr {[regexp -all {@font-face} $document] > 0}] $allDefined\
+                [regexp {data:font/(ttf|otf);base64,[A-Za-z0-9+/]+=*} $document]\
+                [expr {[string first {x² y₁ Ω α √ &amp; &lt;} $text] >= 0}]\
+                [string match {*</svg>
+} $document]
+    } -cleanup {destroy .exportFont} -result {1 1 1 1 1}
+
+    test RBC.graph.export.font.A.3.3 {SVG repeated export reuses resources and restores resized geometry} -setup {
+        Setup
+        .exportFont configure -title {x₁ Ω}
+    } -body {
+        update idletasks
+        set before [.exportFont transform 0.5 0.5]
+        set original [.exportFont svg output -embedfonts yes]
+        set enlarged [.exportFont svg output -width 900 -height 600]
+        set restored [.exportFont svg output -width 0 -height 0]
+        list [expr {$original ne $enlarged}] [expr {$original eq $restored}]\
+                [expr {$before eq [.exportFont transform 0.5 0.5]}]
+    } -cleanup {destroy .exportFont} -result {1 1 1}
+
+    test RBC.graph.export.font.A.3.4 {SVG font errors preserve the destination and allow recovery} -setup {
+        Setup
+        .exportFont configure -title \U0010ffff
+        set filename [makeFile sentinel export-font-error.svg]
+        update idletasks
+        set before [.exportFont transform 0.5 0.5]
+    } -body {
+        set failed [catch {.exportFont svg output $filename -embedfonts yes -width 900} message]
+        set channel [open $filename r]
+        set contents [string trim [read $channel]]
+        close $channel
+        set restored [expr {$before eq [.exportFont transform 0.5 0.5]}]
+        .exportFont configure -title {x₁ Ω}
+        list $failed [string match {*font*} $message] $contents $restored\
+                [regexp {@font-face} [.exportFont svg output -width 0]]
+    } -cleanup {
+        destroy .exportFont
+        removeFile export-font-error.svg
+    } -result {1 1 sentinel 1 1}
+}
+
+###Cleanup
+cleanupTests

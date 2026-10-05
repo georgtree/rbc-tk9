@@ -2,12 +2,13 @@
 #include "rbcRender.h"
 
 /* SVG options intentionally exclude printer/page-specific PostScript settings. */
-static const char *const svgOptions[] = {"-width", "-height", "-decorations", NULL};
+static const char *const svgOptions[] = {"-width", "-height", "-decorations", "-embedfonts", NULL};
 
 static Tcl_Obj *SvgOptionInfo(Graph *graphPtr, int index) {
-    static const char *const names[] = {"width", "height", "decorations"};
-    static const char *const classes[] = {"Width", "Height", "Decorations"};
-    int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight : graphPtr->svgDecorations);
+    static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
+    static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};
+    int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight :
+                (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
     Tcl_Obj *items[5];
 
     items[0] = Tcl_NewStringObj(svgOptions[index], -1);
@@ -19,7 +20,7 @@ static Tcl_Obj *SvgOptionInfo(Graph *graphPtr, int index) {
 }
 
 static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    int settings[3] = {graphPtr->svgWidth, graphPtr->svgHeight, graphPtr->svgDecorations};
+    int settings[4] = {graphPtr->svgWidth, graphPtr->svgHeight, graphPtr->svgDecorations, graphPtr->svgEmbedFonts};
     Tcl_Size i;
 
     if (objc % 2) {
@@ -31,7 +32,7 @@ static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         if (Tcl_GetIndexFromObj(interp, objv[i], svgOptions, "SVG option", 0, &index) != TCL_OK) {
             return TCL_ERROR;
         }
-        if (index == 2) {
+        if (index >= 2) {
             if (Tcl_GetBooleanFromObj(interp, objv[i + 1], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
@@ -49,12 +50,13 @@ static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     graphPtr->svgWidth = settings[0];
     graphPtr->svgHeight = settings[1];
     graphPtr->svgDecorations = settings[2];
+    graphPtr->svgEmbedFonts = settings[3];
     return TCL_OK;
 }
 
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const commands[] = {"cget", "configure", "output", NULL};
-    int command, index, result;
+    int command, index, result, screenWidth, screenHeight;
     Tcl_Size optionIndex;
     Tcl_Obj *fileName = NULL;
     Rbc_ExportContext storage, *token = &storage;
@@ -71,7 +73,8 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             return TCL_ERROR;
         }
         if (command == 0) {
-            int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight : graphPtr->svgDecorations);
+            int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight :
+                (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
             Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
         } else {
             Tcl_SetObjResult(interp, SvgOptionInfo(graphPtr, index));
@@ -81,7 +84,7 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     if (command == 1) {
         if (objc == 3) {
             Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-            for (index = 0; index < 3; index++) {
+            for (index = 0; index < 4; index++) {
                 Tcl_ListObjAppendElement(interp, list, SvgOptionInfo(graphPtr, index));
             }
             Tcl_SetObjResult(interp, list);
@@ -98,6 +101,9 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
         return TCL_ERROR;
     }
     Rbc_ExportInit(token, RBC_EXPORT_SVG, interp, graphPtr->tkwin, graphPtr->svgDecorations);
+    token->embedFonts = graphPtr->svgEmbedFonts;
+    screenWidth = graphPtr->width;
+    screenHeight = graphPtr->height;
     Rbc_ExportBeginGraph(graphPtr);
     if (graphPtr->svgWidth > 0) {
         graphPtr->width = graphPtr->svgWidth;
@@ -112,8 +118,16 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
                      "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">\n",
                      graphPtr->width, graphPtr->height, graphPtr->width, graphPtr->height);
     result = Rbc_ExportGraph(graphPtr, token);
+    if (result == TCL_OK && Rbc_SvgFontsFinish(token) != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(token->error, -1));
+        result = TCL_ERROR;
+    }
     Rbc_ExportAppend(token, "</svg>\n", (char *)NULL);
     Rbc_ExportEndGraph(graphPtr);
+    graphPtr->width = screenWidth;
+    graphPtr->height = screenHeight;
+    graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
+    Rbc_LayoutGraph(graphPtr);
     if (result == TCL_OK && fileName == NULL) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(token->buffer), Tcl_DStringLength(token->buffer)));
     } else if (result == TCL_OK) {

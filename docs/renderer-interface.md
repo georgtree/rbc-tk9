@@ -8,7 +8,8 @@ Screen rendering and document export use separate constructors.
 |---------------------------|----------------------------------------------------------------------------------------|
 | `rbcGrExport.c`           | Shared export setup/cleanup, drawing order, plot clipping and margins                  |
 | `rbcGrPs.c`               | PostScript command/options, page layout, EPS preamble/trailer, preview and file output |
-| `rbcPdfFont.c` | Tk 9 font selection, native font programs, embedding, CID/character mappings and ToUnicode |
+| `rbcFont.c` | Shared Tk 9 font selection, native font programs, validation and Unicode character maps |
+| `rbcPdfFont.c` | PDF font resources, standard-font mode, CID/character mappings and ToUnicode |
 | `rbcGrPdf.c` | PDF options, binary file/bytearray output, document objects, resources and byte-offset cross-reference table |
 | `rbcGrSvg.c`              | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output    |
 | `rbcRender.c`             | Drawing dispatch and backend primitive implementations                                 |
@@ -52,7 +53,7 @@ Resource entries keep stable addresses because Tcl_DString may point into its ow
 balances its graphics-state saves/restores; the plot clip is shared across the traversal. The initial matrix maps
 graph pixels into physical points and flips Y without screen-rendering half-pixel translations.
 
-PDF font state is document-local and freed on success and failure. `rbcPdfFont.c` uses the public Tk 9
+PDF/SVG font state is document-local and freed by `Rbc_ExportFree` on success and failure. `rbcFont.c` uses the public Tk 9
 `font actual ... -- character` query (checked against Tk 9.0.3 and 9.1.0), not copied platform-private structures.
 References: `generic/tkFont.c`, `unix/tkUnixFont.c`, `unix/tkUnixRFont.c` and `win/tkWinFont.c` in Tk 9.
 Fontconfig finds scalable sfnt files on X11; GDI supplies individual tables on Windows. Collection faces are
@@ -65,3 +66,14 @@ The font data reader checks table bounds and embedding permissions; fonts are no
 
 Regression tests: `tests/RBC.graph.pdf.A.test` and `tests/RBC.graph.pdf.font.A.test`. They validate all object offsets and stream lengths, binary file
 roundtrips, option isolation, resource growth, font errors before opening files, transparency and geometry restoration.
+
+PDF `-embedfonts` defaults to true. With false, `rbcPdfFont.c` creates standard Type1 resources with
+WinAnsiEncoding and rejects characters outside Windows-1252 before writing the file.
+
+SVG `-embedfonts` defaults to false. With true, `SvgEmbeddedText` uses the shared native font selection
+and explicit per-character positions, preserving the original Unicode in text/tspan elements.
+`Rbc_SvgFontsFinish` emits base64 sfnt programs through CSS @font-face. It assigns document-specific
+family aliases and rebuilds Unicode cmap formats 4/12 for used characters, including legacy Symbol fonts.
+All glyph outlines are retained; table checksums and head checksumAdjustment are rebuilt. Embedding
+permissions and supported-font restrictions match PDF. Importers must support CSS webfonts and data URLs.
+Option/default/error recovery coverage is in `tests/RBC.graph.export.font.A.test`.
