@@ -5,13 +5,6 @@ namespace eval vectorLoad {
     namespace import ::tcltest::*
     testConstraint vectorLoadGui [expr {[package provide Tk] ne {}}]
 
-    # Probe the same fresh-interpreter environment used by the toolbar tests.
-    set argparseProbe [interp create]
-    interp eval $argparseProbe [list set auto_path $::auto_path]
-    testConstraint argparse [interp eval $argparseProbe {expr {![catch {package require argparse}]}}]
-    interp delete $argparseProbe
-    unset argparseProbe
-
     proc New {} {
         catch {interp delete vectorCoreChild}
         interp create vectorCoreChild
@@ -206,7 +199,7 @@ namespace eval vectorLoad {
     } -cleanup {Clean} -result {1 1 {} 1 1}
 
     test vectorLoad-toolbar-upgrade {adding toolbar preserves native widgets and repeat require preserves toolbar} \
-            -constraints {vectorLoadGui argparse} -setup {
+            -constraints vectorLoadGui -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -226,7 +219,7 @@ namespace eval vectorLoad {
     } -cleanup {Clean} -result {1 {1.0 2.0 3.0} e 1 0 1}
 
     test vectorLoad-toolbar-first {toolbar-only require loads native widgets and exports the existing command} \
-            -constraints {vectorLoadGui argparse} -setup {
+            -constraints vectorLoadGui -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -237,6 +230,80 @@ namespace eval vectorLoad {
                 [namespace origin graphtoolbar] [expr {[info commands ::rbc::graph] ne {}}]
         }
     } -cleanup {Clean} -result {1 1 ::rbc::graphtoolbar::graphtoolbar 1}
+
+    test vectorLoad-toolbar-bundled {missing argparse uses the bundled Tcl implementation} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc
+            # Keep RBC's package registrations but prevent external argparse discovery.
+            package forget argparse
+            package unknown {apply {{args} {}}}
+            package require rbc::graphtoolbar
+            ::rbc::graphtoolbar .toolbar -width 200 -height 150 -zoom -crosshairs
+            list [package provide argparse] [info procs ::argparse] [winfo exists .toolbar] \
+                    [.toolbar configure -crosshairsmode]
+        }
+    } -cleanup {Clean} -result {0.65 ::argparse 1 closest}
+
+    test vectorLoad-toolbar-installed {registered argparse is preferred to the bundled copy} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc
+            package forget argparse
+            package ifneeded argparse 999.0 {
+                proc ::argparse {args} {return installed}
+                package provide argparse 999.0
+            }
+            package require rbc::graphtoolbar
+            list [package provide argparse] [argparse] [info commands ::rbc::graphtoolbar]
+        }
+    } -cleanup {Clean} -result {999.0 installed ::rbc::graphtoolbar}
+
+    test vectorLoad-toolbar-preloaded {already loaded argparse retains its command identity} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc
+            proc ::argparse {args} {return preloaded}
+            package provide argparse 0.1
+            set deleted 0
+            trace add command ::argparse delete {apply {{args} {set ::deleted 1}}}
+            package require rbc::graphtoolbar
+            list [package provide argparse] [argparse] $deleted
+        }
+    } -cleanup {Clean} -result {0.1 preloaded 0}
+
+    test vectorLoad-toolbar-broken {installed argparse initialization errors are preserved} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc
+            package ifneeded argparse 999.0 {error {broken installed argparse} {} {ARGPARSE BROKEN}}
+            set failed [catch {package require rbc::graphtoolbar} message options]
+            list $failed $message [dict get $options -errorcode] [package provide argparse] \
+                    [package provide rbc::graphtoolbar]
+        }
+    } -cleanup {Clean} -result {1 {broken installed argparse} {ARGPARSE BROKEN} {} {}}
+
+    test vectorLoad-toolbar-missing-dependency {a missing dependency of installed argparse does not use fallback} \
+            -constraints vectorLoadGui -setup {
+        New
+    } -body {
+        interp eval vectorCoreChild {
+            package require rbc
+            package unknown {apply {{args} {}}}
+            package ifneeded argparse 999.0 {package require missingArgparseDependency}
+            set failed [catch {package require rbc::graphtoolbar} message options]
+            list $failed [string match {*missingArgparseDependency*} $message] [dict get $options -errorcode] \
+                    [package provide argparse] [package provide rbc::graphtoolbar]
+        }
+    } -cleanup {Clean} -result {1 1 {TCL PACKAGE UNFOUND} {} {}}
 
     cleanupTests
 }

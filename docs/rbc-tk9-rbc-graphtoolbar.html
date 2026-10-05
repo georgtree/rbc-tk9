@@ -54,10 +54,13 @@ surface and a set of coordinated interactive graph-navigation facilities.</p>
 <li><p>Polar and Smith-chart coordinate displays.</p></li>
 <li><p>Interactive linear/logarithmic axis toggling.</p></li>
 <li><p>Interactive three-state legend entries.</p></li>
-<li><p>PNG snapshots, PostScript and SVG output.</p></li>
+<li><p>PNG snapshots, PostScript, SVG and PDF output.</p></li>
 <li><p>Either a permanently visible toolbar or a right-click context menu.</p></li>
 </ul>
 <p>Load this optional package with <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code>. It loads <code class="docutils literal notranslate"><span class="pre">rbc</span></code>, Tk, and argparse.
+An installed argparse package is preferred. When argparse is missing, the toolbar loads its bundled Tcl-only
+argparse 0.65 implementation. Errors from an installed package are reported without switching to the fallback.
+The bundled copy is private to toolbar loading; it is not registered in <code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl</span></code>.
 Plain <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> provides the native widgets without loading the toolbar or requiring argparse.
 Require the toolbar package before importing <code class="docutils literal notranslate"><span class="pre">::rbc::*</span></code> so the import includes the toolbar command.</p>
 <p>The command is exported from the <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> namespace and may normally be used as:</p>
@@ -93,8 +96,8 @@ alternatively be obtained with:</p>
 </section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. Snapshot, PostScript and SVG buttons are always
-present. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. One <strong>Export</strong> menu button is always
+present, with <strong>PNG snapshot…</strong>, <strong>PostScript…</strong>, <strong>SVG…</strong>, and <strong>PDF…</strong> choices. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
 one <strong>Crosshairs</strong> menu button. Its <strong>Crosshairs mode</strong> submenu selects Current point, Closest point,
 No marker, or Disabled. Its <strong>Closest crosshairs format</strong> submenu is enabled only in Closest point mode.
 Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.</p>
@@ -103,15 +106,21 @@ These replace the former crosshair comboboxes and their labels. Menu selections 
 stay synchronized; changing representation updates the available formats when the menu is opened.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget. Right-clicking the graph displays the corresponding controls in a popup menu:</p>
 <ul class="simple">
-<li><p><strong>Make snapshot…</strong></p></li>
-<li><p><strong>PostScript…</strong></p></li>
-<li><p><strong>SVG…</strong></p></li>
+<li><p><strong>Export</strong>, a submenu with the same four output formats as the toolbar.</p></li>
 <li><p><strong>Reset view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
 <li><p><strong>Previous view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
 <li><p><strong>Crosshairs mode</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
 <li><p><strong>Closest crosshairs format</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
 </ul>
 <p>The toolbar frame still exists in context-menu mode but is neither populated nor managed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">exportMenu</span></code> subwidget is available in both control modes. Toolbar mode also exposes <code class="docutils literal notranslate"><span class="pre">exportButton</span></code>.
+These replace the separate <code class="docutils literal notranslate"><span class="pre">makeSnapshotBut</span></code>, <code class="docutils literal notranslate"><span class="pre">postScriptDialogBut</span></code>, and <code class="docutils literal notranslate"><span class="pre">svgDialogBut</span></code> subwidgets.</p>
+<p>SVG and PDF open modal export dialogs with width, height, decorations and <strong>-embedfonts</strong> yes/no controls.
+Their initial values come from the graph’s configured export options. Font embedding defaults to <strong>no</strong> for
+SVG and <strong>yes</strong> for PDF. <strong>Reset</strong> reloads the current graph settings; <strong>Print</strong> applies the dialog values and
+opens the save-file chooser. <strong>Cancel</strong> closes the dialog without applying unsubmitted changes.
+SVG embedding requires a viewer supporting CSS webfonts and data URLs. PDF without embedding uses standard
+fonts with Windows-1252 text; other characters require embedding. See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PDF.html#r-namespaceqz3a3arbc3a3apdf"><span class="std std-ref">::rbc::PDF</span></a>.</p>
 </section>
 <section id="zooming-and-navigation">
 <span id="r-rbc-graphtoolbar-zooming-and-navigation"></span><span id="r-3a3arbc3a3agraphtoolbarqzzooming20and20navigation"></span><h2>Zooming and navigation<a class="headerlink" href="#zooming-and-navigation" title="Link to this heading">¶</a></h2>
@@ -1086,7 +1095,7 @@ Tk pathname of the requested subwidget.</p>
 </dl>
 <p class="rubric">Description</p>
 <p>Common names include <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code>, and, in context-menu mode, <code class="docutils literal notranslate"><span class="pre">contextMenu</span></code>. Toolbar mode may
-additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets.</p>
+additionally create exportButton, exportMenu, zoom, and crosshair control widgets.</p>
 <p class="rubric">Return value</p>
 <p>Returns the Tk pathname of a named subwidget.
 Tk pathname of the requested subwidget.</p>

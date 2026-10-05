@@ -106,7 +106,7 @@ DISABLE_TARGET_shell = 1
 pkgindex: default-pkgindex-tea
 $(PROJECT): runtime-files
 runtime-files: setup
-	@for %f in ("$(LIBDIR)\*.tcl" "$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm") do @$(COPY) %f "$(OUT_DIR)"
+	@for %f in ("$(LIBDIR)\*.tcl" "$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm" "$(LIBDIR)\argparse-LICENSE.txt" "$(LIBDIR)\argparse-README.txt") do @$(COPY) %f "$(OUT_DIR)"
 
 # Headers and build choices invalidate all implementation objects.
 $(PRJ_OBJS): makefile.vc $(ROOT)\configure.ac
@@ -114,7 +114,7 @@ $(PRJ_OBJS): makefile.vc $(ROOT)\configure.ac
 default-install-libraries: install-resources
 install-resources: $(PROJECT)
 	@if not exist "$(SCRIPT_INSTALL_DIR)" mkdir "$(SCRIPT_INSTALL_DIR)"
-	@for %f in ("$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm") do @$(COPY) %f "$(SCRIPT_INSTALL_DIR)"
+	@for %f in ("$(LIBDIR)\*.pro" "$(LIBDIR)\*.xbm" "$(LIBDIR)\argparse-LICENSE.txt" "$(LIBDIR)\argparse-README.txt") do @$(COPY) %f "$(SCRIPT_INSTALL_DIR)"
 	@$(COPY) "$(ROOT)\license.terms" "$(SCRIPT_INSTALL_DIR)"
 	@if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
 	@for %f in ($(RBC_PUBLIC_HEADERS)) do @$(COPY) %f "$(INCLUDE_INSTALL_DIR)"

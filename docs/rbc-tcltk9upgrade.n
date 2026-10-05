@@ -43,7 +43,10 @@ without a graphical display\&. Binary dependencies remain required\&. See \fI::r
 .PP
 package require rbc loads the native widgets without loading argparse or the toolbar\&. Applications using
 ::rbc::graphtoolbar now need package require rbc::graphtoolbar, before any namespace import ::rbc::*\&.
-The toolbar package requires the matching Rbc version and loads argparse\&. Repeated requires preserve existing
+The toolbar package requires the matching Rbc version and loads argparse\&. An installed argparse is preferred;
+if it is missing, the bundled Tcl-only argparse 0\&.65 is used, so graph demos need no separate installation\&.
+Errors from an installed argparse are still reported\&. The private fallback is not advertised by the package
+index and is never loaded by native RBC or the vector core\&. Repeated requires preserve existing
 widgets\&. Toolbar demos, tests, and documentation generation load this optional package explicitly\&.
 .SS "BACKWARD-COMPATIBLE GRAPH HELPERS"
 .PP

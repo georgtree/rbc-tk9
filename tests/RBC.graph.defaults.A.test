@@ -16,13 +16,6 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.defaults {
-    # Probe the same fresh-interpreter environment used by the toolbar tests.
-    set argparseProbe [interp create]
-    interp eval $argparseProbe [list set auto_path $::auto_path]
-    testConstraint argparse [interp eval $argparseProbe {expr {![catch {package require argparse}]}}]
-    interp delete $argparseProbe
-    unset argparseProbe
-
     proc Setup {} {
         interp create defaultsChild
         interp eval defaultsChild [list set auto_path $::auto_path]
@@ -212,7 +205,7 @@ namespace eval graph.defaults {
 
     test RBC.graph.defaults.A.4.2 {
         graph defaults: loading toolbar does not overwrite a widgetDefault resource
-    } -constraints argparse -setup {
+    } -setup {
         Setup
     } -body {
         interp eval defaultsChild {
@@ -230,7 +223,7 @@ namespace eval graph.defaults {
 
     test RBC.graph.defaults.A.4.3 {
         graph defaults: toolbar and plain RBC have the same native scaling default
-    } -constraints argparse -setup {
+    } -setup {
         Setup
     } -body {
         interp eval defaultsChild {

@@ -83,7 +83,10 @@ without a graphical display. Binary dependencies remain required. See <a class="
 <span id="r-tcltk9upgrade-optional-toolbar-package"></span><span id="r-3a3atcltk9upgradeqzoptional20toolbar20package"></span><h3>Optional toolbar package<a class="headerlink" href="#optional-toolbar-package" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads the native widgets without loading argparse or the toolbar. Applications using
 <code class="docutils literal notranslate"><span class="pre">::rbc::graphtoolbar</span></code> now need <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code>, before any <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">import</span> <span class="pre">::rbc::*</span></code>.
-The toolbar package requires the matching Rbc version and loads argparse. Repeated requires preserve existing
+The toolbar package requires the matching Rbc version and loads argparse. An installed argparse is preferred;
+if it is missing, the bundled Tcl-only argparse 0.65 is used, so graph demos need no separate installation.
+Errors from an installed argparse are still reported. The private fallback is not advertised by the package
+index and is never loaded by native RBC or the vector core. Repeated requires preserve existing
 widgets. Toolbar demos, tests, and documentation generation load this optional package explicitly.</p>
 </section>
 <section id="backward-compatible-graph-helpers">

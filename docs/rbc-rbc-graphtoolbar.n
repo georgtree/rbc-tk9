@@ -55,12 +55,15 @@ Interactive linear/logarithmic axis toggling\&.
 Interactive three-state legend entries\&.
 .TP
 \(bu
-PNG snapshots, PostScript and SVG output\&.
+PNG snapshots, PostScript, SVG and PDF output\&.
 .TP
 \(bu
 Either a permanently visible toolbar or a right-click context menu\&.
 .PP
 Load this optional package with package require rbc::graphtoolbar\&. It loads rbc, Tk, and argparse\&.
+An installed argparse package is preferred\&. When argparse is missing, the toolbar loads its bundled Tcl-only
+argparse 0\&.65 implementation\&. Errors from an installed package are reported without switching to the fallback\&.
+The bundled copy is private to toolbar loading; it is not registered in pkgIndex\&.tcl\&.
 Plain package require rbc provides the native widgets without loading the toolbar or requiring argparse\&.
 Require the toolbar package before importing ::rbc::* so the import includes the toolbar command\&.
 .PP
@@ -110,8 +113,8 @@ set graph [\&.gtb subwidget graph]
 .RE
 .SH "CONTROL SURFACES"
 .PP
--controlmode toolbar, the default, creates a visible toolbar\&. Snapshot, PostScript and SVG buttons are always
-present\&. Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&. Enabling -crosshairs adds
+-controlmode toolbar, the default, creates a visible toolbar\&. One \fBExport\fP menu button is always
+present, with \fBPNG snapshot\&.\&.\&.\fP, \fBPostScript\&.\&.\&.\fP, \fBSVG\&.\&.\&.\fP, and \fBPDF\&.\&.\&.\fP choices\&. Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&. Enabling -crosshairs adds
 one \fBCrosshairs\fP menu button\&. Its \fBCrosshairs mode\fP submenu selects Current point, Closest point,
 No marker, or Disabled\&. Its \fBClosest crosshairs format\fP submenu is enabled only in Closest point mode\&.
 Formats follow the current graph representation, including Polar radians/degrees and configured Custom text\&.
@@ -123,13 +126,7 @@ stay synchronized; changing representation updates the available formats when th
 -controlmode contextmenu leaves the graph occupying the entire megawidget\&. Right-clicking the graph displays the corresponding controls in a popup menu:
 .TP
 \(bu
-\fBMake snapshot\&.\&.\&.\fP
-.TP
-\(bu
-\fBPostScript\&.\&.\&.\fP
-.TP
-\(bu
-\fBSVG\&.\&.\&.\fP
+\fBExport\fP, a submenu with the same four output formats as the toolbar\&.
 .TP
 \(bu
 \fBReset view\fP, when -zoom is enabled\&.
@@ -144,6 +141,16 @@ stay synchronized; changing representation updates the available formats when th
 \fBClosest crosshairs format\fP, when -crosshairs is enabled\&.
 .PP
 The toolbar frame still exists in context-menu mode but is neither populated nor managed\&.
+.PP
+The exportMenu subwidget is available in both control modes\&. Toolbar mode also exposes exportButton\&.
+These replace the separate makeSnapshotBut, postScriptDialogBut, and svgDialogBut subwidgets\&.
+.PP
+SVG and PDF open modal export dialogs with width, height, decorations and \fB-embedfonts\fP yes/no controls\&.
+Their initial values come from the graph's configured export options\&. Font embedding defaults to \fBno\fP for
+SVG and \fByes\fP for PDF\&. \fBReset\fP reloads the current graph settings; \fBPrint\fP applies the dialog values and
+opens the save-file chooser\&. \fBCancel\fP closes the dialog without applying unsubmitted changes\&.
+SVG embedding requires a viewer supporting CSS webfonts and data URLs\&. PDF without embedding uses standard
+fonts with Windows-1252 text; other characters require embedding\&. See \fI::rbc::SVG\fP and \fI::rbc::PDF\fP\&.
 .SH "ZOOMING AND NAVIGATION"
 .PP
 With -zoom, rectangle zoom is performed by pressing the event selected by -zoomstartbut, together with
@@ -1147,7 +1154,7 @@ Subwidget name as returned by \fInames\fP\&.
 \fBDescription\fR
 .PP
 Common names include graph, toolbarFrame, and, in context-menu mode, contextMenu\&. Toolbar mode may
-additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets\&.
+additionally create exportButton, exportMenu, zoom, and crosshair control widgets\&.
 .PP
 \fBReturn value\fR
 .PP

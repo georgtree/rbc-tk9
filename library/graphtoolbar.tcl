@@ -1,4 +1,16 @@
-package require argparse
+# Prefer an installed package. Only an absent package uses the private Tcl
+# fallback; errors from registered packages (including their dependencies)
+# must retain their original message and error options.
+apply {{directory} {
+    if {[catch {package require argparse} message options]} {
+        if {[dict get $options -errorcode] ne {TCL PACKAGE UNFOUND} ||
+                [llength [package versions argparse]] != 0} {
+            return -options $options $message
+        }
+        source [file join $directory argparse.tcl]
+        package require argparse
+    }
+}} [file dirname [file normalize [info script]]]
 package require Tk
 package require rbc
 
@@ -28,6 +40,9 @@ namespace eval ::rbc::graphtoolbar {
         - Either a permanently visible toolbar or a right-click context menu.
 
         Load this optional package with `package require rbc::graphtoolbar`. It loads `rbc`, Tk, and argparse.
+        An installed argparse package is preferred. When argparse is missing, the toolbar loads its bundled Tcl-only
+        argparse 0.65 implementation. Errors from an installed package are reported without switching to the fallback.
+        The bundled copy is private to toolbar loading; it is not registered in `pkgIndex.tcl`.
         Plain `package require rbc` provides the native widgets without loading the toolbar or requiring argparse.
         Require the toolbar package before importing `::rbc::*` so the import includes the toolbar command.
 

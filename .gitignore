@@ -24,3 +24,7 @@ configure~
 /*.eps
 /docs/examples/*.tcl
 /dist
+# Private toolbar fallback copied into the build directory.
+/argparse.tcl
+/argparse-LICENSE.txt
+/argparse-README.txt

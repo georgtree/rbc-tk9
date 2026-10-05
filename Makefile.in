@@ -475,7 +475,7 @@ clean:
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
-	-rm -f graph.tcl graphtoolbar.tcl rbcCanvEps.pro rbcGraph.pro circle.xbm circle_mask.xbm
+	-rm -f graph.tcl graphtoolbar.tcl argparse.tcl argparse-LICENSE.txt argparse-README.txt rbcCanvEps.pro rbcGraph.pro circle.xbm circle_mask.xbm
 	-rm -rf docs/sphinx
 	-rm -rf docs/.doctrees
 	-rm -rf docs/_sources

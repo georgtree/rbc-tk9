@@ -47,7 +47,8 @@ Rbc contains selected components derived from BLT. It is not a complete replacem
 ### Running Rbc
 
 - Tcl and Tk 9.0/9.1
-- The Tcl [argparse package](https://github.com/georgtree/argparse), only for the optional `rbc::graphtoolbar` package.
+- The optional toolbar prefers an installed [argparse package](https://github.com/georgtree/argparse). If none is
+  available, it uses the bundled Tcl-only argparse 0.65; no separate installation is required for the graph demos.
 - A graphical environment supported by the Tk installation.
 
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
@@ -68,8 +69,15 @@ package require rbc::graphtoolbar
 namespace import ::rbc::*
 ```
 
-This also loads the matching `rbc` package and argparse. Applications using `graphtoolbar` must add this require;
+This also loads the matching `rbc` package and argparse (installed, or the bundled Tcl-only fallback when missing).
+Applications using `graphtoolbar` must add this require;
 the command name remains `::rbc::graphtoolbar`. Requiring the toolbar repeatedly preserves existing widgets.
+
+The bundled argparse source and MIT licence are installed alongside `graphtoolbar.tcl`.
+Its origin and version are recorded in `argparse-README.txt`. Errors from an installed argparse package are
+reported rather than replaced by the fallback. Plain `package require rbc` and `rbc::vector` remain independent
+of argparse; the bundled copy is not advertised as a separate installed package.
+
 For vector-only use in `tclsh`, load the Tcl-only package instead:
 
 ```tcl
