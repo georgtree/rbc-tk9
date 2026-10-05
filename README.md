@@ -3,13 +3,8 @@
 ![RBC preview](docs/images/preview.png)
 
 Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
-and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots
-and graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
-PDF output embeds TrueType and ordinary OpenType/CFF fonts with searchable Unicode text, including mathematical
-superscripts and subscripts. PDF `-embedfonts no` selects standard fonts with Windows-1252 text instead.
-SVG optionally embeds the same native fonts as CSS webfonts with `-embedfonts yes` (default: no), preserving
-Unicode text. SVG viewers must support CSS webfonts and data URLs. See the PDF and SVG component documentation
-for supported font formats and limitations.
+and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
+graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
 
 This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.0**.
 
