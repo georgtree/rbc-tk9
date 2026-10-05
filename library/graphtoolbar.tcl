@@ -24,7 +24,7 @@ namespace eval ::rbc::graphtoolbar {
         - Polar and Smith-chart coordinate displays.
         - Interactive linear/logarithmic axis toggling.
         - Interactive three-state legend entries.
-        - PNG snapshots, PostScript and SVG output.
+        - PNG snapshots, PostScript, SVG and PDF output.
         - Either a permanently visible toolbar or a right-click context menu.
 
         Load this optional package with `package require rbc::graphtoolbar`. It loads `rbc`, Tk, and argparse.
@@ -67,8 +67,8 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Control surfaces
-        `-controlmode toolbar`, the default, creates a visible toolbar. Snapshot, PostScript and SVG buttons are always
-        present. Enabling `-zoom` adds **Reset view** and **Previous view** controls. Enabling `-crosshairs` adds
+        `-controlmode toolbar`, the default, creates a visible toolbar. One **Export** menu button is always
+        present, with **PNG snapshot...**, **PostScript...**, **SVG...**, and **PDF...** choices. Enabling `-zoom` adds **Reset view** and **Previous view** controls. Enabling `-crosshairs` adds
         one **Crosshairs** menu button. Its **Crosshairs mode** submenu selects Current point, Closest point,
         No marker, or Disabled. Its **Closest crosshairs format** submenu is enabled only in Closest point mode.
         Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.
@@ -79,15 +79,23 @@ namespace eval ::rbc::graphtoolbar {
 
         `-controlmode contextmenu` leaves the graph occupying the entire megawidget. Right-clicking the graph displays\
         the corresponding controls in a popup menu:
-        - **Make snapshot...**
-        - **PostScript...**
-        - **SVG...**
+        - **Export**, a submenu with the same four output formats as the toolbar.
         - **Reset view**, when `-zoom` is enabled.
         - **Previous view**, when `-zoom` is enabled.
         - **Crosshairs mode**, when `-crosshairs` is enabled.
         - **Closest crosshairs format**, when `-crosshairs` is enabled.
 
         The toolbar frame still exists in context-menu mode but is neither populated nor managed.
+
+        The `exportMenu` subwidget is available in both control modes. Toolbar mode also exposes `exportButton`.
+        These replace the separate `makeSnapshotBut`, `postScriptDialogBut`, and `svgDialogBut` subwidgets.
+
+        SVG and PDF open modal export dialogs with width, height, decorations and **-embedfonts** yes/no controls.
+        Their initial values come from the graph's configured export options. Font embedding defaults to **no** for
+        SVG and **yes** for PDF. **Reset** reloads the current graph settings; **Print** applies the dialog values and
+        opens the save-file chooser. **Cancel** closes the dialog without applying unsubmitted changes.
+        SVG embedding requires a viewer supporting CSS webfonts and data URLs. PDF without embedding uses standard
+        fonts with Windows-1252 text; other characters require embedding. See [::rbc::SVG] and [::rbc::PDF].
 
         ## Zooming and navigation
         With `-zoom`, rectangle zoom is performed by pressing the event selected by `-zoomstartbut`, together with
@@ -1290,7 +1298,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
             zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode\
-            SvgData
+            ExportData
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
     variable CrosshairsSelector ClosestCoordSelector
@@ -1406,20 +1414,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Create visible toolbar controls only in toolbar mode.
         if {$ControlMode eq {toolbar}} {
             set butCount -1
-            set Subwidgets(makeSnapshotBut) [ttk::button $Subwidgets(toolbarFrame).makeSnapshotBut -width 14 -image\
-                                                     ::rbc::graphtoolbar::icons::makeSnapshotIcon -style Toolbutton\
-                                                     -command [namespace code {my MakeSnapshot}]]
-            grid $Subwidgets(makeSnapshotBut) -row 0 -column [incr butCount] -sticky ns
-            set Subwidgets(postScriptDialogBut) [ttk::button $Subwidgets(toolbarFrame).postScriptDialogBut -width 14\
-                                                         -image ::rbc::graphtoolbar::icons::postScriptDialogIcon\
-                                                         -style Toolbutton\
-                                                         -command [namespace code {my PostScriptDialog}]]
-            grid $Subwidgets(postScriptDialogBut) -row 0 -column [incr butCount] -sticky ns
-            set Subwidgets(svgDialogBut) [ttk::button $Subwidgets(toolbarFrame).svgDialogBut -width 14\
-                                                         -image ::rbc::graphtoolbar::icons::svgDialogIcon\
-                                                         -style Toolbutton\
-                                                         -command [namespace code {my SvgDialog}]]
-            grid $Subwidgets(svgDialogBut) -row 0 -column [incr butCount] -sticky ns
+            set Subwidgets(exportButton) [ttk::menubutton $Subwidgets(toolbarFrame).exportButton -text Export\
+                                                  -image ::rbc::graphtoolbar::icons::postScriptDialogIcon -compound left]
+            set Subwidgets(exportMenu) [my CreateExportMenu $Subwidgets(exportButton).menu]
+            $Subwidgets(exportButton) configure -menu $Subwidgets(exportMenu)
+            grid $Subwidgets(exportButton) -row 0 -column [incr butCount] -sticky ns
         }
         ##### zoom activation
         if {[dict exists $arguments zoom]} {
@@ -1577,7 +1576,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  name - subwidget name as returned by [names].
         #
         # Common names include `graph`, `toolbarFrame`, and, in context-menu mode, `contextMenu`. Toolbar mode may
-        # additionally create snapshot, PostScript, SVG, zoom, and crosshair control widgets.
+        # additionally create exportButton, exportMenu, zoom, and crosshair control widgets.
         #
         # Returns: Tk pathname of the requested subwidget.
         if {[info exists Subwidgets($name)]} {
@@ -1624,7 +1623,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  hasZoom - true when zoom/navigation controls were enabled.
         #  hasCrosshairs - true when enhanced crosshair controls were enabled.
         #
-        # The menu always contains snapshot, PostScript and SVG commands. Zoom and # crosshair-related entries are
+        # The menu always contains an Export submenu. Zoom and crosshair-related entries are
         # added only when the corresponding # facilities were enabled at construction time.
         #
         # Returns: Nothing.
@@ -1637,9 +1636,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 my RestoreContextMenuCrosshairs
             }]
         }]
-        $menu add command -label {Make snapshot...}  -command [namespace code {my MakeSnapshot}]
-        $menu add command -label {PostScript...}  -command [namespace code {my PostScriptDialog}]
-        $menu add command -label {SVG...}  -command [namespace code {my SvgDialog}]
+        set Subwidgets(exportMenu) [my CreateExportMenu $menu.export]
+        $menu add cascade -label Export -menu $Subwidgets(exportMenu)
         if {$hasZoom} {
             $menu add separator
             $menu add command -label {Reset view} -command [namespace code {my ResetAllZoom}]
@@ -1649,6 +1647,18 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             $menu add separator
             my AddCrosshairsMenuEntries $menu
         }
+    }
+    method CreateExportMenu {menu} {
+        # Creates the shared format menu for the toolbar and context-menu control surfaces.
+        #  menu - menu pathname.
+        #
+        # Returns: Menu pathname.
+        menu $menu -tearoff no
+        foreach {label method} {{PNG snapshot...} MakeSnapshot PostScript... PostScriptDialog SVG... SvgDialog\
+                                   PDF... PdfDialog} {
+            $menu add command -label $label -command [namespace code [list my $method]]
+        }
+        return $menu
     }
     method AddCrosshairsMenuEntries {menu} {
         # Adds mode and closest-format submenus to a control menu.
@@ -5570,13 +5580,27 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method SvgDialog {} {
-        # Opens the graphtoolbar SVG configuration dialog.
+        # Opens the modal SVG export dialog.
+        #
+        # Returns: Nothing.
+        my ExportDialog svg
+    }
+    method PdfDialog {} {
+        # Opens the modal PDF export dialog.
+        #
+        # Returns: Nothing.
+        my ExportDialog pdf
+    }
+    method ExportDialog {format} {
+        # Opens the SVG or PDF configuration dialog.
+        #  format - svg or pdf.
         #
         # The dialog is modal with respect to the application. While it is open, interaction with the parent window
         # is blocked.
         #
         # Returns: Nothing.
-        variable SvgData
+        variable ExportData
+        set label [string toupper $format]
         set graph $Subwidgets(graph)
         set top $Subwidgets(toolbarFrame).top
         set parent [winfo toplevel $graph]
@@ -5588,21 +5612,21 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         set oldFocus [focus]
         toplevel $top
-        wm title $top {SVG dialog}
+        wm title $top "$label dialog"
         wm transient $top $parent
         wm protocol $top WM_DELETE_WINDOW [list destroy $top]
-        foreach var {decorations width height} {
-            set SvgData($graph.$var) [$graph svg cget -$var]
+        foreach var {decorations embedfonts width height} {
+            set ExportData($graph.$var) [$graph $format cget -$var]
         }
-        set var [namespace current]::SvgData
+        set var [namespace current]::ExportData
         # title frame
-        ttk::label $top.title -text {SVG options}
+        ttk::label $top.title -text "$label options"
         grid $top.title -row 0 -columnspan 4
         # radiobutton options frame
         set radioButsFrame [ttk::frame $top.radiobuts]
         grid $radioButsFrame -row 1 -column 1
         set row 1
-        foreach bool {decorations} {
+        foreach bool {decorations embedfonts} {
             set w $radioButsFrame.$bool-label
             ttk::label $w -text -$bool
             grid $w -row $row -column 0 -sticky e -pady {2 0} -padx {0 4}
@@ -5634,8 +5658,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set buttonsFrame [ttk::frame $top.buttons]
         grid $buttonsFrame -row 2 -columnspan 4 
         ttk::button $buttonsFrame.cancel -text Cancel -command [list destroy $top]
-        ttk::button $buttonsFrame.reset -text Reset -command [namespace code {my ResetSvg}]
-        ttk::button $buttonsFrame.print -text Print -command [namespace code {my PrintSvg}]
+        ttk::button $buttonsFrame.reset -text Reset -command [namespace code [list my ResetExport $format]]
+        ttk::button $buttonsFrame.print -text Print -command [namespace code [list my PrintExport $format]]
         grid $buttonsFrame.cancel -row 0 -column 0 -pady 2 -padx 10 -sticky ew
         grid $buttonsFrame.reset -row 0 -column 1 -pady 2 -padx 10 -sticky ew
         grid $buttonsFrame.print -row 0 -column 2 -pady 2 -padx 10 -sticky ew
@@ -5660,17 +5684,19 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             focus $oldFocus
         }
     }
-    method ResetSvg {} {
-        # Reset SVG graph options to last saved ones.
+    method ResetExport {format} {
+        # Resets SVG or PDF dialog values to the graph's current settings.
+        #  format - svg or pdf.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        foreach var {decorations width height} {
-            set SvgData($graph.$var) [$graph svg cget -$var]
+        foreach var {decorations embedfonts width height} {
+            set ExportData($graph.$var) [$graph $format cget -$var]
         }
     }
-    method PrintSvg {} {
-        # Applies values from the SVG dialog and writes PostScript output.
+    method PrintExport {format} {
+        # Applies SVG or PDF dialog values and writes the selected output format.
+        #  format - svg or pdf.
         #
         # Individual invalid option values are rolled back to their previous Rbc value. A save-file dialog selects
         # the final destination.
@@ -5678,16 +5704,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set graph $Subwidgets(graph)
         set top $Subwidgets(toolbarFrame).top
-        foreach var {decorations width height} {
-            set old [$graph svg cget -$var]
-            if {[catch {$graph svg configure -$var [set SvgData($graph.$var)]} errorStr]} {
-                $graph svg configure -$var $old
-                set SvgData($graph.$var) $old
+        foreach var {decorations embedfonts width height} {
+            set old [$graph $format cget -$var]
+            if {[catch {$graph $format configure -$var [set ExportData($graph.$var)]} errorStr]} {
+                $graph $format configure -$var $old
+                set ExportData($graph.$var) $old
             }
         }
-        if {![catch {set savePath [tk_getSaveFile -parent $top -initialfile snapshot.svg]} errorStr] &&\
+        if {![catch {set savePath [tk_getSaveFile -parent $top -initialfile snapshot.$format]} errorStr] &&\
                     ($savePath ne {})} {
-            $graph svg output $savePath
+            $graph $format output $savePath
         } else {
             return
         }

@@ -563,6 +563,53 @@ proc SetRetainedAxisAge {widget milliseconds} {
     set $var $target
 }
 
+# Exercise real menu callbacks while inspecting the modal dialog from its
+# nested event loop. Always close it, even if an assertion raises an error.
+proc InspectExportDialog {widget format action} {
+    global exportDialogResult
+    set graph [$widget subwidget graph]
+    set top [$widget subwidget toolbarFrame].top
+    set exportDialogResult [catch {
+        upvar #0 [$top.radiobuts.embedfonts-yes cget -variable] embed
+        switch $action {
+            cancel {
+                set initial $embed
+                $top.radiobuts.embedfonts-yes invoke
+                $top.radiobuts.embedfonts-no invoke
+                list [wm title $top] $initial $embed [expr {[grab current] eq $top}]
+            }
+            reset {
+                set initial $embed
+                if {$initial} {
+                    $top.radiobuts.embedfonts-no invoke
+                } else {
+                    $top.radiobuts.embedfonts-yes invoke
+                }
+                set changed $embed
+                $top.buttons.reset invoke
+                list $initial $changed $embed
+            }
+            save-no - save-yes {
+                $top.radiobuts.embedfonts-[string range $action 5 end] invoke
+                $top.buttons.print invoke
+                list [$graph $format cget -embedfonts] $embed
+            }
+        }
+    } value options]
+    set exportDialogResult [list $exportDialogResult $value $options]
+    if {[winfo exists $top]} {$top.buttons.cancel invoke}
+}
+
+proc RunExportDialog {widget format action} {
+    global exportDialogResult
+    after 0 [list InspectExportDialog $widget $format $action]
+    [$widget subwidget exportMenu] invoke [string toupper $format]...
+    lassign $exportDialogResult code value options
+    if {$code} {return -options $options $value}
+    return $value
+}
+
+
 customMatch approxEqual approxNestedEqual
 
 testConstraint isInteractive true
@@ -587,8 +634,8 @@ test generalConfiguration-1 {names subcommand} -setup {
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
-    $widget names
-} -result {makeSnapshotBut postScriptDialogBut graph toolbarFrame svgDialogBut} -cleanup {
+    lsort [$widget names]
+} -result {exportButton exportMenu graph toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -598,8 +645,8 @@ test generalConfiguration-2 {names subcommand} -setup {
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
 } -body {
-    $widget names
-} -result {revertZoomBut makeSnapshotBut postScriptDialogBut graph toolbarFrame resetZoomBut svgDialogBut} -cleanup {
+    lsort [$widget names]
+} -result {exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -610,8 +657,7 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {crosshairsMenu crosshairsMenuButton graph makeSnapshotBut postScriptDialogBut resetZoomBut revertZoomBut\
-                   svgDialogBut toolbarFrame} -cleanup {
+} -result {crosshairsMenu crosshairsMenuButton exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -789,7 +835,7 @@ test generalConfiguration-18 {context-menu mode has graph and menu but no visibl
 } -body {
     list [lsort [$widget names]] [winfo manager $toolbar] [winfo children $toolbar] [winfo manager $graph]\
             [winfo exists $menu]
-} -result {{contextMenu graph toolbarFrame} {} {} grid 1} -cleanup {
+} -result {{contextMenu exportMenu graph toolbarFrame} {} {} grid 1} -cleanup {
     destroy $widget
 }
 
@@ -805,12 +851,12 @@ test generalConfiguration-19 {context menu contains only controls for enabled fe
         lappend actual [MenuDescription [$widget subwidget contextMenu]]
     }
     return $actual
-} -result {{{command {Make snapshot...}} {command PostScript...} {command SVG...}}\
-    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {command {Reset view}}\
+} -result {{{cascade Export}}\
+    {{cascade Export} {separator {}} {command {Reset view}}\
              {command {Previous view}}}\
-    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {cascade {Crosshairs mode}}\
+    {{cascade Export} {separator {}} {cascade {Crosshairs mode}}\
              {cascade {Closest crosshairs format}}}\
-    {{command {Make snapshot...}} {command PostScript...} {command SVG...} {separator {}} {command {Reset view}}\
+    {{cascade Export} {separator {}} {command {Reset view}}\
              {command {Previous view}} {separator {}} {cascade {Crosshairs mode}}\
              {cascade {Closest crosshairs format}}}} -cleanup {
     foreach widget $widgets {
@@ -862,6 +908,93 @@ foreach control {toolbar contextmenu} {
         destroy $widget
     }
 
+}
+
+### export controls and dialogs
+foreach mode {toolbar contextmenu} {
+    test export-1-$mode {one export menu exposes all formats} -setup {
+        set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
+        pack $widget -fill both -expand yes
+        WaitForWindow [$widget subwidget graph]
+    } -body {
+        set menu [$widget subwidget exportMenu]
+        if {$mode eq {toolbar}} {
+            set button [$widget subwidget exportButton]
+            set linked [expr {[$button cget -menu] eq $menu && [$button cget -text] eq "Export"}]
+            set count [llength [winfo children [$widget subwidget toolbarFrame]]]
+        } else {
+            set parent [$widget subwidget contextMenu]
+            set linked [expr {[$parent type Export] eq "cascade" && [$parent entrycget Export -menu] eq $menu}]
+            set count [expr {[$parent index end] + 1}]
+        }
+        list [MenuDescription $menu] $linked $count
+    } -cleanup {destroy $widget} -result {{{command {PNG snapshot...}} {command PostScript...} {command SVG...} {command PDF...}} 1 1}
+
+    test export-2-$mode {every format dispatches to its own action} -setup {
+        set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
+        pack $widget -fill both -expand yes
+        WaitForWindow [$widget subwidget graph]
+        set dispatch {}
+        foreach method {MakeSnapshot PostScriptDialog SvgDialog PdfDialog} {
+            oo::objdefine $widget ::oo::objdefine::method $method {} [list lappend [namespace current]::dispatch $method]
+        }
+    } -body {
+        set menu [$widget subwidget exportMenu]
+        for {set i 0} {$i < 4} {incr i} {$menu invoke $i}
+        set dispatch
+    } -cleanup {destroy $widget} -result {MakeSnapshot PostScriptDialog SvgDialog PdfDialog}
+
+    foreach format {svg pdf} {
+        set default [expr {$format eq "pdf"}]
+        test export-3-$mode-$format {embedding defaults, modal grab and cancel cleanup} -setup {
+            set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
+            pack $widget -fill both -expand yes
+            WaitForWindow [$widget subwidget graph]
+        } -body {
+            set values [RunExportDialog $widget $format cancel]
+            set graph [$widget subwidget graph]
+            list $values [$graph $format cget -embedfonts] [grab current]\
+                    [namespace eval [info object namespace $widget] {array size ExportData}]
+        } -cleanup {destroy $widget} -result [list [list "[string toupper $format] dialog" $default 0 1] $default {} 0]
+
+        test export-4-$mode-$format {Reset reloads configured embedding option} -setup {
+            set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
+            pack $widget -fill both -expand yes
+            WaitForWindow [$widget subwidget graph]
+            [$widget subwidget graph] $format configure -embedfonts [expr {!$default}]
+        } -body {
+            RunExportDialog $widget $format reset
+        } -cleanup {destroy $widget} -result [list [expr {!$default}] $default [expr {!$default}]]
+
+        foreach setting {no yes} {
+            test export-5-$mode-$format-$setting {Print applies embedding and writes the selected format} -setup {
+                set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
+                pack $widget -fill both -expand yes
+                WaitForWindow [$widget subwidget graph]
+                set destination [makeFile {} toolbar-export.$format]
+                set ::toolbarExportDestination $destination
+                rename ::tk_getSaveFile ::SavedExportGetSaveFile
+                proc ::tk_getSaveFile {args} {
+                    set ::exportSaveOptions $args
+                    return $::toolbarExportDestination
+                }
+            } -body {
+                set values [RunExportDialog $widget $format save-$setting]
+                set channel [open $destination rb]
+                set document [read $channel]
+                close $channel
+                set expected [expr {$format eq "svg" ? {<svg } : {%PDF-}}]
+                list $values [dict get $exportSaveOptions -initialfile] [expr {[string first $expected $document] >= 0}]\
+                        [expr {[regexp {@font-face|/FontFile[23]} $document] == ($setting eq "yes")}]
+            } -cleanup {
+                rename ::tk_getSaveFile {}
+                rename ::SavedExportGetSaveFile ::tk_getSaveFile
+                destroy $widget
+                unset -nocomplain ::toolbarExportDestination
+                removeFile toolbar-export.$format
+            } -result [list [lrepeat 2 [expr {$setting eq "yes"}]] snapshot.$format 1 1]
+        }
+    }
 }
 
 ### interactive features tests
@@ -1023,7 +1156,7 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
         lappend states [$w cget -state]
     }
     return $states
-}  -result {disabled disabled disabled disabled disabled normal normal normal normal normal} -cleanup {
+}  -result {disabled disabled disabled normal normal normal} -cleanup {
     destroy $widget
 }
 
