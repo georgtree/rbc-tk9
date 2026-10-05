@@ -4260,24 +4260,121 @@ static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const 
     return TRUE;
 }
 
-static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
-    XPoint points[PTS_IN_ARROW - 1];
+/*
+ * DrawNativeLineSegments --
+ *
+ *      Round arrowed shaft endpoints to pixel centers, instead of letting the
+ *      general segment routine truncate their endpoints. Keep mapped
+ *      doubles intact for hit testing and export. Use bounded batches
+ *      and retain the general routine's protocol clipping.
+ */
+static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
+    Graph *graphPtr = lmPtr->core.graphPtr;
+    Segment2D rounded[128];
+    Tcl_Size first, count, i;
+
+    if (!lmPtr->hasFirstArrow && !lmPtr->hasLastArrow) {
+        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        return;
+    }
+    for (first = 0; first < lmPtr->nSegments; first += count) {
+        count = MIN(lmPtr->nSegments - first, 128);
+        for (i = 0; i < count; i++) {
+            rounded[i].p.x = round(lmPtr->segments[first + i].p.x);
+            rounded[i].p.y = round(lmPtr->segments[first + i].p.y);
+            rounded[i].q.x = round(lmPtr->segments[first + i].q.x);
+            rounded[i].q.y = round(lmPtr->segments[first + i].q.y);
+        }
+        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, rounded, count);
+    }
+}
+
+/*
+ * DrawRenderedArrowHead --
+ *
+ *      Area fills use pixel boundaries, while line-marker coordinates
+ *      identify pixel centers. Move only the temporary fill vertices
+ *      by half a pixel to match the Cairo shaft's translation. Native
+ *      drawing and exports continue to use the original geometry.
+ */
+static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point2D *arrow, XColor *color) {
+    Point2D points[PTS_IN_ARROW - 1];
     int i;
 
-    /*
-     * ComputeArrowHead stores five unique vertices followed by a
-     * duplicate of the tip.  XFillPolygon closes the path
-     * automatically, so don't pass the duplicate point.
-     *
-     * The arrowhead is a simple concave polygon because of the two
-     * inset neck vertices.  It must therefore be declared Nonconvex,
-     * not Convex.
-     */
     for (i = 0; i < PTS_IN_ARROW - 1; i++) {
-        points[i].x = (short)round(arrow[i].x);
-        points[i].y = (short)round(arrow[i].y);
+        points[i].x = arrow[i].x + 0.5;
+        points[i].y = arrow[i].y + 0.5;
     }
-    XFillPolygon(graphPtr->display, drawable, gc, points, PTS_IN_ARROW - 1, Nonconvex, CoordModeOrigin);
+    return Rbc_RenderArea(graphPtr, drawable, points, PTS_IN_ARROW - 1, color, NULL, None);
+}
+
+/*
+ * DrawArrowHead --
+ *
+ *      Scan-convert the five-vertex head at integer pixel centers.
+ *      Rounding its vertices before XFillPolygon can distort the narrow
+ *      neck and unbalance diagonal heads. Native polygon filling also
+ *      uses boundary coordinates, unlike the shaft's pixel centers.
+ *      Keep the original doubles until choosing the covered pixels.
+ *
+ *      Half-open edges count shared vertices once. Clip spans before
+ *      converting to X protocol coordinates and send bounded batches.
+ */
+static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
+    XRectangle spans[128];
+    double top = arrow[0].y, bottom = arrow[0].y;
+    int i, j, y, lastY, right, nSpans = 0;
+
+    for (i = 1; i < PTS_IN_ARROW - 1; i++) {
+        top = MIN(top, arrow[i].y);
+        bottom = MAX(bottom, arrow[i].y);
+    }
+    top = MAX(0.0, ceil(top));
+    bottom = MIN((double)MIN(graphPtr->height - 1, SHRT_MAX), floor(bottom));
+    right = MIN(graphPtr->width - 1, SHRT_MAX);
+    if ((top > bottom) || (right < 0)) {
+        return;
+    }
+    lastY = (int)bottom;
+    for (y = (int)top; y <= lastY; y++) {
+        double intersections[PTS_IN_ARROW - 1];
+        int count = 0;
+
+        for (i = 0; i < PTS_IN_ARROW - 1; i++) {
+            const Point2D *p = arrow + i;
+            const Point2D *q = arrow + ((i + 1) % (PTS_IN_ARROW - 1));
+
+            if (((p->y <= y) && (y < q->y)) || ((q->y <= y) && (y < p->y))) {
+                double x = p->x + ((double)y - p->y) / (q->y - p->y) * (q->x - p->x);
+
+                /* At most five crossings; insertion sort keeps pairs ordered. */
+                for (j = count; (j > 0) && (intersections[j - 1] > x); j--) {
+                    intersections[j] = intersections[j - 1];
+                }
+                intersections[j] = x;
+                count++;
+            }
+        }
+        for (i = 0; i + 1 < count; i += 2) {
+            double left = MAX(0.0, ceil(intersections[i]));
+            double end = MIN((double)right, ceil(intersections[i + 1]) - 1.0);
+
+            if (left > end) {
+                continue;
+            }
+            spans[nSpans].x = (short)left;
+            spans[nSpans].y = (short)y;
+            spans[nSpans].width = (unsigned short)(end - left + 1.0);
+            spans[nSpans].height = 1;
+            if (++nSpans == 128) {
+                XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
+                nSpans = 0;
+            }
+        }
+    }
+    if (nSpans > 0) {
+        XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
+    }
 }
 
 /*
@@ -4314,20 +4411,20 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
         if (!DrawRenderedMarkerSegments(graphPtr, drawable, lmPtr->segments, lmPtr->nSegments, outline,
                                         lmPtr->fillColor, lmPtr->lineWidth, &lmPtr->dashes, lmPtr->capStyle,
                                         lmPtr->joinStyle, lmPtr->xor)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+            DrawNativeLineSegments(lmPtr, drawable);
         }
         drawn = TRUE;
     }
     if (lmPtr->hasFirstArrow) {
         if (lmPtr->xor ||
-            !Rbc_RenderArea(graphPtr, drawable, lmPtr->firstArrow, PTS_IN_ARROW - 1, outline, NULL, None)) {
+            !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->firstArrow, outline)) {
             DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
         }
         drawn = TRUE;
     }
     if (lmPtr->hasLastArrow) {
         if (lmPtr->xor ||
-            !Rbc_RenderArea(graphPtr, drawable, lmPtr->lastArrow, PTS_IN_ARROW - 1, outline, NULL, None)) {
+            !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->lastArrow, outline)) {
             DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
         }
         drawn = TRUE;
@@ -4491,7 +4588,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
      * whether an old XOR image is currently present in the window.
      */
     if (lmPtr->xorState && (drawable != None) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        DrawNativeLineSegments(lmPtr, drawable);
         lmPtr->xorState = FALSE;
     }
     /*
@@ -4645,7 +4742,7 @@ static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
     if (lmPtr->xorState && (graphPtr->tkwin != NULL) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
         drawable = Tk_WindowId(graphPtr->tkwin);
         if (drawable != None) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+            DrawNativeLineSegments(lmPtr, drawable);
         }
         lmPtr->xorState = FALSE;
     }
