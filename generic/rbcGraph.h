@@ -367,6 +367,7 @@ typedef struct {
  * -------------------------------------------------------------------
  */
 struct GraphStruct {
+    struct GraphRedrawSettle *redrawSettle; /* Pending exposure/resize geometry samples. */
     unsigned int flags;   /* Flags;  see below for definitions. */
     Tcl_Interp *interp;   /* Interpreter associated with graph */
     Tk_Window tkwin;      /* Window that embodies the graph.  NULL

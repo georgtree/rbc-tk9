@@ -910,6 +910,96 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
  *
  *--------------------------------------------------------------
  */
+/*
+ * Expose may arrive while pack/grid is still propagating an ancestor resize.
+ * A single idle callback can overtake the next level's geometry callback.
+ * Sample the complete Tk ancestry in one idle pass, and present only after an
+ * unchanged samples in two subsequent passes. The extra quiet pass allows a
+ * queued ttk layout request to reach its manager callback before presentation.
+ * No event loop is entered recursively.
+ * This coalesces ordinary nested geometry work, not arbitrary future timers or
+ * layout changes scheduled by application callbacks.
+ */
+typedef struct {
+    Tk_Window window;
+    int x, y, width, height, border;
+} GraphGeometrySample;
+
+typedef struct GraphRedrawSettle {
+    int count;
+    int stablePasses;
+    GraphGeometrySample *samples;
+} GraphRedrawSettle;
+
+static void FreeGraphRedrawSettle(Graph *graphPtr) {
+    GraphRedrawSettle *settle = graphPtr->redrawSettle;
+    if (settle != NULL) {
+        if (settle->samples != NULL) Tcl_Free((char *)settle->samples);
+        Tcl_Free((char *)settle);
+        graphPtr->redrawSettle = NULL;
+    }
+}
+
+static void SettleGraphRedraw(ClientData clientData) {
+    Graph *graphPtr = clientData;
+    GraphRedrawSettle *settle = graphPtr->redrawSettle;
+    Tk_Window window;
+    int count = 0, i = 0, changed = 0;
+
+    if (graphPtr->tkwin == NULL) {
+        FreeGraphRedrawSettle(graphPtr);
+        graphPtr->flags &= ~REDRAW_PENDING;
+        return;
+    }
+    for (window = graphPtr->tkwin; window != NULL; window = Tk_Parent(window)) {
+        count++;
+        if (Tk_IsTopLevel(window)) break;
+    }
+    if (settle->count != count) {
+        if (settle->samples != NULL) Tcl_Free((char *)settle->samples);
+        settle->samples = (GraphGeometrySample *)Tcl_Alloc(count * sizeof(GraphGeometrySample));
+        settle->count = count;
+        changed = 1;
+    }
+    for (window = graphPtr->tkwin; i < count; i++, window = Tk_Parent(window)) {
+        GraphGeometrySample *sample = &settle->samples[i];
+        if (!changed && (sample->window != window || sample->x != Tk_X(window) ||
+                        sample->y != Tk_Y(window) || sample->width != Tk_Width(window) ||
+                        sample->height != Tk_Height(window) || sample->border != Tk_Changes(window)->border_width)) {
+            changed = 1;
+        }
+        sample->window = window;
+        sample->x = Tk_X(window);
+        sample->y = Tk_Y(window);
+        sample->width = Tk_Width(window);
+        sample->height = Tk_Height(window);
+        sample->border = Tk_Changes(window)->border_width;
+    }
+    if (changed) settle->stablePasses = 0;
+    else settle->stablePasses++;
+    if (settle->stablePasses < 2) {
+        Tcl_DoWhenIdle(SettleGraphRedraw, graphPtr);
+        return;
+    }
+    FreeGraphRedrawSettle(graphPtr);
+    /* DisplayGraph consumes REDRAW_PENDING and samples final widget dimensions. */
+    DisplayGraph(graphPtr);
+}
+
+static void EventuallyRedrawSettledGraph(Graph *graphPtr) {
+    if (graphPtr->tkwin == NULL || graphPtr->redrawSettle != NULL) return;
+    if (graphPtr->flags & REDRAW_PENDING) {
+        Tcl_CancelIdleCall(DisplayGraph, graphPtr);
+    }
+    graphPtr->redrawSettle = (GraphRedrawSettle *)Tcl_Alloc(sizeof(GraphRedrawSettle));
+    graphPtr->redrawSettle->count = 0;
+    graphPtr->redrawSettle->stablePasses = 0;
+    graphPtr->redrawSettle->samples = NULL;
+    graphPtr->flags |= REDRAW_PENDING;
+    Tcl_DoWhenIdle(SettleGraphRedraw, graphPtr);
+    Rbc_RedrawExternalLegend(graphPtr);
+}
+
 void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     if ((graphPtr->tkwin != NULL) && !(graphPtr->flags & REDRAW_PENDING)) {
         Tcl_DoWhenIdle(DisplayGraph, graphPtr);
@@ -974,7 +1064,7 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
     if (eventPtr->type == Expose) {
         if (eventPtr->xexpose.count == 0) {
             graphPtr->flags |= REDRAW_WORLD;
-            Rbc_EventuallyRedrawGraph(graphPtr);
+            EventuallyRedrawSettledGraph(graphPtr);
         }
     } else if ((eventPtr->type == FocusIn) || (eventPtr->type == FocusOut)) {
         if (eventPtr->xfocus.detail != NotifyInferior) {
@@ -1014,11 +1104,13 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
         }
         if (graphPtr->flags & REDRAW_PENDING) {
             Tcl_CancelIdleCall(DisplayGraph, graphPtr);
+            Tcl_CancelIdleCall(SettleGraphRedraw, graphPtr);
         }
+        FreeGraphRedrawSettle(graphPtr);
         Tcl_EventuallyFree(graphPtr, DestroyGraph);
     } else if (eventPtr->type == ConfigureNotify) {
         graphPtr->flags |= (MAP_WORLD | REDRAW_WORLD);
-        Rbc_EventuallyRedrawGraph(graphPtr);
+        EventuallyRedrawSettledGraph(graphPtr);
     }
 }
 

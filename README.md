@@ -180,7 +180,7 @@ make install
 Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
 `PATH`. Use Cairo and `pkg-config` from the same UCRT64 toolchain as Tcl/Tk and Rbc.
 
-The UCRT64 shell does not automatically determine Rbc's installation prefix.  Specify `--prefix=/ucrt64` when that is
+The UCRT64 shell does not automatically determine Rbc's installation prefix. Specify `--prefix=/ucrt64` when that is
 the intended destination.
 
 ### Configure options and renderer defaults
