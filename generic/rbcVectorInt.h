@@ -304,6 +304,7 @@ Rbc_Complex Rbc_ComplexSub(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_ComplexMul(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_ComplexDiv(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index);
+int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPtr);
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr);
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);

@@ -2758,7 +2758,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20destroy"><span class="std std-ref">destroy</span></a></dt><dd><p>Destroys one or more vectors. Destroying a vector removes its associated vector instance command and Tcl array variable and notifies clients that use the vector.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance <a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20expr"><span class="std std-ref">VECINST expr</span></a> operation, this command does not store the result in an existing vector.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20expr"><span class="std std-ref">expr</span></a></dt><dd><p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance <a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20expr"><span class="std std-ref">VECINST expr</span></a> operation, this command does not store the result in an existing vector. With <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">name</span></code>, evaluates once, then creates a named vector whose real or complex type matches the result. Native result storage is transferred without converting through a Tcl list. A scalar produces a one-element vector. The vector has index offset zero and no mapped array variable; a real vector can subsequently be mapped using <a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">VECINST variable</span></a>. Relative names resolve in the caller’s namespace, which must already exist. Parentheses in literal names are supported. Existing vectors or Tcl commands are never replaced. Use <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">#auto</span></code> (or <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">ns::#auto</span></code>) to generate a unique name. An expression error does not create the target. Tcl substitutions and callbacks can still have their own side effects.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3avector20names"><span class="std std-ref">names</span></a></dt><dd><p>Gives back the names of existing vectors. If <code class="docutils literal notranslate"><span class="pre">pattern</span></code> is supplied, only vector names matching the Tcl glob pattern are returned.</p>
 </dd>
@@ -2830,16 +2830,31 @@ array variable and notifies clients that use the vector.</p>
 <span id="r-symbolqz3a3arbc3a3avector20expr"></span><span id="index-300"></span><span id="index-299"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code><a class="headerlink" href="#vector-expr" title="Link to this heading">¶</a></h3>
 <p>Evaluates a vector expression. <code class="docutils literal notranslate"><span class="pre">expression</span></code> may contain scalars, vectors, vector ranges, arithmetic
 operators, and the vector mathematical functions described in <a class="reference internal" href="rbc-tk9-rbc-VECINST.html#r-3a3arbc3a3avecinstqzvector20expressions"><span class="std std-ref">Vector expressions</span></a>. Unlike the instance
-<a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20expr"><span class="std std-ref">VECINST expr</span></a> operation, this command does not store the result in an existing vector.</p>
-<pre class="literal-block"><strong>vector expr</strong> <em>expression</em></pre>
+<a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20expr"><span class="std std-ref">VECINST expr</span></a> operation, this command does not store the result in an existing vector.
+With <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">name</span></code>, evaluates once, then creates a named vector whose real or complex type matches
+the result. Native result storage is transferred without converting through a Tcl list. A scalar
+produces a one-element vector. The vector has index offset zero and no mapped array variable;
+a real vector can subsequently be mapped using <a class="reference internal" href="#r-symbolqz3a3arbc3a3avecinst20variable"><span class="std std-ref">VECINST variable</span></a>.
+Relative names resolve in the caller’s namespace, which must already exist. Parentheses in literal
+names are supported. Existing vectors or Tcl commands are never replaced. Use <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">#auto</span></code>
+(or <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">ns::#auto</span></code>) to generate a unique name. An expression error does not create the target.
+Tcl substitutions and callbacks can still have their own side effects.</p>
+<pre class="literal-block"><strong>vector expr</strong> <em>?-name name? expression</em></pre>
 <p class="rubric">Parameters</p>
+<p class="rubric">Description</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>rbc::vector expr -name doubled {samples * 2}
+rbc::vector expr -name magnitude {abs(spectrum)}
+set temporary [rbc::vector expr -name #auto {samples + 1}]
+</pre></div>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">expression</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Vector expression to evaluate.</p>
+<dt class="field-odd">args<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional <code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">name</span></code>, followed by the vector expression to evaluate.</p>
 </dd>
 </dl>
 <p class="rubric">Return value</p>
-<p>The scalar value or list of vector values produced by the expression.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">-name</span></code>, the scalar value or list of values. With <code class="docutils literal notranslate"><span class="pre">-name</span></code>, the fully qualified
+name of the newly created vector.</p>
 </section>
 <section id="vector-names">
 <span id="r-symbolqz3a3arbc3a3avector20names"></span><span id="index-302"></span><span id="index-301"></span><h3><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code><a class="headerlink" href="#vector-names" title="Link to this heading">¶</a></h3>

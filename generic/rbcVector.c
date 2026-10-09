@@ -624,7 +624,7 @@ static int VectorSimplifyOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
 
 static const VectorOpSpec vectorOpCmd[] = {{{"create", 2, 0, "?vecName? ?switches...?"}, VectorCreateObjCmd},
                                            {{"destroy", 2, 0, "?vecName?..."}, VectorDestroyObjCmd},
-                                           {{"expr", 3, 3, "expression"}, VectorExprObjCmd},
+                                           {{"expr", 3, 5, "?-name name? expression"}, VectorExprObjCmd},
                                            {{"names", 2, 3, "?pattern?..."}, VectorNamesObjCmd},
                                            {{"rename", 4, 4, "oldName newName"}, VectorRenameObjCmd},
                                            {{"simplify", 7, 7, "x y destX destY tolerance"}, VectorSimplifyOp},
@@ -1057,12 +1057,78 @@ static int VectorDestroyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Si
  *      A standard Tcl result.
  *
  * Side effects:
- *      TODO: Side Effects
+ *      With -name, creates a vector with the evaluated numeric type and
+ *      transfers the temporary storage. Existing vectors are never replaced.
  *
  *----------------------------------------------------------------------
  */
 static int VectorExprObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    return Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *)NULL);
+    VectorInterpData *dataPtr = Rbc_VectorGetInterpData(interp);
+    VectorObject *resultPtr = NULL;
+    VectorObject *vPtr;
+    Tcl_DString qualified;
+    Tcl_DString canonical;
+    Tcl_Namespace *nsPtr;
+    const char *name;
+    const char *tail;
+    int isNew;
+    int isAutoName;
+    int result = TCL_ERROR;
+
+    (void)clientData;
+    if (objc == 3) {
+        return Rbc_ExprVector(interp, Tcl_GetString(objv[2]), (Rbc_Vector *)NULL);
+    }
+    if ((objc != 5) || (strcmp(Tcl_GetString(objv[2]), "-name") != 0)) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?-name name? expression");
+        return TCL_ERROR;
+    }
+    name = BuildQualifiedName(interp, Tcl_GetString(objv[3]), &qualified);
+    Tcl_DStringInit(&canonical);
+    if (ParseQualifiedName(interp, name, &nsPtr, &tail) != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown namespace in \"%s\"", name));
+        goto done;
+    }
+    isAutoName = (strcmp(tail, "#auto") == 0);
+    name = GetQualifiedName(nsPtr, tail, &canonical);
+    if (!isAutoName && ((Tcl_FindHashEntry(&dataPtr->vectorTable, name) != NULL) ||
+                        (Tcl_FindCommand(interp, name, NULL, TCL_GLOBAL_ONLY) != NULL))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector or command \"%s\" already exists", name));
+        goto done;
+    }
+    if (Rbc_VectorEvaluate(interp, Tcl_GetString(objv[4]), &resultPtr) != TCL_OK) {
+        goto done;
+    }
+    /* Callbacks may have created the target while evaluating the expression. */
+    if (!isAutoName && ((Tcl_FindHashEntry(&dataPtr->vectorTable, name) != NULL) ||
+                        (Tcl_FindCommand(interp, name, NULL, TCL_GLOBAL_ONLY) != NULL))) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector or command \"%s\" already exists", name));
+        goto done;
+    }
+    /* Do not map an array: creation must not invoke user variable traces. */
+    vPtr = Rbc_VectorCreate(dataPtr, name, name, NULL, resultPtr->type, &isNew);
+    if (vPtr == NULL) {
+        goto done;
+    }
+    /* Transfer ownership of the temporary's storage to the new empty vector. */
+    vPtr->data = resultPtr->data;
+    vPtr->length = resultPtr->length;
+    vPtr->size = resultPtr->size;
+    vPtr->freeProc = resultPtr->freeProc;
+    vPtr->first = 0;
+    vPtr->last = vPtr->length - 1;
+    resultPtr->data.raw = NULL;
+    resultPtr->length = resultPtr->size = 0;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(vPtr->name, -1));
+    result = TCL_OK;
+
+done:
+    if (resultPtr != NULL) {
+        Rbc_VectorFree(resultPtr);
+    }
+    Tcl_DStringFree(&canonical);
+    Tcl_DStringFree(&qualified);
+    return result;
 }
 
 /*
@@ -1297,7 +1363,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
             snprintf(string, sizeof(string), "vector%d", dataPtr->nextId++);
             qualVecName = GetQualifiedName(nsPtr, string, &qualVecNamePtr);
             hPtr = Tcl_FindHashEntry(&(dataPtr->vectorTable), qualVecName);
-        } while (hPtr != NULL);
+        } while ((hPtr != NULL) || (Tcl_FindCommand(interp, qualVecName, NULL, TCL_GLOBAL_ONLY) != NULL));
         isAutoName = 1;
     } else {
         /* Parentheses are permitted in literal names, but must balance.

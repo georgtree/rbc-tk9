@@ -267,12 +267,28 @@ namespace eval ::rbc::vector {
         # Synopsis: vecName ?vecName ...?
     }
 
-    proc expr {expression} {
+    proc expr {args} {
         # Evaluates a vector expression. `expression` may contain scalars, vectors, vector ranges, arithmetic
         # operators, and the vector mathematical functions described in [Vector expressions]. Unlike the instance
         # [VECINST expr][::rbc::VECINST expr] operation, this command does not store the result in an existing vector.
-        # expression - vector expression to evaluate.
-        # Returns: The scalar value or list of vector values produced by the expression.
+        # With `-name name`, evaluates once, then creates a named vector whose real or complex type matches
+        # the result. Native result storage is transferred without converting through a Tcl list. A scalar
+        # produces a one-element vector. The vector has index offset zero and no mapped array variable;
+        # a real vector can subsequently be mapped using [VECINST variable][::rbc::VECINST variable].
+        # Relative names resolve in the caller's namespace, which must already exist. Parentheses in literal
+        # names are supported. Existing vectors or Tcl commands are never replaced. Use `-name #auto`
+        # (or `-name ns::#auto`) to generate a unique name. An expression error does not create the target.
+        # Tcl substitutions and callbacks can still have their own side effects.
+        #
+        # ```
+        # rbc::vector expr -name doubled {samples * 2}
+        # rbc::vector expr -name magnitude {abs(spectrum)}
+        # set temporary [rbc::vector expr -name #auto {samples + 1}]
+        # ```
+        # args - optional `-name name`, followed by the vector expression to evaluate.
+        # Returns: Without `-name`, the scalar value or list of values. With `-name`, the fully qualified
+        # name of the newly created vector.
+        # Synopsis: ?-name name? expression
     }
 
     proc rename {oldName newName} {

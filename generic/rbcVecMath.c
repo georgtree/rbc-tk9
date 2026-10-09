@@ -2229,6 +2229,24 @@ static void ExpressionDestinationChanged(Tcl_Interp *interp, ClientData clientDa
     }
 }
 
+/*
+ * Rbc_VectorEvaluate -- Evaluate once into an unregistered, typed vector.
+ * On success the caller owns *resultPtr and must free it with Rbc_VectorFree.
+ * On failure no result is returned. Tcl substitutions may have side effects.
+ */
+int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPtr) {
+    Value value;
+
+    *resultPtr = NULL;
+    value.vPtr = Rbc_VectorNew(Rbc_VectorGetInterpData(interp));
+    if (EvaluateExpression(interp, string, &value) != TCL_OK) {
+        Rbc_VectorFree(value.vPtr);
+        return TCL_ERROR;
+    }
+    *resultPtr = value.vPtr;
+    return TCL_OK;
+}
+
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     VectorInterpData *dataPtr;
     VectorObject *vPtr;
