@@ -80,6 +80,7 @@ typedef union {
  */
 struct Rbc_Vector_s {
     Rbc_VectorType type;
+    int readOnly; /* Protect values, length and index offset; not vector lifetime. */
     VectorData data;
     Tcl_Size length; /* Current number of values in the array. */
     Tcl_Size size;   /* Maximum number of values that can be stored

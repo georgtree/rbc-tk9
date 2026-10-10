@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc::VECINST" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc::VECINST" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::VECINST - Commands in namespace rbc::VECINST
 .SH "VECTOR INSTANCE VECINST COMMAND"
@@ -88,6 +88,7 @@ Most vector instance operations support complex vectors\&. The following table s
 │ offset    │ Supported       │
 │ populate  │ Supported       │
 │ random    │ Supported       │
+│ readonly  │ Supported       │
 │ range     │ Supported       │
 │ search    │ Supported       │
 │ seq       │ Supported       │
@@ -990,6 +991,48 @@ The following vector functions are exported through the Rbc stubs interface:
 .PP
 Functions returning int as a Tcl status return TCL_OK on success and TCL_ERROR on failure\&. When an
 interpreter is available, an explanatory error message is left in its result\&.
+.SS "READ-ONLY STATE IN C (SINCE 0\&.8\&.1)"
+.PP
+.RS 4n
+.nf
+┌───────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
+│ Function                                                              │ Purpose                                      │
+├───────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────┤
+│ int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr)                          │ Returns 0 or 1\&.                              │
+│ int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int │ Sets the state (nonzero means true); returns │
+│ readOnly)                                                             │ TCL_OK\&.                                      │
+│ int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)   │ Returns TCL_OK, or TCL_ERROR with RBC VECTOR │
+│                                                                       │ READONLY\&.                                    │
+└───────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
+.fi
+.RE
+.PP
+These functions are appended to the stubs table\&. Consumers using them must request at least 0\&.8\&.1
+when calling Rbc_VectorInitStubs or Rbc_InitStubs\&. Existing slots and signatures are unchanged\&.
+State changes do not replace storage or send value-change notifications\&.
+.PP
+Resize, reset and recreation of a read-only destination fail before replacing storage\&. This includes
+same-length resize requests\&. Failed reset calls do not take ownership of the proposed buffer or call
+its free procedure\&. Rbc_FreeVector remains allowed regardless of the state\&.
+.PP
+Existing data accessors still return borrowed mutable pointers for compatibility\&. RBC cannot intercept
+writes through those pointers, including pointers retained before locking and externally owned storage\&.
+Native producers must check writability before modifying data, and again after any callbacks which may
+change the state\&. Readers need no such check\&. For example:
+.PP
+.RS 4n
+.nf
+if (Rbc_VectorCheckWritable(interp, vecPtr) != TCL_OK) {
+    return TCL_ERROR;
+}
+/* Here vecPtr is a real vector with at least one element\&. */
+Rbc_VectorData(vecPtr)[0] = value;
+Rbc_VectorChangedRange(vecPtr, 0, 0);
+.fi
+.RE
+.PP
+Rbc_VectorChanged and Rbc_VectorChangedRange remain notifications, not write permission checks\&.
+They report changes already made and must not be used to enforce protection after writing\&.
 .PP
 Vector lengths and capacities use Tcl_Size, allowing the C interface to represent Tcl 9-sized vectors\&.
 .SS "READING VECTOR DATA"

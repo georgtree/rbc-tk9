@@ -89,3 +89,14 @@ declare 16 {
 declare 17 {
     void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last)
 }
+
+# Read-only state API, available since 0.8.1. Keep existing stub slots stable.
+declare 18 {
+    int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr)
+}
+declare 19 {
+    int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly)
+}
+declare 20 {
+    int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)
+}

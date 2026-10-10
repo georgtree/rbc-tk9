@@ -2257,6 +2257,9 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
 
     vPtr = (VectorObject *)vecPtr;
     dataPtr = (vecPtr != NULL) ? vPtr->dataPtr : Rbc_VectorGetInterpData(interp);
+    if ((vPtr != NULL) && (Rbc_VectorCheckWritable(interp, vecPtr) != TCL_OK)) {
+        return TCL_ERROR;
+    }
     value.vPtr = Rbc_VectorNew(dataPtr);
     if (vPtr != NULL) {
         clientPtr = RbcCalloc(1, sizeof(VectorClient));
@@ -2278,6 +2281,11 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
         if (destroyed) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("expression destination vector was destroyed", -1));
             result = TCL_ERROR;
+            goto done;
+        }
+        /* Substitutions or map callbacks may have locked the destination. */
+        result = Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr);
+        if (result != TCL_OK) {
             goto done;
         }
         result = CopyExpressionResult(interp, vPtr, value.vPtr);

@@ -327,4 +327,46 @@ namespace eval vector.capi {
         CleanupVectors ::CapiSimpX ::CapiSimpY ::CapiSimpU ::CapiSimpV
     } -result {1 1 {0.0 2.0} {3.0 3.0}}
 
+    foreach type {real complex} {
+        test RBC.vector.capi.A.readonly.$type {C/stubs protection, ownership, and reversible state} -setup {
+            CleanupVectors ::CapiLocked
+            ::rbccapitest create ::CapiLocked $type 3
+            set identity [::rbccapitest identity ::CapiLocked]
+        } -body {
+            set initial [::rbccapitest readonly ::CapiLocked]
+            ::rbccapitest readonly ::CapiLocked true
+            set results [list $initial [::CapiLocked readonly]]
+            foreach command {
+                {::rbccapitest writable ::CapiLocked}
+                {::rbccapitest resize ::CapiLocked 3}
+                {::rbccapitest resize ::CapiLocked 0}
+                {::rbccapitest resetvolatile ::CapiLocked}
+            } {
+                lappend results [catch {eval $command} message options] [dict get $options -errorcode]
+            }
+            lappend results [::rbccapitest rejectownership ::CapiLocked] \
+                [expr {$identity eq [::rbccapitest identity ::CapiLocked]}] [::CapiLocked length]
+            ::CapiLocked readonly false
+            ::rbccapitest resize ::CapiLocked 2
+            lappend results [::rbccapitest readonly ::CapiLocked] [::CapiLocked length]
+            ::rbccapitest readonly ::CapiLocked true
+            ::rbccapitest free ::CapiLocked
+            lappend results [::rbccapitest exists ::CapiLocked]
+        } -cleanup {
+            CleanupVectors ::CapiLocked
+        } -result {0 1 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} {1 0} 1 3 0 2 0}
+    }
+    test RBC.vector.capi.A.readonly.producer {native producer checks before a borrowed pointer write} -setup {
+        ::rbccapitest create ::CapiLocked real 2
+        ::CapiLocked set {3 4}
+        ::CapiLocked readonly true
+    } -body {
+        list [catch {::rbccapitest write ::CapiLocked 0 9}] \
+            [catch {::rbccapitest writerange ::CapiLocked 0 9}] \
+            [catch {::rbccapitest create ::CapiLocked real 8}] [::CapiLocked range 0 end]
+    } -cleanup {
+        CleanupVectors ::CapiLocked
+    } -result {1 1 1 {3.0 4.0}}
+
+
 }

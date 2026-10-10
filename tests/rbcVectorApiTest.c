@@ -191,6 +191,9 @@ static int WriteCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if ((GetVector(interp, objv[2], &vecPtr) != TCL_OK) || (Tcl_GetSizeIntFromObj(interp, objv[3], &index) != TCL_OK)) {
         return TCL_ERROR;
     }
+    if (Rbc_VectorCheckWritable(interp, vecPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     length = Rbc_VectorLength(vecPtr);
     if ((index < 0) || (index >= length)) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("index %" TCL_SIZE_MODIFIER "d is out of range", index));
@@ -272,6 +275,9 @@ static int WriteRangeCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[
     }
     if (Rbc_VectorGetType(vecPtr) != RBC_VECTOR_REAL) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("expected real vector", -1));
+        return TCL_ERROR;
+    }
+    if (Rbc_VectorCheckWritable(interp, vecPtr) != TCL_OK) {
         return TCL_ERROR;
     }
     length = Rbc_VectorLength(vecPtr);
@@ -429,7 +435,7 @@ static int OwnershipCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]
 static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const subcommands[] = {"create",     "exists",        "free",       "inspect", "ownership",
                                               "range",      "resetvolatile", "resetwrong", "resize",  "write",
-                                              "writerange", "initfull",      "identity",   NULL};
+                                              "writerange", "initfull",      "identity", "readonly", "writable", "rejectownership", NULL};
     enum {
         CMD_CREATE,
         CMD_EXISTS,
@@ -443,7 +449,7 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         CMD_WRITE,
         CMD_WRITERANGE,
         CMD_INITFULL,
-        CMD_IDENTITY
+        CMD_IDENTITY, CMD_READONLY, CMD_WRITABLE, CMD_REJECTOWNERSHIP
     };
     int index;
 
@@ -456,6 +462,48 @@ static int RbcCapiTestObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
         return TCL_ERROR;
     }
     switch (index) {
+    case CMD_READONLY:
+    case CMD_WRITABLE:
+    case CMD_REJECTOWNERSHIP: {
+        Rbc_Vector *vecPtr;
+        int readOnly;
+        if ((objc != 3) && !((index == CMD_READONLY) && (objc == 4))) {
+            Tcl_WrongNumArgs(interp, 2, objv, "name ?boolean?");
+            return TCL_ERROR;
+        }
+        if (GetVector(interp, objv[2], &vecPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (index == CMD_WRITABLE) {
+            return Rbc_VectorCheckWritable(interp, vecPtr);
+        }
+        if (index == CMD_REJECTOWNERSHIP) {
+            void *buffer = Tcl_Alloc(2 * sizeof(Rbc_Complex));
+            int code;
+            Tcl_Obj *items[2];
+            memset(buffer, 0, 2 * sizeof(Rbc_Complex));
+            freeCount = 0;
+            code = Rbc_VectorGetType(vecPtr) == RBC_VECTOR_REAL
+                ? Rbc_ResetVector(vecPtr, buffer, 2, 2, TestFreeProc)
+                : Rbc_ResetComplexVector(vecPtr, buffer, 2, 2, TestFreeProc);
+            items[0] = Tcl_NewIntObj(code);
+            items[1] = Tcl_NewIntObj(freeCount);
+            /* A rejected reset leaves ownership with this consumer. */
+            if (code != TCL_OK && freeCount == 0) {
+                Tcl_Free(buffer);
+            }
+            Tcl_SetObjResult(interp, Tcl_NewListObj(2, items));
+            return TCL_OK;
+        }
+        if (objc == 4) {
+            if (Tcl_GetBooleanFromObj(interp, objv[3], &readOnly) != TCL_OK ||
+                Rbc_VectorSetReadOnly(interp, vecPtr, readOnly) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+        Tcl_SetObjResult(interp, Tcl_NewBooleanObj(Rbc_VectorIsReadOnly(vecPtr)));
+        return TCL_OK;
+    }
     case CMD_IDENTITY: {
         Rbc_Vector *vecPtr;
         void *storage;

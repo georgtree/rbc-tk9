@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "TclTk9Upgrade" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "TclTk9Upgrade" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 TclTk9Upgrade - Commands in namespace TclTk9Upgrade
 .SH "TCL/TK 9 UPGRADE AND ADDITIONS"

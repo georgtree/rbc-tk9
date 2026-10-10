@@ -125,6 +125,7 @@ typedef struct {
 } VectorInstOpSpec;
 
 static RbcVectorCmdOp TypeOp;
+static RbcVectorCmdOp ReadOnlyOp;
 static RbcVectorCmdOp AppendOp;
 static RbcVectorCmdOp ArithOp;
 static RbcVectorCmdOp BinreadOp;
@@ -168,6 +169,7 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{"populate", 4, 4, "vecName density"}, PopulateOp},
                                                    {{"random", 2, 2, ""}, RandomOp},
                                                    {{"range", 4, 4, "first last"}, RangeOp},
+                                                   {{"readonly", 2, 3, "?boolean?"}, ReadOnlyOp},
                                                    {{"search", 3, 5, "?-value? value ?value?"}, SearchOp},
                                                    {{"seq", 4, 5, "start end ?step?"}, SeqOp},
                                                    {{"set", 3, 3, "list"}, SetOp},
@@ -179,7 +181,7 @@ static const VectorInstOpSpec vectorInstOpCmd[] = {{{"*", 3, 3, "list"}, ArithOp
                                                    {{NULL, 0, 0, NULL}, NULL}};
 
 static int ComplexOpSupported(RbcVectorCmdOp *proc) {
-    return ((proc == Rbc_VectorFftOp) || (proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) ||
+    return ((proc == ReadOnlyOp) || (proc == Rbc_VectorFftOp) || (proc == ExprOp) || (proc == AppendOp) || (proc == ArithOp) || (proc == BinreadOp) || (proc == ClearOp) ||
             (proc == DeleteOp) || (proc == DupOp) || (proc == IndexOp) || (proc == LengthOp) || (proc == MergeOp) ||
             (proc == OffsetOp) || (proc == PopulateOp) || (proc == RandomOp) || (proc == RangeOp) ||
             (proc == SearchOp) || (proc == SeqOp) || (proc == SetOp) || (proc == SplitOp) || (proc == TypeOp) ||
@@ -230,12 +232,43 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
             return TCL_ERROR;
         }
     }
+    /* Check only operations that write this vector, not read-only sources. */
+    {
+        RbcVectorCmdOp *proc = vectorInstOpCmd[index].proc;
+        if ((proc == AppendOp) || (proc == BinreadOp) || (proc == DeleteOp) ||
+            (proc == ExprOp) || (proc == MergeOp) || (proc == RandomOp) ||
+            (proc == SeqOp) || (proc == SetOp) || (proc == SortOp) ||
+            (proc == Rbc_VectorFftfreqOp) || (proc == Rbc_VectorWindowOp) ||
+            ((proc == IndexOp) && (objc == 4)) ||
+            (((proc == LengthOp) || (proc == OffsetOp)) && (objc == 3))) {
+            if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
+        }
+    }
     /*
      * Reset the selected region before each instance operation.
      */
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
     return vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
+}
+
+/*
+ * ReadOnlyOp -- Query or change the vector's reversible data protection.
+ * Setting the state does not alter values or notify graph clients.
+ */
+static int ReadOnlyOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int readOnly;
+
+    if (objc == 3) {
+        if (Tcl_GetBooleanFromObj(interp, objv[2], &readOnly) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Rbc_VectorSetReadOnly(interp, (Rbc_Vector *)vPtr, readOnly);
+    }
+    Tcl_SetObjResult(interp, Tcl_NewBooleanObj(vPtr->readOnly));
+    return TCL_OK;
 }
 
 static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
@@ -1130,6 +1163,9 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             if (Rbc_GetComplex(interp, objv[3], &value) != TCL_OK) {
                 return TCL_ERROR;
             }
+            if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
             if (first == vPtr->length) {
                 Tcl_Size newSize;
 
@@ -1147,6 +1183,9 @@ static int IndexOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
             double value;
 
             if (Rbc_GetDouble(interp, objv[3], &value) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
             /*
@@ -2340,6 +2379,9 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
                              (char *)NULL);
             goto error;
         }
+        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)v2Ptr) != TCL_OK) {
+            goto error;
+        }
         memcpy((char *)mergeArr, (char *)v2Ptr->data.raw, nBytes);
         for (n = 0; n < refSize; n++) {
             v2Ptr->data.real[n] = mergeArr[iArr[n]];
@@ -2404,6 +2446,13 @@ static int SplitOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
                                                "%" TCL_SIZE_MODIFIER "d even parts.",
                                                vPtr->name, nVectors));
         return TCL_ERROR;
+    }
+    for (argIndex = 0; argIndex < nVectorArgs; argIndex++) {
+        v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[argIndex + 2]),
+                                      NULL, NS_SEARCH_BOTH);
+        if ((v2Ptr != NULL) && (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)v2Ptr) != TCL_OK)) {
+            return TCL_ERROR;
+        }
     }
     extra = vPtr->length / nVectors;
     sourcePtr = vPtr;
@@ -2622,6 +2671,9 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
                 Rbc_VectorChangeLength(vPtr, oldSize);
                 return TCL_ERROR;
             }
+            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
             vPtr->data.complex[oldSize + i] = value;
         }
     } else {
@@ -2630,6 +2682,9 @@ static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
 
             if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
                 Rbc_VectorChangeLength(vPtr, oldSize);
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
             vPtr->data.real[oldSize + i] = value;
@@ -2667,6 +2722,10 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
     Tcl_Size i;
     Tcl_Size n;
     Tcl_Size newSize;
+
+    if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
     if ((length < 0) || (indexPtr == NULL) || (*indexPtr < 0) || (*indexPtr > vPtr->length)) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary vector range", -1));
@@ -2769,6 +2828,10 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
     Tcl_Size componentCount;
 
     assert(vPtr->type == RBC_VECTOR_COMPLEX);
+    if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
     if ((length < 0) || (indexPtr == NULL) || (*indexPtr < 0) || (*indexPtr > vPtr->length)) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("invalid binary vector range", -1));
         return TCL_ERROR;
@@ -2944,6 +3007,9 @@ static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
                 Rbc_VectorChangeLength(vPtr, i);
                 return TCL_ERROR;
             }
+            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
             vPtr->data.complex[i] = value;
         }
     } else {
@@ -2952,6 +3018,9 @@ static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
 
             if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
                 Rbc_VectorChangeLength(vPtr, i);
+                return TCL_ERROR;
+            }
+            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
                 return TCL_ERROR;
             }
             vPtr->data.real[i] = value;
@@ -3068,6 +3137,9 @@ static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size ob
     iArr = NULL;
     for (i = 0; i < objc; i++) {
         if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
+            goto error;
+        }
+        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)v2Ptr) != TCL_OK) {
             goto error;
         }
         if (v2Ptr->length != vPtr->length) {

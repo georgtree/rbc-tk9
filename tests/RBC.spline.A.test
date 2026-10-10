@@ -852,4 +852,44 @@ test RBC.spline.parametric.A.4.1 {
 } -result {bad parametric spline operation "catrom": must be natural or quadratic}
 
 
+test RBC.spline.readonly.A.1.1 {real spline rejects a same-length locked destination} -setup {
+    vector create RoX RoY RoEval RoResult
+    RoX set {0 1 2}
+    RoY set {0 1 4}
+    RoEval set {0 0.5 1 1.5 2}
+    RoResult set {9 9 9 9 9}
+    RoResult readonly true
+} -body {
+    set code [catch {spline natural RoX RoY RoEval RoResult} message options]
+    list $code [dict get $options -errorcode] [RoResult range 0 end]
+} -cleanup {
+    vector destroy RoX RoY RoEval RoResult
+} -result {1 {RBC VECTOR READONLY} {9.0 9.0 9.0 9.0 9.0}}
+
+test RBC.spline.readonly.A.1.2 {complex spline rejects a same-length locked destination} -setup {
+    vector create RoZ RoResult -type complex
+    RoZ set {{0 0} {1 1} {2 0}}
+    RoResult set {{9 9} {9 9} {9 9}}
+    RoZ readonly true
+    RoResult readonly true
+} -body {
+    set code [catch {spline parametric natural RoZ RoResult 3} message options]
+    list $code [dict get $options -errorcode] [RoResult range 0 end]
+} -cleanup {
+    vector destroy RoZ RoResult
+} -result {1 {RBC VECTOR READONLY} {{9.0 9.0} {9.0 9.0} {9.0 9.0}}}
+
+test RBC.spline.readonly.A.1.3 {locked spline inputs produce writable output} -setup {
+    vector create RoX RoY RoEval
+    RoX set {0 1 2}
+    RoY set {0 1 2}
+    RoEval set {0 1 2}
+    foreach v {RoX RoY RoEval} {$v readonly true}
+} -body {
+    spline natural RoX RoY RoEval RoResult
+    list [RoResult range 0 end] [RoResult readonly]
+} -cleanup {
+    vector destroy RoX RoY RoEval RoResult
+} -result {{0.0 1.0 2.0} 0}
+
 cleanupTests

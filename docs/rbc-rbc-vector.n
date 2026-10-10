@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc::vector" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc::vector" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::vector - Commands in namespace rbc::vector
 .SH "VECTOR COMMAND"
@@ -18,6 +18,36 @@ an associated Tcl array variable
 .TP
 \(bu
 the RBC C API\&.
+.SH "READ-ONLY VECTORS"
+.PP
+Since 0\&.8\&.1, vectors can be protected against accidental data modification:
+.PP
+.RS 4n
+.nf
+samples set {1 2 3}
+samples readonly true
+set result [rbc::vector expr -name #auto {samples * 2}]
+samples readonly false
+.fi
+.RE
+.PP
+New vectors are writable by default\&. The state protects values, length and index offset; numeric type
+remains immutable independently\&. Reads, statistics, arithmetic that returns a list, expressions using
+the vector as input, and graph bindings remain available\&. Copies and newly created expression results
+are writable\&. Vector commands and C mutators targeting a read-only vector fail with error code
+RBC VECTOR READONLY (mapped-variable write errors use Tcl's TCL WRITE VARNAME code)\&.
+Multi-output operations check every destination before changing output values\&. Recreating an existing
+locked vector with vector create is rejected too\&.
+.PP
+Renaming preserves the state\&. Destruction, namespace cleanup, array mapping and cache clearing are
+allowed\&. In particular, VECINST clear clears the mapped-variable cache, not the vector values\&.
+Mapped-array writes fail without changing native values\&. Unsetting an array element also leaves the
+values intact; Tcl ignores errors from unset traces, so unset itself can succeed and a subsequent read
+reconstructs the element\&. Whole-array unset retains the existing -watchunset lifetime behaviour\&.
+.PP
+readonly false deliberately unlocks the vector\&. This is data protection, not exclusive ownership or
+a security boundary\&. Tcl callbacks may change the state: expression destinations are checked again
+after evaluation and before committing the result\&. Callback side effects are not rolled back\&.
 .SH "LOADING VECTORS WITHOUT TK"
 .PP
 Use the rbc::vector package in a Tcl-only interpreter:

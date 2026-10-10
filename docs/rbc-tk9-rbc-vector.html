@@ -49,6 +49,31 @@
 <li><p>an associated Tcl array variable</p></li>
 <li><p>the RBC C API.</p></li>
 </ul>
+<section id="read-only-vectors">
+<span id="r-rbc-vector-read-only-vectors"></span><span id="r-3a3arbc3a3avectorqzread2donly20vectors"></span><h2>Read-only vectors<a class="headerlink" href="#read-only-vectors" title="Link to this heading">¶</a></h2>
+<p>Since 0.8.1, vectors can be protected against accidental data modification:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>samples set {1 2 3}
+samples readonly true
+set result [rbc::vector expr -name #auto {samples * 2}]
+samples readonly false
+</pre></div>
+</div>
+<p>New vectors are writable by default. The state protects values, length and index offset; numeric type
+remains immutable independently. Reads, statistics, arithmetic that returns a list, expressions using
+the vector as input, and graph bindings remain available. Copies and newly created expression results
+are writable. Vector commands and C mutators targeting a read-only vector fail with error code
+<code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">READONLY</span></code> (mapped-variable write errors use Tcl’s <code class="docutils literal notranslate"><span class="pre">TCL</span> <span class="pre">WRITE</span> <span class="pre">VARNAME</span></code> code).
+Multi-output operations check every destination before changing output values. Recreating an existing
+locked vector with <code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code> is rejected too.</p>
+<p>Renaming preserves the state. Destruction, namespace cleanup, array mapping and cache clearing are
+allowed. In particular, <code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code> clears the mapped-variable cache, not the vector values.
+Mapped-array writes fail without changing native values. Unsetting an array element also leaves the
+values intact; Tcl ignores errors from unset traces, so <code class="docutils literal notranslate"><span class="pre">unset</span></code> itself can succeed and a subsequent read
+reconstructs the element. Whole-array unset retains the existing <code class="docutils literal notranslate"><span class="pre">-watchunset</span></code> lifetime behaviour.</p>
+<p><code class="docutils literal notranslate"><span class="pre">readonly</span> <span class="pre">false</span></code> deliberately unlocks the vector. This is data protection, not exclusive ownership or
+a security boundary. Tcl callbacks may change the state: expression destinations are checked again
+after evaluation and before committing the result. Callback side effects are not rolled back.</p>
+</section>
 <section id="loading-vectors-without-tk">
 <span id="r-rbc-vector-loading-vectors-without-tk"></span><span id="r-3a3arbc3a3avectorqzloading20vectors20without20tk"></span><h2>Loading vectors without Tk<a class="headerlink" href="#loading-vectors-without-tk" title="Link to this heading">¶</a></h2>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code> package in a Tcl-only interpreter:</p>
@@ -248,6 +273,7 @@ individual vector.</p>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li><a class="reference internal" href="#read-only-vectors">Read-only vectors</a></li>
 <li><a class="reference internal" href="#loading-vectors-without-tk">Loading vectors without Tk</a></li>
 <li><a class="reference internal" href="#vector-types">Vector types</a></li>
 <li><a class="reference internal" href="#graph-and-spline-integration">Graph and spline integration</a></li>

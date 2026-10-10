@@ -88,6 +88,14 @@ RBCAPI void		Rbc_VectorChanged(Rbc_Vector *vecPtr);
 /* 17 */
 RBCAPI void		Rbc_VectorChangedRange(Rbc_Vector *vecPtr,
 				Tcl_Size first, Tcl_Size last);
+/* 18 */
+RBCAPI int		Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr);
+/* 19 */
+RBCAPI int		Rbc_VectorSetReadOnly(Tcl_Interp *interp,
+				Rbc_Vector *vecPtr, int readOnly);
+/* 20 */
+RBCAPI int		Rbc_VectorCheckWritable(Tcl_Interp *interp,
+				Rbc_Vector *vecPtr);
 
 typedef struct RbcStubs {
     int magic;
@@ -111,6 +119,9 @@ typedef struct RbcStubs {
     Rbc_Complex * (*rbc_VectorComplexData) (Rbc_Vector *vPtr); /* 15 */
     void (*rbc_VectorChanged) (Rbc_Vector *vecPtr); /* 16 */
     void (*rbc_VectorChangedRange) (Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last); /* 17 */
+    int (*rbc_VectorIsReadOnly) (Rbc_Vector *vecPtr); /* 18 */
+    int (*rbc_VectorSetReadOnly) (Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly); /* 19 */
+    int (*rbc_VectorCheckWritable) (Tcl_Interp *interp, Rbc_Vector *vecPtr); /* 20 */
 } RbcStubs;
 
 extern const RbcStubs *rbcStubsPtr;
@@ -161,6 +172,12 @@ extern const RbcStubs *rbcStubsPtr;
 	(rbcStubsPtr->rbc_VectorChanged) /* 16 */
 #define Rbc_VectorChangedRange \
 	(rbcStubsPtr->rbc_VectorChangedRange) /* 17 */
+#define Rbc_VectorIsReadOnly \
+	(rbcStubsPtr->rbc_VectorIsReadOnly) /* 18 */
+#define Rbc_VectorSetReadOnly \
+	(rbcStubsPtr->rbc_VectorSetReadOnly) /* 19 */
+#define Rbc_VectorCheckWritable \
+	(rbcStubsPtr->rbc_VectorCheckWritable) /* 20 */
 
 #endif /* defined(USE_RBC_STUBS) */
 

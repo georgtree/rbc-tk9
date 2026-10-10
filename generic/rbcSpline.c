@@ -1202,6 +1202,9 @@ static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
             goto cleanup;
         }
     } else {
+        if (Rbc_VectorCheckWritable(interp, resultVec) != TCL_OK) {
+            goto cleanup;
+        }
         if (Rbc_VectorGetType(resultVec) != RBC_VECTOR_COMPLEX) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be complex", resultName));
             goto cleanup;
@@ -1392,6 +1395,9 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
             goto cleanup;
         }
     } else {
+        if (Rbc_VectorCheckWritable(interp, splY) != TCL_OK) {
+            goto cleanup;
+        }
         if (Rbc_VectorGetType(splY) != RBC_VECTOR_REAL) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be real", splYName));
             goto cleanup;

@@ -13,6 +13,35 @@ namespace eval ::rbc::vector {
         - an associated Tcl array variable
         - the RBC C API.
 
+        ## Read-only vectors
+
+        Since 0.8.1, vectors can be protected against accidental data modification:
+
+        ```
+        samples set {1 2 3}
+        samples readonly true
+        set result [rbc::vector expr -name #auto {samples * 2}]
+        samples readonly false
+        ```
+
+        New vectors are writable by default. The state protects values, length and index offset; numeric type
+        remains immutable independently. Reads, statistics, arithmetic that returns a list, expressions using
+        the vector as input, and graph bindings remain available. Copies and newly created expression results
+        are writable. Vector commands and C mutators targeting a read-only vector fail with error code
+        `RBC VECTOR READONLY` (mapped-variable write errors use Tcl's `TCL WRITE VARNAME` code).
+        Multi-output operations check every destination before changing output values. Recreating an existing
+        locked vector with `vector create` is rejected too.
+
+        Renaming preserves the state. Destruction, namespace cleanup, array mapping and cache clearing are
+        allowed. In particular, `VECINST clear` clears the mapped-variable cache, not the vector values.
+        Mapped-array writes fail without changing native values. Unsetting an array element also leaves the
+        values intact; Tcl ignores errors from unset traces, so `unset` itself can succeed and a subsequent read
+        reconstructs the element. Whole-array unset retains the existing `-watchunset` lifetime behaviour.
+
+        `readonly false` deliberately unlocks the vector. This is data protection, not exclusive ownership or
+        a security boundary. Tcl callbacks may change the state: expression destinations are checked again
+        after evaluation and before committing the result. Callback side effects are not rolled back.
+
         ## Loading vectors without Tk
         Use the `rbc::vector` package in a Tcl-only interpreter:
         ```tcl
@@ -448,6 +477,7 @@ namespace eval ::rbc::VECINST {
         | `offset`    | Supported       |
         | `populate`  | Supported       |
         | `random`    | Supported       |
+        | `readonly`  | Supported       |
         | `range`     | Supported       |
         | `search`    | Supported       |
         | `seq`       | Supported       |
@@ -1156,6 +1186,39 @@ namespace eval ::rbc::VECINST {
         Functions returning `int` as a Tcl status return `TCL_OK` on success and `TCL_ERROR` on failure. When an
         interpreter is available, an explanatory error message is left in its result.
 
+        ### Read-only state in C (since 0.8.1)
+
+        | Function | Purpose |
+        | --- | --- |
+        | `int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr)` | Returns 0 or 1. |
+        | `int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly)` | Sets the state (nonzero means true); returns `TCL_OK`. |
+        | `int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)` | Returns `TCL_OK`, or `TCL_ERROR` with `RBC VECTOR READONLY`. |
+
+        These functions are appended to the stubs table. Consumers using them must request at least 0.8.1
+        when calling `Rbc_VectorInitStubs` or `Rbc_InitStubs`. Existing slots and signatures are unchanged.
+        State changes do not replace storage or send value-change notifications.
+
+        Resize, reset and recreation of a read-only destination fail before replacing storage. This includes
+        same-length resize requests. Failed reset calls do not take ownership of the proposed buffer or call
+        its free procedure. `Rbc_FreeVector` remains allowed regardless of the state.
+
+        Existing data accessors still return borrowed mutable pointers for compatibility. RBC cannot intercept
+        writes through those pointers, including pointers retained before locking and externally owned storage.
+        Native producers must check writability before modifying data, and again after any callbacks which may
+        change the state. Readers need no such check. For example:
+
+        ```c
+        if (Rbc_VectorCheckWritable(interp, vecPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        /* Here vecPtr is a real vector with at least one element. */
+        Rbc_VectorData(vecPtr)[0] = value;
+        Rbc_VectorChangedRange(vecPtr, 0, 0);
+        ```
+
+        `Rbc_VectorChanged` and `Rbc_VectorChangedRange` remain notifications, not write permission checks.
+        They report changes already made and must not be used to enforce protection after writing.
+
         Vector lengths and capacities use `Tcl_Size`, allowing the C interface to represent Tcl 9-sized vectors.
 
         ### Reading vector data
@@ -1715,6 +1778,15 @@ namespace eval ::rbc::VECINST {
         # Returns: Nothing.
     }
 
+    proc readonly {{boolean {}}} {
+        # Queries or changes reversible data protection. Supported for real and complex vectors.
+        # A true state prevents changes to values, length and index offset, including use as an output
+        # destination. Reading, renaming and destroying the vector remain allowed. New vectors start writable.
+        # boolean - optional Tcl boolean; false unlocks the vector.
+        # Returns: The current state as 0 or 1, including after a successful setter.
+        # Synopsis: ?boolean?
+    }
+
     proc range {first last} {
         # Gives back an inclusive range of vector values. If `first` is less than or equal to `last`, values are
         # returned in ascending index order. If `first` is greater than `last`, values are returned in descending
@@ -1862,6 +1934,7 @@ namespace eval ::rbc::VECINST {
         populate populate
         random random
         range range
+        readonly readonly
         search search
         seq seq
         set set

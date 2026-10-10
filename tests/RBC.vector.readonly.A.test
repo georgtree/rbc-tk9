@@ -1,0 +1,179 @@
+# RBC.vector.readonly.A.test --
+# Tests reversible vector data protection without requiring Tk.
+package provide vector.readonly
+package require rbc::vector 0.8.1
+package require tcltest
+namespace import ::tcltest::*
+
+namespace eval vector.readonly {
+    proc Cleanup {} {
+        foreach v [::rbc::vector names ::vector.readonly::*] {
+            ::rbc::vector destroy $v
+        }
+    }
+    proc Make {args} {
+        foreach name $args {
+            ::rbc::vector create $name -variable {}
+            $name set {3 1 2 4}
+        }
+    }
+
+    test RBC.vector.readonly.A.1.1 {default, boolean setter, unlocking and invalid boolean} -setup {
+        Make a
+    } -body {
+        set initial [a readonly]
+        set locked [a readonly yes]
+        set invalid [catch {a readonly bad}]
+        set still [a readonly]
+        a readonly false
+        a set {8}
+        list $initial $locked $invalid $still [a readonly] [a range 0 end]
+    } -cleanup {Cleanup} -result {0 1 1 1 0 8.0}
+
+    set n 0
+    foreach operation {
+        {set {9 8}} {append {9}} {delete 0} {index 0 9} {index ++end 9}
+        {length 4} {length 0} {offset 2} {expr {a + 1}} {random} {seq 0 3}
+        {merge a} {sort} {window hann 4} {fftfreq 4} {binread noSuchChannel}
+    } {
+        test RBC.vector.readonly.A.2.[incr n] "locked mutator: $operation" -setup {
+            Make a
+            a readonly true
+        } -body {
+            set code [catch {a {*}$operation} message options]
+            list $code [dict get $options -errorcode] [a range 0 end] [a length] [a offset]
+        } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} {3.0 1.0 2.0 4.0} 4 0}
+    }
+
+    test RBC.vector.readonly.A.3.1 {locked inputs support reads and writable copies} -setup {
+        Make a
+        a readonly true
+    } -body {
+        a dup b
+        set c [::rbc::vector expr -name #auto {a * 2}]
+        a normalize normalized
+        list [a type] [a length] [a index 1] [a + 1] [::rbc::vector expr {sum(a)}] \
+            [b readonly] [$c readonly] [$c range 0 end] [normalized readonly]
+    } -cleanup {Cleanup} -result {real 4 1.0 {4.0 2.0 3.0 5.0} 10.0 0 0 {6.0 2.0 4.0 8.0} 0}
+
+    set n 0
+    foreach operation {{a dup b} {a normalize b} {a populate b 2} {a split fresh b} {a sort b} \
+                       {::rbc::vector create fresh b} {::rbc::vector create b(8)}} {
+        test RBC.vector.readonly.A.4.[incr n] "locked secondary destination: $operation" -setup {
+            Make a b
+            b readonly true
+        } -body {
+            set code [catch {eval $operation} message options]
+            list $code [dict get $options -errorcode] [a range 0 end] [b range 0 end] \
+                [::rbc::vector names ::vector.readonly::fresh]
+        } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} {3.0 1.0 2.0 4.0} {3.0 1.0 2.0 4.0} {}}
+    }
+
+    test RBC.vector.readonly.A.5.1 {FFT rejects a locked second output before changing the first} -setup {
+        Make a b c
+        a readonly true
+        c readonly true
+    } -body {
+        set code [catch {a fft -real b -imag c} message options]
+        list $code [dict get $options -errorcode] [b range 0 end] [c range 0 end]
+    } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} {3.0 1.0 2.0 4.0} {3.0 1.0 2.0 4.0}}
+
+    test RBC.vector.readonly.A.5.2 {complex FFT input allowed; locked complex output rejected} -setup {
+        ::rbc::vector create a b -type complex
+        a set {{1 0} {0 0}}
+        a readonly true
+    } -body {
+        a fft b
+        b readonly true
+        set code [catch {b ifft a} message options]
+        list $code [dict get $options -errorcode] [a range 0 end] [b range 0 end]
+    } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} {{1.0 0.0} {0.0 0.0}} {{1.0 0.0} {1.0 0.0}}}
+
+    test RBC.vector.readonly.A.5.3 {simplify validates both outputs before committing} -setup {
+        Make a b c d
+        d readonly true
+    } -body {
+        set code [catch {::rbc::vector simplify a b c d 0.1} message options]
+        list $code [dict get $options -errorcode] [c range 0 end] [d range 0 end]
+    } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} {3.0 1.0 2.0 4.0} {3.0 1.0 2.0 4.0}}
+
+    test RBC.vector.readonly.A.6.1 {expression callback locks destination before result commit} -setup {
+        Make a
+    } -body {
+        set code [catch {a expr {[a readonly true; set value 9]}} message options]
+        list $code [dict get $options -errorcode] [a readonly] [a range 0 end]
+    } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} 1 {3.0 1.0 2.0 4.0}}
+
+    test RBC.vector.readonly.A.6.2 {numeric expression locks indexed destination before write} -setup {
+        Make a
+    } -body {
+        set code [catch {a index 0 {[a readonly true; set value 9]}}]
+        list $code [a readonly] [a range 0 end]
+    } -cleanup {Cleanup} -result {1 1 {3.0 1.0 2.0 4.0}}
+
+    test RBC.vector.readonly.A.7.1 {mapped writes and unsets preserve values and clear remains allowed} -setup {
+        Make a
+        a variable ::vector.readonly::mapped
+        a readonly true
+    } -body {
+        set write [catch {set mapped(0) 9}]
+        set append [catch {set mapped(++end) 9}]
+        set original $mapped(0)
+        set cached $mapped(1)
+        unset mapped(1)
+        set restored $mapped(1)
+        a clear
+        list $write $append $original $restored $mapped(0) [a range 0 end]
+    } -cleanup {Cleanup; unset -nocomplain mapped} -result {1 1 3.0 1.0 3.0 {3.0 1.0 2.0 4.0}}
+
+    test RBC.vector.readonly.A.7.2 {whole mapped array unset retains lifecycle behaviour} -setup {
+        ::rbc::vector create a -watchunset true
+        a set {1}
+        a readonly true
+    } -body {
+        unset a
+        ::rbc::vector names ::vector.readonly::a
+    } -cleanup {Cleanup} -result {}
+
+    test RBC.vector.readonly.A.8.1 {rename retains lock; destruction remains allowed} -setup {
+        Make a
+        a readonly true
+    } -body {
+        ::rbc::vector rename a b
+        set locked [b readonly]
+        ::rbc::vector destroy b
+        list $locked [::rbc::vector names ::vector.readonly::b]
+    } -cleanup {Cleanup} -result {1 {}}
+
+    foreach type {real complex} {
+        set n 0
+        foreach operation {{set {1}} {append {1}} {index 0 1} {delete 0} {expr {a + 1}} {random} {seq 0 1}} {
+            test RBC.vector.readonly.A.9.$type.[incr n] "real and complex protection: $operation" -setup {
+                ::rbc::vector create a -type $type -variable {}
+                a set {1 2}
+                set before [a range 0 end]
+                a readonly true
+            } -body {
+                list [catch {a {*}$operation} message options] [dict get $options -errorcode] \
+                    [expr {$before eq [a range 0 end]}]
+            } -cleanup {Cleanup} -result {1 {RBC VECTOR READONLY} 1}
+        }
+    }
+
+    testConstraint readonlyGraph [expr {[llength [info commands ::rbc::graph]] != 0}]
+    test RBC.vector.readonly.A.10.1 {graph can read locked vectors} -constraints readonlyGraph -setup {
+        Make a b
+        a readonly true
+        b readonly true
+        ::rbc::graph .readonlyGraph
+    } -body {
+        .readonlyGraph element create trace -xdata ::vector.readonly::a -ydata ::vector.readonly::b
+        update idletasks
+        list [.readonlyGraph element exists trace] [a readonly] [b readonly] [b range 0 end]
+    } -cleanup {
+        destroy .readonlyGraph
+        Cleanup
+    } -result {1 1 1 {3.0 1.0 2.0 4.0}}
+
+    cleanupTests
+}

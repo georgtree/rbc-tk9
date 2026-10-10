@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc" 3tcl 0\&.8\&.0 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc - Commands in namespace rbc
 .SH SYNOPSIS
@@ -330,6 +330,8 @@ rbc - Commands in namespace rbc
 \fBVECINST random\fP
 .br
 \fBVECINST range\fP \fIfirst last\fP
+.br
+\fBVECINST readonly\fP \fI?boolean?\fP
 .br
 \fBVECINST search\fP \fIvalue\fP
 .br
@@ -3704,6 +3706,9 @@ Fills the vector with pseudo-random data while preserving its current length\&. 
 \fIrange\fP
 Gives back an inclusive range of vector values\&. If first is less than or equal to last, values are returned in ascending index order\&. If first is greater than last, values are returned in descending index order\&. first and last are normal vector indices and may use forms such as end\&. This operation does not modify the vector\&.
 .TP
+\fIreadonly\fP
+Queries or changes reversible data protection\&. Supported for real and complex vectors\&. A true state prevents changes to values, length and index offset, including use as an output destination\&. Reading, renaming and destroying the vector remain allowed\&. New vectors start writable\&.
+.TP
 \fIsearch\fP
 Searches the vector for matching values\&. For real vectors, one numeric argument performs an exact-value search and two numeric arguments search the inclusive range from min to max, using the implementation's floating-point tolerance\&. For complex vectors, only the one-value exact search is supported\&. The search value may be {real imag} or a real scalar, which is promoted to {value 0}\&. A two-bound complex range search is not supported\&. By default matching vector indices are returned\&. With -value, matching vector values are returned\&. Complex values returned by -value use {real imag} representation\&.
 .TP
@@ -4325,6 +4330,29 @@ x range 3 1
 \fBReturn value\fR
 .PP
 A list containing the selected vector values\&.
+.PP
+.RS -4n
+\fBVECINST readonly\fR (::rbc)
+.RE
+.PP
+Queries or changes reversible data protection\&. Supported for real and complex vectors\&.
+A true state prevents changes to values, length and index offset, including use as an output
+destination\&. Reading, renaming and destroying the vector remain allowed\&. New vectors start writable\&.
+.RS 4n
+\fBVECINST readonly\fP \fI?boolean?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+boolean
+Optional Tcl boolean; false unlocks the vector\&. Optional, default ""\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The current state as 0 or 1, including after a successful setter\&.
 .PP
 .RS -4n
 \fBVECINST search\fR (::rbc)

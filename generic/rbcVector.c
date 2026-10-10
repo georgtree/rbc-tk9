@@ -500,6 +500,11 @@ static int VectorSimplifyObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_S
             return TCL_ERROR;
         }
     }
+    for (k = 2; k < 4; k++) {
+        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vectors[k]) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
     if (vectors[0]->length != vectors[1]->length) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("x and y vectors must have equal lengths", -1));
         return TCL_ERROR;
@@ -844,6 +849,27 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
      * Also, we start at 1 since objNameArray[0] holds "create"
      */
     vPtr = NULL;
+    for (i = 1; i < count; i++) {
+        VectorObject *existingPtr;
+        char *name;
+        char *suffix;
+
+        Tcl_DStringSetLength(&ds, 0);
+        Tcl_DStringAppend(&ds, Tcl_GetString(objNameArray[i]), -1);
+        name = Tcl_DStringValue(&ds);
+        existingPtr = GetVectorObject(dataPtr, name, NS_SEARCH_BOTH);
+        if ((existingPtr == NULL) && !literal) {
+            suffix = strrchr(name, '(');
+            if (suffix != NULL) {
+                *suffix = '\0';
+                existingPtr = GetVectorObject(dataPtr, name, NS_SEARCH_BOTH);
+            }
+        }
+        if ((existingPtr != NULL) &&
+            (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)existingPtr) != TCL_OK)) {
+            goto error;
+        }
+    }
     for (i = 1; i < count; i++) {
         char *leftParen, *rightParen; /* positions of left and right parens in vector specification */
         int isNew;
@@ -1410,6 +1436,9 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         Tcl_SetObjResult(interp, Tcl_NewStringObj("vector type mismatch", -1));
         goto error;
     }
+    if (!isNew && Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        goto error;
+    }
     /* process the command name: */
     if (cmdName != NULL) {
         Tcl_CmdInfo cmdInfo;
@@ -1772,6 +1801,9 @@ static int ResetVectorStorage(VectorObject *vPtr, void *valueArr, Tcl_Size lengt
     size_t sizeBytes;
     size_t lengthBytes;
 
+    if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (length < 0) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector length cannot be negative", -1));
         return TCL_ERROR;
@@ -2039,6 +2071,9 @@ int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
     VectorData newData;
     Tcl_FreeProc *freeProc;
 
+    if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (length < 0) {
         Tcl_SetObjResult(vPtr->interp, Tcl_ObjPrintf("bad vector size \"%" TCL_SIZE_MODIFIER "d\"", length));
         return TCL_ERROR;
@@ -2859,6 +2894,10 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
     first = vPtr->first;
     last = vPtr->last;
     varFlags = TCL_LEAVE_ERR_MSG | (flags & (TCL_GLOBAL_ONLY | TCL_NAMESPACE_ONLY));
+    if ((flags & (TCL_TRACE_WRITES | TCL_TRACE_UNSETS)) && vPtr->readOnly) {
+        Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr);
+        return VectorTraceError(Tcl_GetObjResult(interp));
+    }
     if (flags & TCL_TRACE_WRITES) {
         Tcl_Obj *objPtr;
         double realValue;
@@ -2885,6 +2924,9 @@ static char *VectorVarTrace(ClientData clientData, Tcl_Interp *interp, char *par
             break;
         }
         if (result != TCL_OK) {
+            goto error;
+        }
+        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
             goto error;
         }
         /*
@@ -4051,6 +4093,41 @@ int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *valueArr, Tcl_Size l
  */
 int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
     return Rbc_VectorReset((VectorObject *)vecPtr, valueArr, length, size, freeProc);
+}
+
+/*
+ * Rbc_VectorIsReadOnly -- Return the vector's data protection state.
+ * This does not restrict lifetime management or access to borrowed storage.
+ */
+int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr) {
+    return ((VectorObject *)vecPtr)->readOnly;
+}
+
+/*
+ * Rbc_VectorSetReadOnly -- Change data protection without changing values,
+ * storage, identity or client bindings. No value-change notification is sent.
+ * The state is publicly reversible; it is not an ownership/security boundary.
+ */
+int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly) {
+    (void)interp;
+    ((VectorObject *)vecPtr)->readOnly = (readOnly != 0);
+    return TCL_OK;
+}
+
+/*
+ * Rbc_VectorCheckWritable -- Check before modifying a destination. Native
+ * producers must also call this before writing through borrowed data pointers.
+ * Returns TCL_ERROR with a stable error code if the vector is read-only.
+ */
+int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr) {
+    VectorObject *vPtr = (VectorObject *)vecPtr;
+
+    if (vPtr->readOnly) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" is read-only", vPtr->name));
+        Tcl_SetErrorCode(interp, "RBC", "VECTOR", "READONLY", NULL);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
 
 void Rbc_VectorChanged(Rbc_Vector *vecPtr) {

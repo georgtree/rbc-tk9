@@ -28,6 +28,9 @@ const RbcStubs rbcStubs = {
     Rbc_VectorComplexData, /* 15 */
     Rbc_VectorChanged, /* 16 */
     Rbc_VectorChangedRange, /* 17 */
+    Rbc_VectorIsReadOnly, /* 18 */
+    Rbc_VectorSetReadOnly, /* 19 */
+    Rbc_VectorCheckWritable, /* 20 */
 };
 
 /* !END!: Do not edit above this line. */

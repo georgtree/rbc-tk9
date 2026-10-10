@@ -290,6 +290,11 @@ int Rbc_VectorFftOp(VectorObject *srcPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         Tcl_SetObjResult(interp, Tcl_NewStringObj("FFT length must not be smaller than the input length", -1));
         return TCL_ERROR;
     }
+    for (k = 0; k < count; k++) {
+        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)dest[k]) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
     data = FftAllocate(interp, length, sizeof(*data));
     if (data == NULL) {
         goto error;
