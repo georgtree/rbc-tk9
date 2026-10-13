@@ -34,7 +34,6 @@ See \fIELEMENT\fP, \fILINEELEMENT\fP, \fISTRIPELEMENT\fP, and \fIBARELEMENT\fP f
 .PP
 Rbc has two concrete pen implementations:
 .PP
-.RS 4n
 .nf
 ┌──────────┬─────────────────────────┐
 │ Pen type │ Used by                 │
@@ -42,8 +41,8 @@ Rbc has two concrete pen implementations:
 │ line     │ line and strip elements │
 │ bar      │ bar elements            │
 └──────────┴─────────────────────────┘
+
 .fi
-.RE
 .PP
 The -type option selects the pen type when the pen is created:
 .PP
@@ -59,7 +58,6 @@ elements\&.
 .PP
 If -type is omitted, the default follows the graph widget type:
 .PP
-.RS 4n
 .nf
 ┌────────────┬──────────────────┐
 │ Widget     │ Default pen type │
@@ -68,8 +66,8 @@ If -type is omitted, the default follows the graph widget type:
 │ barchart   │ bar              │
 │ stripchart │ line             │
 └────────────┴──────────────────┘
+
 .fi
-.RE
 .PP
 The actual concrete pen type may be queried with PEN type\&.
 .PP
@@ -255,7 +253,6 @@ The default value format is %g\&.
 a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitted\&.
 .SS "LINE PEN OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
 │ Option               │ Database name │ Database class │ Description                                                  │
@@ -306,8 +303,8 @@ a, A, e, E, f, F, g, or G, and dynamic width or precision using * is not permitt
 │ -valueshadow shadow  │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value disables │
 │                      │               │                │ the shadow\&.                                                  │
 └──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SH "BAR PENS"
 .PP
 Bar pens control bar fill, border appearance, error bars, and data-value labels\&.
@@ -378,7 +375,6 @@ Bar pens use the same value-label controls as line pens:
 See \fIBARELEMENT\fP for placement of value labels relative to the baseline and rendered bar geometry\&.
 .SS "BAR PEN OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
 │ Option               │ Database name │ Database class │ Description                                                  │
@@ -429,8 +425,8 @@ See \fIBARELEMENT\fP for placement of value labels relative to the baseline and 
 │ -valueshadow shadow  │ valueShadow   │ ValueShadow    │ Specifies a shadow for value labels\&. An empty value disables │
 │                      │               │                │ the shadow\&.                                                  │
 └──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SH "OPTION DATABASE"
 .PP
 Named pens use the Tk option database with resource class Pen\&.

@@ -36,7 +36,6 @@ These commands operate on axes assigned to one of the graph's four logical axis 
 .PP
 With the normal graph orientation, the logical axes correspond to the following physical margins:
 .PP
-.RS 4n
 .nf
 ┌─────────┬─────────────────┐
 │ Command │ Physical margin │
@@ -46,13 +45,12 @@ With the normal graph orientation, the logical axes correspond to the following 
 │ yaxis   │ left            │
 │ y2axis  │ right           │
 └─────────┴─────────────────┘
+
 .fi
-.RE
 .PP
 When the graph is configured with -invertxy yes, the logical X and Y directions are exchanged and the
 physical margins become:
 .PP
-.RS 4n
 .nf
 ┌─────────┬────────────────────────────────────┐
 │ Command │ Physical margin with -invertxy yes │
@@ -62,8 +60,8 @@ physical margins become:
 │ yaxis   │ bottom                             │
 │ y2axis  │ top                                │
 └─────────┴────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Application code can therefore continue to use xaxis and yaxis as logical X and Y interfaces regardless
 of graph orientation\&.

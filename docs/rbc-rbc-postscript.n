@@ -141,7 +141,6 @@ The generated EPS header records either portrait or landscape orientation\&.
 .PP
 The supported modes are:
 .PP
-.RS 4n
 .nf
 ┌────────────┬──────────────────────────────────────────────┐
 │ Mode       │ Description                                  │
@@ -151,8 +150,8 @@ The supported modes are:
 │ greyscale  │ Alternative spelling of grayscale\&.           │
 │ monochrome │ Generates monochrome output\&.                 │
 └────────────┴──────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Non-empty prefixes of these names are also accepted:
 .PP
@@ -250,7 +249,6 @@ epsi is supported on all platforms and embeds a grayscale EPSI preview in the Po
 .PP
 Additional preview formats are platform dependent:
 .PP
-.RS 4n
 .nf
 ┌────────┬───────────────────────────────────────────┐
 │ Format │ Availability                              │
@@ -259,8 +257,8 @@ Additional preview formats are platform dependent:
 │ wmf    │ Windows                                   │
 │ tiff   │ Windows builds compiled with TIFF support │
 └────────┴───────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Non-empty prefixes of the available format names are also accepted\&.
 .PP
@@ -273,7 +271,6 @@ file\&. They generate the corresponding binary EPS preview representation rather
 Preview generation is disabled by default\&.
 .SH "POSTSCRIPT OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────┐
 │ Option                │ Database name │ Database class │ Description                                                 │
@@ -315,8 +312,8 @@ Preview generation is disabled by default\&.
 │ -width distance       │ width         │ Width          │ Specifies the requested width of the PostScript plot\&. 0     │
 │                       │               │                │ uses the current graph width\&. The default is 0\&.             │
 └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 PostScript configuration options may also be supplied through Tk's option database\&. The resource name is
 postscript and the resource class is Postscript\&.

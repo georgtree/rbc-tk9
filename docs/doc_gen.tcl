@@ -4,7 +4,6 @@ package require rbc::graphtoolbar
 
 set docDir [file dirname [file normalize [info script]]]
 set sourceDir [file join $docDir ..]
-source [file join $docDir tableHelpers.tcl]
 source [file join $docDir startPage.ruff]
 source [file join $docDir tclTk9Upgrade.ruff]
 source [file join $docDir graph.ruff]
@@ -18,22 +17,21 @@ puts $packageVersion
 set title "Upgraded Tcl/Tk9.0-ready RBC package"
 
 # Image paths are relative to each output's source directory.
-set preparedStartPage [::rbcDoc::TablesForRuff $startPage]
-set startPageSphinx [string map {docs/images/ images/} $preparedStartPage]
-set startPageNroff $preparedStartPage
-set commonSphinx [list -title $title -sortnamespaces false -preamble $startPageSphinx -pagesplit namespace -recurse false\
-                    -includesource false -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
-                    -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
-                    -copyright "George Yashin" {*}$::argv]
-set commonNroff [list -title $title -sortnamespaces false -preamble $startPageNroff -pagesplit namespace -recurse false\
+set startPageSphinx [string map {docs/images/ images/} $startPage]
+set commonSphinx [list -title $title -sortnamespaces false -preamble $startPageSphinx -pagesplit namespace\
+                          -recurse false -includesource false -pagesplit namespace -autopunctuate true -compact false\
+                          -includeprivate false -product rbc -diagrammer "ditaa --border-width 1" -version\
+                          $packageVersion -copyright "George Yashin" {*}$::argv]
+set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -pagesplit namespace -recurse false\
                          -pagesplit namespace -autopunctuate true -compact false -includeprivate false\
                          -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                          -copyright "George Yashin" {*}$::argv]
 
 set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::graphtoolbar ::rbc::GRAPHINST ::rbc::AXIS ::rbc::MARGINAXIS\
                         ::rbc::ELEMENT ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::POLARELEMENT ::rbc::BARELEMENT\
-                        ::rbc::PEN ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT ::rbc::SVG ::rbc::PDF\
-                        ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop ::rbc::WINOPIMAGE]
+                        ::rbc::PEN ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT\
+                        ::rbc::SVG ::rbc::PDF ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop\
+                        ::rbc::WINOPIMAGE]
 set namespacesNroff $namespaces
 
 # Work around a Ruff ambiguity: ::rbc::graphtoolbar is both a namespace
@@ -41,13 +39,10 @@ set namespacesNroff $namespaces
 namespace eval ::rbc {
     namespace forget graphtoolbar
 }
-set savedPreambles {}
 try {
-    set savedPreambles [::rbcDoc::PreparePreambles $namespaces]
     ruff::document $namespaces -format sphinx -outfile rbc-tk9.rst -outdir [file join $docDir sphinx] {*}$commonSphinx
     ruff::document $namespacesNroff -format nroff -outdir $docDir -outfile rbc.n {*}$commonNroff
 } finally {
-    ::rbcDoc::RestorePreambles $savedPreambles
     namespace eval ::rbc {
         namespace import ::rbc::graphtoolbar::graphtoolbar
     }

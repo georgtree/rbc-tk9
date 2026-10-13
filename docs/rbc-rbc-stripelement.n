@@ -30,7 +30,6 @@ A strip element exposes a restricted line-element option set intended for stripc
 .PP
 In particular, the following LINEELEMENT options are not available for strip elements:
 .PP
-.RS 4n
 .nf
 ┌─────────────────┬─────────────────────────────────────────────────────────┐
 │ Option          │ Line-element feature                                    │
@@ -45,8 +44,8 @@ In particular, the following LINEELEMENT options are not available for strip ele
 │ -state          │ line-element state option                               │
 │ -trace          │ filtering of increasing/decreasing X trace directions   │
 └─────────────────┴─────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 All other options listed below use the same interpretation as the corresponding option on \fILINEELEMENT\fP\&.
 .SH DATA
@@ -234,7 +233,6 @@ The syntax and precedence rules are identical to those described for \fILINEELEM
 .PP
 The complete strip-element option set is:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
 │ Option                   │ Database name       │ Database class      │ Description                                   │
@@ -389,8 +387,8 @@ The complete strip-element option set is:
 │                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
+
 .fi
-.RE
 
 
 .SH SEE ALSO

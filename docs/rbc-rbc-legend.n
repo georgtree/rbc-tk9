@@ -68,7 +68,6 @@ To activate both independently:
 .PP
 The -position option determines where the legend is displayed\&.
 .PP
-.RS 4n
 .nf
 ┌──────────────┬───────────────────────────────────────────────────────────────────┐
 │ Position     │ Description                                                       │
@@ -81,8 +80,8 @@ The -position option determines where the legend is displayed\&.
 │ @x,y         │ Places the legend at the specified screen coordinates\&.            │
 │ \&.window      │ Creates an external legend window with the specified Tk pathname\&. │
 └──────────────┴───────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -202,7 +201,6 @@ The element under the current pointer may be obtained with LEGEND get and used b
 LEGEND get can also identify the entry at an explicit screen position\&.
 .SH "LEGEND OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬───────────────────┬───────────────────┬───────────────────────────────────────────────────┐
 │ Option                   │ Database name     │ Database class    │ Description                                       │
@@ -255,8 +253,8 @@ LEGEND get can also identify the entry at an explicit screen position\&.
 │ -shadow shadow           │ shadow            │ Shadow            │ Specifies a shadow for legend labels\&. An empty    │
 │                          │                   │                   │ value disables the shadow\&.                        │
 └──────────────────────────┴───────────────────┴───────────────────┴───────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Legend configuration options may also be set through Tk's option database\&. The resource name is legend and
 the resource class is Legend\&.

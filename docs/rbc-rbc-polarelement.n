@@ -654,7 +654,6 @@ Polar elements support the configuration options documented for \fILINEELEMENT\f
 -errorband* options, which require Cartesian line or strip elements\&. Polar elements also provide the
 Polar-specific additions below\&.
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬─────────────────┬─────────────────┬──────────────────────────────────────────────────────────┐
 │ Option                │ Database name   │ Database class  │ Description                                              │
@@ -669,8 +668,8 @@ Polar-specific additions below\&.
 │                       │                 │                 │ for impedance/admittance conversion\&. The default is      │
 │                       │                 │                 │ 50\&.0\&.                                                    │
 └───────────────────────┴─────────────────┴─────────────────┴──────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Except for -decimate, the remaining options have the same database names, classes, defaults, and basic
 drawing semantics described in \fILINEELEMENT\fP\&.

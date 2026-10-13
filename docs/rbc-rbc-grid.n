@@ -127,7 +127,6 @@ This applies to screen drawing, snapshots, SVG, and PostScript\&. When the grid 
 .PP
 The initial grid configuration depends on the graph widget type\&.
 .PP
-.RS 4n
 .nf
 ┌────────────┬───────┬───────┬───────┐
 │ Widget     │ -hide │ -mapx │ -mapy │
@@ -137,8 +136,8 @@ The initial grid configuration depends on the graph widget type\&.
 │ polar      │ no    │ x     │ y     │
 │ barchart   │ no    │ empty │ y     │
 └────────────┴───────┴───────┴───────┘
+
 .fi
-.RE
 .PP
 Thus a graph or stripchart does not initially display its grid, while a barchart initially displays
 horizontal grid lines associated with its Y axis\&. Polar widgets initially display their grid and labels,
@@ -147,7 +146,6 @@ including when -representation smith is selected\&. The option database can over
 The remaining grid defaults are common to all graph widget types\&.
 .SH "GRID OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌─────────────────────┬───────────────┬────────────────┬───────────────────────────────────────────────────────────────┐
 │ Option              │ Database name │ Database class │ Description                                                   │
@@ -172,8 +170,8 @@ The remaining grid defaults are common to all graph widget types\&.
 │ -minor boolean      │ minor         │ Minor          │ Controls whether grid lines are also generated at minor tick  │
 │                     │               │                │ positions\&. The default is yes\&.                                │
 └─────────────────────┴───────────────┴────────────────┴───────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Grid configuration options may also be supplied through Tk's option database\&. The resource name is grid and
 the resource class is Grid\&.
@@ -471,7 +469,6 @@ polar \&.p -representation smith
 .fi
 .RE
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
 │ Option                   │ Database name       │ Database class      │ Description                                   │
@@ -516,8 +513,8 @@ polar \&.p -representation smith
 │ list                     │                     │                     │ magnitudes for minor Smith contours\&. Default: │
 │                          │                     │                     │ 0\&.1 0\&.3 0\&.7 1\&.5 3 10\&.                         │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
+
 .fi
-.RE
 
 
 .SH SEE ALSO

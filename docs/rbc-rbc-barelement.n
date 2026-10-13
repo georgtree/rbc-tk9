@@ -169,7 +169,6 @@ Bar mode is global to the graph rather than configured separately for each bar e
 .PP
 The available modes are:
 .PP
-.RS 4n
 .nf
 ┌─────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Mode    │ Description                                                                                         │
@@ -180,8 +179,8 @@ The available modes are:
 │ overlap │ Bars sharing an X coordinate are offset while retaining enough width to overlap neighboring bars\&.   │
 │ stacked │ Y values sharing an X coordinate are accumulated and drawn as successive vertical segments\&.         │
 └─────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -234,7 +233,6 @@ A bar element contains a built-in normal bar pen\&.
 .PP
 Its basic appearance is controlled directly by:
 .PP
-.RS 4n
 .nf
 ┌────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option             │ Description                                                                                     │
@@ -248,8 +246,8 @@ Its basic appearance is controlled directly by:
 │ -relief relief     │ Sets the relief of the 3-D border\&. The default is raised\&.                                       │
 │ -stipple bitmap    │ Fills bars through the specified Tk bitmap stipple\&. An empty value disables stippling\&.          │
 └────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 The 3-D border is drawn only when a background border is present, -borderwidth is greater than zero, and
 -relief is not flat\&.
@@ -371,7 +369,6 @@ Examples:
 .PP
 Their appearance is controlled by:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                                              │
@@ -381,8 +378,8 @@ Their appearance is controlled by:
 │ -errorbarwidth width │ Sets the non-negative error-bar line width\&. The default is 1\&.                            │
 │ -errorbarcap width   │ Sets the non-negative requested cap width\&. The default is 1\&.                             │
 └──────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 If -errorbarcap is 0, Rbc chooses a cap size from the rendered bar width\&.
 .PP
@@ -409,7 +406,6 @@ For example:
 .PP
 Label appearance is controlled by:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬──────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                              │
@@ -423,8 +419,8 @@ Label appearance is controlled by:
 │ -valuerotate angle   │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&. │
 │ -valueshadow shadow  │ Specifies an optional text shadow\&. An empty value disables the shadow\&.   │
 └──────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 The displayed value is always formatted from the original X and Y source coordinates, including for bars
 whose screen geometry has been aligned, overlapped, or stacked\&.
@@ -507,7 +503,6 @@ rectangle\&.
 See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result array\&.
 .SS "BAR ELEMENT OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────┐
 │ Option                │ Database name │ Database class │ Description                                                 │
@@ -614,8 +609,8 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │                       │               │                │ vector\&. Each literal list item accepts a Tcl numeric        │
 │                       │               │                │ expression\&.                                                 │
 └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 
 
 .SH SEE ALSO

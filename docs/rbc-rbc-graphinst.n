@@ -21,7 +21,6 @@ graph \&.g
 The same widget instance interface is shared by all four graph types\&. The main difference is the default
 element type used by the element operation\&.
 .PP
-.RS 4n
 .nf
 ┌───────────────────┬──────────────────────┐
 │ Widget created by │ Default element type │
@@ -31,14 +30,13 @@ element type used by the element operation\&.
 │ stripchart        │ strip                │
 │ polar             │ polar                │
 └───────────────────┴──────────────────────┘
+
 .fi
-.RE
 .PP
 Explicit line and bar operations are also available independently of the widget's default element type\&.
 .PP
 Graph widgets contain several components with their own command interfaces:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────────┬───────────────────────────────────────┐
 │ Operation                    │ Component                             │
@@ -57,8 +55,8 @@ Graph widgets contain several components with their own command interfaces:
 │ svg                          │ SVG output                            │
 │ pdf                          │ PDF output                            │
 └──────────────────────────────┴───────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 These component interfaces are documented separately\&.
 .SH MARGINS
@@ -449,7 +447,6 @@ and polar and may be specified when the widget is created or modified later with
 Some options, such as -barmode, -barwidth, and -baseline, primarily affect bar elements but are available
 on all four graph widget types\&.
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
 │ Option                   │ Database name       │ Database class      │ Description                                   │
@@ -611,15 +608,14 @@ on all four graph widget types\&.
 │ -width distance          │ width               │ Width               │ Specifies the requested width of the graph    │
 │                          │                     │                     │ widget\&. The default is 5i\&.                    │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
+
 .fi
-.RE
 .SH "TK OPTION DATABASE"
 .PP
 Graph widgets and their components participate in Tk's option database\&.
 .PP
 Every configurable option has three names:
 .PP
-.RS 4n
 .nf
 ┌────────────────┬────────────┐
 │ Kind           │ Example    │
@@ -628,8 +624,8 @@ Every configurable option has three names:
 │ Database name  │ lineWidth  │
 │ Database class │ LineWidth  │
 └────────────────┴────────────┘
+
 .fi
-.RE
 .PP
 The command option is used with configure and cget:
 .PP
@@ -656,7 +652,6 @@ Tk widgets\&. When a component is initialized, RBC performs option lookup using 
 the component's resource name and resource class\&.
 .SS "COMPONENT RESOURCE NAMES AND CLASSES"
 .PP
-.RS 4n
 .nf
 ┌────────────────┬─────────────────────────────────────────┬────────────────┐
 │ Component      │ Resource name                           │ Resource class │
@@ -675,8 +670,8 @@ the component's resource name and resource class\&.
 │ Crosshairs     │ crosshairs                              │ Crosshairs     │
 │ PostScript     │ postscript                              │ Postscript     │
 └────────────────┴─────────────────────────────────────────┴────────────────┘
+
 .fi
-.RE
 .PP
 Thus an option-database entry can target either a whole component class:
 .PP
@@ -813,7 +808,6 @@ component command\&. For example, a marker's -name option is not read from the o
 The -barmode option determines how bars from different elements are arranged when they use the same X
 coordinate\&.
 .PP
-.RS 4n
 .nf
 ┌─────────┬─────────────────────────────────────────────────────────┐
 │ Mode    │ Description                                             │
@@ -824,8 +818,8 @@ coordinate\&.
 │ aligned │ Places bars side by side\&.                               │
 │ overlap │ Places bars side by side with a small overlap\&.          │
 └─────────┴─────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP

@@ -63,7 +63,6 @@ mean, sum, and prod\&. These calculated indices are not available for complex ve
 .PP
 Most vector instance operations support complex vectors\&. The following table summarizes the current status\&.
 .PP
-.RS 4n
 .nf
 ┌───────────┬─────────────────┐
 │ Operation │ Complex vectors │
@@ -99,8 +98,8 @@ Most vector instance operations support complex vectors\&. The following table s
 │ variable  │ Supported       │
 │ window    │ Not supported   │
 └───────────┴─────────────────┘
+
 .fi
-.RE
 .PP
 Operations that combine vector storage, such as append, merge, set, dup, and split, preserve vector
 types rather than reinterpreting real storage as complex storage or vice versa\&.
@@ -408,7 +407,6 @@ vector expr {(x + y) / 2}
 .PP
 The following operators are supported, listed from highest to lowest precedence\&.
 .PP
-.RS 4n
 .nf
 ┌───────────┬─────────────────────────────────────────┐
 │ Operators │ Description                             │
@@ -421,10 +419,10 @@ The following operators are supported, listed from highest to lowest precedence\
 │ < > <= >= │ Relational comparison                   │
 │ == !=     │ Equality and inequality comparison      │
 │ &&        │ Logical AND                             │
-│ ||        │ Logical OR                              │
+│ \\|\\|      │ Logical OR                              │
 └───────────┴─────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Binary operators at the same precedence level are evaluated from left to right\&.
 .PP
@@ -539,7 +537,6 @@ vector functions, which transform a vector into another vector\&.
 Component functions apply the selected operation independently to every vector component and return a vector of
 the same length\&.
 .PP
-.RS 4n
 .nf
 ┌──────────┬────────────────────────────────────────────────────────────────────────────┐
 │ Function │ Description                                                                │
@@ -567,8 +564,8 @@ the same length\&.
 │ tan      │ Tangent                                                                    │
 │ tanh     │ Hyperbolic tangent                                                         │
 └──────────┴────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -607,7 +604,6 @@ The number of generated values is therefore determined by the length of the argu
 .PP
 Scalar functions reduce a vector to a single numeric value\&.
 .PP
-.RS 4n
 .nf
 ┌──────────┬──────────────────────────────────────────┐
 │ Function │ Description                              │
@@ -628,8 +624,8 @@ Scalar functions reduce a vector to a single numeric value\&.
 │ sum      │ Sum of the components                    │
 │ var      │ Sample variance                          │
 └──────────┴──────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -664,7 +660,6 @@ vector expr {x / max(x)}
 .PP
 Vector functions transform their argument and return another vector\&.
 .PP
-.RS 4n
 .nf
 ┌──────────┬───────────────────────────────────────────────────┐
 │ Function │ Description                                       │
@@ -672,8 +667,8 @@ Vector functions transform their argument and return another vector\&.
 │ norm     │ Normalizes the components to the range [0\&.0, 1\&.0] │
 │ sort     │ Returns the components sorted in ascending order  │
 └──────────┴───────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -725,7 +720,6 @@ generated independently in the range [0\&.0, 1\&.0)\&.
 .PP
 The following reductions support complex vectors:
 .PP
-.RS 4n
 .nf
 ┌──────────┬─────────┬──────────────────────────────────────────────────────────┐
 │ Function │ Result  │ Complex definition                                       │
@@ -739,8 +733,8 @@ The following reductions support complex vectors:
 │ sum      │ Complex │ Sum of the values                                        │
 │ var      │ Real    │ Hermitian sample variance Σ abs(z - mean(z))^2 / (n - 1) │
 └──────────┴─────────┴──────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 kurtosis, max, median, min, q1, q3, and skew remain real-only\&. The vector functions norm and
 sort are also real-only\&.
@@ -935,7 +929,6 @@ compiler-specific complex-number support\&.
 .PP
 The following vector functions are exported through the Rbc stubs interface:
 .PP
-.RS 4n
 .nf
 ┌─────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────┐
 │ Function                                │ Description                                                                │
@@ -986,14 +979,13 @@ The following vector functions are exported through the Rbc stubs interface:
 │ *vecPtr, Tcl_Size first, Tcl_Size last) │ storage was modified in place\&. Storage, length, capacity, type, and        │
 │                                         │ ownership remain unchanged\&.                                                │
 └─────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Functions returning int as a Tcl status return TCL_OK on success and TCL_ERROR on failure\&. When an
 interpreter is available, an explanatory error message is left in its result\&.
 .SS "READ-ONLY STATE IN C (SINCE 0\&.8\&.1)"
 .PP
-.RS 4n
 .nf
 ┌───────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────┐
 │ Function                                                              │ Purpose                                      │
@@ -1004,8 +996,8 @@ interpreter is available, an explanatory error message is left in its result\&.
 │ int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)   │ Returns TCL_OK, or TCL_ERROR with RBC VECTOR │
 │                                                                       │ READONLY\&.                                    │
 └───────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 These functions are appended to the stubs table\&. Consumers using them must request at least 0\&.8\&.1
 when calling Rbc_VectorInitStubs or Rbc_InitStubs\&. Existing slots and signatures are unchanged\&.
@@ -1191,7 +1183,6 @@ TCL_ERROR\&.
 .PP
 Both functions accept nValues, arraySize, and freeProc with the same ownership rules\&.
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
 │ freeProc              │ Storage ownership                                                                            │
@@ -1206,8 +1197,8 @@ Both functions accept nValues, arraySize, and freeProc with the same ownership r
 │ custom Tcl_FreeProc * │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when the      │
 │                       │ storage is no longer needed\&.                                                                 │
 └───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 The ownership policy supplied to a reset operation becomes the vector's storage contract\&. This is true even if
 the supplied data pointer is identical to the vector's current data pointer\&.

@@ -20,7 +20,6 @@ GRAPHINST bar
 .PP
 The element form uses the default element type of the graph widget:
 .PP
-.RS 4n
 .nf
 ┌────────────┬──────────────────────┐
 │ Widget     │ Default element type │
@@ -30,8 +29,8 @@ The element form uses the default element type of the graph widget:
 │ stripchart │ strip                │
 │ polar      │ polar                │
 └────────────┴──────────────────────┘
+
 .fi
-.RE
 .PP
 The line and bar forms explicitly select the type when creating a new element:
 .PP
@@ -233,7 +232,6 @@ The command returns 1 if a result is found within the search halo and 0 otherwis
 .PP
 On success, the named Tcl array receives:
 .PP
-.RS 4n
 .nf
 ┌────────────────┬───────────────────────────────────────────────────────────────────────────┐
 │ Array element  │ Description                                                               │
@@ -247,8 +245,8 @@ On success, the named Tcl array receives:
 │ xlow, xhigh    │ Optional absolute X error bounds at the source index\&.                     │
 │ ylow, yhigh    │ Optional absolute Y error bounds at the source index\&.                     │
 └────────────────┴───────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Closest results optionally include error data from the reported source index: xerror and yerror are
 symmetric magnitudes; xlow/xhigh and ylow/yhigh are absolute endpoints from the corresponding options\&.
@@ -280,7 +278,6 @@ closest search still succeeds normally but param is omitted until the lengths ma
 .PP
 For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
 .PP
-.RS 4n
 .nf
 ┌───────────────┬────────────────────────────────────────────────────────────────────────────────┐
 │ Array element │ Description                                                                    │
@@ -290,8 +287,8 @@ For a bar element, the result array also contains the physical bounds of the sel
 │ right         │ Physical widget X coordinate of the right edge of the selected bar rectangle\&.  │
 │ bottom        │ Physical widget Y coordinate of the bottom edge of the selected bar rectangle\&. │
 └───────────────┴────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 These four values describe the final mapped rectangle that is actually used to draw the selected bar\&. They
 therefore reflect the current bar mode\&. For a stacked bar they describe only the selected stacked segment,
@@ -310,7 +307,6 @@ The default search halo is the graph's -halo value\&.
 .PP
 closest accepts the following options:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                                                   │
@@ -320,8 +316,8 @@ closest accepts the following options:
 │ -interpolate boolean │ For line and strip elements, searches along the rendered trace when true instead of           │
 │                      │ considering only data points\&.                                                                 │
 └──────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 With -interpolate false, line, strip, and polar searches return actual source data coordinates\&.
 .PP
@@ -352,7 +348,6 @@ and equivalent impedance/admittance information\&. See \fIPOLARELEMENT\fP for th
 .PP
 ELEMENT type reports the concrete class of an existing element\&. The current element classes are:
 .PP
-.RS 4n
 .nf
 ┌──────────────┬────────────────────┐
 │ Result       │ Element type       │
@@ -362,8 +357,8 @@ ELEMENT type reports the concrete class of an existing element\&. The current el
 │ StripElement │ stripchart element │
 │ PolarElement │ polar element      │
 └──────────────┴────────────────────┘
+
 .fi
-.RE
 .PP
 Polar elements are documented separately in \fIPOLARELEMENT\fP\&.
 .PP

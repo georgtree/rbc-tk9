@@ -669,7 +669,6 @@ for subsequently created elements, use option add *Element\&.ScaleSymbols yes us
 -scalesymbols yes when creating or configuring an individual element\&.
 .SS "ZOOM OPTION-DATABASE RESOURCES"
 .PP
-.RS 4n
 .nf
 ┌─────────────────┬─────────────┬─────────────────────────┬─────────────────────────┬─────────────────┐
 │ Property        │ Key         │ Database name           │ Database class          │ Default         │
@@ -695,11 +694,10 @@ for subsequently created elements, use option add *Element\&.ScaleSymbols yes us
 │ zoommarkboxopts │ -outline    │ gtbZoomTextBoxOutline   │ GtbZoomTextBoxOutline   │ grey            │
 │ zoommarkboxopts │ -linewidth  │ gtbZoomTextBoxLineWidth │ GtbZoomTextBoxLineWidth │ 1               │
 └─────────────────┴─────────────┴─────────────────────────┴─────────────────────────┴─────────────────┘
+
 .fi
-.RE
 .SS "CROSSHAIR OPTION-DATABASE RESOURCES"
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬──────────────┬──────────────────────────────┬──────────────────────────────┬─────────────────┐
 │ Property              │ Key          │ Database name                │ Database class               │ Default         │
@@ -727,8 +725,8 @@ for subsequently created elements, use option add *Element\&.ScaleSymbols yes us
 │ pointeropts           │ -outline     │ gtbPointerOutline            │ GtbPointerOutline            │ black           │
 │ pointeropts           │ -rotate      │ gtbPointerRotate             │ GtbPointerRotate             │ 0               │
 └───────────────────────┴──────────────┴──────────────────────────────┴──────────────────────────────┴─────────────────┘
+
 .fi
-.RE
 .PP
 crosshairsclosestopts has no Tk option-database resources\&. Its built-in defaults are:
 .PP

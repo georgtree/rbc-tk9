@@ -222,7 +222,6 @@ The UCRT64 shell does not automatically determine Rbc's installation prefix\&. S
 the intended destination\&.
 .SS "CONFIGURE OPTIONS AND RENDERER DEFAULTS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option                   │ Effect                                                                                    │
@@ -242,8 +241,8 @@ the intended destination\&.
 │ --with-tk=DIR            │                                                                                           │
 │ --prefix=DIR             │ Selects the installation prefix\&.                                                          │
 └──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 The examples above enable Cairo\&. Omit --enable-cairo, or replace it with --disable-cairo, for a native-only build\&.
 If Cairo is requested but its headers or platform backend cannot be linked, configure fails rather than silently

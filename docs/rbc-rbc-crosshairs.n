@@ -142,7 +142,6 @@ Crosshairs are drawn directly over the graph and can therefore be moved or remov
 contents to be redrawn\&.
 .SH "CROSSHAIRS OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌─────────────────────┬───────────────┬────────────────┬───────────────────────────────────────────────────────────────┐
 │ Option              │ Database name │ Database class │ Description                                                   │
@@ -160,8 +159,8 @@ contents to be redrawn\&.
 │ -position position  │ position      │ Position       │ Specifies the crosshair position as @x,y in graph-window      │
 │                     │               │                │ coordinates\&.                                                  │
 └─────────────────────┴───────────────┴────────────────┴───────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Crosshair configuration options may also be supplied through Tk's option database\&. The resource name is
 crosshairs and the resource class is Crosshairs\&.

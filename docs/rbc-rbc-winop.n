@@ -32,7 +32,6 @@ image create photo result
 .PP
 The current interface contains both direct image operations and an image subgroup\&.
 .PP
-.RS 4n
 .nf
 ┌───────────┬────────────────────────┬──────────────────────────────┐
 │ Operation │ Direct form            │ image form                   │
@@ -46,8 +45,8 @@ The current interface contains both direct image operations and an image subgrou
 │ snap      │ ::rbc::winop snap      │ ::rbc::winop image snap      │
 │ subsample │ ::rbc::winop subsample │ ::rbc::winop image subsample │
 └───────────┴────────────────────────┴──────────────────────────────┘
+
 .fi
-.RE
 .PP
 WINOPIMAGE is used below as a placeholder for:
 .PP
@@ -280,7 +279,6 @@ If no filter is specified, none is used\&.
 .PP
 The available filters are:
 .PP
-.RS 4n
 .nf
 ┌──────────┬───────────────────────────────────────────────┐
 │ Filter   │ Description                                   │
@@ -301,8 +299,8 @@ The available filters are:
 │ sinc     │ Sinc filter                                   │
 │ triangle │ Triangle filter                               │
 └──────────┴───────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS SUBSAMPLING
 .PP
 subsample extracts a rectangular region of a source photo and optionally resamples it into a destination

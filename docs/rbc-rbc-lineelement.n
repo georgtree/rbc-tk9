@@ -163,7 +163,6 @@ The selected axes must have the appropriate X or Y orientation\&.
 .PP
 The element contains a built-in normal line pen\&. The following options configure that built-in pen directly:
 .PP
-.RS 4n
 .nf
 ┌──────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option           │ Description                                                                                       │
@@ -176,8 +175,8 @@ The element contains a built-in normal line pen\&. The following options configu
 │ -offdash color   │ Specifies the color used for the gaps of a dashed line\&. An empty value leaves dash gaps           │
 │                  │ transparent\&. defcolor selects the normal trace color\&.                                             │
 └──────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 A separately created line pen may replace the built-in normal pen with -pen:
 .PP
@@ -196,7 +195,6 @@ activeLine\&. An empty value disables the separate active pen\&.
 .PP
 -smooth controls how consecutive valid data points are connected\&.
 .PP
-.RS 4n
 .nf
 ┌───────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Value     │ Description                                                                                           │
@@ -208,8 +206,8 @@ activeLine\&. An empty value disables the separate active pen\&.
 │ quadratic │ Uses the shape-preserving quadratic spline in mapped screen coordinates\&.                              │
 │ catrom    │ Uses a Catmull-Rom parametric spline\&.                                                                 │
 └───────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -243,7 +241,6 @@ closed trace is required\&.
 .PP
 -trace determines whether connecting segments are drawn when X values change direction\&.
 .PP
-.RS 4n
 .nf
 ┌────────────┬──────────────────────────────────────────────────────────────────────────────────────┐
 │ Value      │ Description                                                                          │
@@ -252,8 +249,8 @@ closed trace is required\&.
 │ increasing │ Draws only portions whose X coordinates proceed in the increasing direction\&.         │
 │ decreasing │ Draws only portions whose X coordinates proceed in the decreasing direction\&.         │
 └────────────┴──────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 The option is useful for datasets that retrace their X coordinates and where only one sweep direction should
 be displayed\&.
@@ -271,7 +268,6 @@ time even though most of those points cannot be distinguished on screen\&.
 .PP
 Accepted values are:
 .PP
-.RS 4n
 .nf
 ┌───────┬─────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Value │ Description                                                                                         │
@@ -279,8 +275,8 @@ Accepted values are:
 │ none  │ Disables automatic display decimation\&. This is the default\&.                                         │
 │ auto  │ Enables automatic screen-density decimation when the line and current display density are suitable\&. │
 └───────┴─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -334,7 +330,6 @@ benefit\&.
 .PP
 The following conditions determine how far the optimization can proceed:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────────────────────────────────┬─────────────────────────────────────────────┐
 │ Optimization level       │ Conditions                                  │ Effect                                      │
@@ -351,8 +346,8 @@ The following conditions determine how far the optimization can proceed:
 │                          │ logarithmic domains                         │ data-domain cache instead of rescanning the │
 │                          │                                             │ complete source vector\&.                     │
 └──────────────────────────┴─────────────────────────────────────────────┴─────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For the strongest optimization, a large waveform should normally be configured similarly to:
 .PP
@@ -524,7 +519,6 @@ where bitmap and optional mask are names understood by Tk's bitmap machinery\&.
 .PP
 Symbol appearance is controlled by:
 .PP
-.RS 4n
 .nf
 ┌───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Option                │ Description                                                                                  │
@@ -537,8 +531,8 @@ Symbol appearance is controlled by:
 │ -scalesymbols boolean │ Controls whether symbol sizes change as the graph axis ranges change\&. The default is no\&.     │
 │ -maxsymbols number    │ Reduces the density of displayed symbols\&. 0 displays symbols at all eligible points\&.         │
 └───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 -maxsymbols is a display-density control rather than a modification of the source data\&. When positive, Rbc
 computes an interval and draws approximately the requested number of symbols across the visible element\&. The
@@ -611,7 +605,6 @@ Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y d
 .PP
 The drawing style is controlled by:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                   │
@@ -621,8 +614,8 @@ The drawing style is controlled by:
 │ -errorbarwidth width │ Sets the non-negative error-bar line width\&. The default is 1\&. │
 │ -errorbarcap width   │ Sets the requested non-negative cap width\&. The default is 1\&.  │
 └──────────────────────┴───────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Error bars follow the original sample selection made by -symbolpoints\&. With reduced selection and a
 positive -reduce tolerance, only retained samples have error bars\&. A positive -maxsymbols further thins
@@ -642,7 +635,6 @@ When both coordinates are requested, the formatted X and Y values are displayed 
 .PP
 Value-label appearance is controlled by:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Description                                                                        │
@@ -656,8 +648,8 @@ Value-label appearance is controlled by:
 │ -valuerotate angle   │ Rotates the label by the specified angle in degrees\&. The default is 0\&.0\&.           │
 │ -valueshadow shadow  │ Specifies an optional text shadow\&. An empty value disables the shadow\&.             │
 └──────────────────────┴────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 -valueformat is validated before it is accepted\&. It may contain at most one floating-point conversion,
 using a, A, e, E, f, F, g, or G\&. Dynamic width or precision using * is not permitted\&.
@@ -964,7 +956,6 @@ runs\&.
 .PP
 The complete line-element option set is:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
 │ Option                   │ Database name       │ Database class      │ Description                                   │
@@ -1142,8 +1133,8 @@ The complete line-element option set is:
 │                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
+
 .fi
-.RE
 
 
 .SH SEE ALSO

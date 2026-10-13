@@ -75,7 +75,6 @@ controls the minimum and the second controls the maximum\&.
 .PP
 Each value may be a Tcl boolean or the literal always:
 .PP
-.RS 4n
 .nf
 ┌────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Value  │ Description                                                                                                 │
@@ -85,8 +84,8 @@ Each value may be a Tcl boolean or the literal always:
 │        │ or -max tight\&.                                                                                              │
 │ always │ Extend the limit to an outer major tick even when the corresponding -min or -max was supplied explicitly\&.   │
 └────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -379,7 +378,6 @@ If there is no current axis, these operations return an empty result\&.
 .PP
 The following options apply to virtual axes and to axes displayed through the margin-axis commands\&.
 .PP
-.RS 4n
 .nf
 ┌──────────────────────────┬─────────────────┬─────────────────┬───────────────────────────────────────────────────────┐
 │ Option                   │ Database name   │ Database class  │ Description                                           │
@@ -506,8 +504,8 @@ The following options apply to virtual axes and to axes displayed through the ma
 │ -titleshadow shadow      │ titleShadow     │ Shadow          │ Specifies a shadow for the axis title\&. An empty value │
 │                          │                 │                 │ disables the shadow\&.                                  │
 └──────────────────────────┴─────────────────┴─────────────────┴───────────────────────────────────────────────────────┘
+
 .fi
-.RE
 
 
 .SH SEE ALSO

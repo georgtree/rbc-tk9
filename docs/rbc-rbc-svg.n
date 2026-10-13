@@ -49,7 +49,6 @@ File output uses UTF-8 with LF line endings\&. A filename starting with a dash m
 for example \&./-plot\&.svg\&. There is no -- filename separator\&.
 .SH "SVG OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Default │ Description                                                                         │
@@ -60,8 +59,8 @@ for example \&./-plot\&.svg\&. There is no -- filename separator\&.
 │                      │         │ axes, labels and symbols remain visible\&.                                            │
 │ -embedfonts boolean  │ 0       │ Embed native outline fonts and fallback faces as CSS webfonts\&. Disabled by default\&. │
 └──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Dimensions accept pixels or Tk screen distances, such as 6i or 15c, and are stored as integer pixels\&. Zero
 uses the current widget dimension, or its requested dimension before layout is available\&. The graph is laid

@@ -21,7 +21,6 @@ of axis limits\&.
 .PP
 Rbc provides seven marker types:
 .PP
-.RS 4n
 .nf
 ┌─────────┬────────────────────────────────────────────────┐
 │ Type    │ Description                                    │
@@ -34,8 +33,8 @@ Rbc provides seven marker types:
 │ text    │ Displays text                                  │
 │ window  │ Displays an embedded Tk window                 │
 └─────────┴────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 A marker is created by specifying its type:
 .PP
@@ -81,7 +80,6 @@ Marker coordinates are graph coordinates and are mapped through the axes selecte
 .PP
 The number of coordinates depends on the marker type:
 .PP
-.RS 4n
 .nf
 ┌─────────────┬─────────────────────────────────────────────────┐
 │ Marker type │ Coordinates                                     │
@@ -94,8 +92,8 @@ The number of coordinates depends on the marker type:
 │ text        │ One X-Y pair                                    │
 │ window      │ One X-Y pair                                    │
 └─────────────┴─────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 For bitmap and image markers, one X-Y pair specifies the marker position\&. Two pairs specify opposite corners
 of a bounding rectangle\&. Bitmap markers are scaled to that rectangle\&. Photo images are likewise scaled to the
@@ -147,7 +145,6 @@ Every marker has its marker name as an implicit binding tag\&. Additional tags a
 .PP
 The default binding tags depend on the marker type:
 .PP
-.RS 4n
 .nf
 ┌─────────┬───────────────────┐
 │ Type    │ Default -bindtags │
@@ -160,8 +157,8 @@ The default binding tags depend on the marker type:
 │ text    │ Text all          │
 │ window  │ Window all        │
 └─────────┴───────────────────┘
+
 .fi
-.RE
 .PP
 For example:
 .PP
@@ -182,7 +179,6 @@ MARKER cget and MARKER configure operate on the option table of the concrete mar
 option valid for one marker type is not necessarily valid for another\&.
 .SS "COMMON MARKER OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
 │ Option               │ Database name │ Database class │ Description                                                  │
@@ -215,8 +211,8 @@ option valid for one marker type is not necessarily valid for another\&.
 │ -yoffset distance    │ yOffset       │ YOffset        │ Adds a vertical screen-coordinate offset after the marker    │
 │                      │               │                │ has been mapped\&. The default is 0\&.                           │
 └──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS "BITMAP MARKER OPTIONS"
 .PP
 Bitmap markers display a Tk bitmap\&.
@@ -239,7 +235,6 @@ Mask could be provided alonhside of bitmap to indicate the part of the bitmap th
 .PP
 In addition to the common marker options, bitmap markers support:
 .PP
-.RS 4n
 .nf
 ┌───────────────────┬───────────────┬────────────────┬─────────────────────────────────────────────────────────────────┐
 │ Option            │ Database name │ Database class │ Description                                                     │
@@ -258,8 +253,8 @@ In addition to the common marker options, bitmap markers support:
 │ -outline color    │ foreground    │ Foreground     │ Specifies the bitmap foreground color\&.                          │
 │ -rotate degrees   │ rotate        │ Rotate         │ Specifies the rotation angle in degrees\&. The default is 0\&.      │
 └───────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS "IMAGE MARKER OPTIONS"
 .PP
 Image markers display a Tk image\&.
@@ -273,7 +268,6 @@ image create photo icon -file icon\&.png
 .PP
 In addition to the common marker options, image markers support:
 .PP
-.RS 4n
 .nf
 ┌──────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────────┐
 │ Option           │ Database name │ Database class │ Description                                                      │
@@ -282,8 +276,8 @@ In addition to the common marker options, image markers support:
 │                  │               │                │ coordinate\&. The default is center\&.                               │
 │ -image imageName │ image         │ Image          │ Specifies the Tk image to display\&.                               │
 └──────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS "LINE MARKER OPTIONS"
 .PP
 Line markers draw connected line segments through their X-Y coordinate pairs\&.
@@ -296,7 +290,6 @@ Line markers draw connected line segments through their X-Y coordinate pairs\&.
 .PP
 In addition to the common marker options, line markers support:
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────┐
 │ Option               │ Database name │ Database class │ Description                                                  │
@@ -330,8 +323,8 @@ In addition to the common marker options, line markers support:
 │ -xor boolean         │ xor           │ Xor            │ Specifies whether the line is drawn using XOR drawing\&. The   │
 │                      │               │                │ default is no\&.                                               │
 └──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SH ARROWHEADS
 .PP
 Line markers may draw an arrowhead at either end of the line by using the -arrow option\&. Accepted values
@@ -374,7 +367,6 @@ an empty coordinate list hides the marker\&. The rectangle is mapped through -ma
 then the ellipse is constructed in display coordinates\&. This keeps the shape elliptical on logarithmic
 axes\&. Equal displayed width and height produce a circle; equal graph-coordinate spans need not do so\&.
 .PP
-.RS 4n
 .nf
 ┌───────────────┬───────────────┬────────────────┬─────────────────────────────────────────────┐
 │ Option        │ Resource name │ Resource class │ Description                                 │
@@ -383,8 +375,8 @@ axes\&. Equal displayed width and height produce a circle; equal graph-coordinat
 │ -extent angle │ extent        │ Extent         │ Signed sweep in degrees\&. Default: 360\&.      │
 │ -style style  │ style         │ Style          │ arc, chord, or pieslice\&. Default: pieslice\&. │
 └───────────────┴───────────────┴────────────────┴─────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Zero degrees points right on the display\&. Positive sweeps run counterclockwise; negative sweeps run
 clockwise\&. This display-angle convention also applies with descending or inverted axes\&. Angles must be
@@ -449,7 +441,6 @@ Polygon markers draw the closed polygon formed by their coordinate pairs\&.
 .PP
 In addition to the common marker options, polygon markers support:
 .PP
-.RS 4n
 .nf
 ┌─────────────────────┬───────────────┬────────────────┬───────────────────────────────────────────────────────────────┐
 │ Option              │ Database name │ Database class │ Description                                                   │
@@ -478,8 +469,8 @@ In addition to the common marker options, polygon markers support:
 │ -xor boolean        │ xor           │ Xor            │ Specifies whether the polygon outline uses XOR drawing\&. The   │
 │                     │               │                │ default is no\&.                                                │
 └─────────────────────┴───────────────┴────────────────┴───────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS "TEXT MARKER OPTIONS"
 .PP
 Text markers display one or more lines of text\&.
@@ -492,7 +483,6 @@ Text markers display one or more lines of text\&.
 .PP
 In addition to the common marker options, text markers support:
 .PP
-.RS 4n
 .nf
 ┌───────────────────┬───────────────┬──────────────────┬───────────────────────────────────────────────────────────────┐
 │ Option            │ Database name │ Database class   │ Description                                                   │
@@ -517,8 +507,8 @@ In addition to the common marker options, text markers support:
 │ -shadow shadow    │ shadow        │ Shadow           │ Specifies the text shadow\&.                                    │
 │ -text text        │ text          │ Text             │ Specifies the text to display\&.                                │
 └───────────────────┴───────────────┴──────────────────┴───────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SS "WINDOW MARKER OPTIONS"
 .PP
 Window markers display a Tk window inside the graph\&.
@@ -534,7 +524,6 @@ button \&.g\&.info -text Info
 .PP
 In addition to the common marker options, window markers support:
 .PP
-.RS 4n
 .nf
 ┌──────────────────┬───────────────┬────────────────┬──────────────────────────────────────────────────────────────────┐
 │ Option           │ Database name │ Database class │ Description                                                      │
@@ -551,14 +540,13 @@ In addition to the common marker options, window markers support:
 │                  │               │                │ be a direct child of the graph widget\&. An empty value removes    │
 │                  │               │                │ the managed window\&.                                              │
 └──────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .SH "OPTION DATABASE"
 .PP
 Marker options may be supplied through Tk's option database\&. Each concrete marker type has its own resource
 class:
 .PP
-.RS 4n
 .nf
 ┌─────────────┬────────────────┐
 │ Marker type │ Resource class │
@@ -571,8 +559,8 @@ class:
 │ text        │ TextMarker     │
 │ window      │ WindowMarker   │
 └─────────────┴────────────────┘
+
 .fi
-.RE
 .PP
 The resource name is the marker name\&.
 .PP

@@ -36,7 +36,6 @@ dash-leading filename with a directory, for example \&./-plot\&.pdf\&. There is 
 text validation finish before the destination is opened\&. An I/O failure can still leave a partial file\&.
 .SH "PDF OPTIONS"
 .PP
-.RS 4n
 .nf
 ┌──────────────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────┐
 │ Option               │ Default │ Description                                                                         │
@@ -50,8 +49,8 @@ text validation finish before the destination is opened\&. An I/O failure can st
 │ -embedfonts boolean  │ 1       │ Embed native fonts and Unicode mappings\&. False uses standard PDF fonts with         │
 │                      │         │ Windows-1252 text\&.                                                                  │
 └──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
+
 .fi
-.RE
 .PP
 Dimensions are stored as integer pixels, like SVG options\&. The export lays out the graph at those dimensions
 and converts the resulting coordinates to PDF points using the display's horizontal pixels-per-inch value (the scale used by Tk screen distances)\&.
