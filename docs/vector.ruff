@@ -106,8 +106,9 @@ namespace eval ::rbc::vector {
         when the requested type is the same as its current type. Omitting `-type` when referring to an existing vector
         preserves its current type.
 
-        Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping. Complex vectors do not receive an automatic
-        array mapping, but one may be requested explicitly with `-variable` or later with [VECINST variable][::rbc::VECINST variable].
+        Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping. ComplexD\
+        vectors do not receive an automatic array mapping, but one may be requested explicitly with `-variable` orDXS\
+        later with [VECINST variable][::rbc::VECINST variable].
 
         ## Graph and spline integration
         Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation.
@@ -188,7 +189,6 @@ namespace eval ::rbc::vector {
         Vector names may be namespace-qualified.
 
         ## Parentheses in vector names
-
         Vector names may contain balanced parentheses, including nested groups. This permits signal names such as
         `v(out)` and `i(device)` without encoding them. The other name-character restrictions remain unchanged.
         ```tcl
@@ -499,181 +499,6 @@ namespace eval ::rbc::VECINST {
 
         The calculated Tcl array indices `min`, `max`, `mean`, `sum`, and `prod` remain real-only. Ordinary numeric
         indices and ranges work with an explicitly mapped complex vector.
-
-        ## Fourier transforms
-        `fft` and `ifft` work with `package require rbc::vector`; Tk and an external FFT library are not required.
-        The source can be real or complex. Destinations must already exist: use either one complex vector or
-        two distinct real vectors. Transform commands never create vectors, interpret `#auto` as a request to
-        create one, or change a vector's type.
-
-        ```tcl
-        package require rbc::vector
-        rbc::vector create signal spectrumReal spectrumImag
-        rbc::vector create spectrum reconstructed -type complex
-        signal set {1 2 3 4}
-
-        # Complete complex spectrum, followed by an inverse transform.
-        signal fft spectrum
-        spectrum ifft reconstructed
-
-        # The same spectrum stored as separate real and imaginary components.
-        signal fft -real spectrumReal -imag spectrumImag
-        spectrumReal ifft -imaginput spectrumImag reconstructed
-
-        # Reuse the two real vectors as inverse destinations.
-        spectrumReal ifft -imaginput spectrumImag -real spectrumReal -imag spectrumImag
-        ```
-
-        A positional destination must be complex, even when the input is real. `-real` and `-imag` must be supplied
-        together and refer to different real vectors. Both commands also accept `-imaginput` for a real source;
-        the supplied imaginary-input vector must be real and have the same length. All references use RBC vector
-        lookup in the caller's namespace, including literal names with parentheses. Partial vector ranges are
-        rejected; copy a range into a vector first when a transform of a subset is required.
-
-        Input/output overlap is supported with matching types. For example, `spectrum fft spectrum` is valid for
-        a complex vector; `signal fft signal` is an error when `signal` is real. Existing destination C entities,
-        names, types, index offsets and client bindings are retained. Data pointers may change. C clients must
-        reacquire data pointers after an update. Mapped-array caches and vector clients are updated as for other
-        vector mutations. Both split results are installed before notifications are issued.
-
-        ### Length and zero padding
-        The initial implementation uses a radix-2 algorithm. The default transform length is the input length,
-        which must be a positive power of two. A one-element transform is valid; an empty input is an error.
-        `-length auto` pads with zeros to the next power of two. `-length size` requires a positive power of two
-        at least as large as the input length. Smaller lengths are errors: input is never silently truncated.
-        Both real and imaginary components are padded with zeros.
-
-        ```tcl
-        signal set {1 2 3}
-        signal fft spectrum -length auto
-        # spectrum has 4 bins.
-        spectrum ifft reconstructed
-        # reconstructed is approximately {{1 0} {2 0} {3 0} {0 0}}.
-        ```
-
-        The inverse returns the transform length, including padding. The original unpadded length is not stored
-        as vector metadata. `ifft -length` pads the supplied frequency-bin array before taking its inverse; it
-        does not crop time-domain output or reconstruct an omitted negative-frequency half-spectrum.
-
-        ### Sign, scaling and frequency bins
-        For N samples, forward bin k is the sum of `x[j] * exp(-2*pi*i*j*k/N)` over j from 0 to N-1.
-        The inverse uses the positive exponential and divides by N. Thus `ifft(fft(x))` reproduces x up to
-        floating-point rounding, or x followed by zeros if padding was requested. Neither transform applies a
-        window, removes the mean, doubles bins, or performs amplitude, power or power-spectral-density scaling.
-
-        All N bins are returned in unshifted order: DC at index 0, positive frequencies next, then negative
-        frequencies. For even N, index N/2 is the Nyquist bin. For uniform sample interval dt, indices below
-        N/2 correspond to `k/(N*dt)` and indices above N/2 to `(k-N)/(N*dt)`; the Nyquist bin represents the
-        shared positive/negative Nyquist frequency. These are storage positions, independent of vector offsets.
-        A real input has conjugate-symmetric bins; complex inputs generally do not.
-
-        ```tcl
-        rbc::vector create magnitude phase
-        magnitude expr {abs(spectrum)}
-        phase expr {arg(spectrum)}
-        ```
-
-        These expressions give raw magnitude and phase in radians. Calibrated amplitude and power spectra need
-        additional normalization. FFT assumes uniform sampling; resample adaptive simulation output before using
-        it for a physical frequency spectrum. No sample-time vector or resampling is implicit in these commands.
-
-        Inputs must be finite. Non-finite input, non-finite results, invalid arguments, and temporary allocation
-        failures return an error without replacing destination data. Runtime is O(N log N), with O(N) temporary
-        storage. The operation runs synchronously and does not process Tcl events during computation.
-
-        ### Frequency-bin generation
-        Use an existing real vector to generate frequencies for a transform length N:
-
-        ```tcl
-        rbc::vector create frequencies
-        frequencies fftfreq 8 -delta 0.125
-        # {0 1 2 3 -4 -3 -2 -1}, in cycles per time unit.
-        frequencies fftfreq 8 -delta 0.125 -onesided true
-        # {0 1 2 3 4}
-        ```
-
-        `-delta` is the finite, positive sample interval, defaulting to 1. Frequencies are in Hz when the interval
-        is in seconds, or cycles per sample when it is 1. Full ordering, the default, matches the unshifted FFT:
-        for even N it uses integer bins `0, ..., N/2-1, -N/2, ..., -1`, and for odd N it uses
-        `0, ..., (N-1)/2, -(N-1)/2, ..., -1`. Each bin is divided by N and the sample interval.
-
-        The even-length Nyquist bin is negative in full ordering. `-onesided true` instead returns `floor(N/2)+1`
-        nonnegative bins, including positive Nyquist for even N. There is no Nyquist bin for odd N.  Both forms return
-        `{0}` for N=1. Any positive integer length is accepted, including non-powers of two.
-
-        Supply the actual transform length, including padding, rather than the number of original samples.
-        This command only generates an axis: it neither computes nor truncates an FFT and it never doubles
-        spectral amplitudes. Pair a one-sided axis with the first `floor(N/2)+1` FFT bins. Such a reduced spectrum
-        represents real signals through conjugate symmetry; it generally loses independent information from
-        complex signals. 
-
-        The frequency values follow the standard FFT bin convention documented by
-        [NumPy fftfreq](https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html).
-
-        ### Window generation
-
-        Generate coefficients in an existing real vector, then multiply the signal by that vector before padding:
-
-        ```tcl
-        rbc::vector create signal weights windowed frequencies magnitude positiveMagnitude
-        rbc::vector create spectrum -type complex
-        signal set {0 1 0 -1 0 1 0 -1}
-        weights window hann [signal length]
-        windowed expr {signal * weights}
-        windowed fft spectrum -length auto
-        frequencies fftfreq [spectrum length] -delta 0.001 -onesided true
-        magnitude expr {abs(spectrum)}
-        positiveMagnitude set [magnitude range 0 [expr {[spectrum length]/2}]]
-        ```
-
-        `window type length ?-periodic boolean?` replaces the receiving vector with the requested coefficients.
-        The types are `rectangular`, `hann`, `hamming`, `blackman` and `bartlett`. The default `-periodic true`
-        is suitable for spectral analysis. `-periodic false` produces a symmetric window, suitable for filter
-        design. For N>1 the periodic form is the first N coefficients of the symmetric N+1 window. Both forms
-        accept any positive length. Every length-one window is `{1}`. Zero and negative lengths are errors.
-
-        For sample k from 0 to N-1, set D=N for periodic windows and D=N-1 for symmetric windows. For N>1:
-
-        - Rectangular: `w[k] = 1`.
-        - Hann: `w[k] = 0.5 - 0.5*cos(2*pi*k/D)`.
-        - Hamming: `w[k] = 0.54 - 0.46*cos(2*pi*k/D)`.
-        - Blackman: `w[k] = 0.42 - 0.5*cos(2*pi*k/D) + 0.08*cos(4*pi*k/D)`.
-        - Bartlett: `w[k] = 1 - abs(2*k/D - 1)`.
-
-        These are the conventional window definitions; no extra normalization by sum, energy or sampled peak
-        is applied. Some short or odd periodic windows, and even symmetric windows, do not contain a coefficient
-        equal to 1. Symmetric Hann, Blackman and Bartlett windows have zero endpoints; the periodic form normally
-        omits the final zero. Hamming endpoints are 0.08 in symmetric form. 
-
-        The periodic/symmetric convention is also described in 
-        [SciPy window documentation](https://docs.scipy.org/doc/scipy/reference/signal.windows.html), that was used as
-        a reference.
-
-        ### Window scaling
-        Windowing changes amplitude and energy. Use the coefficients applied to the original L samples to compute
-        coherent gain `sum(w)/L` and energy `sum(w*w)`. Padding does not add coefficients to these sums.
-
-        ```tcl
-        set coherentGain [rbc::vector expr {mean(weights)}]
-        set windowSum [rbc::vector expr {sum(weights)}]
-        set windowEnergy [rbc::vector expr {sum(weights * weights)}]
-        ```
-
-        For an isolated complex tone exactly on a frequency bin, divide its unscaled FFT magnitude by
-        `windowSum` to recover amplitude. Real-tone one-sided amplitude conventions additionally double the
-        interior positive-frequency bins, but not DC or the even-length Nyquist bin. Leakage or overlapping
-        components can still affect a tone's measured amplitude. 
-
-        A two-sided periodogram PSD convention is `abs(X[k])^2 / (sampleRate * windowEnergy)`, where `sampleRate =
-        1/delta`. One-sided PSD for real signals doubles interior bins only. These are scaling conventions for scripts,
-        not additional generator behavior.  Check for zero sums or energy before division: for example, a symmetric
-        two-sample Hann window is all zero.
-
-        Both generators preserve vector identity, type, index offset and client bindings, and return the qualified
-        destination name. They replace all coefficients at once, refresh caches and notify clients. Invalid input,
-        unrepresentable allocation sizes, allocation failures or non-finite frequency results leave data unchanged.
-        Frequency underflow follows ordinary double arithmetic and may round extremely small bins to zero.
-        The commands perform no implicit vector creation or resampling and do not interpret `#auto`.
 
         ## Vector expressions
         Vector expressions perform arithmetic, comparison, logical, and mathematical operations on vectors.
@@ -1100,6 +925,181 @@ namespace eval ::rbc::VECINST {
         # error: can't store complex expression result in real vector
         ```
 
+        ## Fourier transforms
+        `fft` and `ifft` work with `package require rbc::vector`; Tk and an external FFT library are not required.
+        The source can be real or complex. Destinations must already exist: use either one complex vector or
+        two distinct real vectors. Transform commands never create vectors, interpret `#auto` as a request to
+        create one, or change a vector's type.
+
+        ```tcl
+        package require rbc::vector
+        rbc::vector create signal spectrumReal spectrumImag
+        rbc::vector create spectrum reconstructed -type complex
+        signal set {1 2 3 4}
+
+        # Complete complex spectrum, followed by an inverse transform.
+        signal fft spectrum
+        spectrum ifft reconstructed
+
+        # The same spectrum stored as separate real and imaginary components.
+        signal fft -real spectrumReal -imag spectrumImag
+        spectrumReal ifft -imaginput spectrumImag reconstructed
+
+        # Reuse the two real vectors as inverse destinations.
+        spectrumReal ifft -imaginput spectrumImag -real spectrumReal -imag spectrumImag
+        ```
+
+        A positional destination must be complex, even when the input is real. `-real` and `-imag` must be supplied
+        together and refer to different real vectors. Both commands also accept `-imaginput` for a real source;
+        the supplied imaginary-input vector must be real and have the same length. All references use RBC vector
+        lookup in the caller's namespace, including literal names with parentheses. Partial vector ranges are
+        rejected; copy a range into a vector first when a transform of a subset is required.
+
+        Input/output overlap is supported with matching types. For example, `spectrum fft spectrum` is valid for
+        a complex vector; `signal fft signal` is an error when `signal` is real. Existing destination C entities,
+        names, types, index offsets and client bindings are retained. Data pointers may change. C clients must
+        reacquire data pointers after an update. Mapped-array caches and vector clients are updated as for other
+        vector mutations. Both split results are installed before notifications are issued.
+
+        ### Length and zero padding
+        The initial implementation uses a radix-2 algorithm. The default transform length is the input length,
+        which must be a positive power of two. A one-element transform is valid; an empty input is an error.
+        `-length auto` pads with zeros to the next power of two. `-length size` requires a positive power of two
+        at least as large as the input length. Smaller lengths are errors: input is never silently truncated.
+        Both real and imaginary components are padded with zeros.
+
+        ```tcl
+        signal set {1 2 3}
+        signal fft spectrum -length auto
+        # spectrum has 4 bins.
+        spectrum ifft reconstructed
+        # reconstructed is approximately {{1 0} {2 0} {3 0} {0 0}}.
+        ```
+
+        The inverse returns the transform length, including padding. The original unpadded length is not stored
+        as vector metadata. `ifft -length` pads the supplied frequency-bin array before taking its inverse; it
+        does not crop time-domain output or reconstruct an omitted negative-frequency half-spectrum.
+
+        ### Sign, scaling and frequency bins
+        For N samples, forward bin k is the sum of `x[j] * exp(-2*pi*i*j*k/N)` over j from 0 to N-1.
+        The inverse uses the positive exponential and divides by N. Thus `ifft(fft(x))` reproduces x up to
+        floating-point rounding, or x followed by zeros if padding was requested. Neither transform applies a
+        window, removes the mean, doubles bins, or performs amplitude, power or power-spectral-density scaling.
+
+        All N bins are returned in unshifted order: DC at index 0, positive frequencies next, then negative
+        frequencies. For even N, index N/2 is the Nyquist bin. For uniform sample interval dt, indices below
+        N/2 correspond to `k/(N*dt)` and indices above N/2 to `(k-N)/(N*dt)`; the Nyquist bin represents the
+        shared positive/negative Nyquist frequency. These are storage positions, independent of vector offsets.
+        A real input has conjugate-symmetric bins; complex inputs generally do not.
+
+        ```tcl
+        rbc::vector create magnitude phase
+        magnitude expr {abs(spectrum)}
+        phase expr {arg(spectrum)}
+        ```
+
+        These expressions give raw magnitude and phase in radians. Calibrated amplitude and power spectra need
+        additional normalization. FFT assumes uniform sampling; resample adaptive simulation output before using
+        it for a physical frequency spectrum. No sample-time vector or resampling is implicit in these commands.
+
+        Inputs must be finite. Non-finite input, non-finite results, invalid arguments, and temporary allocation
+        failures return an error without replacing destination data. Runtime is O(N log N), with O(N) temporary
+        storage. The operation runs synchronously and does not process Tcl events during computation.
+
+        ### Frequency-bin generation
+        Use an existing real vector to generate frequencies for a transform length N:
+
+        ```tcl
+        rbc::vector create frequencies
+        frequencies fftfreq 8 -delta 0.125
+        # {0 1 2 3 -4 -3 -2 -1}, in cycles per time unit.
+        frequencies fftfreq 8 -delta 0.125 -onesided true
+        # {0 1 2 3 4}
+        ```
+
+        `-delta` is the finite, positive sample interval, defaulting to 1. Frequencies are in Hz when the interval
+        is in seconds, or cycles per sample when it is 1. Full ordering, the default, matches the unshifted FFT:
+        for even N it uses integer bins `0, ..., N/2-1, -N/2, ..., -1`, and for odd N it uses
+        `0, ..., (N-1)/2, -(N-1)/2, ..., -1`. Each bin is divided by N and the sample interval.
+
+        The even-length Nyquist bin is negative in full ordering. `-onesided true` instead returns `floor(N/2)+1`
+        nonnegative bins, including positive Nyquist for even N. There is no Nyquist bin for odd N.  Both forms return
+        `{0}` for N=1. Any positive integer length is accepted, including non-powers of two.
+
+        Supply the actual transform length, including padding, rather than the number of original samples.
+        This command only generates an axis: it neither computes nor truncates an FFT and it never doubles
+        spectral amplitudes. Pair a one-sided axis with the first `floor(N/2)+1` FFT bins. Such a reduced spectrum
+        represents real signals through conjugate symmetry; it generally loses independent information from
+        complex signals. 
+
+        The frequency values follow the standard FFT bin convention documented by
+        [NumPy fftfreq](https://numpy.org/doc/stable/reference/generated/numpy.fft.fftfreq.html).
+
+        ### Window generation
+
+        Generate coefficients in an existing real vector, then multiply the signal by that vector before padding:
+
+        ```tcl
+        rbc::vector create signal weights windowed frequencies magnitude positiveMagnitude
+        rbc::vector create spectrum -type complex
+        signal set {0 1 0 -1 0 1 0 -1}
+        weights window hann [signal length]
+        windowed expr {signal * weights}
+        windowed fft spectrum -length auto
+        frequencies fftfreq [spectrum length] -delta 0.001 -onesided true
+        magnitude expr {abs(spectrum)}
+        positiveMagnitude set [magnitude range 0 [expr {[spectrum length]/2}]]
+        ```
+
+        `window type length ?-periodic boolean?` replaces the receiving vector with the requested coefficients.
+        The types are `rectangular`, `hann`, `hamming`, `blackman` and `bartlett`. The default `-periodic true`
+        is suitable for spectral analysis. `-periodic false` produces a symmetric window, suitable for filter
+        design. For N>1 the periodic form is the first N coefficients of the symmetric N+1 window. Both forms
+        accept any positive length. Every length-one window is `{1}`. Zero and negative lengths are errors.
+
+        For sample k from 0 to N-1, set D=N for periodic windows and D=N-1 for symmetric windows. For N>1:
+
+        - Rectangular: `w[k] = 1`.
+        - Hann: `w[k] = 0.5 - 0.5*cos(2*pi*k/D)`.
+        - Hamming: `w[k] = 0.54 - 0.46*cos(2*pi*k/D)`.
+        - Blackman: `w[k] = 0.42 - 0.5*cos(2*pi*k/D) + 0.08*cos(4*pi*k/D)`.
+        - Bartlett: `w[k] = 1 - abs(2*k/D - 1)`.
+
+        These are the conventional window definitions; no extra normalization by sum, energy or sampled peak
+        is applied. Some short or odd periodic windows, and even symmetric windows, do not contain a coefficient
+        equal to 1. Symmetric Hann, Blackman and Bartlett windows have zero endpoints; the periodic form normally
+        omits the final zero. Hamming endpoints are 0.08 in symmetric form. 
+
+        The periodic/symmetric convention is also described in 
+        [SciPy window documentation](https://docs.scipy.org/doc/scipy/reference/signal.windows.html), that was used as
+        a reference.
+
+        ### Window scaling
+        Windowing changes amplitude and energy. Use the coefficients applied to the original L samples to compute
+        coherent gain `sum(w)/L` and energy `sum(w*w)`. Padding does not add coefficients to these sums.
+
+        ```tcl
+        set coherentGain [rbc::vector expr {mean(weights)}]
+        set windowSum [rbc::vector expr {sum(weights)}]
+        set windowEnergy [rbc::vector expr {sum(weights * weights)}]
+        ```
+
+        For an isolated complex tone exactly on a frequency bin, divide its unscaled FFT magnitude by
+        `windowSum` to recover amplitude. Real-tone one-sided amplitude conventions additionally double the
+        interior positive-frequency bins, but not DC or the even-length Nyquist bin. Leakage or overlapping
+        components can still affect a tone's measured amplitude. 
+
+        A two-sided periodogram PSD convention is `abs(X[k])^2 / (sampleRate * windowEnergy)`, where `sampleRate =
+        1/delta`. One-sided PSD for real signals doubles interior bins only. These are scaling conventions for scripts,
+        not additional generator behavior.  Check for zero sums or energy before division: for example, a symmetric
+        two-sample Hann window is all zero.
+
+        Both generators preserve vector identity, type, index offset and client bindings, and return the qualified
+        destination name. They replace all coefficients at once, refresh caches and notify clients. Invalid input,
+        unrepresentable allocation sizes, allocation failures or non-finite frequency results leave data unchanged.
+        Frequency underflow follows ordinary double arithmetic and may round extremely small bins to zero.
+        The commands perform no implicit vector creation or resampling and do not interpret `#auto`.
+
         ## C language API
         Rbc vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
         extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
@@ -1162,37 +1162,37 @@ namespace eval ::rbc::VECINST {
         ### Public vector functions
         The following vector functions are exported through the Rbc stubs interface:
 
-        | Function | Description |
-        | --- | --- |
-        | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)` | Creates a real vector using the traditional Tcl command and automatic array mapping. |
-        | `int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)` | Looks up an existing real or complex vector. |
-        | `int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)` | Changes the logical vector length while preserving its numeric type. |
-        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)` | Returns the vector name. The returned string belongs to Rbc. |
-        | `int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a real vector. |
-        | `double *Rbc_VectorData(Rbc_Vector *vecPtr)` | Returns real-vector storage, or `NULL` for a complex vector. |
-        | `Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)` | Returns the logical number of vector values. |
-        | `Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)` | Returns the current vector capacity in values. |
-        | `int Rbc_VectorDirty(Rbc_Vector *vecPtr)` | Returns the vector update counter. |
-        | `int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName)` | Tests whether a named vector exists. |
-        | `void Rbc_FreeVector(Rbc_Vector *vecPtr)` | Destroys the vector and releases its resources. |
-        | `Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vecPtr)` | Returns `RBC_VECTOR_REAL` or `RBC_VECTOR_COMPLEX`. |
-        | `int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr)` | Returns the minimum and maximum of a real vector. Returns `TCL_ERROR` for a complex vector. |
-        | `int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_VectorType type, Rbc_Vector **vecPtrPtr)` | Creates a real or complex vector of the requested type. |
-        | `int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a complex vector. |
-        | `Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)` | Returns complex-vector storage, or `NULL` for a real vector. |
-        | `void Rbc_VectorChanged(Rbc_Vector *vecPtr)` | Reports that the existing vector storage was modified in place without changing its storage or ownership contract. |
-        | `void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last)` | Reports that the inclusive range `first` through `last` of existing vector storage was modified in place. Storage, length, capacity, type, and ownership remain unchanged. |
+        | Function                                                                                                                             | Description                                                                                                                                                                |
+        |--------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)`                               | Creates a real vector using the traditional Tcl command and automatic array mapping.                                                                                       |
+        | `int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)`                                                 | Looks up an existing real or complex vector.                                                                                                                               |
+        | `int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)`                                                                         | Changes the logical vector length while preserving its numeric type.                                                                                                       |
+        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)`                                                                                         | Returns the vector name. The returned string belongs to Rbc.                                                                                                               |
+        | `int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)`             | Replaces the storage of a real vector.                                                                                                                                     |
+        | `double *Rbc_VectorData(Rbc_Vector *vecPtr)`                                                                                         | Returns real-vector storage, or `NULL` for a complex vector.                                                                                                               |
+        | `Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)`                                                                                      | Returns the logical number of vector values.                                                                                                                               |
+        | `Tcl_Size Rbc_VectorSize(Rbc_Vector *vecPtr)`                                                                                        | Returns the current vector capacity in values.                                                                                                                             |
+        | `int Rbc_VectorDirty(Rbc_Vector *vecPtr)`                                                                                            | Returns the vector update counter.                                                                                                                                         |
+        | `int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName)`                                                                     | Tests whether a named vector exists.                                                                                                                                       |
+        | `void Rbc_FreeVector(Rbc_Vector *vecPtr)`                                                                                            | Destroys the vector and releases its resources.                                                                                                                            |
+        | `Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vecPtr)`                                                                               | Returns `RBC_VECTOR_REAL` or `RBC_VECTOR_COMPLEX`.                                                                                                                         |
+        | `int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr)`                                                         | Returns the minimum and maximum of a real vector. Returns `TCL_ERROR` for a complex vector.                                                                                |
+        | `int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_VectorType type, Rbc_Vector **vecPtrPtr)`  | Creates a real or complex vector of the requested type.                                                                                                                    |
+        | `int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)` | Replaces the storage of a complex vector.                                                                                                                                  |
+        | `Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vecPtr)`                                                                             | Returns complex-vector storage, or `NULL` for a real vector.                                                                                                               |
+        | `void Rbc_VectorChanged(Rbc_Vector *vecPtr)`                                                                                         | Reports that the existing vector storage was modified in place without changing its storage or ownership contract.                                                         |
+        | `void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last)`                                                     | Reports that the inclusive range `first` through `last` of existing vector storage was modified in place. Storage, length, capacity, type, and ownership remain unchanged. |
 
         Functions returning `int` as a Tcl status return `TCL_OK` on success and `TCL_ERROR` on failure. When an
         interpreter is available, an explanatory error message is left in its result.
 
         ### Read-only state in C (since 0.8.1)
 
-        | Function | Purpose |
-        | --- | --- |
-        | `int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr)` | Returns 0 or 1. |
-        | `int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly)` | Sets the state (nonzero means true); returns `TCL_OK`. |
-        | `int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)` | Returns `TCL_OK`, or `TCL_ERROR` with `RBC VECTOR READONLY`. |
+        | Function                                                                          | Purpose                                                      |
+        |-----------------------------------------------------------------------------------|--------------------------------------------------------------|
+        | `int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr)`                                    | Returns 0 or 1.                                              |
+        | `int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly)` | Sets the state (nonzero means true); returns `TCL_OK`.       |
+        | `int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr)`             | Returns `TCL_OK`, or `TCL_ERROR` with `RBC VECTOR READONLY`. |
 
         These functions are appended to the stubs table. Consumers using them must request at least 0.8.1
         when calling `Rbc_VectorInitStubs` or `Rbc_InitStubs`. Existing slots and signatures are unchanged.
@@ -1364,12 +1364,12 @@ namespace eval ::rbc::VECINST {
 
         Both functions accept `nValues`, `arraySize`, and `freeProc` with the same ownership rules.
 
-        | `freeProc` | Storage ownership |
-        | --- | --- |
-        | `TCL_VOLATILE` | Rbc copies the supplied data into its own storage. The caller retains ownership of `dataArr` and may reuse or release it immediately after the call returns. |
-        | `TCL_STATIC` | Rbc uses `dataArr` directly but never frees it. The caller must keep the array valid for as long as the vector uses it. |
-        | `TCL_DYNAMIC` | Rbc takes ownership of `dataArr` and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as `Tcl_Alloc`. |
-        | custom `Tcl_FreeProc *` | Rbc takes ownership of `dataArr` and invokes the supplied deallocation procedure when the storage is no longer needed. |
+        | `freeProc`              | Storage ownership                                                                                                                                                                                                                        |
+        |-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `TCL_VOLATILE`          | Rbc copies the supplied data into its own storage. The caller retains ownership of `dataArr` and may reuse or release it immediately after the call returns.                                                                             |
+        | `TCL_STATIC`            | Rbc uses `dataArr` directly but never frees it. The caller must keep the array valid for as long as the vector uses it.                                                                                                                  |
+        | `TCL_DYNAMIC`           | Rbc takes ownership of `dataArr` and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as `Tcl_Alloc`. |
+        | custom `Tcl_FreeProc *` | Rbc takes ownership of `dataArr` and invokes the supplied deallocation procedure when the storage is no longer needed.                                                                                                                   |
 
         The ownership policy supplied to a reset operation becomes the vector's storage contract. This is true even if
         the supplied data pointer is identical to the vector's current data pointer.
@@ -1452,8 +1452,7 @@ namespace eval ::rbc::VECINST {
         ```c
         Rbc_Vector *complexPtr;
 
-        if (Rbc_CreateVectorWithType(
-                interp, "z", 100, RBC_VECTOR_COMPLEX, &complexPtr) != TCL_OK) {
+        if (Rbc_CreateVectorWithType(interp, "z", 100, RBC_VECTOR_COMPLEX, &complexPtr) != TCL_OK) {
             return TCL_ERROR;
         }
         ```

@@ -439,6 +439,15 @@ namespace eval ::rbc::graphtoolbar {
         The selector labels are **Polar (radians)** and **Polar (degrees)**. Both modes use the same Cartesian
         point. Custom closest callbacks receive `angle` in radians in the information dictionary.
 
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of closest point format for polar plot</summary>
+
+        ![crosshairs_closest_point_format_polar](images/crosshairs_closest_point_format_polar.gif)
+
+        </details>
+        #ruffopt excludedformats {}
+
         ## Custom closest-point text
         `-closestcommand` configures a Tcl command prefix for custom closest-point annotations. A nonempty prefix adds
         **Custom** to the toolbar menu and context menu. Select it with `-coordclosestmark custom`.

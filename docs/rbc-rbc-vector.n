@@ -127,8 +127,7 @@ A vector's type cannot be changed after creation\&. Supplying -type for an exist
 when the requested type is the same as its current type\&. Omitting -type when referring to an existing vector
 preserves its current type\&.
 .PP
-Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping\&. Complex vectors do not receive an automatic
-array mapping, but one may be requested explicitly with -variable or later with \fIVECINST variable\fP\&.
+Real vectors whose names contain no parentheses retain the traditional automatic Tcl array mapping\&. ComplexD vectors do not receive an automatic array mapping, but one may be requested explicitly with -variable orDXS later with \fIVECINST variable\fP\&.
 .SH "GRAPH AND SPLINE INTEGRATION"
 .PP
 Complex vectors are supported directly by Polar graph elements and by parametric spline interpolation\&.
