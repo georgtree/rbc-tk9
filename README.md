@@ -37,6 +37,36 @@ An optional Cairo backend adds antialiased plotting. Cairo-enabled builds select
 
 Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.
 
+## Interactive examples
+
+In this section you can see the usage of the package in a few examples from `demo` folder. There is shown dynamic
+interaction between native Tk widgets and Rbc `graphtoolbar` megawidget, as well as live graph update following vectors
+changes:
+
+<details>
+<summary><strong>Fast Fourier Transform (fft1.tcl)</strong></summary>
+
+![fft1_live_demo](docs/images/fft1_live_demo.gif)
+
+</details>
+
+<details>
+<summary><strong>Douglas-Peucker simplification (simplify1.tcl)</strong></summary>
+
+![simplify1_live_demo](docs/images/simplify1_live_demo.gif)
+
+</details>
+
+<details>
+<summary><strong>Combined scatter and disribution plots (combined1.tcl)</strong></summary>
+
+![combined1_live_demo](docs/images/combined1_live_demo.gif)
+
+</details>
+
+Detailed description and demonstration of `graphtoolbar` megawidget could be found in related
+[documentation section](https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-graphtoolbar.html)
+
 ## Requirements
 
 ### Running Rbc

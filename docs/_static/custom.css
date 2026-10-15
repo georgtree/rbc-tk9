@@ -1,0 +1,23 @@
+details {
+    margin: 1em 0;
+    padding: 0;
+    border: none;
+}
+
+details > summary {
+    box-sizing: border-box;
+    padding: 0.6em 1em;
+    border: 1px solid #9aa7b4;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #175a92;
+    font-weight: bold;
+}
+
+details > summary:hover {
+    text-decoration: underline;
+}
+
+details[open] > summary {
+    margin-bottom: 0.8em;
+}

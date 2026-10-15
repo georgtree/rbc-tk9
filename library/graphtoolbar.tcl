@@ -82,17 +82,18 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Control surfaces
-        `-controlmode toolbar`, the default, creates a visible toolbar. One **Export** menu button is always
-        present, with **PNG snapshot...**, **PostScript...**, **SVG...**, and **PDF...** choices. Enabling `-zoom` adds **Reset view** and **Previous view** controls. Enabling `-crosshairs` adds
-        one **Crosshairs** menu button. Its **Crosshairs mode** submenu selects Current point, Closest point,
-        No marker, or Disabled. Its **Closest crosshairs format** submenu is enabled only in Closest point mode.
-        Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.
+        `-controlmode toolbar`, the default, creates a visible toolbar. One **Export** menu button is always present,
+        with **PNG snapshot...**, **PostScript...**, **SVG...**, and **PDF...** choices. Enabling `-zoom` adds **Reset
+        view** and **Previous view** controls. Enabling `-crosshairs` adds one **Crosshairs** menu button. Its
+        **Crosshairs mode** submenu selects Current point, Closest point, No marker, or Disabled. Its **Closest
+        crosshairs format** submenu is enabled only in Closest point mode.  Formats follow the current graph
+        representation, including Polar radians/degrees and configured Custom text.
 
         Toolbar instances with `-crosshairs` expose `crosshairsMenuButton` and `crosshairsMenu` through `subwidget`.
         These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
         stay synchronized; changing representation updates the available formats when the menu is opened.
 
-        `-controlmode contextmenu` leaves the graph occupying the entire megawidget. Right-clicking the graph displays\
+        `-controlmode contextmenu` leaves the graph occupying the entire megawidget. Right-clicking the graph displays
         the corresponding controls in a popup menu:
         - **Export**, a submenu with the same four output formats as the toolbar.
         - **Reset view**, when `-zoom` is enabled.
@@ -141,6 +142,15 @@ namespace eval ::rbc::graphtoolbar {
         `-zoomtitle` briefly displays `Zoom #n` after a navigation change. `-zoommark` annotates the corners of a
         rectangle selection.
 
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of rectangular zoom</summary>
+
+        ![rectangular_zoom](images/rectangular_zoom.gif)
+
+        </details>
+        #ruffopt excludedformats {}
+
         ## Wheel zoom
         `-zoomwheel` requires `-zoom`. By default, **Control-MouseWheel** scales the graph by a factor of `1.1`.
 
@@ -152,6 +162,15 @@ namespace eval ::rbc::graphtoolbar {
         Linear axes are scaled arithmetically. Logarithmic axes are scaled in logarithmic space.
 
         Every wheel step is added to the same navigation history used by rectangle zoom and panning.
+
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of wheel zoom</summary>
+
+        ![wheel_zoom](images/wheel_zoom.gif)
+
+        </details>
+        #ruffopt excludedformats {}
 
         ## Panning
         `-pan` requires `-zoom`.
@@ -210,6 +229,15 @@ namespace eval ::rbc::graphtoolbar {
 
         A completed pan creates one normal navigation-history entry. Pressing and releasing without movement creates
         no history entry. Moving away and returning exactly to the starting position is also treated as a no-op.
+
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of panning</summary>
+
+        ![panning](images/panning.gif)
+
+        </details>
+        #ruffopt excludedformats {}
 
         ## Cross-interactions
         The navigation facilities deliberately suspend conflicting interactions while a transient operation is active.
@@ -283,6 +311,37 @@ namespace eval ::rbc::graphtoolbar {
         Posting the context menu temporarily removes crosshair graphics. After the menu is dismissed, the selected
         crosshair mode is restored at the pointer's current location rather than at the old popup location.
 
+
+        #ruffopt excludedformats nroff
+        Closest point mode:
+
+        <details>
+        <summary>Demo of crosshairs in closest point mode</summary>
+
+        ![crosshairs_closest_point](images/crosshairs_closest_point.gif)
+
+        </details>
+
+        Current coordinate mode:
+
+        <details>
+        <summary>Demo of crosshairs in current coordinate mode</summary>
+
+        ![crosshairs_current_coordinate](images/crosshairs_current_coordinate.gif)
+
+        </details>
+
+        Closest point with barchart:
+
+        <details>
+        <summary>Demo of crosshairs in closest point mode for bars</summary>
+
+        ![closest_point_barchart](images/closest_point_barchart.gif)
+
+        </details>
+
+        #ruffopt excludedformats {}
+
         ### Refreshing beneath a stationary pointer
         Enhanced crosshair annotations refresh when the displayed graph changes, even if the pointer has not
         moved. This is useful for streaming stripcharts, where automatic X-axis scrolling changes the coordinates
@@ -341,6 +400,15 @@ namespace eval ::rbc::graphtoolbar {
 
         Applications that also need graph-change notifications should bind to the embedded graph returned by `.gtb
         subwidget graph`. The event is generated on that widget, not on the toolbar container.
+
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of current coordinate marker refresh</summary>
+
+        ![crosshairs_current_point_in_place_refresh](images/crosshairs_current_point_in_place_refresh.gif)
+
+        </details>
+        #ruffopt excludedformats {}
 
         ## Coordinate marker formats
         `-coordmark` controls current-position and rectangle-corner annotations. It accepts:
@@ -410,6 +478,15 @@ namespace eval ::rbc::graphtoolbar {
         bound arguments. Keep callbacks short and avoid graph modifications, widget destruction, or nested `update`
         calls. Errors propagate to Tk's background error handling when invoked from an event.
 
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of closest point custom annotation</summary>
+
+        ![crosshair_closest_custom_annotations](images/crosshair_closest_custom_annotations.gif)
+
+        </details>
+        #ruffopt excludedformats {}
+
         ## Polar and Smith interaction
         A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
         are hidden or are not installed in graph margins. They therefore participate in zooming, panning, coordinate
@@ -460,6 +537,47 @@ namespace eval ::rbc::graphtoolbar {
 
         Plot-hidden elements use element `-hideplot yes`; the plotted element disappears while its legend entry remains
         available for the next click.
+
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of active legend</summary>
+
+        ![active_legend](images/active_legend.gif)
+
+        </details>
+        #ruffopt excludedformats {}
+
+        ## Active axes
+        Enable interactive axis scale toggling with `-scaletoggle`, supplying a list of axis names or `all`:
+
+        ```tcl
+        ::rbc::graphtoolbar .gtb -scaletoggle {x y}
+        ```
+
+        Moving the pointer over an enabled axis line highlights its background. Clicking it with **Button-1**
+        toggles that axis between linear and logarithmic scaling.
+
+        Use `setAxisActiveScale` to enable or disable this interaction after construction, or customize its activation
+        event and highlight colour:
+        ```tcl
+        .gtb setAxisActiveScale {x y} -event Double-Button-1 -background lightgrey
+        .gtb setAxisActiveScale {y} -disabled
+        ```
+
+        `all` selects the axes existing when the option or method is applied; axes created later must be enabled
+        separately. The event and highlight bindings are shared by all enabled axes in the toolbar.
+
+        Rectangle zoom and panning temporarily disable axis scale toggling. Visible Polar/Smith grid axes cannot be
+        switched to logarithmic scaling; auxiliary axes can still use it.
+
+        #ruffopt excludedformats nroff
+        <details>
+        <summary>Demo of active axis</summary>
+
+        ![active_legend](images/active_axis.gif)
+
+        </details>
+        #ruffopt excludedformats {}
 
         ## Public megawidget access
         The most common access forms are:

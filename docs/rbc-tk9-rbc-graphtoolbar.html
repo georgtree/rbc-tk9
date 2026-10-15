@@ -8,6 +8,7 @@
     <title>graphtoolbar &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=f11ead97" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9e52cc88" />
     
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -96,15 +97,17 @@ alternatively be obtained with:</p>
 </section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. One <strong>Export</strong> menu button is always
-present, with <strong>PNG snapshot…</strong>, <strong>PostScript…</strong>, <strong>SVG…</strong>, and <strong>PDF…</strong> choices. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds
-one <strong>Crosshairs</strong> menu button. Its <strong>Crosshairs mode</strong> submenu selects Current point, Closest point,
-No marker, or Disabled. Its <strong>Closest crosshairs format</strong> submenu is enabled only in Closest point mode.
-Formats follow the current graph representation, including Polar radians/degrees and configured Custom text.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. One <strong>Export</strong> menu button is always present,
+with <strong>PNG snapshot…</strong>, <strong>PostScript…</strong>, <strong>SVG…</strong>, and <strong>PDF…</strong> choices. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset
+view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds one <strong>Crosshairs</strong> menu button. Its
+<strong>Crosshairs mode</strong> submenu selects Current point, Closest point, No marker, or Disabled. Its <strong>Closest
+crosshairs format</strong> submenu is enabled only in Closest point mode.  Formats follow the current graph
+representation, including Polar radians/degrees and configured Custom text.</p>
 <p>Toolbar instances with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> expose <code class="docutils literal notranslate"><span class="pre">crosshairsMenuButton</span></code> and <code class="docutils literal notranslate"><span class="pre">crosshairsMenu</span></code> through <code class="docutils literal notranslate"><span class="pre">subwidget</span></code>.
 These replace the former crosshair comboboxes and their labels. Menu selections and configuration properties
 stay synchronized; changing representation updates the available formats when the menu is opened.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget. Right-clicking the graph displays the corresponding controls in a popup menu:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">contextmenu</span></code> leaves the graph occupying the entire megawidget. Right-clicking the graph displays
+the corresponding controls in a popup menu:</p>
 <ul class="simple">
 <li><p><strong>Export</strong>, a submenu with the same four output formats as the toolbar.</p></li>
 <li><p><strong>Reset view</strong>, when <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> is enabled.</p></li>
@@ -143,7 +146,9 @@ state and clears the navigation history.</p>
 limits calculated from the data, so undoing a navigation operation correctly restores autoscaling.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-zoomtitle</span></code> briefly displays <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> after a navigation change. <code class="docutils literal notranslate"><span class="pre">-zoommark</span></code> annotates the corners of a
 rectangle selection.</p>
-</section>
+<details>
+<summary>Demo of rectangular zoom</summary><p><img alt="rectangular_zoom" src="images/rectangular_zoom.gif" /></p>
+</details></section>
 <section id="wheel-zoom">
 <span id="r-rbc-graphtoolbar-wheel-zoom"></span><span id="r-3a3arbc3a3agraphtoolbarqzwheel20zoom"></span><h2>Wheel zoom<a class="headerlink" href="#wheel-zoom" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-zoomwheel</span></code> requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>. By default, <strong>Control-MouseWheel</strong> scales the graph by a factor of <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
@@ -152,7 +157,9 @@ pointer. The value underneath the pointer therefore remains at the same physical
 <p>When the pointer is over an axis instead, only that axis is scaled, around the centre of its numerical range.</p>
 <p>Linear axes are scaled arithmetically. Logarithmic axes are scaled in logarithmic space.</p>
 <p>Every wheel step is added to the same navigation history used by rectangle zoom and panning.</p>
-</section>
+<details>
+<summary>Demo of wheel zoom</summary><p><img alt="wheel_zoom" src="images/wheel_zoom.gif" /></p>
+</details></section>
 <section id="panning">
 <span id="r-rbc-graphtoolbar-panning"></span><span id="r-3a3arbc3a3agraphtoolbarqzpanning"></span><h2>Panning<a class="headerlink" href="#panning" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-pan</span></code> requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
@@ -198,7 +205,9 @@ unused axes are not changed.</p>
 <p>Panning and zooming therefore operate correctly with multiple axes and with graph <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>.</p>
 <p>A completed pan creates one normal navigation-history entry. Pressing and releasing without movement creates
 no history entry. Moving away and returning exactly to the starting position is also treated as a no-op.</p>
-</section>
+<details>
+<summary>Demo of panning</summary><p><img alt="panning" src="images/panning.gif" /></p>
+</details></section>
 <section id="cross-interactions">
 <span id="r-rbc-graphtoolbar-cross-interactions"></span><span id="r-3a3arbc3a3agraphtoolbarqzcross2dinteractions"></span><h2>Cross-interactions<a class="headerlink" href="#cross-interactions" title="Link to this heading">¶</a></h2>
 <p>The navigation facilities deliberately suspend conflicting interactions while a transient operation is active.</p>
@@ -263,7 +272,16 @@ the closest annotation. Its format is controlled by <code class="docutils litera
 graphtoolbar numeric format is used as a fallback.</p>
 <p>Posting the context menu temporarily removes crosshair graphics. After the menu is dismissed, the selected
 crosshair mode is restored at the pointer’s current location rather than at the old popup location.</p>
-<section id="refreshing-beneath-a-stationary-pointer">
+<p>Closest point mode:</p>
+<details>
+<summary>Demo of crosshairs in closest point mode</summary><p><img alt="crosshairs_closest_point" src="images/crosshairs_closest_point.gif" /></p>
+</details><p>Current coordinate mode:</p>
+<details>
+<summary>Demo of crosshairs in current coordinate mode</summary><p><img alt="crosshairs_current_coordinate" src="images/crosshairs_current_coordinate.gif" /></p>
+</details><p>Closest point with barchart:</p>
+<details>
+<summary>Demo of crosshairs in closest point mode for bars</summary><p><img alt="closest_point_barchart" src="images/closest_point_barchart.gif" /></p>
+</details><section id="refreshing-beneath-a-stationary-pointer">
 <span id="r-rbc-graphtoolbar-refreshing-beneath-a-stationary-pointer"></span><span id="r-3a3arbc3a3agraphtoolbarqzrefreshing20beneath20a20stationary20pointer"></span><h3>Refreshing beneath a stationary pointer<a class="headerlink" href="#refreshing-beneath-a-stationary-pointer" title="Link to this heading">¶</a></h3>
 <p>Enhanced crosshair annotations refresh when the displayed graph changes, even if the pointer has not
 moved. This is useful for streaming stripcharts, where automatic X-axis scrolling changes the coordinates
@@ -311,7 +329,9 @@ the desired mode:</p>
 toolbar refreshes the annotation beneath the pointer.</p>
 <p>Applications that also need graph-change notifications should bind to the embedded graph returned by <code class="docutils literal notranslate"><span class="pre">.gtb</span>
 <span class="pre">subwidget</span> <span class="pre">graph</span></code>. The event is generated on that widget, not on the toolbar container.</p>
-</section>
+<details>
+<summary>Demo of current coordinate marker refresh</summary><p><img alt="crosshairs_current_point_in_place_refresh" src="images/crosshairs_current_point_in_place_refresh.gif" /></p>
+</details></section>
 </section>
 <section id="coordinate-marker-formats">
 <span id="r-rbc-graphtoolbar-coordinate-marker-formats"></span><span id="r-3a3arbc3a3agraphtoolbarqzcoordinate20marker20formats"></span><h2>Coordinate marker formats<a class="headerlink" href="#coordinate-marker-formats" title="Link to this heading">¶</a></h2>
@@ -372,7 +392,9 @@ idle.</p>
 <p>Use qualified command names or <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">code</span></code> for namespace-local callbacks. Command prefixes may include
 bound arguments. Keep callbacks short and avoid graph modifications, widget destruction, or nested <code class="docutils literal notranslate"><span class="pre">update</span></code>
 calls. Errors propagate to Tk’s background error handling when invoked from an event.</p>
-</section>
+<details>
+<summary>Demo of closest point custom annotation</summary><p><img alt="crosshair_closest_custom_annotations" src="images/crosshair_closest_custom_annotations.gif" /></p>
+</details></section>
 <section id="polar-and-smith-interaction">
 <span id="r-rbc-graphtoolbar-polar-and-smith-interaction"></span><span id="r-3a3arbc3a3agraphtoolbarqzpolar20and20smith20interaction"></span><h2>Polar and Smith interaction<a class="headerlink" href="#polar-and-smith-interaction" title="Link to this heading">¶</a></h2>
 <p>A Polar/Smith graph uses its grid-mapped axes as part of the displayed coordinate system even when those axes
@@ -417,7 +439,30 @@ sunken     plot-hidden
 </div>
 <p>Plot-hidden elements use element <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code>; the plotted element disappears while its legend entry remains
 available for the next click.</p>
-</section>
+<details>
+<summary>Demo of active legend</summary><p><img alt="active_legend" src="images/active_legend.gif" /></p>
+</details></section>
+<section id="active-axes">
+<span id="r-rbc-graphtoolbar-active-axes"></span><span id="r-3a3arbc3a3agraphtoolbarqzactive20axes"></span><h2>Active axes<a class="headerlink" href="#active-axes" title="Link to this heading">¶</a></h2>
+<p>Enable interactive axis scale toggling with <code class="docutils literal notranslate"><span class="pre">-scaletoggle</span></code>, supplying a list of axis names or <code class="docutils literal notranslate"><span class="pre">all</span></code>:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>scaletoggle<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span>y<span class="k">}</span>
+</pre></div>
+</div>
+<p>Moving the pointer over an enabled axis line highlights its background. Clicking it with <strong>Button-1</strong>
+toggles that axis between linear and logarithmic scaling.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code> to enable or disable this interaction after construction, or customize its activation
+event and highlight colour:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.gtb</span><span class="w"> </span>setAxisActiveScale<span class="w"> </span><span class="k">{</span><span class="nv">x</span><span class="w"> </span>y<span class="k">}</span><span class="w"> </span><span class="o">-</span>event<span class="w"> </span>Double-Button-1<span class="w"> </span><span class="o">-</span>background<span class="w"> </span>lightgrey
+<span class="nv">.gtb</span><span class="w"> </span>setAxisActiveScale<span class="w"> </span><span class="k">{</span><span class="nv">y</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>disabled
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">all</span></code> selects the axes existing when the option or method is applied; axes created later must be enabled
+separately. The event and highlight bindings are shared by all enabled axes in the toolbar.</p>
+<p>Rectangle zoom and panning temporarily disable axis scale toggling. Visible Polar/Smith grid axes cannot be
+switched to logarithmic scaling; auxiliary axes can still use it.</p>
+<details>
+<summary>Demo of active axis</summary><p><img alt="active_legend" src="images/active_axis.gif" /></p>
+</details></section>
 <section id="public-megawidget-access">
 <span id="r-rbc-graphtoolbar-public-megawidget-access"></span><span id="r-3a3arbc3a3agraphtoolbarqzpublic20megawidget20access"></span><h2>Public megawidget access<a class="headerlink" href="#public-megawidget-access" title="Link to this heading">¶</a></h2>
 <p>The most common access forms are:</p>
@@ -1151,6 +1196,7 @@ Tk pathname of the requested subwidget.</p>
 <li><a class="reference internal" href="#custom-closest-point-text">Custom closest-point text</a></li>
 <li><a class="reference internal" href="#polar-and-smith-interaction">Polar and Smith interaction</a></li>
 <li><a class="reference internal" href="#active-legend">Active legend</a></li>
+<li><a class="reference internal" href="#active-axes">Active axes</a></li>
 <li><a class="reference internal" href="#public-megawidget-access">Public megawidget access</a></li>
 <li><a class="reference internal" href="#reserved-internal-names">Reserved internal names</a></li>
 <li><a class="reference internal" href="#tk-option-database">Tk option database</a><ul>

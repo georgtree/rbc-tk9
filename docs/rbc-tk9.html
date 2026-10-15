@@ -8,6 +8,7 @@
     <title>Rbc — Refactored BLT Components for Tcl/Tk 9 &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=f11ead97" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9e52cc88" />
     
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -70,6 +71,20 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 <p>An optional Cairo backend adds antialiased plotting. Cairo-enabled builds select it by default; applications can choose
 <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> for workloads where native drawing is faster. Text continues to use Tk in either mode.</p>
 <p>Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.</p>
+</section>
+<section id="interactive-examples">
+<span id="r-interactive-examples"></span><span id="r-interactive20examples"></span><h2>Interactive examples<a class="headerlink" href="#interactive-examples" title="Link to this heading">¶</a></h2>
+<p>In this section you can see the usage of the package in a few examples from <code class="docutils literal notranslate"><span class="pre">demo</span></code> folder. There is shown dynamic
+interaction between native Tk widgets and Rbc <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget, as well as live graph update following vectors
+changes:</p>
+<details>
+<summary><strong>Fast Fourier Transform (fft1.tcl)</strong></summary><p><img alt="fft1_live_demo" src="images/fft1_live_demo.gif" /></p>
+</details><details>
+<summary><strong>Douglas-Peucker simplification (simplify1.tcl)</strong></summary><p><img alt="simplify1_live_demo" src="images/simplify1_live_demo.gif" /></p>
+</details><details>
+<summary><strong>Combined scatter and disribution plots (combined1.tcl)</strong></summary><p><img alt="combined1_live_demo" src="images/combined1_live_demo.gif" /></p>
+</details><p>Detailed description and demonstration of <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget could be found in related
+<a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-rbc-graphtoolbar.html">documentation section</a></p>
 </section>
 <section id="requirements">
 <span id="r-requirements"></span><h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
@@ -642,6 +657,7 @@ conditions, and disclaimers when redistributing source or binary packages.</p>
     <ul>
 <li><a class="reference internal" href="#">Rbc — Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li><a class="reference internal" href="#components">Components</a></li>
+<li><a class="reference internal" href="#interactive-examples">Interactive examples</a></li>
 <li><a class="reference internal" href="#requirements">Requirements</a><ul>
 <li><a class="reference internal" href="#running-rbc">Running Rbc</a></li>
 <li><a class="reference internal" href="#building-rbc">Building Rbc</a></li>

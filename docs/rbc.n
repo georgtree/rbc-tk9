@@ -58,6 +58,20 @@ An optional Cairo backend adds antialiased plotting\&. Cairo-enabled builds sele
 -renderer native for workloads where native drawing is faster\&. Text continues to use Tk in either mode\&.
 .PP
 Rbc contains selected components derived from BLT\&. It is not a complete replacement for the BLT toolkit\&.
+.SH "INTERACTIVE EXAMPLES"
+.PP
+In this section you can see the usage of the package in a few examples from demo folder\&. There is shown dynamic
+interaction between native Tk widgets and Rbc graphtoolbar megawidget, as well as live graph update following vectors
+changes:
+.PP
+fft1_live_demo [Image: docs/images/fft1_live_demo\&.gif]
+.PP
+simplify1_live_demo [Image: docs/images/simplify1_live_demo\&.gif]
+.PP
+combined1_live_demo [Image: docs/images/combined1_live_demo\&.gif]
+.PP
+Detailed description and demonstration of graphtoolbar megawidget could be found in related
+\fIdocumentation section\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-rbc-graphtoolbar\&.html]
 .SH REQUIREMENTS
 .SS "RUNNING RBC"
 .TP

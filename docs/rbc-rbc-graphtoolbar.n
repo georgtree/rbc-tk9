@@ -113,17 +113,19 @@ set graph [\&.gtb subwidget graph]
 .RE
 .SH "CONTROL SURFACES"
 .PP
--controlmode toolbar, the default, creates a visible toolbar\&. One \fBExport\fP menu button is always
-present, with \fBPNG snapshot\&.\&.\&.\fP, \fBPostScript\&.\&.\&.\fP, \fBSVG\&.\&.\&.\fP, and \fBPDF\&.\&.\&.\fP choices\&. Enabling -zoom adds \fBReset view\fP and \fBPrevious view\fP controls\&. Enabling -crosshairs adds
-one \fBCrosshairs\fP menu button\&. Its \fBCrosshairs mode\fP submenu selects Current point, Closest point,
-No marker, or Disabled\&. Its \fBClosest crosshairs format\fP submenu is enabled only in Closest point mode\&.
-Formats follow the current graph representation, including Polar radians/degrees and configured Custom text\&.
+-controlmode toolbar, the default, creates a visible toolbar\&. One \fBExport\fP menu button is always present,
+with \fBPNG snapshot\&.\&.\&.\fP, \fBPostScript\&.\&.\&.\fP, \fBSVG\&.\&.\&.\fP, and \fBPDF\&.\&.\&.\fP choices\&. Enabling -zoom adds \fBReset
+view\fP and \fBPrevious view\fP controls\&. Enabling -crosshairs adds one \fBCrosshairs\fP menu button\&. Its
+\fBCrosshairs mode\fP submenu selects Current point, Closest point, No marker, or Disabled\&. Its \fBClosest
+crosshairs format\fP submenu is enabled only in Closest point mode\&.  Formats follow the current graph
+representation, including Polar radians/degrees and configured Custom text\&.
 .PP
 Toolbar instances with -crosshairs expose crosshairsMenuButton and crosshairsMenu through subwidget\&.
 These replace the former crosshair comboboxes and their labels\&. Menu selections and configuration properties
 stay synchronized; changing representation updates the available formats when the menu is opened\&.
 .PP
--controlmode contextmenu leaves the graph occupying the entire megawidget\&. Right-clicking the graph displays the corresponding controls in a popup menu:
+-controlmode contextmenu leaves the graph occupying the entire megawidget\&. Right-clicking the graph displays
+the corresponding controls in a popup menu:
 .TP
 \(bu
 \fBExport\fP, a submenu with the same four output formats as the toolbar\&.
@@ -587,6 +589,34 @@ sunken     plot-hidden
 .PP
 Plot-hidden elements use element -hideplot yes; the plotted element disappears while its legend entry remains
 available for the next click\&.
+.SH "ACTIVE AXES"
+.PP
+Enable interactive axis scale toggling with -scaletoggle, supplying a list of axis names or all:
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.gtb -scaletoggle {x y}
+.fi
+.RE
+.PP
+Moving the pointer over an enabled axis line highlights its background\&. Clicking it with \fBButton-1\fP
+toggles that axis between linear and logarithmic scaling\&.
+.PP
+Use setAxisActiveScale to enable or disable this interaction after construction, or customize its activation
+event and highlight colour:
+.PP
+.RS 4n
+.nf
+\&.gtb setAxisActiveScale {x y} -event Double-Button-1 -background lightgrey
+\&.gtb setAxisActiveScale {y} -disabled
+.fi
+.RE
+.PP
+all selects the axes existing when the option or method is applied; axes created later must be enabled
+separately\&. The event and highlight bindings are shared by all enabled axes in the toolbar\&.
+.PP
+Rectangle zoom and panning temporarily disable axis scale toggling\&. Visible Polar/Smith grid axes cannot be
+switched to logarithmic scaling; auxiliary axes can still use it\&.
 .SH "PUBLIC MEGAWIDGET ACCESS"
 .PP
 The most common access forms are:

@@ -59,6 +59,7 @@ html_theme = "classic"
 html_theme_options = {
     "stickysidebar": True,
 }
+html_css_files = ["custom.css"]
 from pygments.lexers.tcl import TclLexer
 from pygments.token import Operator
 
@@ -95,7 +96,7 @@ foreach file [glob -directory $docDir *.n] {
     file rename $tmp $new
 }
 
-set specialPages [list  rbc-tcltk9upgrade]
+set specialPages [list rbc-tcltk9upgrade]
 
 foreach namespacePath $namespacesNroff {
     set tails [list]
