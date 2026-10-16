@@ -52,7 +52,7 @@ Polar and Smith-chart coordinate displays\&.
 Interactive linear/logarithmic axis toggling\&.
 .TP
 \(bu
-Interactive three-state legend entries\&.
+Interactive two-state or three-state legend entries\&.
 .TP
 \(bu
 PNG snapshots, PostScript, SVG and PDF output\&.
@@ -144,8 +144,13 @@ the corresponding controls in a popup menu:
 .PP
 The toolbar frame still exists in context-menu mode but is neither populated nor managed\&.
 .PP
-The exportMenu subwidget is available in both control modes\&. Toolbar mode also exposes exportButton\&.
-These replace the separate makeSnapshotBut, postScriptDialogBut, and svgDialogBut subwidgets\&.
+-controlmode both provides the visible toolbar and the right-click context menu together\&. The toolbar
+still follows -toolbarside; both control surfaces operate on the same graph and crosshair settings\&.
+Right-click cancels an active zoom or pan before it can open the menu\&.
+.PP
+The exportMenu subwidget is available in all control modes\&. Toolbar and both modes also expose
+exportButton\&. In both mode, exportMenu belongs to the toolbar and contextExportMenu belongs to
+the context menu\&.
 .PP
 SVG and PDF open modal export dialogs with width, height, decorations and \fB-embedfonts\fP yes/no controls\&.
 Their initial values come from the graph's configured export options\&. Font embedding defaults to \fBno\fP for
@@ -309,7 +314,7 @@ are rebuilt only after the new graph transform is current, preventing their geom
 the changed axis scale\&.
 .PP
 \fBButton-3\fP has a special role in both control modes\&. If a rectangle zoom or pan is currently active,
-\fBButton-3\fP cancels that operation and consumes the event\&. In context-menu mode, \fBButton-3\fP posts the menu
+\fBButton-3\fP cancels that operation and consumes the event\&. In context-menu and both modes, \fBButton-3\fP posts the menu
 only when there is no transient navigation operation to cancel\&.
 .PP
 Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area\&. The
@@ -569,11 +574,23 @@ $g element create S11 -cdata gamma -param frequency
 .RE
 .SH "ACTIVE LEGEND"
 .PP
--activelegend adds hover activation and a three-state \fBButton-1\fP cycle to every legend entry:
+-activelegend adds hover activation and a \fBButton-1\fP cycle to every legend entry\&. The default
+-activelegendmode show-active-hide uses three states:
 .PP
 .RS 4n
 .nf
 normal -> active -> plot-hidden -> normal
+.fi
+.RE
+.PP
+Select a two-state cycle with -activelegendmode show-hide (normal / plot-hidden) or
+-activelegendmode show-active (normal / persistently active)\&. Hover highlighting remains enabled in
+every mode\&. These options are selected at construction time\&. An externally plot-hidden element returns
+to normal on its next click, including in show-active mode\&.
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.gtb -controlmode both -activelegend -activelegendmode show-hide
 .fi
 .RE
 .PP
@@ -855,7 +872,7 @@ Initial requested width of the embedded Rbc graph\&. The default is 800\&.
 Initial requested height of the embedded Rbc graph\&. The default is 600\&.
 .TP
 -controlmode mode
-Selects the user-interface control surface\&. Must be toolbar or contextmenu\&. The default is toolbar\&.
+Selects the user-interface control surface\&. Must be toolbar, contextmenu, or both\&. The default is toolbar\&.
 .TP
 -type type
 Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, or polar\&. The default is graph\&.
@@ -960,7 +977,10 @@ Initial line-marker options for closest-bar dimension annotations\&. Requires -c
 Enables interactive linear/logarithmic scale toggling on the specified axis list\&. all selects all axes existing at construction time\&.
 .TP
 -activelegend
-Enables hover activation and three-state Button-1 interaction on legend entries\&.
+Enables hover activation and Button-1 interaction on legend entries\&.
+.TP
+-activelegendmode mode
+Selects the persistent legend click cycle\&. Must be show-active-hide (the default), show-hide, or show-active\&. Requires -activelegend\&.
 .RE
 .PP
 \fBProperties\fR
@@ -1181,8 +1201,9 @@ Subwidget name as returned by \fInames\fP\&.
 .PP
 \fBDescription\fR
 .PP
-Common names include graph, toolbarFrame, and, in context-menu mode, contextMenu\&. Toolbar mode may
-additionally create exportButton, exportMenu, zoom, and crosshair control widgets\&.
+Common names include graph and toolbarFrame\&. Context-menu and both modes expose contextMenu\&.
+Toolbar and both modes also create exportButton, exportMenu, zoom, and crosshair controls\&.
+In both mode, contextExportMenu identifies the separate context-menu export submenu\&.
 .PP
 \fBReturn value\fR
 .PP

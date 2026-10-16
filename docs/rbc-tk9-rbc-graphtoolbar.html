@@ -54,7 +54,7 @@ surface and a set of coordinated interactive graph-navigation facilities.</p>
 <li><p>Current-position and closest-element crosshair annotations.</p></li>
 <li><p>Polar and Smith-chart coordinate displays.</p></li>
 <li><p>Interactive linear/logarithmic axis toggling.</p></li>
-<li><p>Interactive three-state legend entries.</p></li>
+<li><p>Interactive two-state or three-state legend entries.</p></li>
 <li><p>PNG snapshots, PostScript, SVG and PDF output.</p></li>
 <li><p>Either a permanently visible toolbar or a right-click context menu.</p></li>
 </ul>
@@ -116,8 +116,12 @@ the corresponding controls in a popup menu:</p>
 <li><p><strong>Closest crosshairs format</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
 </ul>
 <p>The toolbar frame still exists in context-menu mode but is neither populated nor managed.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">exportMenu</span></code> subwidget is available in both control modes. Toolbar mode also exposes <code class="docutils literal notranslate"><span class="pre">exportButton</span></code>.
-These replace the separate <code class="docutils literal notranslate"><span class="pre">makeSnapshotBut</span></code>, <code class="docutils literal notranslate"><span class="pre">postScriptDialogBut</span></code>, and <code class="docutils literal notranslate"><span class="pre">svgDialogBut</span></code> subwidgets.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">both</span></code> provides the visible toolbar and the right-click context menu together. The toolbar
+still follows <code class="docutils literal notranslate"><span class="pre">-toolbarside</span></code>; both control surfaces operate on the same graph and crosshair settings.
+Right-click cancels an active zoom or pan before it can open the menu.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">exportMenu</span></code> subwidget is available in all control modes. Toolbar and both modes also expose
+<code class="docutils literal notranslate"><span class="pre">exportButton</span></code>. In both mode, <code class="docutils literal notranslate"><span class="pre">exportMenu</span></code> belongs to the toolbar and <code class="docutils literal notranslate"><span class="pre">contextExportMenu</span></code> belongs to
+the context menu.</p>
 <p>SVG and PDF open modal export dialogs with width, height, decorations and <strong>-embedfonts</strong> yes/no controls.
 Their initial values come from the graph’s configured export options. Font embedding defaults to <strong>no</strong> for
 SVG and <strong>yes</strong> for PDF. <strong>Reset</strong> reloads the current graph settings; <strong>Print</strong> applies the dialog values and
@@ -232,7 +236,7 @@ no history entry. Moving away and returning exactly to the starting position is 
 are rebuilt only after the new graph transform is current, preventing their geometry from being stretched by
 the changed axis scale.</p>
 <p><strong>Button-3</strong> has a special role in both control modes. If a rectangle zoom or pan is currently active,
-<strong>Button-3</strong> cancels that operation and consumes the event. In context-menu mode, <strong>Button-3</strong> posts the menu
+<strong>Button-3</strong> cancels that operation and consumes the event. In context-menu and both modes, <strong>Button-3</strong> posts the menu
 only when there is no transient navigation operation to cancel.</p>
 <p>Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area. The
 press is left for normal legend interaction instead.</p>
@@ -429,8 +433,16 @@ to change a visible grid axis from linear to logarithmic. Auxiliary axes may sti
 </section>
 <section id="active-legend">
 <span id="r-rbc-graphtoolbar-active-legend"></span><span id="r-3a3arbc3a3agraphtoolbarqzactive20legend"></span><h2>Active legend<a class="headerlink" href="#active-legend" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-activelegend</span></code> adds hover activation and a three-state <strong>Button-1</strong> cycle to every legend entry:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-activelegend</span></code> adds hover activation and a <strong>Button-1</strong> cycle to every legend entry. The default
+<code class="docutils literal notranslate"><span class="pre">-activelegendmode</span> <span class="pre">show-active-hide</span></code> uses three states:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>normal -&gt; active -&gt; plot-hidden -&gt; normal
+</pre></div>
+</div>
+<p>Select a two-state cycle with <code class="docutils literal notranslate"><span class="pre">-activelegendmode</span> <span class="pre">show-hide</span></code> (normal / plot-hidden) or
+<code class="docutils literal notranslate"><span class="pre">-activelegendmode</span> <span class="pre">show-active</span></code> (normal / persistently active). Hover highlighting remains enabled in
+every mode. These options are selected at construction time. An externally plot-hidden element returns
+to normal on its next click, including in <code class="docutils literal notranslate"><span class="pre">show-active</span></code> mode.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>controlmode<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>activelegend<span class="w"> </span><span class="o">-</span>activelegendmode<span class="w"> </span>show-hide
 </pre></div>
 </div>
 <p>The persistent state is also represented by the element’s legend relief:</p>
@@ -881,7 +893,7 @@ the embedded graph.</p>
 <dd class="field-even"><p>Initial requested height of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
 </dd>
 <dt class="field-odd">-controlmode mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code> or <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>.</p>
+<dd class="field-odd"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>, <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>.</p>
 </dd>
 <dt class="field-even">-type type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
@@ -986,7 +998,10 @@ the embedded graph.</p>
 <dd class="field-odd"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
 </dd>
 <dt class="field-even">-activelegend<span class="colon">:</span></dt>
-<dd class="field-even"><p>Enables hover activation and three-state Button-1 interaction on legend entries.</p>
+<dd class="field-even"><p>Enables hover activation and Button-1 interaction on legend entries.</p>
+</dd>
+<dt class="field-odd">-activelegendmode mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Selects the persistent legend click cycle. Must be <code class="docutils literal notranslate"><span class="pre">show-active-hide</span></code> (the default), <code class="docutils literal notranslate"><span class="pre">show-hide</span></code>, or <code class="docutils literal notranslate"><span class="pre">show-active</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-activelegend</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Properties</p>
@@ -1141,8 +1156,9 @@ Tk pathname of the requested subwidget.</p>
 </dd>
 </dl>
 <p class="rubric">Description</p>
-<p>Common names include <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code>, and, in context-menu mode, <code class="docutils literal notranslate"><span class="pre">contextMenu</span></code>. Toolbar mode may
-additionally create exportButton, exportMenu, zoom, and crosshair control widgets.</p>
+<p>Common names include <code class="docutils literal notranslate"><span class="pre">graph</span></code> and <code class="docutils literal notranslate"><span class="pre">toolbarFrame</span></code>. Context-menu and both modes expose <code class="docutils literal notranslate"><span class="pre">contextMenu</span></code>.
+Toolbar and both modes also create exportButton, exportMenu, zoom, and crosshair controls.
+In both mode, contextExportMenu identifies the separate context-menu export submenu.</p>
 <p class="rubric">Return value</p>
 <p>Returns the Tk pathname of a named subwidget.
 Tk pathname of the requested subwidget.</p>

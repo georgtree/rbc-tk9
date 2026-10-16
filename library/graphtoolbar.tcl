@@ -35,7 +35,7 @@ namespace eval ::rbc::graphtoolbar {
         - Current-position and closest-element crosshair annotations.
         - Polar and Smith-chart coordinate displays.
         - Interactive linear/logarithmic axis toggling.
-        - Interactive three-state legend entries.
+        - Interactive two-state or three-state legend entries.
         - PNG snapshots, PostScript, SVG and PDF output.
         - Either a permanently visible toolbar or a right-click context menu.
 
@@ -103,8 +103,13 @@ namespace eval ::rbc::graphtoolbar {
 
         The toolbar frame still exists in context-menu mode but is neither populated nor managed.
 
-        The `exportMenu` subwidget is available in both control modes. Toolbar mode also exposes `exportButton`.
-        These replace the separate `makeSnapshotBut`, `postScriptDialogBut`, and `svgDialogBut` subwidgets.
+        `-controlmode both` provides the visible toolbar and the right-click context menu together. The toolbar
+        still follows `-toolbarside`; both control surfaces operate on the same graph and crosshair settings.
+        Right-click cancels an active zoom or pan before it can open the menu.
+
+        The `exportMenu` subwidget is available in all control modes. Toolbar and both modes also expose
+        `exportButton`. In both mode, `exportMenu` belongs to the toolbar and `contextExportMenu` belongs to
+        the context menu.
 
         SVG and PDF open modal export dialogs with width, height, decorations and **-embedfonts** yes/no controls.
         Their initial values come from the graph's configured export options. Font embedding defaults to **no** for
@@ -264,7 +269,7 @@ namespace eval ::rbc::graphtoolbar {
         the changed axis scale.
 
         **Button-3** has a special role in both control modes. If a rectangle zoom or pan is currently active,
-        **Button-3** cancels that operation and consumes the event. In context-menu mode, **Button-3** posts the menu
+        **Button-3** cancels that operation and consumes the event. In context-menu and both modes, **Button-3** posts the menu
         only when there is no transient navigation operation to cancel.
 
         Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area. The
@@ -532,9 +537,19 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Active legend
-        `-activelegend` adds hover activation and a three-state **Button-1** cycle to every legend entry:
+        `-activelegend` adds hover activation and a **Button-1** cycle to every legend entry. The default
+        `-activelegendmode show-active-hide` uses three states:
         ```text
         normal -> active -> plot-hidden -> normal
+        ```
+
+        Select a two-state cycle with `-activelegendmode show-hide` (normal / plot-hidden) or
+        `-activelegendmode show-active` (normal / persistently active). Hover highlighting remains enabled in
+        every mode. These options are selected at construction time. An externally plot-hidden element returns
+        to normal on its next click, including in `show-active` mode.
+
+        ```tcl
+        ::rbc::graphtoolbar .gtb -controlmode both -activelegend -activelegendmode show-hide
         ```
 
         The persistent state is also represented by the element's legend relief:
@@ -815,17 +830,7 @@ namespace eval ::rbc::graphtoolbar::icons {
         0ReMYTUV/leQ+IYZDGPzJYLEJM7TrbxUkLkFUMcyEU6YUh0AAAAQZGVCRzUz
         MUU3ODlFMTQ5NkNCODeGbqU0AAAAAElFTkSuQmCC
     }
-    image create photo [namespace current]::makeSnapshotIcon -data {
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABDUlEQVQ4T63S
-        vyvGURTH8dezGW2Kkv/AbKHEbvFjMBgIZVAmpZCBxWD0I4PBRklJishkk4li
-        kT9ANhOdur7d75f09PCZ7ufcc96de86t+aNqxYkWTBeurFds4KOIJOWABawU
-        rqx37GGyCskBi1gqXFmr6MIzxnJIvYCIr+G0CskBkRSQn3SFSzRhDjPYjIt6
-        AVUtf3WbA7rRW7jfdY7rOOSAhpQD9jGCE4xjG7t4xDxGsZ5WuYXZKMoBMaR4
-        V0z4FgPoTAObSLAhDKIdD1FUBbygH8MJFr4P9zhCGy6wg9YoqgKe0pe9yzqK
-        VpsxhWMcpFis9NsWovW35GMjNymxB4foSM+IvLNI+tctNKRP+eQ5ERRnRmIA
-        AAAQZGVCRzA5QTlFNzg3NDkzMjVDMEbmZqwZAAAAAElFTkSuQmCC
-    }
-    image create photo [namespace current]::postScriptDialogIcon -data {
+    image create photo [namespace current]::exportDialogIcon -data {
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABbklEQVQ4T43T
         v0uWYRTG8Y9GFLg11BTRUhYRtEUOElRDSNbSENIeNAgtUVEKuvUPKNUWTkaL
         gyVFNLhFDZZTREOQFSSUoanE4T2e9xV7we90n+u+7us894+nw/bYh69VtdBR
@@ -838,18 +843,6 @@ namespace eval ::rbc::graphtoolbar::icons {
         Sqp3iN9DAAAAEGRlQkdENUI2Mzk2QjM2MjhGMjJEQ8kP+QAAAABJRU5ErkJg
         gg==
     }
-    image create photo [namespace current]::svgDialogIcon -data {
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABD0lEQVQ4T63S
-        vSvFURzH8dcdlNmiKBPFQBaDxWBVBoVsNimbTQpJGBRZPGxMihKLRcjmL7CQ
-        DIrJQykTnTpO53eTbpfP9H18n4fvt+SPKiWLeownr6hnrOEzRaJywDTmk1fU
-        B3YwVg7JATOYTV5Ri+jGPUZzSKWAEF/CSTkkB4SiAPlJFzhHLSYxgc2QqBRQ
-        rrnv2+aAHvQm73ed4jIYOaAq5YBh7KIGLfHN7ZjCDa5ivhGduAtNOWAP11jB
-        K45wHP+lH/sYxDtu424UAE1YjvMODW1YxQtaI7QBZ9jGVmjKAV3oix8Zkgd4
-        ivNfwAbq4kGHMV4AdGAAj7E4LMpI3IGHWDOEZqzjLQT+dQpV6QuyJzoR6rKh
-        wAAAABBkZUJHOEQ2RDAxQUNCNUM0MTJFMhieOQEAAAAASUVORK5CYII=
-    }
-
-
 }
 
 # x / y                 physical widget pixels, exactly like Tk %x / %y
@@ -907,7 +900,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             options {
                 -width pixels - Initial requested width of the embedded Rbc graph. The default is `800`.
                 -height pixels - Initial requested height of the embedded Rbc graph. The default is `600`.
-                -controlmode mode - Selects the user-interface control surface. Must be `toolbar` or `contextmenu`. The
+                -controlmode mode - Selects the user-interface control surface. Must be `toolbar`, `contextmenu`, or `both`. The
                  default is `toolbar`.
                 -type type - Selects the embedded Rbc widget. Must be `graph`, `barchart`, `stripchart`, or
                  `polar`. The default is `graph`.
@@ -962,7 +955,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  annotations. Requires `-crosshairs`.
                 -scaletoggle axes - Enables interactive linear/logarithmic scale toggling on the specified axis
                 list. `all` selects all axes existing at construction time.
-                -activelegend - Enables hover activation and three-state Button-1 interaction on legend entries.
+                -activelegend - Enables hover activation and Button-1 interaction on legend entries.
+                -activelegendmode mode - Selects the persistent legend click cycle. Must be `show-active-hide`
+                (the default), `show-hide`, or `show-active`. Requires `-activelegend`.
             }
             propertydescriptions {
                 -crosshairsmode {
@@ -1439,7 +1434,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode\
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode ActiveLegendMode\
             ExportData
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
@@ -1478,7 +1473,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             path
             {-width= -default 800}
             {-height= -default 600}
-            {-controlmode= -default toolbar -enum {toolbar contextmenu}}
+            {-controlmode= -default toolbar -enum {toolbar contextmenu both}}
             {-type= -default graph -enum {graph barchart stripchart polar}}
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
@@ -1514,14 +1509,16 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-crosshairsbarlineopts= -require crosshairs -type dict -default {}}
             {-scaletoggle= -type list}
             -activelegend
+            {-activelegendmode= -require activelegend -default show-active-hide -enum {show-active-hide show-hide show-active}}
         }]
         set ZoomMod [dict get $arguments zoommod]
         set GraphType [dict get $arguments type]
         set ControlMode [dict get $arguments controlmode]
+        set ActiveLegendMode [dict get $arguments activelegendmode]
         set currentNamespace [namespace current]
         set frameName [dict get $arguments path]
         ttk::frame $frameName
-        # The toolbar frame exists in both control modes. In context-menu
+        # The toolbar frame exists in all control modes. In context-menu
         # mode it is simply not populated or managed. Keeping the frame
         # available means general toolbar-state code does not need special
         # cases for the selected control surface.
@@ -1537,7 +1534,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -coordclosestmark [dict get $arguments coordclosestmark] -pointeropts [dict get $arguments pointeropts]
         # Layout of the graph/control surface.
         grid columnconfigure $frameName 0 -weight 1
-        if {$ControlMode eq {toolbar}} {
+        if {$ControlMode in {toolbar both}} {
             if {[dict get $arguments toolbarside] eq {bottom}} {
                 set graphRow 0
                 set toolbarRow 1
@@ -1553,11 +1550,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             grid $Subwidgets(graph) -row 0 -column 0 -sticky nsew
             grid rowconfigure $frameName 0 -weight 1
         }
-        # Create visible toolbar controls only in toolbar mode.
-        if {$ControlMode eq {toolbar}} {
+        # Create visible controls in toolbar and both modes.
+        if {$ControlMode in {toolbar both}} {
             set butCount -1
             set Subwidgets(exportButton) [ttk::menubutton $Subwidgets(toolbarFrame).exportButton -text Export\
-                                                  -image ::rbc::graphtoolbar::icons::postScriptDialogIcon -compound left]
+                                                  -image ::rbc::graphtoolbar::icons::exportDialogIcon -compound left]
             set Subwidgets(exportMenu) [my CreateExportMenu $Subwidgets(exportButton).menu]
             $Subwidgets(exportButton) configure -menu $Subwidgets(exportMenu)
             grid $Subwidgets(exportButton) -row 0 -column [incr butCount] -sticky ns
@@ -1589,7 +1586,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {[dict exists $arguments zoomwheel]} {
                 my EnableWheelZoom [dict get $arguments zoomwheelmod] [dict get $arguments zoomwheelscale]
             }
-            if {$ControlMode eq {toolbar}} {
+            if {$ControlMode in {toolbar both}} {
                 set Subwidgets(resetZoomBut) [ttk::button $Subwidgets(toolbarFrame).resetZoomBut -width 14\
                                                       -image ::rbc::graphtoolbar::icons::resetZoomIcon\
                                                       -command [namespace code {my ResetAllZoom}] -style Toolbutton]
@@ -1624,7 +1621,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my configure -crosshairsmarkboxopts [dict get $arguments crosshairsmarkboxopts]
             my configure -crosshairsmode [dict get $arguments crosshairsmode]
             # Crosshair behaviour is independent of its control surface.
-            if {$ControlMode eq {toolbar}} {
+            if {$ControlMode in {toolbar both}} {
                 set button $Subwidgets(toolbarFrame).crosshairsMenuButton
                 set menu $button.menu
                 set Subwidgets(crosshairsMenuButton) [ttk::menubutton $button -text Crosshairs -menu $menu]
@@ -1647,13 +1644,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             my EnableActiveLegend
         }
         ##### context-menu control surface
-        if {$ControlMode eq {contextmenu}} {
+        if {$ControlMode in {contextmenu both}} {
             my CreateContextMenu [dict exists $arguments zoom] [dict exists $arguments crosshairs]
         }
-        # Right-click is installed in BOTH modes.
+        # Right-click is installed in all control modes.
         #
         # During a transient zoom/pan operation it cancels that operation
-        # and consumes the event. Otherwise, in context-menu mode, it posts
+        # and consumes the event. Otherwise, in context-menu or both mode, it posts
         # the context menu.
         my EnableRightClick
         # Finish construction of the megawidget command.
@@ -1717,8 +1714,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns the Tk pathname of a named subwidget.
         #  name - subwidget name as returned by [names].
         #
-        # Common names include `graph`, `toolbarFrame`, and, in context-menu mode, `contextMenu`. Toolbar mode may
-        # additionally create exportButton, exportMenu, zoom, and crosshair control widgets.
+        # Common names include `graph` and `toolbarFrame`. Context-menu and both modes expose `contextMenu`.
+        # Toolbar and both modes also create exportButton, exportMenu, zoom, and crosshair controls.
+        # In both mode, contextExportMenu identifies the separate context-menu export submenu.
         #
         # Returns: Tk pathname of the requested subwidget.
         if {[info exists Subwidgets($name)]} {
@@ -1761,7 +1759,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
 
     #### general private methods
     method CreateContextMenu {hasZoom hasCrosshairs} {
-        # Creates the right-click control menu for context-menu mode.
+        # Creates the right-click control menu for context-menu and both modes.
         #  hasZoom - true when zoom/navigation controls were enabled.
         #  hasCrosshairs - true when enhanced crosshair controls were enabled.
         #
@@ -1778,8 +1776,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 my RestoreContextMenuCrosshairs
             }]
         }]
-        set Subwidgets(exportMenu) [my CreateExportMenu $menu.export]
-        $menu add cascade -label Export -menu $Subwidgets(exportMenu)
+        set exportMenu [my CreateExportMenu $menu.export]
+        if {[info exists Subwidgets(exportMenu)]} {
+            # Keep the toolbar export menu addressable in both mode.
+            set Subwidgets(contextExportMenu) $exportMenu
+        } else {
+            set Subwidgets(exportMenu) $exportMenu
+        }
+        $menu add cascade -label Export -menu $exportMenu
         if {$hasZoom} {
             $menu add separator
             $menu add command -label {Reset view} -command [namespace code {my ResetAllZoom}]
@@ -2691,7 +2695,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Installs graphtoolbar Button-3 dispatch on the embedded graph.
         #
         # An active pan or rectangle zoom is cancelled and consumes the first Button-3 event. When idle, context-menu
-        # mode posts the control menu; toolbar mode leaves Button-3 otherwise unused.
+        # and both modes post the control menu; toolbar mode leaves Button-3 otherwise unused.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
@@ -2699,7 +2703,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {[my CancelTransientOperation %x %y]} {
                 break
             }
-            if {$ControlMode eq {contextmenu}} {
+            if {$ControlMode in {contextmenu both}} {
                 my PostContextMenu %x %y %X %Y
                 break
             }
@@ -2930,7 +2934,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Pointer entry temporarily activates the element under the legend entry and pointer leave removes that
         # transient activation.
         #
-        # Button-1 advances the element through three persistent states:
+        # Button-1 uses ActiveLegendMode to select the persistent-state cycle. The default is:
         #
         # ```text
         # normal -> active -> plot-hidden -> normal
@@ -2985,11 +2989,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method ToggleLegendElement {} {
-        # Advances the current legend element through its three persistent states.
+        # Advances the current legend element through the selected persistent-state cycle.
         #
-        # The sequence is:
+        # The default sequence is:
         #
         #     normal -> active -> plot-hidden -> normal
+        #
+        # Two-state modes omit either the active or plot-hidden state.
+        # An externally hidden element always returns to normal on the next click.
         #
         # `-labelrelief` records normal/active/hidden visual state and `-hideplot`
         # suppresses plotting while preserving the legend entry.
@@ -3010,8 +3017,12 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             # restore plotting and clear any persistent element activation.
             $graph element configure $elem -hideplot no -labelrelief flat
             $graph element deactivate $elem
-        } elseif {$relief eq {raised}} {
-            # active -> plot-hidden
+        } elseif {$ActiveLegendMode eq {show-active} && $relief eq {raised}} {
+            # active -> normal in the activation-only cycle.
+            $graph element deactivate $elem
+            $graph element configure $elem -hideplot no -labelrelief flat
+        } elseif {$ActiveLegendMode eq {show-hide} || $relief eq {raised}} {
+            # normal or active -> plot-hidden
             # remove the active drawing first, then suppress normal plotting.
             # -hideplot deliberately leaves the element in the display list,
             # therefore its legend entry remains available for the next click.
@@ -3312,8 +3323,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 my CreateClosestBarMarker $marker $element $pointVar(x) $pointVar(y) $pointVar(left) $pointVar(top)\
                         $pointVar(right) $pointVar(bottom) $options $boxOptions $closestInfo
             } else {
-                my CreateClosestMarker $graph gtbCrosshairsClosestText$i gtbCrosshairsClosestBitmap$i $element $pointVar(x)\
-                        $pointVar(y) $options $closestInfo
+                my CreateClosestMarker $graph gtbCrosshairsClosestText$i gtbCrosshairsClosestBitmap$i $element\
+                        $pointVar(x) $pointVar(y) $options $closestInfo
             }
             incr i
         }
@@ -5082,7 +5093,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #  y - physical widget Y coordinate of the release event.
         #
         # The release position is always used as the final B corner, even when no final Motion event
-        # occurred. Coordinates outside the plot are clamped to its boundary. Polar/Smith selections are additionally\
+        # occurred. Coordinates outside the plot are clamped to its boundary. Polar/Smith selections are additionally
         # constrained to preserve the current plot aspect ratio.
         #
         # Transient bindings and disabled interactions are restored before the selected axis limits are applied
