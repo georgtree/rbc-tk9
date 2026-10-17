@@ -46,6 +46,7 @@ struct LegendStruct {
     int hidden;               /* If non-zero, don't display the legend. */
     int raised;               /* If non-zero, draw the legend last, above
                                * everything else. */
+    int entryInset;           /* Entry width excluding its label. */
     Tcl_Size nEntries;        /* Number of element entries in table. */
     int width, height;        /* Dimensions of the legend */
     Tcl_Size nColumns, nRows; /* Number of columns and rows in legend */
@@ -639,6 +640,27 @@ static void SetLegendOrigin(Legend *legendPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * LegendEntryWidth --
+ *
+ *      Return the width of an entry. Single-row legends use the label's
+ *      own width; multi-row legends retain uniformly sized grid cells.
+ *      Mapping has already checked that these dimensions fit in an int.
+ *
+ *----------------------------------------------------------------------
+ */
+static int LegendEntryWidth(Legend *legendPtr, Element *elemPtr) {
+    int width, height;
+
+    if (legendPtr->nRows != 1) {
+        return legendPtr->style.width;
+    }
+    Rbc_GetTextExtents(&legendPtr->style, elemPtr->label, &width, &height);
+    return width + legendPtr->entryInset;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * PickLegendEntry --
  *
  *      TODO: Description
@@ -679,6 +701,25 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
     }
     if ((legendPtr->style.width <= 0) || (legendPtr->style.height <= 0) || (legendPtr->nRows <= 0) ||
         (legendPtr->nColumns <= 0)) {
+        return NULL;
+    }
+    if (legendPtr->nRows == 1) {
+        Rbc_ChainLink *linkPtr;
+
+        for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
+             linkPtr = Rbc_ChainPrevLink(linkPtr)) {
+            Element *elemPtr = Rbc_ChainGetValue(linkPtr);
+            int entryWidth;
+
+            if (elemPtr->label == NULL) {
+                continue;
+            }
+            entryWidth = LegendEntryWidth(legendPtr, elemPtr);
+            if (localX < entryWidth) {
+                return elemPtr;
+            }
+            localX -= entryWidth;
+        }
         return NULL;
     }
     row = (Tcl_Size)(localY / legendPtr->style.height);
@@ -738,7 +779,7 @@ static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientDat
  *      nRows        - number of rows of entries
  *      nColumns    - number of columns of entries
  *      style.height - height of each entry
- *      style.width  - width of each entry
+ *      style.width  - maximum entry width (uniform for multi-row layouts)
  *      height        - width of legend (includes borders and padding)
  *      width        - height of legend (includes borders and padding)
  *
@@ -753,7 +794,8 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     int legendWidth, legendHeight;
     int entryWidth, entryHeight;
     int symbolWidth;
-    Tcl_WideInt dimension;
+    Tcl_WideInt dimension, rowWidth = 0;
+    int entryInset;
     Tk_FontMetrics fontMetrics;
 
     /* Initialize legend values to default (no legend displayed) */
@@ -789,6 +831,11 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
             continue; /* Element has no legend entry. */
         }
         Rbc_GetTextExtents(&legendPtr->style, elemPtr->label, &width, &height);
+        /* Saturate the sum: an oversized row may still fit as a grid. */
+        rowWidth += width;
+        if (rowWidth > INT_MAX) {
+            rowWidth = (Tcl_WideInt)INT_MAX + 1;
+        }
         if (entryWidth < width) {
             entryWidth = width;
         }
@@ -812,7 +859,13 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     if ((dimension < 1) || (dimension > INT_MAX)) {
         return;
     }
+    entryInset = (int)dimension - entryWidth;
     entryWidth = (int)dimension;
+    if ((rowWidth > INT_MAX) || ((entryInset > 0) && (nEntries > (INT_MAX - rowWidth) / entryInset))) {
+        rowWidth = (Tcl_WideInt)INT_MAX + 1;
+    } else {
+        rowWidth += (Tcl_WideInt)nEntries * entryInset;
+    }
     dimension = (Tcl_WideInt)entryHeight + 2 * (Tcl_WideInt)legendPtr->entryBorderWidth +
                 (Tcl_WideInt)legendPtr->ipadY.side1 + (Tcl_WideInt)legendPtr->ipadY.side2;
     if ((dimension < 1) || (dimension > INT_MAX)) {
@@ -874,7 +927,12 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
             nColumns = 1;
         }
         if ((legendPtr->site == LEGEND_TOP) || (legendPtr->site == LEGEND_BOTTOM)) {
-            nRows = ((nEntries - 1) / nColumns) + 1;
+            if (rowWidth <= legendWidth) {
+                nColumns = nEntries;
+                nRows = 1;
+            } else {
+                nRows = ((nEntries - 1) / nColumns) + 1;
+            }
         } else {
             nColumns = ((nEntries - 1) / nRows) + 1;
         }
@@ -885,14 +943,21 @@ void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     if (nColumns < 1) {
         nColumns = 1;
     }
-    if (GetLegendPixelDimension(nColumns, entryWidth, legendPtr->borderWidth, &legendPtr->padX, &legendWidth) !=
-        TCL_OK) {
+    if (nRows == 1) {
+        if ((rowWidth > INT_MAX) || (GetLegendPixelDimension(1, (int)rowWidth, legendPtr->borderWidth, &legendPtr->padX,
+                                                             &legendWidth) != TCL_OK)) {
+            return;
+        }
+        nColumns = nEntries;
+    } else if (GetLegendPixelDimension(nColumns, entryWidth, legendPtr->borderWidth, &legendPtr->padX, &legendWidth) !=
+               TCL_OK) {
         return;
     }
     if (GetLegendPixelDimension(nRows, entryHeight, legendPtr->borderWidth, &legendPtr->padY, &legendHeight) !=
         TCL_OK) {
         return;
     }
+    legendPtr->entryInset = entryInset;
     legendPtr->height = legendHeight;
     legendPtr->width = legendWidth;
     legendPtr->nRows = nRows;
@@ -1009,12 +1074,12 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         }
         if (elemPtr->flags & LABEL_ACTIVE) {
             legendPtr->style.state |= STATE_ACTIVE;
-            Rbc_Fill3DRectangle(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y, legendPtr->style.width,
+            Rbc_Fill3DRectangle(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y, LegendEntryWidth(legendPtr, elemPtr),
                                 legendPtr->style.height, legendPtr->entryBorderWidth, legendPtr->activeRelief);
         } else {
             legendPtr->style.state &= ~STATE_ACTIVE;
             if (elemPtr->labelRelief != TK_RELIEF_FLAT) {
-                Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, graphPtr->border, x, y, legendPtr->style.width,
+                Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, graphPtr->border, x, y, LegendEntryWidth(legendPtr, elemPtr),
                                     legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief);
             }
         }
@@ -1027,7 +1092,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         if ((count % legendPtr->nRows) > 0) {
             y += legendPtr->style.height;
         } else {
-            x += legendPtr->style.width;
+            x += LegendEntryWidth(legendPtr, elemPtr);
             y = startY;
         }
     }
@@ -1090,11 +1155,11 @@ void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
     graphPtr = legendPtr->graphPtr;
     if (exportPtr->decorations) {
         if (legendPtr->border != NULL) {
-            Rbc_RenderBorder(output, legendPtr->border, x, y, width, height, legendPtr->borderWidth,
-                                            legendPtr->relief, TRUE);
+            Rbc_RenderBorder(output, legendPtr->border, x, y, width, height, legendPtr->borderWidth, legendPtr->relief,
+                             TRUE);
         } else {
-            Rbc_RenderBorder(output, graphPtr->border, x, y, width, height, legendPtr->borderWidth,
-                                            legendPtr->relief, FALSE);
+            Rbc_RenderBorder(output, graphPtr->border, x, y, width, height, legendPtr->borderWidth, legendPtr->relief,
+                             FALSE);
         }
     } else {
         Rbc_RenderClearRectangle(output, x, y, width, height);
@@ -1119,25 +1184,23 @@ void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
         }
         if (elemPtr->flags & LABEL_ACTIVE) {
             legendPtr->style.state |= STATE_ACTIVE;
-            Rbc_RenderBorder(output, legendPtr->activeBorder, x, y, legendPtr->style.width,
-                                            legendPtr->style.height, legendPtr->entryBorderWidth,
-                                            legendPtr->activeRelief, TRUE);
+            Rbc_RenderBorder(output, legendPtr->activeBorder, x, y, LegendEntryWidth(legendPtr, elemPtr),
+                             legendPtr->style.height, legendPtr->entryBorderWidth, legendPtr->activeRelief, TRUE);
         } else {
             legendPtr->style.state &= ~STATE_ACTIVE;
             if (elemPtr->labelRelief != TK_RELIEF_FLAT) {
-                Rbc_RenderBorder(output, graphPtr->border, x, y, legendPtr->style.width,
-                                                legendPtr->style.height, legendPtr->entryBorderWidth,
-                                                elemPtr->labelRelief, FALSE);
+                Rbc_RenderBorder(output, graphPtr->border, x, y, LegendEntryWidth(legendPtr, elemPtr),
+                                 legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief, FALSE);
             }
         }
         (*elemPtr->procsPtr->exportSymbolProc)(graphPtr, exportPtr, elemPtr, x + symbolX, y + symbolY, symbolSize);
         Rbc_RenderText(output, elemPtr->label, &(legendPtr->style), x + labelX,
-                             y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
+                       y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;
         if ((count % legendPtr->nRows) > 0) {
             y += legendPtr->style.height;
         } else {
-            x += legendPtr->style.width;
+            x += LegendEntryWidth(legendPtr, elemPtr);
             y = startY;
         }
     }

@@ -132,6 +132,11 @@ Legend entries are arranged as a table\&.
 .PP
 A value of 0 leaves that dimension automatic\&.
 .PP
+When the legend has a single row, each entry uses its own label width, plus space for its symbol,
+borders and internal padding\&. For example, -rows 1 produces a compact horizontal legend\&.
+Multi-row legends retain equal-width cells based on the widest label\&. Automatic layout in the top
+and bottom margins uses one row when the combined individual entry widths fit the available width\&.
+.PP
 -ipadx and -ipady specify padding inside individual legend entries\&. -padx and -pady specify padding
 around the outside of the complete legend\&.
 .PP

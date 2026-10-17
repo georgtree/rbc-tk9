@@ -152,6 +152,10 @@ destroyed, the legend returns to <code class="docutils literal notranslate"><spa
 </div>
 <p><img alt="element_active_points" src="images/legend_layout.svg" /></p>
 <p>A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> leaves that dimension automatic.</p>
+<p>When the legend has a single row, each entry uses its own label width, plus space for its symbol,
+borders and internal padding. For example, <code class="docutils literal notranslate"><span class="pre">-rows</span> <span class="pre">1</span></code> produces a compact horizontal legend.
+Multi-row legends retain equal-width cells based on the widest label. Automatic layout in the top
+and bottom margins uses one row when the combined individual entry widths fit the available width.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-ipadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-ipady</span></code> specify padding inside individual legend entries. <code class="docutils literal notranslate"><span class="pre">-padx</span></code> and <code class="docutils literal notranslate"><span class="pre">-pady</span></code> specify padding
 around the outside of the complete legend.</p>
 <p>Each padding value may contain either one screen distance or two:</p>

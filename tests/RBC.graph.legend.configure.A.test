@@ -2096,5 +2096,132 @@ namespace eval graph.legend {
         catch {destroy .graph1}
     } -result ok
 	
+    # Single-row cells follow their labels; multi-row cells remain uniform.
+    proc LegendCellWidths {graph y} {
+        set widths {}
+        for {set x 0} {$x < [winfo width $graph]} {incr x} {
+            set name [$graph legend get @$x,$y]
+            if {$name ne {}} {
+                dict incr widths $name
+            }
+        }
+        return [lsort -integer [dict values $widths]]
+    }
+
+    foreach widget {graph barchart stripchart} {
+        test RBC.graph.legend.configure.A.compact.$widget.1 {
+            single-row legend uses individual entry widths and hit regions
+        } -setup {
+            $widget .graph1 -width 800 -height 300
+            pack .graph1
+            .graph1 element create short -label i
+            .graph1 element create long -label WWWWWWWWWW
+            .graph1 legend configure -position @20,20 -anchor nw -rows 1 -columns 0 -borderwidth 0 -padx 0 -pady 0\
+                    -shadow {black 0}
+            update
+        } -body {
+            set widths [LegendCellWidths .graph1 21]
+            set font [.graph1 legend cget -font]
+            list [llength $widths] [expr {[lindex $widths 1]-[lindex $widths 0]==[font measure $font WWWWWWWWWW]-\
+                                                  [font measure $font i]}]
+        } -cleanup {
+            destroy .graph1
+        } -result {2 1}
+
+        test RBC.graph.legend.configure.A.compact.$widget.2 {
+            multi-row legend retains equal-width columns after relayout
+        } -setup {
+            $widget .graph1 -width 800 -height 300
+            pack .graph1
+            foreach {name label} {a i b WW c iii d WWWWWWWWWW} {
+                .graph1 element create $name -label $label
+            }
+            .graph1 legend configure -position @20,20 -anchor nw -rows 1 -columns 0 -borderwidth 0 -padx 0 -pady 0
+            update
+        } -body {
+            .graph1 legend configure -rows 2
+            update
+            set widths [LegendCellWidths .graph1 21]
+            list [llength $widths] [expr {[lindex $widths 0] == [lindex $widths 1]}]
+        } -cleanup {
+            destroy .graph1
+        } -result {2 1}
+    }
+
+    test RBC.graph.legend.configure.A.compact.3 {
+        external single-row geometry changes by the changed label width
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 element create a -label i
+        .graph1 element create b -label WWWWWWWWWW
+        .graph1 legend configure -position .legend1 -rows 1 -shadow {black 0}
+        update
+    } -body {
+        set before [winfo reqwidth .legend1]
+        set font [.graph1 legend cget -font]
+        .graph1 element configure a -label iiiii
+        update
+        expr {[winfo reqwidth .legend1] - $before == [font measure $font iiiii] - [font measure $font i]}
+    } -cleanup {
+        destroy .graph1
+        catch {destroy .legend1}
+    } -result 1
+
+    foreach position {topmargin bottommargin} {
+        test RBC.graph.legend.configure.A.compact.auto.$position {
+            automatic horizontal layout fits the sum of individual widths
+        } -setup {
+            graph .graph1 -height 300
+            pack .graph1
+            set longLabel [string repeat W 30]
+            set font [.graph1 legend cget -font]
+            .graph1 configure -width [expr {[font measure $font $longLabel] + 250}]
+            .graph1 element create a -label i
+            .graph1 element create b -label $longLabel
+            .graph1 legend configure -position $position -rows 0 -columns 0
+            update
+        } -body {
+            set found 0
+            for {set y 0} {$y < [winfo height .graph1]} {incr y} {
+                if {[llength [LegendCellWidths .graph1 $y]] == 2} {
+                    set found 1
+                    break
+                }
+            }
+            return $found
+        } -cleanup {
+            destroy .graph1
+        } -result 1
+    }
+
+    test RBC.graph.legend.configure.A.compact.export {
+        SVG legend label spacing agrees with single-row hit regions
+    } -setup {
+        graph .graph1 -width 800 -height 300
+        pack .graph1
+        .graph1 element create a -label i
+        .graph1 element create b -label WWWWWWWWWW
+        .graph1 legend configure -position @20,20 -anchor nw -rows 1 -borderwidth 0 \
+                -padx 0 -pady 0 -shadow {black 0}
+        update
+    } -body {
+        set svg [.graph1 svg output]
+        set positions {}
+        foreach label {i WWWWWWWWWW} {
+            set pattern [format {<g transform="translate\(([-0-9.]+) [-0-9.]+\) rotate\([-0-9.]+\) translate\(([-0-9.]+) [-0-9.]+\)"[^>]*>\s*<text[^>]*>%s</text>} $label]
+            if {![regexp $pattern $svg -> center offset]} {
+                error "legend label missing from SVG: $label"
+            }
+            lappend positions [expr {$center + $offset}]
+        }
+        set widths [LegendCellWidths .graph1 21]
+        expr {abs([lindex $positions 1] - [lindex $positions 0]) == [lindex $widths 0]}
+    } -cleanup {
+        destroy .graph1
+    } -result 1
+
+    rename LegendCellWidths {}
+
 	cleanupTests
 }
