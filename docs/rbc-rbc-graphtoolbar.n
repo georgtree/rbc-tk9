@@ -113,7 +113,21 @@ set graph [\&.gtb subwidget graph]
 .RE
 .SH "CONTROL SURFACES"
 .PP
--controlmode toolbar, the default, creates a visible toolbar\&. One \fBExport\fP menu button is always present,
+Use -interactive to enable the standard graph interactions with their defaults:
+.PP
+.RS 4n
+.nf
+::rbc::graphtoolbar \&.gtb -interactive
+.fi
+.RE
+.PP
+This is shorthand for -zoom -pan -zoomwheel -crosshairs -activelegend -scaletoggle {x y}\&.
+Explicit feature options override the defaults, before or after -interactive\&. For example,
+-interactive -scaletoggle x -activelegendmode show-hide limits scale toggling to X and selects
+the two-state legend cycle\&. Providing -scaletoggle {} disables scale toggling\&.
+The switch selects features at construction time; it does not change the control mode\&.
+.PP
+-controlmode toolbar creates a visible toolbar\&. One \fBExport\fP menu button is always present,
 with \fBPNG snapshot\&.\&.\&.\fP, \fBPostScript\&.\&.\&.\fP, \fBSVG\&.\&.\&.\fP, and \fBPDF\&.\&.\&.\fP choices\&. Enabling -zoom adds \fBReset
 view\fP and \fBPrevious view\fP controls\&. Enabling -crosshairs adds one \fBCrosshairs\fP menu button\&. Its
 \fBCrosshairs mode\fP submenu selects Current point, Closest point, No marker, or Disabled\&. Its \fBClosest
@@ -144,7 +158,7 @@ the corresponding controls in a popup menu:
 .PP
 The toolbar frame still exists in context-menu mode but is neither populated nor managed\&.
 .PP
--controlmode both provides the visible toolbar and the right-click context menu together\&. The toolbar
+-controlmode both (the default) provides the visible toolbar and the right-click context menu together\&. The toolbar
 still follows -toolbarside; both control surfaces operate on the same graph and crosshair settings\&.
 Right-click cancels an active zoom or pan before it can open the menu\&.
 .PP
@@ -314,8 +328,8 @@ are rebuilt only after the new graph transform is current, preventing their geom
 the changed axis scale\&.
 .PP
 \fBButton-3\fP has a special role in both control modes\&. If a rectangle zoom or pan is currently active,
-\fBButton-3\fP cancels that operation and consumes the event\&. In context-menu and both modes, \fBButton-3\fP posts the menu
-only when there is no transient navigation operation to cancel\&.
+\fBButton-3\fP cancels that operation and consumes the event\&. In context-menu and both modes, \fBButton-3\fP posts
+the menu only when there is no transient navigation operation to cancel\&.
 .PP
 Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area\&. The
 press is left for normal legend interaction instead\&.
@@ -865,6 +879,9 @@ Invokes a command on a named graphtoolbar subwidget\&.
 \fBOptions\fR
 .RS 4n
 .TP
+-interactive
+Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on axes x and y, with their default options\&. Explicit feature options, including -scaletoggle, override these defaults regardless of argument order\&. This is a construction-time switch\&.
+.TP
 -width pixels
 Initial requested width of the embedded Rbc graph\&. The default is 800\&.
 .TP
@@ -872,7 +889,7 @@ Initial requested width of the embedded Rbc graph\&. The default is 800\&.
 Initial requested height of the embedded Rbc graph\&. The default is 600\&.
 .TP
 -controlmode mode
-Selects the user-interface control surface\&. Must be toolbar, contextmenu, or both\&. The default is toolbar\&.
+Selects the user-interface control surface\&. Must be toolbar, contextmenu, or both\&. The default is both\&.
 .TP
 -type type
 Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, or polar\&. The default is graph\&.

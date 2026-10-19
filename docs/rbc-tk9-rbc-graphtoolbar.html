@@ -97,7 +97,16 @@ alternatively be obtained with:</p>
 </section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code>, the default, creates a visible toolbar. One <strong>Export</strong> menu button is always present,
+<p>Use <code class="docutils literal notranslate"><span class="pre">-interactive</span></code> to enable the standard graph interactions with their defaults:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>interactive
+</pre></div>
+</div>
+<p>This is shorthand for <code class="docutils literal notranslate"><span class="pre">-zoom</span> <span class="pre">-pan</span> <span class="pre">-zoomwheel</span> <span class="pre">-crosshairs</span> <span class="pre">-activelegend</span> <span class="pre">-scaletoggle</span> <span class="pre">{x</span> <span class="pre">y}</span></code>.
+Explicit feature options override the defaults, before or after <code class="docutils literal notranslate"><span class="pre">-interactive</span></code>. For example,
+<code class="docutils literal notranslate"><span class="pre">-interactive</span> <span class="pre">-scaletoggle</span> <span class="pre">x</span> <span class="pre">-activelegendmode</span> <span class="pre">show-hide</span></code> limits scale toggling to X and selects
+the two-state legend cycle. Providing <code class="docutils literal notranslate"><span class="pre">-scaletoggle</span> <span class="pre">{}</span></code> disables scale toggling.
+The switch selects features at construction time; it does not change the control mode.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">toolbar</span></code> creates a visible toolbar. One <strong>Export</strong> menu button is always present,
 with <strong>PNG snapshot…</strong>, <strong>PostScript…</strong>, <strong>SVG…</strong>, and <strong>PDF…</strong> choices. Enabling <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> adds <strong>Reset
 view</strong> and <strong>Previous view</strong> controls. Enabling <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> adds one <strong>Crosshairs</strong> menu button. Its
 <strong>Crosshairs mode</strong> submenu selects Current point, Closest point, No marker, or Disabled. Its <strong>Closest
@@ -116,7 +125,7 @@ the corresponding controls in a popup menu:</p>
 <li><p><strong>Closest crosshairs format</strong>, when <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> is enabled.</p></li>
 </ul>
 <p>The toolbar frame still exists in context-menu mode but is neither populated nor managed.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">both</span></code> provides the visible toolbar and the right-click context menu together. The toolbar
+<p><code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">both</span></code> (the default) provides the visible toolbar and the right-click context menu together. The toolbar
 still follows <code class="docutils literal notranslate"><span class="pre">-toolbarside</span></code>; both control surfaces operate on the same graph and crosshair settings.
 Right-click cancels an active zoom or pan before it can open the menu.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">exportMenu</span></code> subwidget is available in all control modes. Toolbar and both modes also expose
@@ -236,8 +245,8 @@ no history entry. Moving away and returning exactly to the starting position is 
 are rebuilt only after the new graph transform is current, preventing their geometry from being stretched by
 the changed axis scale.</p>
 <p><strong>Button-3</strong> has a special role in both control modes. If a rectangle zoom or pan is currently active,
-<strong>Button-3</strong> cancels that operation and consumes the event. In context-menu and both modes, <strong>Button-3</strong> posts the menu
-only when there is no transient navigation operation to cancel.</p>
+<strong>Button-3</strong> cancels that operation and consumes the event. In context-menu and both modes, <strong>Button-3</strong> posts
+the menu only when there is no transient navigation operation to cancel.</p>
 <p>Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area. The
 press is left for normal legend interaction instead.</p>
 <p>While an already-started zoom or pan passes through an internal plot-area legend, active-legend hover and click
@@ -886,122 +895,125 @@ the embedded graph.</p>
 </dl>
 <p class="rubric">Options</p>
 <dl class="field-list simple">
-<dt class="field-odd">-width pixels<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial requested width of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">800</span></code>.</p>
+<dt class="field-odd">-interactive<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on axes <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>, with their default options. Explicit feature options, including <code class="docutils literal notranslate"><span class="pre">-scaletoggle</span></code>, override these defaults regardless of argument order. This is a construction-time switch.</p>
 </dd>
-<dt class="field-even">-height pixels<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial requested height of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
+<dt class="field-even">-width pixels<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial requested width of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">800</span></code>.</p>
 </dd>
-<dt class="field-odd">-controlmode mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>, <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>.</p>
+<dt class="field-odd">-height pixels<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial requested height of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
 </dd>
-<dt class="field-even">-type type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
+<dt class="field-even">-controlmode mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>, <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p>
 </dd>
-<dt class="field-odd">-representation mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
+<dt class="field-odd">-type type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
 </dd>
-<dt class="field-even">-smithgrid mode<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initializes the graph grid component’s <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code> option. For a Smith representation, selects <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">impedance</span></code>. Later changes use <code class="docutils literal notranslate"><span class="pre">$toolbar</span> <span class="pre">graph</span> <span class="pre">grid</span> <span class="pre">configure</span> <span class="pre">-smithgrid</span> <span class="pre">mode</span></code>.</p>
+<dt class="field-even">-representation mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
 </dd>
-<dt class="field-odd">-coordmark mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial value of the <code class="docutils literal notranslate"><span class="pre">-coordmark</span></code> configurable property. The default is <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p>
+<dt class="field-odd">-smithgrid mode<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initializes the graph grid component’s <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code> option. For a Smith representation, selects <code class="docutils literal notranslate"><span class="pre">impedance</span></code>, <code class="docutils literal notranslate"><span class="pre">admittance</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">impedance</span></code>. Later changes use <code class="docutils literal notranslate"><span class="pre">$toolbar</span> <span class="pre">graph</span> <span class="pre">grid</span> <span class="pre">configure</span> <span class="pre">-smithgrid</span> <span class="pre">mode</span></code>.</p>
 </dd>
-<dt class="field-even">-closestcommand commandPrefix<span class="colon">:</span></dt>
-<dd class="field-even"><p>Custom closest-point text callback. Receives <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">info</span></code>. The default is empty.</p>
+<dt class="field-even">-coordmark mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial value of the <code class="docutils literal notranslate"><span class="pre">-coordmark</span></code> configurable property. The default is <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p>
 </dd>
-<dt class="field-odd">-coordclosestmark mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial closest-point coordinate format. The default is <code class="docutils literal notranslate"><span class="pre">axis</span></code>. For a Smith widget with crosshairs enabled, initialization selects the normalized impedance or admittance format appropriate to <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code>.</p>
+<dt class="field-odd">-closestcommand commandPrefix<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Custom closest-point text callback. Receives <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">info</span></code>. The default is empty.</p>
 </dd>
-<dt class="field-even">-toolbarside side<span class="colon">:</span></dt>
-<dd class="field-even"><p>Places the visible toolbar at <code class="docutils literal notranslate"><span class="pre">bottom</span></code> or <code class="docutils literal notranslate"><span class="pre">top</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">bottom</span></code>. This has no visible effect in context-menu mode.</p>
+<dt class="field-even">-coordclosestmark mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial closest-point coordinate format. The default is <code class="docutils literal notranslate"><span class="pre">axis</span></code>. For a Smith widget with crosshairs enabled, initialization selects the normalized impedance or admittance format appropriate to <code class="docutils literal notranslate"><span class="pre">-smithgrid</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoom<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables rectangle zoom and navigation history.</p>
+<dt class="field-odd">-toolbarside side<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Places the visible toolbar at <code class="docutils literal notranslate"><span class="pre">bottom</span></code> or <code class="docutils literal notranslate"><span class="pre">top</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">bottom</span></code>. This has no visible effect in context-menu mode.</p>
 </dd>
-<dt class="field-even">-zoomstartbut event<span class="colon">:</span></dt>
-<dd class="field-even"><p>Event component which starts rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
+<dt class="field-even">-zoom<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables rectangle zoom and navigation history.</p>
 </dd>
-<dt class="field-odd">-zoomendbut event<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Event component which finishes rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. The finish event is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-zoommod</span></code>.</p>
+<dt class="field-odd">-zoomstartbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which starts rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
 </dd>
-<dt class="field-even">-zoombackbut event<span class="colon">:</span></dt>
-<dd class="field-even"><p>Event component which restores the previous view. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-2</span></code>.</p>
+<dt class="field-even">-zoomendbut event<span class="colon">:</span></dt>
+<dd class="field-even"><p>Event component which finishes rectangle zoom. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. The finish event is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-zoommod</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoommod modifier<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tk event modifier prefix used for the zoom start and previous-view bindings. The default is <code class="docutils literal notranslate"><span class="pre">Any-</span></code>.</p>
+<dt class="field-odd">-zoombackbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which restores the previous view. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-2</span></code>.</p>
 </dd>
-<dt class="field-even">-zoomwheel<span class="colon">:</span></dt>
-<dd class="field-even"><p>Enables mouse-wheel zoom. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-even">-zoommod modifier<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tk event modifier prefix used for the zoom start and previous-view bindings. The default is <code class="docutils literal notranslate"><span class="pre">Any-</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoomwheelscale factor<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Multiplicative wheel-zoom step. Must be a finite number greater than <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
+<dt class="field-odd">-zoomwheel<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables mouse-wheel zoom. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-even">-zoomwheelmod modifier<span class="colon">:</span></dt>
-<dd class="field-even"><p>Modifier prefix for MouseWheel zoom. The default is <code class="docutils literal notranslate"><span class="pre">Control-</span></code>.</p>
+<dt class="field-even">-zoomwheelscale factor<span class="colon">:</span></dt>
+<dd class="field-even"><p>Multiplicative wheel-zoom step. Must be a finite number greater than <code class="docutils literal notranslate"><span class="pre">1.0</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">1.1</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoomtitle<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> marker. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-odd">-zoomwheelmod modifier<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Modifier prefix for MouseWheel zoom. The default is <code class="docutils literal notranslate"><span class="pre">Control-</span></code>.</p>
 </dd>
-<dt class="field-even">-zoomtitleopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-even">-zoomtitle<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> marker. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoomboxopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-odd">-zoomtitleopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-even">-zoommark<span class="colon">:</span></dt>
-<dd class="field-even"><p>Displays coordinate annotations at rectangle-zoom corners. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-even">-zoomboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-odd">-zoommarkopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-odd">-zoommark<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Displays coordinate annotations at rectangle-zoom corners. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-even">-zoommarkboxopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
+<dt class="field-even">-zoommarkopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-odd">-pan<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables plot-area panning. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> because panning shares the zoom navigation history.</p>
+<dt class="field-odd">-zoommarkboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-zoommarkboxopts</span></code> property. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
-<dt class="field-even">-panstartbut event<span class="colon">:</span></dt>
-<dd class="field-even"><p>Event component which starts a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
+<dt class="field-even">-pan<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables plot-area panning. Requires <code class="docutils literal notranslate"><span class="pre">-zoom</span></code> because panning shares the zoom navigation history.</p>
 </dd>
-<dt class="field-odd">-panendbut event<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Event component which finishes a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. It is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-panmod</span></code>.</p>
+<dt class="field-odd">-panstartbut event<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Event component which starts a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonPress-1</span></code>.</p>
 </dd>
-<dt class="field-even">-panmod modifier<span class="colon">:</span></dt>
-<dd class="field-even"><p>Modifier prefix required to start panning. The default is <code class="docutils literal notranslate"><span class="pre">Shift-</span></code>.</p>
+<dt class="field-even">-panendbut event<span class="colon">:</span></dt>
+<dd class="field-even"><p>Event component which finishes a pan. The default is <code class="docutils literal notranslate"><span class="pre">ButtonRelease-1</span></code>. It is intentionally not combined with <code class="docutils literal notranslate"><span class="pre">-panmod</span></code>.</p>
 </dd>
-<dt class="field-odd">-crosshairs<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables enhanced crosshair interaction.</p>
+<dt class="field-odd">-panmod modifier<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Modifier prefix required to start panning. The default is <code class="docutils literal notranslate"><span class="pre">Shift-</span></code>.</p>
 </dd>
-<dt class="field-even">-pointeropts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial <code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code> property. Configures the bitmap pointer used to mark closest line, strip, and Polar points. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code> and <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>.</p>
+<dt class="field-even">-crosshairs<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables enhanced crosshair interaction.</p>
 </dd>
-<dt class="field-odd">-crosshairsmode mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-pointeropts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial <code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code> property. Configures the bitmap pointer used to mark closest line, strip, and Polar points. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code> and <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsmode mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-crosshairsopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsmarkboxopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial background-box options for crosshair annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-crosshairsclosestopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial closest-search options. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code>, <code class="docutils literal notranslate"><span class="pre">-halo</span></code>, <code class="docutils literal notranslate"><span class="pre">-single</span></code>, and <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-odd">-crosshairsmarkboxopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial background-box options for crosshair annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-crosshairsbarlineopts dictionary<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial line-marker options for closest-bar dimension annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dt class="field-even">-crosshairsclosestopts dictionary<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial closest-search options. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code>, <code class="docutils literal notranslate"><span class="pre">-halo</span></code>, <code class="docutils literal notranslate"><span class="pre">-single</span></code>, and <code class="docutils literal notranslate"><span class="pre">-hide</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-odd">-scaletoggle axes<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
+<dt class="field-odd">-crosshairsbarlineopts dictionary<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initial line-marker options for closest-bar dimension annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
-<dt class="field-even">-activelegend<span class="colon">:</span></dt>
-<dd class="field-even"><p>Enables hover activation and Button-1 interaction on legend entries.</p>
+<dt class="field-even">-scaletoggle axes<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enables interactive linear/logarithmic scale toggling on the specified axis list. <code class="docutils literal notranslate"><span class="pre">all</span></code> selects all axes existing at construction time.</p>
 </dd>
-<dt class="field-odd">-activelegendmode mode<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Selects the persistent legend click cycle. Must be <code class="docutils literal notranslate"><span class="pre">show-active-hide</span></code> (the default), <code class="docutils literal notranslate"><span class="pre">show-hide</span></code>, or <code class="docutils literal notranslate"><span class="pre">show-active</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-activelegend</span></code>.</p>
+<dt class="field-odd">-activelegend<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Enables hover activation and Button-1 interaction on legend entries.</p>
+</dd>
+<dt class="field-even">-activelegendmode mode<span class="colon">:</span></dt>
+<dd class="field-even"><p>Selects the persistent legend click cycle. Must be <code class="docutils literal notranslate"><span class="pre">show-active-hide</span></code> (the default), <code class="docutils literal notranslate"><span class="pre">show-hide</span></code>, or <code class="docutils literal notranslate"><span class="pre">show-active</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-activelegend</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Properties</p>

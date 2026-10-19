@@ -635,7 +635,7 @@ test generalConfiguration-1 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {exportButton exportMenu graph toolbarFrame} -cleanup {
+} -result {contextExportMenu contextMenu exportButton exportMenu graph toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -646,7 +646,7 @@ test generalConfiguration-2 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
+} -result {contextExportMenu contextMenu exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -657,7 +657,7 @@ test generalConfiguration-3 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {crosshairsMenu crosshairsMenuButton exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
+} -result {contextExportMenu contextMenu crosshairsMenu crosshairsMenuButton exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -909,6 +909,79 @@ foreach control {toolbar contextmenu} {
     }
 
 }
+
+### interactive preset
+test interactive-1 {preset matches explicit features and defaults to both control surfaces} -body {
+    set presetStates {}
+    foreach options {{-interactive} {-zoom -pan -zoomwheel -crosshairs -activelegend -scaletoggle {x y}}} {
+        set widget [graphtoolbar .gtb {*}$options]
+        set graph [$widget subwidget graph]
+        set bindings {}
+        foreach tag [bindtags $graph] {
+            if {[string match gtb-* $tag]} {
+                lappend bindings $tag [lsort [bind $tag]]
+            }
+        }
+        lappend presetStates [list [lsort [$widget names]] $bindings [$graph legend bind] [$widget getAxisActiveScale]\
+                                      [$widget configure -crosshairsmode]]
+        destroy $widget
+    }
+    list [expr {[lindex $presetStates 0] eq [lindex $presetStates 1]}]\
+            [expr {{contextMenu} in [lindex $presetStates 0 0]}]\
+            [expr {{exportButton} in [lindex $presetStates 0 0]}] [lsort [lindex $presetStates 0 3]]
+} -cleanup {
+    catch {destroy .gtb}
+    unset -nocomplain presetStates
+} -result {1 1 1 {x y}}
+
+foreach order {before after} {
+    test interactive-2-$order {explicit dependent options override the preset in either order} -setup {
+        set options {-scaletoggle x -crosshairsmode current -activelegendmode show-hide -zoomwheelscale 1.5 -zoom}
+        if {$order eq {before}} {
+            set options [linsert $options 0 -interactive]
+        } else {
+            lappend options -interactive
+        }
+        set widget [graphtoolbar .gtb {*}$options]
+    } -body {
+        set graph [$widget subwidget graph]
+        list [$widget getAxisActiveScale] [$widget configure -crosshairsmode]\
+                [namespace eval [info object namespace $widget] {set ActiveLegendMode}]\
+                [string match {*1.5*} [bind gtb-zoom-$graph <Control-MouseWheel>]]
+    } -cleanup {
+        destroy $widget
+    } -result {x current show-hide 1}
+
+    test interactive-3-$order {empty explicit scale list disables preset scale toggling} -setup {
+        if {$order eq {before}} {
+            set options {-interactive -scaletoggle {}}
+        } else {
+            set options {-scaletoggle {} -interactive}
+        }
+        set widget [graphtoolbar .gtb {*}$options]
+    } -body {
+        $widget getAxisActiveScale
+    } -cleanup {
+        destroy $widget
+    } -result {}
+}
+
+test interactive-4 {explicit toolbar mode remains available with the preset} -setup {
+    set widget [graphtoolbar .gtb -interactive -controlmode toolbar]
+} -body {
+    list [catch {$widget subwidget contextMenu}] [winfo manager [$widget subwidget toolbarFrame]]
+} -cleanup {
+    destroy $widget
+} -result {1 grid}
+
+test interactive-5 {preset is opt-in and does not suppress dependency errors} -body {
+    set widget [graphtoolbar .gtb]
+    set axes [$widget getAxisActiveScale]
+    destroy $widget
+    list $axes [catch {graphtoolbar .gtb -pan}]
+} -cleanup {
+    catch {destroy .gtb}
+} -result {{} 1}
 
 ### combined control surfaces
 foreach side {top bottom} {

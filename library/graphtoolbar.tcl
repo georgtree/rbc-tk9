@@ -82,7 +82,18 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Control surfaces
-        `-controlmode toolbar`, the default, creates a visible toolbar. One **Export** menu button is always present,
+        Use `-interactive` to enable the standard graph interactions with their defaults:
+        ```tcl
+        ::rbc::graphtoolbar .gtb -interactive
+        ```
+
+        This is shorthand for `-zoom -pan -zoomwheel -crosshairs -activelegend -scaletoggle {x y}`.
+        Explicit feature options override the defaults, before or after `-interactive`. For example,
+        `-interactive -scaletoggle x -activelegendmode show-hide` limits scale toggling to X and selects
+        the two-state legend cycle. Providing `-scaletoggle {}` disables scale toggling.
+        The switch selects features at construction time; it does not change the control mode.
+
+        `-controlmode toolbar` creates a visible toolbar. One **Export** menu button is always present,
         with **PNG snapshot...**, **PostScript...**, **SVG...**, and **PDF...** choices. Enabling `-zoom` adds **Reset
         view** and **Previous view** controls. Enabling `-crosshairs` adds one **Crosshairs** menu button. Its
         **Crosshairs mode** submenu selects Current point, Closest point, No marker, or Disabled. Its **Closest
@@ -103,7 +114,7 @@ namespace eval ::rbc::graphtoolbar {
 
         The toolbar frame still exists in context-menu mode but is neither populated nor managed.
 
-        `-controlmode both` provides the visible toolbar and the right-click context menu together. The toolbar
+        `-controlmode both` (the default) provides the visible toolbar and the right-click context menu together. The toolbar
         still follows `-toolbarside`; both control surfaces operate on the same graph and crosshair settings.
         Right-click cancels an active zoom or pan before it can open the menu.
 
@@ -269,8 +280,8 @@ namespace eval ::rbc::graphtoolbar {
         the changed axis scale.
 
         **Button-3** has a special role in both control modes. If a rectangle zoom or pan is currently active,
-        **Button-3** cancels that operation and consumes the event. In context-menu and both modes, **Button-3** posts the menu
-        only when there is no transient navigation operation to cancel.
+        **Button-3** cancels that operation and consumes the event. In context-menu and both modes, **Button-3** posts
+        the menu only when there is no transient navigation operation to cancel.
 
         Rectangle zoom and panning do not start when the initial press is on a legend drawn inside the plot area. The
         press is left for normal legend interaction instead.
@@ -862,8 +873,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         const CoordMarkModes {auto axis complex polar polardegrees gamma normalizedimpedance normalizedimpedanceri\
                                       normalizedadmittance normalizedadmittanceri}
         variable CoordClosestMarkModes
-        const CoordClosestMarkModes {axis complex polar polardegrees gamma normalizedimpedance impedance normalizedadmittance\
-                                             admittance custom}
+        const CoordClosestMarkModes {axis complex polar polardegrees gamma normalizedimpedance impedance\
+                                             normalizedadmittance admittance custom}
         variable CoordClosestMarkLabels
         const CoordClosestMarkLabels [dict create axis {Axis} complex {Complex} polar {Polar (radians)}\
                                               polardegrees {Polar (degrees)} gamma {Gamma}\
@@ -898,10 +909,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             }
 
             options {
+                -interactive - Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on
+                 axes `x` and `y`, with their default options. Explicit feature options, including `-scaletoggle`,
+                 override these defaults regardless of argument order. This is a construction-time switch.
                 -width pixels - Initial requested width of the embedded Rbc graph. The default is `800`.
                 -height pixels - Initial requested height of the embedded Rbc graph. The default is `600`.
-                -controlmode mode - Selects the user-interface control surface. Must be `toolbar`, `contextmenu`, or `both`. The
-                 default is `toolbar`.
+                -controlmode mode - Selects the user-interface control surface. Must be `toolbar`, `contextmenu`, or\
+                 `both`. The default is `both`.
                 -type type - Selects the embedded Rbc widget. Must be `graph`, `barchart`, `stripchart`, or
                  `polar`. The default is `graph`.
                 -representation mode - For `-type polar`, selects `polar` or `smith` representation. The default is
@@ -975,8 +989,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom
                     corner markers.
 
-                    Accepted values are `auto`, `axis`, `complex`, `polar`, `polardegrees`, `gamma`, `normalizedimpedance`,
-                    `normalizedimpedanceri`, `normalizedadmittance`, and `normalizedadmittanceri`.
+                    Accepted values are `auto`, `axis`, `complex`, `polar`, `polardegrees`, `gamma`,
+                    `normalizedimpedance`, `normalizedimpedanceri`, `normalizedadmittance`, and
+                    `normalizedadmittanceri`.
 
                     `auto` uses ordinary axis values except on a Smith chart, where normalized impedance/admittance
                     real and imaginary components are selected according to the Smith grid.
@@ -1473,7 +1488,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             path
             {-width= -default 800}
             {-height= -default 600}
-            {-controlmode= -default toolbar -enum {toolbar contextmenu both}}
+            {-controlmode= -default both -enum {toolbar contextmenu both}}
             {-type= -default graph -enum {graph barchart stripchart polar}}
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
@@ -1482,6 +1497,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-coordclosestmark= -default axis}
             {-toolbarside= -default bottom -enum {bottom top}}
             {-pointeropts= -type dict -default {}}
+            {-interactive -imply {-zoom -pan -zoomwheel -crosshairs -activelegend}}
             -zoom
             {-zoomstartbut= -default {ButtonPress-1}}
             {-zoomendbut= -default {ButtonRelease-1}}
@@ -1509,8 +1525,15 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-crosshairsbarlineopts= -require crosshairs -type dict -default {}}
             {-scaletoggle= -type list}
             -activelegend
-            {-activelegendmode= -require activelegend -default show-active-hide -enum {show-active-hide show-hide show-active}}
+            {-activelegendmode= -require activelegend -default show-active-hide\
+                     -enum {show-active-hide show-hide show-active}}
         }]
+        # Supply the axis default only when the caller did not specify one.
+        # The boolean features are implied during parsing, so their dependent
+        # options work in either argument order.
+        if {[dict exists $arguments interactive] && ![dict exists $arguments scaletoggle]} {
+            dict set arguments scaletoggle {x y}
+        }
         set ZoomMod [dict get $arguments zoommod]
         set GraphType [dict get $arguments type]
         set ControlMode [dict get $arguments controlmode]
