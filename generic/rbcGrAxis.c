@@ -6809,6 +6809,22 @@ void Rbc_MapAxes(Graph *graphPtr) {
 /*
  *----------------------------------------------------------------------
  *
+ * AxisLayoutUsable --
+ *
+ *      Rbc_LayoutGraph skips mapping when either plot range collapses.
+ *      Cached geometry may be stale, and new labels still have DBL_MAX
+ *      anchors. Drawing, export and picking must wait until mapping can
+ *      resume after the graph is enlarged.
+ *
+ *----------------------------------------------------------------------
+ */
+static int AxisLayoutUsable(Graph *graphPtr) {
+    return (graphPtr->hRange > 1) && (graphPtr->vRange > 1);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * Rbc_DrawAxes --
  *
  *      TODO: Description
@@ -6829,6 +6845,10 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
     Axis *axisPtr;
     Rbc_ChainLink *linkPtr;
     int i;
+
+    if (!AxisLayoutUsable(graphPtr)) {
+        return;
+    }
 
     for (i = 0; i < 4; i++) {
         for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes); linkPtr != NULL;
@@ -6864,6 +6884,10 @@ void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Axis *axisPtr;
     Rbc_ChainLink *linkPtr;
     int i;
+
+    if (!AxisLayoutUsable(graphPtr)) {
+        return;
+    }
 
     for (i = 0; i < 4; i++) {
         for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes); linkPtr != NULL;
@@ -6909,6 +6933,10 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
     char minString[TICK_LABEL_SIZE + 1];
     char maxString[TICK_LABEL_SIZE + 1];
     int vMin, hMin, vMax, hMax;
+
+    if (!AxisLayoutUsable(graphPtr)) {
+        return;
+    }
 
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
@@ -6997,6 +7025,11 @@ void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     char string[TICK_LABEL_SIZE + 1];
     int textWidth, textHeight;
     char *minFmt, *maxFmt;
+
+    if (!AxisLayoutUsable(graphPtr)) {
+        Rbc_RenderEnd(output);
+        return;
+    }
 
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
@@ -7102,6 +7135,10 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
     int width, height;
     double rotWidth, rotHeight;
     Point2D bbox[5];
+
+    if (!AxisLayoutUsable(graphPtr)) {
+        return NULL;
+    }
 
     for (hPtr = Tcl_FirstHashEntry(&graphPtr->axes.table, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
         axisPtr = (Axis *)Tcl_GetHashValue(hPtr);

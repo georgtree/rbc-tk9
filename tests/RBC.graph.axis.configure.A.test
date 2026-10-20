@@ -1995,5 +1995,56 @@ namespace eval graph.axis {
         destroy .graph1
     } -result {1 1}
 	
+    foreach widget {graph barchart stripchart} {
+        foreach angle {0 45 90} {
+            test RBC.graph.axis.configure.A.small.$widget.$angle {
+                collapsed plot suppresses axis geometry and restores it after resizing
+            } -setup {
+                toplevel .axisResize
+                wm geometry .axisResize 600x400
+                $widget .axisResize.g -leftmargin 80 -rightmargin 80 -topmargin 40 -bottommargin 100
+                set g .axisResize.g
+                pack $g -fill both -expand yes
+                $g legend configure -hide yes
+                $g axis configure x -min 0 -max 10 -rotate $angle -title AXIS_RESIZE_TITLE
+                $g axis configure y -min 0 -max 10
+                update
+            } -body {
+                set original [$g svg output]
+                set before [expr {[string first AXIS_RESIZE_TITLE $original] >= 0}]
+                wm geometry .axisResize 120x100
+                update
+                # Recreate tick labels while layout is unusable, exercising
+                # their unmapped anchors as well as stale axis segments.
+                $g axis configure x -majorticks {1 2 3 4 5}
+                update
+                set small [$g svg output]
+                set absent [expr {[string first AXIS_RESIZE_TITLE $small] < 0}]
+                set picked {}
+                for {set y 0} {$y < 100} {incr y 5} {
+                    for {set x 0} {$x < 120} {incr x 5} {
+                        event generate $g <Motion> -x $x -y $y
+                        set name [$g axis get current]
+                        if {$name ne {}} {lappend picked $name}
+                    }
+                }
+                # Larger export uses temporary geometry and must restore
+                # the small screen layout afterwards.
+                set large [$g svg output -width 600 -height 400]
+                set smallAgain [$g svg output -width 0 -height 0]
+                wm geometry .axisResize 600x400
+                $g axis configure x -majorticks {}
+                update
+                set restored [$g svg output]
+                list $before $absent [expr {$picked eq {}}] \
+                        [expr {[string first AXIS_RESIZE_TITLE $large] >= 0}] \
+                        [expr {[string first AXIS_RESIZE_TITLE $smallAgain] < 0}] \
+                        [expr {$original eq $restored}]
+            } -cleanup {
+                destroy .axisResize
+            } -result {1 1 1 1 1 1}
+        }
+    }
+
 	cleanupTests
 }
