@@ -559,6 +559,8 @@ different output or lack the required output formats.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>doc
 </pre></div>
 </div>
+<p>The target builds the binaries and refreshes the build-directory Tcl runtime files before loading RBC, so changes
+to <code class="docutils literal notranslate"><span class="pre">library/graphtoolbar.tcl</span></code> are reflected without running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> first.</p>
 <p>The generator reads the <code class="docutils literal notranslate"><span class="pre">.ruff</span></code> sources and Tcl API documentation, writes Sphinx sources under <code class="docutils literal notranslate"><span class="pre">docs/sphinx</span></code>, builds
 HTML under <code class="docutils literal notranslate"><span class="pre">docs</span></code>, and generates the <code class="docutils literal notranslate"><span class="pre">.n</span></code> manual pages.</p>
 <p>Write documentation tables once, in Markdown. <code class="docutils literal notranslate"><span class="pre">docs/tableHelpers.tcl</span></code> expands the README and every selected

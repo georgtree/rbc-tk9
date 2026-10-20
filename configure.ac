@@ -89,8 +89,8 @@ if test -d "$DOC_SRCDIR"; then
             *) DOC_HTML_FILES="$DOC_HTML_FILES $b" ;;
         esac
     done
-    # Add everything from docs/_static and docs/assets recursively.
-    for d in _static assets; do
+    # Add HTML support files and the documentation image tree recursively.
+    for d in _static assets images; do
         if test -d "$DOC_SRCDIR/$d"; then
             for f in `find "$DOC_SRCDIR/$d" -type f -print`; do
                 rel=`echo "$f" | sed "s|^$DOC_SRCDIR/||"`

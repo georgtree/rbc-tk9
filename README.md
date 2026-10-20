@@ -603,6 +603,9 @@ From an in-tree build, run:
 make doc
 ```
 
+The target builds the binaries and refreshes the build-directory Tcl runtime files before loading RBC, so changes
+to `library/graphtoolbar.tcl` are reflected without running `make install` first.
+
 The generator reads the `.ruff` sources and Tcl API documentation, writes Sphinx sources under `docs/sphinx`, builds
 HTML under `docs`, and generates the `.n` manual pages.
 

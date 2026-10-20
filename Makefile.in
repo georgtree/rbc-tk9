@@ -237,7 +237,9 @@ demos:
 # end user machine when building from source.
 #========================================================================
 
-doc:
+# Documentation introspection loads the build-tree package via TCLLIBPATH.
+# Refresh its runtime scripts even when only install-binaries was run before.
+doc: binaries libraries
 	$(TCLSH) $(srcdir)/docs/doc_gen.tcl
 
 #  We don't have any docs to install, yet
@@ -260,11 +262,11 @@ install-libraries: libraries
 	@$(INSTALL_DATA_DIR) "$(DESTDIR)$(includedir)"
 	@echo "Installing header files in $(DESTDIR)$(includedir)"
 	@list='$(PKG_HEADERS)'; for i in $$list; do \
-	    echo "Installing $(srcdir)/$$i"; \
+	    echo " Install $(srcdir)/$$i $(DESTDIR)$(includedir)/`basename "$$i"`"; \
 	    $(INSTALL_DATA) "$(srcdir)/$$i" "$(DESTDIR)$(includedir)"; \
 	done
 	@list='$(PKG_STUB_SOURCES)'; for i in $$list; do \
-	    echo "Installing $(srcdir)/$$i"; \
+	    echo " Install $(srcdir)/$$i $(DESTDIR)$(includedir)/`basename "$$i"`"; \
 	    $(INSTALL_DATA) "$(srcdir)/$$i" "$(DESTDIR)$(includedir)"; \
 	done
 
@@ -279,7 +281,7 @@ install-libraries: libraries
 install-demos: demos
 	@echo "Installing demos in $(DESTDIR)$(pkglibdir)"
 	@list='$(PKG_TCL_DEMOS)'; for i in $$list; do \
-	    echo "Installing $$i"; \
+	    echo " Install $(srcdir)/$$i $(DESTDIR)$(pkglibdir)/$$i"; \
 	    subdir=`dirname $$i`; \
 	    mkdir -p "$(DESTDIR)$(pkglibdir)/$$subdir"; \
 	    $(INSTALL_DATA) "$(srcdir)/$$i" "$(DESTDIR)$(pkglibdir)/$$subdir"; \
@@ -294,12 +296,14 @@ install-doc:
 	@$(INSTALL_DATA_DIR) "$(DESTDIR)$(mandir)/mann"
 	@echo "Installing documentation in $(DESTDIR)$(mandir)"
 	@list='$(srcdir)/docs/*.n'; for i in $$list; do \
-	    echo "Installing $$i"; \
-	    $(INSTALL_DATA) $$i "$(DESTDIR)$(mandir)/mann" ; \
+	    test -f "$$i" || continue; \
+	    echo " Install $$i $(DESTDIR)$(mandir)/mann/`basename "$$i"`"; \
+	    $(INSTALL_DATA) "$$i" "$(DESTDIR)$(mandir)/mann" ; \
 	done
 	@$(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)"
 	@echo "Installing html documentation in $(DOC_INSTALL_DIR)"
 	@list='$(DOC_HTML_FILES)'; for p in $$list; do \
+	  case "$$p" in images/*|_images/*) continue ;; esac; \
 	  if test -f "$(srcdir)/docs/$$p"; then \
 	    d=`dirname "$$p"`; \
 	    if test "x$$d" != "x."; then \
@@ -309,15 +313,18 @@ install-doc:
 	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DOC_INSTALL_DIR)/$$p"; \
 	  fi; \
 	done
-	@set -e; for directory in images _images; do \
+# Discover images again: make doc may have generated them after configure.
+	@set -e; for directory in images; do \
 	  if test -d "$(srcdir)/docs/$$directory"; then \
 	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
 	    while IFS= read -r file; do \
 	      $(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)/`dirname "$$file"`"; \
+	      echo " Install $(srcdir)/docs/$$file $(DOC_INSTALL_DIR)/$$file"; \
 	      $(INSTALL_DATA) "$(srcdir)/docs/$$file" "$(DOC_INSTALL_DIR)/$$file"; \
 	    done; \
 	  fi; \
 	done
+	@echo " Install $(srcdir)/license.terms $(DOC_INSTALL_DIR)/license.terms"
 	@$(INSTALL_DATA) "$(srcdir)/license.terms" "$(DOC_INSTALL_DIR)/license.terms"
 
 test: binaries libraries $(TEST_CAPI_LIB)
@@ -521,7 +528,7 @@ install-lib-binaries: binaries
 	  fi; \
 	done
 	@if test "x$(SHARED_BUILD)" = "x1"; then \
-	    echo " Install pkgIndex.tcl $(DESTDIR)$(pkglibdir)"; \
+	    echo " Install pkgIndex.tcl $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"; \
 	    $(INSTALL_DATA) pkgIndex.tcl "$(DESTDIR)$(pkglibdir)"; \
 	fi
 
@@ -569,9 +576,10 @@ uninstall-doc:
 	  rm -f "$(DESTDIR)$(mandir)/mann/$$name"; \
 	done
 	@set -e; list='$(DOC_HTML_FILES) license.terms'; for p in $$list; do \
+	  case "$$p" in _images/*) continue ;; esac; \
 	  rm -f "$(DOC_INSTALL_DIR)/$$p"; \
 	done
-	@set -e; for directory in images _images; do \
+	@set -e; for directory in images; do \
 	  if test -d "$(srcdir)/docs/$$directory"; then \
 	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
 	    while IFS= read -r file; do \

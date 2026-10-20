@@ -101,7 +101,7 @@ foreach custom {0 1} {
             [file exists $extracted/Makefile.in]
     } -cleanup {
         file delete -force $installDist::work
-    } -result {1 1 1 1 0}
+    } -result {1 1 0 1 0}
 }
 
 test installDist-outside {directories outside prefix fail before staging installation} -setup {
@@ -125,10 +125,11 @@ test installDist-zip {ZIP contains the same installation files and cleanup remov
     set equal [expr {[installDist::Files $extracted] eq
         [installDist::Files [file join $build dist rbc0.5.0]]}]
     exec make -s -C $build dist-clean 2>@1
-    list $equal [glob -nocomplain -directory [file join $build dist] *]
+    list $equal [glob -nocomplain -directory [file join $build dist] *] \
+        [file exists $extracted/share/rbc0.5.0/doc/_images]
 } -cleanup {
     file delete -force $installDist::work
-} -result {1 {}}
+} -result {1 {} 0}
 
 test installDist-restage {new archive removes obsolete staged files and ignores outer DESTDIR} -setup {
     set build [installDist::Fixture]
@@ -224,5 +225,50 @@ test installDist-newlines {fixture writes CRLF input as LF without breaking make
 } -cleanup {
     file delete -force $installDist::work
 } -result {1 ok}
+
+test installDist-doc-refresh {make doc refreshes stale runtime scripts after install-binaries} -setup {
+    set build [installDist::Fixture]
+    installDist::Write [file join $build runtime.tcl] {old metadata}
+    installDist::Write [file join $installDist::work source library/runtime.tcl] {new metadata}
+    installDist::Write [file join $installDist::work source docs/doc_gen.tcl] {
+        set f [open runtime.tcl r]
+        set metadata [read $f]
+        close $f
+        set f [open generated.txt w]
+        puts -nonewline $f $metadata
+        close $f
+    }
+} -body {
+    exec make -s -C $build install-binaries DESTDIR=$installDist::work/stage 2>@1
+    exec make -s -C $build -j4 doc "TCLSH=[list [info nameofexecutable]]" 2>@1
+    installDist::Read [file join $build generated.txt]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {new metadata}
+
+test installDist-file-log {every installed file is logged, including late images and license} -setup {
+    set build [installDist::Fixture]
+    set stage $installDist::work/stage
+    installDist::Write [file join $installDist::work source docs/images/nested/new.gif] GIF
+    installDist::Write [file join $build helper.exe] EXE
+} -body {
+    set output [exec make -s -C $build install DESTDIR=$stage bin_BINARIES=helper.exe \
+            {DOC_HTML_FILES=index.html _static/site.css images/preview.png _images/plot.svg} 2>@1]
+    set missing {}
+    foreach file [installDist::Files $stage] {
+        if {[string first [file join $stage $file] $output] < 0} {
+            lappend missing $file
+        }
+    }
+    set image $stage/opt/rbc/share/rbc0.5.0/doc/images/preview.png
+    set count 0
+    foreach line [split $output \n] {
+        if {[string first $image $line] >= 0} {incr count}
+    }
+    list $missing $count [file exists $stage/opt/rbc/share/rbc0.5.0/doc/images/nested/new.gif] \
+        [file exists $stage/opt/rbc/share/rbc0.5.0/doc/_images]
+} -cleanup {
+    file delete -force $installDist::work
+} -result {{} 1 1 0}
 
 cleanupTests
