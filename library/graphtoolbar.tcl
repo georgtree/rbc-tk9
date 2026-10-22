@@ -114,8 +114,8 @@ namespace eval ::rbc::graphtoolbar {
 
         The toolbar frame still exists in context-menu mode but is neither populated nor managed.
 
-        `-controlmode both` (the default) provides the visible toolbar and the right-click context menu together. The toolbar
-        still follows `-toolbarside`; both control surfaces operate on the same graph and crosshair settings.
+        `-controlmode both` (the default) provides the visible toolbar and the right-click context menu together. The
+        toolbar still follows `-toolbarside`; both control surfaces operate on the same graph and crosshair settings.
         Right-click cancels an active zoom or pan before it can open the menu.
 
         The `exportMenu` subwidget is available in all control modes. Toolbar and both modes also expose

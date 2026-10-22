@@ -74,7 +74,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3aaxis20transform"><span class="std std-ref">transform</span></a></dt><dd><p>Converts a graph value to an integer window coordinate using the specified axis. <code class="docutils literal notranslate"><span class="pre">value</span></code> is evaluated as a Tcl numeric expression and must be finite. Values transformed through a logarithmic axis must be positive.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3aaxis20view"><span class="std std-ref">view</span></a></dt><dd><p>Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns normalized <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> selects an absolute fraction. <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by units or pages; a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for scrolling that number of units.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3aaxis20view"><span class="std std-ref">view</span></a></dt><dd><p>Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns normalized <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> selects an absolute fraction. <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by units or pages; a page is 90 percent of the current viewport. A single number is accepted as a compatibility shorthand for scrolling that number of units.</p>
 </dd>
 </dl>
 <p>Refer to the documentation of each subcommand for details.</p>
@@ -261,7 +261,7 @@ Tcl numeric expression and must be finite. Values transformed through a logarith
 <span id="r-symbolqz3a3arbc3a3aaxis20view"></span><span id="index-23"></span><span id="index-22"></span><h3><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">view</span></code><a class="headerlink" href="#axis-view" title="Link to this heading">¶</a></h3>
 <p>Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
 normalized <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> selects an absolute fraction. <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by units or pages;
-a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for
+a page is 90 percent of the current viewport. A single number is accepted as a compatibility shorthand for
 scrolling that number of units.</p>
 <pre class="literal-block"><strong>AXIS view</strong> <em>axisName</em>
 <strong>AXIS view</strong> <em>axisName moveto fraction</em>
@@ -277,7 +277,7 @@ scrolling that number of units.</p>
 <dd class="field-even"><p>Normalized position used by <code class="docutils literal notranslate"><span class="pre">moveto</span></code>.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">number</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Signed number of units or pages to scroll.</p>
+<dd class="field-odd"><p>Finite signed number of units or pages to scroll; fractional values are supported.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">what</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Scrolling unit; must be <code class="docutils literal notranslate"><span class="pre">units</span></code> or <code class="docutils literal notranslate"><span class="pre">pages</span></code>.</p>

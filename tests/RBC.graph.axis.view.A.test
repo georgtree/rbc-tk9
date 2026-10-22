@@ -118,6 +118,105 @@ namespace eval graph.axis {
         catch {destroy .graph1}
     }
 	
+    # Fractional scroll counts from wheel/touchpad bindings must not be
+    # truncated. Compare against an integer step without relying on DPI.
+    foreach widget {graph barchart stripchart} {
+        foreach axis {x y} {
+            foreach descending {no yes} {
+                foreach logarithmic {no yes} {
+                    test RBC.graph.axis.view.A.fraction.$widget.$axis.$descending.$logarithmic {
+                        fractional units, pages and shorthand preserve direction and viewport width
+                    } -setup {
+                        $widget .graph1 -width 500 -height 400 -leftmargin 80 -rightmargin 80 -topmargin 60 -bottommargin 60
+                        pack .graph1
+                        if {$logarithmic eq {yes}} {
+                            set limits {-min 100 -max 1000 -scrollmin 1 -scrollmax 1000000}
+                        } else {
+                            set limits {-min 40 -max 60 -scrollmin 0 -scrollmax 100}
+                        }
+                        .graph1 axis configure $axis -logscale $logarithmic -descending $descending {*}$limits
+                        update idletasks
+                    } -body {
+                        set checks {}
+                        foreach form {units pages shorthand} {
+                            .graph1 axis configure $axis {*}$limits
+                            update idletasks
+                            lassign [.graph1 axis view $axis] first last
+                            if {$form eq {shorthand}} {
+                                .graph1 axis view $axis 1
+                            } else {
+                                .graph1 axis view $axis scroll 1 $form
+                            }
+                            update idletasks
+                            set step [expr {[lindex [.graph1 axis view $axis] 0] - $first}]
+                            foreach count {0.5 -0.5 0.0 1.0} {
+                                .graph1 axis configure $axis {*}$limits
+                                update idletasks
+                                if {$form eq {shorthand}} {
+                                    .graph1 axis view $axis $count
+                                } else {
+                                    .graph1 axis view $axis scroll $count $form
+                                }
+                                update idletasks
+                                lassign [.graph1 axis view $axis] newFirst newLast
+                                lappend checks [expr {$step > 0 && abs($newFirst - $first - $count*$step) < 1e-10 &&
+                                                      abs(($newLast-$newFirst)-($last-$first)) < 1e-10}]
+                            }
+                        }
+                        expr {0 ni $checks}
+                    } -cleanup {
+                        destroy .graph1
+                    } -result 1
+                }
+            }
+        }
+    }
+
+    foreach form {units pages shorthand} {
+        foreach count {Inf -Inf NaN invalid {}} {
+            test RBC.graph.axis.view.A.invalid.$form.$count {
+                invalid scroll counts are rejected without changing the viewport
+            } -setup {
+                graph .graph1
+                pack .graph1
+                .graph1 axis configure x -min 40 -max 60 -scrollmin 0 -scrollmax 100
+                update idletasks
+            } -body {
+                set before [.graph1 axis view x]
+                if {$form eq {shorthand}} {
+                    set code [catch {.graph1 axis view x $count}]
+                } else {
+                    set code [catch {.graph1 axis view x scroll $count $form}]
+                }
+                update idletasks
+                list $code [expr {$before eq [.graph1 axis view x]}]
+            } -cleanup {
+                destroy .graph1
+            } -result {1 1}
+        }
+    }
+
+    test RBC.graph.axis.view.A.wheel {
+        a MouseWheel binding can pass a fractional count to axis view
+    } -setup {
+        graph .graph1 -width 500 -height 400
+        pack .graph1
+        .graph1 axis configure x -min 40 -max 60 -scrollmin 0 -scrollmax 100
+        set ::rbcWheelResult {}
+        bind .graph1 <MouseWheel> {
+            set ::rbcWheelResult [catch {%W axis view x scroll [expr {%D / 120.0}] units}]
+        }
+        update
+    } -body {
+        set before [lindex [.graph1 axis view x] 0]
+        event generate .graph1 <MouseWheel> -delta 60
+        update
+        list $::rbcWheelResult [expr {[lindex [.graph1 axis view x] 0] > $before}]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain ::rbcWheelResult
+    } -result {0 1}
+
 	cleanupTests
 	
 }

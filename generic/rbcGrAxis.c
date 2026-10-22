@@ -4299,7 +4299,7 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
     const char *s;
     unsigned int length;
     double offset;
-    int count;
+    double count;
     double fract;
 
     offset = *offsetPtr;
@@ -4309,17 +4309,21 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
     if ((c == 's') && (strncmp(s, "scroll", length) == 0)) {
         assert(objc == 3);
         /* scroll number unit/page */
-        if (Tcl_GetIntFromObj(interp, objv[1], &count) != TCL_OK) {
+        if (Tcl_GetDoubleFromObj(interp, objv[1], &count) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (!FINITE(count)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll count must be finite", -1));
             return TCL_ERROR;
         }
         s = Tcl_GetString(objv[2]);
         c = s[0];
         length = strlen(s);
         if ((c == 'u') && (strncmp(s, "units", length) == 0)) {
-            fract = (double)count * scrollUnits;
+            fract = count * scrollUnits;
         } else if ((c == 'p') && (strncmp(s, "pages", length) == 0)) {
             /* A page is 90% of the view-able window. */
-            fract = (double)count * windowSize * 0.9;
+            fract = count * windowSize * 0.9;
         } else {
             Rbc_AppendResultStrings(interp, "unknown \"scroll\" units \"", s, "\"", (char *)NULL);
             return TCL_ERROR;
@@ -4334,10 +4338,14 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
         offset = fract;
     } else {
         /* Treat like "scroll units" */
-        if (Tcl_GetInt(interp, s, &count) != TCL_OK) {
+        if (Tcl_GetDoubleFromObj(interp, objv[0], &count) != TCL_OK) {
             return TCL_ERROR;
         }
-        fract = (double)count * scrollUnits;
+        if (!FINITE(count)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll count must be finite", -1));
+            return TCL_ERROR;
+        }
+        fract = count * scrollUnits;
         offset += fract;
         /* CHECK THIS: return TCL_OK; */
     }

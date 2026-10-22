@@ -496,11 +496,11 @@ namespace eval ::rbc::AXIS {
     proc view {axisName args} {
         # Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
         # normalized `first last` fractions. `moveto` selects an absolute fraction. `scroll` moves by units or pages;
-        # a page is 90 percent of the current viewport. A single integer is accepted as a compatibility shorthand for
+        # a page is 90 percent of the current viewport. A single number is accepted as a compatibility shorthand for
         # scrolling that number of units.
         # axisName - name of the axis.
         # fraction - normalized position used by `moveto`.
-        # number - signed number of units or pages to scroll.
+        # number - finite signed number of units or pages to scroll; fractional values are supported.
         # what - scrolling unit; must be `units` or `pages`.
         # Returns: Two-element list `first last` when querying; nothing when changing the view.
         # Synopsis: axisName
