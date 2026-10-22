@@ -7008,7 +7008,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
     Rbc_RenderContext *strokeContext = NULL;
-    MarkerStroke stroke, runStyle;
+    MarkerStroke stroke, runStyle = {0};
     int canStroke;
 #ifdef WIN32
     Rbc_RenderTarget *renderTarget = NULL;
