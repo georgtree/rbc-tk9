@@ -3101,10 +3101,10 @@ namespace eval ::rbc::BARELEMENT {
         Different alignments and offsets within a group are also supported. Each element positions its own full
         interval, then the selected bar mode determines which part of that interval it occupies:
 
-        | Mode | Effect of mixed alignment or offset settings |
-        |------|---------------------------------------------|
-        | `aligned` | Each element takes its assigned group slice within its own interval. This can create gaps or overlaps between bars. |
-        | `stacked` | Y values still accumulate, but each segment uses its own horizontal interval. Segments can be staggered or separated horizontally. |
+        | Mode      | Effect of mixed alignment or offset settings                                                                                                             |
+        |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `aligned` | Each element takes its assigned group slice within its own interval. This can create gaps or overlaps between bars.                                      |
+        | `stacked` | Y values still accumulate, but each segment uses its own horizontal interval. Segments can be staggered or separated horizontally.                       |
         | `overlap` | Each element's interval receives the usual overlap-mode width reduction and slot displacement. Bars can overlap more, overlap less, or become separated. |
 
         Group membership continues to use the original X coordinates and axis pair, not the offset coordinates or
@@ -3126,10 +3126,31 @@ namespace eval ::rbc::BARELEMENT {
         logarithmic axes; bars whose lower X edge is non-positive are omitted. Automatic limits account for the shifted
         edges.
 
-        Value labels follow the mapped bars. Error bars remain referenced to the data coordinate: their X positions
-        (including explicit `-xlow` and `-xhigh` endpoints) are translated by `-baroffset`; `-baralign` does not change
-        their reference point. Reported data values and closest-element indices are unchanged. All rendering and export
-        backends use the same geometry.
+        ### Mixed alignment calculations
+        Consider two elements `a` and `b` at `x = 4`, with full width `2`, in `aligned` mode. With `a` created first
+        and `b` second in the default display order, `a` takes the lower-X half of its interval and `b` takes the
+        upper-X half. Each resulting bar has width `1`.
+
+        | Settings                                      | Element | Full interval | Actual bar interval |
+        |-----------------------------------------------|---------|---------------|---------------------|
+        | Both `center`, offset `0`                     | `a`     | `[3, 5]`      | `[3, 4]`            |
+        | Both `center`, offset `0`                     | `b`     | `[3, 5]`      | `[4, 5]`            |
+        | `a` right, `b` left; offsets `0`              | `a`     | `[2, 4]`      | `[2, 3]`            |
+        | `a` right, `b` left; offsets `0`              | `b`     | `[4, 6]`      | `[5, 6]`            |
+        | Both `center`; `a` offset `1`, `b` offset `0` | `a`     | `[4, 6]`      | `[4, 5]`            |
+        | Both `center`; `a` offset `1`, `b` offset `0` | `b`     | `[3, 5]`      | `[4, 5]`            |
+
+        The second pair leaves a gap from `3` to `5`; the last pair places both bars over `[4, 5]`. `-baralign left`
+        anchors the full interval, not necessarily the visible bar's left edge.
+
+        In `overlap` mode with `N` group members and full width `w`, the slot displacement is `w/(2*N)` and each bar's
+        width is `w*(N+1)/(2*N)`. With two centred bars at `x = 4` and `w = 2`, the intervals are `[3, 4.5]` and `[3.5,
+        5]`. Mixed settings apply these calculations separately to each element's own full interval. In `stacked` mode
+        each segment keeps its full horizontal interval while its Y value is added to the preceding stack total.
+
+        Value labels follow the mapped bars. Error-bar placement is selected with `-errorbarposition`, described
+        below. Reported data values and closest-element indices remain unchanged. All rendering and export backends
+        use the same geometry.
 
         ## Bar modes
         The graph widget's `-barmode` option controls how bars that occur at the same X coordinate are arranged.
@@ -3209,7 +3230,7 @@ namespace eval ::rbc::BARELEMENT {
 
         | Option               | Description                                                                                                                  |
         |----------------------|------------------------------------------------------------------------------------------------------------------------------|
-        | `-fillopacity value` | Sets bar fill opacity from 0.0 (no fill) to 1.0 (opaque); partial opacity requires Cairo or SVG. |
+        | `-fillopacity value` | Sets bar fill opacity from 0.0 (no fill) to 1.0 (opaque); partial opacity requires Cairo or SVG.                             |
         | `-foreground color`  | Sets the primary fill color of the bar. `-fg` is a synonym. The default is `blue`.                                           |
         | `-background color`  | Sets the 3-D border color and the background color used for opaque stippling. `-bg` is a synonym. The default is `navyblue`. |
         | `-borderwidth width` | Sets the non-negative width of the 3-D bar border. `-bd` is a synonym. The default is `2`.                                   |
@@ -3303,6 +3324,43 @@ namespace eval ::rbc::BARELEMENT {
 
         Error data may be Tcl lists or Rbc vector names.
 
+        ### Error-bar position
+        `-errorbarposition data|bar` is a bar-element option, not a pen option. The default `data` preserves the
+        historical placement: errors use the original data coordinates plus `-baroffset` in X, without following
+        alignment, individual group slots or accumulated stack heights.
+
+        With `bar`, errors follow the final bar placement. For original data `(x,y)`, final data-space bar
+        edges `L` and `R`, and placed data value `Y`, the translation is:
+
+        ```text
+        dx = (L + R)/2 - x
+        dy = Y - y
+        ```
+
+        `dx` includes alignment, explicit offset and group-slot displacement. `dy` is the preceding stack total in
+        stacked mode and zero otherwise. For downward bars, `Y` is the placed data endpoint before the rectangle
+        corners are swapped. A logarithmic baseline does not add an extra translation.
+
+        Both symmetric and explicit errors receive the same translation. X errors have their endpoints translated by
+        `dx` and their Y position by `dy`; Y errors have their X position translated by `dx` and endpoints translated
+        by `dy`. Explicit low/high values remain absolute coordinates in the original data frame, not distances from
+        the bar. Input lists and vectors are never modified.
+
+        For example, if `(x,y) = (4,3)` is stacked above a preceding total of `4`, its placed Y is `7`.
+        `-yerror 1` then spans `[6,8]`; `-ylow 2 -yhigh 5` spans `[6,9]`.
+        A grouped bar occupying `[3,4]` has centre `3.5`, so its errors receive `dx = -0.5`.
+
+        ```tcl
+        .b element configure first second -errorbarposition bar
+        # Restore historical placement without changing error data.
+        .b element configure first second -errorbarposition data
+        ```
+
+        Translations are additive in data coordinates, before logarithmic, descending or inverted-axis mapping.
+        On a logarithmic X axis this uses the arithmetic data-space centre, not the midpoint in screen pixels.
+        Errors belonging to bars with invalid placements are omitted in `bar` mode. Automatic axis limits include
+        translated endpoints.
+
         Examples:
         ```tcl
         .b element create values -x {1 2 3} -y {4 7 2} 
@@ -3315,12 +3373,13 @@ namespace eval ::rbc::BARELEMENT {
 
         Their appearance is controlled by:
 
-        | Option                 | Description                                                                                |
-        |------------------------|--------------------------------------------------------------------------------------------|
-        | `-showerrorbars value` | Selects whether X errors, Y errors, both, or neither are displayed. The default is `both`. |
-        | `-errorbarcolor color` | Sets the error-bar color. `defcolor` uses the normal bar color.                            |
-        | `-errorbarwidth width` | Sets the non-negative error-bar line width. The default is `1`.                            |
-        | `-errorbarcap width`   | Sets the non-negative requested cap width. The default is `1`.                             |
+        | Option                   | Description                                                                                |
+        |--------------------------|--------------------------------------------------------------------------------------------|
+        | `-showerrorbars value`   | Selects whether X errors, Y errors, both, or neither are displayed. The default is `both`. |
+        | `-errorbarposition mode` | Selects `data` (the default) or final `bar` placement. This is an element option.          |
+        | `-errorbarcolor color`   | Sets the error-bar color. `defcolor` uses the normal bar color.                            |
+        | `-errorbarwidth width`   | Sets the non-negative error-bar line width. The default is `1`.                            |
+        | `-errorbarcap width`     | Sets the non-negative requested cap width. The default is `1`.                             |
 
         If `-errorbarcap` is `0`, Rbc chooses a cap size from the rendered bar width.
 
@@ -3344,16 +3403,16 @@ namespace eval ::rbc::BARELEMENT {
 
         Label appearance is controlled by:
 
-        | Option                | Description                                                                |
-        |-----------------------|----------------------------------------------------------------------------|
-        | `-valueanchor anchor` | Sets the Tk anchor of the label. The default is `s`.                       |
-        | `-valuecolor color`   | Sets the label color. The default is black.                                |
-        | `-valuefont font`     | Sets the label font.                                                       |
-        | `-valuecommand cmd`   | Formats value labels with a Tcl command prefix. The default is empty.      |
-        | `-valueoffset {dx dy}` | Moves the label anchor by signed integer pixels. Default: `{0 0}`. |
-        | `-valueformat format` | Sets the printf-style floating-point format. The default is `%g`.          |
-        | `-valuerotate angle`  | Rotates the label by the specified angle in degrees. The default is `0.0`. |
-        | `-valueshadow shadow` | Specifies an optional text shadow. An empty value disables the shadow.     |
+        | Option                 | Description                                                                |
+        |------------------------|----------------------------------------------------------------------------|
+        | `-valueanchor anchor`  | Sets the Tk anchor of the label. The default is `s`.                       |
+        | `-valuecolor color`    | Sets the label color. The default is black.                                |
+        | `-valuefont font`      | Sets the label font.                                                       |
+        | `-valuecommand cmd`    | Formats value labels with a Tcl command prefix. The default is empty.      |
+        | `-valueoffset {dx dy}` | Moves the label anchor by signed integer pixels. Default: `{0 0}`.         |
+        | `-valueformat format`  | Sets the printf-style floating-point format. The default is `%g`.          |
+        | `-valuerotate angle`   | Rotates the label by the specified angle in degrees. The default is `0.0`. |
+        | `-valueshadow shadow`  | Specifies an optional text shadow. An empty value disables the shadow.     |
 
         The displayed value is always formatted from the original X and Y source coordinates, including for bars
         whose screen geometry has been aligned, overlapped, or stacked.
@@ -3438,6 +3497,7 @@ namespace eval ::rbc::BARELEMENT {
         | `-background color`     | `background`    | `Background`    | Sets the background color of bars and the color used for their 3-D border. The default is navy blue.                                                                                                              |
         | `-baralign mode` | `barAlign` | `BarAlign` | Anchors the full bar or group interval at its `center`, `left`, or `right` edge. The default is `center`. |
         | `-baroffset value` | `barOffset` | `BarOffset` | Translates bars and their error bars by a finite number of X-axis data units. The default is `0.0`. |
+        | `-errorbarposition mode` | `errorBarPosition` | `ErrorBarPosition` | Selects historical `data` placement (default) or translates errors to the final `bar` placement. |
         | `-barwidth value`       | `barWidth`      | `BarWidth`      | Specifies the width of bars for this element. A positive value overrides the graph widget's `-barwidth`; `0.0` uses the graph's bar width. The default is `0.0`.                                                  |
         | `-bd distance`          | —               | —               | Synonym for `-borderwidth`.                                                                                                                                                                                       |
         | `-bg color`             | —               | —               | Synonym for `-background`.                                                                                                                                                                                        |

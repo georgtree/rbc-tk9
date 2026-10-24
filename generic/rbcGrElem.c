@@ -2901,6 +2901,16 @@ void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr) {
 
 /* Apply a data-coordinate X translation without modifying source vectors. */
 void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, double xOffset) {
+    Rbc_ExpandErrorBarExtentsTranslated(elemPtr, extsPtr, xOffset, NULL);
+}
+
+/*
+ * Use per-point data-space translations when supplied. Non-finite translations
+ * suppress errors for omitted bars. Explicit endpoints and symmetric errors
+ * receive the same translation, without modifying any source vectors.
+ */
+void Rbc_ExpandErrorBarExtentsTranslated(Element *elemPtr, Extents2D *extsPtr, double xOffset,
+                                       const Point2D *offsets) {
     Tcl_Size nPoints;
     Tcl_Size n;
     Tcl_Size i;
@@ -2918,12 +2928,18 @@ void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, doubl
     if (elemPtr->xError.nValues > 0) {
         n = MIN(elemPtr->xError.nValues, nPoints);
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             double error;
             double high;
             double low;
             double x;
 
-            x = elemPtr->x.valueArr[i] + xOffset;
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            x = elemPtr->x.valueArr[i] + dx;
             error = elemPtr->xError.valueArr[i];
             if ((!FINITE(x)) || (!FINITE(error))) {
                 continue;
@@ -2950,11 +2966,17 @@ void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, doubl
     } else {
         n = MIN3(elemPtr->xHigh.nValues, elemPtr->xLow.nValues, nPoints);
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             double high;
             double low;
 
-            high = elemPtr->xHigh.valueArr[i] + xOffset;
-            low = elemPtr->xLow.valueArr[i] + xOffset;
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            high = elemPtr->xHigh.valueArr[i] + dx;
+            low = elemPtr->xLow.valueArr[i] + dx;
             if ((!FINITE(high)) || (!FINITE(low))) {
                 continue;
             }
@@ -2982,12 +3004,18 @@ void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, doubl
     if (elemPtr->yError.nValues > 0) {
         n = MIN(elemPtr->yError.nValues, nPoints);
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             double error;
             double high;
             double low;
             double y;
 
-            y = elemPtr->y.valueArr[i];
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            y = elemPtr->y.valueArr[i] + dy;
             error = elemPtr->yError.valueArr[i];
             if ((!FINITE(y)) || (!FINITE(error))) {
                 continue;
@@ -3014,11 +3042,17 @@ void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, doubl
     } else {
         n = MIN3(elemPtr->yHigh.nValues, elemPtr->yLow.nValues, nPoints);
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             double high;
             double low;
 
-            high = elemPtr->yHigh.valueArr[i];
-            low = elemPtr->yLow.valueArr[i];
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            high = elemPtr->yHigh.valueArr[i] + dy;
+            low = elemPtr->yLow.valueArr[i] + dy;
             if ((!FINITE(high)) || (!FINITE(low))) {
                 continue;
             }
@@ -3116,6 +3150,16 @@ void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle)
 
 /* Apply a data-coordinate X translation without modifying source vectors. */
 void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset) {
+    Rbc_MapErrorBarsTranslated(graphPtr, elemPtr, dataToStyle, xOffset, NULL);
+}
+
+/*
+ * Use per-point data-space translations when supplied. Non-finite translations
+ * suppress errors for omitted bars. Explicit endpoints and symmetric errors
+ * receive the same translation, without modifying any source vectors.
+ */
+void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset,
+                                const Point2D *offsets) {
     Extents2D exts;
     Tcl_Size n;
     Tcl_Size nPoints;
@@ -3143,14 +3187,20 @@ void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataTo
         segPtr = errorBars;
         indexPtr = errorToData;
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             PenStyle *stylePtr;
             double high;
             double low;
             double x;
             double y;
 
-            x = elemPtr->x.valueArr[i] + xOffset;
-            y = elemPtr->y.valueArr[i];
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            x = elemPtr->x.valueArr[i] + dx;
+            y = elemPtr->y.valueArr[i] + dy;
             stylePtr = dataToStyle[i];
             if (!FINITE(x) || !FINITE(y)) {
                 continue;
@@ -3159,8 +3209,8 @@ void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataTo
                 high = x + elemPtr->xError.valueArr[i];
                 low = x - elemPtr->xError.valueArr[i];
             } else {
-                high = elemPtr->xHigh.valueArr[i] + xOffset;
-                low = elemPtr->xLow.valueArr[i] + xOffset;
+                high = elemPtr->xHigh.valueArr[i] + dx;
+                low = elemPtr->xLow.valueArr[i] + dx;
             }
             if (!FINITE(high) || !FINITE(low)) {
                 continue;
@@ -3235,14 +3285,20 @@ void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataTo
         segPtr = errorBars;
         indexPtr = errorToData;
         for (i = 0; i < n; i++) {
+            double dx = (offsets != NULL) ? offsets[i].x : xOffset;
+            double dy = (offsets != NULL) ? offsets[i].y : 0.0;
             PenStyle *stylePtr;
             double high;
             double low;
             double x;
             double y;
 
-            x = elemPtr->x.valueArr[i] + xOffset;
-            y = elemPtr->y.valueArr[i];
+            if (!FINITE(dx) || !FINITE(dy)) {
+                continue;
+            }
+
+            x = elemPtr->x.valueArr[i] + dx;
+            y = elemPtr->y.valueArr[i] + dy;
             stylePtr = dataToStyle[i];
             if (!FINITE(x) || !FINITE(y)) {
                 continue;
@@ -3251,8 +3307,8 @@ void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataTo
                 high = y + elemPtr->yError.valueArr[i];
                 low = y - elemPtr->yError.valueArr[i];
             } else {
-                high = elemPtr->yHigh.valueArr[i];
-                low = elemPtr->yLow.valueArr[i];
+                high = elemPtr->yHigh.valueArr[i] + dy;
+                low = elemPtr->yLow.valueArr[i] + dy;
             }
             if (!FINITE(high) || !FINITE(low)) {
                 continue;

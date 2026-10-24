@@ -315,6 +315,31 @@ namespace eval TclTk9Upgrade {
         pieslice-fill workloads in all profiles. They report creation, already-mapped redraw and axis-remap
         timings for native and Cairo renderers. See `tests/benchmark/README.md` for case names and commands.
 
+        ### Bar alignment and error-bar positioning
+
+        Bar elements now support `-baralign center|left|right` and `-baroffset value`. These options control how the
+        full bar or group interval is positioned relative to each data X coordinate. Offsets are expressed in X-axis
+        data units. The defaults, `center` and `0.0`, preserve existing placement.
+
+        In `aligned` mode, alignment applies to the full group width before subdivision into individual bars. Different
+        alignments and offsets within a group are supported in `aligned`, `overlap` and `stacked` modes, allowing gaps,
+        additional overlap or staggered stacks. Group membership still uses the original X coordinates and axis pair.
+
+        Bar elements also support `-errorbarposition data|bar`:
+
+        - `data`, the default, preserves historical placement: errors use the original data coordinates plus
+        `-baroffset` in X.
+        - `bar` positions errors at the final bar centre in X and applies the accumulated stacking displacement in
+        Y. Alignment, offsets and group-slot placement are included.
+
+        The same translation applies to symmetric errors and explicit low/high bounds, without modifying their source
+        lists or vectors. Translation occurs in data coordinates before axis mapping, and automatic axis limits include
+        the translated error endpoints.
+
+        ```tcl
+        .g element configure first second -baralign left -baroffset 0.25 -errorbarposition bar
+        ```
+
         ### Arrowheads for line markers
         Line markers now support arrowheads through the `-arrow` and `-arrowshape` options.
 

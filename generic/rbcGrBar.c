@@ -95,6 +95,7 @@ typedef struct {
     int padX;                 /* Spacing on either side of bar */
     double barWidth;
     int barAlign;            /* Anchor of the full group interval. */
+    int errorBarPosition;    /* Data coordinates or final bar placement. */
     double barOffset;        /* Translation in data X coordinates. */
     Tcl_Size nActive;
     BarRectangle *activeRects;
@@ -160,6 +161,8 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 
 enum { BAR_ALIGN_CENTER, BAR_ALIGN_LEFT, BAR_ALIGN_RIGHT };
 
+static const char *const errorBarPositionNames[] = {"data", "bar", NULL};
+
 static const char *const barAlignNames[] = {"center", "left", "right", NULL};
 
 static const Tk_OptionSpec barElemOptionSpecs[] = {
@@ -181,6 +184,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_BUILTIN_PEN_OFFSET(borderWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_BAR_ERRORBAR_COLOR,
      BAR_BUILTIN_PEN_OFFSET(errorBarColorObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING_TABLE, "-errorbarposition", "errorBarPosition", "ErrorBarPosition", "data", -1,
+     offsetof(Bar, errorBarPosition), 0, errorBarPositionNames, BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_PIXELS, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
      BAR_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
@@ -1117,6 +1122,130 @@ static double BarAnchorOffset(const Bar *barPtr, double width) {
 }
 
 /*
+ * Compute the data-space corners before swapping downward bars or applying
+ * screen transforms. Consume the group slot/stack accumulator in display
+ * order. Axis limits use unclipped placements; mapping retains its existing
+ * viewport rejection. The first corner's Y remains the placed data value.
+ */
+static int PlaceBar(Graph *graphPtr, Bar *barPtr, Tcl_Size index, int clip,
+                    Point2D *firstPtr, Point2D *secondPtr) {
+    Point2D c1, c2;
+    FreqKey key;
+    double x = barPtr->core.x.valueArr[index];
+    double y = barPtr->core.y.valueArr[index];
+    double barWidth = (barPtr->barWidth > 0.0) ? barPtr->barWidth : graphPtr->barWidth;
+    double barOffset = BarAnchorOffset(barPtr, barWidth);
+    double baseline = GetBarBaseline(&barPtr->core);
+
+    if ((!FINITE(x)) || (!FINITE(y))) {
+        return FALSE;
+    }
+    c1.x = (x + barPtr->barOffset) - barOffset;
+    c2.x = c1.x + barWidth;
+    if ((!FINITE(c1.x)) || (!FINITE(c2.x)) ||
+        (barPtr->core.axes.x->logScale && (c1.x <= 0.0))) {
+        return FALSE;
+    }
+    if (barPtr->core.axes.y->logScale && (y <= 0.0)) {
+        return FALSE;
+    }
+    if (clip && (!barPtr->core.axes.x->logScale) &&
+        ((c1.x > barPtr->core.axes.x->axisRange.max) ||
+         (c2.x < barPtr->core.axes.x->axisRange.min))) {
+        return FALSE;
+    }
+    c1.y = y;
+    c2.y = baseline;
+    /*
+     * If the mode is "aligned" or "stacked" we need to adjust the
+     * x or y coordinates of the two corners.
+     */
+    if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
+        Tcl_HashEntry *hPtr;
+
+        key.value = (x == 0.0) ? 0.0 : x;
+        key.axes = barPtr->core.axes;
+        hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
+        if (hPtr != NULL) {
+            FreqInfo *infoPtr;
+            double slice, width;
+
+            infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
+            switch (graphPtr->mode) {
+            case MODE_STACKED: {
+                double previousY;
+                double stackedY;
+
+                previousY = infoPtr->lastY;
+                stackedY = c1.y + previousY;
+                /*
+                 * Do not let one overflowing stack value poison every subsequent
+                 * bar at this abscissa.
+                 */
+                if (!FINITE(stackedY)) {
+                    return FALSE;
+                }
+                /*
+                 * The stack accumulator starts at zero, because stacked values are
+                 * additive data quantities.  Zero itself cannot be drawn on a
+                 * logarithmic axis, so use the effective log-bar baseline
+                 * only as the lower edge of the first visible stacked segment.
+                 */
+                if (barPtr->core.axes.y->logScale && (previousY <= 0.0)) {
+                    c2.y = baseline;
+
+                } else {
+                    c2.y = previousY;
+                }
+                c1.y = stackedY;
+                infoPtr->lastY = stackedY;
+            } break;
+            case MODE_ALIGNED:
+                infoPtr->count++;
+                slice = barWidth / (double)infoPtr->freq;
+                c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
+                c2.x = c1.x + slice;
+                break;
+            case MODE_OVERLAP:
+                infoPtr->count++;
+                slice = barWidth / ((double)infoPtr->freq * 2.0);
+                width = slice * ((double)infoPtr->freq + 1.0);
+                c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
+                c2.x = c1.x + width;
+                break;
+            case MODE_INFRONT:
+                break;
+            }
+        }
+    }
+    *firstPtr = c1;
+    *secondPtr = c2;
+    return TRUE;
+}
+
+/* Per-point translations; NaN marks a point with no drawable placement. */
+static Point2D *NewBarErrorOffsets(Tcl_Size nPoints) {
+    Point2D *offsets;
+    size_t bytes;
+    Tcl_Size i;
+
+    if (GetBarArrayByteCount(nPoints, sizeof(*offsets), &bytes) != TCL_OK) {
+        return NULL;
+    }
+    offsets = ckalloc(bytes);
+    for (i = 0; i < nPoints; i++) {
+        offsets[i].x = offsets[i].y = NAN;
+    }
+    return offsets;
+}
+
+static void SetBarErrorOffset(Bar *barPtr, Tcl_Size index, const Point2D *firstPtr,
+                              const Point2D *secondPtr, Point2D *offsets) {
+    offsets[index].x = firstPtr->x * 0.5 + secondPtr->x * 0.5 - barPtr->core.x.valueArr[index];
+    offsets[index].y = firstPtr->y - barPtr->core.y.valueArr[index];
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * GetBarExtents --
@@ -1139,7 +1268,8 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Graph *graphPtr = elemPtr->graphPtr;
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
     double anchorOffset, barWidth, baseline;
-    Tcl_Size nPoints;
+    Tcl_Size nPoints, i;
+    Point2D *errorOffsets = NULL;
 
     extsPtr->top = extsPtr->left = DBL_MAX;
     extsPtr->bottom = extsPtr->right = -DBL_MAX;
@@ -1207,7 +1337,22 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
             extsPtr->top = 0.0;
         }
     }
-    Rbc_ExpandErrorBarExtentsOffset(elemPtr, extsPtr, barPtr->barOffset);
+    if (barPtr->errorBarPosition) {
+        errorOffsets = NewBarErrorOffsets(nPoints);
+    }
+    for (i = 0; i < nPoints; i++) {
+        Point2D first, second;
+
+        if (PlaceBar(graphPtr, barPtr, i, FALSE, &first, &second) && (errorOffsets != NULL)) {
+            SetBarErrorOffset(barPtr, i, &first, &second, errorOffsets);
+        }
+    }
+    if (errorOffsets != NULL) {
+        Rbc_ExpandErrorBarExtentsTranslated(elemPtr, extsPtr, 0.0, errorOffsets);
+        ckfree(errorOffsets);
+    } else if (!barPtr->errorBarPosition) {
+        Rbc_ExpandErrorBarExtentsOffset(elemPtr, extsPtr, barPtr->barOffset);
+    }
 }
 
 /*
@@ -1650,14 +1795,10 @@ static void ResetBar(Bar *barPtr) {
  */
 static void MapBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
-    FreqKey key;
     PenStyle **dataToStyle;
     Point2D c1, c2; /* Two opposite corners of the rectangle
                      * in graph coordinates. */
-    const double *x;
-    const double *y;
-    double barWidth, barOffset;
-    double baseline;
+    Point2D *errorOffsets = NULL;
     double dx, dy;
     Tcl_Size *rectToData; /* Maps rectangles to data point indices */
     int height;
@@ -1682,12 +1823,9 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         (GetBarArrayByteCount(nPoints, sizeof(*rectToData), &rectToDataBytes) != TCL_OK)) {
         return;
     }
-    barWidth = graphPtr->barWidth;
-    if (barPtr->barWidth > 0.0) {
-        barWidth = barPtr->barWidth;
+    if (barPtr->errorBarPosition) {
+        errorOffsets = NewBarErrorOffsets(nPoints);
     }
-    baseline = GetBarBaseline(elemPtr);
-    barOffset = BarAnchorOffset(barPtr, barWidth);
     /*
      * Create an array of rectangles representing the screen coordinates
      * of all the segments in the bar.
@@ -1695,89 +1833,13 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     rectangles = ckalloc(rectanglesBytes);
     rectToData = ckalloc(rectToDataBytes);
     rectPtr = rectangles;
-    x = barPtr->core.x.valueArr, y = barPtr->core.y.valueArr;
     count = 0;
     for (i = 0; i < nPoints; i++) {
-        if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
+        if (!PlaceBar(graphPtr, barPtr, i, TRUE, &c1, &c2)) {
             continue;
         }
-        c1.x = (x[i] + barPtr->barOffset) - barOffset;
-        c2.x = c1.x + barWidth;
-        if ((!FINITE(c1.x)) || (!FINITE(c2.x)) ||
-            (barPtr->core.axes.x->logScale && (c1.x <= 0.0))) {
-            continue;
-        }
-        if (barPtr->core.axes.y->logScale && (y[i] <= 0.0)) {
-            continue;
-        }
-        if ((!barPtr->core.axes.x->logScale) &&
-            ((c1.x > barPtr->core.axes.x->axisRange.max) ||
-             (c2.x < barPtr->core.axes.x->axisRange.min))) {
-            continue;
-        }
-        c1.y = y[i];
-        c2.y = baseline;
-        /*
-         * If the mode is "aligned" or "stacked" we need to adjust the
-         * x or y coordinates of the two corners.
-         */
-        if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
-            Tcl_HashEntry *hPtr;
-
-            key.value = (x[i] == 0.0) ? 0.0 : x[i];
-            key.axes = barPtr->core.axes;
-            hPtr = Tcl_FindHashEntry(&(graphPtr->freqTable), (char *)&key);
-            if (hPtr != NULL) {
-                FreqInfo *infoPtr;
-                double slice, width;
-
-                infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
-                switch (graphPtr->mode) {
-                case MODE_STACKED: {
-                    double previousY;
-                    double stackedY;
-
-                    previousY = infoPtr->lastY;
-                    stackedY = c1.y + previousY;
-                    /*
-                     * Do not let one overflowing stack value poison every subsequent
-                     * bar at this abscissa.
-                     */
-                    if (!FINITE(stackedY)) {
-                        continue;
-                    }
-                    /*
-                     * The stack accumulator starts at zero, because stacked values are
-                     * additive data quantities.  Zero itself cannot be drawn on a
-                     * logarithmic axis, so use the effective log-bar baseline
-                     * only as the lower edge of the first visible stacked segment.
-                     */
-                    if (barPtr->core.axes.y->logScale && (previousY <= 0.0)) {
-                        c2.y = baseline;
-
-                    } else {
-                        c2.y = previousY;
-                    }
-                    c1.y = stackedY;
-                    infoPtr->lastY = stackedY;
-                } break;
-                case MODE_ALIGNED:
-                    infoPtr->count++;
-                    slice = barWidth / (double)infoPtr->freq;
-                    c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
-                    c2.x = c1.x + slice;
-                    break;
-                case MODE_OVERLAP:
-                    infoPtr->count++;
-                    slice = barWidth / ((double)infoPtr->freq * 2.0);
-                    width = slice * ((double)infoPtr->freq + 1.0);
-                    c1.x += slice * (double)(infoPtr->freq - infoPtr->count);
-                    c2.x = c1.x + width;
-                    break;
-                case MODE_INFRONT:
-                    break;
-                }
-            }
+        if (errorOffsets != NULL) {
+            SetBarErrorOffset(barPtr, i, &c1, &c2, errorOffsets);
         }
         invertBar = FALSE;
         if (c1.y < c2.y) {
@@ -1868,7 +1930,14 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     if (((barPtr->core.yHigh.nValues > 0) && (barPtr->core.yLow.nValues > 0)) ||
         ((barPtr->core.xHigh.nValues > 0) && (barPtr->core.xLow.nValues > 0)) || (barPtr->core.xError.nValues > 0) ||
         (barPtr->core.yError.nValues > 0)) {
-        Rbc_MapErrorBarsOffset(graphPtr, &barPtr->core, dataToStyle, barPtr->barOffset);
+        if (errorOffsets != NULL) {
+            Rbc_MapErrorBarsTranslated(graphPtr, &barPtr->core, dataToStyle, 0.0, errorOffsets);
+        } else if (!barPtr->errorBarPosition) {
+            Rbc_MapErrorBarsOffset(graphPtr, &barPtr->core, dataToStyle, barPtr->barOffset);
+        }
+    }
+    if (errorOffsets != NULL) {
+        ckfree(errorOffsets);
     }
     MergePens(barPtr, dataToStyle);
     ckfree((char *)dataToStyle);

@@ -43,15 +43,23 @@ proc CustomHeader {w graph} {
         $graph graph configure -barmode $barMode
     } 
     ttk::label $w.normallabel -justify left -text {Bars are overlayed one on top of the next.}
+    ttk::checkbutton $w.errorposition -text {Error bars follow final bar placement} \
+        -variable errorBarPosition -onvalue bar -offvalue data -command {
+            $graph graph element configure {*}[$graph graph element names] -errorbarposition $errorBarPosition
+        }
+    ttk::label $w.errorlabel -text {Setup, Other, Load: symmetric errors; Read In, Solve: explicit bounds.} -wraplength 600
     grid $w.title -columnspan 2 -sticky ew
     grid $w.stacked $w.stackedlabel -sticky w -padx 15
     grid $w.aligned $w.alignedlabel -sticky w -padx 15
     grid $w.overlap $w.overlaplabel -sticky w -padx 15
     grid $w.normal $w.normallabel -sticky w -padx 15 -pady {0 10}
     grid configure $w.stackedlabel $w.alignedlabel $w.overlaplabel $w.normallabel -padx {20 0}
+    grid $w.errorposition -columnspan 2 -sticky w -padx 15
+    grid $w.errorlabel -columnspan 2 -sticky w -padx 15 -pady {0 10}
     return $w
 }
 set barMode stacked
+set errorBarPosition bar
 set graph .bc
 CustomHeader .header .bc
 ExpandableText .details 800 {Availible actions} {
@@ -150,6 +158,26 @@ foreach {label yData fg bg stipple bd align} $attributes {
     $barchart graph element create $yData -label $label -bd $bd -y $yData -x X -fg {} -bg $bg -baralign $align\
             -stipple @$DemoDir/stipples/${stipple}.xbm
 }
+
+### Demonstrate both error-data interfaces. Bounds are in the original data frame.
+foreach yData {Y1 Y4 Y2} {
+    set errors {}
+    foreach value [$yData range 0 end] {
+        lappend errors [expr {0.15 * $value}]
+    }
+    $barchart graph element configure $yData -yerror $errors
+}
+foreach yData {Y0 Y3} {
+    set low {}
+    set high {}
+    foreach value [$yData range 0 end] {
+        lappend low [expr {0.9 * $value}]
+        lappend high [expr {1.2 * $value}]
+    }
+    $barchart graph element configure $yData -ylow $low -yhigh $high
+}
+$barchart graph element configure {*}[$barchart graph element names] \
+    -errorbarposition $errorBarPosition -errorbarcolor black -errorbarwidth 2 -errorbarcap 8
 
 ### Initial configuration.
 $barchart graph configure -barmode $barMode

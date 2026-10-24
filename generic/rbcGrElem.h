@@ -369,6 +369,10 @@ PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);
 void Rbc_ExpandErrorBarExtentsOffset(Element *elemPtr, Extents2D *extsPtr, double xOffset);
+void Rbc_ExpandErrorBarExtentsTranslated(Element *elemPtr, Extents2D *extsPtr, double xOffset,
+                                       const Point2D *offsets);
+void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset,
+                               const Point2D *offsets);
 void Rbc_MapErrorBarsOffset(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle, double xOffset);
 int Rbc_GetValueOffset(Tcl_Interp *interp, Tcl_Obj *objPtr, Point2D *offsetPtr);
 int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr);

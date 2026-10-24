@@ -160,8 +160,8 @@ namespace eval barchart.bar {
                             .ba element configure b -baralign $bAlign -baroffset $bOffset
                             lassign [dict get $edges $mode] aLeft aRight bLeft bRight
                             set aY [expr {$mode eq "stacked" ? 4 : 1}]
-                            set result [list [AlignmentBounds a $aLeft $aRight $aY] \
-                                [AlignmentBounds b $bLeft $bRight 1]]
+                            set result [list [AlignmentBounds a $aLeft $aRight $aY]\
+                                                [AlignmentBounds b $bLeft $bRight 1]]
                             # Returning to matching settings restores the conventional layout.
                             .ba element configure a b -baralign center -baroffset 0
                             switch $mode {
@@ -170,9 +170,9 @@ namespace eval barchart.bar {
                                 stacked {set ordinary {3 5 3 5}}
                             }
                             lassign $ordinary aLeft aRight bLeft bRight
-                            lappend result [AlignmentBounds a $aLeft $aRight $aY] \
-                                [AlignmentBounds b $bLeft $bRight 1] \
-                                [.ba element cget a -data] [.ba element cget b -data]
+                            lappend result [AlignmentBounds a $aLeft $aRight $aY]\
+                                    [AlignmentBounds b $bLeft $bRight 1] [.ba element cget a -data]\
+                                    [.ba element cget b -data]
                             set result
                         } -cleanup {destroy .ba} -result {1 1 1 1 {4 3} {4 3}}
                     }
@@ -224,16 +224,25 @@ namespace eval barchart.bar {
         } -cleanup {destroy .ba} -result {1 1 1 1}
     }
 
+    proc AlignmentExport {format args} {
+        set document [.ba $format output {*}$args]
+        # Export geometry comparisons must not depend on the current second.
+        if {$format eq "postscript"} {
+            regsub -line {^%%CreationDate:.*$} $document {%%CreationDate: ignored} document
+        }
+        return $document
+    }
+
     foreach format {svg postscript pdf} {
         test RBC.barchart.bar.align-export-$format {exports remap alignment and restore the original geometry} -setup {
             AlignmentCreate barchart 0 0 0
         } -body {
-            set original [.ba $format output]
+            set original [AlignmentExport $format]
             .ba element configure a -baralign left -baroffset 1
-            set shifted [.ba $format output]
+            set shifted [AlignmentExport $format]
             set bounds [AlignmentBounds a 5 7 1]
             .ba element configure a -baralign center -baroffset 0
-            set restored [.ba $format output]
+            set restored [AlignmentExport $format]
             list [expr {$original ne $shifted}] [expr {$original eq $restored}] $bounds
         } -cleanup {destroy .ba} -result {1 1 1}
     }
@@ -292,6 +301,236 @@ namespace eval barchart.bar {
     } -body {
         AlignmentBounds a 1 3 -1
     } -cleanup {destroy .ba} -result 1
+
+
+    # Read only the uniquely coloured error strokes, independently of bar fills.
+    proc ErrorSegments {} {
+        set result {}
+        foreach line [split [.ba svg output] \n] {
+            if {[string first {stroke="#ff00ff"} $line] < 0} {
+                continue
+            }
+            if {[regexp {<polyline points="([^"]+)"} $line -> points]} {
+                lappend result [string map {, { }} [string trim $points]]
+            }
+        }
+        return $result
+    }
+
+    proc ErrorSegmentMatches {segment x1 y1 x2 y2} {
+        if {[llength $segment] != 4} {return 0}
+        set expected [concat [.ba transform $x1 $y1] [.ba transform $x2 $y2]]
+        foreach actual $segment wanted $expected {
+            # The public transform command rounds to integer pixels.
+            if {abs($actual-$wanted) > 0.51} {return 0}
+        }
+        return 1
+    }
+
+    foreach kind {graph barchart stripchart} {
+        foreach mode {normal aligned overlap stacked} {
+            foreach errors {symmetric explicit} {
+                foreach inverted {0 1} {
+                    foreach logarithmic {0 1} {
+                        test RBC.barchart.bar.errorposition-$kind-$mode-$errors-$inverted-$logarithmic {
+                            final placement translates symmetric and explicit endpoints before axis mapping
+                        } -setup {
+                            AlignmentCreate $kind $inverted 1 $logarithmic
+                            .ba axis configure x -min 1 -max 9
+                            .ba axis configure y -min 0.1 -max 15 -logscale $logarithmic
+                            .ba configure -barmode $mode
+                            .ba element configure a -baralign right -baroffset 1 -errorbarcolor magenta
+                            .ba bar create b -data {4 4} -baralign left -baroffset -0.5 -borderwidth 0
+                            if {$errors eq "symmetric"} {
+                                .ba element configure a -xerror 0.4 -yerror 0.6
+                                set xlo -0.4; set xhi 0.4; set ylo -0.6; set yhi 0.6
+                            } else {
+                                .ba element configure a -xlow 3.2 -xhigh 4.5 -ylow 2 -yhigh 4.5
+                                set xlo -0.8; set xhi 0.5; set ylo -1; set yhi 1.5
+                            }
+                        } -body {
+                            set default [ErrorSegments]
+                            set result [list [.ba element cget a -errorbarposition]]
+                            foreach position {bar data bar} {
+                                .ba element configure a -errorbarposition $position
+                                if {$position eq "data"} {
+                                    set cx 5; set cy 3
+                                } else {
+                                    set cx [dict get {normal 4 aligned 3.5 overlap 3.75 stacked 4} $mode]
+                                    set cy [expr {$mode eq "stacked" ? 7 : 3}]
+                                }
+                                set segments [ErrorSegments]
+                                lappend result [ErrorSegmentMatches [lindex $segments 0] [expr {$cx+$xhi}] $cy\
+                                                        [expr {$cx+$xlo}] $cy]\
+                                        [ErrorSegmentMatches [lindex $segments 3] $cx [expr {$cy+$yhi}] $cx\
+                                                 [expr {$cy+$ylo}]]
+                                if {$position eq "data"} {
+                                    lappend result [expr {$segments eq $default}]
+                                }
+                            }
+                            lappend result [.ba element cget a -data]
+                            set result
+                        } -cleanup {destroy .ba} -result {data 1 1 1 1 1 1 1 {4 3}}
+                    }
+                }
+            }
+        }
+    }
+
+    test RBC.barchart.bar.errorposition-options {metadata and invalid configuration retain the previous setting}\
+            -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba element configure a -errorbarposition bar
+    } -body {
+        list [lrange [.ba element configure a -errorbarposition] 1 3] \
+                [catch {.ba element configure a -errorbarposition invalid}] [.ba element cget a -errorbarposition]
+    } -cleanup {destroy .ba} -result {{errorBarPosition ErrorBarPosition data} 1 bar}
+
+    foreach errors {symmetric explicit} {
+        test RBC.barchart.bar.errorposition-limits-$errors\
+                {automatic limits include translated stacked and horizontal endpoints} -setup {
+            AlignmentCreate barchart 0 0 0
+            .ba configure -barmode stacked
+            .ba bar create b -data {4 4}
+            .ba element configure a -baralign left -baroffset 1 -errorbarposition bar
+            .ba axis configure x -min {} -max {}
+            .ba axis configure y -min {} -max {}
+            if {$errors eq "symmetric"} {
+                .ba element configure a -xerror 3 -yerror 2
+            } else {
+                .ba element configure a -xlow 1 -xhigh 7 -ylow 1 -yhigh 5
+            }
+        } -body {
+            update
+            lassign [.ba axis limits x] xmin xmax
+            lassign [.ba axis limits y] ymin ymax
+            list [expr {$xmin <= 3 && $xmax >= 9 && $ymax >= 9}] [.ba element cget a -data]
+        } -cleanup {destroy .ba} -result {1 {4 3}}
+    }
+
+    test RBC.barchart.bar.errorposition-negative {negative stacked values translate before corner swapping} -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba axis configure y -min -12 -max 1
+        .ba configure -barmode stacked
+        .ba element configure a -data {4 -3} -yerror 1 -errorbarposition bar -errorbarcolor magenta
+        .ba bar create b -data {4 -4}
+    } -body {
+        ErrorSegmentMatches [lindex [ErrorSegments] 0] 4 -6 4 -8
+    } -cleanup {destroy .ba} -result 1
+
+    test RBC.barchart.bar.errorposition-membership {hiding and reordering bars recomputes error placement} -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba axis configure y -max 12
+        .ba configure -barmode stacked
+        .ba element configure a -yerror 1 -errorbarposition bar -errorbarcolor magenta
+        .ba bar create b -data {4 4}
+    } -body {
+        set result [list [ErrorSegmentMatches [lindex [ErrorSegments] 0] 4 8 4 6]]
+        .ba element configure b -hide yes
+        lappend result [ErrorSegmentMatches [lindex [ErrorSegments] 0] 4 4 4 2]
+        .ba element configure b -hide no
+        .ba element show {a b}
+        lappend result [ErrorSegmentMatches [lindex [ErrorSegments] 0] 4 4 4 2]
+        set result
+    } -cleanup {destroy .ba} -result {1 1 1}
+
+    foreach format {svg postscript pdf} {
+        test RBC.barchart.bar.errorposition-export-$format {export honours the option and resizing restores placement}\
+                -setup {
+            AlignmentCreate barchart 0 0 0
+            .ba configure -barmode aligned
+            .ba element configure a -yerror 1 -errorbarcolor magenta
+            .ba bar create b -data {4 4}
+        } -body {
+            set old [AlignmentExport $format]
+            .ba element configure a -errorbarposition bar
+            set placed [AlignmentExport $format]
+            set enlarged [AlignmentExport $format -width 800 -height 600]
+            set restored [AlignmentExport $format -width 600 -height 400]
+            list [expr {$old ne $placed}] [expr {$enlarged ne $placed}] [expr {$placed eq $restored}]
+        } -cleanup {destroy .ba} -result {1 1 1}
+    }
+
+
+    test RBC.barchart.bar.errorposition-perpoint\
+            {different group sizes and vector updates retain per-point translations} -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba configure -barmode aligned
+        .ba axis configure y -max 12
+        ::rbc::vector create barErrorY
+        barErrorY set {3 5}
+        .ba element configure a -xdata {4 7} -ydata barErrorY -baralign left -baroffset 0.5 -yerror {1 2}\
+                -errorbarposition bar -errorbarcolor magenta
+        .ba bar create b -data {4 4}
+    } -body {
+        set segments [ErrorSegments]
+        set result [list [ErrorSegmentMatches [lindex $segments 0] 5 4 5 2]\
+                            [ErrorSegmentMatches [lindex $segments 3] 8.5 7 8.5 3]]
+        barErrorY set {6 8}
+        set segments [ErrorSegments]
+        lappend result [ErrorSegmentMatches [lindex $segments 0] 5 7 5 5]\
+                [ErrorSegmentMatches [lindex $segments 3] 8.5 10 8.5 6]
+        .ba element configure a -yerror {1}
+        lappend result [llength [ErrorSegments]] [barErrorY range 0 end]
+        set result
+    } -cleanup {
+        destroy .ba
+        ::rbc::vector destroy barErrorY
+    } -result {1 1 1 1 3 {6.0 8.0}}
+
+    test RBC.barchart.bar.errorposition-invalid-log {errors for invalid logarithmic bar placements are omitted} -setup {
+        AlignmentCreate barchart 0 0 1
+        .ba element configure a -data {0.5 3} -yerror 1 -errorbarcolor magenta -errorbarposition bar
+    } -body {
+        set result [list [llength [ErrorSegments]]]
+        .ba element configure a -baralign left
+        lappend result [ErrorSegmentMatches [lindex [ErrorSegments] 0] 1.5 4 1.5 2]
+        set result
+    } -cleanup {destroy .ba} -result {0 1}
+
+    ::rbc::graph .barErrorProbe
+    set code [catch {.barErrorProbe configure -renderer cairo} message]
+    destroy .barErrorProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {
+        error $message
+    }
+    testConstraint barErrorCairo [expr {!$code}]
+    foreach renderer {native cairo} {
+        set constraints {}
+        if {$renderer eq "cairo"} {
+            set constraints barErrorCairo
+        }
+        test RBC.barchart.bar.errorposition-screen-$renderer {screen errors move between data and group-slot positions}\
+            -constraints $constraints -setup {
+                AlignmentCreate barchart 0 0 0
+                .ba configure -renderer $renderer -barmode aligned
+                .ba element configure a -yerror 1 -errorbarcolor magenta -errorbarwidth 3
+                .ba bar create b -data {4 4}
+                set photo [image create photo]
+            } -body {
+                set result {}
+                foreach {position cx} {data 4 bar 3.5 data 4} {
+                    .ba element configure a -errorbarposition $position
+                    update
+                    .ba snap $photo
+                    lassign [.ba transform $cx 3.5] px py
+                    set found 0
+                    for {set dx -2} {$dx <= 2} {incr dx} {
+                        for {set dy -2} {$dy <= 2} {incr dy} {
+                            lassign [$photo get [expr {round($px)+$dx}] [expr {round($py)+$dy}]] red green blue
+                            if {$red > 200 && $blue > 200 && $green < 80} {
+                                set found 1
+                            }
+                        }
+                    }
+                    lappend result $found
+                }
+                set result
+            } -cleanup {
+                destroy .ba
+                image delete $photo
+            } -result {1 1 1}
+    }
 
 
 	cleanupTests

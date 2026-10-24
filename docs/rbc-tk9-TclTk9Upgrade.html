@@ -329,6 +329,26 @@ native dashes can restart after leaving and re-entering the plot.</p>
 pieslice-fill workloads in all profiles. They report creation, already-mapped redraw and axis-remap
 timings for native and Cairo renderers. See <code class="docutils literal notranslate"><span class="pre">tests/benchmark/README.md</span></code> for case names and commands.</p>
 </section>
+<section id="bar-alignment-and-error-bar-positioning">
+<span id="r-tcltk9upgrade-bar-alignment-and-error-bar-positioning"></span><span id="r-3a3atcltk9upgradeqzbar20alignment20and20error2dbar20positioning"></span><h3>Bar alignment and error-bar positioning<a class="headerlink" href="#bar-alignment-and-error-bar-positioning" title="Link to this heading">¶</a></h3>
+<p>Bar elements now support <code class="docutils literal notranslate"><span class="pre">-baralign</span> <span class="pre">center|left|right</span></code> and <code class="docutils literal notranslate"><span class="pre">-baroffset</span> <span class="pre">value</span></code>. These options control how the
+full bar or group interval is positioned relative to each data X coordinate. Offsets are expressed in X-axis
+data units. The defaults, <code class="docutils literal notranslate"><span class="pre">center</span></code> and <code class="docutils literal notranslate"><span class="pre">0.0</span></code>, preserve existing placement.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">aligned</span></code> mode, alignment applies to the full group width before subdivision into individual bars. Different
+alignments and offsets within a group are supported in <code class="docutils literal notranslate"><span class="pre">aligned</span></code>, <code class="docutils literal notranslate"><span class="pre">overlap</span></code> and <code class="docutils literal notranslate"><span class="pre">stacked</span></code> modes, allowing gaps,
+additional overlap or staggered stacks. Group membership still uses the original X coordinates and axis pair.</p>
+<p>Bar elements also support <code class="docutils literal notranslate"><span class="pre">-errorbarposition</span> <span class="pre">data|bar</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>, the default, preserves historical placement: errors use the original data coordinates plus <code class="docutils literal notranslate"><span class="pre">-baroffset</span></code> in X.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bar</span></code> positions errors at the final bar centre in X and applies the accumulated stacking displacement in Y. Alignment, offsets and group-slot placement are included.</p></li>
+</ul>
+<p>The same translation applies to symmetric errors and explicit low/high bounds, without modifying their source
+lists or vectors. Translation occurs in data coordinates before axis mapping, and automatic axis limits include
+the translated error endpoints.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>first<span class="w"> </span>second<span class="w"> </span><span class="o">-</span>baralign<span class="w"> </span>left<span class="w"> </span><span class="o">-</span>baroffset<span class="w"> </span><span class="mf">0.25</span><span class="w"> </span><span class="o">-</span>errorbarposition<span class="w"> </span>bar
+</pre></div>
+</div>
+</section>
 <section id="arrowheads-for-line-markers">
 <span id="r-tcltk9upgrade-arrowheads-for-line-markers"></span><span id="r-3a3atcltk9upgradeqzarrowheads20for20line20markers"></span><h3>Arrowheads for line markers<a class="headerlink" href="#arrowheads-for-line-markers" title="Link to this heading">¶</a></h3>
 <p>Line markers now support arrowheads through the <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> options.</p>
@@ -863,6 +883,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#area-closure-and-transparency">Area closure and transparency</a></li>
 <li><a class="reference internal" href="#plot-only-element-hiding">Plot-only element hiding</a></li>
 <li><a class="reference internal" href="#circles-ellipses-and-arc-markers">Circles, ellipses and arc markers</a></li>
+<li><a class="reference internal" href="#bar-alignment-and-error-bar-positioning">Bar alignment and error-bar positioning</a></li>
 <li><a class="reference internal" href="#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
 <li><a class="reference internal" href="#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
 <li><a class="reference internal" href="#custom-element-value-labels">Custom element value labels</a></li>

@@ -3505,6 +3505,7 @@ void Rbc_ResetAxes(Graph *graphPtr) {
     if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
         Rbc_ComputeStacks(graphPtr);
     }
+    Rbc_ResetStacks(graphPtr);
     /*
      * Step 1:  Reset all axes. Initialize the data limits of the axis to
      *        impossible values.
