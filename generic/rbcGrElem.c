@@ -3225,7 +3225,7 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                     continue;
                 }
                 /*
-                 * Main horizontal error-bar segment.
+                 * Main X-error segment.
                  */
                 segPtr->p = p;
                 segPtr->q = q;
@@ -3239,10 +3239,14 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                 Point2D capP;
                 Point2D capQ;
 
-                capP.x = p.x;
-                capP.y = p.y - stylePtr->errorBarCapWidth;
-                capQ.x = p.x;
-                capQ.y = p.y + stylePtr->errorBarCapWidth;
+                /* Caps remain perpendicular when the data axes swap screen directions. */
+                double capDx = (graphPtr->inverted) ? stylePtr->errorBarCapWidth : 0.0;
+                double capDy = (graphPtr->inverted) ? 0.0 : stylePtr->errorBarCapWidth;
+
+                capP.x = p.x - capDx;
+                capP.y = p.y - capDy;
+                capQ.x = p.x + capDx;
+                capQ.y = p.y + capDy;
                 if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
@@ -3250,10 +3254,10 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                 /*
                  * Second cap.
                  */
-                capP.x = q.x;
-                capP.y = q.y - stylePtr->errorBarCapWidth;
-                capQ.x = q.x;
-                capQ.y = q.y + stylePtr->errorBarCapWidth;
+                capP.x = q.x - capDx;
+                capP.y = q.y - capDy;
+                capQ.x = q.x + capDx;
+                capQ.y = q.y + capDy;
                 if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
@@ -3325,7 +3329,7 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                     continue;
                 }
                 /*
-                 * Main vertical error-bar segment.
+                 * Main Y-error segment.
                  */
                 segPtr->p = p;
                 segPtr->q = q;
@@ -3336,10 +3340,14 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                 /*
                  * First cap.
                  */
-                capP.x = p.x - stylePtr->errorBarCapWidth;
-                capP.y = p.y;
-                capQ.x = p.x + stylePtr->errorBarCapWidth;
-                capQ.y = p.y;
+                /* Caps remain perpendicular when the data axes swap screen directions. */
+                double capDx = (!graphPtr->inverted) ? stylePtr->errorBarCapWidth : 0.0;
+                double capDy = (!graphPtr->inverted) ? 0.0 : stylePtr->errorBarCapWidth;
+
+                capP.x = p.x - capDx;
+                capP.y = p.y - capDy;
+                capQ.x = p.x + capDx;
+                capQ.y = p.y + capDy;
                 if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;
@@ -3347,10 +3355,10 @@ void Rbc_MapErrorBarsTranslated(Graph *graphPtr, Element *elemPtr, PenStyle **da
                 /*
                  * Second cap.
                  */
-                capP.x = q.x - stylePtr->errorBarCapWidth;
-                capP.y = q.y;
-                capQ.x = q.x + stylePtr->errorBarCapWidth;
-                capQ.y = q.y;
+                capP.x = q.x - capDx;
+                capP.y = q.y - capDy;
+                capQ.x = q.x + capDx;
+                capQ.y = q.y + capDy;
                 if (Rbc_LineRectClip(&exts, &capP, &capQ, segPtr)) {
                     segPtr++;
                     *indexPtr++ = i;

@@ -92,5 +92,116 @@ namespace eval ::closestErrorsTest {
         destroy .ce
         ::rbc::vector destroy ceErrors
     } -result {{yerror 2.0} {yerror 5.0} {}}
+    # Error-cap geometry is shared by line, strip and bar elements.
+    proc CapCreate {kind inverted descending logarithmic errors} {
+        Create $kind
+        .ce configure -invertxy $inverted
+        foreach axis {x y} {
+            .ce axis configure $axis -min 1 -max 6 -loose no \
+                -descending $descending -logscale $logarithmic
+        }
+        .ce element configure e -data {3 3} -errorbarcolor magenta -errorbarcap 16 -errorbarwidth 2
+        if {$errors eq "symmetric"} {
+            .ce element configure e -xerror 1 -yerror 1
+        } else {
+            .ce element configure e -xlow 2 -xhigh 4 -ylow 2 -yhigh 4
+        }
+        update
+    }
+
+    proc CapSegments {} {
+        set result {}
+        foreach line [split [.ce svg output] \n] {
+            if {[string first {stroke="#ff00ff"} $line] < 0} {continue}
+            if {[regexp {<polyline points="([^"]+)"} $line -> points]} {
+                lappend result [string map {, { }} [string trim $points]]
+            }
+        }
+        return $result
+    }
+
+    proc CapsMatch {segments axis} {
+        if {[llength $segments] != 3} {return 0}
+        lassign [lindex $segments 0] px py qx qy
+        if {$axis eq "x"} {
+            set expected [concat [.ce transform 4 3] [.ce transform 2 3]]
+        } else {
+            set expected [concat [.ce transform 3 4] [.ce transform 3 2]]
+        }
+        foreach actual [list $px $py $qx $qy] wanted $expected {
+            if {abs($actual-$wanted) > 0.51} {return 0}
+        }
+        foreach cap [lrange $segments 1 2] ex [list $px $qx] ey [list $py $qy] {
+            lassign $cap ax ay bx by
+            # Constant pixel length, centred on the endpoint, perpendicular to the shaft.
+            if {abs(hypot($bx-$ax,$by-$ay)-16) > 0.02 ||
+                abs(($ax+$bx)/2-$ex) > 0.02 || abs(($ay+$by)/2-$ey) > 0.02 ||
+                abs(($bx-$ax)*($qx-$px)+($by-$ay)*($qy-$py)) > 0.02} {return 0}
+        }
+        return 1
+    }
+
+    foreach kind {graph barchart stripchart} {
+        foreach errors {symmetric explicit} {
+            foreach inverted {0 1} {
+                foreach descending {0 1} {
+                    foreach logarithmic {0 1} {
+                        test errorCaps-geometry-$kind-$errors-$inverted-$descending-$logarithmic {
+                            X and Y caps retain length and perpendicular direction on transformed axes
+                        } -setup {
+                            CapCreate $kind $inverted $descending $logarithmic $errors
+                        } -body {
+                            set segments [CapSegments]
+                            list [llength $segments] [CapsMatch [lrange $segments 0 2] x] \
+                                [CapsMatch [lrange $segments 3 5] y]
+                        } -cleanup {destroy .ce} -result {6 1 1}
+                    }
+                }
+            }
+        }
+    }
+
+    ::rbc::graph .errorCapProbe
+    set code [catch {.errorCapProbe configure -renderer cairo} message]
+    destroy .errorCapProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {error $message}
+    testConstraint errorCapsCairo [expr {!$code}]
+    foreach kind {graph barchart stripchart} {
+        foreach renderer {native cairo} {
+            set constraints {}
+            if {$renderer eq "cairo"} {set constraints errorCapsCairo}
+            foreach inverted {0 1} {
+                test errorCaps-screen-$kind-$renderer-$inverted {
+                    both ends of X and Y caps are visible away from the error shaft
+                } -constraints $constraints -setup {
+                    CapCreate $kind $inverted 0 0 symmetric
+                    .ce configure -renderer $renderer
+                    set photo [image create photo]
+                } -body {
+                    update
+                    .ce snap $photo
+                    set result {}
+                    foreach {axis valueX valueY} {x 4 3 x 2 3 y 3 4 y 3 2} {
+                        lassign [.ce transform $valueX $valueY] px py
+                        set horizontal [expr {($axis eq "y") != $inverted}]
+                        foreach sign {-1 1} {
+                            set cx [expr {$px + ($horizontal ? 6*$sign : 0)}]
+                            set cy [expr {$py + ($horizontal ? 0 : 6*$sign)}]
+                            set found 0
+                            for {set dx -1} {$dx <= 1} {incr dx} {
+                                for {set dy -1} {$dy <= 1} {incr dy} {
+                                    lassign [$photo get [expr {round($cx)+$dx}] [expr {round($cy)+$dy}]] red green blue
+                                    if {$red > 200 && $blue > 200 && $green < 80} {set found 1}
+                                }
+                            }
+                            lappend result $found
+                        }
+                    }
+                    set result
+                } -cleanup {destroy .ce; image delete $photo} -result {1 1 1 1 1 1 1 1}
+            }
+        }
+    }
+
 }
 ::tcltest::cleanupTests
