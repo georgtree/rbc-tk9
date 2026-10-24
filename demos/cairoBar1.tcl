@@ -47,8 +47,10 @@ foreach renderer {native cairo} {
     $g axis configure x -min 0 -max 5
     $g axis configure y -min -8 -max 12
     $g element create first -data {1 5 2 -4 3 7 4 3} -foreground steelblue -background navy -relief flat -borderwidth 2\
-            -yerror {1 0.8 1.2 0.6} -errorbarcolor black -errorbarwidth 2 -errorbarcap 8 -showvalues y -fillopacity 0.3
+            -yerror {1 0.8 1.2 0.6} -errorbarcolor black -errorbarwidth 2 -errorbarcap 8 -showvalues y -fillopacity 0.3\
+            -errorbarposition bar -valueoffset {5 0}
     $g element create second -data {1 3 2 -2 3 4 4 5} -foreground salmon -background firebrick -relief flat\
-            -borderwidth 2 -yerror {0.6 0.5 0.8 0.7} -errorbarcolor black -errorbarwidth 2 -errorbarcap 8 -showvalues y
+            -borderwidth 2 -yerror {0.6 0.5 0.8 0.7} -errorbarcolor black -errorbarwidth 2 -errorbarcap 8 -showvalues y\
+            -errorbarposition bar -valueoffset {5 0}
     $g pen configure activeBar -foreground gold -background darkgoldenrod -borderwidth 2 -relief raised
 }

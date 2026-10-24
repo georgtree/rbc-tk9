@@ -47,7 +47,8 @@ proc CustomHeader {w graph} {
         -variable errorBarPosition -onvalue bar -offvalue data -command {
             $graph graph element configure {*}[$graph graph element names] -errorbarposition $errorBarPosition
         }
-    ttk::label $w.errorlabel -text {Setup, Other, Load: symmetric errors; Read In, Solve: explicit bounds.} -wraplength 600
+    ttk::label $w.errorlabel -text {Setup, Other, Load: symmetric errors; Read In, Solve: explicit bounds.}\
+            -wraplength 600
     grid $w.title -columnspan 2 -sticky ew
     grid $w.stacked $w.stackedlabel -sticky w -padx 15
     grid $w.aligned $w.alignedlabel -sticky w -padx 15
@@ -176,8 +177,8 @@ foreach yData {Y0 Y3} {
     }
     $barchart graph element configure $yData -ylow $low -yhigh $high
 }
-$barchart graph element configure {*}[$barchart graph element names] \
-    -errorbarposition $errorBarPosition -errorbarcolor black -errorbarwidth 2 -errorbarcap 8
+$barchart graph element configure {*}[$barchart graph element names] -errorbarposition $errorBarPosition\
+        -errorbarcolor black -errorbarwidth 2 -errorbarcap 8
 
 ### Initial configuration.
 $barchart graph configure -barmode $barMode
