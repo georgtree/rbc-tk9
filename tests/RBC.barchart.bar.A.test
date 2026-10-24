@@ -55,5 +55,195 @@ namespace eval barchart.bar {
 	    destroy .barchart1
 	} -result {0}
 	
+
+    proc AlignmentCreate {kind inverted descending logarithmic} {
+        ::rbc::$kind .ba -width 600 -height 400 -invertxy $inverted -barwidth 2
+        .ba axis configure x -min 0.1 -max 12 -loose no -descending $descending -logscale $logarithmic
+        .ba axis configure y -min 0 -max 10 -loose no
+        .ba legend configure -hide yes
+        .ba bar create a -data {4 3} -borderwidth 0
+        pack .ba
+        update
+    }
+
+    # Compare mapped rectangle edges with independently transformed data edges.
+    proc AlignmentBounds {name left right y} {
+        update idletasks
+        lassign [.ba transform [expr {($left + $right) / 2.0}] $y] px py
+        if {![.ba element closest $px $py hit -halo 2 $name]} {return 0}
+        lassign [.ba transform $left $y] lx ly
+        lassign [.ba transform $right $y] rx ry
+        if {[.ba cget -invertxy]} {
+            return [expr {abs($hit(top)-min($ly,$ry)) <= 2 && abs($hit(bottom)-max($ly,$ry)) <= 2}]
+        }
+        return [expr {abs($hit(left)-min($lx,$rx)) <= 2 && abs($hit(right)-max($lx,$rx)) <= 2}]
+    }
+
+    foreach kind {graph barchart stripchart} {
+        foreach inverted {0 1} {
+            foreach descending {0 1} {
+                foreach logarithmic {0 1} {
+                    test RBC.barchart.bar.align-$kind-$inverted-$descending-$logarithmic {
+                        alignment and signed offsets map data edges on all axis orientations
+                    } -setup {
+                        AlignmentCreate $kind $inverted $descending $logarithmic
+                    } -body {
+                        set result {}
+                        foreach {align lo hi} {center 3 5 left 4 6 right 2 4} {
+                            foreach offset {-0.5 0 1.25} {
+                                .ba element configure a -baralign $align -baroffset $offset
+                                lappend result [AlignmentBounds a [expr {$lo+$offset}] [expr {$hi+$offset}] 1]
+                            }
+                        }
+                        set result
+                    } -cleanup {destroy .ba} -result {1 1 1 1 1 1 1 1 1}
+                }
+            }
+        }
+    }
+
+    foreach mode {aligned stacked overlap} {
+        foreach align {center left right} {
+            test RBC.barchart.bar.group-$mode-$align {
+                alignment anchors the full group before subdivision
+            } -setup {
+                AlignmentCreate barchart 0 0 0
+                .ba configure -barmode $mode
+                .ba bar create b -data {4 3} -borderwidth 0
+                foreach name {a b} {
+                    .ba element configure $name -baralign $align -baroffset 0.5
+                }
+            } -body {
+                set lo [dict get {center 3.5 left 4.5 right 2.5} $align]
+                set hi [expr {$lo+2}]
+                # Reverse display order assigns the rightmost slice to b.
+                switch $mode {
+                    aligned {
+                        list [AlignmentBounds a $lo [expr {$lo+1}] 1] [AlignmentBounds b [expr {$lo+1}] $hi 1]
+                    }
+                    overlap {
+                        list [AlignmentBounds a $lo [expr {$lo+1.5}] 1] [AlignmentBounds b [expr {$lo+0.5}] $hi 1]
+                    }
+                    stacked {
+                        list [AlignmentBounds a $lo $hi 4] [AlignmentBounds b $lo $hi 1]
+                    }
+                }
+            } -cleanup {destroy .ba} -result {1 1}
+        }
+    }
+
+    test RBC.barchart.bar.align-defaults {defaults retain centered bars and width inheritance} -setup {
+        AlignmentCreate barchart 0 0 0
+    } -body {
+        set result [list [.ba element cget a -baralign] [.ba element cget a -baroffset]]
+        .ba element configure a -barwidth 1 -baralign left
+        lappend result [AlignmentBounds a 4 5 1]
+        .ba element configure a -barwidth 0
+        lappend result [AlignmentBounds a 4 6 1]
+        .ba configure -barwidth 3
+        lappend result [AlignmentBounds a 4 7 1]
+        set result
+    } -cleanup {destroy .ba} -result {center 0.0 1 1 1}
+
+    foreach {option value} {-baralign bottom -baroffset Inf -baroffset -Inf -baroffset NaN -baroffset invalid} {
+        test RBC.barchart.bar.align-invalid-$option-$value {failed configuration preserves previous geometry} -setup {
+            AlignmentCreate barchart 0 0 0
+            .ba element configure a -baralign left -baroffset 1
+        } -body {
+            list [catch {.ba element configure a $option $value}] [.ba element cget a -baralign]\
+                    [.ba element cget a -baroffset] [AlignmentBounds a 5 7 1]
+        } -cleanup {destroy .ba} -result {1 left 1.0 1}
+    }
+
+    foreach logarithmic {0 1} {
+        test RBC.barchart.bar.align-limits-$logarithmic {automatic limits include shifted edges and errors} -setup {
+            AlignmentCreate barchart 0 0 $logarithmic
+            .ba axis configure x -min {} -max {}
+        } -body {
+            set result {}
+            foreach {align lo hi} {center 4 6 left 5 7 right 3 5} {
+                .ba element configure a -baralign $align -baroffset 1
+                update
+                lassign [.ba axis limits x] min max
+                lappend result [expr {$min <= $lo+1e-10 && $max >= $hi-1e-10}]
+            }
+            .ba element configure a -xerror 3
+            update
+            lassign [.ba axis limits x] min max
+            lappend result [expr {$min <= 2+1e-10 && $max >= 8-1e-10}]
+            set result
+        } -cleanup {destroy .ba} -result {1 1 1 1}
+    }
+
+    foreach format {svg postscript pdf} {
+        test RBC.barchart.bar.align-export-$format {exports remap alignment and restore the original geometry} -setup {
+            AlignmentCreate barchart 0 0 0
+        } -body {
+            set original [.ba $format output]
+            .ba element configure a -baralign left -baroffset 1
+            set shifted [.ba $format output]
+            set bounds [AlignmentBounds a 5 7 1]
+            .ba element configure a -baralign center -baroffset 0
+            set restored [.ba $format output]
+            list [expr {$original ne $shifted}] [expr {$original eq $restored}] $bounds
+        } -cleanup {destroy .ba} -result {1 1 1}
+    }
+
+    foreach errors {{-yerror 2} {-ylow 1 -yhigh 5} {-xerror 2} {-xlow 2 -xhigh 6}} {
+        test RBC.barchart.bar.align-errors-$errors {offset translates error bars without altering input values} -setup {
+            AlignmentCreate barchart 0 0 0
+            .ba element configure a -baralign left -baroffset 1 -errorbarcolor magenta -errorbarwidth 3 {*}$errors
+            set photo [image create photo]
+        } -body {
+            update
+            .ba snap $photo
+            if {[string match -y* [lindex $errors 0]]} {
+                lassign [.ba transform 5 4] px py
+            } else {
+                lassign [.ba transform 3.5 3] px py
+            }
+            set found 0
+            for {set dx -2} {$dx <= 2} {incr dx} {
+                for {set dy -2} {$dy <= 2} {incr dy} {
+                    if {[$photo get [expr {round($px)+$dx}] [expr {round($py)+$dy}]] eq {255 0 255}} {
+                        set found 1
+                    }
+                }
+            }
+            list $found [.ba element cget a -data]
+        } -cleanup {
+            destroy .ba
+            image delete $photo
+        } -result {1 {4 3}}
+    }
+
+    test RBC.barchart.bar.align-log-edge {left alignment admits positive bins that centered alignment crosses zero}\
+            -setup {
+        AlignmentCreate barchart 0 0 1
+        .ba element configure a -data {0.5 3} -baralign left
+    } -body {
+        set left [AlignmentBounds a 0.5 2.5 1]
+        .ba element configure a -baralign center
+        update
+        lassign [.ba transform 0.5 1] px py
+        list $left [.ba element closest $px $py hit -halo 2 a]
+    } -cleanup {destroy .ba} -result {1 0}
+
+    test RBC.barchart.bar.align-outside {an offset can move otherwise offscreen data into the plot} -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba element configure a -data {-20 3} -baralign left -baroffset 25
+    } -body {
+        AlignmentBounds a 5 7 1
+    } -cleanup {destroy .ba} -result 1
+
+    test RBC.barchart.bar.align-negative {alignment also applies to downward bars} -setup {
+        AlignmentCreate barchart 0 0 0
+        .ba axis configure y -min -10 -max 10
+        .ba element configure a -data {4 -3} -baralign right -baroffset -1
+    } -body {
+        AlignmentBounds a 1 3 -1
+    } -cleanup {destroy .ba} -result 1
+
+
 	cleanupTests
 }

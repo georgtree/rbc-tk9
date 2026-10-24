@@ -94,6 +94,8 @@ typedef struct {
     Tcl_Size nRects;          /* # of visible bar segments for element */
     int padX;                 /* Spacing on either side of bar */
     double barWidth;
+    int barAlign;            /* Anchor of the full group interval. */
+    double barOffset;        /* Translation in data X coordinates. */
     Tcl_Size nActive;
     BarRectangle *activeRects;
     Tcl_Size *activeToData;
@@ -156,11 +158,19 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define BAR_ELEM_BUILTIN_PEN_MASK (1 << 6)
 #define BAR_ELEM_MAP_ITEM_MASK (1 << 7)
 
+enum { BAR_ALIGN_CENTER, BAR_ALIGN_LEFT, BAR_ALIGN_RIGHT };
+
+static const char *const barAlignNames[] = {"center", "left", "right", NULL};
+
 static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenObjPtr), -1,
      0, NULL, BAR_ELEM_PEN_MASK},
     {TK_OPTION_BORDER, "-background", "background", "Background", DEF_BAR_BACKGROUND, -1,
      BAR_BUILTIN_PEN_OFFSET(border), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING_TABLE, "-baralign", "barAlign", "BarAlign", "center", -1,
+     offsetof(Bar, barAlign), 0, barAlignNames, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_DOUBLE, "-baroffset", "barOffset", "BarOffset", "0.0", -1,
+     offsetof(Bar, barOffset), 0, NULL, BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_BAR_WIDTH, -1, offsetof(Bar, barWidth), 0, NULL,
      BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
@@ -939,6 +949,10 @@ static int ConfigureBar(Graph *graphPtr, Element *elemPtr) {
      * Non-positive element bar widths retain their historical meaning:
      * use the graph-wide bar width.  Only non-finite values are invalid.
      */
+    if (!FINITE(barPtr->barOffset)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-baroffset must be a finite value", -1));
+        goto error;
+    }
     if (!FINITE(barPtr->barWidth)) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-barwidth must be a finite value", -1));
         goto error;
@@ -1088,6 +1102,21 @@ static double GetBarBaseline(Element *elemPtr) {
 }
 
 /*
+ * Return the distance from the data anchor to the lower edge of the full
+ * bar interval. Group subdivision must happen after applying this anchor.
+ */
+static double BarAnchorOffset(const Bar *barPtr, double width) {
+    switch (barPtr->barAlign) {
+    case BAR_ALIGN_LEFT:
+        return 0.0;
+    case BAR_ALIGN_RIGHT:
+        return width;
+    default:
+        return width * 0.5;
+    }
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * GetBarExtents --
@@ -1109,7 +1138,7 @@ static double GetBarBaseline(Element *elemPtr) {
 static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Graph *graphPtr = elemPtr->graphPtr;
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
-    double middle, barWidth, baseline;
+    double anchorOffset, barWidth, baseline;
     Tcl_Size nPoints;
 
     extsPtr->top = extsPtr->left = DBL_MAX;
@@ -1122,9 +1151,9 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     if (barPtr->barWidth > 0.0) {
         barWidth = barPtr->barWidth;
     }
-    middle = barWidth * 0.5;
-    extsPtr->left = barPtr->core.x.min - middle;
-    extsPtr->right = barPtr->core.x.max + middle;
+    anchorOffset = BarAnchorOffset(barPtr, barWidth);
+    extsPtr->left = (barPtr->core.x.min + barPtr->barOffset) - anchorOffset;
+    extsPtr->right = (barPtr->core.x.max + barPtr->barOffset) - anchorOffset + barWidth;
     extsPtr->top = barPtr->core.y.min;
     extsPtr->bottom = barPtr->core.y.max;
     baseline = GetBarBaseline(elemPtr);
@@ -1140,9 +1169,21 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
         CheckStacks(graphPtr, &(elemPtr->axes), &(extsPtr->top), &(extsPtr->bottom));
     }
-    /* Warning: You get what you deserve if the x-axis is logScale */
     if (elemPtr->axes.x->logScale) {
-        extsPtr->left = Rbc_FindElemVectorMinimum(&(barPtr->core.x), DBL_MIN) + middle;
+        Tcl_Size i;
+
+        extsPtr->left = DBL_MAX;
+        extsPtr->right = -DBL_MAX;
+        for (i = 0; i < nPoints; i++) {
+            double left, right;
+
+            left = (elemPtr->x.valueArr[i] + barPtr->barOffset) - anchorOffset;
+            right = left + barWidth;
+            if (FINITE(left) && FINITE(right) && (left > 0.0)) {
+                extsPtr->left = MIN(extsPtr->left, left);
+                extsPtr->right = MAX(extsPtr->right, right);
+            }
+        }
     }
     /* Fix y-min limits for barchart */
     if (elemPtr->axes.y->logScale) {
@@ -1166,7 +1207,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
             extsPtr->top = 0.0;
         }
     }
-    Rbc_ExpandErrorBarExtents(elemPtr, extsPtr);
+    Rbc_ExpandErrorBarExtentsOffset(elemPtr, extsPtr, barPtr->barOffset);
 }
 
 /*
@@ -1646,7 +1687,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         barWidth = barPtr->barWidth;
     }
     baseline = GetBarBaseline(elemPtr);
-    barOffset = barWidth * 0.5;
+    barOffset = BarAnchorOffset(barPtr, barWidth);
     /*
      * Create an array of rectangles representing the screen coordinates
      * of all the segments in the bar.
@@ -1660,21 +1701,21 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
         if ((!FINITE(x[i])) || (!FINITE(y[i]))) {
             continue;
         }
-        if (barPtr->core.axes.x->logScale && ((x[i] - barOffset) <= 0.0)) {
+        c1.x = (x[i] + barPtr->barOffset) - barOffset;
+        c2.x = c1.x + barWidth;
+        if ((!FINITE(c1.x)) || (!FINITE(c2.x)) ||
+            (barPtr->core.axes.x->logScale && (c1.x <= 0.0))) {
             continue;
         }
         if (barPtr->core.axes.y->logScale && (y[i] <= 0.0)) {
             continue;
         }
-        if (!barPtr->core.axes.x->logScale) {
-            if (((x[i] - barWidth) > barPtr->core.axes.x->axisRange.max) ||
-                ((x[i] + barWidth) < barPtr->core.axes.x->axisRange.min)) {
-                continue;
-            }
+        if ((!barPtr->core.axes.x->logScale) &&
+            ((c1.x > barPtr->core.axes.x->axisRange.max) ||
+             (c2.x < barPtr->core.axes.x->axisRange.min))) {
+            continue;
         }
-        c1.x = x[i] - barOffset;
         c1.y = y[i];
-        c2.x = c1.x + barWidth;
         c2.y = baseline;
         /*
          * If the mode is "aligned" or "stacked" we need to adjust the
@@ -1827,7 +1868,7 @@ static void MapBar(Graph *graphPtr, Element *elemPtr) {
     if (((barPtr->core.yHigh.nValues > 0) && (barPtr->core.yLow.nValues > 0)) ||
         ((barPtr->core.xHigh.nValues > 0) && (barPtr->core.xLow.nValues > 0)) || (barPtr->core.xError.nValues > 0) ||
         (barPtr->core.yError.nValues > 0)) {
-        Rbc_MapErrorBars(graphPtr, &barPtr->core, dataToStyle);
+        Rbc_MapErrorBarsOffset(graphPtr, &barPtr->core, dataToStyle, barPtr->barOffset);
     }
     MergePens(barPtr, dataToStyle);
     ckfree((char *)dataToStyle);

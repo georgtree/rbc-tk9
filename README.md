@@ -1,4 +1,4 @@
-# Rbc — Refactored BLT Components for Tcl/Tk 9
+# Rbc - Refactored BLT Components for Tcl/Tk 9
 
 ![RBC preview](docs/images/preview.png)
 
@@ -15,19 +15,19 @@ This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package ve
 
 ## Components
 
-- **graph** — Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript
+- **graph** - Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript
   output.
-- **barchart** — Bar plots with normal, aligned, stacked, and overlapping presentations.
-- **stripchart** — Plots using independent line segments, suitable for waveform and continuously updated data displays.
-- **polar** — Complex-plane plots with polar or Smith-chart grids. Data coordinates remain Cartesian; elements can use
+- **barchart** - Bar plots with normal, aligned, stacked, and overlapping presentations.
+- **stripchart** - Plots using independent line segments, suitable for waveform and continuously updated data displays.
+- **polar** - Complex-plane plots with polar or Smith-chart grids. Data coordinates remain Cartesian; elements can use
   real X/Y vectors or complex vectors directly.
-- **graphtoolbar** — A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs,
+- **graphtoolbar** - A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs,
   closest-point information, legend interaction, and context controls.
-- **vector** — Real and complex double-precision vectors, with numerical operations and automatic notification of
+- **vector** - Real and complex double-precision vectors, with numerical operations and automatic notification of
   attached graph elements.
-- **spline** — Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex
+- **spline** - Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex
   vectors.
-- **winop** — Window operations and image-processing utilities.
+- **winop** - Window operations and image-processing utilities.
 
 Eligible dense line and strip elements support `-decimate auto`. The reduction preserves waveform extrema and reuses
 cached summaries across axis changes, ranged value updates, and monotonic tail appends.

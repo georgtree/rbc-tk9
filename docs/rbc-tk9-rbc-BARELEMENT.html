@@ -145,6 +145,60 @@ and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 <p>This permits most elements to share one graph-wide width while individual bar elements override it when
 necessary.</p>
 </section>
+<section id="bar-alignment-and-offset">
+<span id="r-rbc-barelement-bar-alignment-and-offset"></span><span id="r-3a3arbc3a3abarelementqzbar20alignment20and20offset"></span><h2>Bar alignment and offset<a class="headerlink" href="#bar-alignment-and-offset" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">-baralign</span> <span class="pre">center|left|right</span></code> selects where the data X coordinate anchors the bar interval. The default is
+<code class="docutils literal notranslate"><span class="pre">center</span></code>. <code class="docutils literal notranslate"><span class="pre">-baroffset</span></code> translates that interval by a finite number of X-axis data units; its default is
+<code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Neither option modifies the source data.</p>
+<p>For coordinate <code class="docutils literal notranslate"><span class="pre">x</span></code>, effective bar width <code class="docutils literal notranslate"><span class="pre">w</span></code>, and offset <code class="docutils literal notranslate"><span class="pre">d</span></code>, the intervals are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Alignment</p></th>
+<th class="head"><p>Lower X edge</p></th>
+<th class="head"><p>Upper X edge</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">center</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span> <span class="pre">-</span> <span class="pre">w/2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span> <span class="pre">+</span> <span class="pre">w/2</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">left</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span> <span class="pre">+</span> <span class="pre">w</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">right</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span> <span class="pre">-</span> <span class="pre">w</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">d</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>For grouped bars (<code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">aligned</span></code>), these options position the <strong>entire group width</strong>, before it is
+subdivided into individual bars. Stacked and overlapping bars use the same full interval. Use matching
+effective widths, alignments and offsets for elements intended to form one group or stack. Group membership
+continues to use the original X coordinates and axis pair, not the offset coordinates.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># X values are the lower edges of histogram bins.</span>
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>bins<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span><span class="k">{</span><span class="nv">5</span><span class="w"> </span><span class="mi">12</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>barwidth<span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>baralign<span class="w"> </span>left
+
+<span class="c"># Move a whole two-element group, with its upper edge at x + 0.25.</span>
+<span class="nv">.b</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>barmode<span class="w"> </span>aligned
+<span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>first<span class="w"> </span>second<span class="w"> </span><span class="o">-</span>baralign<span class="w"> </span>right<span class="w"> </span><span class="o">-</span>baroffset<span class="w"> </span><span class="mf">0.25</span>
+</pre></div>
+</div>
+<p>Left and right refer to lower and upper data X coordinates. Their screen directions reverse on a descending
+axis and follow the data X axis when <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> is enabled. Widths and offsets remain additive data units on
+logarithmic axes; bars whose lower X edge is non-positive are omitted. Automatic limits account for the shifted
+edges.</p>
+<p>Value labels follow the mapped bars. Error bars remain referenced to the data coordinate: their X positions
+(including explicit <code class="docutils literal notranslate"><span class="pre">-xlow</span></code> and <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code> endpoints) are translated by <code class="docutils literal notranslate"><span class="pre">-baroffset</span></code>; <code class="docutils literal notranslate"><span class="pre">-baralign</span></code> does not change
+their reference point. Reported data values and closest-element indices are unchanged. All rendering and export
+backends use the same geometry.</p>
+</section>
 <section id="bar-modes">
 <span id="r-rbc-barelement-bar-modes"></span><span id="r-3a3arbc3a3abarelementqzbar20modes"></span><h2>Bar modes<a class="headerlink" href="#bar-modes" title="Link to this heading">¶</a></h2>
 <p>The graph widget’s <code class="docutils literal notranslate"><span class="pre">-barmode</span></code> option controls how bars that occur at the same X coordinate are arranged.</p>
@@ -492,6 +546,16 @@ rectangle.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">Background</span></code></p></td>
 <td><p>Sets the background color of bars and the color used for their 3-D border. The default is navy blue.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-baralign</span> <span class="pre">mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">barAlign</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BarAlign</span></code></p></td>
+<td><p>Anchors the full bar or group interval at its <code class="docutils literal notranslate"><span class="pre">center</span></code>, <code class="docutils literal notranslate"><span class="pre">left</span></code>, or <code class="docutils literal notranslate"><span class="pre">right</span></code> edge. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-baroffset</span> <span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">barOffset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BarOffset</span></code></p></td>
+<td><p>Translates bars and their error bars by a finite number of X-axis data units. The default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barwidth</span> <span class="pre">value</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">barWidth</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BarWidth</span></code></p></td>
@@ -735,6 +799,7 @@ rectangle.</p>
 <li><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
 <li><a class="reference internal" href="#bar-geometry">Bar geometry</a></li>
 <li><a class="reference internal" href="#bar-width">Bar width</a></li>
+<li><a class="reference internal" href="#bar-alignment-and-offset">Bar alignment and offset</a></li>
 <li><a class="reference internal" href="#bar-modes">Bar modes</a></li>
 <li><a class="reference internal" href="#stacked-bars">Stacked bars</a></li>
 <li><a class="reference internal" href="#appearance">Appearance</a><ul>

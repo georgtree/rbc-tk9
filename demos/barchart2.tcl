@@ -14,7 +14,6 @@ set DemoDir [file normalize [file dirname [info script]]]
 ### Load common commands and create non-rbc GUI elements.
 source $DemoDir/scripts/common.tcl
 proc CustomHeader {w graph} {
-    puts $graph
     ttk::frame $w
     text $w.title -wrap word -width 0 -height 4 -relief flat -highlightthickness 0 -padx 15 -pady 5
     $w.title insert end [MakeLine {
@@ -141,14 +140,14 @@ Y4 set {
 #
 #   Label yData Foreground Background Stipple Borderwidth
 set attributes { 
-    Setup     Y1 green3          green1          fdiagonal1 1
-    {Read In} Y0 lightgoldenrod3 lightgoldenrod1 bdiagonal1 1
-    Other     Y4 lightpink3      lightpink1      fdiagonal1 1
-    Solve     Y3 cyan3           cyan1           bdiagonal1 1
-    Load      Y2 lightblue3      lightblue1      fdiagonal1 1
+    Setup     Y1 green3          green1          fdiagonal1 1 center
+    {Read In} Y0 lightgoldenrod3 lightgoldenrod1 bdiagonal1 1 center
+    Other     Y4 lightpink3      lightpink1      fdiagonal1 1 center
+    Solve     Y3 cyan3           cyan1           bdiagonal1 1 center
+    Load      Y2 lightblue3      lightblue1      fdiagonal1 1 center
 }
-foreach {label yData fg bg stipple bd} $attributes {
-    $barchart graph element create $yData -label $label -bd $bd -y $yData -x X -fg {} -bg $bg\
+foreach {label yData fg bg stipple bd align} $attributes {
+    $barchart graph element create $yData -label $label -bd $bd -y $yData -x X -fg {} -bg $bg -baralign $align\
             -stipple @$DemoDir/stipples/${stipple}.xbm
 }
 

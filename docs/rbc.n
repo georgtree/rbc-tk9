@@ -4,7 +4,7 @@
 .TH "rbc" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 Introduction - Upgraded Tcl/Tk9\&.0-ready RBC package
-.SH "RBC — REFACTORED BLT COMPONENTS FOR TCL/TK 9"
+.SH "RBC - REFACTORED BLT COMPONENTS FOR TCL/TK 9"
 .PP
 RBC preview [Image: docs/images/preview\&.png]
 .PP
@@ -28,28 +28,28 @@ This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current packag
 .SH COMPONENTS
 .TP
 \(bu
-\fBgraph\fP — Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output\&.
+\fBgraph\fP - Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output\&.
 .TP
 \(bu
-\fBbarchart\fP — Bar plots with normal, aligned, stacked, and overlapping presentations\&.
+\fBbarchart\fP - Bar plots with normal, aligned, stacked, and overlapping presentations\&.
 .TP
 \(bu
-\fBstripchart\fP — Plots using independent line segments, suitable for waveform and continuously updated data displays\&.
+\fBstripchart\fP - Plots using independent line segments, suitable for waveform and continuously updated data displays\&.
 .TP
 \(bu
-\fBpolar\fP — Complex-plane plots with polar or Smith-chart grids\&. Data coordinates remain Cartesian; elements can use real X/Y vectors or complex vectors directly\&.
+\fBpolar\fP - Complex-plane plots with polar or Smith-chart grids\&. Data coordinates remain Cartesian; elements can use real X/Y vectors or complex vectors directly\&.
 .TP
 \(bu
-\fBgraphtoolbar\fP — A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs, closest-point information, legend interaction, and context controls\&.
+\fBgraphtoolbar\fP - A TclOO megawidget providing graph interaction, including zooming, panning, crosshairs, closest-point information, legend interaction, and context controls\&.
 .TP
 \(bu
-\fBvector\fP — Real and complex double-precision vectors, with numerical operations and automatic notification of attached graph elements\&.
+\fBvector\fP - Real and complex double-precision vectors, with numerical operations and automatic notification of attached graph elements\&.
 .TP
 \(bu
-\fBspline\fP — Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex vectors\&.
+\fBspline\fP - Natural cubic and shape-preserving quadratic interpolation, including parametric interpolation of complex vectors\&.
 .TP
 \(bu
-\fBwinop\fP — Window operations and image-processing utilities\&.
+\fBwinop\fP - Window operations and image-processing utilities\&.
 .PP
 Eligible dense line and strip elements support -decimate auto\&. The reduction preserves waveform extrema and reuses
 cached summaries across axis changes, ranged value updates, and monotonic tail appends\&.

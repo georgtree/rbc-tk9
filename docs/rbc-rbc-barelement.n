@@ -161,6 +161,50 @@ gives values an effective width of 0\&.8\&.
 .PP
 This permits most elements to share one graph-wide width while individual bar elements override it when
 necessary\&.
+.SH "BAR ALIGNMENT AND OFFSET"
+.PP
+-baralign center|left|right selects where the data X coordinate anchors the bar interval\&. The default is
+center\&. -baroffset translates that interval by a finite number of X-axis data units; its default is
+0\&.0\&. Neither option modifies the source data\&.
+.PP
+For coordinate x, effective bar width w, and offset d, the intervals are:
+.PP
+.nf
+┌───────────┬──────────────┬──────────────┐
+│ Alignment │ Lower X edge │ Upper X edge │
+├───────────┼──────────────┼──────────────┤
+│ center    │ x + d - w/2  │ x + d + w/2  │
+│ left      │ x + d        │ x + d + w    │
+│ right     │ x + d - w    │ x + d        │
+└───────────┴──────────────┴──────────────┘
+
+.fi
+.PP
+For grouped bars (-barmode aligned), these options position the \fBentire group width\fP, before it is
+subdivided into individual bars\&. Stacked and overlapping bars use the same full interval\&. Use matching
+effective widths, alignments and offsets for elements intended to form one group or stack\&. Group membership
+continues to use the original X coordinates and axis pair, not the offset coordinates\&.
+.PP
+.RS 4n
+.nf
+# X values are the lower edges of histogram bins\&.
+\&.b element create bins -xdata {0 1 2 3} -ydata {5 12 8 3} -barwidth 1 -baralign left
+
+# Move a whole two-element group, with its upper edge at x + 0\&.25\&.
+\&.b configure -barmode aligned
+\&.b element configure first second -baralign right -baroffset 0\&.25
+.fi
+.RE
+.PP
+Left and right refer to lower and upper data X coordinates\&. Their screen directions reverse on a descending
+axis and follow the data X axis when -invertxy is enabled\&. Widths and offsets remain additive data units on
+logarithmic axes; bars whose lower X edge is non-positive are omitted\&. Automatic limits account for the shifted
+edges\&.
+.PP
+Value labels follow the mapped bars\&. Error bars remain referenced to the data coordinate: their X positions
+(including explicit -xlow and -xhigh endpoints) are translated by -baroffset; -baralign does not change
+their reference point\&. Reported data values and closest-element indices are unchanged\&. All rendering and export
+backends use the same geometry\&.
 .SH "BAR MODES"
 .PP
 The graph widget's -barmode option controls how bars that occur at the same X coordinate are arranged\&.
@@ -512,6 +556,10 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │                       │               │                │ default is activeBar\&.                                       │
 │ -background color     │ background    │ Background     │ Sets the background color of bars and the color used for    │
 │                       │               │                │ their 3-D border\&. The default is navy blue\&.                 │
+│ -baralign mode        │ barAlign      │ BarAlign       │ Anchors the full bar or group interval at its center, left, │
+│                       │               │                │ or right edge\&. The default is center\&.                       │
+│ -baroffset value      │ barOffset     │ BarOffset      │ Translates bars and their error bars by a finite number of  │
+│                       │               │                │ X-axis data units\&. The default is 0\&.0\&.                      │
 │ -barwidth value       │ barWidth      │ BarWidth       │ Specifies the width of bars for this element\&. A positive    │
 │                       │               │                │ value overrides the graph widget's -barwidth; 0\&.0 uses the  │
 │                       │               │                │ graph's bar width\&. The default is 0\&.0\&.                      │
