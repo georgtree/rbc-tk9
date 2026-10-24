@@ -3095,9 +3095,22 @@ namespace eval ::rbc::BARELEMENT {
         | `right`   | `x + d - w`   | `x + d`       |
 
         For grouped bars (`-barmode aligned`), these options position the **entire group width**, before it is
-        subdivided into individual bars. Stacked and overlapping bars use the same full interval. Use matching
-        effective widths, alignments and offsets for elements intended to form one group or stack. Group membership
-        continues to use the original X coordinates and axis pair, not the offset coordinates.
+        subdivided into individual bars. Matching effective widths, alignments and offsets produce the conventional
+        grouped, stacked or overlapping layout.
+
+        Different alignments and offsets within a group are also supported. Each element positions its own full
+        interval, then the selected bar mode determines which part of that interval it occupies:
+
+        | Mode | Effect of mixed alignment or offset settings |
+        |------|---------------------------------------------|
+        | `aligned` | Each element takes its assigned group slice within its own interval. This can create gaps or overlaps between bars. |
+        | `stacked` | Y values still accumulate, but each segment uses its own horizontal interval. Segments can be staggered or separated horizontally. |
+        | `overlap` | Each element's interval receives the usual overlap-mode width reduction and slot displacement. Bars can overlap more, overlap less, or become separated. |
+
+        Group membership continues to use the original X coordinates and axis pair, not the offset coordinates or
+        visual overlap. Mixed settings do not create separate groups or reset stacked totals. Existing display order
+        still controls group slots, stacking order and which bars cover others. Reconfiguring the elements to matching
+        settings restores the conventional arrangement without changing their data.
 
         ```tcl
         # X values are the lower edges of histogram bins.

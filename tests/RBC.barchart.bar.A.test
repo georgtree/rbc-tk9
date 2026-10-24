@@ -132,6 +132,55 @@ namespace eval barchart.bar {
         }
     }
 
+    # Each element retains its group slot even when its full interval differs.
+    # Expected edges below are data coordinates, independent of screen orientation.
+    foreach {variation aAlign aOffset bAlign bOffset edges} {
+        alignment left 0 right 0 {
+            aligned {4 5 3 4} overlap {4 5.5 2.5 4} stacked {4 6 2 4}
+        }
+        offset center -0.5 center 1 {
+            aligned {2.5 3.5 5 6} overlap {2.5 4 4.5 6} stacked {2.5 4.5 4 6}
+        }
+        combined right 1 left -0.5 {
+            aligned {3 4 4.5 5.5} overlap {3 4.5 4 5.5} stacked {3 5 3.5 5.5}
+        }
+    } {
+        foreach kind {graph barchart stripchart} {
+            foreach mode {aligned stacked overlap} {
+                foreach inverted {0 1} {
+                    foreach descending {0 1} {
+                        test RBC.barchart.bar.mixed-$variation-$kind-$mode-$inverted-$descending {
+                            mixed settings preserve group membership and independently position each interval
+                        } -setup {
+                            AlignmentCreate $kind $inverted $descending 0
+                            .ba configure -barmode $mode
+                            .ba bar create b -data {4 3} -borderwidth 0
+                        } -body {
+                            .ba element configure a -baralign $aAlign -baroffset $aOffset
+                            .ba element configure b -baralign $bAlign -baroffset $bOffset
+                            lassign [dict get $edges $mode] aLeft aRight bLeft bRight
+                            set aY [expr {$mode eq "stacked" ? 4 : 1}]
+                            set result [list [AlignmentBounds a $aLeft $aRight $aY] \
+                                [AlignmentBounds b $bLeft $bRight 1]]
+                            # Returning to matching settings restores the conventional layout.
+                            .ba element configure a b -baralign center -baroffset 0
+                            switch $mode {
+                                aligned {set ordinary {3 4 4 5}}
+                                overlap {set ordinary {3 4.5 3.5 5}}
+                                stacked {set ordinary {3 5 3 5}}
+                            }
+                            lassign $ordinary aLeft aRight bLeft bRight
+                            lappend result [AlignmentBounds a $aLeft $aRight $aY] \
+                                [AlignmentBounds b $bLeft $bRight 1] \
+                                [.ba element cget a -data] [.ba element cget b -data]
+                            set result
+                        } -cleanup {destroy .ba} -result {1 1 1 1 {4 3} {4 3}}
+                    }
+                }
+            }
+        }
+    }
+
     test RBC.barchart.bar.align-defaults {defaults retain centered bars and width inheritance} -setup {
         AlignmentCreate barchart 0 0 0
     } -body {
