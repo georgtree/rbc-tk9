@@ -124,8 +124,8 @@ namespace eval ::rbc::graphtoolbar {
 
         Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. With `-invertxy yes`, tracks
         become columns: shared X navigation is vertical and local Y navigation
-        is horizontal. Point selection and separator dragging follow the columns. Window/XOR track markers
-        remain unsupported.
+        is horizontal. Point selection and separator dragging follow the columns. Window markers retain ordinary
+        graph overlap behaviour; XOR track markers remain unsupported.
 
         Show a local legend with `$g track legend voltage configure -hide no`. Active-legend bindings are added
         for tracks created after the toolbar, once graph changes are displayed. Existing nonempty custom local

@@ -1193,10 +1193,6 @@ static int ParseMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr
             Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-track requires an existing trackgraph track", -1));
             goto error;
         }
-        if (markerPtr->classUid == rbcWindowMarkerUid) {
-            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("window markers do not support -track", -1));
-            goto error;
-        }
         if ((markerPtr->classUid == rbcLineMarkerUid && LINE_MARKER_FROM_CORE(markerPtr)->xor) ||
             ((markerPtr->classUid == rbcPolygonMarkerUid || markerPtr->classUid == rbcArcMarkerUid) &&
              POLYGON_MARKER_FROM_CORE(markerPtr)->xor)) {
@@ -3758,6 +3754,47 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
     }
     if (!Tk_IsMapped(wmPtr->tkwin)) {
         Tk_MapWindow(wmPtr->tkwin);
+    }
+}
+
+/*
+ * Synchronize real child windows independently of pixmap drawing. Skipping a
+ * hidden or clipped marker does not erase an already mapped Tk child. Process
+ * both under/over windows even when the backing-store marker pass is reused.
+ * Partial overlap intentionally retains the ordinary graph behaviour: display
+ * the full child, clipped only by its graph parent, not by the plot or track.
+ */
+static void SyncWindowMarkers(Graph *graphPtr) {
+    Rbc_ChainLink *link;
+    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
+         link = Rbc_ChainNextLink(link)) {
+        Marker *markerPtr = Rbc_ChainGetValue(link);
+        WindowMarker *wmPtr;
+        int visible;
+        if (markerPtr->classUid != rbcWindowMarkerUid) {
+            continue;
+        }
+        wmPtr = WINDOW_MARKER_FROM_CORE(markerPtr);
+        if (wmPtr->tkwin == NULL) {
+            continue;
+        }
+        visible = markerPtr->nWorldPts > 0 && !markerPtr->hidden && !markerPtr->clipped;
+        if (markerPtr->track != NULL &&
+            (markerPtr->track->right - markerPtr->track->left <= 1 ||
+             markerPtr->track->bottom - markerPtr->track->top <= 1)) {
+            visible = FALSE;
+        }
+        if (markerPtr->elemName != NULL) {
+            Tcl_HashEntry *entry = Tcl_FindHashEntry(&graphPtr->elements.table, markerPtr->elemName);
+            if (entry != NULL && ((Element *)Tcl_GetHashValue(entry))->hidden) {
+                visible = FALSE;
+            }
+        }
+        if (visible) {
+            DrawWindowMarker(markerPtr, None);
+        } else if (Tk_IsMapped(wmPtr->tkwin)) {
+            Tk_UnmapWindow(wmPtr->tkwin);
+        }
     }
 }
 
@@ -6523,7 +6560,7 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
             Rbc_ExportAppend(exportPtr, "\n% Marker \"", markerPtr->name, "\" is a ", markerPtr->classUid, " marker\n",
                                (char *)NULL);
         }
-        if (markerPtr->track != NULL) {
+        if (markerPtr->track != NULL && markerPtr->classUid != rbcWindowMarkerUid) {
             RbcTrackViewport saved;
             Rbc_RenderContext *context;
             if ((markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) || markerPtr->clipped) {
@@ -7047,7 +7084,7 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
          link = Rbc_ChainNextLink(link)) {
         Marker *markerPtr = Rbc_ChainGetValue(link);
-        if (markerPtr->nWorldPts == 0 || markerPtr->drawUnder != under || markerPtr->hidden || markerPtr->clipped) {
+        if (markerPtr->classUid == rbcWindowMarkerUid || markerPtr->nWorldPts == 0 || markerPtr->drawUnder != under || markerPtr->hidden || markerPtr->clipped) {
             continue;
         }
         if (markerPtr->elemName != NULL) {
@@ -7129,6 +7166,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_RenderContext *strokeContext = NULL;
     MarkerStroke stroke, runStyle = {0};
     int canStroke;
+    SyncWindowMarkers(graphPtr);
     if (graphPtr->trackGraph) {
         DrawTrackMarkers(graphPtr, drawable, under);
         return;
@@ -7315,7 +7353,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->markers.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
-        if ((markerPtr->nWorldPts == 0) || (markerPtr->drawUnder != under) || (markerPtr->hidden) ||
+        if (markerPtr->classUid == rbcWindowMarkerUid || (markerPtr->nWorldPts == 0) || (markerPtr->drawUnder != under) || (markerPtr->hidden) ||
             (markerPtr->clipped)) {
             continue;
         }

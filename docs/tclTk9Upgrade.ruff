@@ -33,6 +33,13 @@ namespace eval TclTk9Upgrade {
         `demos/trackgraph2.tcl` demonstrates both legend types, line/strip elements, markers and orientation switching;
         the separate `trackgraph1.tcl` demo is retired.
 
+        ### Window-marker visibility and track support
+        Window markers now unmap their live child when hidden, emptied, moved completely outside the plot,
+        or associated with a hidden element, and remap it when visible again. Trackgraphs accept window markers
+        with `-track` and `-mapy` in either orientation. They follow track placement and resizing, preserving
+        ordinary graph behaviour: partially overlapping children keep their full size and may extend beyond
+        the track. There is no internal window clipping container. See [::rbc::MARKER].
+
         ### Configurable logarithmic bar baseline
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,
         inverted graphs and exports. Non-positive settings retain the historical logarithmic baseline of `1.0`.

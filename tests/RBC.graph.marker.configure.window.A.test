@@ -502,4 +502,35 @@ namespace eval graph.marker {
     } -result {1 1 1 1 1 graph}
 
 	cleanupTests
+    foreach kind {graph barchart stripchart} {
+        foreach under {0 1} {
+            test window-visibility-$kind-$under {live children unmap and remap with marker and element visibility} -setup {
+                ::rbc::$kind .graph1 -width 500 -height 400
+                .graph1 axis configure x -min 0 -max 10 -loose no
+                .graph1 axis configure y -min 0 -max 10 -loose no
+                .graph1 element create trace -data {0 0 10 10}
+                button .graph1.child -text Window
+                .graph1 marker create window -name w -window .graph1.child -coords {5 5} -under $under -element trace
+                pack .graph1
+                update
+            } -body {
+                set result [list [winfo ismapped .graph1.child]]
+                foreach options {
+                    {-hide yes} {-hide no} {-coords {}} {-coords {5 5}}
+                    {-coords {100 100}} {-coords {5 5}}
+                } {
+                    .graph1 marker configure w {*}$options
+                    update
+                    lappend result [winfo ismapped .graph1.child]
+                }
+                foreach hidden {yes no} {
+                    .graph1 element configure trace -hide $hidden
+                    update
+                    lappend result [winfo ismapped .graph1.child]
+                }
+                set result
+            } -cleanup {destroy .graph1} -result {1 0 1 0 1 0 1 0 1}
+        }
+    }
+
 }

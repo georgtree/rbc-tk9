@@ -4081,7 +4081,7 @@ namespace eval ::rbc::MARKER {
         | `-hide boolean`        | `hide`        | `Hide`         | Specifies whether the marker is hidden. The default is `no`.                                                                                                                                                                              |
         | `-mapx axisName`       | `mapX`        | `MapX`         | Specifies the X axis used to map marker coordinates. The axis must exist and must be an X axis. The default is `x`.                                                                                                                       |
         | `-mapy axisName`       | `mapY`        | `MapY`         | Specifies the Y axis used to map marker coordinates. The axis must exist and must be a Y axis. The default is `y`.                                                                                                                        |
-        | `-track name` | `track` | `Track` | Assigns a marker to a trackgraph track. The `-mapy` axis must belong to the same track. Default empty (graph-wide). Window markers and XOR drawing cannot be track-owned. |
+        | `-track name` | `track` | `Track` | Assigns a marker to a trackgraph track. The `-mapy` axis must belong to the same track. Default empty (graph-wide). XOR drawing cannot be track-owned. Window markers use overlap visibility, not strict track clipping. |
         | `-name markerName`     | —             | —              | Specifies the marker name. During creation, an omitted name is generated automatically. Reconfiguring `-name` renames the marker; the new name must be non-empty, must not begin with `-`, and must not already belong to another marker. |
         | `-state state`         | `state`       | `State`        | Specifies the marker state: `normal`, `active`, or `disabled`. The default is `normal`.                                                                                                                                                   |
         | `-under boolean`       | `under`       | `Under`        | Specifies whether the marker is drawn below graph elements rather than above them. The default is `no`.                                                                                                                                   |
@@ -4104,7 +4104,7 @@ namespace eval ::rbc::MARKER {
             -coords {2 0.5} -text Threshold -anchor sw
         ```
 
-        Track markers support line, polygon, arc, text, image and bitmap types. Drawing is clipped to the track's
+        Painted track markers support line, polygon, arc, text, image and bitmap types. Drawing is clipped to the track's
         plotting rectangle, including text/image overhangs, thick strokes and arrowheads, with native and Cairo
         rendering and SVG, PDF and PostScript output. Resizing, axis changes and export recalculate their mapping.
         Bindings and overlapping-region searches do not select clipped portions outside the row. As for ordinary
@@ -4117,9 +4117,11 @@ namespace eval ::rbc::MARKER {
         it does not select a track. Marker stacking
         order and `-under` keep their existing meanings, including when graph-wide and track markers are mixed.
 
-        Window markers cannot use a nonempty `-track`: clipping embedded child windows requires separate window
-        management. Track markers also reject `-xor yes`, whose immediate window drawing bypasses the clipped
-        redraw pass. These restrictions do not change ordinary graph-wide markers.
+        Window markers accept `-track` and use the same overlap visibility as ordinary graphs. They are real
+        child widgets: a partially overlapping window is displayed at its full size and can extend into a gap,
+        another track, or the graph margins. Only the graph widget's outer boundary clips the live child.
+        No clipping containers are introduced. Track markers still reject `-xor yes`, whose immediate window
+        drawing bypasses the clipped redraw pass.
 
         ### Bitmap marker options
         Bitmap markers display a Tk bitmap.
@@ -4357,7 +4359,20 @@ namespace eval ::rbc::MARKER {
         ### Window marker options
         Window markers display a Tk window inside the graph.
 
-        The window must be managed by the graph marker.
+        The window must be a direct child of the graph and is geometry-managed by the marker. Its position
+        follows the selected axes, anchor and offsets; its size comes from its requested size or the explicit
+        marker dimensions. Zooming, resizing or inverting axes does not scale or rotate the child widget.
+
+        On redraw, the child is unmapped when the marker is hidden, has no coordinates, lies completely outside
+        its plot/track, or references a hidden element. It is mapped again when visible. Partial overlap keeps
+        the whole widget visible, including any portion extending beyond the plot/track into margins or other
+        tracks. Real child windows are not clipped or layered like painted markers; `-under` does not place a
+        live child behind graph drawing.
+
+        Track windows use `-track name -mapy axisName`, follow track resizing, reordering and inversion, and retain
+        the same child-parent and deletion rules as ordinary window markers. Deleting the marker destroys its
+        managed child. SVG/PDF capture the mapped child as a raster image, without an additional track clip;
+        they retain the existing window-capture controls and limitations.
 
         ```tcl
         button .g.info -text Info
