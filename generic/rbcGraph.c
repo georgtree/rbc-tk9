@@ -194,6 +194,8 @@ static const char *const graphAntialiasNames[] = {"default", "none", "gray", "fa
 #endif
 
 static const Tk_OptionSpec graphOptionSpecs[] = {
+    {TK_OPTION_BOOLEAN, "-trackresize", "trackResize", "TrackResize", "0", -1, offsetof(Graph, trackResize),
+     0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1, offsetof(Graph, antialias), 0,
      (ClientData)graphAntialiasNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1, offsetof(Graph, renderer), 0,
@@ -1741,6 +1743,10 @@ static int ConfigureGraph(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    if (graphPtr->trackResize && !graphPtr->trackGraph) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-trackresize requires a trackgraph widget", -1));
+        return TCL_ERROR;
+    }
     if (graphPtr->trackGraph && graphPtr->inverted) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("trackgraph does not support -invertxy", -1));
         return TCL_ERROR;
@@ -3219,9 +3225,87 @@ error:
     return TCL_ERROR;
 }
 
+/* Validate the complete permutation before modifying the linked list. Track
+ * objects, axes, elements and markers retain their identity and ownership. */
+static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
+    Tcl_Obj **names;
+    Tcl_Size count, n = 0, i, j;
+    RbcTrack *track, **order;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        n++;
+    }
+    if (Tcl_ListObjGetElements(graphPtr->interp, namesObj, &count, &names) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (count != n) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track order must list every track exactly once", -1));
+        return TCL_ERROR;
+    }
+    if ((Tcl_WideUInt)count > (Tcl_WideUInt)(SIZE_MAX / sizeof(*order))) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("too many tracks", -1));
+        return TCL_ERROR;
+    }
+    order = ckalloc(MAX((size_t)1, (size_t)count * sizeof(*order)));
+    for (i = 0; i < count; i++) {
+        order[i] = Rbc_FindTrack(graphPtr, Tcl_GetString(names[i]));
+        if (order[i] == NULL) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(names[i])));
+            ckfree(order);
+            return TCL_ERROR;
+        }
+        for (j = 0; j < i; j++) {
+            if (order[j] == order[i]) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track order contains a duplicate track", -1));
+                ckfree(order);
+                return TCL_ERROR;
+            }
+        }
+    }
+    for (i = 0; i < count; i++) {
+        order[i]->next = (i + 1 < count) ? order[i + 1] : NULL;
+    }
+    graphPtr->tracks = (count > 0) ? order[0] : NULL;
+    ckfree(order);
+    SyncTrackAxes(graphPtr);
+    return TCL_OK;
+}
+
+/* Move the separator after a track by changing only the adjacent weights.
+ * Their sum is preserved, so other rows retain their allocation. Integer
+ * rounding may move a boundary by one pixel. Compressed minima cannot resize. */
+static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
+    RbcTrack *next = track->next;
+    double pairHeight, extra, height, ratio, sum, first, second;
+    int gap = next->top - track->bottom;
+    if (y == track->bottom + gap / 2) {
+        return TCL_OK;
+    }
+    pairHeight = (double)(track->bottom - track->top) + next->bottom - next->top;
+    extra = pairHeight - track->minHeight - next->minHeight;
+    if (extra <= 0.0) {
+        return TCL_OK;
+    }
+    height = (double)y - gap / 2 - track->top;
+    ratio = (height - track->minHeight) / extra;
+    sum = track->weight + next->weight;
+    /* Keep weights positive and inside the same limits as track configure. */
+    ratio = MAX(MAX(1e-9, 1.0 - 1e6 / sum), MIN(MIN(1.0 - 1e-9, 1e6 / sum), ratio));
+    first = sum * ratio;
+    second = sum - first;
+    if (first <= 0.0 || second <= 0.0) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track weights are too small to resize this separator", -1));
+        return TCL_ERROR;
+    }
+    track->weight = first;
+    next->weight = second;
+    graphPtr->flags |= RESET_WORLD;
+    Rbc_EventuallyRedrawGraph(graphPtr);
+    return TCL_OK;
+}
+
 static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", NULL};
-    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM};
+    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", NULL};
+    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR};
     RbcTrack *track, **slot;
     int operation;
     Tcl_Obj *result;
@@ -3236,12 +3320,40 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     if (Tcl_GetIndexFromObj(interp, objv[2], operations, "track operation", 0, &operation) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (operation == TRACK_OP_NAMES && objc == 3) {
+    if (operation == TRACK_OP_ORDER && objc == 4) {
+        if (OrderTracks(graphPtr, objv[3]) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if ((operation == TRACK_OP_NAMES && objc == 3) ||
+        (operation == TRACK_OP_ORDER && (objc == 3 || objc == 4))) {
         result = Tcl_NewListObj(0, NULL);
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
             Tcl_ListObjAppendElement(interp, result, Tcl_NewStringObj(track->name, -1));
         }
         Tcl_SetObjResult(interp, result);
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_SEPARATOR) {
+        int x, y;
+        if (objc != 5) {
+            Tcl_WrongNumArgs(interp, 3, objv, "x y");
+            return TCL_ERROR;
+        }
+        if (Tcl_GetIntFromObj(interp, objv[3], &x) != TCL_OK ||
+            Tcl_GetIntFromObj(interp, objv[4], &y) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Rbc_LayoutGraph(graphPtr);
+        if (x >= graphPtr->left && x <= graphPtr->right) {
+            for (track = graphPtr->tracks; track != NULL && track->next != NULL; track = track->next) {
+                if (y > track->bottom && y < track->next->top) {
+                    Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
+                    return TCL_OK;
+                }
+            }
+        }
+        Tcl_ResetResult(interp);
         return TCL_OK;
     }
     if (operation == TRACK_OP_IDENTIFY && objc == 4) {
@@ -3289,6 +3401,29 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     if (track == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_SASHPOS) {
+        int y;
+        if (objc != 4 && objc != 5) {
+            Tcl_WrongNumArgs(interp, 3, objv, "name ?y?");
+            return TCL_ERROR;
+        }
+        if (track->next == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("last track has no separator", -1));
+            return TCL_ERROR;
+        }
+        if (objc == 5 && Tcl_GetIntFromObj(interp, objv[4], &y) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Rbc_LayoutGraph(graphPtr);
+        if (objc == 5) {
+            if (SetTrackSash(graphPtr, track, y) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            Rbc_LayoutGraph(graphPtr);
+        }
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(track->bottom + (track->next->top - track->bottom) / 2));
+        return TCL_OK;
     }
     if (operation == TRACK_OP_TRANSFORM || operation == TRACK_OP_INVTRANSFORM) {
         Axis2D axes = {NULL, NULL};

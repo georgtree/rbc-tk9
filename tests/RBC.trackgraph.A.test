@@ -503,5 +503,260 @@ namespace eval trackGraphTest {
         } -cleanup {destroy .tg} -result {1 1}
     }
 
+    # Reordering and separators retain the same tracks, axes and plot objects.
+    test trackgraph-order {reorder moves elements and markers without recreating them} -setup {
+        Create
+        .tg marker create text -name note -track voltage -mapy volts -coords {5 0} -text V
+    } -body {
+        set before [.tg track transform voltage 5 0]
+        set result [list [.tg track order {current voltage}] [.tg track names] [.tg yaxis use]]
+        lassign [.tg track transform voltage 5 0] x y
+        lappend result [expr {$y > [lindex $before 1]}] [.tg element cget v -track] [.tg marker cget note -track]
+        .tg track order {voltage current}
+        lappend result [expr {$before eq [.tg track transform voltage 5 0]}]
+        set result
+    } -cleanup {destroy .tg} -result {{current voltage} {current voltage} {amps volts} 1 voltage voltage 1}
+
+    foreach names {{} {voltage} {voltage voltage} {voltage missing} {current voltage extra}} {
+        test trackgraph-order-invalid-$names {invalid permutations do not change layout or ownership} -setup {
+            Create
+        } -body {
+            set before [.tg track bbox voltage]
+            list [catch {.tg track order $names}] [.tg track order] [expr {$before eq [.tg track bbox voltage]}]
+        } -cleanup {destroy .tg} -result {1 {voltage current} 1}
+    }
+
+    test trackgraph-order-empty {empty graphs accept an empty order} -setup {
+        ::rbc::trackgraph .tg
+    } -body {
+        list [.tg track order] [.tg track order {}] [.tg track separator 0 0]
+    } -cleanup {destroy .tg} -result {{} {} {}}
+
+    proc ThirdTrack {} {
+        .tg axis create aux -min -1 -max 1 -loose no
+        .tg track create auxiliary -yaxes aux
+        update
+    }
+
+    test trackgraph-sash {moving a separator changes only adjacent weights and respects minimum heights} -setup {
+        Create
+        ThirdTrack
+    } -body {
+        set outside [.tg track bbox auxiliary]
+        set otherWeight [.tg track cget auxiliary -weight]
+        set total [expr {[.tg track cget voltage -weight]+[.tg track cget current -weight]}]
+        set old [.tg track sashpos voltage]
+        set moved [.tg track sashpos voltage [expr {$old+20}]]
+        set result [list [expr {abs($moved-$old-20)<=1}] [expr {$outside eq [.tg track bbox auxiliary]}] \
+            [expr {$otherWeight == [.tg track cget auxiliary -weight]}] \
+            [expr {abs($total-[.tg track cget voltage -weight]-[.tg track cget current -weight])<1e-12}]]
+        foreach target {-1000000 1000000} {
+            .tg track sashpos voltage $target
+            foreach name {voltage current} {
+                lassign [.tg track bbox $name] l t r b
+                lappend result [expr {$b-$t >= [.tg track cget $name -minheight]-1}]
+            }
+        }
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1}
+
+    test trackgraph-separator {separator hit tests exclude plots and margins} -setup {
+        Create
+    } -body {
+        lassign [.tg track bbox voltage] l t r b
+        set y [.tg track sashpos voltage]
+        list [.tg track separator [expr {($l+$r)/2}] $y] \
+            [.tg track separator [expr {$l-1}] $y] [.tg track separator $l $b] \
+            [.tg track separator $l -100] [catch {.tg track sashpos current}] \
+            [catch {.tg track sashpos voltage bad}]
+    } -cleanup {destroy .tg} -result {voltage {} {} {} 1 1}
+
+    test trackgraph-sash-compressed {minimum-height compression leaves no space to redistribute} -setup {
+        Create
+        .tg track configure voltage -minheight 1000
+        .tg track configure current -minheight 1000
+    } -body {
+        set old [.tg track sashpos voltage]
+        list [expr {$old == [.tg track sashpos voltage [expr {$old+50}]]}] \
+            [.tg track cget voltage -weight] [.tg track cget current -weight]
+    } -cleanup {destroy .tg} -result {1 2.0 1.0}
+
+    proc SeparatorPoint {} {
+        lassign [.tg track bbox voltage] l t r b
+        list [expr {($l+$r)/2}] [.tg track sashpos voltage]
+    }
+
+    test trackgraph-drag-disabled {default bindings do not resize tracks until explicitly enabled} -setup {
+        Create
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
+        event generate .tg <ButtonRelease-1> -x $x -y [expr {$y+30}]
+        update
+        list [.tg cget -trackresize] [expr {$y == [.tg track sashpos voltage]}]
+    } -cleanup {destroy .tg} -result {0 1}
+
+    test trackgraph-drag {pointer drag resizes, restores cursor and keeps bindings reusable} -setup {
+        Create
+        .tg configure -trackresize yes -cursor crosshair
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <Motion> -x $x -y $y
+        set hover [.tg cget -cursor]
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
+        event generate .tg <ButtonRelease-1> -x $x -y [expr {$y+30}]
+        update
+        list $hover [expr {abs([.tg track sashpos voltage]-$y-30)<=1}] \
+            [.tg cget -cursor] [dict exists $::rbc::trackgraph::drag .tg]
+    } -cleanup {destroy .tg} -result {sb_v_double_arrow 1 crosshair 0}
+
+    test trackgraph-drag-click {clicking without motion does not quantize the weights} -setup {
+        Create
+        .tg configure -trackresize yes
+    } -body {
+        lassign [SeparatorPoint] x y
+        set before [list [.tg track cget voltage -weight] [.tg track cget current -weight]]
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonRelease-1> -x $x -y $y
+        expr {$before eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}
+    } -cleanup {destroy .tg} -result 1
+
+    test trackgraph-drag-reordered-pair {moving the whole pair to another location cancels dragging} -setup {
+        Create
+        ThirdTrack
+        .tg configure -trackresize yes
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        .tg track order {auxiliary voltage current}
+        set before [list [.tg track cget voltage -weight] [.tg track cget current -weight]]
+        event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
+        list [dict exists $::rbc::trackgraph::drag .tg] \
+            [expr {$before eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}]
+    } -cleanup {destroy .tg} -result {0 1}
+
+    test trackgraph-drag-cancel {Escape restores original weights and geometry} -setup {
+        Create
+        .tg configure -trackresize yes
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
+        # Invoke the installed Escape binding without depending on WM focus.
+        catch {eval [string map [list %W .tg] [bind Trackgraph <Escape>]]}
+        update
+        list [expr {$y == [.tg track sashpos voltage]}] [.tg track cget voltage -weight] \
+            [.tg track cget current -weight] [dict exists $::rbc::trackgraph::drag .tg]
+    } -cleanup {destroy .tg} -result {1 2.0 1.0 0}
+
+    foreach change {{.tg track order {current voltage}} {.tg configure -trackresize no}} {
+        test trackgraph-drag-invalidate-$change {structural changes or disabling cancel the active gesture safely} -setup {
+            Create
+            .tg configure -trackresize yes
+        } -body {
+            lassign [SeparatorPoint] x y
+            set originalCursor [.tg cget -cursor]
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            eval $change
+            event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
+            update
+            list [dict exists $::rbc::trackgraph::drag .tg] [expr {$originalCursor eq [.tg cget -cursor]}]
+        } -cleanup {destroy .tg} -result {0 1}
+    }
+
+    test trackgraph-drag-destroy {destroying a widget during drag clears per-widget state} -setup {
+        Create
+        .tg configure -trackresize yes
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        destroy .tg
+        list [dict exists $::rbc::trackgraph::drag .tg] [dict exists $::rbc::trackgraph::cursors .tg]
+    } -result {0 0}
+
+    foreach format {svg postscript pdf} {
+        test trackgraph-sash-export-$format {exports preserve reordered tracks and separator allocations} -setup {
+            Create
+            .tg track order {current voltage}
+            .tg track sashpos current [expr {[.tg track sashpos current]+20}]
+        } -body {
+            set before [.tg track bbox current]
+            set weights [list [.tg track cget current -weight] [.tg track cget voltage -weight]]
+            .tg $format output -width 900 -height 700
+            .tg $format configure -width 0 -height 0
+            update
+            list [.tg track order] [expr {$before eq [.tg track bbox current]}] \
+                [expr {$weights eq [list [.tg track cget current -weight] [.tg track cget voltage -weight]]}]
+        } -cleanup {destroy .tg} -result {{current voltage} 1 1}
+    }
+
+    proc FocusSetup {} {
+        Create
+        .tg configure -trackresize yes
+        entry .trackFocus
+        entry .trackOther
+        pack .trackFocus .trackOther
+        update
+        focus -force .trackFocus
+        update
+    }
+
+    foreach finish {release cancel invalidate} {
+        test trackgraph-focus-$finish {drag temporarily borrows focus and restores it on completion} -setup {
+            FocusSetup
+        } -body {
+            lassign [SeparatorPoint] x y
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            update
+            set during [expr {[focus] eq ".tg"}]
+            switch $finish {
+                release {event generate .tg <ButtonRelease-1> -x $x -y $y}
+                cancel {event generate .tg <Escape>}
+                invalidate {
+                    .tg configure -trackresize no
+                    event generate .tg <B1-Motion> -x $x -y [expr {$y+20}]
+                }
+            }
+            update
+            list $during [focus] [dict exists $::rbc::trackgraph::drag .tg]
+        } -cleanup {destroy .tg .trackFocus .trackOther} -result {1 .trackFocus 0}
+    }
+
+    foreach initial {empty graph destroyed changed} {
+        test trackgraph-focus-$initial {restoration respects empty, existing, destroyed and independently changed focus} -setup {
+            FocusSetup
+        } -body {
+            switch $initial {
+                graph {focus .tg}
+            }
+            update
+            lassign [SeparatorPoint] x y
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            update
+            switch $initial {
+                empty {dict set ::rbc::trackgraph::drag .tg focus {}}
+                destroyed {destroy .trackFocus}
+                changed {focus .trackOther; update}
+            }
+            event generate .tg <ButtonRelease-1> -x $x -y $y
+            update
+            set expected [dict get {empty . graph .tg destroyed . changed .trackOther} $initial]
+            expr {[focus] eq $expected}
+        } -cleanup {destroy .tg .trackFocus .trackOther} -result 1
+    }
+
+    test trackgraph-focus-repeated-press {a second press does not overwrite the original focus owner} -setup {
+        FocusSetup
+    } -body {
+        lassign [SeparatorPoint] x y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonRelease-1> -x $x -y $y
+        update
+        focus
+    } -cleanup {destroy .tg .trackFocus .trackOther} -result .trackFocus
+
 }
 ::tcltest::cleanupTests

@@ -127,7 +127,8 @@ namespace eval ::rbc::GRAPHINST {
         pack .g -fill both -expand yes
         ```
 
-        Tracks appear in creation order from top to bottom. Every track receives the same horizontal plotting
+        Tracks initially appear in creation order from top to bottom. Use `track order` to change their order
+        without recreating axes, elements or markers. Every track receives the same horizontal plotting
         bounds. The common left margin accommodates the widest set of track Y axes, including titles and tick
         labels. X axes remain widget-wide: elements select them with `-mapx`, and ordinary `xaxis use` and
         `x2axis use` control their display. Independent X axes need not have matching tick positions; `grid -mapx`
@@ -140,6 +141,9 @@ namespace eval ::rbc::GRAPHINST {
         | `track configure name ?option value ...?` | Configures a track; without options returns a dictionary of option/value pairs. With one option returns its value. |
         | `track cget name option` | Returns one track option value. |
         | `track names` | Lists tracks in top-to-bottom order. |
+        | `track order ?nameList?` | Queries the order, or sets a complete permutation of all track names and returns it. Invalid lists leave the order unchanged. |
+        | `track sashpos name ?y?` | Queries or moves the separator after this track, returning its actual center Y coordinate in widget pixels. The last track has no separator. |
+        | `track separator x y` | Returns the track immediately above the gap at the given widget pixel coordinates, or an empty string. Plot interiors and margins do not match. |
         | `track delete name` | Deletes an empty track, retaining its axes. Delete or move its elements first. |
         | `track bbox name` | Returns the plotting rectangle as `left top right bottom` in widget pixels. |
         | `track identify y` | Returns the track containing a widget Y coordinate, or an empty string in a gap. |
@@ -171,9 +175,44 @@ namespace eval ::rbc::GRAPHINST {
         desired track's Y axes. The native crosshair's vertical line spans all tracks and its horizontal line follows
         the pointer's row.
 
+        ### Reordering and resizing tracks
+        `track order` takes the full list of existing track names, with no omissions or duplicates. Ownership,
+        axis configuration, vector subscriptions and marker bindings remain unchanged. Legend order still follows
+        element order, independently of track order.
+
+        ```tcl
+        .g track order {current voltage}
+        set y [.g track sashpos current]
+        .g track sashpos current [expr {$y+30}]
+        .g configure -trackresize yes
+        ```
+
+        `track sashpos` changes the two adjacent tracks' weights while preserving their sum. Other tracks keep
+        their weights and allocated space, subject to one-pixel layout rounding. Requested positions are clamped
+        by the adjacent minimum heights and the positive weight range. The returned position is the actual one.
+        If minimum heights already consume the available space, the separator cannot move. The resulting weights
+        continue to govern later window resizes and exports; no fixed pixel sizes are stored.
+
+        `-trackresize` is a graph option with database name `trackResize`, class `TrackResize`, and default `no`.
+        Only trackgraph widgets accept `yes`. With it enabled, the standard `Trackgraph` class bindings show a
+        vertical resize cursor over a gap. Drag with button 1 to resize the adjacent tracks; release to keep the
+        result, or press Escape to restore the weights from the start of the drag. The gesture borrows keyboard
+        focus so Escape works, then restores the previous focus on release, cancellation or invalidation, provided
+        focus is still on the graph. If there was no previous focus or its widget has been destroyed, focus
+        returns to the graph's toplevel. Focus moved
+        elsewhere during dragging is left alone; a graph already focused before dragging remains focused.
+        Pointer events in plot interiors
+        keep their ordinary behaviour. Changing the track list/order or disabling resizing invalidates
+        the gesture on the next motion or release, without restoring obsolete weights. Destroying the widget
+        removes its gesture state. These dependency-free bindings are loaded with `package require rbc`.
+
+        Applications may call the native order and separator operations regardless of `-trackresize`; the option
+        controls only the supplied mouse bindings. Custom interaction code can leave it disabled and use the same
+        commands. Keep the `Trackgraph` class in `bindtags` to use the standard bindings; a widget binding that
+        returns `break` before the class binding can intentionally suppress them.
+
         This first version supports line and strip elements in ordinary orientation. Bar/polar elements and
-        `-invertxy` are rejected. Track scrolling, draggable separators and graphtoolbar integration are not yet
-        provided. Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
+        `-invertxy` are rejected. Track scrolling and graphtoolbar integration are not yet provided. Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
         ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector updates,
         track weights, annotations and shared horizontal navigation.
 
@@ -614,6 +653,7 @@ namespace eval ::rbc::GRAPHINST {
         | `-shadow shadow`             | `shadow`              | `Shadow`              | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
         | `-takefocus focus`           | `takeFocus`           | `TakeFocus`           | Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk `-takefocus` option. The default is an empty value.                                                                                                          |
         | `-tile image`                | `tile`                | `Tile`                | Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal `-background` instead.                                                                                                                                      |
+        | `-trackresize boolean` | `trackResize` | `TrackResize` | Enables mouse dragging of separators in trackgraph widgets. Default `no`; ordinary graphs reject `yes`. Native track layout commands remain available when disabled. |
         | `-title text`                | `title`               | `Title`               | Specifies the graph title. An empty value suppresses the title.                                                                                                                                                                                                                     |
         | `-topmargin size`            | `topMargin`           | `Margin`              | Sets the requested size of the top margin. A value of `0` lets the graph calculate the required size automatically. `-tm` is a synonym.                                                                                                                                             |
         | `-topvariable varName`       | `topVariable`         | `TopVariable`         | Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.                                                                                                                                 |
@@ -1076,7 +1116,7 @@ namespace eval ::rbc::GRAPHINST {
 
     proc track {operation args} {
         # Manages named plot regions in a trackgraph. See Stacked tracks for operations and options.
-        # operation - create, configure, cget, names, delete, bbox, identify, transform or invtransform.
+        # operation - create, configure, cget, names, order, sashpos, separator, delete, bbox, identify, transform or invtransform.
         # args - Arguments for the selected operation.
         # Synopsis: operation ?args ...?
     }

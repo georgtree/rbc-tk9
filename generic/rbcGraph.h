@@ -494,6 +494,7 @@ struct GraphStruct {
      * Polar-specific presentation options.
      */
     PolarRepresentation representation;
+    int trackResize;         /* Enable the optional Trackgraph class drag bindings. */
     int trackGraph;          /* Named, vertically stacked plot regions. */
     RbcTrack *tracks;
     int left, right; /* Coordinates of plot bounding box. */

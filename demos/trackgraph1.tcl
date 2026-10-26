@@ -3,7 +3,7 @@ package require Tk
 package require rbc
 
 wm title . {RBC stacked tracks}
-::rbc::trackgraph .g -width 900 -height 620 -title {Shared time, independent Y scales}
+::rbc::trackgraph .g -trackresize yes -width 900 -height 620 -title {Shared time, independent Y scales}
 .g axis configure x -title {Time (s)} -min 0 -max 10 -loose no
 .g axis create samples -min 0 -max 1000 -loose no -title Samples
 .g x2axis use samples
@@ -77,11 +77,16 @@ ttk::frame .controls
 ttk::button .controls.in -text {Zoom X in} -command {TrackZoom 0.8}
 ttk::button .controls.out -text {Zoom X out} -command {TrackZoom 1.25}
 ttk::button .controls.reset -text Reset -command TrackReset
+ttk::button .controls.reverse -text {Reverse tracks} -command {.g track order [lreverse [.g track order]]}
 ttk::button .controls.advance -text {Update vectors} -command TrackAdvance
 ttk::label .controls.label -text {Voltage track weight}
-ttk::spinbox .controls.weight -from 1 -to 5 -width 3 -textvariable voltageWeight -command TrackWeight
-pack .controls.in .controls.out .controls.reset .controls.advance .controls.label .controls.weight -side left -padx 4 -pady 5
-ttk::label .status -text {Move the pointer over a track}
+ttk::spinbox .controls.weight -from 0.1 -to 5 -increment 0.1 -width 8 -textvariable voltageWeight -command TrackWeight
+pack .controls.in .controls.out .controls.reset .controls.advance .controls.reverse .controls.label .controls.weight -side left -padx 4 -pady 5
+proc TrackWeightDisplay {} {
+    set ::voltageWeight [format %.4g [.g track cget voltage -weight]]
+}
+bind .g <<RbcGraphChanged>> TrackWeightDisplay
+ttk::label .status -text {Drag a gap to resize tracks; Escape cancels. Move over a trace to read values.}
 grid .controls -sticky ew
 grid .g -sticky nsew
 grid .status -sticky ew -padx 8 -pady 4

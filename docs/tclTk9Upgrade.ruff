@@ -18,7 +18,9 @@ namespace eval TclTk9Upgrade {
         Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
         layout. Line, polygon, arc, text, bitmap and image markers can select a row with `-track` and `-mapy`,
         with clipped drawing, picking and exports. See [::rbc::GRAPHINST] for the track API, [::rbc::MARKER] for
-        track annotations, and `demos/trackgraph1.tcl` for a working example.
+        track annotations, and `demos/trackgraph1.tcl` for a working example. `track order` rearranges existing
+        rows; `track sashpos` redistributes adjacent heights. Enable `-trackresize yes` for mouse dragging of the
+        separators, with Escape cancellation, without requiring graphtoolbar.
 
         ### Configurable logarithmic bar baseline
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,
