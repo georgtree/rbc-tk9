@@ -621,6 +621,17 @@ testConstraint isCross true
 testConstraint isActiveLegend true
 
 
+test renderer-suite-default {make test keeps native rendering for every embedded graph type} \
+        -constraints rbcNativeSuiteDefault -body {
+    set result {}
+    foreach type {graph barchart stripchart polar trackgraph} {
+        set widget [graphtoolbar .gtb -type $type]
+        lappend result [$widget graph cget -renderer]
+        destroy $widget
+    }
+    set result
+} -cleanup {catch {destroy .gtb}} -result {native native native native native}
+
 ### general configuration tests
 rbc::vector create xVec1 yVec1 xVec2 yVec2
 xVec1 set {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}
@@ -6240,5 +6251,116 @@ test trackToolbar-locallegend-readout {coordinate markers do not cover local leg
     namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
     llength [$graph marker names gtbCrosshairs*]
 } -cleanup {destroy $widget} -result 0
+
+
+test trackToolbar-inverted-wheel {wheel selects a column and scales shared vertical X axes} \
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+    $graph configure -invertxy yes
+    update
+} -body {
+    lassign [TrackToolbarPoint $graph lower] x y
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $y] \
+        {*}[ExpectedWheelLimits $graph samples 0.5 $y] {*}[ExpectedWheelLimits $graph amps 0.5 $x]]
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    list [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits samples] \
+        {*}[$graph axis limits amps]] $expected] [$graph axis limits volts]
+} -cleanup {destroy $widget} -result {true {-1.0 1.0}}
+
+test trackToolbar-inverted-zoom {box zoom clamps to the starting column} \
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar -zoommark] widget graph objectNs
+    $graph configure -invertxy yes
+    update
+} -body {
+    lassign [TrackToolbarPoint $graph upper 0.2 0.2] ax ay
+    lassign [TrackToolbarPoint $graph lower 0.8 0.8] bx by
+    lassign [$graph track bbox upper] left top right bottom
+    set expected [list {*}[lsort -real [list [$graph axis invtransform x $ay] [$graph axis invtransform x $by]]] \
+        {*}[lsort -real [list [$graph axis invtransform volts $ax] [$graph axis invtransform volts $right]]]]
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay 0
+    GenerateGraphEvent $graph <Motion> $bx $by 0
+    set owners {}
+    foreach marker [$graph marker names gtbZoom*] {lappend owners [$graph marker cget $marker -track]}
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 0
+    list [expr {[llength $owners]>=4 && [lsort -unique $owners] eq {upper}}] \
+        [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits volts]] $expected] \
+        [$graph axis limits amps]
+} -cleanup {destroy $widget} -result {1 true {-10.0 10.0}}
+
+foreach mode {current closest} {
+    test trackToolbar-inverted-readout-$mode {coordinate annotations use the pointed column} \
+            -constraints {isInteractive isCrosshairs} -setup {
+        lassign [SetupTrackToolbar -crosshairsmode $mode] widget graph objectNs
+        $graph configure -invertxy yes
+        update
+    } -body {
+        set result {}
+        foreach track {upper lower} {
+            lassign [$graph track transform $track 5 0] x y
+            set x [expr {round($x)}]
+            set y [expr {round($y)}]
+            namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+            set owners {}
+            foreach marker [$graph marker names gtbCrosshairs*] {
+                lappend owners [$graph marker cget $marker -track]
+            }
+            lappend result [lsort -unique $owners]
+        }
+        set result
+    } -cleanup {destroy $widget} -result {upper lower}
+}
+
+test trackToolbar-inverted-pan {pan keeps the starting row across row boundaries; undo survives reordering}\
+        -constraints {isInteractive isPan} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+    $graph configure -invertxy yes
+    update
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    lassign [TrackToolbarPoint $graph lower 0.6 0.6] bx by
+    namespace eval $objectNs [list my StartPan $x $y]
+    namespace eval $objectNs [list my DragPan $bx $by]
+    namespace eval $objectNs [list my FinishPan $bx $by]
+    set changed [expr {[$graph axis limits x] ne {0.0 10.0} &&
+                      [$graph axis limits volts] ne {-1.0 1.0} && [$graph axis limits amps] eq {-10.0 10.0}}]
+    $graph track order {lower upper}
+    # Undo must not overwrite an unrelated row's subsequent application change.
+    $graph axis configure amps -min -20 -max 20
+    namespace eval $objectNs {my ResetZoom}
+    list $changed [$graph axis limits x] [$graph axis limits samples] [$graph axis limits volts]\
+        [$graph axis limits amps] [$graph track order] [namespace eval $objectNs {llength $ZoomInfo(stack)}]
+} -cleanup {
+    destroy $widget
+} -result {1 {0.0 10.0} {0.0 100.0} {-1.0 1.0} {-20.0 20.0} {lower upper} 0}
+
+foreach gesture {zoom pan} {
+    test trackToolbar-inverted-cancel-$gesture {row structure changes cancel gestures and restore controls}\
+            -constraints {isInteractive isZoom isPan} -setup {
+        lassign [SetupTrackToolbar -zoommark] widget graph objectNs
+        lassign [TrackToolbarPoint $graph upper] x y
+    } -body {
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my StartZoom $x $y]
+        } else {
+            namespace eval $objectNs [list my StartPan $x $y]
+            namespace eval $objectNs [list my DragPan [expr {$x+20}] [expr {$y+10}]]
+        }
+        $graph configure -invertxy yes
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my FinishZoom [expr {$x+40}] [expr {$y+20}]]
+        } else {
+            namespace eval $objectNs [list my FinishPan [expr {$x+40}] [expr {$y+20}]]
+        }
+        list [$graph axis limits x] [$graph axis limits volts]\
+            [namespace eval $objectNs {llength $ZoomInfo(stack)}]\
+            [llength [$graph marker names gtbZoom*]]\
+            [expr {{gtb-pan-region-.gtb.graph} ni [bindtags $graph] &&
+                   {gtb-select-region-.gtb.graph} ni [bindtags $graph]}]\
+            [expr {{volts} in [$widget getAxisActiveScale]}]
+    } -cleanup {
+        destroy $widget
+    } -result {{0.0 10.0} {-1.0 1.0} 0 0 1 1}
+}
 
 cleanupTests

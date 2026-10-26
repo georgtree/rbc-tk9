@@ -889,7 +889,7 @@ void Rbc_MapGrid(Graph *graphPtr) {
     if (graphPtr->trackGraph && gridPtr->axes.y != NULL) {
         RbcTrack *track;
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
-            if (track->nAxes == 0 || track->bottom - track->top <= 1) {
+            if (track->nAxes == 0 || track->right - track->left <= 1 || track->bottom - track->top <= 1) {
                 continue;
             }
             Rbc_GetAxisSegments(graphPtr, track->axes[0], &segments, &nSegments);

@@ -6,8 +6,8 @@ package require tcltest
 namespace eval trackGraphTest {
     namespace import ::tcltest::*
 
-    proc Create {} {
-        ::rbc::trackgraph .tg -width 640 -height 480
+    proc Create {{inverted 0}} {
+        ::rbc::trackgraph .tg -width 640 -height 480 -invertxy $inverted
         .tg legend configure -hide yes
         .tg axis configure x -min 0 -max 10 -loose no
         .tg axis create volts -min -1 -max 1 -loose no -title Voltage
@@ -127,9 +127,8 @@ namespace eval trackGraphTest {
             [.tg element cget v -track] [.tg element cget v -mapy] \
             [catch {.tg track configure voltage -yaxes {}}] \
             [catch {.tg axis delete volts}] [catch {.tg track delete voltage}] \
-            [catch {.tg yaxis use amps}] [catch {.tg configure -invertxy yes}] \
-            [.tg cget -invertxy]
-    } -cleanup {destroy .tg} -result {1 voltage volts 1 1 1 1 1 0}
+            [catch {.tg yaxis use amps}]
+    } -cleanup {destroy .tg} -result {1 voltage volts 1 1 1 1}
 
     test trackgraph-move-delete {moving elements permits deleting tracks without deleting axes or vectors} -setup {
         Create
@@ -224,29 +223,31 @@ namespace eval trackGraphTest {
         ::rbc::trackgraph .trackProbe
         testConstraint trackRenderer$renderer [expr {![catch {.trackProbe configure -renderer $renderer}]}]
         destroy .trackProbe
-        test trackgraph-raster-$renderer {out-of-range trace pixels remain inside their track} \
-            -constraints trackRenderer$renderer -setup {
-            Create
-            .tg configure -renderer $renderer
-            .tg element configure v -data {0 -100 10 100} -linewidth 1
-            set photo [image create photo]
-        } -body {
-            update
-            .tg snap $photo
-            lassign [.tg track bbox voltage] l t r b
-            set count 0
-            set outside 0
-            for {set y 0} {$y < [image height $photo]} {incr y} {
-                for {set x $l} {$x <= $r} {incr x} {
-                    lassign [$photo get $x $y] red green blue
-                    if {$red>180 && $green<80 && $blue<80} {
-                        incr count
-                        if {$y < $t-1 || $y > $b+1} {incr outside}
+        foreach inverted {0 1} {
+            test trackgraph-raster-$renderer-$inverted {out-of-range trace pixels remain inside their track} \
+                -constraints trackRenderer$renderer -setup {
+                Create $inverted
+                .tg configure -renderer $renderer
+                .tg element configure v -data {0 -100 10 100} -linewidth 1
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg track bbox voltage] l t r b
+                set count 0
+                set outside 0
+                for {set y 0} {$y < [image height $photo]} {incr y} {
+                    for {set x 0} {$x < [image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$red>180 && $green<80 && $blue<80} {
+                            incr count
+                            if {$y < $t-1 || $y > $b+1 || $x < $l-1 || $x > $r+1} {incr outside}
+                        }
                     }
                 }
-            }
-            list [expr {$count>0}] $outside
-        } -cleanup {image delete $photo; destroy .tg} -result {1 0}
+                list [expr {$count>0}] $outside
+            } -cleanup {image delete $photo; destroy .tg} -result {1 0}
+        }
     }
 
     test trackgraph-autorange {automatic Y limits remain independent while X limits are shared} -setup {
@@ -399,40 +400,44 @@ namespace eval trackGraphTest {
         set result
     } -cleanup {destroy .tg} -result {m {} {}}
 
-    foreach renderer {native cairo} {
-        foreach {kind options} {
-            line {-coords {5 -10 5 10} -outline red -linewidth 20 -arrow both}
-            polygon {-coords {4 -10 6 -10 6 10 4 10} -fill red -outline red}
-            arc {-coords {4 -10 6 10} -fill red -outline red}
-            text {-coords {5 -1} -text XXXXX -font {Helvetica 40} -anchor center -foreground red}
-            image {-coords {5 -1} -image trackMarkerPhoto -anchor center}
-            bitmap {-coords {5 -1} -bitmap warning -foreground red -anchor center}
-        } {
-            test trackgraph-marker-raster-$renderer-$kind {all marker pixels stay inside the owning row} \
-                -constraints trackRenderer$renderer -setup {
-                MarkerSetup
-                .tg configure -renderer $renderer
-                image create photo trackMarkerPhoto -width 40 -height 100
-                trackMarkerPhoto put red -to 0 0 40 100
-                set photo [image create photo]
-                .tg marker create $kind -name m -track voltage -mapy volts {*}$options
-            } -body {
-                update
-                .tg snap $photo
-                lassign [.tg track bbox voltage] l t r b
-                set count 0; set outside 0
-                for {set y 0} {$y < [image height $photo]} {incr y} {
-                    for {set x 0} {$x < [image width $photo]} {incr x} {
-                        lassign [$photo get $x $y] red green blue
-                        if {$red>180 && $green<80 && $blue<80} {
-                            incr count
-                            if {$y < $t || $y > $b || $x < $l || $x > $r} {incr outside}
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            foreach {kind options} {
+                line {-coords {5 -10 5 10} -outline red -linewidth 20 -arrow both}
+                polygon {-coords {4 -10 6 -10 6 10 4 10} -fill red -outline red}
+                arc {-coords {4 -10 6 10} -fill red -outline red}
+                text {-coords {5 -1} -text XXXXX -font {Helvetica 40} -anchor center -foreground red}
+                image {-coords {5 -1} -image trackMarkerPhoto -anchor center}
+                bitmap {-coords {5 -1} -bitmap warning -foreground red -anchor center}
+            } {
+                test trackgraph-marker-raster-$renderer-$kind-$inverted {all marker pixels stay inside the owning row} \
+                    -constraints trackRenderer$renderer -setup {
+                    MarkerSetup
+                    .tg configure -invertxy $inverted
+                    .tg configure -renderer $renderer
+                    image create photo trackMarkerPhoto -width 40 -height 100
+                    trackMarkerPhoto put red -to 0 0 40 100
+                    set photo [image create photo]
+                    .tg marker create $kind -name m -track voltage -mapy volts {*}$options
+                } -body {
+                    update
+                    .tg snap $photo
+                    lassign [.tg track bbox voltage] l t r b
+                    set count 0; set outside 0
+                    for {set y 0} {$y < [image height $photo]} {incr y} {
+                        for {set x 0} {$x < [image width $photo]} {incr x} {
+                            lassign [$photo get $x $y] red green blue
+                            if {$red>180 && $green<80 && $blue<80} {
+                                incr count
+                                if {$y < $t || $y > $b || $x < $l || $x > $r} {incr outside}
+                            }
                         }
                     }
-                }
-                list [expr {$count>0}] $outside
-            } -cleanup {image delete $photo trackMarkerPhoto; destroy .tg} -result {1 0}
+                    list [expr {$count>0}] $outside
+                } -cleanup {image delete $photo trackMarkerPhoto; destroy .tg} -result {1 0}
+            }
         }
+
     }
 
     foreach under {yes no} {
@@ -923,47 +928,52 @@ namespace eval trackGraphTest {
         list $old $hidden [.tg track legend current bbox]
     } -cleanup {destroy .tg} -result {{} v {}}
 
-    foreach renderer {native cairo} {
-        test tracklegend-clipping-$renderer {oversized legend drawing and picking are clipped to the owning track}\
-                -constraints trackRenderer$renderer -setup {
-            LocalLegendSetup
-            .tg configure -renderer $renderer
-            .tg track legend current configure -hide yes
-            .tg track legend voltage configure -background #00ff00 -foreground black -anchor sw
-            .tg element configure v -label [string repeat "very wide legend\n" 35]
-            set photo [image create photo]
-        } -body {
-            update
-            .tg snap $photo
-            lassign [.tg track bbox voltage] left top right bottom
-            set count 0
-            set outside 0
-            for {set y 0} {$y<[image height $photo]} {incr y} {
-                for {set x 0} {$x<[image width $photo]} {incr x} {
-                    lassign [$photo get $x $y] red green blue
-                    if {$green>240 && $red<15 && $blue<15} {
-                        incr count
-                        if {$x<$left || $x>$right || $y<$top || $y>$bottom} {incr outside}
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            test tracklegend-clipping-$renderer-$inverted {oversized legend drawing and picking are clipped to the owning track}\
+                    -constraints trackRenderer$renderer -setup {
+                LocalLegendSetup
+                .tg configure -invertxy $inverted
+                .tg configure -renderer $renderer
+                .tg track legend current configure -hide yes
+                .tg track legend voltage configure -background #00ff00 -foreground black -anchor sw
+                .tg element configure v -label [string repeat "very wide legend\n" 35]
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg track bbox voltage] left top right bottom
+                set count 0
+                set outside 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$green>240 && $red<15 && $blue<15} {
+                            incr count
+                            if {$x<$left || $x>$right || $y<$top || $y>$bottom} {incr outside}
+                        }
                     }
                 }
-            }
-            list [expr {$count>0}] $outside [.tg track legend voltage get @$left,[expr {$bottom+3}]]
-        } -cleanup {image delete $photo; destroy .tg} -result {1 0 {}}
-    }
+                list [expr {$count>0}] $outside [.tg track legend voltage get @$left,[expr {$bottom+3}]]
+            } -cleanup {image delete $photo; destroy .tg} -result {1 0 {}}
+        }
 
-    foreach format {svg pdf postscript} {
-        test tracklegend-export-$format {export remaps local legends and restores screen geometry} -setup {
-            LocalLegendSetup
-        } -body {
-            set before [.tg track legend current bbox]
-            set original [.tg $format output]
-            set resized [.tg $format output -width 900 -height 700]
-            .tg $format configure -width 0 -height 0
-            update
-            set restored [.tg $format output]
-            list [expr {$original ne $resized}] [expr {$original eq $restored}]\
-                [expr {$before eq [.tg track legend current bbox]}]
-        } -cleanup {destroy .tg} -result {1 1 1}
+        foreach format {svg pdf postscript} {
+            test tracklegend-export-$format-$inverted {export remaps local legends and restores screen geometry} -setup {
+                LocalLegendSetup
+                .tg configure -invertxy $inverted
+            } -body {
+                set before [.tg track legend current bbox]
+                set original [.tg $format output]
+                set resized [.tg $format output -width 900 -height 700]
+                .tg $format configure -width 0 -height 0
+                update
+                set restored [.tg $format output]
+                list [expr {$original ne $resized}] [expr {$original eq $restored}]\
+                    [expr {$before eq [.tg track legend current bbox]}]
+            } -cleanup {destroy .tg} -result {1 1 1}
+        }
+
     }
 
     test tracklegend-svg {local legend labels use export clipping and hide independently} -setup {
@@ -1013,14 +1023,145 @@ namespace eval trackGraphTest {
         set ::localHits
     } -cleanup {destroy .tg; unset ::localHits} -result legend
 
-    test tracklegend-optiondb {local legend defaults use their own option-database component} -setup {
-        option add *trackLegend.foreground purple widgetDefault
-        option add *trackLegend.anchor sw widgetDefault
+    test tracklegend-optiondb {local option-database tests do not clear the caller's renderer defaults} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            option add *trackLegend.foreground purple widgetDefault
+            option add *trackLegend.anchor sw widgetDefault
+            rbc::trackgraph .tg
+            .tg track create voltage
+            .tg track create current
+        }
+    } -body {
+        interp eval trackOptionChild {
+            list [.tg track legend voltage cget -foreground] [.tg track legend current cget -anchor]\
+                [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {purple sw 1 n}
+
+
+    test trackgraph-inverted-layout {columns share X geometry and keep independent Y ranges} -setup {
+        Create 1
+    } -body {
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lassign [.tg track transform voltage 4 0] x1 y1
+        lassign [.tg track transform current 4 0] x2 y2
+        list [expr {$t1==$t2 && $b1==$b2 && $r1<$l2}] \
+            [expr {abs(($r1-$l1-40)-2*($r2-$l2-40))<=2}] \
+            [expr {$y1==$y2 && $x1<$x2}] [.tg track identify $x1] [.tg track identify $x2] \
+            [.tg track separator [.tg track sashpos voltage] [expr {round($y1)}]]
+    } -cleanup {destroy .tg} -result {1 1 1 voltage current voltage}
+
+    foreach logarithmic {0 1} {
+        foreach descending {0 1} {
+            test trackgraph-inverted-transform-$logarithmic-$descending {inverted local axes round trip and agree with track transforms} -setup {
+                Create
+                .tg configure -invertxy yes
+                .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
+                .tg axis configure amps -min 1 -max 100 -logscale $logarithmic -descending $descending
+            } -body {
+                set result {}
+                foreach {track axis} {voltage volts current amps} {
+                    lassign [.tg track transform $track 4 10] px py
+                    lassign [.tg track invtransform $track $px $py] x y
+                    lassign [.tg track bbox $track] l t r b
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
+                        [expr {$px >= $l && $px <= $r}] \
+                        [expr {abs([.tg axis transform $axis 10]-$px)<1.0}]
+                }
+                set result
+            } -cleanup {destroy .tg} -result {1 1 1 1 1 1}
+        }
+    }
+
+    test trackgraph-inverted-picking {closest points cannot cross column boundaries} -setup {
+        Create
+        .tg configure -invertxy yes
+    } -body {
+        set result {}
+        foreach {track value name} {voltage 1 v current -10 i} {
+            lassign [.tg track transform $track 5 $value] x y
+            lappend result [.tg element closest $x $y hit -halo 3] $hit(name)
+        }
+        set result
+    } -cleanup {destroy .tg} -result {1 v 1 i}
+
+    test trackgraph-inverted-axes {multiple local axes share horizontal bounds and use the bottom margin} -setup {
+        Create
+        .tg configure -invertxy yes
+        .tg axis create volts2 -min 0 -max 100 -loose no -title Auxiliary
+        .tg track configure voltage -yaxes {volts volts2}
+    } -body {
+        lassign [.tg track transform voltage 5 0] x1 y1
+        lassign [.tg track transform voltage 5 50 -mapy volts2] x2 y2
+        list [expr {$x1==$x2 && $y1==$y2}] [.tg yaxis use]
+    } -cleanup {destroy .tg} -result {1 {volts volts2 amps}}
+
+    foreach finish {release cancel invert} {
+        test trackgraph-inverted-drag-$finish {horizontal separators resize and cancel safely} -setup {
+            Create
+            .tg configure -invertxy yes -trackresize yes -cursor crosshair
+            update
+        } -body {
+            set x [.tg track sashpos voltage]
+            lassign [.tg track bbox voltage] l t r b
+            set y [expr {($t+$b)/2}]
+            event generate .tg <Motion> -x $x -y $y
+            set cursor [.tg cget -cursor]
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            if {$finish eq "invert"} {.tg configure -invertxy no}
+            event generate .tg <B1-Motion> -x [expr {$x+30}] -y $y
+            if {$finish eq "cancel"} {
+                catch {eval [string map [list %W .tg] [bind Trackgraph <Escape>]]}
+            } else {
+                event generate .tg <ButtonRelease-1> -x [expr {$x+30}] -y $y
+            }
+            update
+            set valid [expr {$finish eq "release" ? abs([.tg track sashpos voltage]-$x-30)<=1 :
+                [.tg track cget voltage -weight]==2.0 && [.tg track cget current -weight]==1.0}]
+            list $cursor $valid [.tg cget -cursor] [dict exists $::rbc::trackgraph::drag .tg]
+        } -cleanup {destroy .tg} -result {sb_h_double_arrow 1 crosshair 0}
+    }
+
+    test trackgraph-inverted-toggle {orientation changes restore ordinary geometry without recreating tracks} -setup {
         Create
     } -body {
-        list [.tg track legend voltage cget -foreground] [.tg track legend current cget -anchor]\
-            [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
-    } -cleanup {destroy .tg; option clear} -result {purple sw 1 n}
+        set before [.tg track bbox voltage]
+        set point [.tg track transform current 5 0]
+        foreach inverted {1 0 1 0} {
+            .tg configure -invertxy $inverted
+            update
+        }
+        list [expr {$before eq [.tg track bbox voltage]}] [expr {$point eq [.tg track transform current 5 0]}]
+    } -cleanup {destroy .tg} -result {1 1}
+
+    test trackgraph-inverted-resize {small layouts and weight changes do not retain stale regions} -setup {
+        Create 1
+    } -body {
+        set old [.tg track bbox voltage]
+        .tg track configure voltage -weight 1
+        .tg track configure current -weight 3
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        set result [list [expr {$r-$l < $r2-$l2}]]
+        .tg configure -width 140
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lappend result [expr {$l <= $r && $r <= $l2 && $l2 <= $r2}]
+        .tg configure -width 640
+        .tg track configure voltage -weight 2
+        .tg track configure current -weight 1
+        update
+        lappend result [expr {$old eq [.tg track bbox voltage]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+
 
 }
 ::tcltest::cleanupTests

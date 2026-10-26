@@ -611,9 +611,9 @@ static void SetLegendOrigin(Legend *legendPtr) {
     graphPtr = legendPtr->graphPtr;
     x = y = width = height = 0;
     if (legendPtr->track != NULL) {
-        x = graphPtr->left;
+        x = legendPtr->track->left;
         y = legendPtr->track->top;
-        width = (Tcl_WideInt)graphPtr->right - graphPtr->left;
+        width = (Tcl_WideInt)legendPtr->track->right - legendPtr->track->left;
         height = (Tcl_WideInt)legendPtr->track->bottom - legendPtr->track->top;
         switch (legendPtr->site) {
         case LEGEND_RIGHT: x += width - legendPtr->width; /* fall through */
@@ -739,7 +739,7 @@ static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
     graphPtr = legendPtr->graphPtr;
     if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {return NULL;}
     SetLegendOrigin(legendPtr);
-    if (legendPtr->track != NULL && (x < graphPtr->left || x > graphPtr->right ||
+    if (legendPtr->track != NULL && (x < legendPtr->track->left || x > legendPtr->track->right ||
         y < legendPtr->track->top || y > legendPtr->track->bottom)) {return NULL;}
     localX = (Tcl_WideInt)x - (Tcl_WideInt)legendPtr->x - (Tcl_WideInt)legendPtr->borderWidth;
     localY = (Tcl_WideInt)y - (Tcl_WideInt)legendPtr->y - (Tcl_WideInt)legendPtr->borderWidth;
@@ -803,10 +803,9 @@ static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
 
 /* Test the entire visible rectangle, including blank padding, for occlusion. */
 static int LegendContains(Legend *legendPtr, int x, int y) {
-    Graph *graphPtr = legendPtr->graphPtr;
     if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {return FALSE;}
     SetLegendOrigin(legendPtr);
-    if (legendPtr->track != NULL && (x < graphPtr->left || x > graphPtr->right ||
+    if (legendPtr->track != NULL && (x < legendPtr->track->left || x > legendPtr->track->right ||
         y < legendPtr->track->top || y > legendPtr->track->bottom)) {return FALSE;}
     return ((Tcl_WideInt)x >= legendPtr->x && (Tcl_WideInt)x < (Tcl_WideInt)legendPtr->x + legendPtr->width &&
             (Tcl_WideInt)y >= legendPtr->y && (Tcl_WideInt)y < (Tcl_WideInt)legendPtr->y + legendPtr->height);
@@ -1215,8 +1214,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, border, 0, 0, width, height, legendPtr->borderWidth,
                         legendPtr->relief);
     if (legendPtr->track != NULL) {
-        int left = MAX(graphPtr->left, legendPtr->x), top = MAX(legendPtr->track->top, legendPtr->y);
-        int right = MIN(graphPtr->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
+        int left = MAX(legendPtr->track->left, legendPtr->x), top = MAX(legendPtr->track->top, legendPtr->y);
+        int right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
         int bottom = MIN(legendPtr->track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
         if (right > left && bottom > top) {
             XCopyArea(graphPtr->display, pixmap, drawable, graphPtr->drawGC, left-legendPtr->x, top-legendPtr->y,
@@ -2219,7 +2218,7 @@ void Rbc_MapTrackLegends(Graph *graphPtr) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         if (track->legend != NULL) {
-            Rbc_MapLegend(track->legend, graphPtr->right - graphPtr->left, track->bottom - track->top);
+            Rbc_MapLegend(track->legend, track->right - track->left, track->bottom - track->top);
             SetLegendOrigin(track->legend);
         }
     }
@@ -2228,7 +2227,7 @@ void Rbc_MapTrackLegends(Graph *graphPtr) {
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
-        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top) {
+        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top && track->right > track->left) {
             Rbc_DrawLegend(track->legend, drawable);
         }
     }
@@ -2237,10 +2236,10 @@ void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
-        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top) {
+        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top && track->right > track->left) {
             Rbc_RenderContext *context = Rbc_RenderBeginExportOutput(exportPtr);
-            Rbc_RenderClipBegin(context, graphPtr->left, track->top,
-                                graphPtr->right - graphPtr->left + 1, track->bottom - track->top + 1);
+            Rbc_RenderClipBegin(context, track->left, track->top,
+                                track->right - track->left + 1, track->bottom - track->top + 1);
             Rbc_LegendExport(track->legend, exportPtr);
             Rbc_RenderClipEnd(context);
             Rbc_RenderEnd(context);
@@ -2260,9 +2259,9 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
         Rbc_LayoutGraph(graphPtr);
         if (legendPtr->hidden || legendPtr->nEntries == 0) {return TCL_OK;}
         SetLegendOrigin(legendPtr);
-        left = MAX(graphPtr->left, legendPtr->x);
+        left = MAX(legendPtr->track->left, legendPtr->x);
         top = MAX(track->top, legendPtr->y);
-        right = MIN(graphPtr->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
+        right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
         bottom = MIN(track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
         if (right > left && bottom > top) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right-left, bottom-top));

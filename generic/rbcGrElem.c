@@ -3904,7 +3904,7 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
@@ -3943,7 +3943,7 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
-            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
@@ -3985,7 +3985,7 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Element \"%s\"\n\n", elemPtr->name);
             }
-            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
@@ -4025,7 +4025,7 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
             }
-            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
@@ -4443,7 +4443,8 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
                 continue;
             }
-            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
                     search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
@@ -4469,7 +4470,8 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-                if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
                     search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                     RbcTrackViewport saved;
                     Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);

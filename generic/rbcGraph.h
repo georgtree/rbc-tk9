@@ -32,7 +32,8 @@ typedef enum {
 typedef struct RbcTrack RbcTrack;
 typedef struct {
     int top, bottom, range, offset, pad1, pad2;
-    double scale;
+    int left, right, hRange, hOffset, hPad1, hPad2;
+    double scale, hScale;
 } RbcTrackViewport;
 
 typedef struct GraphStruct Graph;
@@ -655,7 +656,7 @@ struct RbcTrack {
     char *name;
     double weight;
     int minHeight;
-    int top, bottom;
+    int left, right, top, bottom;
     int axisOffset;
     Axis **axes;
     Tcl_Size nAxes;

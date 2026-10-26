@@ -1381,6 +1381,9 @@ static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     if (axisPtr->descending) {
         norm = 1.0 - norm;
     }
+    if (axisPtr->track != NULL) {
+        return norm * MAX(1, axisPtr->track->right - axisPtr->track->left) + axisPtr->track->left;
+    }
     /* Horizontal transformation */
     return ((norm * graphPtr->hRange) + graphPtr->hOffset);
 }
@@ -6335,14 +6338,14 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         }
         Extents2D searchExts = exts;
         if (markerPtr->track != NULL) {
-            if (markerPtr->clipped || markerPtr->track->bottom - markerPtr->track->top <= 1 ||
-                exts.right < graphPtr->left || exts.left > graphPtr->right ||
+            if (markerPtr->clipped || (markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) ||
+                exts.right < markerPtr->track->left || exts.left > markerPtr->track->right ||
                 exts.bottom < markerPtr->track->top || exts.top > markerPtr->track->bottom) {
                 continue;
             }
             if (!enclosed) {
-                searchExts.left = MAX(exts.left, graphPtr->left);
-                searchExts.right = MIN(exts.right, graphPtr->right);
+                searchExts.left = MAX(exts.left, markerPtr->track->left);
+                searchExts.right = MIN(exts.right, markerPtr->track->right);
                 searchExts.top = MAX(exts.top, markerPtr->track->top);
                 searchExts.bottom = MIN(exts.bottom, markerPtr->track->bottom);
             }
@@ -6523,7 +6526,7 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
         if (markerPtr->track != NULL) {
             RbcTrackViewport saved;
             Rbc_RenderContext *context;
-            if (markerPtr->track->bottom - markerPtr->track->top <= 1 || markerPtr->clipped) {
+            if ((markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) || markerPtr->clipped) {
                 continue;
             }
             Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
@@ -7057,9 +7060,9 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
             (*markerPtr->classPtr->drawProc)(markerPtr, drawable);
         } else {
             RbcTrackViewport saved;
-            int left = MAX(0, graphPtr->left);
+            int left = MAX(0, markerPtr->track->left);
             int top = MAX(0, markerPtr->track->top);
-            int width = MIN(graphPtr->width - 1, graphPtr->right) - left + 1;
+            int width = MIN(graphPtr->width - 1, markerPtr->track->right) - left + 1;
             int height = MIN(graphPtr->height - 1, markerPtr->track->bottom) - top + 1;
             if (width <= 0 || height <= 2) {
                 continue;
@@ -7643,8 +7646,8 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
         if ((markerPtr->drawUnder == under) && (markerPtr->nWorldPts > 0) && (!markerPtr->hidden) &&
             (markerPtr->state == STATE_NORMAL)) {
             if (markerPtr->track != NULL &&
-                (markerPtr->clipped || markerPtr->track->bottom - markerPtr->track->top <= 1 ||
-                 x < graphPtr->left || x > graphPtr->right ||
+                (markerPtr->clipped || (markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) ||
+                 x < markerPtr->track->left || x > markerPtr->track->right ||
                  y < markerPtr->track->top || y > markerPtr->track->bottom)) {
                 continue;
             }

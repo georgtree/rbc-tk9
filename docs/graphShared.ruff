@@ -4557,7 +4557,7 @@ namespace eval ::rbc::LEGEND {
         legend windows.
 
         ## Track-local legends
-        Each trackgraph row owns a legend addressed through `GRAPHINST track legend trackName`. It accepts the
+        Each trackgraph track (row or inverted column) owns a legend addressed through `GRAPHINST track legend trackName`. It accepts the
         same `configure`, `cget`, `get`, `activate`, `deactivate`, and `bind` operations as the global legend:
 
         ```tcl

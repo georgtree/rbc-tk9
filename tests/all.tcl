@@ -13,7 +13,7 @@ package require rbc
 
 # Legacy pixel tests use native rendering; explicit renderer options still win.
 # Manual tests and demos do not source this runner and retain the build default.
-foreach class {Graph Barchart Stripchart Polar} {
+foreach class {Graph Barchart Stripchart Polar Trackgraph} {
     option add *${class}.renderer native interactive
 }
 tcltest::testConstraint rbcNativeSuiteDefault 1

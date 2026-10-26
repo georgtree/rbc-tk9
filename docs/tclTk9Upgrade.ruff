@@ -12,13 +12,13 @@ namespace eval TclTk9Upgrade {
 
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
-        ### Stacked tracks with shared horizontal axes
+        ### Stacked tracks with shared axes
         `rbc::trackgraph` places line and strip elements in named, weighted rows inside one native widget.
         Tracks share the horizontal plot bounds and X axes, with independent Y axes, clipping and picking.
         Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
         layout. Line, polygon, arc, text, bitmap and image markers can select a row with `-track` and `-mapy`,
         with clipped drawing, picking and exports. See [::rbc::GRAPHINST] for the track API, [::rbc::MARKER] for
-        track annotations, and `demos/trackgraph1.tcl` for a working example. `track order` rearranges existing
+        track annotations, and `demos/trackgraph2.tcl` for a working example. `track order` rearranges existing
         rows; `track sashpos` redistributes adjacent heights. Enable `-trackresize yes` for mouse dragging of the
         separators, with Escape cancellation, without requiring graphtoolbar. The optional toolbar now supports
         `-type trackgraph`: rectangle zoom and pan affect shared X axes and the starting row's Y axes, wheel zoom
@@ -26,7 +26,12 @@ namespace eval TclTk9Upgrade {
         history follows axis names across reordering. Both toolbar and context-menu controls work with the global
         legend and individual axis scale toggles. Each track can also show a local legend with
         `track legend name configure -hide no`. Its entries, bindings and clipping belong to the row; global and
-        local legends can coexist. Graphtoolbar active-legend controls work with both. See `demos/trackgraph2.tcl`.
+        local legends can coexist. Graphtoolbar active-legend controls work with both.
+        `-invertxy yes` arranges tracks left to right with shared vertical X axes and local horizontal Y axes.
+        Weights and `-minheight` divide the available width; separator dragging becomes horizontal. Marker and
+        legend clipping, picking, toolbar navigation and all exports follow the rotated layout. The merged
+        `demos/trackgraph2.tcl` demonstrates both legend types, line/strip elements, markers and orientation switching;
+        the separate `trackgraph1.tcl` demo is retired.
 
         ### Configurable logarithmic bar baseline
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,

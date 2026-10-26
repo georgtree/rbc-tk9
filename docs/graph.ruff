@@ -140,22 +140,22 @@ namespace eval ::rbc::GRAPHINST {
         | `track create name ?option value ...?` | Creates a uniquely named track and returns its name. |
         | `track configure name ?option value ...?` | Configures a track; without options returns a dictionary of option/value pairs. With one option returns its value. |
         | `track cget name option` | Returns one track option value. |
-        | `track names` | Lists tracks in top-to-bottom order. |
+        | `track names` | Lists tracks in layout order (top-to-bottom, or left-to-right when inverted). |
         | `track order ?nameList?` | Queries the order, or sets a complete permutation of all track names and returns it. Invalid lists leave the order unchanged. |
-        | `track sashpos name ?y?` | Queries or moves the separator after this track, returning its actual center Y coordinate in widget pixels. The last track has no separator. |
-        | `track separator x y` | Returns the track immediately above the gap at the given widget pixel coordinates, or an empty string. Plot interiors and margins do not match. |
+        | `track sashpos name ?coordinate?` | Queries or moves the separator after this track, returning its actual center coordinate in widget pixels (Y normally, X when inverted). The last track has no separator. |
+        | `track separator x y` | Returns the track immediately before the gap at the given widget pixel coordinates, or an empty string. Plot interiors and margins do not match. |
         | `track delete name` | Deletes an empty track, retaining its axes. Delete or move its elements first. |
         | `track bbox name` | Returns the plotting rectangle as `left top right bottom` in widget pixels. |
         | `track legend name operation ?args ...?` | Configures or interacts with the track-local legend. `bbox` returns its visible `x y width height`, or empty. See [::rbc::LEGEND]. |
-        | `track identify y` | Returns the track containing a widget Y coordinate, or an empty string in a gap. |
+        | `track identify coordinate` | Returns the track containing a widget coordinate (Y normally, X when inverted), or an empty string in a gap. |
         | `track transform name x y ?-mapx axis? ?-mapy axis?` | Maps data to widget coordinates, returning two floating-point values. |
         | `track invtransform name x y ?-mapx axis? ?-mapy axis?` | Maps widget coordinates back to data coordinates. |
 
         | Track option | Default | Meaning |
         |--------------|---------|---------|
-        | `-weight` | `1.0` | Positive finite share of remaining height after minimum heights are allocated; at most 1000000. |
-        | `-minheight` | `40` | Positive minimum requested plot height, in Tk screen-distance units. |
-        | `-yaxes` | empty | List of existing Y axes assigned exclusively to this track and displayed in its left margin. |
+        | `-weight` | `1.0` | Positive finite share of remaining layout space after track minima are allocated; at most 1000000. |
+        | `-minheight` | `40` | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units. |
+        | `-yaxes` | empty | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted). |
 
         Assign axes with `track configure -yaxes`, rather than `yaxis use`. An axis may belong to only one track.
         Elements must specify both `-track` and a `-mapy` axis belonging to that track. Change both options in one
@@ -181,6 +181,21 @@ namespace eval ::rbc::GRAPHINST {
         labels. Local legends overlay and clip to the track; they do not change shared X alignment. The global
         legend remains independent. See [::rbc::LEGEND] for options, bindings and export behavior.
 
+        ### Inverted tracks
+        Set `.g configure -invertxy yes` to rotate the layout into side-by-side columns. Track order runs
+        left to right, shared X axes run vertically, and each track's Y axes run horizontally below its column.
+        The common bottom margin accommodates the largest set of track Y axes. Shared X grid lines are
+        horizontal; local Y grid lines are vertical. Track weights divide the available width. The existing
+        `-minheight` option now requests a minimum column width; it retains its name and value when toggling
+        orientation. Tiny layouts compress those minima proportionally in either orientation.
+
+        `track identify` and `track sashpos` take a physical X coordinate in inverted mode. `track bbox`,
+        `track separator`, `track transform` and `track invtransform` always use physical widget X/Y coordinates.
+        Axis names and data X/Y values retain their meaning. Markers, picking, local legends and exports follow
+        the column rectangle. Legend positions and anchors remain physical directions: `right` is still the
+        right edge. Global and local legends can be shown together, as in `demos/trackgraph2.tcl`.
+        Toolbar navigation works in either orientation; changing orientation during a gesture cancels it.
+
         ### Reordering and resizing tracks
         `track order` takes the full list of existing track names, with no omissions or duplicates. Ownership,
         axis configuration, vector subscriptions and marker bindings remain unchanged. Legend order still follows
@@ -201,14 +216,14 @@ namespace eval ::rbc::GRAPHINST {
 
         `-trackresize` is a graph option with database name `trackResize`, class `TrackResize`, and default `no`.
         Only trackgraph widgets accept `yes`. With it enabled, the standard `Trackgraph` class bindings show a
-        vertical resize cursor over a gap. Drag with button 1 to resize the adjacent tracks; release to keep the
+        vertical resize cursor over a row gap, or a horizontal cursor between inverted columns. Drag with button 1 to resize the adjacent tracks; release to keep the
         result, or press Escape to restore the weights from the start of the drag. The gesture borrows keyboard
         focus so Escape works, then restores the previous focus on release, cancellation or invalidation, provided
         focus is still on the graph. If there was no previous focus or its widget has been destroyed, focus
         returns to the graph's toplevel. Focus moved
         elsewhere during dragging is left alone; a graph already focused before dragging remains focused.
         Pointer events in plot interiors
-        keep their ordinary behaviour. Changing the track list/order or disabling resizing invalidates
+        keep their ordinary behaviour. Changing the track list/order, orientation, or disabling resizing invalidates
         the gesture on the next motion or release, without restoring obsolete weights. Destroying the widget
         removes its gesture state. These dependency-free bindings are loaded with `package require rbc`.
 
@@ -217,13 +232,12 @@ namespace eval ::rbc::GRAPHINST {
         commands. Keep the `Trackgraph` class in `bindtags` to use the standard bindings; a widget binding that
         returns `break` before the class binding can intentionally suppress them.
 
-        This first version supports line and strip elements in ordinary orientation. Bar/polar elements and
-        `-invertxy` are rejected. Track scrolling is not yet provided. The optional `rbc::graphtoolbar` package accepts
+        Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. Track scrolling is not yet provided. The optional `rbc::graphtoolbar` package accepts
         `-type trackgraph`: zoom and pan use shared X axes and the starting track's Y axes; wheel zoom and
         coordinate annotations follow the pointed track. Separator dragging remains available. See
         [::rbc::graphtoolbar] and `demos/trackgraph2.tcl` for the interaction controls.
         Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
-        ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector updates,
+        ownership and restrictions. See `demos/trackgraph2.tcl` for multiple shared X axes, live vector updates,
         track weights, annotations and shared horizontal navigation.
 
 

@@ -153,7 +153,6 @@ demos/extras/page.tcl
 demos/extras/rgb.txt
 demos/extras/send.tcl
 demos/extras/xcolors.tcl
-demos/trackgraph1.tcl
 demos/trackgraph2.tcl
 demos/graph1.tcl
 demos/graph2.tcl

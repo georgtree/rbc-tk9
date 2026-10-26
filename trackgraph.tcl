@@ -10,7 +10,7 @@ namespace eval ::rbc::trackgraph {
         if {[dict exists $cursors $w]} {
             set old [dict get $cursors $w]
             dict unset cursors $w
-            if {[winfo exists $w] && [$w cget -cursor] eq "sb_v_double_arrow"} {
+            if {[winfo exists $w] && [$w cget -cursor] in {sb_v_double_arrow sb_h_double_arrow}} {
                 $w configure -cursor $old
             }
         }
@@ -33,7 +33,7 @@ namespace eval ::rbc::trackgraph {
         if {[$w cget -trackresize] && [$w track separator $x $y] ne {}} {
             if {![dict exists $cursors $w]} {
                 dict set cursors $w [$w cget -cursor]
-                $w configure -cursor sb_v_double_arrow
+                $w configure -cursor [expr {[$w cget -invertxy] ? "sb_h_double_arrow" : "sb_v_double_arrow"}]
             }
         } else {
             RestoreCursor $w
@@ -43,7 +43,7 @@ namespace eval ::rbc::trackgraph {
     proc ValidPair {w state} {
         if {![winfo exists $w] || ![$w cget -trackresize]} {return 0}
         set names [$w track names]
-        if {$names ne [dict get $state order]} {return 0}
+        if {$names ne [dict get $state order] || [$w cget -invertxy] != [dict get $state inverted]} {return 0}
         set i [lsearch -exact $names [dict get $state first]]
         expr {$i >= 0 && [lindex $names [expr {$i+1}]] eq [dict get $state second]}
     }
@@ -57,8 +57,8 @@ namespace eval ::rbc::trackgraph {
         set second [lindex $names [expr {[lsearch -exact $names $first]+1}]]
         Hover $w $x $y
         set oldFocus [focus -displayof $w]
-        dict set drag $w [dict create focus $oldFocus first $first second $second order $names \
-            offset [expr {$y-[$w track sashpos $first]}] \
+        dict set drag $w [dict create focus $oldFocus first $first second $second order $names inverted [$w cget -invertxy] \
+            offset [expr {([$w cget -invertxy] ? $x : $y)-[$w track sashpos $first]}] \
             firstWeight [$w track cget $first -weight] secondWeight [$w track cget $second -weight]]
         focus $w
         return -code break
@@ -74,7 +74,7 @@ namespace eval ::rbc::trackgraph {
             RestoreFocus $w $state
             return -code break
         }
-        $w track sashpos [dict get $state first] [expr {$y-[dict get $state offset]}]
+        $w track sashpos [dict get $state first] [expr {([$w cget -invertxy] ? $x : $y)-[dict get $state offset]}]
         return -code break
     }
 

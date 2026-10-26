@@ -118,12 +118,14 @@ namespace eval ::rbc::graphtoolbar {
           axes are not automatically added to that list.
 
         Separator gaps do not start toolbar navigation. Native separator dragging remains available when
-        `-trackresize yes` is configured. Changing track order, ownership, weights, minimum heights, or widget size
+        `-trackresize yes` is configured. Changing track order, ownership, weights, minimum heights, orientation, or widget size
         during a box selection or pan cancels the gesture on its next motion or release. A cancelled pan restores
         its saved limits. Toolbar and context-menu modes share these behaviors, including `-controlmode both`.
 
-        Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. Trackgraph still uses its
-        ordinary orientation; inverted layouts and window/XOR track markers are not supported.
+        Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. With `-invertxy yes`, tracks
+        become columns: shared X navigation is vertical and local Y navigation
+        is horizontal. Point selection and separator dragging follow the columns. Window/XOR track markers
+        remain unsupported.
 
         Show a local legend with `$g track legend voltage configure -hide no`. Active-legend bindings are added
         for tracks created after the toolbar, once graph changes are displayed. Existing nonempty custom local
@@ -2251,7 +2253,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$GraphType ne {trackgraph} || $x eq {} || $y eq {}} {return {}}
         set graph $Subwidgets(graph)
         if {![$graph inside $x $y]} {return {}}
-        return [$graph track identify [expr {round($y)}]]
+        return [$graph track identify [expr {round([$graph cget -invertxy] ? $x : $y)}]]
     }
     method TrackDragging {} {
         # Native separator bindings precede toolbar navigation logically, even
@@ -2303,7 +2305,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$GraphType ne {trackgraph}} {return {}}
         set graph $Subwidgets(graph)
         if {$track ni [$graph track names]} {return {}}
-        set state [list [winfo width $graph] [winfo height $graph] [my UsedAxes x]]
+        set state [list [winfo width $graph] [winfo height $graph] [$graph cget -invertxy] [my UsedAxes x]]
         foreach name [$graph track names] {lappend state $name [$graph track configure $name]}
         return $state
     }
@@ -2549,7 +2551,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Dictionary containing `text`, `mapx`, `mapy`, `xValue`, and `yValue`.
         set graph $Subwidgets(graph)
         set xAxes [my InteractionAxes x]
-        set yAxes [my InteractionAxes y [my TrackAt $xPixel $yPixel]]
+        lassign [my AxisPixelsToWidget $xPixel $yPixel] trackX trackY
+        set yAxes [my InteractionAxes y [my TrackAt $trackX $trackY]]
         if {[llength $xAxes] == 0} {
             return -code error {graph has no X axis available for coordinate display}
         }
@@ -2772,7 +2775,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set mapy [$graph grid cget -mapy]
         } else {
             set xAxes [my InteractionAxes x]
-            set yAxes [my InteractionAxes y [my TrackAt $xPixel $yPixel]]
+            lassign [my AxisPixelsToWidget $xPixel $yPixel] trackX trackY
+            set yAxes [my InteractionAxes y [my TrackAt $trackX $trackY]]
             if {![llength $xAxes] || ![llength $yAxes]} {
                 return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
             }

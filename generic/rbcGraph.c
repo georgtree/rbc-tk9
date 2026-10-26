@@ -1396,7 +1396,8 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->state == STATE_NORMAL)) {
-                if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
                     search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                     RbcTrackViewport saved;
                     Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
@@ -1749,10 +1750,6 @@ static int ConfigureGraph(Graph *graphPtr) {
 
     if (graphPtr->trackResize && !graphPtr->trackGraph) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-trackresize requires a trackgraph widget", -1));
-        return TCL_ERROR;
-    }
-    if (graphPtr->trackGraph && graphPtr->inverted) {
-        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("trackgraph does not support -invertxy", -1));
         return TCL_ERROR;
     }
     assert(graphPtr->optionsInitialized);
@@ -3000,6 +2997,13 @@ RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name) {
  * Always pair with Rbc_LeaveTrack, including when track is NULL. Axis mapping
  * itself uses the axis owner, so public transforms do not need this scope. */
 void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
+    saved->left = graphPtr->left;
+    saved->right = graphPtr->right;
+    saved->hRange = graphPtr->hRange;
+    saved->hOffset = graphPtr->hOffset;
+    saved->hScale = graphPtr->hScale;
+    saved->hPad1 = graphPtr->padX.side1;
+    saved->hPad2 = graphPtr->padX.side2;
     saved->top = graphPtr->top;
     saved->bottom = graphPtr->bottom;
     saved->range = graphPtr->vRange;
@@ -3007,7 +3011,13 @@ void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
     saved->scale = graphPtr->vScale;
     saved->pad1 = graphPtr->padY.side1;
     saved->pad2 = graphPtr->padY.side2;
-    if (track != NULL) {
+    if (track != NULL && graphPtr->inverted) {
+        graphPtr->padX.side1 = graphPtr->padX.side2 = 0;
+        graphPtr->left = graphPtr->hOffset = track->left;
+        graphPtr->right = track->right;
+        graphPtr->hRange = MAX(1, track->right - track->left);
+        graphPtr->hScale = 1.0 / graphPtr->hRange;
+    } else if (track != NULL) {
         graphPtr->padY.side1 = graphPtr->padY.side2 = 0;
         graphPtr->top = graphPtr->vOffset = track->top;
         graphPtr->bottom = track->bottom;
@@ -3017,6 +3027,13 @@ void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
 }
 
 void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved) {
+    graphPtr->left = saved->left;
+    graphPtr->right = saved->right;
+    graphPtr->hRange = saved->hRange;
+    graphPtr->hOffset = saved->hOffset;
+    graphPtr->hScale = saved->hScale;
+    graphPtr->padX.side1 = saved->hPad1;
+    graphPtr->padX.side2 = saved->hPad2;
     graphPtr->top = saved->top;
     graphPtr->bottom = saved->bottom;
     graphPtr->vRange = saved->range;
@@ -3032,6 +3049,7 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
     RbcTrack *track;
     double weights = 0.0, minima = 0.0, cursor;
     int n = 0, gap, available;
+    int range = graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         weights += track->weight;
         minima += track->minHeight;
@@ -3040,9 +3058,9 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
     if (n == 0) {
         return;
     }
-    gap = MIN(12, MAX(0, graphPtr->vRange / (n * 4)));
-    available = MAX(0, graphPtr->vRange - gap * (n - 1));
-    cursor = graphPtr->vOffset;
+    gap = MIN(12, MAX(0, range / (n * 4)));
+    available = MAX(0, range - gap * (n - 1));
+    cursor = graphPtr->inverted ? graphPtr->hOffset : graphPtr->vOffset;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         double height;
         if (minima > available) {
@@ -3050,17 +3068,26 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
         } else {
             height = track->minHeight + (available - minima) * (track->weight / weights);
         }
-        track->top = (int)floor(cursor + 0.5);
+        track->left = graphPtr->left;
+        track->right = graphPtr->right;
+        track->top = graphPtr->top;
+        track->bottom = graphPtr->bottom;
+        if (graphPtr->inverted) {
+            track->left = (int)floor(cursor + 0.5);
+            track->right = (int)floor(cursor + height + 0.5);
+        } else {
+            track->top = (int)floor(cursor + 0.5);
+            track->bottom = (int)floor(cursor + height + 0.5);
+        }
         cursor += height;
-        track->bottom = (int)floor(cursor + 0.5);
         track->axisOffset = 0;
         cursor += gap;
     }
 }
 
-/* Keep track-owned axes in the left margin in track order. */
+/* Keep track-owned Y axes in layout order, independent of orientation. */
 static void SyncTrackAxes(Graph *graphPtr) {
-    Rbc_Chain *chain = graphPtr->margins[MARGIN_LEFT].axes;
+    Rbc_Chain *chain = graphPtr->axisChain[1];
     Rbc_ChainLink *link;
     RbcTrack *track;
     Tcl_Size i;
@@ -3176,7 +3203,7 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
             }
             if (axes[i]->deletePending || (axes[i]->track != NULL && axes[i]->track != track) ||
                 (axes[i]->refCount > 0 && axes[i]->classUid != rbcYAxisUid) ||
-                (axes[i]->chainPtr != NULL && axes[i]->chainPtr != graphPtr->margins[MARGIN_LEFT].axes)) {
+                (axes[i]->chainPtr != NULL && axes[i]->chainPtr != graphPtr->axisChain[1])) {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("axis is already assigned to another track or margin", -1));
                 goto error;
             }
@@ -3275,22 +3302,30 @@ static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
     return TCL_OK;
 }
 
-/* Move the separator after a track by changing only the adjacent weights.
- * Their sum is preserved, so other rows retain their allocation. Integer
- * rounding may move a boundary by one pixel. Compressed minima cannot resize. */
+/* Physical limits along the dimension divided between tracks. */
+static int TrackStart(Graph *graphPtr, RbcTrack *track) {
+    return graphPtr->inverted ? track->left : track->top;
+}
+
+static int TrackEnd(Graph *graphPtr, RbcTrack *track) {
+    return graphPtr->inverted ? track->right : track->bottom;
+}
+
+/* Move a separator by changing only adjacent weights, preserving their sum.
+ * Integer rounding may move a boundary by one pixel. Compressed minima cannot resize. */
 static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     RbcTrack *next = track->next;
     double pairHeight, extra, height, ratio, sum, first, second;
-    int gap = next->top - track->bottom;
-    if (y == track->bottom + gap / 2) {
+    int gap = TrackStart(graphPtr, next) - TrackEnd(graphPtr, track);
+    if (y == TrackEnd(graphPtr, track) + gap / 2) {
         return TCL_OK;
     }
-    pairHeight = (double)(track->bottom - track->top) + next->bottom - next->top;
+    pairHeight = (double)(TrackEnd(graphPtr, track) - TrackStart(graphPtr, track)) + TrackEnd(graphPtr, next) - TrackStart(graphPtr, next);
     extra = pairHeight - track->minHeight - next->minHeight;
     if (extra <= 0.0) {
         return TCL_OK;
     }
-    height = (double)y - gap / 2 - track->top;
+    height = (double)y - gap / 2 - TrackStart(graphPtr, track);
     ratio = (height - track->minHeight) / extra;
     sum = track->weight + next->weight;
     /* Keep weights positive and inside the same limits as track configure. */
@@ -3350,9 +3385,15 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
             return TCL_ERROR;
         }
         Rbc_LayoutGraph(graphPtr);
-        if (x >= graphPtr->left && x <= graphPtr->right) {
+        if (graphPtr->inverted) {
+            int tmp = x;
+            x = y;
+            y = tmp;
+        }
+        if (x >= (graphPtr->inverted ? graphPtr->top : graphPtr->left) &&
+            x <= (graphPtr->inverted ? graphPtr->bottom : graphPtr->right)) {
             for (track = graphPtr->tracks; track != NULL && track->next != NULL; track = track->next) {
-                if (y > track->bottom && y < track->next->top) {
+                if (y > TrackEnd(graphPtr, track) && y < TrackStart(graphPtr, track->next)) {
                     Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
                     return TCL_OK;
                 }
@@ -3368,7 +3409,8 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         }
         Rbc_LayoutGraph(graphPtr);
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
-            if (y >= track->top && y <= track->bottom && track->bottom > track->top) {
+            if (y >= TrackStart(graphPtr, track) && y <= TrackEnd(graphPtr, track) &&
+                TrackEnd(graphPtr, track) > TrackStart(graphPtr, track)) {
                 Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
                 return TCL_OK;
             }
@@ -3431,7 +3473,7 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
             }
             Rbc_LayoutGraph(graphPtr);
         }
-        Tcl_SetObjResult(interp, Tcl_NewIntObj(track->bottom + (track->next->top - track->bottom) / 2));
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(TrackEnd(graphPtr, track) + (TrackStart(graphPtr, track->next) - TrackEnd(graphPtr, track)) / 2));
         return TCL_OK;
     }
     if (operation == TRACK_OP_TRANSFORM || operation == TRACK_OP_INVTRANSFORM) {
@@ -3525,9 +3567,9 @@ transformDone:
     if (operation == TRACK_OP_BBOX && objc == 4) {
         int bounds[4], i;
         Rbc_LayoutGraph(graphPtr);
-        bounds[0] = graphPtr->left;
+        bounds[0] = track->left;
         bounds[1] = track->top;
-        bounds[2] = graphPtr->right;
+        bounds[2] = track->right;
         bounds[3] = track->bottom;
         result = Tcl_NewListObj(0, NULL);
         for (i = 0; i < 4; i++) {
