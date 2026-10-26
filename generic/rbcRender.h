@@ -97,6 +97,9 @@ void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
 void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                                    const XColor *background);
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
+/* Nest a rectangular export clip without painting a background. */
+void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height);
+void Rbc_RenderClipEnd(Rbc_RenderContext *ctx);
 void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                                    int height, const XColor *color, int background);
 

@@ -155,7 +155,8 @@ namespace eval ::rbc::GRAPHINST {
         Assign axes with `track configure -yaxes`, rather than `yaxis use`. An axis may belong to only one track.
         Elements must specify both `-track` and a `-mapy` axis belonging to that track. Change both options in one
         `element configure` call to move an element. An axis in use by an element cannot be detached, and an axis
-        owned by a track cannot be deleted until detached. Hiding an axis hides its decorations, not its track.
+        owned by a track cannot be deleted until detached. These ownership checks include markers, even hidden
+        markers or markers with empty coordinates. Hiding an axis hides its decorations, not its track.
         Lists and RBC vectors retain their ordinary ownership and notification behaviour.
 
         Track transforms default to shared axis `x` and the track's first Y axis. Use `-mapx` or `-mapy` to select
@@ -172,9 +173,9 @@ namespace eval ::rbc::GRAPHINST {
 
         This first version supports line and strip elements in ordinary orientation. Bar/polar elements and
         `-invertxy` are rejected. Track scrolling, draggable separators and graphtoolbar integration are not yet
-        provided. Annotation markers remain graph components rather than track-owned objects; this version does
-        not provide a track-clipped marker API. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector
-        updates, track weights and shared horizontal navigation.
+        provided. Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
+        ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector updates,
+        track weights, annotations and shared horizontal navigation.
 
 
         Commands in this namespace document operations accepted by graph, barchart, stripchart, and polar widget

@@ -115,6 +115,8 @@ struct MarkerStruct {
     Tcl_Size nWorldPts; /* Number of points in above array */
     char *elemName;     /* Element associated with marker */
     Axis2D axes;
+    RbcTrack *track;       /* Optional owner; prevents track/axis detachment. */
+    Tcl_Obj *trackObjPtr;
     int drawUnder;        /* If non-zero, draw the marker
                            * underneath any elements. This can
                            * be a performance penalty because
@@ -198,6 +200,7 @@ static const Tk_OptionSpec textMarkerOptionSpecs[] = {
      0, NULL, 0},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_SYNONYM, "-outline", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
     {TK_OPTION_STRING, "-padx", "padX", "PadX", DEF_MARKER_PAD, offsetof(TextMarker, padXObjPtr), -1, 0, NULL, 0},
@@ -258,6 +261,7 @@ static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
@@ -328,6 +332,7 @@ static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_BITMAP, "-mask", "mask", "Mask", DEF_MARKER_MASK, -1, offsetof(BitmapMarker, srcMask), TK_OPTION_NULL_OK,
      NULL, 0},
     {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
@@ -371,6 +376,7 @@ typedef struct {
     Tcl_Size nWorldPts;
     Axis *xAxis;
     Axis *yAxis;
+    RbcTrack *track;
     int state;
 } ParsedMarkerOptions;
 
@@ -387,6 +393,7 @@ static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
      NULL, 0},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
@@ -475,6 +482,7 @@ static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_COLOR, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_COLOR, -1,
      offsetof(LineMarker, outlineColor), TK_OPTION_NULL_OK, NULL, 0},
@@ -601,6 +609,7 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
         {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},         \
         {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},     \
         {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},     \
+        {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
         {TK_OPTION_STRING,       "-name",           NULL, NULL, DEF_MARKER_NAME, -1,                                     \
          offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},                                                            \
         {TK_OPTION_STRING,                                                                                               \
@@ -1178,6 +1187,27 @@ static int ParseMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr
     if (Rbc_GetAxisFromObj(graphPtr, markerPtr->mapYObjPtr, rbcYAxisUid, 0, &optionsPtr->yAxis) != TCL_OK) {
         goto error;
     }
+    if (markerPtr->trackObjPtr != NULL && Tcl_GetCharLength(markerPtr->trackObjPtr) > 0) {
+        optionsPtr->track = Rbc_FindTrack(graphPtr, Tcl_GetString(markerPtr->trackObjPtr));
+        if (!graphPtr->trackGraph || optionsPtr->track == NULL) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-track requires an existing trackgraph track", -1));
+            goto error;
+        }
+        if (markerPtr->classUid == rbcWindowMarkerUid) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("window markers do not support -track", -1));
+            goto error;
+        }
+        if ((markerPtr->classUid == rbcLineMarkerUid && LINE_MARKER_FROM_CORE(markerPtr)->xor) ||
+            ((markerPtr->classUid == rbcPolygonMarkerUid || markerPtr->classUid == rbcArcMarkerUid) &&
+             POLYGON_MARKER_FROM_CORE(markerPtr)->xor)) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track markers do not support -xor", -1));
+            goto error;
+        }
+    }
+    if (optionsPtr->yAxis->track != optionsPtr->track) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("marker -mapy axis must belong to its -track", -1));
+        goto error;
+    }
     return TCL_OK;
 
 error:
@@ -1209,6 +1239,7 @@ static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsP
     }
     markerPtr->axes.x = optionsPtr->xAxis;
     markerPtr->axes.y = optionsPtr->yAxis;
+    markerPtr->track = optionsPtr->track;
     optionsPtr->xAxis = NULL;
     optionsPtr->yAxis = NULL;
     markerPtr->state = optionsPtr->state;
@@ -1395,6 +1426,10 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     }
     if (axisPtr->descending) {
         norm = 1.0 - norm;
+    }
+    /* Region searches also map original points outside the drawing scope. */
+    if (axisPtr->track != NULL) {
+        return (1.0 - norm) * MAX(1, axisPtr->track->bottom - axisPtr->track->top) + axisPtr->track->top;
     }
     /* Vertical transformation */
     return (((1.0 - norm) * graphPtr->vRange) + graphPtr->vOffset);
@@ -6298,7 +6333,21 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
                 }
             }
         }
-        if ((*markerPtr->classPtr->regionProc)(markerPtr, &exts, enclosed)) {
+        Extents2D searchExts = exts;
+        if (markerPtr->track != NULL) {
+            if (markerPtr->clipped || markerPtr->track->bottom - markerPtr->track->top <= 1 ||
+                exts.right < graphPtr->left || exts.left > graphPtr->right ||
+                exts.bottom < markerPtr->track->top || exts.top > markerPtr->track->bottom) {
+                continue;
+            }
+            if (!enclosed) {
+                searchExts.left = MAX(exts.left, graphPtr->left);
+                searchExts.right = MIN(exts.right, graphPtr->right);
+                searchExts.top = MAX(exts.top, markerPtr->track->top);
+                searchExts.bottom = MIN(exts.bottom, markerPtr->track->bottom);
+            }
+        }
+        if ((*markerPtr->classPtr->regionProc)(markerPtr, &searchExts, enclosed)) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj(markerPtr->name, -1));
             return TCL_OK;
         }
@@ -6471,7 +6520,23 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
             Rbc_ExportAppend(exportPtr, "\n% Marker \"", markerPtr->name, "\" is a ", markerPtr->classUid, " marker\n",
                                (char *)NULL);
         }
-        (*markerPtr->classPtr->exportProc)(markerPtr, exportPtr);
+        if (markerPtr->track != NULL) {
+            RbcTrackViewport saved;
+            Rbc_RenderContext *context;
+            if (markerPtr->track->bottom - markerPtr->track->top <= 1 || markerPtr->clipped) {
+                continue;
+            }
+            Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
+            context = Rbc_RenderBeginExportOutput(exportPtr);
+            Rbc_RenderClipBegin(context, graphPtr->left, graphPtr->top,
+                                graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
+            (*markerPtr->classPtr->exportProc)(markerPtr, exportPtr);
+            Rbc_RenderClipEnd(context);
+            Rbc_RenderEnd(context);
+            Rbc_LeaveTrack(graphPtr, &saved);
+        } else {
+            (*markerPtr->classPtr->exportProc)(markerPtr, exportPtr);
+        }
     }
 }
 
@@ -6967,6 +7032,57 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
 }
 #endif
 
+/* Track markers retain painter order, including interleaved graph-wide markers.
+ * Copy only the owning row into and out of one reusable scratch pixmap. This
+ * clips native text, masks and images without changing their shared Tk GCs.
+ * Ordinary graphs keep the existing batched marker path below. */
+static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
+    Rbc_ChainLink *link;
+    Pixmap scratch = None;
+    GC copyGC = NULL;
+    XGCValues values;
+    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
+         link = Rbc_ChainNextLink(link)) {
+        Marker *markerPtr = Rbc_ChainGetValue(link);
+        if (markerPtr->nWorldPts == 0 || markerPtr->drawUnder != under || markerPtr->hidden || markerPtr->clipped) {
+            continue;
+        }
+        if (markerPtr->elemName != NULL) {
+            Tcl_HashEntry *entry = Tcl_FindHashEntry(&graphPtr->elements.table, markerPtr->elemName);
+            if (entry != NULL && ((Element *)Tcl_GetHashValue(entry))->hidden) {
+                continue;
+            }
+        }
+        if (markerPtr->track == NULL) {
+            (*markerPtr->classPtr->drawProc)(markerPtr, drawable);
+        } else {
+            RbcTrackViewport saved;
+            int left = MAX(0, graphPtr->left);
+            int top = MAX(0, markerPtr->track->top);
+            int width = MIN(graphPtr->width - 1, graphPtr->right) - left + 1;
+            int height = MIN(graphPtr->height - 1, markerPtr->track->bottom) - top + 1;
+            if (width <= 0 || height <= 2) {
+                continue;
+            }
+            if (scratch == None) {
+                scratch = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height,
+                                       Tk_Depth(graphPtr->tkwin));
+                values.graphics_exposures = False;
+                copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+            }
+            XCopyArea(graphPtr->display, drawable, scratch, copyGC, left, top, width, height, left, top);
+            Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
+            (*markerPtr->classPtr->drawProc)(markerPtr, scratch);
+            Rbc_LeaveTrack(graphPtr, &saved);
+            XCopyArea(graphPtr->display, scratch, drawable, copyGC, left, top, width, height, left, top);
+        }
+    }
+    if (scratch != None) {
+        Tk_FreePixmap(graphPtr->display, scratch);
+        Tk_FreeGC(graphPtr->display, copyGC);
+    }
+}
+
 /*
  * -------------------------------------------------------------------------
  *
@@ -7010,6 +7126,10 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_RenderContext *strokeContext = NULL;
     MarkerStroke stroke, runStyle = {0};
     int canStroke;
+    if (graphPtr->trackGraph) {
+        DrawTrackMarkers(graphPtr, drawable, under);
+        return;
+    }
 #ifdef WIN32
     Rbc_RenderTarget *renderTarget = NULL;
     Segment2D *lineSegments;
@@ -7427,10 +7547,28 @@ void Rbc_MapMarkers(Graph *graphPtr) {
             continue;
         }
         if ((graphPtr->flags & MAP_ALL) || (markerPtr->flags & MAP_ITEM)) {
+            RbcTrackViewport saved;
+            Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
             (*markerPtr->classPtr->mapProc)(markerPtr);
+            Rbc_LeaveTrack(graphPtr, &saved);
             markerPtr->flags &= ~MAP_ITEM;
         }
     }
+}
+
+/* Check associations, not visibility. A NULL track selects graph-wide markers;
+ * a NULL axis matches every marker owned by the selected track. */
+int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis) {
+    Tcl_HashSearch search;
+    Tcl_HashEntry *entry;
+    for (entry = Tcl_FirstHashEntry(&graphPtr->markers.table, &search); entry != NULL;
+         entry = Tcl_NextHashEntry(&search)) {
+        Marker *markerPtr = Tcl_GetHashValue(entry);
+        if (markerPtr->track == track && (axis == NULL || markerPtr->axes.y == axis)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /*
@@ -7504,6 +7642,12 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
         if ((markerPtr->drawUnder == under) && (markerPtr->nWorldPts > 0) && (!markerPtr->hidden) &&
             (markerPtr->state == STATE_NORMAL)) {
+            if (markerPtr->track != NULL &&
+                (markerPtr->clipped || markerPtr->track->bottom - markerPtr->track->top <= 1 ||
+                 x < graphPtr->left || x > graphPtr->right ||
+                 y < markerPtr->track->top || y > markerPtr->track->bottom)) {
+                continue;
+            }
             if ((*markerPtr->classPtr->pointProc)(markerPtr, &point)) {
                 return markerPtr;
             }

@@ -1723,6 +1723,42 @@ void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
     ctx->ops->output->plotBegin(ctx, font, x, y, width, height, background);
 }
 
+void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    switch (token->backend) {
+    case RBC_EXPORT_SVG: {
+        unsigned int id = ++token->nextResourceId;
+        Rbc_ExportFormat(token,
+            "<defs><clipPath id=\"rbcClip%u\" clipPathUnits=\"userSpaceOnUse\"><rect x=\"%d\" y=\"%d\" "
+            "width=\"%d\" height=\"%d\"/></clipPath></defs>\n<g clip-path=\"url(#rbcClip%u)\">\n",
+            id, x, y, width, height, id);
+        break;
+    }
+    case RBC_EXPORT_PDF:
+        Rbc_ExportFormat(token, "q %d %d %d %d re W n\n", x, y, width, height);
+        break;
+    case RBC_EXPORT_POSTSCRIPT:
+        Rbc_ExportFormat(token, "gsave newpath %d %d moveto %d 0 rlineto 0 %d rlineto %d 0 rlineto closepath clip newpath\n",
+                         x, y, width, height, -width);
+        break;
+    }
+}
+
+void Rbc_RenderClipEnd(Rbc_RenderContext *ctx) {
+    Rbc_ExportContext *token = ctx->exportPtr;
+    switch (token->backend) {
+    case RBC_EXPORT_SVG:
+        Rbc_ExportAppend(token, "</g>\n", (char *)NULL);
+        break;
+    case RBC_EXPORT_PDF:
+        Rbc_ExportAppend(token, "Q\n", (char *)NULL);
+        break;
+    case RBC_EXPORT_POSTSCRIPT:
+        Rbc_ExportAppend(token, "grestore\n", (char *)NULL);
+        break;
+    }
+}
+
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx) {
     ctx->ops->output->plotEnd(ctx);
 }

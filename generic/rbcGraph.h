@@ -776,6 +776,7 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
 void Rbc_ExportBeginGraph(Graph *graphPtr);
 void Rbc_ExportEndGraph(Graph *graphPtr);
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis);
 void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under);
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);

@@ -3159,6 +3159,10 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
                 goto error;
             }
             axes[i] = Tcl_GetHashValue(entry);
+            if (Rbc_MarkersUseTrack(graphPtr, NULL, axes[i])) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot assign a Y axis used by a graph-wide marker", -1));
+                goto error;
+            }
             if (axes[i]->deletePending || (axes[i]->track != NULL && axes[i]->track != track) ||
                 (axes[i]->refCount > 0 && axes[i]->classUid != rbcYAxisUid) ||
                 (axes[i]->chainPtr != NULL && axes[i]->chainPtr != graphPtr->margins[MARGIN_LEFT].axes)) {
@@ -3181,6 +3185,13 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
                     Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track element", -1));
                     goto error;
                 }
+            }
+        }
+        for (i = 0; i < track->nAxes; i++) {
+            for (j = 0; j < nAxes && axes[j] != track->axes[i]; j++) {}
+            if (j == nAxes && Rbc_MarkersUseTrack(graphPtr, track, track->axes[i])) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track marker", -1));
+                goto error;
             }
         }
         for (i = 0; i < nAxes; i++) {
@@ -3384,6 +3395,10 @@ transformDone:
     if (operation == TRACK_OP_DELETE && objc == 4) {
         Tcl_HashSearch search;
         Tcl_HashEntry *entry;
+        if (Rbc_MarkersUseTrack(graphPtr, track, NULL)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("delete or move track markers before deleting their track", -1));
+            return TCL_ERROR;
+        }
         for (entry = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); entry != NULL;
              entry = Tcl_NextHashEntry(&search)) {
             Element *element = Tcl_GetHashValue(entry);

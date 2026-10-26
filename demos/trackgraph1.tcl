@@ -30,6 +30,14 @@ for {set i 0} {$i <= 1000} {incr i} {
     -symbol none -color seagreen -linewidth 2 -smooth step -label Enable
 .g grid configure -hide no
 
+# Track-owned annotations share the row's scale and cannot spill into another row.
+.g marker create line -name threshold -track voltage -mapy voltage \
+    -coords {-Inf 0.5 Inf 0.5} -outline firebrick -dashes {4 4}
+.g marker create text -name thresholdLabel -track voltage -mapy voltage \
+    -coords {0.1 0.5} -text {Threshold: 0.5 V} -foreground firebrick -anchor sw
+.g marker create polygon -name interval -track current -mapy current \
+    -coords {2 -Inf 3 -Inf 3 Inf 2 Inf} -fill lightyellow -outline {} -under yes
+
 # One vertical cursor spans the tracks; its horizontal line stays at pointer Y.
 bind .g <Motion> {
     .g crosshairs configure -position @%x,%y
