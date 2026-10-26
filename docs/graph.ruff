@@ -146,6 +146,7 @@ namespace eval ::rbc::GRAPHINST {
         | `track separator x y` | Returns the track immediately above the gap at the given widget pixel coordinates, or an empty string. Plot interiors and margins do not match. |
         | `track delete name` | Deletes an empty track, retaining its axes. Delete or move its elements first. |
         | `track bbox name` | Returns the plotting rectangle as `left top right bottom` in widget pixels. |
+        | `track legend name operation ?args ...?` | Configures or interacts with the track-local legend. `bbox` returns its visible `x y width height`, or empty. See [::rbc::LEGEND]. |
         | `track identify y` | Returns the track containing a widget Y coordinate, or an empty string in a gap. |
         | `track transform name x y ?-mapx axis? ?-mapy axis?` | Maps data to widget coordinates, returning two floating-point values. |
         | `track invtransform name x y ?-mapx axis? ?-mapy axis?` | Maps widget coordinates back to data coordinates. |
@@ -174,6 +175,11 @@ namespace eval ::rbc::GRAPHINST {
         independently. Horizontal zoom or pan is performed through the shared X axes; vertical navigation uses the
         desired track's Y axes. The native crosshair's vertical line spans all tracks and its horizontal line follows
         the pointer's row.
+
+        Each row also owns an optional local legend, hidden by default. For example,
+        `.g track legend voltage configure -hide no -position right -anchor ne` shows only that row's element
+        labels. Local legends overlay and clip to the track; they do not change shared X alignment. The global
+        legend remains independent. See [::rbc::LEGEND] for options, bindings and export behavior.
 
         ### Reordering and resizing tracks
         `track order` takes the full list of existing track names, with no omissions or duplicates. Ownership,
@@ -1120,7 +1126,7 @@ namespace eval ::rbc::GRAPHINST {
 
     proc track {operation args} {
         # Manages named plot regions in a trackgraph. See Stacked tracks for operations and options.
-        # operation - create, configure, cget, names, order, sashpos, separator, delete, bbox, identify, transform or invtransform.
+        # operation - create, configure, cget, names, order, sashpos, separator, delete, bbox, identify, transform, invtransform or legend.
         # args - Arguments for the selected operation.
         # Synopsis: operation ?args ...?
     }

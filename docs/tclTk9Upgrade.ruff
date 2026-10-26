@@ -24,7 +24,9 @@ namespace eval TclTk9Upgrade {
         `-type trackgraph`: rectangle zoom and pan affect shared X axes and the starting row's Y axes, wheel zoom
         follows the pointed row, and coordinate/closest-point annotations stay clipped to their track. Navigation
         history follows axis names across reordering. Both toolbar and context-menu controls work with the global
-        legend and individual axis scale toggles. See `demos/trackgraph2.tcl`.
+        legend and individual axis scale toggles. Each track can also show a local legend with
+        `track legend name configure -hide no`. Its entries, bindings and clipping belong to the row; global and
+        local legends can coexist. Graphtoolbar active-legend controls work with both. See `demos/trackgraph2.tcl`.
 
         ### Configurable logarithmic bar baseline
         Bar elements honor a positive graph `-baseline` on logarithmic Y axes, including automatic limits,

@@ -112,7 +112,7 @@ namespace eval ::rbc::graphtoolbar {
         - **Current point** reports shared visible X axes and the pointed track's visible Y axes. When every owned
           Y axis is hidden, its first Y axis is used. **Closest point** searches the pointed track's elements.
           Text, backgrounds and point markers are clipped to their owning row. Gaps have no coordinate annotation.
-        - **Active legend** operates on the existing global legend. **Scale toggling** operates on each enabled
+        - **Active legend** operates on the global legend and any visible track-local legends. **Scale toggling** operates on each enabled
           axis separately. `-interactive` initially enables scale toggling for `x` and `y`; call
           `setAxisActiveScale all` after creating custom axes, or pass an explicit list of names. Newly created
           axes are not automatically added to that list.
@@ -123,8 +123,13 @@ namespace eval ::rbc::graphtoolbar {
         its saved limits. Toolbar and context-menu modes share these behaviors, including `-controlmode both`.
 
         Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. Trackgraph still uses its
-        ordinary orientation and global legend; this integration does not add inverted layouts, local legends,
-        or window/XOR track markers. See `demos/trackgraph2.tcl` for an interactive example.
+        ordinary orientation; inverted layouts and window/XOR track markers are not supported.
+
+        Show a local legend with `$g track legend voltage configure -hide no`. Active-legend bindings are added
+        for tracks created after the toolbar, once graph changes are displayed. Existing nonempty custom local
+        bindings are preserved. Box zoom and pan do not start over local legend rectangles, and coordinate
+        annotations are suppressed there. Global and local legends remain independently configurable; hide the
+        global legend explicitly if only local legends are desired. See [::rbc::LEGEND] and `demos/trackgraph2.tcl`.
 
         ## Control surfaces
         Use `-interactive` to enable the standard graph interactions with their defaults:
@@ -3105,6 +3110,29 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $graph legend bind all <Enter> [namespace code {my ActivateLegend}]
         $graph legend bind all <Leave> [namespace code {my DeactivateLegend}]
         $graph legend bind all <ButtonPress-1> [namespace code {my ToggleLegendElement}]
+        if {$GraphType eq {trackgraph}} {
+            set tag [my BindTagName track-legends]
+            bind $tag <<RbcGraphChanged>> [namespace code {my SyncTrackLegendBindings}]
+            my AddBindTag $graph $tag
+            my SyncTrackLegendBindings
+        }
+    }
+    method LegendCommand {track} {
+        # Returns the command prefix for a global or track-local legend.
+        if {$track eq {}} {return [list $Subwidgets(graph) legend]}
+        return [list $Subwidgets(graph) track legend $track]
+    }
+    method SyncTrackLegendBindings {} {
+        # New tracks may be created after the toolbar. Keep custom nonempty
+        # bindings intact while adding the standard controls to new legends.
+        foreach track [$Subwidgets(graph) track names] {
+            set legend [my LegendCommand $track]
+            foreach {event method} {<Enter> ActivateLegend <Leave> DeactivateLegend <ButtonPress-1> ToggleLegendElement} {
+                if {[catch {{*}$legend bind all $event} binding] || $binding eq {}} {
+                    {*}$legend bind all $event [namespace code [list my $method $track]]
+                }
+            }
+        }
     }
     method LegendInteractionSuppressed {} {
         # Tests whether active-legend interaction is temporarily suppressed.
@@ -3113,31 +3141,33 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         return [expr {([info exists ZoomInfo(corner)] && ($ZoomInfo(corner) eq {B})) ||\
                               ([info exists PanInfo(active)] && $PanInfo(active))}]
     }
-    method ActivateLegend {} {
+    method ActivateLegend {{track {}}} {
         # Activates the element underneath the current legend entry on pointer # entry unless another modal graph
         # interaction is active.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
+        set legend [my LegendCommand $track]
         if {[my LegendInteractionSuppressed]} {
             return
         }
-        set elem [$graph legend get current]
+        set elem [{*}$legend get current]
         if {$elem ne {}} {
-            $graph legend activate $elem
+            {*}$legend activate $elem
         }
     }
-    method DeactivateLegend {} {
+    method DeactivateLegend {{track {}}} {
         # Removes transient legend activation from the current legend entry.
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        set elem [$graph legend get current]
+        set legend [my LegendCommand $track]
+        set elem [{*}$legend get current]
         if {$elem ne {}} {
-            $graph legend deactivate $elem
+            {*}$legend deactivate $elem
         }
     }
-    method ToggleLegendElement {} {
+    method ToggleLegendElement {{track {}}} {
         # Advances the current legend element through the selected persistent-state cycle.
         #
         # The default sequence is:
@@ -3152,10 +3182,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
+        set legend [my LegendCommand $track]
         if {[my LegendInteractionSuppressed]} {
             return
         }
-        set elem [$graph legend get current]
+        set elem [{*}$legend get current]
         if {$elem eq {}} {
             return
         }
@@ -3206,7 +3237,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {($x eq {}) || ($y eq {})} {
             return false
         }
-        if {$GraphType eq {trackgraph} && ([my TrackDragging] ||
+        if {$GraphType eq {trackgraph} && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||
             ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
             my DeleteCrosshairsMarkers
             return false
@@ -3397,7 +3428,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # element and selects point/bar annotation rendering as appropriate.
         #
         # Returns: Nothing.
-        if {$GraphType eq {trackgraph} && ([my TrackDragging] ||
+        if {$GraphType eq {trackgraph} && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||
             ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
             my DeleteCrosshairsMarkers
             return
@@ -5072,6 +5103,15 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Boolean value.
         set graph $Subwidgets(graph)
+        if {$GraphType eq {trackgraph}} {
+            foreach track [$graph track names] {
+                set bounds [$graph track legend $track bbox]
+                if {[llength $bounds]} {
+                    lassign $bounds left top width height
+                    if {$x >= $left && $x < $left+$width && $y >= $top && $y < $top+$height} {return true}
+                }
+            }
+        }
         #
         # Only an internally drawn legend in the plotting area can
         # conflict with region selection.

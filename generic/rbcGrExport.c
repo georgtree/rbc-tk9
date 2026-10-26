@@ -145,12 +145,14 @@ int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
         }
     }
     Rbc_MarkersExport(graphPtr, exportPtr, TRUE);
+    Rbc_ExportTrackLegends(graphPtr, exportPtr, FALSE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {
         /* Print legend underneath elements and markers */
         Rbc_LegendExport(graphPtr->legend, exportPtr);
     }
     Rbc_AxisLimitsExport(graphPtr, exportPtr);
     Rbc_ElementsExport(graphPtr, exportPtr);
+    Rbc_ExportTrackLegends(graphPtr, exportPtr, TRUE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (Rbc_LegendIsRaised(graphPtr->legend))) {
         /* Print legend above elements (but not markers) */
         Rbc_LegendExport(graphPtr->legend, exportPtr);

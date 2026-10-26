@@ -468,6 +468,7 @@ struct GraphStruct {
     int svgWidth, svgHeight, svgDecorations, svgEmbedFonts; /* Independent SVG output options. */
     PostScript *postscript; /* PostScript options: see rbcGrPS.c */
     Legend *legend;         /* Legend information: see rbcGrLegd.c */
+    Rbc_BindTable trackLegendBindings; /* Shared event routing for local legends. */
     Crosshairs *crosshairs; /* Crosshairs information: see rbcGrHairs.c */
     Grid *gridPtr;          /* Grid attribute information */
     int halo;               /* Maximum distance allowed between points
@@ -650,6 +651,7 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 struct RbcTrack {
+    Legend *legend;
     char *name;
     double weight;
     int minHeight;
@@ -659,6 +661,13 @@ struct RbcTrack {
     Tcl_Size nAxes;
     RbcTrack *next;
 };
+int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
+void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
+int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y);
+void Rbc_MapTrackLegends(Graph *graphPtr);
+void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
+void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);
 RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
 void Rbc_LayoutTracks(Graph *graphPtr);
 void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved);

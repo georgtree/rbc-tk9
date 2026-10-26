@@ -34,6 +34,18 @@ $graph grid configure -hide no
 $graph marker create line -name threshold -track voltage -mapy voltage \
     -coords {-Inf 0.5 Inf 0.5} -outline firebrick -dashes {4 4}
 
+# Local legends follow their tracks and use the toolbar's active-legend controls.
+$graph legend configure -hide yes
+foreach track [$graph track names] {
+    $graph track legend $track configure -hide no -position right -anchor ne -background white -borderwidth 1
+}
+set trackLegends 1
+proc ToggleTrackLegends {} {
+    foreach track [$::graph track names] {
+        $::graph track legend $track configure -hide [expr {!$::trackLegends}]
+    }
+}
+
 # The preset enables x/y at construction; include our custom axes after creating them.
 .gtb setAxisActiveScale all
 set phase 0
@@ -47,7 +59,8 @@ ttk::button .controls.reverse -text {Reverse tracks} -command {
     $::graph track order [lreverse [$::graph track order]]
 }
 ttk::button .controls.advance -text {Update vectors} -command AdvanceTrackSignals
-pack .controls.reverse .controls.advance -side left -padx 4 -pady 4
+ttk::checkbutton .controls.legends -text {Track legends} -variable trackLegends -command ToggleTrackLegends
+pack .controls.reverse .controls.advance .controls.legends -side left -padx 4 -pady 4
 ttk::label .help -text {Drag: zoom | Shift-drag: pan | Wheel: zoom | Drag a separator: resize rows
 Right-click: controls | Click a legend entry: activate/hide | Click an axis: linear/log scale}
 pack .help .controls -side bottom -fill x

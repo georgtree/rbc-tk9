@@ -6150,4 +6150,95 @@ test trackToolbar-axis-1 {Y-axis wheel and scale toggle affect exactly the point
     destroy $widget
 } -result {true 1 0 {-1.0 1.0} {0.0 10.0}}
 
+#### local track legends
+proc ToolbarLocalLegendPoint {graph track element} {
+    lassign [$graph track legend $track bbox] left top width height
+    for {set y $top} {$y<$top+$height} {incr y 2} {
+        for {set x $left} {$x<$left+$width} {incr x 2} {
+            if {[$graph track legend $track get @$x,$y] eq $element} {return [list $x $y]}
+        }
+    }
+    error "local legend entry $element not found"
+}
+
+foreach mode {toolbar contextmenu both} {
+    test trackToolbar-locallegend-$mode {local active legends work without starting navigation}\
+            -constraints {isInteractive isActiveLegend isZoom isPan} -setup {
+        lassign [SetupTrackToolbar -controlmode $mode -activelegendmode show-hide] widget graph objectNs
+        $graph legend configure -hide yes
+        $graph track legend lower configure -hide no -background white
+        update
+    } -body {
+        lassign [ToolbarLocalLegendPoint $graph lower current] x y
+        GenerateGraphEvent $graph <Motion> $x $y 0
+        GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+        GenerateGraphEvent $graph <ButtonRelease-1> $x $y 0
+        set hidden [$graph element cget current -hideplot]
+        set pan [namespace eval $objectNs [list my StartPan $x $y]]
+        GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+        GenerateGraphEvent $graph <ButtonRelease-1> $x $y 0
+        list $hidden [$graph element cget current -hideplot] [$graph element cget voltage -hideplot]\
+            $pan [namespace eval $objectNs {list $ZoomInfo(corner) [llength $ZoomInfo(stack)]}]
+    } -cleanup {destroy $widget} -result {1 0 0 false {A 0}}
+}
+
+test trackToolbar-locallegend-new {tracks added after construction receive bindings without a crosshair dependency}\
+        -constraints {isInteractive isActiveLegend} -setup {
+    set widget [graphtoolbar .gtb -type trackgraph -activelegend -activelegendmode show-hide]
+    set graph [$widget subwidget graph]
+    pack $widget -fill both -expand yes
+    WaitForWindow $graph
+    $graph track create later -yaxes y
+    $graph line create later -track later -mapy y -data {0 0 1 1} -label Later
+    $graph track legend later configure -hide no
+    update
+} -body {
+    lassign [ToolbarLocalLegendPoint $graph later later] x y
+    GenerateGraphEvent $graph <Motion> $x $y 0
+    GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+    GenerateGraphEvent $graph <ButtonRelease-1> $x $y 0
+    $graph element cget later -hideplot
+} -cleanup {destroy $widget} -result 1
+
+test trackToolbar-locallegend-custom {custom local bindings survive synchronization and track reordering}\
+        -constraints {isInteractive isActiveLegend} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+    $graph track legend upper configure -hide no
+    $graph track legend upper bind all <ButtonPress-1> {set ::customLocalLegend yes}
+    $graph track order {lower upper}
+    update
+} -body {
+    list [$graph track legend upper bind all <ButtonPress-1>]\
+        [expr {![catch {$graph track legend lower bind all <ButtonPress-1>}]}]
+} -cleanup {destroy $widget} -result {{set ::customLocalLegend yes} 1}
+
+test trackToolbar-locallegend-recreate {deleting and recreating a track does not retain obsolete toolbar bindings}\
+        -constraints {isInteractive isActiveLegend} -setup {
+    lassign [SetupTrackToolbar -activelegendmode show-hide] widget graph objectNs
+    $graph element delete voltage
+    $graph track delete upper
+    $graph track create upper -yaxes volts
+    $graph line create voltage -track upper -mapy volts -data {0 0 1 1} -label Voltage
+    $graph track legend upper configure -hide no
+    update
+} -body {
+    lassign [ToolbarLocalLegendPoint $graph upper voltage] x y
+    GenerateGraphEvent $graph <Motion> $x $y 0
+    GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+    GenerateGraphEvent $graph <ButtonRelease-1> $x $y 0
+    $graph element cget voltage -hideplot
+} -cleanup {destroy $widget} -result 1
+
+
+test trackToolbar-locallegend-readout {coordinate markers do not cover local legend controls}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
+    $graph track legend upper configure -hide no
+    update
+} -body {
+    lassign [ToolbarLocalLegendPoint $graph upper voltage] x y
+    namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+    llength [$graph marker names gtbCrosshairs*]
+} -cleanup {destroy $widget} -result 0
+
 cleanupTests

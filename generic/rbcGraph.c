@@ -1350,6 +1350,10 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
          */
         Rbc_LayoutGraph(graphPtr);
     }
+    /* Local legend rectangles are controls, not element/marker hit targets. */
+    if (graphPtr->trackGraph && Rbc_PointInTrackLegend(graphPtr, x, y)) {
+        return NULL;
+    }
     Rbc_GraphExtents(graphPtr, &exts);
     if ((x > exts.right) || (x < exts.left) || (y > exts.bottom) || (y < exts.top)) {
         /*
@@ -3081,6 +3085,7 @@ static void SyncTrackAxes(Graph *graphPtr) {
 
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
+    Rbc_DestroyTrackLegend(graphPtr, track);
     for (i = 0; i < track->nAxes; i++) {
         track->axes[i]->track = NULL;
         Rbc_FreeAxisReference(graphPtr, track->axes[i]);
@@ -3304,8 +3309,8 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
 }
 
 static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", NULL};
-    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR};
+    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", "legend", NULL};
+    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR, TRACK_OP_LEGEND};
     RbcTrack *track, **slot;
     int operation;
     Tcl_Obj *result;
@@ -3388,7 +3393,8 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         strcpy(track->name, name);
         track->weight = 1.0;
         track->minHeight = 40;
-        if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK) {
+        if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK ||
+            Rbc_CreateTrackLegend(graphPtr, track) != TCL_OK) {
             FreeTrack(graphPtr, track);
             return TCL_ERROR;
         }
@@ -3401,6 +3407,9 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     if (track == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_LEGEND) {
+        return Rbc_TrackLegendOp(graphPtr, track, interp, objc, objv);
     }
     if (operation == TRACK_OP_SASHPOS) {
         int y;
@@ -3896,6 +3905,7 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
         }
     }
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_UNDER);
+    Rbc_DrawTrackLegends(graphPtr, drawable, FALSE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {
         Rbc_DrawLegend(graphPtr->legend, drawable);
     }
@@ -3948,6 +3958,7 @@ void Rbc_LayoutGraph(Graph *graphPtr) {
         Rbc_MapElements(graphPtr);
         Rbc_MapMarkers(graphPtr);
         Rbc_MapGrid(graphPtr);
+        Rbc_MapTrackLegends(graphPtr);
         graphPtr->flags &= ~(MAP_ALL);
     }
 }
@@ -4007,6 +4018,7 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
     if (graphPtr->flags & DRAW_MARGINS) {
         DrawMargins(graphPtr, drawable);
     }
+    Rbc_DrawTrackLegends(graphPtr, drawable, TRUE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (Rbc_LegendIsRaised(graphPtr->legend))) {
         Rbc_DrawLegend(graphPtr->legend, drawable);
     }
