@@ -5801,4 +5801,353 @@ test crosshairsCleanup-disabled {no periodic callback without the crosshairs fea
     destroy $widget
 } -result 0
 
+#### trackgraph interactions
+proc SetupTrackToolbar {args} {
+    global winSize
+    set widget [graphtoolbar .gtb {*}$winSize -type trackgraph -interactive -zoommod {Any-}\
+                    -zoomwheelmod {} -zoomwheelscale 2.0 {*}$args]
+    set graph [$widget subwidget graph]
+    $graph configure -trackresize yes
+    $graph axis configure x -min 0 -max 10 -loose no
+    $graph axis create samples -min 0 -max 100 -loose no
+    $graph x2axis use samples
+    $graph axis create volts -min -1 -max 1 -loose no
+    $graph axis create amps -min -10 -max 10 -loose no
+    $graph track create upper -yaxes volts
+    $graph track create lower -yaxes amps
+    $graph line create voltage -track upper -mapy volts -data {0 -1 5 0 10 1} -label Voltage
+    $graph strip create current -track lower -mapy amps -data {0 -10 5 0 10 10} -label Current -linewidth 2
+    $widget setAxisActiveScale all
+    pack $widget -fill both -expand yes
+    WaitForWindow $graph
+    return [list $widget $graph [info object namespace $widget]]
+}
+
+proc TrackToolbarPoint {graph track {xFraction 0.5} {yFraction 0.5}} {
+    lassign [$graph track bbox $track] left top right bottom
+    return [list [expr {round($left+($right-$left)*$xFraction)}]\
+                 [expr {round($top+($bottom-$top)*$yFraction)}]]
+}
+
+foreach mode {toolbar contextmenu both} {
+    test trackToolbar-controls-$mode {trackgraph supports both control surfaces} -constraints isInteractive -setup {
+        lassign [SetupTrackToolbar -controlmode $mode] widget graph objectNs
+    } -body {
+        list [winfo class $graph] [$graph track names] [lsort [$widget getAxisActiveScale]]\
+            [expr {[winfo manager [$widget subwidget toolbarFrame]] ne {}}]
+    } -cleanup {
+        destroy $widget
+    } -result [list Trackgraph {upper lower} {amps samples volts x x2 y y2} [expr {$mode ne {contextmenu}}]]
+}
+
+test trackToolbar-zoom-1 {box selection keeps its starting row and maps all overlays to it}\
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar -zoommark] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph upper 0.2 0.2] ax ay
+    lassign [TrackToolbarPoint $graph lower 0.8 0.8] bx by
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay 0
+    GenerateGraphEvent $graph <Motion> $bx $by 0
+    set owners {}
+    foreach marker [$graph marker names gtbZoom*] {
+        lappend owners [$graph marker cget $marker -track]
+    }
+    lassign [$graph track bbox upper] left top right bottom
+    set expected [list [$graph axis invtransform x $ax] [$graph axis invtransform x $bx]\
+                       [$graph axis invtransform volts $bottom] [$graph axis invtransform volts $ay]]
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 0
+    list [expr {[llength $owners]>=4 && [lsort -unique $owners] eq {upper}}]\
+        [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits volts]] $expected]\
+        [$graph axis limits amps] [namespace eval $objectNs {llength $ZoomInfo(stack)}]\
+        [llength [$graph marker names gtbZoom*]]
+} -cleanup {
+    destroy $widget
+} -result {1 true {-10.0 10.0} 1 0}
+
+test trackToolbar-wheel-1 {wheel changes shared X axes and only the pointed row's Y axes}\
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph lower] x y
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $x]\
+                       {*}[ExpectedWheelLimits $graph samples 0.5 $x]\
+                       {*}[ExpectedWheelLimits $graph amps 0.5 $y]]
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    list [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits samples]\
+                                 {*}[$graph axis limits amps]] $expected]\
+         [$graph axis limits volts] [namespace eval $objectNs {llength $ZoomInfo(stack)}]
+} -cleanup {
+    destroy $widget
+} -result {true {-1.0 1.0} 1}
+
+test trackToolbar-pan-1 {pan keeps the starting row across row boundaries; undo survives reordering}\
+        -constraints {isInteractive isPan} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    lassign [TrackToolbarPoint $graph lower 0.6] bx by
+    namespace eval $objectNs [list my StartPan $x $y]
+    namespace eval $objectNs [list my DragPan $bx $by]
+    namespace eval $objectNs [list my FinishPan $bx $by]
+    set changed [expr {[$graph axis limits x] ne {0.0 10.0} &&
+                      [$graph axis limits volts] ne {-1.0 1.0} && [$graph axis limits amps] eq {-10.0 10.0}}]
+    $graph track order {lower upper}
+    # Undo must not overwrite an unrelated row's subsequent application change.
+    $graph axis configure amps -min -20 -max 20
+    namespace eval $objectNs {my ResetZoom}
+    list $changed [$graph axis limits x] [$graph axis limits samples] [$graph axis limits volts]\
+        [$graph axis limits amps] [$graph track order] [namespace eval $objectNs {llength $ZoomInfo(stack)}]
+} -cleanup {
+    destroy $widget
+} -result {1 {0.0 10.0} {0.0 100.0} {-1.0 1.0} {-20.0 20.0} {lower upper} 0}
+
+test trackToolbar-gap-1 {separator gaps ignore navigation and clear coordinate annotations}\
+        -constraints {isInteractive isZoom isPan isCrosshairs} -setup {
+    lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+    set present [$graph marker exists gtbCrosshairsText]
+    set gap [expr {([lindex [$graph track bbox upper] 3]+[lindex [$graph track bbox lower] 1])/2}]
+    # The periodic cleanup/refresh follows the real pointer, not synthetic wheel coordinates.
+    event generate $graph <Motion> -x $x -y $gap -warp 1
+    update
+    namespace eval $objectNs [list my RefreshCrosshairsMarker $x $gap]
+    namespace eval $objectNs [list my StartZoom $x $gap]
+    set pan [namespace eval $objectNs [list my StartPan $x $gap]]
+    GenerateGraphWheelEvent $graph $x $gap 120 0
+    list $present $pan [llength [$graph marker names gtbCrosshairs*]]\
+        [namespace eval $objectNs {list $ZoomInfo(corner) [llength $ZoomInfo(stack)]}]\
+        [$graph axis limits x]
+} -cleanup {
+    destroy $widget
+} -result {1 false 0 {A 0} {0.0 10.0}}
+
+foreach gesture {zoom pan} {
+    test trackToolbar-cancel-$gesture {row structure changes cancel gestures and restore controls}\
+            -constraints {isInteractive isZoom isPan} -setup {
+        lassign [SetupTrackToolbar -zoommark] widget graph objectNs
+        lassign [TrackToolbarPoint $graph upper] x y
+    } -body {
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my StartZoom $x $y]
+        } else {
+            namespace eval $objectNs [list my StartPan $x $y]
+            namespace eval $objectNs [list my DragPan [expr {$x+20}] [expr {$y+10}]]
+        }
+        $graph track order {lower upper}
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my FinishZoom [expr {$x+40}] [expr {$y+20}]]
+        } else {
+            namespace eval $objectNs [list my FinishPan [expr {$x+40}] [expr {$y+20}]]
+        }
+        list [$graph axis limits x] [$graph axis limits volts]\
+            [namespace eval $objectNs {llength $ZoomInfo(stack)}]\
+            [llength [$graph marker names gtbZoom*]]\
+            [expr {{gtb-pan-region-.gtb.graph} ni [bindtags $graph] &&
+                   {gtb-select-region-.gtb.graph} ni [bindtags $graph]}]\
+            [expr {{volts} in [$widget getAxisActiveScale]}]
+    } -cleanup {
+        destroy $widget
+    } -result {{0.0 10.0} {-1.0 1.0} 0 0 1 1}
+}
+
+test trackToolbar-history-1 {undo skips an axis deleted after navigation}\
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    $graph element delete voltage
+    $graph track delete upper
+    $graph axis delete volts
+    namespace eval $objectNs {my ResetZoom}
+    list [$graph axis limits x] [$graph axis limits amps]\
+        [namespace eval $objectNs {llength $ZoomInfo(stack)}]
+} -cleanup {
+    destroy $widget
+} -result {{0.0 10.0} {-10.0 10.0} 0}
+
+test trackToolbar-readout-1 {current readout follows rows, including hidden owned axes}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
+    $graph axis configure amps -hide yes
+    update idletasks
+} -body {
+    set result {}
+    foreach track {upper lower} axis {volts amps} other {amps volts} {
+        lassign [TrackToolbarPoint $graph $track] x y
+        namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+        set text [$graph marker cget gtbCrosshairsText -text]
+        lappend result [expr {[string first $axis $text]>=0 && [string first $other $text]<0}]\
+            [$graph marker cget gtbCrosshairsText -track]\
+            [$graph marker cget gtbCrosshairsTextBox -track]
+    }
+    set result
+} -cleanup {
+    destroy $widget
+} -result {1 upper upper 1 lower lower}
+
+test trackToolbar-closest-1 {closest markers stay with the selected element's track}\
+        -constraints {isInteractive isCrosshairs} -setup {
+    lassign [SetupTrackToolbar -crosshairsmode closest] widget graph objectNs
+} -body {
+    set result {}
+    foreach track {upper lower} axis {volts amps} {
+        set x [expr {round([$graph axis transform x 5])}]
+        set y [expr {round([$graph axis transform $axis 0])}]
+        namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+        set owners {}
+        foreach marker [$graph marker names gtbCrosshairs*] {lappend owners [$graph marker cget $marker -track]}
+        lappend result [expr {[llength $owners]>=3 && [lsort -unique $owners] eq [list $track]}]
+    }
+    set result
+} -cleanup {
+    destroy $widget
+} -result {1 1}
+
+test trackToolbar-separator-1 {native separator dragging remains available alongside toolbar gestures}\
+        -constraints {isInteractive isZoom isPan} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    set y [$graph track sashpos upper]
+    set before [$graph track cget upper -weight]
+    GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+    GenerateGraphEvent $graph <B1-Motion> $x [expr {$y+20}] 0
+    GenerateGraphEvent $graph <ButtonRelease-1> $x [expr {$y+20}] 0
+    list [expr {[$graph track cget upper -weight] != $before}]\
+        [$graph axis limits x] [$graph axis limits volts]\
+        [namespace eval $objectNs {list $ZoomInfo(corner) [llength $ZoomInfo(stack)]}]\
+        [dict exists $::rbc::trackgraph::drag $graph]
+} -cleanup {
+    destroy $widget
+} -result {1 {0.0 10.0} {-1.0 1.0} {A 0} 0}
+
+test trackToolbar-xor-1 {unsupported XOR is rejected before changing zoom box options}\
+        -constraints isInteractive -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+} -body {
+    set before [$widget configure -zoomboxopts]
+    set code [catch {$widget configure -zoomboxopts {-outline red -xor yes}} message]
+    list $code $message [expr {$before eq [$widget configure -zoomboxopts]}]
+} -cleanup {
+    destroy $widget
+} -result {1 {trackgraph zoom boxes do not support -xor yes} 1}
+
+foreach descending {0 1} {
+    test trackToolbar-logwheel-$descending {wheel respects logarithmic and descending local Y transforms}\
+            -constraints {isInteractive isZoom} -setup {
+        lassign [SetupTrackToolbar] widget graph objectNs
+        $graph axis configure amps -min 1 -max 100 -logscale yes -descending $descending
+        update idletasks
+    } -body {
+        lassign [TrackToolbarPoint $graph lower 0.4 0.3] x y
+        set expected [ExpectedWheelLimits $graph amps 0.5 $y]
+        GenerateGraphWheelEvent $graph $x $y 120 0
+        list [approxNestedEqual [$graph axis limits amps] $expected] [$graph axis limits volts]
+    } -cleanup {
+        destroy $widget
+    } -result {true {-1.0 1.0}}
+}
+
+test trackToolbar-ownedaxes-1 {all owned Y axes participate, including an unused hidden axis, and undo restores them}\
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+    $graph axis create extra -min 20 -max 40 -hide yes -loose no
+    $graph track configure upper -yaxes {volts extra}
+    update idletasks
+} -body {
+    lassign [TrackToolbarPoint $graph upper] x y
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    set changed [expr {[$graph axis limits extra] ne {20.0 40.0}}]
+    namespace eval $objectNs {my ResetZoom}
+    list $changed [$graph axis limits extra] [$graph axis limits volts] [$graph axis limits amps]
+} -cleanup {
+    destroy $widget
+} -result {1 {20.0 40.0} {-1.0 1.0} {-10.0 10.0}}
+
+test trackToolbar-empty-1 {empty rows support X navigation without coordinate markers or box zoom}\
+        -constraints {isInteractive isZoom isCrosshairs} -setup {
+    lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
+    $graph track create empty
+    update idletasks
+} -body {
+    lassign [TrackToolbarPoint $graph empty] x y
+    event generate $graph <Motion> -x $x -y $y -warp 1
+    update
+    namespace eval $objectNs [list my RefreshCrosshairsMarker $x $y]
+    namespace eval $objectNs [list my StartZoom $x $y]
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    list [llength [$graph marker names gtbCrosshairs*]]\
+        [namespace eval $objectNs {list $ZoomInfo(corner) [llength $ZoomInfo(stack)]}]\
+        [expr {[$graph axis limits x] ne {0.0 10.0}}] [$graph axis limits volts] [$graph axis limits amps]
+} -cleanup {
+    destroy $widget
+} -result {0 {A 1} 1 {-1.0 1.0} {-10.0 10.0}}
+
+test trackToolbar-defaultaxis-1 {zoom title and overlays work when a track owns the built-in Y axis}\
+        -constraints {isInteractive isZoom} -setup {
+    lassign [SetupTrackToolbar -zoomtitle -zoommark] widget graph objectNs
+    $graph element delete voltage
+    $graph track configure upper -yaxes y
+    $graph axis configure y -min -1 -max 1 -loose no
+    update idletasks
+} -body {
+    lassign [TrackToolbarPoint $graph upper 0.2 0.2] ax ay
+    lassign [TrackToolbarPoint $graph upper 0.8 0.8] bx by
+    namespace eval $objectNs [list my StartZoom $ax $ay]
+    set owner [$graph marker cget gtbZoomTitle -track]
+    namespace eval $objectNs [list my FinishZoom $bx $by]
+    list $owner\
+        [expr {[$graph axis limits y] ne {-1.0 1.0}}] [$graph axis limits amps]
+} -cleanup {
+    destroy $widget
+} -result {upper 1 {-10.0 10.0}}
+
+test trackToolbar-legend-1 {global active legend controls the selected track's element without starting zoom}\
+        -constraints {isInteractive isZoom isActiveLegend} -setup {
+    lassign [SetupTrackToolbar -activelegendmode show-hide] widget graph objectNs
+} -body {
+    lassign [FindLegendPoint $graph current] x y
+    GenerateGraphEvent $graph <Motion> $x $y 0
+    GenerateGraphEvent $graph <ButtonPress-1> $x $y 0
+    GenerateGraphEvent $graph <ButtonRelease-1> $x $y 0
+    list [$graph element cget current -hideplot] [$graph element cget voltage -hideplot]\
+        [namespace eval $objectNs {list $ZoomInfo(corner) [llength $ZoomInfo(stack)]}]
+} -cleanup {
+    destroy $widget
+} -result {1 0 {A 0}}
+
+test trackToolbar-axis-1 {Y-axis wheel and scale toggle affect exactly the pointed track axis}\
+        -constraints {isInteractive isZoom isAxes} -setup {
+    lassign [SetupTrackToolbar] widget graph objectNs
+    $graph axis configure amps -min 1 -max 100 -loose no
+    update idletasks
+} -body {
+    lassign [TrackToolbarPoint $graph lower] center y
+    set found 0
+    for {set x [lindex [$graph track bbox lower] 0]} {$x>=0} {incr x -1} {
+        GenerateGraphEvent $graph <Motion> $x $y 0
+        if {[$graph axis get current] eq {amps} && [$graph axis get detail] eq {line}} {
+            set found 1
+            break
+        }
+    }
+    if {!$found} {error {lower track axis line not found}}
+    set expected [ExpectedWheelLimits $graph amps 0.5]
+    GenerateGraphWheelEvent $graph $x $y 120 0
+    set wheel [approxNestedEqual [$graph axis limits amps] $expected]
+    # The margin width can change after wheel zoom. Resolve its current position again.
+    for {set x [lindex [$graph track bbox lower] 0]} {$x>=0} {incr x -1} {
+        GenerateGraphEvent $graph <Motion> $x $y 0
+        if {[$graph axis get current] eq {amps} && [$graph axis get detail] eq {line}} {break}
+    }
+    namespace eval $objectNs [list my ToggleAxisScale $graph]
+    list $wheel [$graph axis cget amps -logscale] [$graph axis cget volts -logscale]\
+        [$graph axis limits volts] [$graph axis limits x]
+} -cleanup {
+    destroy $widget
+} -result {true 1 0 {-1.0 1.0} {0.0 10.0}}
+
 cleanupTests

@@ -20,6 +20,15 @@ namespace eval trackGraphTest {
         update
     }
 
+    test trackgraph-strip-closest {interpolated strip picking uses the strip geometry in a mixed graph} -setup {
+        Create
+    } -body {
+        set x [expr {round([.tg axis transform x 2.5])}]
+        set y [expr {round([.tg axis transform amps 0])}]
+        set found [.tg element closest $x $y stripClosest -interpolate yes -halo 3 i]
+        list $found $stripClosest(name) [expr {abs($stripClosest(x)-2.5)<0.1 && abs($stripClosest(y))<0.2}]
+    } -cleanup {destroy .tg; unset -nocomplain stripClosest} -result {1 i 1}
+
     test trackgraph-exported {trackgraph supports the ordinary rbc namespace import} -body {
         namespace eval importTrack {
             namespace import ::rbc::trackgraph

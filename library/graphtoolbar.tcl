@@ -81,6 +81,51 @@ namespace eval ::rbc::graphtoolbar {
         set graph [.gtb subwidget graph]
         ```
 
+        ## Stacked-track interaction
+        Select `-type trackgraph` to use the same controls with named tracks. Create tracks and their axes through
+        the embedded graph command, then enable scale toggling for the custom axis names:
+
+        ```tcl
+        package require rbc::graphtoolbar
+        rbc::graphtoolbar .gtb -type trackgraph -interactive -crosshairsmode current
+        set g [.gtb subwidget graph]
+        $g axis create volts -min -1 -max 1
+        $g axis create amps -min -10 -max 10
+        $g track create voltage -yaxes volts
+        $g track create current -yaxes amps
+        $g line create v -track voltage -mapy volts -data {0 -1 5 1 10 -1}
+        $g strip create i -track current -mapy amps -data {0 10 5 -10 10 10} -linewidth 2
+        $g configure -trackresize yes
+        .gtb setAxisActiveScale all
+        pack .gtb -fill both -expand yes
+        ```
+
+        - **Box zoom** changes all used shared X axes and all Y axes owned by the starting track. The selection
+          rectangle and its corner annotations stay inside that track, even when the pointer crosses another row.
+        - **Pan** changes the shared X axes and the starting track's Y axes for the whole drag.
+        - **Wheel zoom** inside a track changes shared X axes and that track's Y axes. Over an axis it changes
+          only that axis, using the usual axis-targeting rules. Empty tracks permit shared-X wheel zoom and pan;
+          box zoom requires at least one owned Y axis.
+        - **Previous view** and **Reset view** restore the axes saved by navigation, by name. Reordering tracks
+          does not change their identity. An axis deleted after navigation is skipped during restoration;
+          unrelated rows' limits are not restored by an entry that did not affect them.
+        - **Current point** reports shared visible X axes and the pointed track's visible Y axes. When every owned
+          Y axis is hidden, its first Y axis is used. **Closest point** searches the pointed track's elements.
+          Text, backgrounds and point markers are clipped to their owning row. Gaps have no coordinate annotation.
+        - **Active legend** operates on the existing global legend. **Scale toggling** operates on each enabled
+          axis separately. `-interactive` initially enables scale toggling for `x` and `y`; call
+          `setAxisActiveScale all` after creating custom axes, or pass an explicit list of names. Newly created
+          axes are not automatically added to that list.
+
+        Separator gaps do not start toolbar navigation. Native separator dragging remains available when
+        `-trackresize yes` is configured. Changing track order, ownership, weights, minimum heights, or widget size
+        during a box selection or pan cancels the gesture on its next motion or release. A cancelled pan restores
+        its saved limits. Toolbar and context-menu modes share these behaviors, including `-controlmode both`.
+
+        Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. Trackgraph still uses its
+        ordinary orientation and global legend; this integration does not add inverted layouts, local legends,
+        or window/XOR track markers. See `demos/trackgraph2.tcl` for an interactive example.
+
         ## Control surfaces
         Use `-interactive` to enable the standard graph interactions with their defaults:
         ```tcl
@@ -916,8 +961,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -height pixels - Initial requested height of the embedded Rbc graph. The default is `600`.
                 -controlmode mode - Selects the user-interface control surface. Must be `toolbar`, `contextmenu`, or\
                  `both`. The default is `both`.
-                -type type - Selects the embedded Rbc widget. Must be `graph`, `barchart`, `stripchart`, or
-                 `polar`. The default is `graph`.
+                -type type - Selects the embedded Rbc widget. Must be `graph`, `barchart`, `stripchart`,
+                 `polar`, or `trackgraph`. The default is `graph`.
                 -representation mode - For `-type polar`, selects `polar` or `smith` representation. The default is
                  `polar`. It is ignored by the other graph types.
                 -smithgrid mode - Initializes the graph grid component's `-smithgrid` option. For a Smith
@@ -1216,6 +1261,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     property zoomboxopts  -set {
+        # Track clipping requires ordinary redraws; reject XOR before a gesture
+        # can create partially configured overlay markers.
+        if {$GraphType eq {trackgraph}} {
+            set xorValue [option get $Subwidgets(graph) gtbZoomOutlineXor GtbZoomOutlineXor]
+            if {[info exists zoomboxopts]} {set xorValue [dict get $zoomboxopts -xor]}
+            if {[dict exists $value -xor]} {set xorValue [dict get $value -xor]}
+            if {$xorValue} {return -code error {trackgraph zoom boxes do not support -xor yes}}
+        }
         if {[info exists zoomboxopts]} {
             dict for {option optionValue} $value {
                 if {[dict exists $zoomboxopts $option]} {
@@ -1489,7 +1542,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             {-width= -default 800}
             {-height= -default 600}
             {-controlmode= -default both -enum {toolbar contextmenu both}}
-            {-type= -default graph -enum {graph barchart stripchart polar}}
+            {-type= -default graph -enum {graph barchart stripchart polar trackgraph}}
             {-representation= -default polar -enum {polar smith}}
             {-smithgrid= -default impedance -enum {impedance admittance both}}
             {-coordmark= -default auto}
@@ -1877,7 +1930,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$mapy ne {}} {
             lappend mapopts -mapy $mapy
         }
-        $Subwidgets(graph) marker create bitmap -name $name -coords [list $xValue $yValue]\
+        my Marker create bitmap -name $name -coords [list $xValue $yValue]\
                 -bitmap "@[file join $::rbc::graphtoolbar::libDir pointer.xbm]"\
                 -mask "@[file join $::rbc::graphtoolbar::libDir pointer_mask.xbm]" -under no\
                 -state disabled {*}$mapopts {*}[my configure -pointeropts]
@@ -2131,6 +2184,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [$graph extents plotarea] plotLeft plotTop plotWidth plotHeight
         set plotRight [expr {$plotLeft+$plotWidth-1}]
         set plotBottom [expr {$plotTop+$plotHeight-1}]
+        set track [my TrackAt $x $y]
+        if {$track ne {}} {
+            lassign [$graph track bbox $track] plotLeft plotTop plotRight plotBottom
+        }
         set preferred [dict get $options -anchor]
         set anchors [list $preferred nw ne sw se n s w e center]
         set tried [dict create]
@@ -2178,11 +2235,72 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [my WidgetToAxisValues $right $bottom $mapx $mapy] xValue2 yValue2
         set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2]
         if {[$graph marker exists $name]} {
-            $graph marker configure $name -coords $coords -mapx $mapx -mapy $mapy {*}$boxOptions
+            my Marker configure $name -coords $coords -mapx $mapx -mapy $mapy {*}$boxOptions
         } else {
-            $graph marker create polygon -name $name -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
+            my Marker create polygon -name $name -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
                     -state disabled {*}$boxOptions
         }
+    }
+    method TrackAt {x y} {
+        # Returns the row under a plot point; gaps and margins have no owner.
+        if {$GraphType ne {trackgraph} || $x eq {} || $y eq {}} {return {}}
+        set graph $Subwidgets(graph)
+        if {![$graph inside $x $y]} {return {}}
+        return [$graph track identify [expr {round($y)}]]
+    }
+    method TrackDragging {} {
+        # Native separator bindings precede toolbar navigation logically, even
+        # though the toolbar's bindtags run first in Tk's event dispatch.
+        expr {$GraphType eq {trackgraph} && [info exists ::rbc::trackgraph::drag] &&
+              [dict exists $::rbc::trackgraph::drag $Subwidgets(graph)]}
+    }
+    method TrackForAxis {axis} {
+        if {$GraphType eq {trackgraph}} {
+            foreach track [$Subwidgets(graph) track names] {
+                if {$axis in [$Subwidgets(graph) track cget $track -yaxes]} {return $track}
+            }
+        }
+        return {}
+    }
+    method Marker {operation name args} {
+        # Toolbar markers inherit the track owning their final Y-axis mapping.
+        # The adapter is private; it does not change the public graph command.
+        set graph $Subwidgets(graph)
+        if {$GraphType eq {trackgraph} && [llength $args] % 2 == 0} {
+            set options [dict create {*}$args]
+            if {[dict exists $options -mapy]} {
+                lappend args -track [my TrackForAxis [dict get $options -mapy]]
+            } elseif {$operation eq {create}} {
+                lappend args -track [my TrackForAxis y]
+            }
+        }
+        return [$graph marker $operation $name {*}$args]
+    }
+    method NavigationAxes {dimension track} {
+        if {$GraphType eq {trackgraph} && $dimension eq {y}} {
+            if {$track ni [$Subwidgets(graph) track names]} {return {}}
+            return [$Subwidgets(graph) track cget $track -yaxes]
+        }
+        return [my UsedAxes $dimension]
+    }
+    method ExistingAxes {axes} {
+        # Structural changes during a gesture may have removed a saved axis.
+        if {$GraphType ne {trackgraph}} {return $axes}
+        set result {}
+        foreach axis $axes {
+            if {$axis in [$Subwidgets(graph) axis names]} {lappend result $axis}
+        }
+        return $result
+    }
+    method TrackSignature {track} {
+        # Limits change during navigation; ownership, order and row sizing must
+        # stay fixed. Widget resizing also invalidates a pixel-based gesture.
+        if {$GraphType ne {trackgraph}} {return {}}
+        set graph $Subwidgets(graph)
+        if {$track ni [$graph track names]} {return {}}
+        set state [list [winfo width $graph] [winfo height $graph] [my UsedAxes x]]
+        foreach name [$graph track names] {lappend state $name [$graph track configure $name]}
+        return $state
     }
     method UsedAxes {dimension} {
         # Returns every axis participating in the displayed graph for one data dimension.
@@ -2289,9 +2407,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         return $axes
     }
-    method InteractionAxes {dimension} {
+    method InteractionAxes {dimension {track {}}} {
         # Returns axes used for current-coordinate interaction.
         #  dimension - data dimension, `x` or `y`.
+        #  track - owning track for local Y axes; unused by other graph types.
         #
         # For an ordinary graph this is the set of visible used axes for the requested dimension.
         #
@@ -2302,6 +2421,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Ordered list of axis names.
         set graph $Subwidgets(graph)
         set axes [my VisibleAxes $dimension]
+        if {$GraphType eq {trackgraph} && $dimension eq {y}} {
+            set owned [my NavigationAxes y $track]
+            set visible {}
+            foreach axis $owned {if {$axis in $axes} {lappend visible $axis}}
+            if {[llength $visible]} {return $visible}
+            return [lrange $owned 0 0]
+        }
         if {$GraphType ne {polar}} {
             return $axes
         }
@@ -2418,7 +2544,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Dictionary containing `text`, `mapx`, `mapy`, `xValue`, and `yValue`.
         set graph $Subwidgets(graph)
         set xAxes [my InteractionAxes x]
-        set yAxes [my InteractionAxes y]
+        set yAxes [my InteractionAxes y [my TrackAt $xPixel $yPixel]]
         if {[llength $xAxes] == 0} {
             return -code error {graph has no X axis available for coordinate display}
         }
@@ -2641,7 +2767,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set mapy [$graph grid cget -mapy]
         } else {
             set xAxes [my InteractionAxes x]
-            set yAxes [my InteractionAxes y]
+            set yAxes [my InteractionAxes y [my TrackAt $xPixel $yPixel]]
             if {![llength $xAxes] || ![llength $yAxes]} {
                 return [my AxisMarkerInfo $xPixel $yPixel $formatx $formaty]
             }
@@ -2847,7 +2973,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         if {$newLogscale && ($GraphType eq {polar}) && ![$graph grid cget -hide] && ($axis in [my PolarGridAxes])} {
             bell 
-            return 
+            return
         }
         $graph axis configure $axis -logscale $newLogscale
     }
@@ -3080,6 +3206,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {($x eq {}) || ($y eq {})} {
             return false
         }
+        if {$GraphType eq {trackgraph} && ([my TrackDragging] ||
+            ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
+            my DeleteCrosshairsMarkers
+            return false
+        }
         if {![$graph inside $x $y]} {
             return false
         }
@@ -3266,6 +3397,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # element and selects point/bar annotation rendering as appropriate.
         #
         # Returns: Nothing.
+        if {$GraphType eq {trackgraph} && ([my TrackDragging] ||
+            ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
+            my DeleteCrosshairsMarkers
+            return
+        }
         if {![$graph inside $x $y]} {
             return
         }
@@ -3287,7 +3423,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set boxOptions [my configure -crosshairsmarkboxopts]
             my DrawTextBackground gtbCrosshairsTextBox $textX $textY $text $options $boxOptions $mapx $mapy
             lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
-            $graph marker create text -name gtbCrosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
+            my Marker create text -name gtbCrosshairsText -text $text -coords [list $textXValue $textYValue] -mapx\
                     $mapx -mapy $mapy -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
             return
         }
@@ -3364,6 +3500,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set markerNames [$graph marker names gtbCrosshairs*]
         $graph marker delete {*}$markerNames
+        if {$GraphType eq {trackgraph}} {
+            if {[my TrackDragging] || [my TrackAt $x $y] eq {}} {
+                $graph crosshairs off
+                return
+            }
+            if {!$hide} {$graph crosshairs on}
+        }
         if {!$hide} {
             $graph crosshairs configure -position @${x},$y
         }
@@ -3507,9 +3650,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 # "No marker": ordinary RBC crosshairs only.
                 #
                 $graph crosshairs on
-                bind $tagCrosshairs <Any-Motion> {
-                    %W crosshairs configure -position @%x,%y
-                }
+                bind $tagCrosshairs <Any-Motion> [namespace code {my CrosshairsMotion %W %x %y}]
                 bind $tagCrosshairs <Leave> {
                     %W crosshairs off
                 }
@@ -3943,7 +4084,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set boxOptions [my configure -crosshairsmarkboxopts]
         my DrawTextBackground ${textMarker}Box $textX $textY $text $options $boxOptions $mapx $mapy
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
-        $graph marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
+        my Marker create text -name $textMarker -text $text -coords [list $textXValue $textYValue] -mapx $mapx\
                 -mapy $mapy -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
         #
         # Bitmap remains exactly at the real selected element point.
@@ -4091,9 +4232,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set graph $Subwidgets(graph)
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords $coords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow $arrow
+            my Marker configure $marker -coords $coords -mapx $mapx -mapy $mapy {*}$lineOptions -arrow $arrow
         } else {
-            $graph marker create line -name $marker -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
+            my Marker create line -name $marker -coords $coords -mapx $mapx -mapy $mapy -bindtags {} -under no\
                     -state disabled {*}$lineOptions -arrow $arrow
         }
     }
@@ -4227,10 +4368,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         my DrawTextBackground ${marker}Box $textX $textY $text $textOptions $boxOptions $mapx $mapy
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx -mapy $mapy\
+            my Marker configure $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx -mapy $mapy\
                     {*}$textOptions
         } else {
-            $graph marker create text -name $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx\
+            my Marker create text -name $marker -coords [list $textXValue $textYValue] -text $text -mapx $mapx\
                     -mapy $mapy -bindtags {} -under no -state disabled {*}$textOptions
         }
     }
@@ -4261,6 +4402,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             B,yPixel {}
             stack {}
             corner A
+            track {}
+            trackSignature {}
         }
     }
     method EnableZoom {start end reset} {
@@ -4328,10 +4471,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }]
         my AddBindTag $graph [my BindTagName pan]
     }
-    method SaveZoomState {} {
+    method SaveZoomState {{selectedAxes {}}} {
         # Saves the current graph view as one navigation-history entry.
         #
-        # For every used X and Y axis, the method saves configured `-min`, `-max`, and `-logscale` values.
+        #  selectedAxes - affected axis names, or empty to save every used X and Y axis.
+        #
+        # Saves configured `-min`, `-max`, and `-logscale` values. Trackgraph gestures select shared X axes and
+        # their starting track's Y axes, so restoring a view does not overwrite another row's limits.
         #
         # Configured limits are read with `cget`, rather than from `axis limits`, so an automatically scaled `{}`
         # limit is preserved as automatic instead of being replaced by the current calculated numerical value.
@@ -4341,13 +4487,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set graph $Subwidgets(graph)
         set cmds [list]
-        foreach dimension {x y} {
-            foreach axis [my UsedAxes $dimension] {
-                set min [$graph axis cget $axis -min]
-                set max [$graph axis cget $axis -max]
-                set logscale [$graph axis cget $axis -logscale]
-                lappend cmds [list $graph axis configure $axis -min $min -max $max -logscale $logscale]
-            }
+        if {![llength $selectedAxes]} {
+            set selectedAxes [concat [my UsedAxes x] [my UsedAxes y]]
+        }
+        foreach axis $selectedAxes {
+            set min [$graph axis cget $axis -min]
+            set max [$graph axis cget $axis -max]
+            set logscale [$graph axis cget $axis -logscale]
+            lappend cmds [list $graph axis configure $axis -min $min -max $max -logscale $logscale]
         }
         set ZoomInfo(stack) [linsert $ZoomInfo(stack) 0 $cmds]
     }
@@ -4388,10 +4535,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my DrawTextBackground ${marker}Box $textX $textY $text $options $boxOptions $mapx $mapy
         lassign [my WidgetToAxisValues $textX $textY $mapx $mapy] textXValue textYValue
         if {[$graph marker exists $marker]} {
-            $graph marker configure $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy -text $text\
+            my Marker configure $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy -text $text\
                     -anchor $anchor
         } else {
-            $graph marker create text -name $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy\
+            my Marker create text -name $marker -coords [list $textXValue $textYValue] -mapx $mapx -mapy $mapy\
                     -text $text -state disabled {*}[dict remove $options -formatx -formaty -formatparam]
             
         }
@@ -4503,6 +4650,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Tk `break` after a successful zoom so the wheel event is consumed.
 
+        if {[my TrackDragging]} {return}
+        if {$GraphType eq {trackgraph} && [$Subwidgets(graph) inside $x $y] && [my TrackAt $x $y] eq {}} {
+            my ClearWheelAxisTarget
+            return
+        }
         # Do not alter the graph underneath an unfinished rectangle selection.
         if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) ne {A})} {
             my ClearWheelAxisTarget
@@ -4537,7 +4689,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {![$graph inside $x $y]} {
                 return
             }
-            # Plot-area scrolling scales all used axes around the pointer.
+            set track [my TrackAt $x $y]
+            if {$GraphType eq {trackgraph} && $track eq {}} {return}
+            # Shared X axes and the pointed-to row's Y axes.
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
             set xPixel [expr {round($xPixel)}]
             set yPixel [expr {round($yPixel)}]
@@ -4545,7 +4699,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set center [$graph axis invtransform $axis $xPixel]
                 dict set changes $axis [my ScaledAxisLimits $axis $factor $center]
             }
-            foreach axis [my UsedAxes y] {
+            foreach axis [my NavigationAxes y $track] {
                 set center [$graph axis invtransform $axis $yPixel]
                 dict set changes $axis [my ScaledAxisLimits $axis $factor $center]
             }
@@ -4572,7 +4726,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$refreshCrosshairs} {
             my DeleteCrosshairsMarkers
         }
-        my SaveZoomState
+        my SaveZoomState [expr {$GraphType eq {trackgraph} ? [dict keys $changes] : {}}]
         dict for {axis limits} $changes {
             lassign $limits min max
             $graph axis configure $axis -min $min -max $max
@@ -4639,7 +4793,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my DeleteCrosshairsMarkers
                 }
                 foreach cmd $cmds {
-                    {*}$cmd
+                    if {$GraphType ne {trackgraph} || [lindex $cmd 3] in [$graph axis names]} {{*}$cmd}
                 }
                 if {[my configure -zoomtitle]} {
                     my ZoomTitleLast
@@ -4665,7 +4819,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my DeleteCrosshairsMarkers
                 }
                 foreach cmd $cmds {
-                    {*}$cmd
+                    if {$GraphType ne {trackgraph} || [lindex $cmd 3] in [$graph axis names]} {{*}$cmd}
                 }
                 if {[my configure -zoomtitle]} {
                     my ZoomTitleLast
@@ -4710,7 +4864,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {($xPixel1==$xPixel2) || ($yPixel1==$yPixel2)} {
             return
         }
-        my SaveZoomState
+        set yAxes [my NavigationAxes y $ZoomInfo(track)]
+        my SaveZoomState [expr {$GraphType eq {trackgraph} ? [concat [my UsedAxes x] $yAxes] : {}}]
         foreach axis [my UsedAxes x] {
             set min [$graph axis invtransform $axis $xPixel1]
             set max [$graph axis invtransform $axis $xPixel2]
@@ -4720,7 +4875,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 $graph axis configure $axis -min $min -max $max
             }
         }
-        foreach axis [my UsedAxes y] {
+        foreach axis $yAxes {
             set min [$graph axis invtransform $axis $yPixel1]
             set max [$graph axis invtransform $axis $yPixel2]
             if {$min>$max} {
@@ -4830,7 +4985,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         # restore active axes behaviour
         if {[info exists ZoomTransientChecks(activeAxes)]} {
-            my setAxisActiveScale $ZoomTransientChecks(activeAxes)
+            my setAxisActiveScale [my ExistingAxes $ZoomTransientChecks(activeAxes)]
             unset ZoomTransientChecks(activeAxes)
         }
         if {[info exists ZoomTransientChecks(crosshairsMarker)]} {
@@ -4875,7 +5030,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         } else {
             set coords {-Inf Inf}
         }
-        $graph marker create text -name gtbZoomTitle -text "Zoom #$level" -coords $coords -bindtags {} -state disabled\
+        my Marker create text -name gtbZoomTitle -text "Zoom #$level" -coords $coords -bindtags {} -state disabled\
                 {*}[my configure -zoomtitleopts]
     }
     method ZoomTitleLast {} {
@@ -4884,7 +5039,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set level [llength $ZoomInfo(stack)]
         if {$level > 0} {
-            $Subwidgets(graph) marker create text -name gtbZoomTitle -text "Zoom #$level" -state disabled\
+            my Marker create text -name gtbZoomTitle -text "Zoom #$level" -state disabled\
                     {*}[my configure -zoomtitleopts]
         }
     }
@@ -4900,6 +5055,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [$Subwidgets(graph) extents plotarea] left top width height
         set right  [expr {$left+$width-1}]
         set bottom [expr {$top+$height-1}]
+        if {$GraphType eq {trackgraph} && [info exists ZoomInfo(track)] &&
+            $ZoomInfo(track) in [$Subwidgets(graph) track names]} {
+            lassign [$Subwidgets(graph) track bbox $ZoomInfo(track)] left top right bottom
+        }
         set x [expr {max($left,min($right,$x))}]
         set y [expr {max($top,min($bottom,$y))}]
         return [list $x $y]
@@ -5055,6 +5214,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[my ZoomPointInLegend $x $y]} {
             return
         }
+        set ZoomInfo(track) [my TrackAt $x $y]
+        if {$GraphType eq {trackgraph} && ($ZoomInfo(track) eq {} || [my TrackDragging] ||
+            ![llength [my NavigationAxes y $ZoomInfo(track)]] || ![llength [my UsedAxes x]])} {return}
+        set ZoomInfo(trackSignature) [my TrackSignature $ZoomInfo(track)]
         my SaveZoomPoint $x $y A
         # During the drag, ordinary Motion events update corner B. The
         # select-region tag exists only until ButtonRelease.
@@ -5100,6 +5263,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         # The pointer may leave the plotting area while dragging.
+        if {$GraphType eq {trackgraph} &&
+            $ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)]} {
+            my ResetZoom
+            return
+        }
         lassign [my ClampToPlot $x $y] x y
         if {$GraphType eq {polar}} {
             lassign [my ConstrainPolarZoomPoint $x $y] x y
@@ -5131,6 +5299,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         # Release may occur outside the plot area.
+        if {$GraphType eq {trackgraph} &&
+            $ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)]} {
+            my ResetZoom
+            return
+        }
         lassign [my ClampToPlot $x $y] x y
         if {$GraphType eq {polar}} {
             lassign [my ConstrainPolarZoomPoint $x $y] x y
@@ -5143,7 +5316,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         my RemoveBindTag $graph [my BindTagName select-region]
         # Restore active-axis behaviour.
         if {[info exists ZoomTransientChecks(activeAxes)]} {
-            my setAxisActiveScale $ZoomTransientChecks(activeAxes)
+            my setAxisActiveScale [my ExistingAxes $ZoomTransientChecks(activeAxes)]
             unset ZoomTransientChecks(activeAxes)
         }
         # Restore crosshair-marker behaviour.
@@ -5168,7 +5341,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns: Nothing.
         set graph $Subwidgets(graph)
         set xAxes [my InteractionAxes x]
-        set yAxes [my InteractionAxes y]
+        set yAxes [my InteractionAxes y $ZoomInfo(track)]
         if {![llength $xAxes] || ![llength $yAxes]} {
             return
         }
@@ -5181,9 +5354,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set coords [list $xValue1 $yValue1 $xValue2 $yValue1 $xValue2 $yValue2 $xValue1 $yValue2 $xValue1 $yValue1]
         my AddBitmapPoint gtbZoomBitmap $xValue1 $yValue1 $mapx $mapy
         if {[$graph marker exists gtbZoomOutline]} {
-            $graph marker configure gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy
+            my Marker configure gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy
         } else {
-            $graph marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy -state disabled\
+            my Marker create line -name gtbZoomOutline -coords $coords -mapx $mapx -mapy $mapy -state disabled\
                     {*}[my configure -zoomboxopts]
         }
     }
@@ -5216,6 +5389,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {[my ZoomPointInLegend $x $y]} {
             return false
         }
+        set track [my TrackAt $x $y]
+        if {$GraphType eq {trackgraph} && ($track eq {} || [my TrackDragging])} {return false}
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
         set xPixel [expr {round($xPixel)}]
         set yPixel [expr {round($yPixel)}]
@@ -5227,7 +5402,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # several Motion events may arrive before the display catches up.
         set axes [dict create]
         foreach dimension {x y} {
-            foreach axis [my UsedAxes $dimension] {
+            foreach axis [my NavigationAxes $dimension $track] {
                 lassign [$graph axis limits $axis] min max
                 set minPixel [$graph axis transform $axis $min]
                 set maxPixel [$graph axis transform $axis $max]
@@ -5280,6 +5455,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         array unset PanInfo
         array set PanInfo [list active true historySaved false changed false start,xPixel $xPixel start,yPixel $yPixel\
                                    dx 0 dy 0 axes $axes]
+        set PanInfo(track) $track
+        set PanInfo(trackSignature) [my TrackSignature $track]
         # Disable the same transient interactions which rectangle zoom disables.
         array unset PanTransientChecks
         set PanTransientChecks(activeAxes) [my getAxisActiveScale]
@@ -5425,6 +5602,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         set graph $Subwidgets(graph)
+        if {$GraphType eq {trackgraph} && $PanInfo(trackSignature) ne [my TrackSignature $PanInfo(track)]} {
+            my CancelPan
+            return
+        }
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
         set xPixel [expr {round($xPixel)}]
         set yPixel [expr {round($yPixel)}]
@@ -5482,7 +5663,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {[my configure -zoomtitle]} {
                 my ZoomTitleNext
             }
-            my SaveZoomState
+            my SaveZoomState [expr {$GraphType eq {trackgraph} ? [dict keys $PanInfo(axes)] : {}}]
             set PanInfo(historySaved) true
         }
         # If the pointer was previously moved and then returns to the
@@ -5507,7 +5688,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         my RemoveBindTag $graph [my BindTagName pan-region]
         if {[info exists PanTransientChecks(activeAxes)]} {
-            my setAxisActiveScale $PanTransientChecks(activeAxes)
+            my setAxisActiveScale [my ExistingAxes $PanTransientChecks(activeAxes)]
             unset PanTransientChecks(activeAxes)
         }
         # Restore the ordinary crosshair Motion/Enter/Leave tag first.
@@ -5549,6 +5730,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         # Use the real release position even when there was no final Motion event.
         my DragPan $x $y
+        if {![info exists PanInfo(active)] || !$PanInfo(active)} {return true}
         set historySaved $PanInfo(historySaved)
         set changed $PanInfo(changed)
         set PanInfo(active) false

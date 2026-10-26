@@ -212,7 +212,11 @@ namespace eval ::rbc::GRAPHINST {
         returns `break` before the class binding can intentionally suppress them.
 
         This first version supports line and strip elements in ordinary orientation. Bar/polar elements and
-        `-invertxy` are rejected. Track scrolling and graphtoolbar integration are not yet provided. Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
+        `-invertxy` are rejected. Track scrolling is not yet provided. The optional `rbc::graphtoolbar` package accepts
+        `-type trackgraph`: zoom and pan use shared X axes and the starting track's Y axes; wheel zoom and
+        coordinate annotations follow the pointed track. Separator dragging remains available. See
+        [::rbc::graphtoolbar] and `demos/trackgraph2.tcl` for the interaction controls.
+        Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping,
         ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector updates,
         track weights, annotations and shared horizontal navigation.
 

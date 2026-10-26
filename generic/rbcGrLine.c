@@ -7766,7 +7766,7 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     /*
      * Map connecting line segments if they are to be displayed.
      */
-    if ((nPoints > 1) && ((graphPtr->classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0) ||
+    if ((nPoints > 1) && ((linePtr->core.classUid == rbcStripElementUid) || (linePtr->builtinPen.traceWidth > 0) ||
                           (linePtr->fillTile != NULL) || (linePtr->fillStipple != None) ||
                           ((linePtr->symbolPoints == LINE_SYMBOL_POINTS_REDUCED) && (linePtr->rTolerance > 0.0)))) {
         linePtr->smooth = linePtr->reqSmooth;
@@ -7817,7 +7817,11 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
         if ((linePtr->fillTile != NULL) || (linePtr->fillStipple != None)) {
             MapFillArea(graphPtr, linePtr, &mapInfo);
         }
-        if (graphPtr->classUid == rbcStripElementUid) {
+        /*
+         * Trackgraphs can mix line and strip elements.  Mapping and closest
+         * searches must select the same representation for each element.
+         */
+        if (linePtr->core.classUid == rbcStripElementUid) {
             MapStrip(graphPtr, linePtr, &mapInfo);
         } else {
             MapTraces(graphPtr, linePtr, &mapInfo);
