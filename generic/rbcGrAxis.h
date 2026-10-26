@@ -226,6 +226,7 @@ typedef struct {
     /* The following fields are specific to logical axes */
     Rbc_ChainLink *linkPtr; /* Axis link in margin list. */
     Rbc_Chain *chainPtr;
+    struct RbcTrack *track; /* Owning plot region, or NULL for shared axes. */
     int width, height; /* Extents of axis */
     Segment2D *segments; /* Array of line segments representing
                           * the major and minor ticks, but also

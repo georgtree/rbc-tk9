@@ -1,0 +1,289 @@
+# Named tracks: shared X geometry, independent Y regions, lifecycle and exports.
+# See license.terms for details.
+package require rbc
+package require tcltest
+
+namespace eval trackGraphTest {
+    namespace import ::tcltest::*
+
+    proc Create {} {
+        ::rbc::trackgraph .tg -width 640 -height 480
+        .tg legend configure -hide yes
+        .tg axis configure x -min 0 -max 10 -loose no
+        .tg axis create volts -min -1 -max 1 -loose no -title Voltage
+        .tg axis create amps -min -10 -max 10 -loose no -title Current
+        .tg track create voltage -yaxes volts -weight 2
+        .tg track create current -yaxes amps -weight 1
+        .tg line create v -track voltage -mapy volts -data {0 -1 5 1 10 -1} -color red -symbol none
+        .tg strip create i -track current -mapy amps -data {0 10 5 -10 10 10} -color blue -symbol none
+        pack .tg
+        update
+    }
+
+    test trackgraph-exported {trackgraph supports the ordinary rbc namespace import} -body {
+        namespace eval importTrack {
+            namespace import ::rbc::trackgraph
+            namespace origin trackgraph
+        }
+    } -cleanup {namespace delete importTrack} -result ::rbc::trackgraph
+
+    test trackgraph-layout {shared horizontal bounds and weighted independent vertical bounds} -setup {
+        Create
+    } -body {
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        list [.tg track names] [expr {$l1 == $l2 && $r1 == $r2 && $b1 < $t2}] \
+            [expr {abs(($b1-$t1-40)-2*($b2-$t2-40)) <= 2}] \
+            [.tg element cget v -track] [.tg element type i]
+    } -cleanup {destroy .tg} -result {{voltage current} 1 1 voltage StripElement}
+
+    foreach logarithmic {0 1} {
+        foreach descending {0 1} {
+            test trackgraph-transform-$logarithmic-$descending {track and axis transforms agree and round trip} -setup {
+                Create
+                .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
+                .tg axis configure amps -min 1 -max 100 -logscale $logarithmic -descending $descending
+            } -body {
+                set result {}
+                foreach {track axis} {voltage volts current amps} {
+                    lassign [.tg track transform $track 4 10] px py
+                    lassign [.tg track invtransform $track $px $py] x y
+                    lassign [.tg track bbox $track] l t r b
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
+                        [expr {$py >= $t && $py <= $b}] \
+                        [expr {abs([.tg axis transform $axis 10]-$py)<1.0}]
+                }
+                set result
+            } -cleanup {destroy .tg} -result {1 1 1 1 1 1}
+        }
+    }
+
+    test trackgraph-picking {picking and bindings cannot select an element in another track} -setup {
+        Create
+    } -body {
+        lassign [.tg track transform voltage 5 1] x y
+        set result [list [.tg element closest $x $y hit -halo 3] $hit(name) [.tg track identify $y]]
+        lassign [.tg track transform current 5 -10] x y
+        lappend result [.tg element closest $x $y hit -halo 3] $hit(name) [.tg track identify $y]
+        lassign [.tg track bbox voltage] l t r b
+        lappend result [.tg track identify [expr {$b+6}]]
+        set result
+    } -cleanup {destroy .tg} -result {1 v voltage 1 i current {}}
+
+    test trackgraph-shared-x {one X range change affects both tracks identically; multiple shared axes work} -setup {
+        Create
+        .tg axis create samples -min 0 -max 100 -loose no
+        .tg x2axis use samples
+    } -body {
+        set result {}
+        foreach range {{0 10} {2 8}} {
+            .tg axis configure x -min [lindex $range 0] -max [lindex $range 1]
+            lassign [.tg track transform voltage 4 0] x1 y1
+            lassign [.tg track transform current 4 0] x2 y2
+            lappend result [expr {$x1 == $x2 && $y1 < $y2}]
+        }
+        lassign [.tg track transform voltage 50 0 -mapx samples] x1 y1
+        lassign [.tg track transform current 50 0 -mapx samples] x2 y2
+        lappend result [expr {$x1 == $x2}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test trackgraph-multiple-y {axes in one track share vertical geometry and reserve a common margin} -setup {
+        Create
+        .tg axis create volts2 -min 0 -max 100 -loose no -title Auxiliary
+        .tg track configure voltage -yaxes {volts volts2}
+    } -body {
+        lassign [.tg track transform voltage 5 0] x1 y1
+        lassign [.tg track transform voltage 5 50 -mapy volts2] x2 y2
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        list [expr {$x1 == $x2 && $y1 == $y2}] [expr {$l1==$l2 && $r1==$r2}] \
+            [.tg yaxis use]
+    } -cleanup {destroy .tg} -result {1 1 {volts volts2 amps}}
+
+    foreach options {{-weight 0} {-weight Inf} {-minheight -1} {-yaxes missing} {-yaxes amps} {-yaxes {volts volts}}} {
+        test trackgraph-invalid-$options {invalid options leave track configuration unchanged} -setup {
+            Create
+        } -body {
+            set before [.tg track configure voltage]
+            list [catch {.tg track configure voltage {*}$options}] \
+                [expr {$before eq [.tg track configure voltage]}]
+        } -cleanup {destroy .tg} -result {1 1}
+    }
+
+    test trackgraph-ownership {element and axis ownership changes are checked before commit} -setup {
+        Create
+    } -body {
+        list [catch {.tg element configure v -track current}] \
+            [.tg element cget v -track] [.tg element cget v -mapy] \
+            [catch {.tg track configure voltage -yaxes {}}] \
+            [catch {.tg axis delete volts}] [catch {.tg track delete voltage}] \
+            [catch {.tg yaxis use amps}] [catch {.tg configure -invertxy yes}] \
+            [.tg cget -invertxy]
+    } -cleanup {destroy .tg} -result {1 voltage volts 1 1 1 1 1 0}
+
+    test trackgraph-move-delete {moving elements permits deleting tracks without deleting axes or vectors} -setup {
+        Create
+    } -body {
+        .tg element configure v -track current -mapy amps
+        .tg track delete voltage
+        update
+        list [.tg track names] [.tg element cget v -track] \
+            [expr {"volts" in [.tg axis names]}] [.tg yaxis use]
+    } -cleanup {destroy .tg} -result {current current 1 amps}
+
+    test trackgraph-vectors {vector notifications update line and strip geometry in their own tracks} -setup {
+        Create
+        ::rbc::vector create trackX trackY
+        trackX set {0 5 10}
+        trackY set {0 0 0}
+        .tg element configure i -xdata trackX -ydata trackY
+    } -body {
+        trackY set {1 2 3}
+        update
+        lassign [.tg track transform current 5 2] x y
+        list [.tg element closest $x $y hit -halo 3] $hit(name) $hit(index) $hit(y)
+    } -cleanup {destroy .tg; ::rbc::vector destroy trackX trackY} -result {1 i 1 2.0}
+
+    test trackgraph-clipping {out-of-range lines are clipped to their owning track} -setup {
+        Create
+        .tg element configure v -data {0 -100 10 100}
+    } -body {
+        set svg [.tg svg output]
+        lassign [.tg track bbox voltage] l t r b
+        set count 0
+        set valid 1
+        foreach line [split $svg \n] {
+            if {[string first {stroke="#ff0000"} $line]<0} {continue}
+            if {[regexp {<polyline points="([^"]+)"} $line -> points]} {
+                foreach {x y} [string map {, { }} $points] {
+                    if {$y < $t-1 || $y > $b+1} {set valid 0}
+                    incr count
+                }
+            }
+        }
+        list [expr {$count>0}] $valid
+    } -cleanup {destroy .tg} -result {1 1}
+
+    foreach format {svg postscript pdf} {
+        test trackgraph-export-$format {resized export remaps tracks and restores screen geometry} -setup {
+            Create
+        } -body {
+            set before [.tg track bbox voltage]
+            set point [.tg track transform current 5 0]
+            set original [.tg $format output]
+            set enlarged [.tg $format output -width 900 -height 700]
+            .tg $format configure -width 0 -height 0
+            update
+            list [expr {$original ne $enlarged}] [expr {$before eq [.tg track bbox voltage]}] \
+                [expr {$point eq [.tg track transform current 5 0]}]
+        } -cleanup {destroy .tg} -result {1 1 1}
+    }
+
+    test trackgraph-resize {small layouts and weight changes do not retain stale regions} -setup {
+        Create
+    } -body {
+        set old [.tg track bbox voltage]
+        .tg track configure voltage -weight 1
+        .tg track configure current -weight 3
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        set result [list [expr {$b-$t < $b2-$t2}]]
+        .tg configure -height 140
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lappend result [expr {$t <= $b && $b <= $t2 && $t2 <= $b2}]
+        .tg configure -height 480
+        .tg track configure voltage -weight 2
+        .tg track configure current -weight 1
+        update
+        lappend result [expr {$old eq [.tg track bbox voltage]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test trackgraph-restrictions {unsupported or ambiguous operations fail without leaving objects} -setup {
+        Create
+    } -body {
+        list [catch {.tg bar create nope -data {1 1}}] [catch {.tg line create nope -data {1 1}}] \
+            [expr {"nope" ni [.tg element names]}] [catch {.tg transform 1 1}] \
+            [catch {.tg track transform voltage 1 1 -mapy amps}]
+    } -cleanup {destroy .tg} -result {1 1 1 1 1}
+
+    foreach renderer {native cairo} {
+        ::rbc::trackgraph .trackProbe
+        testConstraint trackRenderer$renderer [expr {![catch {.trackProbe configure -renderer $renderer}]}]
+        destroy .trackProbe
+        test trackgraph-raster-$renderer {out-of-range trace pixels remain inside their track} \
+            -constraints trackRenderer$renderer -setup {
+            Create
+            .tg configure -renderer $renderer
+            .tg element configure v -data {0 -100 10 100} -linewidth 1
+            set photo [image create photo]
+        } -body {
+            update
+            .tg snap $photo
+            lassign [.tg track bbox voltage] l t r b
+            set count 0
+            set outside 0
+            for {set y 0} {$y < [image height $photo]} {incr y} {
+                for {set x $l} {$x <= $r} {incr x} {
+                    lassign [$photo get $x $y] red green blue
+                    if {$red>180 && $green<80 && $blue<80} {
+                        incr count
+                        if {$y < $t-1 || $y > $b+1} {incr outside}
+                    }
+                }
+            }
+            list [expr {$count>0}] $outside
+        } -cleanup {image delete $photo; destroy .tg} -result {1 0}
+    }
+
+    test trackgraph-autorange {automatic Y limits remain independent while X limits are shared} -setup {
+        Create
+        .tg axis configure volts -min {} -max {}
+        .tg axis configure amps -min {} -max {}
+        .tg axis configure x -min {} -max {}
+        .tg element configure i -data {0 1000 15 2000}
+    } -body {
+        update
+        lassign [.tg axis limits volts] vmin vmax
+        lassign [.tg axis limits amps] imin imax
+        lassign [.tg axis limits x] xmin xmax
+        list [expr {$vmin<=-1 && $vmax>=1 && $vmax<100}] \
+            [expr {$imin>100 && $imax>=2000}] [expr {$xmax>=15}]
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test trackgraph-failed-create {failed creation does not retain an axis reference or track name} -setup {
+        Create
+        .tg axis create auxiliary
+    } -body {
+        set result [list [catch {.tg track create extra -yaxes {auxiliary missing}}] [.tg track names]]
+        .tg track create extra -yaxes auxiliary
+        .tg track delete extra
+        .tg axis delete auxiliary
+        lappend result [expr {"auxiliary" ni [.tg axis names]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 {voltage current} 1}
+
+    test trackgraph-margin {adding a row reuses the existing Y margin} -setup {
+        Create
+        .tg axis create amps2 -min -10 -max 10 -loose no -title Current
+    } -body {
+        set before [lindex [.tg track bbox current] 0]
+        .tg track create extra -yaxes amps2
+        update
+        expr {$before == [lindex [.tg track bbox extra] 0]}
+    } -cleanup {destroy .tg} -result 1
+
+    test trackgraph-lifecycle {repeated creation and destruction releases track-owned axis references} -body {
+        for {set i 0} {$i<20} {incr i} {
+            Create
+            destroy .tg
+            update
+        }
+        winfo exists .tg
+    } -result 0
+}
+::tcltest::cleanupTests

@@ -79,7 +79,7 @@ static int InitTkObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     RbcInitData *dataPtr = Tcl_GetAssocData(interp, "rbc::init", NULL);
     Tcl_Namespace *nsPtr;
     const char **cmd;
-    static const char *exports[] = {"barchart", "graph", "polar", "spline", "stripchart", "winop", NULL};
+    static const char *exports[] = {"barchart", "graph", "polar", "spline", "stripchart", "trackgraph", "winop", NULL};
 
     (void)clientData;
     if (objc != 1) {

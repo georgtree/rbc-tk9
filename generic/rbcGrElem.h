@@ -234,6 +234,8 @@ struct ElementStruct {
     Tcl_HashEntry *hashPtr;
     char *label;             /* Label displayed in legend */
     int labelRelief;         /* Relief of label in legend. */
+    Tcl_Obj *trackObjPtr;
+    RbcTrack *track;
     Axis2D axes;             /* X-axis and Y-axis mapping the element */
     ElemVector x, y, w;      /* Contains array of floating point
                               * graph coordinate values. Also holds

@@ -886,10 +886,34 @@ void Rbc_MapGrid(Graph *graphPtr) {
         gridPtr->x.nSegments = nSegments;
         gridPtr->x.segments = segments;
     }
-    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.y, &segments, &nSegments);
-    if (nSegments > 0) {
-        gridPtr->y.nSegments = nSegments;
-        gridPtr->y.segments = segments;
+    if (graphPtr->trackGraph && gridPtr->axes.y != NULL) {
+        RbcTrack *track;
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            if (track->nAxes == 0 || track->bottom - track->top <= 1) {
+                continue;
+            }
+            Rbc_GetAxisSegments(graphPtr, track->axes[0], &segments, &nSegments);
+            if (nSegments > 0) {
+                Tcl_Size total;
+                if (nSegments > TCL_SIZE_MAX - gridPtr->y.nSegments ||
+                    (Tcl_WideUInt)(gridPtr->y.nSegments + nSegments) >
+                        (Tcl_WideUInt)(SIZE_MAX / sizeof(*segments))) {
+                    ckfree(segments);
+                    continue;
+                }
+                total = gridPtr->y.nSegments + nSegments;
+                gridPtr->y.segments = ckrealloc(gridPtr->y.segments, total * sizeof(*segments));
+                memcpy(gridPtr->y.segments + gridPtr->y.nSegments, segments, nSegments * sizeof(*segments));
+                gridPtr->y.nSegments = total;
+                ckfree(segments);
+            }
+        }
+    } else {
+        Rbc_GetAxisSegments(graphPtr, gridPtr->axes.y, &segments, &nSegments);
+        if (nSegments > 0) {
+            gridPtr->y.nSegments = nSegments;
+            gridPtr->y.segments = segments;
+        }
     }
 }
 

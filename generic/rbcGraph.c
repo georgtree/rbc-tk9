@@ -31,6 +31,9 @@
 #include <tkPlatDecls.h>
 #endif
 
+static Rbc_Uid trackGraphUid;
+static void FreeTrack(Graph *graphPtr, RbcTrack *track);
+
 Rbc_Uid rbcXAxisUid;
 Rbc_Uid rbcYAxisUid;
 Rbc_Uid rbcBarElementUid;
@@ -1387,7 +1390,13 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->state == STATE_NORMAL)) {
-                (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+                if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+                    RbcTrackViewport saved;
+                    Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                    (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+                    Rbc_LeaveTrack(graphPtr, &saved);
+                }
             }
         }
         if (search.dist <= (double)search.halo) {
@@ -1732,6 +1741,10 @@ static int ConfigureGraph(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    if (graphPtr->trackGraph && graphPtr->inverted) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("trackgraph does not support -invertxy", -1));
+        return TCL_ERROR;
+    }
     assert(graphPtr->optionsInitialized);
     assert(graphPtr->optionTable != NULL);
 #ifndef RBC_HAVE_CAIRO
@@ -1971,6 +1984,11 @@ static void DestroyGraph(DestroyData dataPtr) {
     if (graphPtr->gridPtr != NULL) {
         Rbc_DestroyGrid(graphPtr);
     }
+    while (graphPtr->tracks != NULL) {
+        RbcTrack *track = graphPtr->tracks;
+        graphPtr->tracks = track->next;
+        FreeTrack(graphPtr, track);
+    }
     Rbc_DestroyAxes(graphPtr);
     Rbc_DestroyPens(graphPtr);
     if (graphPtr->postscript != NULL) {
@@ -2054,6 +2072,10 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr->tkwin = tkwin;
     graphPtr->display = Tk_Display(tkwin);
     graphPtr->interp = interp;
+    graphPtr->trackGraph = (classUid == trackGraphUid);
+    if (graphPtr->trackGraph) {
+        classUid = rbcLineElementUid;
+    }
     graphPtr->classUid = classUid;
     /*
      * Graph option lifecycle state.
@@ -2089,7 +2111,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr->markers.displayList = Rbc_ChainCreate();
     graphPtr->axes.displayList = Rbc_ChainCreate();
     if (classUid == rbcLineElementUid) {
-        Tk_SetClass(tkwin, "Graph");
+        Tk_SetClass(tkwin, graphPtr->trackGraph ? "Trackgraph" : "Graph");
     } else if (classUid == rbcBarElementUid) {
         Tk_SetClass(tkwin, "Barchart");
     } else if (classUid == rbcStripElementUid) {
@@ -2323,6 +2345,10 @@ static int BarOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
  *
  *----------------------------------------------------------------------
  */
+static int StripOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcStripElementUid);
+}
+
 static int LineOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return Rbc_ElementOp(graphPtr, interp, objc, objv, rbcLineElementUid);
 }
@@ -2949,6 +2975,433 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return result;
 }
 
+/* Named tracks share horizontal geometry and own independent vertical regions. */
+RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name) {
+    RbcTrack *track;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        if (strcmp(track->name, name) == 0) {
+            return track;
+        }
+    }
+    return NULL;
+}
+
+/* Temporarily select a row for existing clipping, reduction and drawing code.
+ * Always pair with Rbc_LeaveTrack, including when track is NULL. Axis mapping
+ * itself uses the axis owner, so public transforms do not need this scope. */
+void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
+    saved->top = graphPtr->top;
+    saved->bottom = graphPtr->bottom;
+    saved->range = graphPtr->vRange;
+    saved->offset = graphPtr->vOffset;
+    saved->scale = graphPtr->vScale;
+    saved->pad1 = graphPtr->padY.side1;
+    saved->pad2 = graphPtr->padY.side2;
+    if (track != NULL) {
+        graphPtr->padY.side1 = graphPtr->padY.side2 = 0;
+        graphPtr->top = graphPtr->vOffset = track->top;
+        graphPtr->bottom = track->bottom;
+        graphPtr->vRange = MAX(1, track->bottom - track->top);
+        graphPtr->vScale = 1.0 / graphPtr->vRange;
+    }
+}
+
+void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved) {
+    graphPtr->top = saved->top;
+    graphPtr->bottom = saved->bottom;
+    graphPtr->vRange = saved->range;
+    graphPtr->vOffset = saved->offset;
+    graphPtr->vScale = saved->scale;
+    graphPtr->padY.side1 = saved->pad1;
+    graphPtr->padY.side2 = saved->pad2;
+}
+
+/* Fit rows inside the common plot. Minimum sizes take precedence over weights;
+ * when they cannot fit, shrink them proportionally and keep the order stable. */
+void Rbc_LayoutTracks(Graph *graphPtr) {
+    RbcTrack *track;
+    double weights = 0.0, minima = 0.0, cursor;
+    int n = 0, gap, available;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        weights += track->weight;
+        minima += track->minHeight;
+        n++;
+    }
+    if (n == 0) {
+        return;
+    }
+    gap = MIN(12, MAX(0, graphPtr->vRange / (n * 4)));
+    available = MAX(0, graphPtr->vRange - gap * (n - 1));
+    cursor = graphPtr->vOffset;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        double height;
+        if (minima > available) {
+            height = available * (track->minHeight / minima);
+        } else {
+            height = track->minHeight + (available - minima) * (track->weight / weights);
+        }
+        track->top = (int)floor(cursor + 0.5);
+        cursor += height;
+        track->bottom = (int)floor(cursor + 0.5);
+        track->axisOffset = 0;
+        cursor += gap;
+    }
+}
+
+/* Keep track-owned axes in the left margin in track order. */
+static void SyncTrackAxes(Graph *graphPtr) {
+    Rbc_Chain *chain = graphPtr->margins[MARGIN_LEFT].axes;
+    Rbc_ChainLink *link;
+    RbcTrack *track;
+    Tcl_Size i;
+    for (link = Rbc_ChainFirstLink(chain); link != NULL; link = Rbc_ChainNextLink(link)) {
+        Axis *axis = Rbc_ChainGetValue(link);
+        axis->linkPtr = NULL;
+        axis->chainPtr = NULL;
+        axis->flags &= ~AXIS_ONSCREEN;
+    }
+    Rbc_ChainReset(chain);
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        for (i = 0; i < track->nAxes; i++) {
+            Axis *axis = track->axes[i];
+            axis->chainPtr = chain;
+            axis->linkPtr = Rbc_ChainAppend(chain, axis);
+            axis->flags |= AXIS_ONSCREEN;
+        }
+    }
+    graphPtr->flags |= RESET_WORLD;
+    Rbc_EventuallyRedrawGraph(graphPtr);
+}
+
+static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
+    Tcl_Size i;
+    for (i = 0; i < track->nAxes; i++) {
+        track->axes[i]->track = NULL;
+        Rbc_FreeAxisReference(graphPtr, track->axes[i]);
+    }
+    if (track->axes != NULL) {
+        ckfree(track->axes);
+    }
+    ckfree(track->name);
+    ckfree(track);
+}
+
+static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
+    Tcl_Obj *result;
+    Tcl_Size i;
+    if (strcmp(option, "-weight") == 0) {
+        return Tcl_NewDoubleObj(track->weight);
+    }
+    if (strcmp(option, "-minheight") == 0) {
+        return Tcl_NewIntObj(track->minHeight);
+    }
+    if (strcmp(option, "-yaxes") != 0) {
+        return NULL;
+    }
+    result = Tcl_NewListObj(0, NULL);
+    for (i = 0; i < track->nAxes; i++) {
+        Tcl_ListObjAppendElement(NULL, result, Tcl_NewStringObj(track->axes[i]->name, -1));
+    }
+    return result;
+}
+
+/* Stage all options and axis references before committing a track change. */
+static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    double weight = track->weight;
+    int minHeight = track->minHeight;
+    Tcl_Obj *axesObj = NULL;
+    Axis **axes = NULL;
+    Tcl_Size nAxes = 0, i, j;
+    Tcl_HashSearch search;
+    Tcl_HashEntry *entry;
+    if (objc % 2) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("expected track option/value pairs", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < objc; i += 2) {
+        const char *option = Tcl_GetString(objv[i]);
+        if (strcmp(option, "-weight") == 0) {
+            if (Tcl_GetDoubleFromObj(graphPtr->interp, objv[i + 1], &weight) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (!FINITE(weight) || weight <= 0.0 || weight > 1e6) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track weight must be greater than 0 and at most 1000000", -1));
+                return TCL_ERROR;
+            }
+        } else if (strcmp(option, "-minheight") == 0) {
+            if (Tk_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objv[i + 1], &minHeight) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (minHeight < 1) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track minimum height must be positive", -1));
+                return TCL_ERROR;
+            }
+        } else if (strcmp(option, "-yaxes") == 0) {
+            axesObj = objv[i + 1];
+        } else {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown track option \"%s\"", option));
+            return TCL_ERROR;
+        }
+    }
+    if (axesObj != NULL) {
+        Tcl_Obj **names;
+        if (Tcl_ListObjGetElements(graphPtr->interp, axesObj, &nAxes, &names) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if ((size_t)nAxes > SIZE_MAX / sizeof(*axes)) {
+            return TCL_ERROR;
+        }
+        axes = ckalloc(MAX(1, (size_t)nAxes * sizeof(*axes)));
+        for (i = 0; i < nAxes; i++) {
+            entry = Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(names[i]));
+            if (entry == NULL) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("unknown Y axis \"%s\"", Tcl_GetString(names[i])));
+                goto error;
+            }
+            axes[i] = Tcl_GetHashValue(entry);
+            if (axes[i]->deletePending || (axes[i]->track != NULL && axes[i]->track != track) ||
+                (axes[i]->refCount > 0 && axes[i]->classUid != rbcYAxisUid) ||
+                (axes[i]->chainPtr != NULL && axes[i]->chainPtr != graphPtr->margins[MARGIN_LEFT].axes)) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("axis is already assigned to another track or margin", -1));
+                goto error;
+            }
+            for (j = 0; j < i; j++) {
+                if (axes[j] == axes[i]) {
+                    Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("duplicate track Y axis", -1));
+                    goto error;
+                }
+            }
+        }
+        for (entry = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); entry != NULL;
+             entry = Tcl_NextHashEntry(&search)) {
+            Element *element = Tcl_GetHashValue(entry);
+            if (element->track == track) {
+                for (i = 0; i < nAxes && axes[i] != element->axes.y; i++) {}
+                if (i == nAxes) {
+                    Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track element", -1));
+                    goto error;
+                }
+            }
+        }
+        for (i = 0; i < nAxes; i++) {
+            axes[i]->classUid = rbcYAxisUid;
+            axes[i]->refCount++;
+        }
+        for (i = 0; i < track->nAxes; i++) {
+            track->axes[i]->track = NULL;
+            Rbc_FreeAxisReference(graphPtr, track->axes[i]);
+        }
+        if (track->axes != NULL) {
+            ckfree(track->axes);
+        }
+        track->axes = axes;
+        track->nAxes = nAxes;
+        for (i = 0; i < nAxes; i++) {
+            axes[i]->track = track;
+        }
+    }
+    track->weight = weight;
+    track->minHeight = minHeight;
+    return TCL_OK;
+error:
+    ckfree(axes);
+    return TCL_ERROR;
+}
+
+static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", NULL};
+    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM};
+    RbcTrack *track, **slot;
+    int operation;
+    Tcl_Obj *result;
+    if (!graphPtr->trackGraph) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("track operations require a trackgraph widget", -1));
+        return TCL_ERROR;
+    }
+    if (objc < 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "operation ?arg ...?");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetIndexFromObj(interp, objv[2], operations, "track operation", 0, &operation) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_NAMES && objc == 3) {
+        result = Tcl_NewListObj(0, NULL);
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            Tcl_ListObjAppendElement(interp, result, Tcl_NewStringObj(track->name, -1));
+        }
+        Tcl_SetObjResult(interp, result);
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_IDENTIFY && objc == 4) {
+        int y;
+        if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[3], &y) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Rbc_LayoutGraph(graphPtr);
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            if (y >= track->top && y <= track->bottom && track->bottom > track->top) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
+                return TCL_OK;
+            }
+        }
+        Tcl_ResetResult(interp);
+        return TCL_OK;
+    }
+    if (objc < 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "operation name ?options?");
+        return TCL_ERROR;
+    }
+    track = Rbc_FindTrack(graphPtr, Tcl_GetString(objv[3]));
+    if (operation == TRACK_OP_CREATE) {
+        const char *name = Tcl_GetString(objv[3]);
+        if (track != NULL || name[0] == '\0' || name[0] == '-') {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("track name must be nonempty, unique and not start with '-'", -1));
+            return TCL_ERROR;
+        }
+        track = ckalloc(sizeof(*track));
+        memset(track, 0, sizeof(*track));
+        track->name = ckalloc(strlen(name) + 1);
+        strcpy(track->name, name);
+        track->weight = 1.0;
+        track->minHeight = 40;
+        if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK) {
+            FreeTrack(graphPtr, track);
+            return TCL_ERROR;
+        }
+        for (slot = &graphPtr->tracks; *slot != NULL; slot = &(*slot)->next) {}
+        *slot = track;
+        SyncTrackAxes(graphPtr);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(name, -1));
+        return TCL_OK;
+    }
+    if (track == NULL) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[3])));
+        return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_TRANSFORM || operation == TRACK_OP_INVTRANSFORM) {
+        Axis2D axes = {NULL, NULL};
+        Tcl_Obj *xName, *yName;
+        Point2D point;
+        Tcl_Size i;
+        double x, y;
+        int code = TCL_ERROR;
+        if (objc < 6 || (objc - 6) % 2) {
+            Tcl_WrongNumArgs(interp, 2, objv, "transform|invtransform track x y ?-mapx axis? ?-mapy axis?");
+            return TCL_ERROR;
+        }
+        if (track->nAxes == 0) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("track has no Y axis", -1));
+            return TCL_ERROR;
+        }
+        xName = Tcl_NewStringObj("x", -1);
+        yName = Tcl_NewStringObj(track->axes[0]->name, -1);
+        Tcl_IncrRefCount(xName);
+        Tcl_IncrRefCount(yName);
+        for (i = 6; i < objc; i += 2) {
+            const char *option = Tcl_GetString(objv[i]);
+            Tcl_Obj **namePtr;
+            if (strcmp(option, "-mapx") == 0) {
+                namePtr = &xName;
+            } else if (strcmp(option, "-mapy") == 0) {
+                namePtr = &yName;
+            } else {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("expected -mapx or -mapy", -1));
+                goto transformDone;
+            }
+            Tcl_DecrRefCount(*namePtr);
+            *namePtr = objv[i + 1];
+            Tcl_IncrRefCount(*namePtr);
+        }
+        if (Tcl_GetDoubleFromObj(interp, objv[4], &x) != TCL_OK ||
+            Tcl_GetDoubleFromObj(interp, objv[5], &y) != TCL_OK ||
+            Rbc_GetAxisFromObj(graphPtr, xName, rbcXAxisUid, FALSE, &axes.x) != TCL_OK ||
+            Rbc_GetAxisFromObj(graphPtr, yName, rbcYAxisUid, FALSE, &axes.y) != TCL_OK) {
+            goto transformDone;
+        }
+        if (!FINITE(x) || !FINITE(y) || axes.y->track != track) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("expected finite coordinates and a Y axis belonging to the track", -1));
+            goto transformDone;
+        }
+        Rbc_LayoutGraph(graphPtr);
+        point = (operation == TRACK_OP_TRANSFORM) ? Rbc_Map2D(graphPtr, x, y, &axes) : Rbc_InvMap2D(graphPtr, x, y, &axes);
+        if (!FINITE(point.x) || !FINITE(point.y)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("coordinates cannot be mapped by the selected axes", -1));
+            goto transformDone;
+        }
+        result = Tcl_NewListObj(0, NULL);
+        Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(point.x));
+        Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(point.y));
+        Tcl_SetObjResult(interp, result);
+        code = TCL_OK;
+transformDone:
+        Rbc_FreeAxisReference(graphPtr, axes.x);
+        Rbc_FreeAxisReference(graphPtr, axes.y);
+        Tcl_DecrRefCount(xName);
+        Tcl_DecrRefCount(yName);
+        return code;
+    }
+    if ((operation == TRACK_OP_CONFIGURE && objc == 5) || (operation == TRACK_OP_CGET && objc == 5)) {
+        result = TrackOption(track, Tcl_GetString(objv[4]));
+        if (result == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("unknown track option", -1));
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, result);
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_CONFIGURE) {
+        if (objc == 4) {
+            const char *options[] = {"-weight", "-minheight", "-yaxes"};
+            int i;
+            result = Tcl_NewDictObj();
+            for (i = 0; i < 3; i++) {
+                Tcl_DictObjPut(interp, result, Tcl_NewStringObj(options[i], -1), TrackOption(track, options[i]));
+            }
+            Tcl_SetObjResult(interp, result);
+            return TCL_OK;
+        }
+        if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        SyncTrackAxes(graphPtr);
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_BBOX && objc == 4) {
+        int bounds[4], i;
+        Rbc_LayoutGraph(graphPtr);
+        bounds[0] = graphPtr->left;
+        bounds[1] = track->top;
+        bounds[2] = graphPtr->right;
+        bounds[3] = track->bottom;
+        result = Tcl_NewListObj(0, NULL);
+        for (i = 0; i < 4; i++) {
+            Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(bounds[i]));
+        }
+        Tcl_SetObjResult(interp, result);
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_DELETE && objc == 4) {
+        Tcl_HashSearch search;
+        Tcl_HashEntry *entry;
+        for (entry = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); entry != NULL;
+             entry = Tcl_NextHashEntry(&search)) {
+            Element *element = Tcl_GetHashValue(entry);
+            if (element->track == track) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("delete or move track elements before deleting their track", -1));
+                return TCL_ERROR;
+            }
+        }
+        for (slot = &graphPtr->tracks; *slot != track; slot = &(*slot)->next) {}
+        *slot = track->next;
+        SyncTrackAxes(graphPtr);
+        FreeTrack(graphPtr, track);
+        return TCL_OK;
+    }
+    Tcl_WrongNumArgs(interp, 2, objv, "operation name ?options?");
+    return TCL_ERROR;
+}
+
 static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_VirtualAxisOp},
                                        {{"bar", 2, 0, "oper ?args?"}, BarOp},
                                        {{"cget", 3, 3, "option"}, CgetOp},
@@ -2967,6 +3420,8 @@ static const GraphOpSpec graphOps[] = {{{"axis", 2, 0, "oper ?args?"}, Rbc_Virtu
                                        {{"snap", 3, 0, "name ?-option value ...?"}, SnapOp},
                                        {{"svg", 3, 0, "oper ?args?"}, Rbc_SvgOp},
                                        {{"pdf", 3, 0, "oper ?args?"}, Rbc_PdfOp},
+                                       {{"track", 2, 0, "oper ?args?"}, TrackOp},
+                                       {{"strip", 2, 0, "oper ?args?"}, StripOp},
                                        {{"transform", 4, 4, "x y"}, TransformOp},
                                        {{"x2axis", 2, 0, "oper ?args?"}, X2AxisOp},
                                        {{"xaxis", 2, 0, "oper ?args?"}, XAxisOp},
@@ -3014,6 +3469,10 @@ int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     Graph *graphPtr = clientData;
     proc = GetGraphOpFromObj(interp, objc, objv);
     if (proc == NULL) {
+        return TCL_ERROR;
+    }
+    if (graphPtr->trackGraph && (proc == TransformOp || proc == InvtransformOp)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("use track transform or track invtransform to select a track", -1));
         return TCL_ERROR;
     }
     Tcl_Preserve(graphPtr);
@@ -3590,6 +4049,10 @@ static void DisplayGraph(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
+static int TrackgraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    return NewGraph(interp, objc, objv, trackGraphUid);
+}
+
 int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBarElementUid = (Rbc_Uid)Tk_GetUid("BarElement");
     rbcLineElementUid = (Rbc_Uid)Tk_GetUid("LineElement");
@@ -3606,6 +4069,8 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcXAxisUid = (Rbc_Uid)Tk_GetUid("X");
     rbcYAxisUid = (Rbc_Uid)Tk_GetUid("Y");
     Tcl_CreateObjCommand2(interp, "rbc::graph", GraphObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+    trackGraphUid = (Rbc_Uid)Tk_GetUid("Trackgraph");
+    Tcl_CreateObjCommand2(interp, "rbc::trackgraph", TrackgraphObjCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "rbc::barchart", BarchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::stripchart", StripchartObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand2(interp, "rbc::polar", PolarObjCmd, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);

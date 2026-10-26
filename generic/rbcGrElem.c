@@ -3497,6 +3497,8 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
     Tk_SavedOptions savedOptions;
     Tcl_Obj *errorObjPtr;
     int mask;
+    RbcTrack *newTrack = NULL;
+    int trackValid = TRUE;
 
     assert(elemPtr->optionsInitialized);
     assert(elemPtr->optionTable != NULL);
@@ -3522,7 +3524,23 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
      * they must not replace active derived resources until every
      * fallible conversion has succeeded.
      */
-    if ((*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
+    if (graphPtr->trackGraph) {
+        const char *name = (elemPtr->trackObjPtr != NULL) ? Tcl_GetString(elemPtr->trackObjPtr) : "";
+        Tcl_HashEntry *entry;
+        Axis *axis;
+        newTrack = Rbc_FindTrack(graphPtr, name);
+        entry = (elemPtr->mapYObjPtr != NULL) ?
+            Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(elemPtr->mapYObjPtr)) : NULL;
+        axis = (entry != NULL) ? Tcl_GetHashValue(entry) : NULL;
+        if (newTrack == NULL || axis == NULL || axis->track != newTrack) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("element requires -track and a -mapy axis belonging to that track", -1));
+            trackValid = FALSE;
+        }
+    } else if (elemPtr->trackObjPtr != NULL && Tcl_GetCharLength(elemPtr->trackObjPtr) > 0) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-track requires a trackgraph widget", -1));
+        trackValid = FALSE;
+    }
+    if (!trackValid || (*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
         errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
         Tcl_IncrRefCount(errorObjPtr);
         /*
@@ -3540,6 +3558,7 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;
     elemPtr->optionObjv = NULL;
+    elemPtr->track = newTrack;
     elemPtr->optionsConfigured = TRUE;
     Tk_FreeSavedOptions(&savedOptions);
     if (maskPtr != NULL) {
@@ -3666,6 +3685,10 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     if (elemName[0] == '-') {
         Rbc_AppendResultStrings(graphPtr->interp, "name of element \"", elemName, "\" can't start with a '-'",
                                 (char *)NULL);
+        return TCL_ERROR;
+    }
+    if (graphPtr->trackGraph && classUid != rbcLineElementUid && classUid != rbcStripElementUid) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("trackgraph supports line and strip elements", -1));
         return TCL_ERROR;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->elements.table, elemName, &isNew);
@@ -3841,7 +3864,12 @@ void Rbc_MapElements(Graph *graphPtr) {
             if (!(graphPtr->flags & GRAPH_EXPORT)) {
                 graphPtr->flags |= GRAPH_CHANGED;
             }
-            (*elemPtr->procsPtr->mapProc)(graphPtr, elemPtr);
+            {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->mapProc)(graphPtr, elemPtr);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
             elemPtr->flags &= ~MAP_ITEM;
         }
     }
@@ -3876,7 +3904,12 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-            (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
+            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
         }
     }
 }
@@ -3910,7 +3943,12 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
-            (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
+            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
         }
     }
 }
@@ -3947,7 +3985,12 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Element \"%s\"\n\n", elemPtr->name);
             }
-            (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
+            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
         }
     }
 }
@@ -3982,7 +4025,12 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
             }
-            (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
+            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1)) {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
         }
     }
 }
@@ -4395,7 +4443,13 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
                 continue;
             }
-            (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+            if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+                RbcTrackViewport saved;
+                Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+                Rbc_LeaveTrack(graphPtr, &saved);
+            }
         }
     } else {
         Rbc_ChainLink *linkPtr;
@@ -4415,7 +4469,13 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-                (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+                if (elemPtr->track == NULL || (elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+                    RbcTrackViewport saved;
+                    Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
+                    (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
+                    Rbc_LeaveTrack(graphPtr, &saved);
+                }
             }
         }
     }

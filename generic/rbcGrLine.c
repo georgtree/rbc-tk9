@@ -795,6 +795,8 @@ typedef struct {
          0,                                                                                                            \
          NULL,                                                                                                         \
          LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
+        {TK_OPTION_STRING, "-track", "track", "Track", "", LINE_CORE_OFFSET(trackObjPtr), -1,                       \
+         TK_OPTION_NULL_OK, NULL, LINE_ELEM_MAP_ITEM_MASK},                                                             \
         {TK_OPTION_STRING_TABLE, "-symbolpoints", "symbolPoints", "SymbolPoints", "all", -1,                          \
          offsetof(Line, symbolPoints), 0, (ClientData)lineSymbolPointNames, LINE_ELEM_MAP_ITEM_MASK},                   \
         {TK_OPTION_STRING,                                                                                             \

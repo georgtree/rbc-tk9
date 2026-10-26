@@ -706,6 +706,9 @@ static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double v
     if (axisPtr->descending) {
         value = 1.0 - value;
     }
+    if (axisPtr->track != NULL) {
+        return (1.0 - value) * MAX(1, axisPtr->track->bottom - axisPtr->track->top) + axisPtr->track->top;
+    }
     return (1.0 - value) * graphPtr->vRange + graphPtr->vOffset;
 }
 
@@ -2594,7 +2597,11 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
 double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double value;
 
-    y = (double)(y - graphPtr->vOffset) * graphPtr->vScale;
+    if (axisPtr->track != NULL) {
+        y = (y - axisPtr->track->top) / MAX(1, axisPtr->track->bottom - axisPtr->track->top);
+    } else {
+        y = (double)(y - graphPtr->vOffset) * graphPtr->vScale;
+    }
     if (axisPtr->descending) {
         y = 1.0 - y;
     }
@@ -4822,6 +4829,22 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
             }
         }
     }
+    /* Tracks reuse the left margin vertically: reserve the widest row, not
+     * the sum of all rows. Axes within a row still occupy separate columns. */
+    if (graphPtr->trackGraph && marginPtr == &graphPtr->margins[MARGIN_LEFT]) {
+        RbcTrack *track;
+        width = 0;
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            Tcl_WideInt rowWidth = 0;
+            Tcl_Size i;
+            for (i = 0; i < track->nAxes; i++) {
+                if (!track->axes[i]->hidden) {
+                    rowWidth += track->axes[i]->width;
+                }
+            }
+            width = MAX(width, rowWidth);
+        }
+    }
     /* Enforce a minimum size for margins. */
     if (width < 3) {
         width = 3;
@@ -6158,6 +6181,10 @@ static int UseOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_
     } else {
         classUid = (graphPtr->inverted) ? rbcXAxisUid : rbcYAxisUid;
     }
+    if (graphPtr->trackGraph && classUid == rbcYAxisUid) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("use track configure -yaxes to arrange trackgraph Y axes", -1));
+        return TCL_ERROR;
+    }
     if (Tcl_ListObjGetElements(interp, objv[0], &nNames, &names) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -6395,6 +6422,10 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
 
     for (i = 3; i < objc; i++) {
         if (NameToAxis(graphPtr, Tcl_GetString(objv[i]), &axisPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (axisPtr->track != NULL) {
+            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("detach the axis from its track before deleting it", -1));
             return TCL_ERROR;
         }
         axisPtr->deletePending = TRUE;
@@ -6639,6 +6670,9 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
         fract = 1.0 - last;
         scrollUnits = (double)axisPtr->scrollUnits * graphPtr->vScale;
     }
+    if (axisPtr->track != NULL) {
+        scrollUnits = (double)axisPtr->scrollUnits / MAX(1, axisPtr->track->bottom - axisPtr->track->top);
+    }
     if (objc == 4) {
         Tcl_Obj *resultObj;
 
@@ -6798,12 +6832,21 @@ void Rbc_MapAxes(Graph *graphPtr) {
     int margin;
     int offset;
 
+    Rbc_LayoutTracks(graphPtr);
     for (margin = 0; margin < 4; margin++) {
         chainPtr = graphPtr->margins[margin].axes;
         offset = 0;
         for (linkPtr = Rbc_ChainFirstLink(chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+                if (axisPtr->track != NULL) {
+                    RbcTrackViewport saved;
+                    Rbc_EnterTrack(graphPtr, axisPtr->track, &saved);
+                    MapAxis(graphPtr, axisPtr, axisPtr->track->axisOffset, margin);
+                    axisPtr->track->axisOffset += axisPtr->width;
+                    Rbc_LeaveTrack(graphPtr, &saved);
+                    continue;
+                }
                 MapAxis(graphPtr, axisPtr, offset, margin);
                 if (AxisIsHorizontal(graphPtr, axisPtr)) {
                     offset += axisPtr->height;
@@ -6864,6 +6907,9 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+                if (axisPtr->track != NULL && axisPtr->track->bottom - axisPtr->track->top <= 1) {
+                    continue;
+                }
                 DrawAxis(graphPtr, drawable, axisPtr);
             }
         }
@@ -6903,6 +6949,9 @@ void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
+                if (axisPtr->track != NULL && axisPtr->track->bottom - axisPtr->track->top <= 1) {
+                    continue;
+                }
                 AxisExport(exportPtr, axisPtr);
             }
         }
@@ -7154,6 +7203,9 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
         if ((axisPtr->hidden) || (!(axisPtr->flags & AXIS_ONSCREEN))) {
             continue; /* Don't check hidden axes or axes
                        * that are virtual. */
+        }
+        if (axisPtr->track != NULL && axisPtr->track->bottom - axisPtr->track->top <= 1) {
+            continue;
         }
         if (axisPtr->showTicks) {
             Rbc_ChainLink *linkPtr;

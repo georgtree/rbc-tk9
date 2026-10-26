@@ -29,6 +29,12 @@ typedef enum {
 } Rbc_Antialias;
 
 
+typedef struct RbcTrack RbcTrack;
+typedef struct {
+    int top, bottom, range, offset, pad1, pad2;
+    double scale;
+} RbcTrackViewport;
+
 typedef struct GraphStruct Graph;
 typedef struct ElementStruct Element;
 typedef struct LegendStruct Legend;
@@ -488,6 +494,8 @@ struct GraphStruct {
      * Polar-specific presentation options.
      */
     PolarRepresentation representation;
+    int trackGraph;          /* Named, vertically stacked plot regions. */
+    RbcTrack *tracks;
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;
     Rbc_Pad padX;        /* Vertical padding for plotarea */
@@ -640,6 +648,21 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
+struct RbcTrack {
+    char *name;
+    double weight;
+    int minHeight;
+    int top, bottom;
+    int axisOffset;
+    Axis **axes;
+    Tcl_Size nAxes;
+    RbcTrack *next;
+};
+RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
+void Rbc_LayoutTracks(Graph *graphPtr);
+void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved);
+void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved);
+
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
