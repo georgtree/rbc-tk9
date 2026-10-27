@@ -1193,12 +1193,6 @@ static int ParseMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr
             Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-track requires an existing trackgraph track", -1));
             goto error;
         }
-        if ((markerPtr->classUid == rbcLineMarkerUid && LINE_MARKER_FROM_CORE(markerPtr)->xor) ||
-            ((markerPtr->classUid == rbcPolygonMarkerUid || markerPtr->classUid == rbcArcMarkerUid) &&
-             POLYGON_MARKER_FROM_CORE(markerPtr)->xor)) {
-            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track markers do not support -xor", -1));
-            goto error;
-        }
     }
     if (optionsPtr->yAxis->track != optionsPtr->track) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("marker -mapy axis must belong to its -track", -1));
@@ -4504,7 +4498,7 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
         }
         drawn = TRUE;
     }
-    if (drawn && lmPtr->xor) {
+    if (drawn && lmPtr->xor && markerPtr->track == NULL) {
         lmPtr->xorState = !lmPtr->xorState;
     }
 }
@@ -4569,6 +4563,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
     unsigned long gcMask;
     GC newGC;
     Drawable drawable;
+    int trackRedraw = markerPtr->track != NULL;
 
     graphPtr = markerPtr->graphPtr;
     lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4688,17 +4683,17 @@ static int ConfigureLineMarker(Marker *markerPtr) {
     newGC = NULL;
     markerPtr->flags |= MAP_ITEM;
     /*
-     * XOR markers are mapped and drawn immediately. DrawLineMarker()
+     * Graph-wide XOR markers are mapped and drawn immediately. Track XOR
+     * uses the clipped redraw pass instead. DrawLineMarker()
      * updates xorState after drawing.
      */
-    if (lmPtr->xor &&(drawable != None)) {
+    if (lmPtr->xor && !trackRedraw && markerPtr->track == NULL && (drawable != None)) {
         MapLineMarker(markerPtr);
         DrawLineMarker(markerPtr, drawable);
         return TCL_OK;
     }
     /*
-     * Non-XOR markers are rendered through the normal graph redraw
-     * path.
+     * Other markers, including track-owned XOR, use the graph redraw path.
      */
     if (markerPtr->drawUnder) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
@@ -5199,6 +5194,7 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
     GC newFillGC;
     Drawable drawable;
     int outlineOnly;
+    int trackRedraw = markerPtr->track != NULL;
 
     graphPtr = markerPtr->graphPtr;
     pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
@@ -5355,7 +5351,8 @@ static int ConfigurePolygonMarker(Marker *markerPtr) {
      * Preserve the old immediate-XOR behaviour: it applies only when
      * no fill GC attributes were requested.
      */
-    if (pmPtr->xor &&outlineOnly && !(graphPtr->flags & RESET_AXES) && (drawable != None)) {
+    if (pmPtr->xor && !trackRedraw && markerPtr->track == NULL && outlineOnly &&
+        !(graphPtr->flags & RESET_AXES) && (drawable != None)) {
         (*markerPtr->classPtr->mapProc)(markerPtr);
         if ((pmPtr->outlineGC != NULL) && (pmPtr->outlinePts != NULL) && (pmPtr->nOutlinePts > 0)) {
             DrawImmediatePolygonOutline(pmPtr, drawable);

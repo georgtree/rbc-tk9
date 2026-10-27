@@ -7840,6 +7840,10 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
      * alone would otherwise contain one pointer per source point.
      */
     if (preMapDecimated) {
+        /* The fast path permits only one pen. Attach its mapped strip segments
+         * without constructing the source-sized style map. Trace drawing reads
+         * the trace chain directly, but strip drawing reads this pen slice. */
+        MergePens(linePtr, NULL);
         return;
     }
     /* Set the symbol size of all the pen styles. */

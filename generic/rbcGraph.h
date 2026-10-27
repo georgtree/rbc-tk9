@@ -496,6 +496,8 @@ struct GraphStruct {
      * Polar-specific presentation options.
      */
     PolarRepresentation representation;
+    XColor *trackSeparatorColor; /* NULL disables visible track dividers. */
+    int trackSeparatorWidth;
     int trackResize;         /* Enable the optional Trackgraph class drag bindings. */
     int trackGraph;          /* Named, vertically stacked plot regions. */
     RbcTrack *tracks;
@@ -702,6 +704,7 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
+void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);

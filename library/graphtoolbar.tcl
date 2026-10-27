@@ -122,10 +122,10 @@ namespace eval ::rbc::graphtoolbar {
         during a box selection or pan cancels the gesture on its next motion or release. A cancelled pan restores
         its saved limits. Toolbar and context-menu modes share these behaviors, including `-controlmode both`.
 
-        Track zoom boxes use ordinary redraws; `-zoomboxopts {-xor yes}` is rejected. With `-invertxy yes`, tracks
-        become columns: shared X navigation is vertical and local Y navigation
+        Track zoom boxes use clipped redraws, including when `-zoomboxopts {-xor yes}` selects native XOR drawing.
+        With `-invertxy yes`, tracks become columns: shared X navigation is vertical and local Y navigation
         is horizontal. Point selection and separator dragging follow the columns. Window markers retain ordinary
-        graph overlap behaviour; XOR track markers remain unsupported.
+        graph overlap behaviour.
 
         Show a local legend with `$g track legend voltage configure -hide no`. Active-legend bindings are added
         for tracks created after the toolbar, once graph changes are displayed. Existing nonempty custom local
@@ -1268,14 +1268,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     property zoomboxopts  -set {
-        # Track clipping requires ordinary redraws; reject XOR before a gesture
-        # can create partially configured overlay markers.
-        if {$GraphType eq {trackgraph}} {
-            set xorValue [option get $Subwidgets(graph) gtbZoomOutlineXor GtbZoomOutlineXor]
-            if {[info exists zoomboxopts]} {set xorValue [dict get $zoomboxopts -xor]}
-            if {[dict exists $value -xor]} {set xorValue [dict get $value -xor]}
-            if {$xorValue} {return -code error {trackgraph zoom boxes do not support -xor yes}}
-        }
         if {[info exists zoomboxopts]} {
             dict for {option optionValue} $value {
                 if {[dict exists $zoomboxopts $option]} {

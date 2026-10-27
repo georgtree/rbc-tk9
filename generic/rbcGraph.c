@@ -23,6 +23,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 #include "rbcBind.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>
@@ -110,6 +111,7 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_PLOT_BACKGROUND_MASK (1u << 13)
 #define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
 #define GRAPH_RENDERER_MASK (1u << 21)
+#define GRAPH_TRACK_SEPARATOR_MASK (1u << 22)
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -194,6 +196,10 @@ static const char *const graphAntialiasNames[] = {"default", "none", "gray", "fa
 #endif
 
 static const Tk_OptionSpec graphOptionSpecs[] = {
+    {TK_OPTION_COLOR, "-trackseparatorcolor", "trackSeparatorColor", "TrackSeparatorColor", NULL, -1,
+     offsetof(Graph, trackSeparatorColor), TK_OPTION_NULL_OK, NULL, GRAPH_TRACK_SEPARATOR_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_PIXELS, "-trackseparatorwidth", "trackSeparatorWidth", "TrackSeparatorWidth", "1", -1,
+     offsetof(Graph, trackSeparatorWidth), 0, NULL, GRAPH_TRACK_SEPARATOR_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-trackresize", "trackResize", "TrackResize", "0", -1, offsetof(Graph, trackResize),
      0, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1, offsetof(Graph, antialias), 0,
@@ -1748,6 +1754,10 @@ static int ConfigureGraph(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    if (graphPtr->trackSeparatorWidth < 1) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track separator width must be positive", -1));
+        return TCL_ERROR;
+    }
     if (graphPtr->trackResize && !graphPtr->trackGraph) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("-trackresize requires a trackgraph widget", -1));
         return TCL_ERROR;
@@ -1934,7 +1944,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (plotBackgroundModified || representationModified) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
-    if (graphPtr->optionMask & GRAPH_RENDERER_MASK) {
+    if (graphPtr->optionMask & (GRAPH_RENDERER_MASK | GRAPH_TRACK_SEPARATOR_MASK)) {
         graphPtr->flags |= REDRAW_BACKING_STORE;
     }
     graphPtr->flags |= REDRAW_WORLD;
@@ -3311,6 +3321,52 @@ static int TrackEnd(Graph *graphPtr, RbcTrack *track) {
     return graphPtr->inverted ? track->right : track->bottom;
 }
 
+/* Draw optional dividers at the same centres used by track sashpos. The
+ * stroke is limited to the gap so compressed layouts cannot cover traces.
+ * Export uses the same geometry through the renderer abstraction. */
+void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
+    RbcTrack *track;
+    if (!graphPtr->trackGraph || graphPtr->trackSeparatorColor == NULL) {
+        return;
+    }
+    for (track = graphPtr->tracks; track != NULL && track->next != NULL; track = track->next) {
+        int end = TrackEnd(graphPtr, track);
+        int gap = TrackStart(graphPtr, track->next) - end;
+        int width = MIN(graphPtr->trackSeparatorWidth, 2 * (gap / 2) - 1);
+        int center = end + gap / 2;
+        Segment2D segment;
+        Rbc_RenderContext *ctx;
+        if (width < 1) {
+            continue;
+        }
+        if (graphPtr->inverted) {
+            segment.p.x = segment.q.x = center;
+            segment.p.y = graphPtr->top;
+            segment.q.y = graphPtr->bottom;
+        } else {
+            segment.p.y = segment.q.y = center;
+            segment.p.x = graphPtr->left;
+            segment.q.x = graphPtr->right;
+        }
+        ctx = exportPtr != NULL ?
+            Rbc_RenderBeginExport(exportPtr, graphPtr->trackSeparatorColor, width, NULL, CapButt, JoinMiter) :
+            Rbc_RenderBegin(graphPtr, drawable, graphPtr->trackSeparatorColor, width, NULL, NULL);
+        if (ctx != NULL) {
+            Rbc_RenderSegments(ctx, &segment, 1);
+            Rbc_RenderEnd(ctx);
+        } else {
+            XGCValues values;
+            GC gc;
+            values.foreground = graphPtr->trackSeparatorColor->pixel;
+            values.line_width = width;
+            values.cap_style = CapButt;
+            gc = Tk_GetGC(graphPtr->tkwin, GCForeground | GCLineWidth | GCCapStyle, &values);
+            Rbc_Draw2DSegments(graphPtr->display, drawable, gc, &segment, 1);
+            Tk_FreeGC(graphPtr->display, gc);
+        }
+    }
+}
+
 /* Move a separator by changing only adjacent weights, preserving their sum.
  * Integer rounding may move a boundary by one pixel. Compressed minima cannot resize. */
 static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
@@ -3932,6 +3988,7 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
     XFillRectangle(graphPtr->display, drawable, graphPtr->plotFillGC, graphPtr->left, graphPtr->top,
                    graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
+    Rbc_DrawTrackSeparators(graphPtr, drawable, NULL);
     /* Draw the elements, markers, legend, and axis limits. */
     if (!graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);

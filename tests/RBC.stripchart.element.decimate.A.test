@@ -657,4 +657,33 @@ namespace eval stripchart.element.decimate {
     } -result {1 1}
 
     cleanupTests
+    foreach inverted {0 1} {
+        test RBC.stripchart.element.decimate.A.visible-$inverted {pre-map decimated strips remain visibly drawn} -setup {
+            stripchart .stripchart1 -width 400 -height 300 -invertxy $inverted -renderer native
+            .stripchart1 legend configure -hide yes
+            .stripchart1 axis configure x -min 0 -max 9999 -loose no
+            .stripchart1 axis configure y -min -1 -max 1 -loose no
+            set xs {}; set ys {}
+            for {set i 0} {$i<10000} {incr i} {
+                lappend xs $i
+                lappend ys [expr {$i==5000 ? 0.9 : 0.0}]
+            }
+            .stripchart1 element create trace -xdata $xs -ydata $ys -symbol none -linewidth 1 -color red -decimate auto
+            set photo [image create photo]
+            pack .stripchart1
+            update
+        } -body {
+            .stripchart1 snap $photo
+            lassign [.stripchart1 transform 5000 0.9] x y
+            set visible 0
+            for {set px [expr {int($x)-2}]} {$px<=int($x)+2} {incr px} {
+                for {set py [expr {int($y)-2}]} {$py<=int($y)+2} {incr py} {
+                    lassign [$photo get $px $py] red green blue
+                    if {$red>180 && $green<80 && $blue<80} {set visible 1}
+                }
+            }
+            set visible
+        } -cleanup {image delete $photo; destroy .stripchart1} -result 1
+    }
+
 }

@@ -72,7 +72,7 @@ proc ::snapshot::resize {source width height} {
 proc ::snapshot::findGraphs {parent} {
     set result {}
     foreach win [winfo children $parent] {
-        if {[winfo class $win] in {Graph Barchart Stripchart Polar}} {
+        if {[winfo class $win] in {Graph Barchart Stripchart Polar Trackgraph}} {
             lappend result $win
         }
         lappend result {*}[::snapshot::findGraphs $win]

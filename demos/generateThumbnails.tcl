@@ -28,6 +28,7 @@ namespace eval ::snapshot {
         {name simplify1}
         {name combined1 height 150}
         {name fft1}
+        {name trackgraph1}
     }
 }
 

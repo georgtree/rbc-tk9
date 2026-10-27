@@ -130,6 +130,9 @@ int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     output = Rbc_RenderBeginExportOutput(exportPtr);
     Rbc_RenderPlotBegin(output, graphPtr->titleTextStyle.font, (double)x, (double)y, width, height,
                         exportPtr->decorations ? graphPtr->plotBg : NULL);
+    if (exportPtr->decorations) {
+        Rbc_DrawTrackSeparators(graphPtr, None, exportPtr);
+    }
     /* Draw the grid, elements, and markers in the plotting area. */
     if (!graphPtr->gridPtr->hidden) {
         Rbc_GridExport(graphPtr, exportPtr);

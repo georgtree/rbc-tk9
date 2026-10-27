@@ -153,6 +153,13 @@ proc MainWindow {win DemoDir} {
         |
         |Plot of periodic table elements, selected isotope density vs. number of nucleons.
     }]
+    set Caption(trackgraph1.tcl) [MakeLine {
+        |trackgraph widget
+        |
+        |demo trackgraph1.tcl
+        |
+        |This is an example of the graph/graphtoolbar widget with trackgraph element - multiple stacked axes.
+    }]
     set Caption(polar1.tcl) [MakeLine {
         |polar widget
         |
@@ -286,9 +293,9 @@ proc MainWindow {win DemoDir} {
     pack $win.c -expand yes -fill both -side top
     ttk::frame $win.c.targetFrame
     set i 0
-    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 polar1 polar2 barchart1 barchart2 barchart3 barchart4\
-                          barchart5 mixed1 combined1 stripchart1 fft1 simplify1 winop1 winop2 spline1 cairoGraph1\
-                          cairoBar1 graph6 graph7} {
+    foreach name {graph1 graph2 graph3 graph4 graph5 graph8 trackgraph1 polar1 polar2 barchart1 barchart2 barchart3\
+                          barchart4 barchart5 mixed1 combined1 stripchart1 fft1 simplify1 winop1 winop2 spline1\
+                          cairoGraph1 cairoBar1 graph6 graph7} {
         set img $name.png
         set demo $name.tcl
         incr i

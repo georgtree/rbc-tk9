@@ -6035,16 +6035,21 @@ test trackToolbar-separator-1 {native separator dragging remains available along
     destroy $widget
 } -result {1 {0.0 10.0} {-1.0 1.0} {A 0} 0}
 
-test trackToolbar-xor-1 {unsupported XOR is rejected before changing zoom box options}\
-        -constraints isInteractive -setup {
+test trackToolbar-xor-1 {track XOR zoom outlines use the clipped redraw path}\
+        -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
-    set before [$widget configure -zoomboxopts]
-    set code [catch {$widget configure -zoomboxopts {-outline red -xor yes}} message]
-    list $code $message [expr {$before eq [$widget configure -zoomboxopts]}]
-} -cleanup {
-    destroy $widget
-} -result {1 {trackgraph zoom boxes do not support -xor yes} 1}
+    $widget configure -zoomboxopts {-outline red -xor yes}
+    lassign [TrackToolbarPoint $graph upper 0.2 0.2] ax ay
+    lassign [TrackToolbarPoint $graph upper 0.8 0.8] bx by
+    GenerateGraphEvent $graph <ButtonPress-1> $ax $ay 0
+    GenerateGraphEvent $graph <Motion> $bx $by 0
+    update
+    set count [llength [$graph marker names gtbZoom*]]
+    GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 0
+    list [dict get [$widget configure -zoomboxopts] -xor] [expr {$count>0}] \
+        [llength [$graph marker names gtbZoom*]]
+} -cleanup {destroy $widget} -result {yes 1 0}
 
 foreach descending {0 1} {
     test trackToolbar-logwheel-$descending {wheel respects logarithmic and descending local Y transforms}\

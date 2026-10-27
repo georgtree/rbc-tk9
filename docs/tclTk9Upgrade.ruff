@@ -33,6 +33,16 @@ namespace eval TclTk9Upgrade {
         `demos/trackgraph2.tcl` demonstrates both legend types, line/strip elements, markers and orientation switching;
         the separate `trackgraph1.tcl` demo is retired.
 
+        ### Track XOR markers, dividers and decimation
+        Track-owned line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
+        redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional
+        `-trackseparatorcolor` and `-trackseparatorwidth` graph options draw dividers at the separator centres,
+        following rows or inverted columns; the default empty colour keeps them hidden.
+        Line/strip `-decimate auto` uses the shared X span with the existing eligibility rules and full-detail
+        exports. The fast strip mapping path now attaches its reduced segments to the drawing pen, fixing dense
+        strips disappearing with decimation enabled in both stripcharts and trackgraphs. Regression coverage
+        checks visible extrema, vector updates and picking in both orientations.
+
         ### Window-marker visibility and track support
         Window markers now unmap their live child when hidden, emptied, moved completely outside the plot,
         or associated with a hidden element, and remap it when visible again. Trackgraphs accept window markers
