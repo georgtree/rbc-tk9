@@ -272,7 +272,7 @@ static void MapPolarCircles(Graph *graphPtr, Grid *gridPtr, const PolarRadiusRan
 
     axisSegments = NULL;
     nAxisSegments = 0;
-    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.x, &axisSegments, &nAxisSegments);
+    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.x, gridPtr->minorGrid, &axisSegments, &nAxisSegments);
     if ((axisSegments == NULL) || (nAxisSegments <= 0)) {
         return;
     }

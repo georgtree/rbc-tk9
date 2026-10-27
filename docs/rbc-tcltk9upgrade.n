@@ -19,7 +19,7 @@ Tracks share the horizontal plot bounds and X axes, with independent Y axes, cli
 Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
 layout\&. Line, polygon, arc, text, bitmap and image markers can select a row with -track and -mapy,
 with clipped drawing, picking and exports\&. See \fI::rbc::TRACKGRAPH\fP for the track API, \fI::rbc::MARKER\fP for
-track annotations, and demos/trackgraph2\&.tcl for a working example\&. track order rearranges existing
+track annotations, and demos/trackgraph1\&.tcl for a working example\&. track order rearranges existing
 rows; track sashpos redistributes adjacent heights\&. Enable -trackresize yes for mouse dragging of the
 separators, with Escape cancellation, without requiring graphtoolbar\&. The optional toolbar now supports
 -type trackgraph: rectangle zoom and pan affect shared X axes and the starting row's Y axes, wheel zoom
@@ -31,8 +31,14 @@ local legends can coexist\&. Graphtoolbar active-legend controls work with both\
 -invertxy yes arranges tracks left to right with shared vertical X axes and local horizontal Y axes\&.
 Weights and -minheight divide the available width; separator dragging becomes horizontal\&. Marker and
 legend clipping, picking, toolbar navigation and all exports follow the rotated layout\&. The merged
-demos/trackgraph2\&.tcl demonstrates both legend types, line/strip elements, markers and orientation switching;
-the separate trackgraph1\&.tcl demo is retired\&.
+demos/trackgraph1\&.tcl demonstrates both legend types, line/strip elements, markers and orientation switching;
+the example also selects independent grids from its Time and Samples X axes\&.
+.PP
+Each track can select its own grid axes and style with \fI::rbc::TRACKGRAPH::grid\fP, for example
+\&.g track grid current configure -mapx samples -mapy currentY -hide no\&. Unconfigured tracks inherit the
+graph-wide grid; the first successful local change copies the current settings and makes that track
+independent\&. Grid queries preserve inheritance\&. Local grids follow inversion, stay clipped to their
+tracks, and are included by all exporters\&.
 .SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
 .PP
 \fI::rbc::TRACKGRAPH\fP line, polygon and arc markers now accept -xor yes, using native XOR within the clipped

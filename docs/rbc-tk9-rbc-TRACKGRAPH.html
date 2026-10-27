@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Trackgraph layout and TRACKGRAPH commands &#8212; rbc  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=f11ead97" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=306bc2d5" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph virtual axis AXIS command" href="rbc-tk9-rbc-AXIS.html" />
+    <link rel="prev" title="Graph widget instance GRAPHINST command" href="rbc-tk9-rbc-GRAPHINST.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-AXIS.html" title="Graph virtual axis AXIS command"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="trackgraph-layout-and-trackgraph-commands">
+<span id="r-trackgraph-layout-and-trackgraph-commands"></span><span id="r-trackgraph20layout20and2060trackgraph6020commands"></span><span id="r-namespaceqz3a3arbc3a3atrackgraph"></span><h1>Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands<a class="headerlink" href="#trackgraph-layout-and-trackgraph-commands" title="Link to this heading">¶</a></h1>
+<p>This page documents widgets created by <span class="xref std std-ref">::rbc::trackgraph</span> and their named-track operations.
+<code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> is a fictional documentation prefix for <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">track</span></code>, not a runtime command.
+For example, <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">create</span> <span class="pre">voltage</span> <span class="pre">-yaxes</span> <span class="pre">volts</span></code> means <code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">track</span> <span class="pre">create</span> <span class="pre">voltage</span> <span class="pre">-yaxes</span> <span class="pre">volts</span></code>.
+The procedures below describe that component API; they are not Tcl wrappers to invoke directly.</p>
+<p>Common widget commands and configuration are described in <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-namespaceqz3a3arbc3a3agraphinst"><span class="std std-ref">::rbc::GRAPHINST</span></a>. Use <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-namespaceqz3a3arbc3a3aaxis"><span class="std std-ref">::rbc::AXIS</span></a> for axes,
+<a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">::rbc::LINEELEMENT</span></a> and <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-namespaceqz3a3arbc3a3astripelement"><span class="std std-ref">::rbc::STRIPELEMENT</span></a> for traces, <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for annotations, and
+<a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-namespaceqz3a3arbc3a3alegend"><span class="std std-ref">::rbc::LEGEND</span></a> for global and track-local legends. Toolbar integration is described in <a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-namespaceqz3a3arbc3a3agraphtoolbar"><span class="std std-ref">::rbc::graphtoolbar</span></a>.</p>
+<section id="stacked-tracks">
+<span id="r-rbc-trackgraph-stacked-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzstacked20tracks"></span><h2>Stacked tracks<a class="headerlink" href="#stacked-tracks" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rbc::trackgraph</span></code> is one native graph window containing named vertical plot regions. It reuses the graph’s
+line and strip elements, renderers and SVG, PDF and PostScript exporters. It does not create child graphs.
+The axis-region approach is also used by BLT’s <code class="docutils literal notranslate"><span class="pre">-stackaxes</span></code> feature; RBC tracks explicitly group one or
+more Y axes and their elements into a row.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">rbc</span><span class="o">::</span>trackgraph<span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>voltageY<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>Voltage
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>create<span class="w"> </span>currentY<span class="w"> </span><span class="o">-</span>title<span class="w"> </span>Current
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>create<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>weight<span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>voltageY
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>create<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>weight<span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>currentY
+<span class="nv">.g</span><span class="w"> </span>line<span class="w"> </span>create<span class="w"> </span>voltageTrace<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>voltageY<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span>voltage
+<span class="nv">.g</span><span class="w"> </span>strip<span class="w"> </span>create<span class="w"> </span>currentTrace<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>currentY<span class="w"> </span><span class="o">-</span>xdata<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>ydata<span class="w"> </span>current
+<span class="nv">pack</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<p>Tracks initially appear in creation order from top to bottom. Use <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">order</span></code> to change their order without
+recreating axes, elements or markers. Every track receives the same horizontal plotting bounds.</p>
+<p>The common left margin accommodates the widest set of track Y axes, including titles and tick labels. X axes
+remain widget-wide: elements select them with <code class="docutils literal notranslate"><span class="pre">-mapx</span></code>, and ordinary <code class="docutils literal notranslate"><span class="pre">xaxis</span> <span class="pre">use</span></code> and <code class="docutils literal notranslate"><span class="pre">x2axis</span> <span class="pre">use</span></code> control their
+display. Independent X axes need not have matching tick positions. By default, tracks inherit the graph’s
+<a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-namespaceqz3a3arbc3a3agrid"><span class="std std-ref">::rbc::GRID</span></a> settings: <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx</span></code> selects the shared X axis, and a nonempty <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapy</span></code> enables grid lines
+from each track’s first Y axis. An empty axis selection disables that direction. See <a class="reference internal" href="#r-symbolqz3a3arbc3a3atrackgraph3a3agrid"><span class="std std-ref">grid</span></a> for independent
+grid settings within each track.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Track option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Positive finite share of remaining layout space after track minima are allocated; at most 1000000.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-minheight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">40</span></code></p></td>
+<td><p>Positive minimum requested plot height, or width when inverted, in Tk screen-distance units.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
+<td><p>empty</p></td>
+<td><p>List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).</p></td>
+</tr>
+</tbody>
+</table>
+<p>Assign axes with <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">configure</span> <span class="pre">-yaxes</span></code>, rather than <code class="docutils literal notranslate"><span class="pre">yaxis</span> <span class="pre">use</span></code>. An axis may belong to only one track.
+Elements must specify both <code class="docutils literal notranslate"><span class="pre">-track</span></code> and a <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> axis belonging to that track. Change both options in one
+<code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">configure</span></code> call to move an element. An axis in use by an element cannot be detached, and an axis owned
+by a track cannot be deleted until detached. These ownership checks include markers, even hidden markers or
+markers with empty coordinates, and Y axes selected by independently configured track grids. Hiding an axis
+hides its decorations, not its track. Lists and RBC vectors retain their ordinary ownership and notification behaviour.</p>
+<p>Track transforms default to shared axis <code class="docutils literal notranslate"><span class="pre">x</span></code> and the track’s first Y axis. Use <code class="docutils literal notranslate"><span class="pre">-mapx</span></code> or <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> to select
+alternatives. Ordinary graph-level <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> are ambiguous in a trackgraph and report
+an error; individual <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">invtransform</span></code> operations remain available.</p>
+<p>The layout fits the available height. After minimum heights, spare space is distributed by weight.
+Tracks have a 12-pixel gap, reduced in very small windows. If minimum heights do not fit, they are scaled
+proportionally to avoid forcing the window larger. Resizing and export recompute the layout. Elements and
+closest-point searches are restricted to their own track; normal, descending and logarithmic Y scales work
+independently. Horizontal zoom or pan is performed through the shared X axes; vertical navigation uses the
+desired track’s Y axes. The native crosshair’s vertical line spans all tracks and its horizontal line follows
+the pointer’s row.</p>
+<p>Line and strip elements retain their existing <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">none|auto</span></code> option; the default remains <code class="docutils literal notranslate"><span class="pre">none</span></code>.
+Set <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> on each desired element. Density is measured along the shared physical X-axis span,
+not by the number of tracks: plot width normally, plot height when inverted. Local Y mapping and clipping
+still use the owning track. The existing eligibility rules apply, including fallback for smoothed traces
+and unsupported fill/style combinations. Data-domain caches remain per element and follow vector updates;
+closest-point queries retain original samples, and exports use full geometry. See <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">::rbc::LINEELEMENT</span></a>.</p>
+<p>Each row also owns an optional local legend, hidden by default. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>legend<span class="w"> </span>voltage<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>right<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span><span class="ow">ne</span>
+</pre></div>
+</div>
+<p>shows only that row’s element labels. Local legends overlay and clip to the track; they do not change shared X
+alignment. The global legend remains independent. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-namespaceqz3a3arbc3a3alegend"><span class="std std-ref">::rbc::LEGEND</span></a> for options, bindings and export
+behavior.</p>
+<section id="inverted-tracks">
+<span id="r-rbc-trackgraph-inverted-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzinverted20tracks"></span><h3>Inverted tracks<a class="headerlink" href="#inverted-tracks" title="Link to this heading">¶</a></h3>
+<p>Set <code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">configure</span> <span class="pre">-invertxy</span> <span class="pre">yes</span></code> to rotate the layout into side-by-side columns. Track order runs left to
+right, shared X axes run vertically, and each track’s Y axes run horizontally below its column. The common
+bottom margin accommodates the largest set of track Y axes. Shared X grid lines are horizontal; local Y grid
+lines are vertical. Track weights divide the available width. The existing <code class="docutils literal notranslate"><span class="pre">-minheight</span></code> option now requests a
+minimum column width; it retains its name and value when toggling orientation. Tiny layouts compress those
+minima proportionally in either orientation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">identify</span></code> and <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">sashpos</span></code> take a physical X coordinate in inverted mode. <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">bbox</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span>
+<span class="pre">separator</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">invtransform</span></code> always use physical widget X/Y coordinates. Axis names
+and data X/Y values retain their meaning. Markers, picking, local legends and exports follow the column
+rectangle. Legend positions and anchors remain physical directions: <code class="docutils literal notranslate"><span class="pre">right</span></code> is still the right edge. Global and
+local legends can be shown together, as in <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code>. Toolbar navigation works in either
+orientation; changing orientation during a gesture cancels it.</p>
+</section>
+<section id="reordering-and-resizing-tracks">
+<span id="r-rbc-trackgraph-reordering-and-resizing-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzreordering20and20resizing20tracks"></span><h3>Reordering and resizing tracks<a class="headerlink" href="#reordering-and-resizing-tracks" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">order</span></code> takes the full list of existing track names, with no omissions or duplicates. Ownership, axis
+configuration, vector subscriptions and marker bindings remain unchanged. Legend order still follows element
+order, independently of track order.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>order<span class="w"> </span><span class="k">{</span><span class="nv">current</span><span class="w"> </span>voltage<span class="k">}</span>
+<span class="k">set</span><span class="w"> </span>y<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>sashpos<span class="w"> </span>current<span class="k">]</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>sashpos<span class="w"> </span>current<span class="w"> </span><span class="k">[expr</span><span class="w"> </span><span class="k">{</span><span class="nv">$y</span><span class="o">+</span><span class="nv">30</span><span class="k">}]</span>
+<span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>trackresize<span class="w"> </span>yes
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">sashpos</span></code> changes the two adjacent tracks’ weights while preserving their sum. Other tracks keep their
+weights and allocated space, subject to one-pixel layout rounding. Requested positions are clamped by the
+adjacent minimum heights and the positive weight range. The returned position is the actual one. If minimum
+heights already consume the available space, the separator cannot move. The resulting weights continue to
+govern later window resizes and exports; no fixed pixel sizes are stored.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-trackresize</span></code> is a graph option with database name <code class="docutils literal notranslate"><span class="pre">trackResize</span></code>, class <code class="docutils literal notranslate"><span class="pre">TrackResize</span></code>, and default <code class="docutils literal notranslate"><span class="pre">no</span></code>. Only
+trackgraph widgets accept <code class="docutils literal notranslate"><span class="pre">yes</span></code>. With it enabled, the standard <code class="docutils literal notranslate"><span class="pre">Trackgraph</span></code> class bindings show a vertical
+resize cursor over a row gap, or a horizontal cursor between inverted columns. Drag with button 1 to resize the
+adjacent tracks; release to keep the result, or press Escape to restore the weights from the start of the
+drag. The gesture borrows keyboard focus so Escape works, then restores the previous focus on release,
+cancellation or invalidation, provided focus is still on the graph. If there was no previous focus or its
+widget has been destroyed, focus returns to the graph’s toplevel. Focus moved elsewhere during dragging is left
+alone; a graph already focused before dragging remains focused.  Pointer events in plot interiors keep their
+ordinary behaviour. Changing the track list/order, orientation, or disabling resizing invalidates the gesture
+on the next motion or release, without restoring obsolete weights. Destroying the widget removes its gesture
+state. These dependency-free bindings are loaded with <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code>.</p>
+<p>Optional divider lines make separator gaps visible. <code class="docutils literal notranslate"><span class="pre">-trackseparatorcolor</span></code> (database name
+<code class="docutils literal notranslate"><span class="pre">trackSeparatorColor</span></code>, class <code class="docutils literal notranslate"><span class="pre">TrackSeparatorColor</span></code>) defaults to empty, disabling the lines.
+<code class="docutils literal notranslate"><span class="pre">-trackseparatorwidth</span></code> (<code class="docutils literal notranslate"><span class="pre">trackSeparatorWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">TrackSeparatorWidth</span></code>) defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code> and accepts a positive Tk
+screen distance. These graph options affect only trackgraphs. For example:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>trackresize<span class="w"> </span>yes<span class="w"> </span><span class="o">-</span>trackseparatorcolor<span class="w"> </span>gray60<span class="w"> </span><span class="o">-</span>trackseparatorwidth<span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>Each divider follows the centre returned by <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">sashpos</span></code>, horizontally for rows and vertically for inverted
+columns. Its width is limited to the available gap. It does not change track geometry or enlarge the existing
+separator hit area, and can be shown without enabling dragging. Dividers appear in SVG, PDF and PostScript
+exports when <code class="docutils literal notranslate"><span class="pre">-decorations</span> <span class="pre">yes</span></code> is selected.</p>
+<p>Applications may call the native order and separator operations regardless of <code class="docutils literal notranslate"><span class="pre">-trackresize</span></code>; the option
+controls only the supplied mouse bindings. Custom interaction code can leave it disabled and use the same
+commands. Keep the <code class="docutils literal notranslate"><span class="pre">Trackgraph</span></code> class in <code class="docutils literal notranslate"><span class="pre">bindtags</span></code> to use the standard bindings; a widget binding that returns
+<code class="docutils literal notranslate"><span class="pre">break</span></code> before the class binding can intentionally suppress them.</p>
+<p>Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. Track
+scrolling is not yet provided. The optional <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code> package accepts <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: zoom and
+pan use shared X axes and the starting track’s Y axes; wheel zoom and coordinate annotations follow the pointed
+track. Separator dragging remains available. See <a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-namespaceqz3a3arbc3a3agraphtoolbar"><span class="std std-ref">::rbc::graphtoolbar</span></a> and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for the
+interaction controls.  Markers can select a track with <code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span> <span class="pre">-mapy</span> <span class="pre">axisName</span></code>; see <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for
+clipping, ownership and restrictions. See <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for multiple shared X axes, live vector
+updates, track weights, annotations and shared horizontal navigation.</p>
+</section>
+</section>
+<section id="commands">
+<span id="r-rbc-trackgraph-commands"></span><span id="r-3a3arbc3a3atrackgraphqzcommands"></span><h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h2>
+<section id="bbox">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3abbox"></span><span id="index-0"></span><h3><code class="docutils literal notranslate"><span class="pre">bbox</span></code><a class="headerlink" href="#bbox" title="Link to this heading">¶</a></h3>
+<p>Returns the track plotting rectangle as <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">top</span> <span class="pre">right</span> <span class="pre">bottom</span></code> in physical widget pixels.</p>
+<pre class="literal-block"><strong>bbox</strong> <em>name</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the track plotting rectangle as <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">top</span> <span class="pre">right</span> <span class="pre">bottom</span></code> in physical widget pixels.</p>
+</section>
+<section id="cget">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3acget"></span><span id="index-1"></span><h3><code class="docutils literal notranslate"><span class="pre">cget</span></code><a class="headerlink" href="#cget" title="Link to this heading">¶</a></h3>
+<p>Returns the current value of a track option.</p>
+<pre class="literal-block"><strong>cget</strong> <em>name option</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">option</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Track option name.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the current value of a track option.</p>
+</section>
+<section id="configure">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3aconfigure"></span><span id="index-2"></span><h3><code class="docutils literal notranslate"><span class="pre">configure</span></code><a class="headerlink" href="#configure" title="Link to this heading">¶</a></h3>
+<p>Configures a track. With no options returns its option dictionary; with one option returns its value.</p>
+<pre class="literal-block"><strong>configure</strong> <em>name ?option ?value ...??</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="create">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3acreate"></span><span id="index-3"></span><h3><code class="docutils literal notranslate"><span class="pre">create</span></code><a class="headerlink" href="#create" title="Link to this heading">¶</a></h3>
+<p>Creates a uniquely named track and returns its name. Options are <code class="docutils literal notranslate"><span class="pre">-yaxes</span></code>, <code class="docutils literal notranslate"><span class="pre">-weight</span></code> and <code class="docutils literal notranslate"><span class="pre">-minheight</span></code>.</p>
+<pre class="literal-block"><strong>create</strong> <em>name ?option value ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="delete">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3adelete"></span><span id="index-4"></span><h3><code class="docutils literal notranslate"><span class="pre">delete</span></code><a class="headerlink" href="#delete" title="Link to this heading">¶</a></h3>
+<p>Deletes an empty track, retaining its axes. Move or delete its elements and markers first.</p>
+<pre class="literal-block"><strong>delete</strong> <em>name</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+</dl>
+</section>
+<section id="grid">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3agrid"></span><span id="index-5"></span><h3><code class="docutils literal notranslate"><span class="pre">grid</span></code><a class="headerlink" href="#grid" title="Link to this heading">¶</a></h3>
+<p>Queries or configures the named track’s grid. Supports the <a class="reference internal" href="rbc-tk9-rbc-GRID.html#r-namespaceqz3a3arbc3a3agrid"><span class="std std-ref">::rbc::GRID</span></a> operations <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">cget</span></code>,
+<code class="docutils literal notranslate"><span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">off</span></code> and <code class="docutils literal notranslate"><span class="pre">toggle</span></code>, with Cartesian options <code class="docutils literal notranslate"><span class="pre">-color</span></code>, <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>, <code class="docutils literal notranslate"><span class="pre">-hide</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-mapx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">-mapy</span></code> and <code class="docutils literal notranslate"><span class="pre">-minor</span></code>.</p>
+<pre class="literal-block"><strong>grid</strong> <em>name operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Not documented.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">operation</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Not documented.</p>
+</dd>
+</dl>
+<p class="rubric">Description</p>
+<p>Until its first successful configuration or visibility change, a track inherits the graph-wide grid.
+Queries do not change inheritance. The first mutation copies the current effective settings, then applies
+the requested changes. Later graph-wide grid changes do not affect that track. Failed changes preserve
+both the previous settings and inheritance. Deleting and recreating the track restores inheritance.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-mapx</span></code> selects an existing shared X axis; <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects an existing Y axis owned by this track, including
+any of its additional Y axes. An empty string disables that direction. Inherited <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> reports the
+first owned Y axis, or empty when the graph disables Y grid lines or the track owns no Y axes.
+A selected local Y axis cannot be detached until the grid is remapped or that direction is disabled.</p>
+<p>Lines are clipped to the owning track and follow resizing, reordering, axis range changes and inversion.
+X lines are vertical normally and horizontal when inverted; Y lines rotate correspondingly. Native,
+Cairo, SVG, PDF and PostScript output use the same local configuration. A local visible grid is drawn
+even when the graph-wide grid is hidden.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>grid<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>minor<span class="w"> </span>no
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>grid<span class="w"> </span>voltage<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>voltageY<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>steelblue
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>grid<span class="w"> </span>current<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span>samples<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>currentY<span class="w"> </span><span class="o">-</span>color<span class="w"> </span>darkorange
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>grid<span class="w"> </span>current<span class="w"> </span>off
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>grid<span class="w"> </span>voltage<span class="w"> </span>cget<span class="w"> </span><span class="o">-</span>mapx
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">name<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even">operation<span class="colon">:</span></dt>
+<dd class="field-even"><p>Local grid operation.</p>
+</dd>
+<dt class="field-odd">args<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="r-symbolqz3a3arbc3a3atrackgraph3a3aidentify">
+<span id="index-6"></span><span id="identify"></span><h3><code class="docutils literal notranslate"><span class="pre">identify</span></code><a class="headerlink" href="#r-symbolqz3a3arbc3a3atrackgraph3a3aidentify" title="Link to this heading">¶</a></h3>
+<p>Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap.</p>
+<pre class="literal-block"><strong>identify</strong> <em>coordinate</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">coordinate</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Widget pixel coordinate along the track layout direction.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap.</p>
+</section>
+<section id="invtransform">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3ainvtransform"></span><span id="index-7"></span><h3><code class="docutils literal notranslate"><span class="pre">invtransform</span></code><a class="headerlink" href="#invtransform" title="Link to this heading">¶</a></h3>
+<p>Maps physical widget coordinates back to data using the selected shared X and local Y axes.</p>
+<pre class="literal-block"><strong>invtransform</strong> <em>name x y ?-mapx axis? ?-mapy axis?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>X coordinate.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Y coordinate.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="legend">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3alegend"></span><span id="index-8"></span><h3><code class="docutils literal notranslate"><span class="pre">legend</span></code><a class="headerlink" href="#legend" title="Link to this heading">¶</a></h3>
+<p>Operates on the named track’s local legend. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-namespaceqz3a3arbc3a3alegend"><span class="std std-ref">::rbc::LEGEND</span></a> for <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">bbox</span></code>, <code class="docutils literal notranslate"><span class="pre">get</span></code>,
+<code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> and <code class="docutils literal notranslate"><span class="pre">bind</span></code>.</p>
+<pre class="literal-block"><strong>legend</strong> <em>name operation ?args ...?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">operation</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Local legend operation.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="names">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3anames"></span><span id="index-9"></span><h3><code class="docutils literal notranslate"><span class="pre">names</span></code><a class="headerlink" href="#names" title="Link to this heading">¶</a></h3>
+<p>Returns track names in layout order: top to bottom, or left to right when inverted.</p>
+<pre class="literal-block"><strong>names</strong></pre>
+<p class="rubric">Return value</p>
+<p>Returns track names in layout order: top to bottom, or left to right when inverted.</p>
+</section>
+<section id="order">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3aorder"></span><span id="index-10"></span><h3><code class="docutils literal notranslate"><span class="pre">order</span></code><a class="headerlink" href="#order" title="Link to this heading">¶</a></h3>
+<p>Returns the layout order, or sets a complete permutation of all track names. Invalid lists leave it unchanged.</p>
+<pre class="literal-block"><strong>order</strong> <em>?nameList?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the layout order, or sets a complete permutation of all track names. Invalid lists leave it unchanged.</p>
+</section>
+<section id="sashpos">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3asashpos"></span><span id="index-11"></span><h3><code class="docutils literal notranslate"><span class="pre">sashpos</span></code><a class="headerlink" href="#sashpos" title="Link to this heading">¶</a></h3>
+<p>Returns or moves the separator after the named track. Its coordinate is physical Y normally, physical X when
+inverted. The last track has no separator.</p>
+<pre class="literal-block"><strong>sashpos</strong> <em>name ?coordinate?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns or moves the separator after the named track. Its coordinate is physical Y normally, physical X when
+inverted. The last track has no separator.</p>
+</section>
+<section id="separator">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3aseparator"></span><span id="index-12"></span><h3><code class="docutils literal notranslate"><span class="pre">separator</span></code><a class="headerlink" href="#separator" title="Link to this heading">¶</a></h3>
+<p>Returns the track before the separator gap at physical widget coordinates, or an empty string.</p>
+<pre class="literal-block"><strong>separator</strong> <em>x y</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>X coordinate.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Y coordinate.</p>
+</dd>
+</dl>
+<p class="rubric">Return value</p>
+<p>Returns the track before the separator gap at physical widget coordinates, or an empty string.</p>
+</section>
+<section id="transform">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3atransform"></span><span id="index-13"></span><h3><code class="docutils literal notranslate"><span class="pre">transform</span></code><a class="headerlink" href="#transform" title="Link to this heading">¶</a></h3>
+<p>Maps data coordinates through the shared X axis and local Y axis into physical widget coordinates. Defaults to
+axis <code class="docutils literal notranslate"><span class="pre">x</span></code> and the first owned Y axis.</p>
+<pre class="literal-block"><strong>transform</strong> <em>name x y ?-mapx axis? ?-mapy axis?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">x</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>X coordinate.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">y</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Y coordinate.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+<hr class="docutils" />
+<p class="centered">
+<strong>Copyright (c) George Yashin</strong></p></section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a><ul>
+<li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
+<li><a class="reference internal" href="#inverted-tracks">Inverted tracks</a></li>
+<li><a class="reference internal" href="#reordering-and-resizing-tracks">Reordering and resizing tracks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#bbox"><code class="docutils literal notranslate"><span class="pre">bbox</span></code></a></li>
+<li><a class="reference internal" href="#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li><a class="reference internal" href="#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li><a class="reference internal" href="#create"><code class="docutils literal notranslate"><span class="pre">create</span></code></a></li>
+<li><a class="reference internal" href="#delete"><code class="docutils literal notranslate"><span class="pre">delete</span></code></a></li>
+<li><a class="reference internal" href="#grid"><code class="docutils literal notranslate"><span class="pre">grid</span></code></a></li>
+<li><a class="reference internal" href="#r-symbolqz3a3arbc3a3atrackgraph3a3aidentify"><code class="docutils literal notranslate"><span class="pre">identify</span></code></a></li>
+<li><a class="reference internal" href="#invtransform"><code class="docutils literal notranslate"><span class="pre">invtransform</span></code></a></li>
+<li><a class="reference internal" href="#legend"><code class="docutils literal notranslate"><span class="pre">legend</span></code></a></li>
+<li><a class="reference internal" href="#names"><code class="docutils literal notranslate"><span class="pre">names</span></code></a></li>
+<li><a class="reference internal" href="#order"><code class="docutils literal notranslate"><span class="pre">order</span></code></a></li>
+<li><a class="reference internal" href="#sashpos"><code class="docutils literal notranslate"><span class="pre">sashpos</span></code></a></li>
+<li><a class="reference internal" href="#separator"><code class="docutils literal notranslate"><span class="pre">separator</span></code></a></li>
+<li><a class="reference internal" href="#transform"><code class="docutils literal notranslate"><span class="pre">transform</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-GRAPHINST.html"
+                          title="previous chapter">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rbc-tk9-rbc-AXIS.html"
+                          title="next chapter">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rbc-tk9-rbc-TRACKGRAPH.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-AXIS.html" title="Graph virtual axis AXIS command"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright George Yashin.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

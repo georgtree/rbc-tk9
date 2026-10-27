@@ -28,8 +28,10 @@ graph \&.g
 .fi
 .RE
 .PP
-The grid is a single component of the graph\&. Unlike elements, markers, or pens, there are no named grid
-objects\&.
+The grid is a single component of an ordinary graph\&. Unlike elements, markers, or pens, there are no named
+grid objects\&. A \fI::rbc::TRACKGRAPH\fP can additionally configure an independent grid for each track using
+\fI::rbc::TRACKGRAPH::grid\fP\&. Tracks initially inherit the graph-wide settings\&. Local grids support the seven
+Cartesian options below; Polar/Smith options are not available through the track interface\&.
 .PP
 The grid follows the graph's -renderer and -antialias settings\&. Cairo preserves its axis mappings,
 major/minor tick selection, dash pattern, and color\&. A zero -linewidth remains a one-pixel hairline\&. Grid

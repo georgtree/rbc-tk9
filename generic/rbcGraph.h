@@ -273,6 +273,7 @@ typedef struct {
      */
     Tk_OptionTable optionTable;
     Graph *graphPtr;
+    RbcTrack *track; /* Non-NULL for an independently configured track grid. */
     int optionsConfigured;
     Tcl_Size optionObjc;
     Tcl_Obj *const *optionObjv;
@@ -654,6 +655,8 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 struct RbcTrack {
+    Grid *grid; /* NULL inherits the graph grid. */
+    struct GridSegments gridX, gridY;
     Legend *legend;
     char *name;
     double weight;
@@ -664,6 +667,8 @@ struct RbcTrack {
     Tcl_Size nAxes;
     RbcTrack *next;
 };
+void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
+int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
 void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
@@ -752,7 +757,7 @@ int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
 int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr);
-void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr);
+void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, int minorGrid, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr);
 double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr);
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under);
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y);

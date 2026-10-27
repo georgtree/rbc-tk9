@@ -4570,9 +4570,10 @@ static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D
  *
  * Parameters:
  *      Graph *graphPtr
- *      Axis *axisPtr
+ *      Axis *axisPtr - Axis supplying the tick positions
+ *      int minorGrid - Include minor ticks for the selected grid
  *      Segment2D **segPtrPtr
- *      int *nSegmentsPtr
+ *      Tcl_Size *nSegmentsPtr
  *
  * Results:
  *      None.
@@ -4582,7 +4583,7 @@ static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D
  *
  *----------------------------------------------------------------------
  */
-void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr) {
+void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, int minorGrid, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr) {
     Ticks *t1Ptr;
     Ticks *t2Ptr;
     Segment2D *segments;
@@ -4611,7 +4612,7 @@ void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, 
         freeT2 = TRUE;
     }
     needed = t1Ptr->nTicks;
-    if (graphPtr->gridPtr->minorGrid) {
+    if (minorGrid) {
         if ((t2Ptr->nTicks > 0) && (t1Ptr->nTicks > (TCL_SIZE_MAX - needed) / t2Ptr->nTicks)) {
             goto cleanup;
         }
@@ -4637,7 +4638,7 @@ void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, Segment2D **segPtrPtr, 
         double value;
 
         value = t1Ptr->values[i];
-        if (graphPtr->gridPtr->minorGrid) {
+        if (minorGrid) {
             Tcl_Size j;
 
             for (j = 0; j < t2Ptr->nTicks; j++) {

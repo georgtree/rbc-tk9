@@ -58,7 +58,17 @@ $graph strip create current -track current -mapy current -xdata trackTime -ydata
         -label Current
 $graph line create enable -track enable -mapy logic -xdata trackTime -ydata trackEnable -color seagreen -smooth step\
         -label Enable
-$graph grid configure -hide no
+# Each track can choose a different shared X axis and its own Y grid.
+# Samples uses a different tick spacing so the distinction is visible.
+$graph axis configure samples -stepsize 250
+$graph grid configure -hide no -minor no
+$graph track grid voltage configure -mapx x -mapy voltage -color lightsteelblue
+$graph track grid current configure -mapx samples -mapy current -color tan
+# Enable deliberately retains the inherited graph grid.
+set currentSamplesGrid 1
+proc ToggleCurrentGridAxis {} {
+    $::graph track grid current configure -mapx [expr {$::currentSamplesGrid ? "samples" : "x"}]
+}
 $graph marker create line -name threshold -track voltage -mapy voltage -coords {-Inf 0.5 Inf 0.5} -outline firebrick\
         -dashes {4 4}
 
@@ -106,6 +116,8 @@ ttk::frame .controls
 ttk::button .controls.reverse -text {Reverse tracks} -command {
     $::graph track order [lreverse [$::graph track order]]
 }
+ttk::checkbutton .controls.samples -text {Current grid: Samples axis} -variable currentSamplesGrid \
+        -command ToggleCurrentGridAxis
 ttk::button .controls.advance -text {Update vectors} -command AdvanceTrackSignals
 ttk::checkbutton .controls.legends -text {Local legends} -variable trackLegends -command ToggleTrackLegends
 ttk::checkbutton .controls.global -text {Global legend} -variable globalLegend -command {
@@ -121,7 +133,7 @@ ttk::label .controls.label -text {Voltage weight}
 ttk::spinbox .controls.weight -from 0.1 -to 5 -increment 0.1 -width 6 -textvariable voltageWeight -command {
     $::graph track configure voltage -weight $::voltageWeight
 }
-grid .controls.reverse .controls.advance -padx 4 -pady 3 -sticky w
+grid .controls.reverse .controls.advance .controls.samples -padx 4 -pady 3 -sticky w
 grid .controls.legends .controls.global .controls.invert .controls.label .controls.weight .controls.dividers -padx 4\
         -pady 3 -sticky w
 

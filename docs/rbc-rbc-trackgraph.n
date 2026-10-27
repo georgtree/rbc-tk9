@@ -1,0 +1,605 @@
+'\"
+'\" '\" Copyright (c) George Yashin
+'\"
+.TH "rbc::TRACKGRAPH" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.SH NAME
+rbc::TRACKGRAPH - Commands in namespace rbc::TRACKGRAPH
+.SH SYNOPSIS
+\fBbbox\fP \fIname\fP
+.br
+\fBcget\fP \fIname option\fP
+.br
+\fBconfigure\fP \fIname ?option ?value \&.\&.\&.??\fP
+.br
+\fBcreate\fP \fIname ?option value \&.\&.\&.?\fP
+.br
+\fBdelete\fP \fIname\fP
+.br
+\fBgrid\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+\fBidentify\fP \fIcoordinate\fP
+.br
+\fBinvtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+\fBlegend\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+\fBnames\fP
+.br
+\fBorder\fP \fI?nameList?\fP
+.br
+\fBsashpos\fP \fIname ?coordinate?\fP
+.br
+\fBseparator\fP \fIx y\fP
+.br
+\fBtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+.SH "TRACKGRAPH LAYOUT AND TRACKGRAPH COMMANDS"
+.PP
+This page documents widgets created by \fI::rbc::trackgraph\fP and their named-track operations\&.
+TRACKGRAPH is a fictional documentation prefix for widgetPath track, not a runtime command\&.
+For example, TRACKGRAPH create voltage -yaxes volts means \&.g track create voltage -yaxes volts\&.
+The procedures below describe that component API; they are not Tcl wrappers to invoke directly\&.
+.PP
+Common widget commands and configuration are described in \fI::rbc::GRAPHINST\fP\&. Use \fI::rbc::AXIS\fP for axes,
+\fI::rbc::LINEELEMENT\fP and \fI::rbc::STRIPELEMENT\fP for traces, \fI::rbc::MARKER\fP for annotations, and
+\fI::rbc::LEGEND\fP for global and track-local legends\&. Toolbar integration is described in \fI::rbc::graphtoolbar\fP\&.
+.SH "STACKED TRACKS"
+.PP
+rbc::trackgraph is one native graph window containing named vertical plot regions\&. It reuses the graph's
+line and strip elements, renderers and SVG, PDF and PostScript exporters\&. It does not create child graphs\&.
+The axis-region approach is also used by BLT's -stackaxes feature; RBC tracks explicitly group one or
+more Y axes and their elements into a row\&.
+.PP
+.RS 4n
+.nf
+rbc::trackgraph \&.g -width 800 -height 500
+\&.g axis create voltageY -title Voltage
+\&.g axis create currentY -title Current
+\&.g track create voltage -weight 2 -yaxes voltageY
+\&.g track create current -weight 1 -yaxes currentY
+\&.g line create voltageTrace -track voltage -mapy voltageY -xdata time -ydata voltage
+\&.g strip create currentTrace -track current -mapy currentY -xdata time -ydata current
+pack \&.g -fill both -expand yes
+.fi
+.RE
+.PP
+Tracks initially appear in creation order from top to bottom\&. Use track order to change their order without
+recreating axes, elements or markers\&. Every track receives the same horizontal plotting bounds\&.
+.PP
+The common left margin accommodates the widest set of track Y axes, including titles and tick labels\&. X axes
+remain widget-wide: elements select them with -mapx, and ordinary xaxis use and x2axis use control their
+display\&. Independent X axes need not have matching tick positions\&. By default, tracks inherit the graph's
+\fI::rbc::GRID\fP settings: grid -mapx selects the shared X axis, and a nonempty grid -mapy enables grid lines
+from each track's first Y axis\&. An empty axis selection disables that direction\&. See \fIgrid\fP for independent
+grid settings within each track\&.
+.PP
+.nf
+┌──────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Track option │ Default │ Meaning                                                                                     │
+├──────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┤
+│ -weight      │ 1\&.0     │ Positive finite share of remaining layout space after track minima are allocated; at most   │
+│              │         │ 1000000\&.                                                                                    │
+│ -minheight   │ 40      │ Positive minimum requested plot height, or width when inverted, in Tk screen-distance       │
+│              │         │ units\&.                                                                                      │
+│ -yaxes       │ empty   │ List of existing Y axes assigned exclusively to this track and displayed in its left margin │
+│              │         │ (bottom when inverted)\&.                                                                     │
+└──────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────────────┘
+
+.fi
+.PP
+Assign axes with track configure -yaxes, rather than yaxis use\&. An axis may belong to only one track\&.
+Elements must specify both -track and a -mapy axis belonging to that track\&. Change both options in one
+element configure call to move an element\&. An axis in use by an element cannot be detached, and an axis owned
+by a track cannot be deleted until detached\&. These ownership checks include markers, even hidden markers or
+markers with empty coordinates, and Y axes selected by independently configured track grids\&. Hiding an axis
+hides its decorations, not its track\&. Lists and RBC vectors retain their ordinary ownership and notification behaviour\&.
+.PP
+Track transforms default to shared axis x and the track's first Y axis\&. Use -mapx or -mapy to select
+alternatives\&. Ordinary graph-level transform and invtransform are ambiguous in a trackgraph and report
+an error; individual axis transform and axis invtransform operations remain available\&.
+.PP
+The layout fits the available height\&. After minimum heights, spare space is distributed by weight\&.
+Tracks have a 12-pixel gap, reduced in very small windows\&. If minimum heights do not fit, they are scaled
+proportionally to avoid forcing the window larger\&. Resizing and export recompute the layout\&. Elements and
+closest-point searches are restricted to their own track; normal, descending and logarithmic Y scales work
+independently\&. Horizontal zoom or pan is performed through the shared X axes; vertical navigation uses the
+desired track's Y axes\&. The native crosshair's vertical line spans all tracks and its horizontal line follows
+the pointer's row\&.
+.PP
+Line and strip elements retain their existing -decimate none|auto option; the default remains none\&.
+Set -decimate auto on each desired element\&. Density is measured along the shared physical X-axis span,
+not by the number of tracks: plot width normally, plot height when inverted\&. Local Y mapping and clipping
+still use the owning track\&. The existing eligibility rules apply, including fallback for smoothed traces
+and unsupported fill/style combinations\&. Data-domain caches remain per element and follow vector updates;
+closest-point queries retain original samples, and exports use full geometry\&. See \fI::rbc::LINEELEMENT\fP\&.
+.PP
+Each row also owns an optional local legend, hidden by default\&. For example:
+.PP
+.RS 4n
+.nf
+\&.g track legend voltage configure -hide no -position right -anchor ne
+.fi
+.RE
+.PP
+shows only that row's element labels\&. Local legends overlay and clip to the track; they do not change shared X
+alignment\&. The global legend remains independent\&. See \fI::rbc::LEGEND\fP for options, bindings and export
+behavior\&.
+.SS "INVERTED TRACKS"
+.PP
+Set \&.g configure -invertxy yes to rotate the layout into side-by-side columns\&. Track order runs left to
+right, shared X axes run vertically, and each track's Y axes run horizontally below its column\&. The common
+bottom margin accommodates the largest set of track Y axes\&. Shared X grid lines are horizontal; local Y grid
+lines are vertical\&. Track weights divide the available width\&. The existing -minheight option now requests a
+minimum column width; it retains its name and value when toggling orientation\&. Tiny layouts compress those
+minima proportionally in either orientation\&.
+.PP
+track identify and track sashpos take a physical X coordinate in inverted mode\&. track bbox, track
+separator, track transform and track invtransform always use physical widget X/Y coordinates\&. Axis names
+and data X/Y values retain their meaning\&. Markers, picking, local legends and exports follow the column
+rectangle\&. Legend positions and anchors remain physical directions: right is still the right edge\&. Global and
+local legends can be shown together, as in demos/trackgraph1\&.tcl\&. Toolbar navigation works in either
+orientation; changing orientation during a gesture cancels it\&.
+.SS "REORDERING AND RESIZING TRACKS"
+.PP
+track order takes the full list of existing track names, with no omissions or duplicates\&. Ownership, axis
+configuration, vector subscriptions and marker bindings remain unchanged\&. Legend order still follows element
+order, independently of track order\&.
+.PP
+.RS 4n
+.nf
+\&.g track order {current voltage}
+set y [\&.g track sashpos current]
+\&.g track sashpos current [expr {$y+30}]
+\&.g configure -trackresize yes
+.fi
+.RE
+.PP
+track sashpos changes the two adjacent tracks' weights while preserving their sum\&. Other tracks keep their
+weights and allocated space, subject to one-pixel layout rounding\&. Requested positions are clamped by the
+adjacent minimum heights and the positive weight range\&. The returned position is the actual one\&. If minimum
+heights already consume the available space, the separator cannot move\&. The resulting weights continue to
+govern later window resizes and exports; no fixed pixel sizes are stored\&.
+.PP
+-trackresize is a graph option with database name trackResize, class TrackResize, and default no\&. Only
+trackgraph widgets accept yes\&. With it enabled, the standard Trackgraph class bindings show a vertical
+resize cursor over a row gap, or a horizontal cursor between inverted columns\&. Drag with button 1 to resize the
+adjacent tracks; release to keep the result, or press Escape to restore the weights from the start of the
+drag\&. The gesture borrows keyboard focus so Escape works, then restores the previous focus on release,
+cancellation or invalidation, provided focus is still on the graph\&. If there was no previous focus or its
+widget has been destroyed, focus returns to the graph's toplevel\&. Focus moved elsewhere during dragging is left
+alone; a graph already focused before dragging remains focused\&.  Pointer events in plot interiors keep their
+ordinary behaviour\&. Changing the track list/order, orientation, or disabling resizing invalidates the gesture
+on the next motion or release, without restoring obsolete weights\&. Destroying the widget removes its gesture
+state\&. These dependency-free bindings are loaded with package require rbc\&.
+.PP
+Optional divider lines make separator gaps visible\&. -trackseparatorcolor (database name
+trackSeparatorColor, class TrackSeparatorColor) defaults to empty, disabling the lines\&.
+-trackseparatorwidth (trackSeparatorWidth, TrackSeparatorWidth) defaults to 1 and accepts a positive Tk
+screen distance\&. These graph options affect only trackgraphs\&. For example:
+.PP
+.RS 4n
+.nf
+\&.g configure -trackresize yes -trackseparatorcolor gray60 -trackseparatorwidth 2
+.fi
+.RE
+.PP
+Each divider follows the centre returned by track sashpos, horizontally for rows and vertically for inverted
+columns\&. Its width is limited to the available gap\&. It does not change track geometry or enlarge the existing
+separator hit area, and can be shown without enabling dragging\&. Dividers appear in SVG, PDF and PostScript
+exports when -decorations yes is selected\&.
+.PP
+Applications may call the native order and separator operations regardless of -trackresize; the option
+controls only the supplied mouse bindings\&. Custom interaction code can leave it disabled and use the same
+commands\&. Keep the Trackgraph class in bindtags to use the standard bindings; a widget binding that returns
+break before the class binding can intentionally suppress them\&.
+.PP
+Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&. Track
+scrolling is not yet provided\&. The optional rbc::graphtoolbar package accepts -type trackgraph: zoom and
+pan use shared X axes and the starting track's Y axes; wheel zoom and coordinate annotations follow the pointed
+track\&. Separator dragging remains available\&. See \fI::rbc::graphtoolbar\fP and demos/trackgraph1\&.tcl for the
+interaction controls\&.  Markers can select a track with -track name -mapy axisName; see \fI::rbc::MARKER\fP for
+clipping, ownership and restrictions\&. See demos/trackgraph1\&.tcl for multiple shared X axes, live vector
+updates, track weights, annotations and shared horizontal navigation\&.
+.SH COMMANDS
+.PP
+.RS -4n
+\fBbbox\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.RS 4n
+\fBbbox\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.PP
+.RS -4n
+\fBcget\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns the current value of a track option\&.
+.RS 4n
+\fBcget\fP \fIname option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+option
+Track option name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of a track option\&.
+.PP
+.RS -4n
+\fBconfigure\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Configures a track\&. With no options returns its option dictionary; with one option returns its value\&.
+.RS 4n
+\fBconfigure\fP \fIname ?option ?value \&.\&.\&.??\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBcreate\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight and -minheight\&.
+.RS 4n
+\fBcreate\fP \fIname ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBdelete\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
+.RS 4n
+\fBdelete\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.RE
+.PP
+.RS -4n
+\fBgrid\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP operations configure, cget,
+on, off and toggle, with Cartesian options -color, -dashes, -hide, -linewidth, -mapx,
+-mapy and -minor\&.
+.RS 4n
+\fBgrid\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Not documented\&.
+.TP
+operation
+Not documented\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Until its first successful configuration or visibility change, a track inherits the graph-wide grid\&.
+Queries do not change inheritance\&. The first mutation copies the current effective settings, then applies
+the requested changes\&. Later graph-wide grid changes do not affect that track\&. Failed changes preserve
+both the previous settings and inheritance\&. Deleting and recreating the track restores inheritance\&.
+.PP
+-mapx selects an existing shared X axis; -mapy selects an existing Y axis owned by this track, including
+any of its additional Y axes\&. An empty string disables that direction\&. Inherited -mapy reports the
+first owned Y axis, or empty when the graph disables Y grid lines or the track owns no Y axes\&.
+A selected local Y axis cannot be detached until the grid is remapped or that direction is disabled\&.
+.PP
+Lines are clipped to the owning track and follow resizing, reordering, axis range changes and inversion\&.
+X lines are vertical normally and horizontal when inverted; Y lines rotate correspondingly\&. Native,
+Cairo, SVG, PDF and PostScript output use the same local configuration\&. A local visible grid is drawn
+even when the graph-wide grid is hidden\&.
+.PP
+.RS 4n
+.nf
+\&.g grid configure -hide no -minor no
+\&.g track grid voltage configure -mapx x -mapy voltageY -color steelblue
+\&.g track grid current configure -mapx samples -mapy currentY -color darkorange
+\&.g track grid current off
+\&.g track grid voltage cget -mapx
+.fi
+.RE
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+operation
+Local grid operation\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBidentify\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
+.RS 4n
+\fBidentify\fP \fIcoordinate\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+coordinate
+Widget pixel coordinate along the track layout direction\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
+.PP
+.RS -4n
+\fBinvtransform\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Maps physical widget coordinates back to data using the selected shared X and local Y axes\&.
+.RS 4n
+\fBinvtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBlegend\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Operates on the named track's local legend\&. See \fI::rbc::LEGEND\fP for configure, cget, bbox, get,
+activate, deactivate and bind\&.
+.RS 4n
+\fBlegend\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+operation
+Local legend operation\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBnames\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns track names in layout order: top to bottom, or left to right when inverted\&.
+.RS 4n
+\fBnames\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns track names in layout order: top to bottom, or left to right when inverted\&.
+.PP
+.RS -4n
+\fBorder\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
+.RS 4n
+\fBorder\fP \fI?nameList?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
+.PP
+.RS -4n
+\fBsashpos\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns or moves the separator after the named track\&. Its coordinate is physical Y normally, physical X when
+inverted\&. The last track has no separator\&.
+.RS 4n
+\fBsashpos\fP \fIname ?coordinate?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns or moves the separator after the named track\&. Its coordinate is physical Y normally, physical X when
+inverted\&. The last track has no separator\&.
+.PP
+.RS -4n
+\fBseparator\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Returns the track before the separator gap at physical widget coordinates, or an empty string\&.
+.RS 4n
+\fBseparator\fP \fIx y\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track before the separator gap at physical widget coordinates, or an empty string\&.
+.PP
+.RS -4n
+\fBtransform\fR (::rbc::TRACKGRAPH)
+.RE
+.PP
+Maps data coordinates through the shared X axis and local Y axis into physical widget coordinates\&. Defaults to
+axis x and the first owned Y axis\&.
+.RS 4n
+\fBtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+
+
+.SH SEE ALSO
+rbc(n) - package's main page
+.br
+rbc-tcltk9upgrade(n) - list of upgrades comparing to Tcl/Tk8 RBC package
+.br
+.sp 1
+Public commands and classes documentation:
+.br
+rbc-rbc(n)
+.br
+rbc-rbc-graphtoolbar(n)
+.br
+rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
+.br
+rbc-rbc-axis(n)
+.br
+rbc-rbc-marginaxis(n)
+.br
+rbc-rbc-element(n)
+.br
+rbc-rbc-lineelement(n)
+.br
+rbc-rbc-stripelement(n)
+.br
+rbc-rbc-polarelement(n)
+.br
+rbc-rbc-barelement(n)
+.br
+rbc-rbc-pen(n)
+.br
+rbc-rbc-marker(n)
+.br
+rbc-rbc-legend(n)
+.br
+rbc-rbc-grid(n)
+.br
+rbc-rbc-crosshairs(n)
+.br
+rbc-rbc-postscript(n)
+.br
+rbc-rbc-svg(n)
+.br
+rbc-rbc-pdf(n)
+.br
+rbc-rbc-vector(n)
+.br
+rbc-rbc-vecinst(n)
+.br
+rbc-rbc-spline(n)
+.br
+rbc-rbc-winop(n)
+.br
+rbc-rbc-winopimage(n)

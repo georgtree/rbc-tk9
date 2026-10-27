@@ -122,6 +122,23 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
      GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+/* Track grids use the Cartesian options only. */
+static const Tk_OptionSpec trackGridOptionSpecs[] = {
+    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
+     DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
+     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
+     GRID_REDRAW},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
+
 /* Polar grids share graph options, but are visible by default. */
 static const Tk_OptionSpec polarGridOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
@@ -773,6 +790,15 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
             return TCL_ERROR;
         }
     }
+    if ((mask & GRID_AXES_CHANGED) && gridPtr->track != NULL &&
+        ((newXAxis != NULL && newXAxis->track != NULL) ||
+         (newYAxis != NULL && newYAxis->track != gridPtr->track))) {
+        Tcl_SetObjResult(graphPtr->interp,
+                        Tcl_NewStringObj("grid axes must be a shared X axis and a Y axis owned by the track", -1));
+        Rbc_FreeAxisReference(graphPtr, newXAxis);
+        Rbc_FreeAxisReference(graphPtr, newYAxis);
+        return TCL_ERROR;
+    }
     if (mask & GRID_POLAR_CHANGED) {
         if (ValidateGridCommandPrefix(graphPtr->interp, gridPtr->angleCommandObjPtr) != TCL_OK ||
             ValidateGridCommandPrefix(graphPtr->interp, gridPtr->smithRealCommandObjPtr) != TCL_OK ||
@@ -877,43 +903,100 @@ void Rbc_MapGrid(Graph *graphPtr) {
         }
         return;
     }
+    if (graphPtr->trackGraph) {
+        RbcTrack *track;
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            Grid *local = track->grid != NULL ? track->grid : gridPtr;
+            Axis *yAxis = track->grid != NULL ? local->axes.y :
+                (gridPtr->axes.y != NULL && track->nAxes > 0 ? track->axes[0] : NULL);
+            RbcTrackViewport saved;
+            if (track->gridX.segments != NULL) {ckfree(track->gridX.segments);}
+            if (track->gridY.segments != NULL) {ckfree(track->gridY.segments);}
+            memset(&track->gridX, 0, sizeof(track->gridX));
+            memset(&track->gridY, 0, sizeof(track->gridY));
+            if (track->right - track->left <= 1 || track->bottom - track->top <= 1) {continue;}
+            Rbc_EnterTrack(graphPtr, track, &saved);
+            Rbc_GetAxisSegments(graphPtr, local->axes.x, local->minorGrid,
+                                &track->gridX.segments, &track->gridX.nSegments);
+            Rbc_GetAxisSegments(graphPtr, yAxis, local->minorGrid,
+                                &track->gridY.segments, &track->gridY.nSegments);
+            Rbc_LeaveTrack(graphPtr, &saved);
+        }
+        return;
+    }
     /*
      * Generate line segments to represent the grid.  Line segments
      * are calculated from the major tick intervals of each axis mapped.
      */
-    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.x, &segments, &nSegments);
+    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.x, gridPtr->minorGrid, &segments, &nSegments);
     if (nSegments > 0) {
         gridPtr->x.nSegments = nSegments;
         gridPtr->x.segments = segments;
     }
-    if (graphPtr->trackGraph && gridPtr->axes.y != NULL) {
-        RbcTrack *track;
-        for (track = graphPtr->tracks; track != NULL; track = track->next) {
-            if (track->nAxes == 0 || track->right - track->left <= 1 || track->bottom - track->top <= 1) {
-                continue;
-            }
-            Rbc_GetAxisSegments(graphPtr, track->axes[0], &segments, &nSegments);
-            if (nSegments > 0) {
-                Tcl_Size total;
-                if (nSegments > TCL_SIZE_MAX - gridPtr->y.nSegments ||
-                    (Tcl_WideUInt)(gridPtr->y.nSegments + nSegments) >
-                        (Tcl_WideUInt)(SIZE_MAX / sizeof(*segments))) {
-                    ckfree(segments);
-                    continue;
+    Rbc_GetAxisSegments(graphPtr, gridPtr->axes.y, gridPtr->minorGrid, &segments, &nSegments);
+    if (nSegments > 0) {
+        gridPtr->y.nSegments = nSegments;
+        gridPtr->y.segments = segments;
+    }
+}
+
+/* Draw each track with its effective grid and its own plotting-area clip. */
+static void DrawTrackGrids(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
+    RbcTrack *track;
+    Pixmap scratch = None;
+    GC copyGC = NULL;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        Grid *gridPtr = track->grid != NULL ? track->grid : graphPtr->gridPtr;
+        Rbc_RenderContext *ctx;
+        RbcTrackViewport saved;
+        if (gridPtr->hidden || track->right - track->left <= 1 || track->bottom - track->top <= 1) {continue;}
+        Rbc_EnterTrack(graphPtr, track, &saved);
+        if (exportPtr != NULL) {
+            ctx = Rbc_RenderBeginExport(exportPtr, gridPtr->colorPtr, gridPtr->lineWidth,
+                                       &gridPtr->dashes, CapButt, JoinMiter);
+            Rbc_RenderClipBegin(ctx, track->left, track->top,
+                                track->right-track->left+1, track->bottom-track->top+1);
+        } else {
+            ctx = Rbc_RenderBegin(graphPtr, drawable, gridPtr->colorPtr, MAX(1, gridPtr->lineWidth),
+                                  &gridPtr->dashes, NULL);
+        }
+        if (ctx != NULL) {
+            Rbc_RenderSegments(ctx, track->gridX.segments, track->gridX.nSegments);
+            Rbc_RenderSegments(ctx, track->gridY.segments, track->gridY.nSegments);
+            if (exportPtr != NULL) {Rbc_RenderClipEnd(ctx);}
+            Rbc_RenderEnd(ctx);
+        } else {
+            int left = MAX(0, track->left);
+            int top = MAX(0, track->top);
+            int width = MIN(graphPtr->width - 1, track->right) - left + 1;
+            int height = MIN(graphPtr->height - 1, track->bottom) - top + 1;
+            /*
+             * The Windows segment emulation does not honor GC clip regions.
+             * As with track markers, copy only the track rectangle back from
+             * a reusable scratch pixmap. This clips the whole stroke, not just
+             * its centerline, without changing the grid's dash coordinates.
+             */
+            if (width > 0 && height > 0) {
+                if (scratch == None) {
+                    XGCValues values;
+                    scratch = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height,
+                                           Tk_Depth(graphPtr->tkwin));
+                    values.graphics_exposures = False;
+                    copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
                 }
-                total = gridPtr->y.nSegments + nSegments;
-                gridPtr->y.segments = ckrealloc(gridPtr->y.segments, total * sizeof(*segments));
-                memcpy(gridPtr->y.segments + gridPtr->y.nSegments, segments, nSegments * sizeof(*segments));
-                gridPtr->y.nSegments = total;
-                ckfree(segments);
+                XCopyArea(graphPtr->display, drawable, scratch, copyGC, left, top, width, height, left, top);
+                Rbc_Draw2DSegments(graphPtr->display, scratch, gridPtr->gc,
+                                   track->gridX.segments, track->gridX.nSegments);
+                Rbc_Draw2DSegments(graphPtr->display, scratch, gridPtr->gc,
+                                   track->gridY.segments, track->gridY.nSegments);
+                XCopyArea(graphPtr->display, scratch, drawable, copyGC, left, top, width, height, left, top);
             }
         }
-    } else {
-        Rbc_GetAxisSegments(graphPtr, gridPtr->axes.y, &segments, &nSegments);
-        if (nSegments > 0) {
-            gridPtr->y.nSegments = nSegments;
-            gridPtr->y.segments = segments;
-        }
+        Rbc_LeaveTrack(graphPtr, &saved);
+    }
+    if (scratch != None) {
+        Tk_FreePixmap(graphPtr->display, scratch);
+        Tk_FreeGC(graphPtr->display, copyGC);
     }
 }
 
@@ -940,6 +1023,10 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Rbc_RenderContext *ctx;
 
+    if (graphPtr->trackGraph) {
+        DrawTrackGrids(graphPtr, drawable, NULL);
+        return;
+    }
     if (gridPtr->hidden) {
         return;
     }
@@ -981,6 +1068,10 @@ void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Rbc_RenderContext *ctx;
 
+    if (graphPtr->trackGraph) {
+        DrawTrackGrids(graphPtr, None, exportPtr);
+        return;
+    }
     if (gridPtr->hidden) {
         return;
     }
@@ -1009,18 +1100,10 @@ void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_DestroyGrid(Graph *graphPtr) {
-    Grid *gridPtr;
-
-    gridPtr = (Grid *)graphPtr->gridPtr;
+static void DestroyGrid(Graph *graphPtr, Grid *gridPtr) {
     if (gridPtr == NULL) {
         return;
     }
-    /*
-     * Prevent accidental re-entry and tell DestroyGraph that this
-     * component has already been released.
-     */
-    graphPtr->gridPtr = NULL;
     Rbc_FreeAxisReference(graphPtr, gridPtr->axes.x);
     Rbc_FreeAxisReference(graphPtr, gridPtr->axes.y);
     gridPtr->axes.x = NULL;
@@ -1057,6 +1140,26 @@ void Rbc_DestroyGrid(Graph *graphPtr) {
         ckfree(gridPtr->smithImagMinorTicks);
     }
     ckfree((char *)gridPtr);
+}
+
+/* Release local option resources before the graph window disappears. */
+void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track) {
+    DestroyGrid(graphPtr, track->grid);
+    track->grid = NULL;
+    if (track->gridX.segments != NULL) {ckfree(track->gridX.segments);}
+    if (track->gridY.segments != NULL) {ckfree(track->gridY.segments);}
+    memset(&track->gridX, 0, sizeof(track->gridX));
+    memset(&track->gridY, 0, sizeof(track->gridY));
+}
+
+void Rbc_DestroyGrid(Graph *graphPtr) {
+    RbcTrack *track;
+    Grid *gridPtr = graphPtr->gridPtr;
+    graphPtr->gridPtr = NULL;
+    for (track = graphPtr->tracks; track != NULL; track = track->next) {
+        Rbc_DestroyTrackGrid(graphPtr, track);
+    }
+    DestroyGrid(graphPtr, gridPtr);
 }
 
 /*
@@ -1361,4 +1464,85 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
         return TCL_ERROR;
     }
     return gridOps[index].proc(graphPtr, interp, objc, objv);
+}
+
+/*
+ * Rbc_TrackGridOp --
+ *
+ *      Query the effective Cartesian grid, or detach it from the graph defaults
+ *      on the first successful mutation. Failed changes leave inheritance intact.
+ *      Temporary graph selection lets the ordinary transactional grid operations
+ *      share their implementation; none of these operations evaluates Tcl scripts.
+ */
+int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp,
+                    Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Grid *global = graphPtr->gridPtr;
+    Grid view, *local = track->grid;
+    Tcl_Obj **args, *prefix, *mapY;
+    Tcl_Size count = objc - 2, i;
+    int index, code, query;
+    if (objc < 5) {
+        Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
+        return TCL_ERROR;
+    }
+    args = ckalloc(sizeof(*args) * (size_t)count);
+    prefix = Tcl_NewListObj(3, objv + 1);
+    Tcl_IncrRefCount(prefix);
+    args[0] = objv[0];
+    args[1] = prefix;
+    for (i = 2; i < count; i++) {args[i] = objv[i+2];}
+    code = Rbc_GetOpIndexFromObj(interp, gridOps, sizeof(gridOps[0]), RBC_OP_ARG2, count, args, &index);
+    if (code != TCL_OK) {goto done;}
+    query = gridOps[index].proc == CgetOp || (gridOps[index].proc == ConfigureOp && count <= 4);
+    /* Queries must not materialize a local grid or freeze inherited defaults. */
+    view = *global;
+    view.optionTable = Tk_CreateOptionTable(interp, trackGridOptionSpecs);
+    view.axes.y = global->axes.y != NULL && track->nAxes > 0 ? track->axes[0] : NULL;
+    mapY = Tcl_NewStringObj(view.axes.y != NULL ? view.axes.y->name : "", -1);
+    Tcl_IncrRefCount(mapY);
+    view.mapYObjPtr = mapY;
+    if (local == NULL && !query) {
+        Tcl_Obj *values[14];
+        Tk_SavedOptions saved;
+        int mask;
+        local = RbcCalloc(1, sizeof(*local));
+        local->graphPtr = graphPtr;
+        local->track = track;
+        local->optionTable = view.optionTable;
+        code = Tk_InitOptions(interp, (char *)local, local->optionTable, graphPtr->tkwin);
+        if (code == TCL_OK) {
+            for (i = 0; i < 7; i++) {
+                values[i*2] = Tcl_NewStringObj(trackGridOptionSpecs[i].optionName, -1);
+                Tcl_IncrRefCount(values[i*2]);
+                values[i*2+1] = Tk_GetOptionValue(interp, (char *)&view, view.optionTable,
+                                                 values[i*2], graphPtr->tkwin);
+                Tcl_IncrRefCount(values[i*2+1]);
+            }
+            code = Tk_SetOptions(interp, (char *)local, local->optionTable, 14, values,
+                                  graphPtr->tkwin, &saved, &mask);
+            if (code == TCL_OK) {
+                code = ConfigureGrid(graphPtr, local, GRID_GC_CHANGED | GRID_AXES_CHANGED);
+                if (code == TCL_OK) {Tk_FreeSavedOptions(&saved);}
+                else {Tk_RestoreSavedOptions(&saved);}
+            }
+            for (i = 0; i < 14; i++) {Tcl_DecrRefCount(values[i]);}
+        }
+        if (code != TCL_OK) {
+            DestroyGrid(graphPtr, local);
+            Tcl_DecrRefCount(mapY);
+            goto done;
+        }
+    }
+    graphPtr->gridPtr = local != NULL ? local : &view;
+    code = gridOps[index].proc(graphPtr, interp, count, args);
+    graphPtr->gridPtr = global;
+    if (track->grid == NULL && local != NULL) {
+        if (code == TCL_OK) {track->grid = local;}
+        else {DestroyGrid(graphPtr, local);}
+    }
+    Tcl_DecrRefCount(mapY);
+done:
+    Tcl_DecrRefCount(prefix);
+    ckfree(args);
+    return code;
 }

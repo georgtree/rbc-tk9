@@ -3122,6 +3122,7 @@ static void SyncTrackAxes(Graph *graphPtr) {
 
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
+    Rbc_DestroyTrackGrid(graphPtr, track);
     Rbc_DestroyTrackLegend(graphPtr, track);
     for (i = 0; i < track->nAxes; i++) {
         track->axes[i]->track = NULL;
@@ -3237,6 +3238,10 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
         }
         for (i = 0; i < track->nAxes; i++) {
             for (j = 0; j < nAxes && axes[j] != track->axes[i]; j++) {}
+            if (j == nAxes && track->grid != NULL && track->grid->axes.y == track->axes[i]) {
+                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track grid", -1));
+                goto error;
+            }
             if (j == nAxes && Rbc_MarkersUseTrack(graphPtr, track, track->axes[i])) {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track marker", -1));
                 goto error;
@@ -3400,8 +3405,8 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
 }
 
 static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", "legend", NULL};
-    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR, TRACK_OP_LEGEND};
+    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", "legend", "grid", NULL};
+    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR, TRACK_OP_LEGEND, TRACK_OP_GRID};
     RbcTrack *track, **slot;
     int operation;
     Tcl_Obj *result;
@@ -3505,6 +3510,9 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     if (track == NULL) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_GRID) {
+        return Rbc_TrackGridOp(graphPtr, track, interp, objc, objv);
     }
     if (operation == TRACK_OP_LEGEND) {
         return Rbc_TrackLegendOp(graphPtr, track, interp, objc, objv);
@@ -3990,7 +3998,7 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
                    graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
     Rbc_DrawTrackSeparators(graphPtr, drawable, NULL);
     /* Draw the elements, markers, legend, and axis limits. */
-    if (!graphPtr->gridPtr->hidden) {
+    if (graphPtr->trackGraph || !graphPtr->gridPtr->hidden) {
         Rbc_DrawGrid(graphPtr, drawable);
     }
     if (graphPtr->classUid == rbcPolarElementUid) {

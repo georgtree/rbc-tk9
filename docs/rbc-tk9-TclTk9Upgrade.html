@@ -56,7 +56,7 @@ Tracks share the horizontal plot bounds and X axes, with independent Y axes, cli
 Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
 layout. Line, polygon, arc, text, bitmap and image markers can select a row with <code class="docutils literal notranslate"><span class="pre">-track</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>,
 with clipped drawing, picking and exports. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> for the track API, <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for
-track annotations, and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code> for a working example. <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">order</span></code> rearranges existing
+track annotations, and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for a working example. <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">order</span></code> rearranges existing
 rows; <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">sashpos</span></code> redistributes adjacent heights. Enable <code class="docutils literal notranslate"><span class="pre">-trackresize</span> <span class="pre">yes</span></code> for mouse dragging of the
 separators, with Escape cancellation, without requiring graphtoolbar. The optional toolbar now supports
 <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: rectangle zoom and pan affect shared X axes and the starting row’s Y axes, wheel zoom
@@ -68,8 +68,13 @@ local legends can coexist. Graphtoolbar active-legend controls work with both.
 <code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">yes</span></code> arranges tracks left to right with shared vertical X axes and local horizontal Y axes.
 Weights and <code class="docutils literal notranslate"><span class="pre">-minheight</span></code> divide the available width; separator dragging becomes horizontal. Marker and
 legend clipping, picking, toolbar navigation and all exports follow the rotated layout. The merged
-<code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code> demonstrates both legend types, line/strip elements, markers and orientation switching;
-the separate <code class="docutils literal notranslate"><span class="pre">trackgraph1.tcl</span></code> demo is retired.</p>
+<code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> demonstrates both legend types, line/strip elements, markers and orientation switching;
+the example also selects independent grids from its Time and Samples X axes.</p>
+<p>Each track can select its own grid axes and style with <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3agrid"><span class="std std-ref">::rbc::TRACKGRAPH::grid</span></a>, for example
+<code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">track</span> <span class="pre">grid</span> <span class="pre">current</span> <span class="pre">configure</span> <span class="pre">-mapx</span> <span class="pre">samples</span> <span class="pre">-mapy</span> <span class="pre">currentY</span> <span class="pre">-hide</span> <span class="pre">no</span></code>. Unconfigured tracks inherit the
+graph-wide grid; the first successful local change copies the current settings and makes that track
+independent. Grid queries preserve inheritance. Local grids follow inversion, stay clipped to their
+tracks, and are included by all exporters.</p>
 </section>
 <section id="track-xor-markers-dividers-and-decimation">
 <span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>

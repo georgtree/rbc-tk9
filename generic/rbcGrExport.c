@@ -134,7 +134,7 @@ int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
         Rbc_DrawTrackSeparators(graphPtr, None, exportPtr);
     }
     /* Draw the grid, elements, and markers in the plotting area. */
-    if (!graphPtr->gridPtr->hidden) {
+    if (graphPtr->trackGraph || !graphPtr->gridPtr->hidden) {
         Rbc_GridExport(graphPtr, exportPtr);
     }
     if (graphPtr->classUid == rbcPolarElementUid) {

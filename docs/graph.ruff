@@ -1257,9 +1257,10 @@ namespace eval ::rbc::TRACKGRAPH {
 
         The common left margin accommodates the widest set of track Y axes, including titles and tick labels. X axes
         remain widget-wide: elements select them with `-mapx`, and ordinary `xaxis use` and `x2axis use` control their
-        display. Independent X axes need not have matching tick positions; `grid -mapx` selects the shared vertical
-        grid. When `grid -mapy` is nonempty, each track uses its first Y axis for its horizontal grid. Set it to an
-        empty string to disable horizontal grid lines.
+        display. Independent X axes need not have matching tick positions. By default, tracks inherit the graph's
+        [::rbc::GRID] settings: `grid -mapx` selects the shared X axis, and a nonempty `grid -mapy` enables grid lines
+        from each track's first Y axis. An empty axis selection disables that direction. See [grid] for independent
+        grid settings within each track.
 
         | Track option | Default | Meaning |
         |--------------|---------|---------|
@@ -1271,8 +1272,8 @@ namespace eval ::rbc::TRACKGRAPH {
         Elements must specify both `-track` and a `-mapy` axis belonging to that track. Change both options in one
         `element configure` call to move an element. An axis in use by an element cannot be detached, and an axis owned
         by a track cannot be deleted until detached. These ownership checks include markers, even hidden markers or
-        markers with empty coordinates. Hiding an axis hides its decorations, not its track.  Lists and RBC vectors
-        retain their ordinary ownership and notification behaviour.
+        markers with empty coordinates, and Y axes selected by independently configured track grids. Hiding an axis
+        hides its decorations, not its track. Lists and RBC vectors retain their ordinary ownership and notification behaviour.
 
         Track transforms default to shared axis `x` and the track's first Y axis. Use `-mapx` or `-mapy` to select
         alternatives. Ordinary graph-level `transform` and `invtransform` are ambiguous in a trackgraph and report
@@ -1314,7 +1315,7 @@ namespace eval ::rbc::TRACKGRAPH {
         separator`, `track transform` and `track invtransform` always use physical widget X/Y coordinates. Axis names
         and data X/Y values retain their meaning. Markers, picking, local legends and exports follow the column
         rectangle. Legend positions and anchors remain physical directions: `right` is still the right edge. Global and
-        local legends can be shown together, as in `demos/trackgraph2.tcl`. Toolbar navigation works in either
+        local legends can be shown together, as in `demos/trackgraph1.tcl`. Toolbar navigation works in either
         orientation; changing orientation during a gesture cancels it.
 
         ### Reordering and resizing tracks
@@ -1369,9 +1370,9 @@ namespace eval ::rbc::TRACKGRAPH {
         Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. Track
         scrolling is not yet provided. The optional `rbc::graphtoolbar` package accepts `-type trackgraph`: zoom and
         pan use shared X axes and the starting track's Y axes; wheel zoom and coordinate annotations follow the pointed
-        track. Separator dragging remains available. See [::rbc::graphtoolbar] and `demos/trackgraph2.tcl` for the
+        track. Separator dragging remains available. See [::rbc::graphtoolbar] and `demos/trackgraph1.tcl` for the
         interaction controls.  Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for
-        clipping, ownership and restrictions. See `demos/trackgraph2.tcl` for multiple shared X axes, live vector
+        clipping, ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector
         updates, track weights, annotations and shared horizontal navigation.
 
     }
@@ -1457,6 +1458,40 @@ namespace eval ::rbc::TRACKGRAPH {
         # y - Y coordinate.
         # args - Optional arguments shown in the synopsis.
         # Synopsis: name x y ?-mapx axis? ?-mapy axis?
+    }
+
+    proc grid {name operation args} {
+        # Queries or configures the named track's grid. Supports the [::rbc::GRID] operations `configure`, `cget`,
+        # `on`, `off` and `toggle`, with Cartesian options `-color`, `-dashes`, `-hide`, `-linewidth`, `-mapx`,
+        # `-mapy` and `-minor`.
+        #
+        # Until its first successful configuration or visibility change, a track inherits the graph-wide grid.
+        # Queries do not change inheritance. The first mutation copies the current effective settings, then applies
+        # the requested changes. Later graph-wide grid changes do not affect that track. Failed changes preserve
+        # both the previous settings and inheritance. Deleting and recreating the track restores inheritance.
+        #
+        # `-mapx` selects an existing shared X axis; `-mapy` selects an existing Y axis owned by this track, including
+        # any of its additional Y axes. An empty string disables that direction. Inherited `-mapy` reports the
+        # first owned Y axis, or empty when the graph disables Y grid lines or the track owns no Y axes.
+        # A selected local Y axis cannot be detached until the grid is remapped or that direction is disabled.
+        #
+        # Lines are clipped to the owning track and follow resizing, reordering, axis range changes and inversion.
+        # X lines are vertical normally and horizontal when inverted; Y lines rotate correspondingly. Native,
+        # Cairo, SVG, PDF and PostScript output use the same local configuration. A local visible grid is drawn
+        # even when the graph-wide grid is hidden.
+        #
+        # ```tcl
+        # .g grid configure -hide no -minor no
+        # .g track grid voltage configure -mapx x -mapy voltageY -color steelblue
+        # .g track grid current configure -mapx samples -mapy currentY -color darkorange
+        # .g track grid current off
+        # .g track grid voltage cget -mapx
+        # ```
+        #
+        # name - Track name.
+        # operation - Local grid operation.
+        # args - Optional arguments shown in the synopsis.
+        # Synopsis: name operation ?args ...?
     }
 
     proc legend {name operation args} {

@@ -299,6 +299,8 @@ rbc - Commands in namespace rbc
 .br
 \fBTRACKGRAPH delete\fP \fIname\fP
 .br
+\fBTRACKGRAPH grid\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
 \fBTRACKGRAPH identify\fP \fIcoordinate\fP
 .br
 \fBTRACKGRAPH invtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
@@ -3738,6 +3740,9 @@ Creates a uniquely named track and returns its name\&. Options are -yaxes, -weig
 \fIdelete\fP
 Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
 .TP
+\fIgrid\fP
+Queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP operations configure, cget, on, off and toggle, with Cartesian options -color, -dashes, -hide, -linewidth, -mapx, -mapy and -minor\&.
+.TP
 \fIidentify\fP
 Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
 .TP
@@ -3892,6 +3897,66 @@ Deletes an empty track, retaining its axes\&. Move or delete its elements and ma
 .TP
 name
 Track name\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH grid\fR (::rbc)
+.RE
+.PP
+Queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP operations configure, cget,
+on, off and toggle, with Cartesian options -color, -dashes, -hide, -linewidth, -mapx,
+-mapy and -minor\&.
+.RS 4n
+\fBTRACKGRAPH grid\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Not documented\&.
+.TP
+operation
+Not documented\&.
+.RE
+.PP
+\fBDescription\fR
+.PP
+Until its first successful configuration or visibility change, a track inherits the graph-wide grid\&.
+Queries do not change inheritance\&. The first mutation copies the current effective settings, then applies
+the requested changes\&. Later graph-wide grid changes do not affect that track\&. Failed changes preserve
+both the previous settings and inheritance\&. Deleting and recreating the track restores inheritance\&.
+.PP
+-mapx selects an existing shared X axis; -mapy selects an existing Y axis owned by this track, including
+any of its additional Y axes\&. An empty string disables that direction\&. Inherited -mapy reports the
+first owned Y axis, or empty when the graph disables Y grid lines or the track owns no Y axes\&.
+A selected local Y axis cannot be detached until the grid is remapped or that direction is disabled\&.
+.PP
+Lines are clipped to the owning track and follow resizing, reordering, axis range changes and inversion\&.
+X lines are vertical normally and horizontal when inverted; Y lines rotate correspondingly\&. Native,
+Cairo, SVG, PDF and PostScript output use the same local configuration\&. A local visible grid is drawn
+even when the graph-wide grid is hidden\&.
+.PP
+.RS 4n
+.nf
+\&.g grid configure -hide no -minor no
+\&.g track grid voltage configure -mapx x -mapy voltageY -color steelblue
+\&.g track grid current configure -mapx samples -mapy currentY -color darkorange
+\&.g track grid current off
+\&.g track grid voltage cget -mapx
+.fi
+.RE
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+operation
+Local grid operation\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
 .RE
 .PP
 .RS -4n
