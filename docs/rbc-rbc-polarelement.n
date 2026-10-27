@@ -692,6 +692,8 @@ rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
 .br
+rbc-rbc-trackgraph(n)
+.br
 rbc-rbc-axis(n)
 .br
 rbc-rbc-marginaxis(n)

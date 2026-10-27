@@ -27,10 +27,10 @@ set commonNroff [list -title $title -sortnamespaces false -preamble $startPage -
                          -product rbc -diagrammer "ditaa --border-width 1" -version $packageVersion\
                          -copyright "George Yashin" {*}$::argv]
 
-set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::graphtoolbar ::rbc::GRAPHINST ::rbc::AXIS ::rbc::MARGINAXIS\
-                        ::rbc::ELEMENT ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::POLARELEMENT ::rbc::BARELEMENT\
-                        ::rbc::PEN ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS ::rbc::POSTSCRIPT\
-                        ::rbc::SVG ::rbc::PDF ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop\
+set namespaces [list ::TclTk9Upgrade ::rbc ::rbc::graphtoolbar ::rbc::GRAPHINST ::rbc::TRACKGRAPH ::rbc::AXIS\
+                        ::rbc::MARGINAXIS ::rbc::ELEMENT ::rbc::LINEELEMENT ::rbc::STRIPELEMENT ::rbc::POLARELEMENT\
+                        ::rbc::BARELEMENT ::rbc::PEN ::rbc::MARKER ::rbc::LEGEND ::rbc::GRID ::rbc::CROSSHAIRS\
+                        ::rbc::POSTSCRIPT ::rbc::SVG ::rbc::PDF ::rbc::vector ::rbc::VECINST ::rbc::spline ::rbc::winop\
                         ::rbc::WINOPIMAGE]
 set namespacesNroff $namespaces
 

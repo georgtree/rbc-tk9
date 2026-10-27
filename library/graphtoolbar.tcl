@@ -82,7 +82,7 @@ namespace eval ::rbc::graphtoolbar {
         ```
 
         ## Stacked-track interaction
-        Select `-type trackgraph` to use the same controls with named tracks. Create tracks and their axes through
+        Select `-type trackgraph` to use the same controls with named tracks; see [::rbc::TRACKGRAPH] for the native API. Create tracks and their axes through
         the embedded graph command, then enable scale toggling for the custom axis names:
 
         ```tcl

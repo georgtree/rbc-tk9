@@ -139,11 +139,15 @@ rbc - Commands in namespace rbc
 .br
 \fBGRAPHINST snap\fP \fIname ?-format format? ?-height height? ?-width width?\fP
 .br
+\fBGRAPHINST strip\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
 \fBGRAPHINST svg\fP \fIcget option\fP
 .br
 \fBGRAPHINST svg\fP \fIconfigure ?option? ?value \&.\&.\&.?\fP
 .br
 \fBGRAPHINST svg\fP \fIoutput ?file? ?option value \&.\&.\&.?\fP
+.br
+\fBGRAPHINST track\fP \fIoperation ?args \&.\&.\&.?\fP
 .br
 \fBGRAPHINST transform\fP \fIx y\fP
 .br
@@ -280,6 +284,36 @@ rbc - Commands in namespace rbc
 \fBSVG configure\fP \fIoption value ?option value \&.\&.\&.?\fP
 .br
 \fBSVG output\fP \fI?fileName? ?option value \&.\&.\&.?\fP
+.br
+\fBTRACKGRAPH\fP \fIsubcommand \&.\&.\&.\fP
+.br
+\fBtrackgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+\fBTRACKGRAPH bbox\fP \fIname\fP
+.br
+\fBTRACKGRAPH cget\fP \fIname option\fP
+.br
+\fBTRACKGRAPH configure\fP \fIname ?option ?value \&.\&.\&.??\fP
+.br
+\fBTRACKGRAPH create\fP \fIname ?option value \&.\&.\&.?\fP
+.br
+\fBTRACKGRAPH delete\fP \fIname\fP
+.br
+\fBTRACKGRAPH identify\fP \fIcoordinate\fP
+.br
+\fBTRACKGRAPH invtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+\fBTRACKGRAPH legend\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+\fBTRACKGRAPH names\fP
+.br
+\fBTRACKGRAPH order\fP \fI?nameList?\fP
+.br
+\fBTRACKGRAPH sashpos\fP \fIname ?coordinate?\fP
+.br
+\fBTRACKGRAPH separator\fP \fIx y\fP
+.br
+\fBTRACKGRAPH transform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
 .br
 \fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
 .br
@@ -1490,8 +1524,14 @@ Performs a PostScript output operation for the graph\&.
 \fIsnap\fP
 Renders a snapshot of the graph\&. By default the snapshot is written to an existing Tk photo image\&. On Windows, snapshots can also be written as Windows Metafile (wmf) or Enhanced Metafile (emf) output\&.
 .TP
+\fIstrip\fP
+Manages strip elements through the ordinary element interface, using the strip element type on creation\&.
+.TP
 \fIsvg\fP
 Performs an SVG output operation\&. See \fI::rbc::SVG\fP for options and export limitations\&.
+.TP
+\fItrack\fP
+Manages named plot regions in a trackgraph\&. See \fI::rbc::TRACKGRAPH\fP for operations and options\&.
 .TP
 \fItransform\fP
 Converts a point from graph coordinates to window coordinates using the graph's primary X and Y axes\&. x and y may be Tcl expressions that evaluate to numeric values\&.
@@ -1894,6 +1934,26 @@ image create photo graphImage
 Nothing\&.
 .PP
 .RS -4n
+\fBGRAPHINST strip\fR (::rbc)
+.RE
+.PP
+Manages strip elements through the ordinary element interface, using the strip element type on creation\&.
+.RS 4n
+\fBGRAPHINST strip\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+operation
+An element operation, such as create, configure or delete\&.
+.TP
+args
+Arguments for the selected operation\&.
+.RE
+.PP
+.RS -4n
 \fBGRAPHINST svg\fR (::rbc)
 .RE
 .PP
@@ -1914,6 +1974,26 @@ Performs an SVG output operation\&. See \fI::rbc::SVG\fP for options and export 
 \fBReturn value\fR
 .PP
 Option information, an SVG XML string, or nothing when writing a file\&.
+.PP
+.RS -4n
+\fBGRAPHINST track\fR (::rbc)
+.RE
+.PP
+Manages named plot regions in a trackgraph\&. See \fI::rbc::TRACKGRAPH\fP for operations and options\&.
+.RS 4n
+\fBGRAPHINST track\fP \fIoperation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+operation
+Create, configure, cget, names, order, sashpos, separator, delete, bbox, identify, transform, invtransform or legend\&.
+.TP
+args
+Arguments for the selected operation\&.
+.RE
 .PP
 .RS -4n
 \fBGRAPHINST transform\fR (::rbc)
@@ -3625,6 +3705,377 @@ Value for the configuration option\&.
 \fBReturn value\fR
 .PP
 SVG XML when no filename is supplied, otherwise nothing\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH\fR (::rbc)
+.RE
+.PP
+A
+command
+ensemble\&.
+.RS 4n
+\fBTRACKGRAPH\fP \fIsubcommand \&.\&.\&.\fP
+.br
+.RE
+.PP
+\fBDescription\fR
+.PP
+The ensemble supports the following subcommands:
+.RS 4n
+.TP
+\fIbbox\fP
+Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.TP
+\fIcget\fP
+Returns the current value of a track option\&.
+.TP
+\fIconfigure\fP
+Configures a track\&. With no options returns its option dictionary; with one option returns its value\&.
+.TP
+\fIcreate\fP
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight and -minheight\&.
+.TP
+\fIdelete\fP
+Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
+.TP
+\fIidentify\fP
+Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
+.TP
+\fIinvtransform\fP
+Maps physical widget coordinates back to data using the selected shared X and local Y axes\&.
+.TP
+\fIlegend\fP
+Operates on the named track's local legend\&. See \fI::rbc::LEGEND\fP for configure, cget, bbox, get, activate, deactivate and bind\&.
+.TP
+\fInames\fP
+Returns track names in layout order: top to bottom, or left to right when inverted\&.
+.TP
+\fIorder\fP
+Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
+.TP
+\fIsashpos\fP
+Returns or moves the separator after the named track\&. Its coordinate is physical Y normally, physical X when inverted\&. The last track has no separator\&.
+.TP
+\fIseparator\fP
+Returns the track before the separator gap at physical widget coordinates, or an empty string\&.
+.TP
+\fItransform\fP
+Maps data coordinates through the shared X axis and local Y axis into physical widget coordinates\&. Defaults to axis x and the first owned Y axis\&.
+.RE
+.PP
+Refer to the documentation of each subcommand for details\&.
+.PP
+.RS -4n
+\fBtrackgraph\fR (::rbc)
+.RE
+.PP
+Creates a graph with named tracks sharing X axes and owning independent Y axes\&. Tracks are stacked rows,
+or side-by-side columns with -invertxy yes\&. Line elements are the default; strip create adds strip
+elements to the same widget\&. See \fI::rbc::TRACKGRAPH\fP for layout and track commands, and \fI::rbc::GRAPHINST\fP
+for common widget options and components\&.
+.RS 4n
+\fBtrackgraph\fP \fIpathName ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+pathName
+Tk pathname of the trackgraph widget\&.
+.TP
+args
+Common graph configuration options, including -invertxy and track separator options\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+The pathname of the new widget\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH bbox\fR (::rbc)
+.RE
+.PP
+Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.RS 4n
+\fBTRACKGRAPH bbox\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH cget\fR (::rbc)
+.RE
+.PP
+Returns the current value of a track option\&.
+.RS 4n
+\fBTRACKGRAPH cget\fP \fIname option\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+option
+Track option name\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the current value of a track option\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH configure\fR (::rbc)
+.RE
+.PP
+Configures a track\&. With no options returns its option dictionary; with one option returns its value\&.
+.RS 4n
+\fBTRACKGRAPH configure\fP \fIname ?option ?value \&.\&.\&.??\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH create\fR (::rbc)
+.RE
+.PP
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight and -minheight\&.
+.RS 4n
+\fBTRACKGRAPH create\fP \fIname ?option value \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH delete\fR (::rbc)
+.RE
+.PP
+Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
+.RS 4n
+\fBTRACKGRAPH delete\fP \fIname\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH identify\fR (::rbc)
+.RE
+.PP
+Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
+.RS 4n
+\fBTRACKGRAPH identify\fP \fIcoordinate\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+coordinate
+Widget pixel coordinate along the track layout direction\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track containing a physical Y coordinate, or X when inverted; returns empty in a gap\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH invtransform\fR (::rbc)
+.RE
+.PP
+Maps physical widget coordinates back to data using the selected shared X and local Y axes\&.
+.RS 4n
+\fBTRACKGRAPH invtransform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH legend\fR (::rbc)
+.RE
+.PP
+Operates on the named track's local legend\&. See \fI::rbc::LEGEND\fP for configure, cget, bbox, get,
+activate, deactivate and bind\&.
+.RS 4n
+\fBTRACKGRAPH legend\fP \fIname operation ?args \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+operation
+Local legend operation\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH names\fR (::rbc)
+.RE
+.PP
+Returns track names in layout order: top to bottom, or left to right when inverted\&.
+.RS 4n
+\fBTRACKGRAPH names\fP
+.br
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns track names in layout order: top to bottom, or left to right when inverted\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH order\fR (::rbc)
+.RE
+.PP
+Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
+.RS 4n
+\fBTRACKGRAPH order\fP \fI?nameList?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH sashpos\fR (::rbc)
+.RE
+.PP
+Returns or moves the separator after the named track\&. Its coordinate is physical Y normally, physical X when
+inverted\&. The last track has no separator\&.
+.RS 4n
+\fBTRACKGRAPH sashpos\fP \fIname ?coordinate?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns or moves the separator after the named track\&. Its coordinate is physical Y normally, physical X when
+inverted\&. The last track has no separator\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH separator\fR (::rbc)
+.RE
+.PP
+Returns the track before the separator gap at physical widget coordinates, or an empty string\&.
+.RS 4n
+\fBTRACKGRAPH separator\fP \fIx y\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the track before the separator gap at physical widget coordinates, or an empty string\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH transform\fR (::rbc)
+.RE
+.PP
+Maps data coordinates through the shared X axis and local Y axis into physical widget coordinates\&. Defaults to
+axis x and the first owned Y axis\&.
+.RS 4n
+\fBTRACKGRAPH transform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
+.TP
+x
+X coordinate\&.
+.TP
+y
+Y coordinate\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
 .PP
 .RS -4n
 \fBVECINST\fR (::rbc)
@@ -5658,6 +6109,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

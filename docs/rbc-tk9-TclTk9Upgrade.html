@@ -49,6 +49,47 @@ is not a goal of this fork. Build instructions and dependency details are in the
 <section id="user-visible-additions">
 <span id="r-tcltk9upgrade-user-visible-additions"></span><span id="r-3a3atcltk9upgradeqzuser2dvisible20additions"></span><h2>User-visible additions<a class="headerlink" href="#user-visible-additions" title="Link to this heading">¶</a></h2>
 <p>This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.</p>
+<section id="stacked-tracks-with-shared-axes">
+<span id="r-tcltk9upgrade-stacked-tracks-with-shared-axes"></span><span id="r-3a3atcltk9upgradeqzstacked20tracks20with20shared20axes"></span><h3>Stacked tracks with shared axes<a class="headerlink" href="#stacked-tracks-with-shared-axes" title="Link to this heading">¶</a></h3>
+<p><span class="xref std std-ref">::rbc::trackgraph</span> places line and strip elements in named, weighted rows inside one native widget.
+Tracks share the horizontal plot bounds and X axes, with independent Y axes, clipping and picking.
+Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
+layout. Line, polygon, arc, text, bitmap and image markers can select a row with <code class="docutils literal notranslate"><span class="pre">-track</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>,
+with clipped drawing, picking and exports. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> for the track API, <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for
+track annotations, and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code> for a working example. <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">order</span></code> rearranges existing
+rows; <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">sashpos</span></code> redistributes adjacent heights. Enable <code class="docutils literal notranslate"><span class="pre">-trackresize</span> <span class="pre">yes</span></code> for mouse dragging of the
+separators, with Escape cancellation, without requiring graphtoolbar. The optional toolbar now supports
+<code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: rectangle zoom and pan affect shared X axes and the starting row’s Y axes, wheel zoom
+follows the pointed row, and coordinate/closest-point annotations stay clipped to their track. Navigation
+history follows axis names across reordering. Both toolbar and context-menu controls work with the global
+legend and individual axis scale toggles. Each track can also show a local legend with
+<code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">legend</span> <span class="pre">name</span> <span class="pre">configure</span> <span class="pre">-hide</span> <span class="pre">no</span></code>. Its entries, bindings and clipping belong to the row; global and
+local legends can coexist. Graphtoolbar active-legend controls work with both.
+<code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">yes</span></code> arranges tracks left to right with shared vertical X axes and local horizontal Y axes.
+Weights and <code class="docutils literal notranslate"><span class="pre">-minheight</span></code> divide the available width; separator dragging becomes horizontal. Marker and
+legend clipping, picking, toolbar navigation and all exports follow the rotated layout. The merged
+<code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code> demonstrates both legend types, line/strip elements, markers and orientation switching;
+the separate <code class="docutils literal notranslate"><span class="pre">trackgraph1.tcl</span></code> demo is retired.</p>
+</section>
+<section id="track-xor-markers-dividers-and-decimation">
+<span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> line, polygon and arc markers now accept <code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">yes</span></code>, using native XOR within the clipped
+redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional
+<code class="docutils literal notranslate"><span class="pre">-trackseparatorcolor</span></code> and <code class="docutils literal notranslate"><span class="pre">-trackseparatorwidth</span></code> graph options draw dividers at the separator centres,
+following rows or inverted columns; the default empty colour keeps them hidden.
+Line/strip <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> uses the shared X span with the existing eligibility rules and full-detail
+exports. The fast strip mapping path now attaches its reduced segments to the drawing pen, fixing dense
+strips disappearing with decimation enabled in both stripcharts and trackgraphs. Regression coverage
+checks visible extrema, vector updates and picking in both orientations.</p>
+</section>
+<section id="window-marker-visibility-and-track-support">
+<span id="r-tcltk9upgrade-window-marker-visibility-and-track-support"></span><span id="r-3a3atcltk9upgradeqzwindow2dmarker20visibility20and20track20support"></span><h3>Window-marker visibility and track support<a class="headerlink" href="#window-marker-visibility-and-track-support" title="Link to this heading">¶</a></h3>
+<p>Window markers now unmap their live child when hidden, emptied, moved completely outside the plot,
+or associated with a hidden element, and remap it when visible again. <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> widgets accept window markers
+with <code class="docutils literal notranslate"><span class="pre">-track</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> in either orientation. They follow track placement and resizing, preserving
+ordinary graph behaviour: partially overlapping children keep their full size and may extend beyond
+the track. There is no internal window clipping container. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a>.</p>
+</section>
 <section id="configurable-logarithmic-bar-baseline">
 <span id="r-tcltk9upgrade-configurable-logarithmic-bar-baseline"></span><span id="r-3a3atcltk9upgradeqzconfigurable20logarithmic20bar20baseline"></span><h3>Configurable logarithmic bar baseline<a class="headerlink" href="#configurable-logarithmic-bar-baseline" title="Link to this heading">¶</a></h3>
 <p>Bar elements honor a positive graph <code class="docutils literal notranslate"><span class="pre">-baseline</span></code> on logarithmic Y axes, including automatic limits,
@@ -864,6 +905,9 @@ relevant rendering code is replaced with an independent backend.</p>
     <ul>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
+<li><a class="reference internal" href="#stacked-tracks-with-shared-axes">Stacked tracks with shared axes</a></li>
+<li><a class="reference internal" href="#track-xor-markers-dividers-and-decimation">Track XOR markers, dividers and decimation</a></li>
+<li><a class="reference internal" href="#window-marker-visibility-and-track-support">Window-marker visibility and track support</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li><a class="reference internal" href="#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li><a class="reference internal" href="#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>

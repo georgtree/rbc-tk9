@@ -95,6 +95,46 @@ alternatively be obtained with:</p>
 </pre></div>
 </div>
 </section>
+<section id="stacked-track-interaction">
+<span id="r-rbc-graphtoolbar-stacked-track-interaction"></span><span id="r-3a3arbc3a3agraphtoolbarqzstacked2dtrack20interaction"></span><h2>Stacked-track interaction<a class="headerlink" href="#stacked-track-interaction" title="Link to this heading">¶</a></h2>
+<p>Select <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code> to use the same controls with named tracks; see <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> for the native API. Create tracks and their axes through
+the embedded graph command, then enable scale toggling for the custom axis names:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
+<span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>trackgraph<span class="w"> </span><span class="o">-</span>interactive<span class="w"> </span><span class="o">-</span>crosshairsmode<span class="w"> </span>current
+<span class="k">set</span><span class="w"> </span>g<span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>create<span class="w"> </span>volts<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">1</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">axis</span><span class="w"> </span>create<span class="w"> </span>amps<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">10</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span>create<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>volts
+<span class="nv">$g</span><span class="w"> </span><span class="nv">track</span><span class="w"> </span>create<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>amps
+<span class="nv">$g</span><span class="w"> </span><span class="nv">line</span><span class="w"> </span>create<span class="w"> </span>v<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>volts<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="k">}</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">strip</span><span class="w"> </span>create<span class="w"> </span>i<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>amps<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">-</span><span class="mi">10</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">10</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>linewidth<span class="w"> </span><span class="mi">2</span>
+<span class="nv">$g</span><span class="w"> </span><span class="nv">configure</span><span class="w"> </span><span class="o">-</span>trackresize<span class="w"> </span>yes
+<span class="nv">.gtb</span><span class="w"> </span>setAxisActiveScale<span class="w"> </span>all
+<span class="nv">pack</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>expand<span class="w"> </span>yes
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Box zoom</strong> changes all used shared X axes and all Y axes owned by the starting track. The selection rectangle and its corner annotations stay inside that track, even when the pointer crosses another row.</p></li>
+<li><p><strong>Pan</strong> changes the shared X axes and the starting track’s Y axes for the whole drag.</p></li>
+<li><p><strong>Wheel zoom</strong> inside a track changes shared X axes and that track’s Y axes. Over an axis it changes only that axis, using the usual axis-targeting rules. Empty tracks permit shared-X wheel zoom and pan; box zoom requires at least one owned Y axis.</p></li>
+<li><p><strong>Previous view</strong> and <strong>Reset view</strong> restore the axes saved by navigation, by name. Reordering tracks does not change their identity. An axis deleted after navigation is skipped during restoration; unrelated rows’ limits are not restored by an entry that did not affect them.</p></li>
+<li><p><strong>Current point</strong> reports shared visible X axes and the pointed track’s visible Y axes. When every owned Y axis is hidden, its first Y axis is used. <strong>Closest point</strong> searches the pointed track’s elements. Text, backgrounds and point markers are clipped to their owning row. Gaps have no coordinate annotation.</p></li>
+<li><p><strong>Active legend</strong> operates on the global legend and any visible track-local legends. <strong>Scale toggling</strong> operates on each enabled axis separately. <code class="docutils literal notranslate"><span class="pre">-interactive</span></code> initially enables scale toggling for <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>; call <code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span> <span class="pre">all</span></code> after creating custom axes, or pass an explicit list of names. Newly created axes are not automatically added to that list.</p></li>
+</ul>
+<p>Separator gaps do not start toolbar navigation. Native separator dragging remains available when
+<code class="docutils literal notranslate"><span class="pre">-trackresize</span> <span class="pre">yes</span></code> is configured. Changing track order, ownership, weights, minimum heights, orientation, or widget size
+during a box selection or pan cancels the gesture on its next motion or release. A cancelled pan restores
+its saved limits. Toolbar and context-menu modes share these behaviors, including <code class="docutils literal notranslate"><span class="pre">-controlmode</span> <span class="pre">both</span></code>.</p>
+<p>Track zoom boxes use clipped redraws, including when <code class="docutils literal notranslate"><span class="pre">-zoomboxopts</span> <span class="pre">{-xor</span> <span class="pre">yes}</span></code> selects native XOR drawing.
+With <code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">yes</span></code>, tracks become columns: shared X navigation is vertical and local Y navigation
+is horizontal. Point selection and separator dragging follow the columns. Window markers retain ordinary
+graph overlap behaviour.</p>
+<p>Show a local legend with <code class="docutils literal notranslate"><span class="pre">$g</span> <span class="pre">track</span> <span class="pre">legend</span> <span class="pre">voltage</span> <span class="pre">configure</span> <span class="pre">-hide</span> <span class="pre">no</span></code>. Active-legend bindings are added
+for tracks created after the toolbar, once graph changes are displayed. Existing nonempty custom local
+bindings are preserved. Box zoom and pan do not start over local legend rectangles, and coordinate
+annotations are suppressed there. Global and local legends remain independently configurable; hide the
+global legend explicitly if only local legends are desired. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-namespaceqz3a3arbc3a3alegend"><span class="std std-ref">::rbc::LEGEND</span></a> and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code>.</p>
+</section>
 <section id="control-surfaces">
 <span id="r-rbc-graphtoolbar-control-surfaces"></span><span id="r-3a3arbc3a3agraphtoolbarqzcontrol20surfaces"></span><h2>Control surfaces<a class="headerlink" href="#control-surfaces" title="Link to this heading">¶</a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">-interactive</span></code> to enable the standard graph interactions with their defaults:</p>
@@ -908,7 +948,7 @@ the embedded graph.</p>
 <dd class="field-even"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>, <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p>
 </dd>
 <dt class="field-odd">-type type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
+<dd class="field-odd"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, or <code class="docutils literal notranslate"><span class="pre">trackgraph</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
 </dd>
 <dt class="field-even">-representation mode<span class="colon">:</span></dt>
 <dd class="field-even"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
@@ -1211,6 +1251,7 @@ Tk pathname of the requested subwidget.</p>
     <ul>
 <li><a class="reference internal" href="#">graphtoolbar</a><ul>
 <li><a class="reference internal" href="#basic-example">Basic example</a></li>
+<li><a class="reference internal" href="#stacked-track-interaction">Stacked-track interaction</a></li>
 <li><a class="reference internal" href="#control-surfaces">Control surfaces</a></li>
 <li><a class="reference internal" href="#zooming-and-navigation">Zooming and navigation</a></li>
 <li><a class="reference internal" href="#wheel-zoom">Wheel zoom</a></li>

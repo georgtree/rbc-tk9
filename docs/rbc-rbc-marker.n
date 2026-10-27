@@ -198,6 +198,10 @@ option valid for one marker type is not necessarily valid for another\&.
 │                      │               │                │ axis must exist and must be an X axis\&. The default is x\&.     │
 │ -mapy axisName       │ mapY          │ MapY           │ Specifies the Y axis used to map marker coordinates\&. The     │
 │                      │               │                │ axis must exist and must be a Y axis\&. The default is y\&.      │
+│ -track name          │ track         │ Track          │ Assigns a marker to a ::rbc::TRACKGRAPH track\&. The -mapy     │
+│                      │               │                │ axis must belong to the same track\&. Default empty            │
+│                      │               │                │ (graph-wide)\&. Window markers use overlap visibility, not     │
+│                      │               │                │ strict track clipping\&.                                       │
 │ -name markerName     │ —             │ —              │ Specifies the marker name\&. During creation, an omitted name  │
 │                      │               │                │ is generated automatically\&. Reconfiguring -name renames the  │
 │                      │               │                │ marker; the new name must be non-empty, must not begin with  │
@@ -213,6 +217,45 @@ option valid for one marker type is not necessarily valid for another\&.
 └──────────────────────┴───────────────┴────────────────┴──────────────────────────────────────────────────────────────┘
 
 .fi
+.SS "MARKERS IN STACKED TRACKS"
+.PP
+In a \fI::rbc::TRACKGRAPH\fP widget, -track name assigns a marker to one track\&. Supply -mapy with an axis owned by that
+track; -mapx selects a shared horizontal axis as usual\&. The default empty -track retains a graph-wide
+marker and requires a Y axis not owned by a track, such as the built-in y axis\&.
+.PP
+.RS 4n
+.nf
+# A threshold in one row, extending across its shared X range\&.
+\&.g marker create line -name threshold -track voltage -mapy voltageY  -coords {-Inf 0\&.5 Inf 0\&.5} -outline red -dashes {4 4}
+# A time interval behind the current trace; +/-Inf follows this row's Y bounds\&.
+\&.g marker create polygon -name interval -track current -mapy currentY  -coords {2 -Inf 3 -Inf 3 Inf 2 Inf} -fill lightyellow -outline {} -under yes
+\&.g marker create text -name note -track voltage -mapy voltageY  -coords {2 0\&.5} -text Threshold -anchor sw
+.fi
+.RE
+.PP
+Painted track markers support line, polygon, arc, text, image and bitmap types\&. Drawing is clipped to the
+track's plotting rectangle, including text/image overhangs, thick strokes and arrowheads, with native and Cairo
+rendering and SVG, PDF and PostScript output\&. Resizing, axis changes and export recalculate their mapping\&.
+Bindings and overlapping-region searches do not select clipped portions outside the row\&. As for ordinary
+markers, find enclosed tests the complete marker geometry rather than only its visible fragment\&.
+.PP
+Change -track and -mapy together to move a marker between rows\&. Remove or move its markers before deleting
+a track or detaching their Y axis\&. Hidden markers and markers with no coordinates still hold this
+association\&. An axis referenced by a graph-wide marker cannot be assigned to a track until those markers are
+removed or remapped to another unowned axis\&. -element controls visibility independently; it does not select a
+track\&. Marker stacking order and -under keep their existing meanings, including when graph-wide and track
+markers are mixed\&.
+.PP
+Window markers accept -track and use the same overlap visibility as ordinary graphs\&. They are real child
+widgets: a partially overlapping window is displayed at its full size and can extend into a gap, another track,
+or the graph margins\&. Only the graph widget's outer boundary clips the live child\&. No clipping containers are
+introduced\&.
+.PP
+Line, polygon and arc track markers accept -xor yes\&. Their native XOR operation is applied within the clipped
+redraw pass, also when the graph renderer is Cairo\&. Unlike graph-wide immediate XOR, track updates are
+displayed on the next redraw (use update idletasks if immediate display is needed)\&. Moving, hiding,
+deleting, resizing or reordering tracks therefore does not rely on erasing old geometry against a changed
+clipping region\&. Exports retain ordinary marker colours rather than XOR compositing\&.
 .SS "BITMAP MARKER OPTIONS"
 .PP
 Bitmap markers display a Tk bitmap\&.
@@ -513,7 +556,20 @@ In addition to the common marker options, text markers support:
 .PP
 Window markers display a Tk window inside the graph\&.
 .PP
-The window must be managed by the graph marker\&.
+The window must be a direct child of the graph and is geometry-managed by the marker\&. Its position
+follows the selected axes, anchor and offsets; its size comes from its requested size or the explicit
+marker dimensions\&. Zooming, resizing or inverting axes does not scale or rotate the child widget\&.
+.PP
+On redraw, the child is unmapped when the marker is hidden, has no coordinates, lies completely outside
+its plot/track, or references a hidden element\&. It is mapped again when visible\&. Partial overlap keeps
+the whole widget visible, including any portion extending beyond the plot/track into margins or other
+tracks\&. Real child windows are not clipped or layered like painted markers; -under does not place a
+live child behind graph drawing\&.
+.PP
+Track windows use -track name -mapy axisName, follow track resizing, reordering and inversion, and retain
+the same child-parent and deletion rules as ordinary window markers\&. Deleting the marker destroys its
+managed child\&. SVG/PDF capture the mapped child as a raster image, without an additional track clip;
+they retain the existing window-capture controls and limitations\&.
 .PP
 .RS 4n
 .nf
@@ -587,6 +643,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

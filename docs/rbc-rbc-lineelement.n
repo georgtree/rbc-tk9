@@ -1034,6 +1034,10 @@ The complete line-element option set is:
 │ -mapx axisName           │ mapX                │ MapX                │ Specifies the X axis used to map the          │
 │                          │                     │                     │ element's X coordinates\&. The axis must exist  │
 │                          │                     │                     │ and must be an X axis\&. The default is x\&.      │
+│ -track name              │ track               │ Track               │ Assigns a line or strip element to a named    │
+│                          │                     │                     │ ::rbc::TRACKGRAPH track\&. The selected -mapy   │
+│                          │                     │                     │ axis must belong to the same track\&. Empty by  │
+│                          │                     │                     │ default; required in trackgraph\&.              │
 │ -mapy axisName           │ mapY                │ MapY                │ Specifies the Y axis used to map the          │
 │                          │                     │                     │ element's Y coordinates\&. The axis must exist  │
 │                          │                     │                     │ and must be a Y axis\&. The default is y\&.       │
@@ -1150,6 +1154,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

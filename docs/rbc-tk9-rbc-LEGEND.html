@@ -58,12 +58,54 @@ drawing attributes of that element.</p>
 </pre></div>
 </div>
 <p><img alt="element_active_points" src="images/legend.svg" /></p>
-<p>The legend is a single component of the graph. Unlike elements, markers, or pens, there are no named legend
-objects.</p>
+<p>Each graph has one global legend. A <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> widget also has an optional local legend for each named track;
+see Track-local legends below.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo. They
 follow <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> and the normal element pen, including dash colors and stipples. Swatch stipples restart at
 the sample origin. Text, backgrounds, and relief borders remain native. The same behavior applies to external
 legend windows.</p>
+<section id="track-local-legends">
+<span id="r-rbc-legend-track-local-legends"></span><span id="r-3a3arbc3a3alegendqztrack2dlocal20legends"></span><h2>Track-local legends<a class="headerlink" href="#track-local-legends" title="Link to this heading">¶</a></h2>
+<p>Each <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> track (row or inverted column) owns a legend addressed through <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">legend</span>
+<span class="pre">trackName</span></code>. It accepts the same <code class="docutils literal notranslate"><span class="pre">configure</span></code>, <code class="docutils literal notranslate"><span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">activate</span></code>, <code class="docutils literal notranslate"><span class="pre">deactivate</span></code>, and <code class="docutils literal notranslate"><span class="pre">bind</span></code> operations as
+the global legend:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>yes
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>legend<span class="w"> </span>voltage<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>right<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span><span class="ow">ne</span><span class="w"> </span><span class="o">-</span>background<span class="w"> </span>white
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>legend<span class="w"> </span>current<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>hide<span class="w"> </span>no<span class="w"> </span><span class="o">-</span>position<span class="w"> </span>top<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span>nw<span class="w"> </span><span class="o">-</span>rows<span class="w"> </span><span class="mi">1</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>legend<span class="w"> </span>voltage<span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>ButtonPress-1<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>legend<span class="w"> </span>voltage<span class="w"> </span>get<span class="w"> </span>current<span class="k">]</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p>Local legends default to <code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code>, <code class="docutils literal notranslate"><span class="pre">-position</span> <span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span> <span class="pre">ne</span></code>, and <code class="docutils literal notranslate"><span class="pre">-raised</span> <span class="pre">yes</span></code>. They use the
+same font, color, symbol, padding, border and row/column options as the global legend. Their option-database
+component is <code class="docutils literal notranslate"><span class="pre">trackLegend</span></code>, class <code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code>. Configure each track legend separately for different styles.</p>
+<p>A local legend contains only its track’s displayed elements with nonempty labels, in element display order.
+<code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> retains an entry so an active legend can show that element again. Moving an element to
+another track moves its entry; deleting the element or clearing its label removes the entry. Empty legends
+occupy no space. Reordering or resizing tracks carries each legend along without replacing its bindings.</p>
+<p>Local <code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts <code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, <code class="docutils literal notranslate"><span class="pre">top</span></code>, or <code class="docutils literal notranslate"><span class="pre">bottom</span></code>, all <strong>inside the track</strong>. With
+<code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code> positions the legend within the entire row. The other positions pin it to the named
+edge; <code class="docutils literal notranslate"><span class="pre">-anchor</span></code> chooses its position along that edge. Margin positions, <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>, and external windows are
+not supported for local legends. The global legend retains all its existing positions and external-window
+behavior. Local legends overlay the plot and do not reserve margins or change shared X alignment.</p>
+<p>Drawing and picking are clipped to the owning row, including when labels are too large to fit. Native and
+Cairo drawing, and SVG/PDF/PostScript output, use the same membership and layout. <code class="docutils literal notranslate"><span class="pre">-raised</span></code> selects drawing
+above or below elements, as for a global plot legend. If global and local legends overlap, the raised one
+receives legend events; at equal <code class="docutils literal notranslate"><span class="pre">-raised</span></code> values the global legend takes precedence.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">legend</span> <span class="pre">trackName</span> <span class="pre">bbox</span></code> returns the visible, clipped rectangle as <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code> in
+graph-window pixels, or an empty list when nothing is visible. Unlike <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">bbox</span></code>, the last two values are
+dimensions, not opposite corners. <code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">&#64;x,y</span></code> uses the same graph-window coordinates and never selects an
+entry outside the row. <code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">current</span></code> refers only to the entry currently picked in that particular legend.</p>
+<p>Local binding tables are scoped: binding <code class="docutils literal notranslate"><span class="pre">all</span></code>, an element name, its class, or one of its tags in one local
+legend does not install that binding in another legend. Local <code class="docutils literal notranslate"><span class="pre">activate</span></code>/<code class="docutils literal notranslate"><span class="pre">deactivate</span></code> patterns select only
+that track’s elements. Label activation and element <code class="docutils literal notranslate"><span class="pre">-labelrelief</span></code> are shared element state, so a label’s
+appearance is consistent when the element is present in both a local and the global legend.</p>
+<p>Global and local legends can coexist; neither is hidden automatically. Deleting an empty track destroys
+its local legend and bindings. <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span> <span class="pre">-type</span> <span class="pre">trackgraph</span> <span class="pre">-activelegend</span></code> supplies its normal state cycle
+for local legends, including tracks created later, and does not start box zoom or pan over their rectangles.
+See <code class="docutils literal notranslate"><span class="pre">demos/trackgraph2.tcl</span></code> for a working example.</p>
+</section>
 <section id="legend-entries">
 <span id="r-rbc-legend-legend-entries"></span><span id="r-3a3arbc3a3alegendqzlegend20entries"></span><h2>Legend entries<a class="headerlink" href="#legend-entries" title="Link to this heading">¶</a></h2>
 <p>Legend entries correspond to graph elements. The element’s <code class="docutils literal notranslate"><span class="pre">-label</span></code> option supplies the text displayed in the
@@ -152,10 +194,10 @@ destroyed, the legend returns to <code class="docutils literal notranslate"><spa
 </div>
 <p><img alt="element_active_points" src="images/legend_layout.svg" /></p>
 <p>A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> leaves that dimension automatic.</p>
-<p>When the legend has a single row, each entry uses its own label width, plus space for its symbol,
-borders and internal padding. For example, <code class="docutils literal notranslate"><span class="pre">-rows</span> <span class="pre">1</span></code> produces a compact horizontal legend.
-Multi-row legends retain equal-width cells based on the widest label. Automatic layout in the top
-and bottom margins uses one row when the combined individual entry widths fit the available width.</p>
+<p>When the legend has a single row, each entry uses its own label width, plus space for its symbol, borders and
+internal padding. For example, <code class="docutils literal notranslate"><span class="pre">-rows</span> <span class="pre">1</span></code> produces a compact horizontal legend. Multi-row legends retain
+equal-width cells based on the widest label. Automatic layout in the top and bottom margins uses one row when
+the combined individual entry widths fit the available width.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-ipadx</span></code> and <code class="docutils literal notranslate"><span class="pre">-ipady</span></code> specify padding inside individual legend entries. <code class="docutils literal notranslate"><span class="pre">-padx</span></code> and <code class="docutils literal notranslate"><span class="pre">-pady</span></code> specify padding
 around the outside of the complete legend.</p>
 <p>Each padding value may contain either one screen distance or two:</p>
@@ -357,6 +399,7 @@ the resource class is <code class="docutils literal notranslate"><span class="pr
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a><ul>
+<li><a class="reference internal" href="#track-local-legends">Track-local legends</a></li>
 <li><a class="reference internal" href="#legend-entries">Legend entries</a></li>
 <li><a class="reference internal" href="#legend-position">Legend position</a></li>
 <li><a class="reference internal" href="#legend-layout">Legend layout</a></li>

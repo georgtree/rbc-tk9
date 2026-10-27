@@ -13,11 +13,11 @@ namespace eval TclTk9Upgrade {
         This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration.
 
         ### Stacked tracks with shared axes
-        `rbc::trackgraph` places line and strip elements in named, weighted rows inside one native widget.
+        [::rbc::trackgraph] places line and strip elements in named, weighted rows inside one native widget.
         Tracks share the horizontal plot bounds and X axes, with independent Y axes, clipping and picking.
         Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
         layout. Line, polygon, arc, text, bitmap and image markers can select a row with `-track` and `-mapy`,
-        with clipped drawing, picking and exports. See [::rbc::GRAPHINST] for the track API, [::rbc::MARKER] for
+        with clipped drawing, picking and exports. See [::rbc::TRACKGRAPH] for the track API, [::rbc::MARKER] for
         track annotations, and `demos/trackgraph2.tcl` for a working example. `track order` rearranges existing
         rows; `track sashpos` redistributes adjacent heights. Enable `-trackresize yes` for mouse dragging of the
         separators, with Escape cancellation, without requiring graphtoolbar. The optional toolbar now supports
@@ -34,7 +34,7 @@ namespace eval TclTk9Upgrade {
         the separate `trackgraph1.tcl` demo is retired.
 
         ### Track XOR markers, dividers and decimation
-        Track-owned line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
+        [::rbc::TRACKGRAPH] line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
         redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional
         `-trackseparatorcolor` and `-trackseparatorwidth` graph options draw dividers at the separator centres,
         following rows or inverted columns; the default empty colour keeps them hidden.
@@ -45,7 +45,7 @@ namespace eval TclTk9Upgrade {
 
         ### Window-marker visibility and track support
         Window markers now unmap their live child when hidden, emptied, moved completely outside the plot,
-        or associated with a hidden element, and remap it when visible again. Trackgraphs accept window markers
+        or associated with a hidden element, and remap it when visible again. [::rbc::TRACKGRAPH] widgets accept window markers
         with `-track` and `-mapy` in either orientation. They follow track placement and resizing, preserving
         ordinary graph behaviour: partially overlapping children keep their full size and may extend beyond
         the track. There is no internal window clipping container. See [::rbc::MARKER].

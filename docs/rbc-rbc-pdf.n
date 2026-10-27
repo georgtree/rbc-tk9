@@ -53,10 +53,11 @@ text validation finish before the destination is opened\&. An I/O failure can st
 .fi
 .PP
 Dimensions are stored as integer pixels, like SVG options\&. The export lays out the graph at those dimensions
-and converts the resulting coordinates to PDF points using the display's horizontal pixels-per-inch value (the scale used by Tk screen distances)\&.
-One PDF point is 1/72 inch\&. Physical distances are therefore subject to Tk's integer-pixel rounding\&. With
-zero dimensions, the current widget size is used, or its requested size before layout\&. The page fits the
-graph; there are no paper-size, printer-margin, landscape or multipage options in this version\&.
+and converts the resulting coordinates to PDF points using the display's horizontal pixels-per-inch value (the
+scale used by Tk screen distances)\&. One PDF point is 1/72 inch\&. Physical distances are therefore subject to
+Tk's integer-pixel rounding\&. With zero dimensions, the current widget size is used, or its requested size
+before layout\&. The page fits the graph; there are no paper-size, printer-margin, landscape or multipage options
+in this version\&.
 .PP
 .RS 4n
 .nf
@@ -78,14 +79,15 @@ geometry rather than screen-decimated traces\&. Solid fill opacity uses PDF tran
 tiling patterns\&. Image tiles and photo markers embed RGB images with soft masks for alpha\&. Resources are
 reused within each document\&. This first version writes uncompressed streams, so image-heavy PDFs can be large\&.
 .PP
-By default, text uses embedded fonts and Unicode mappings for searching and copying\&. Mathematical symbols, Greek letters,
-superscripts and subscripts are supported when an installed font supplies their glyphs\&. Tk 9's per-character
-font actual query supplies the actual family, size and style, including fallback characters; the standard
-Tk font command must be available\&. Character positions, advances, rotation and shadows retain Tk's layout\&.
-Font lookup uses GDI on Windows and Fontconfig on X11, independently of Cairo\&. Core-X11 legacy fonts are
-matched to scalable equivalents; if needed, Fontconfig selects another outline font containing the character\&.
-If a legacy X11 font measures a missing glyph as zero, PDF uses the fallback glyph advance to avoid overlap\&.
-Such substitution, synthesized styles and platform font matching can differ from the exact screen appearance\&.
+By default, text uses embedded fonts and Unicode mappings for searching and copying\&. Mathematical symbols,
+Greek letters, superscripts and subscripts are supported when an installed font supplies their glyphs\&. Tk 9's
+per-character font actual query supplies the actual family, size and style, including fallback characters;
+the standard Tk font command must be available\&. Character positions, advances, rotation and shadows retain
+Tk's layout\&.  Font lookup uses GDI on Windows and Fontconfig on X11, independently of Cairo\&. Core-X11 legacy
+fonts are matched to scalable equivalents; if needed, Fontconfig selects another outline font containing the
+character\&.  If a legacy X11 font measures a missing glyph as zero, PDF uses the fallback glyph advance to avoid
+overlap\&.  Such substitution, synthesized styles and platform font matching can differ from the exact screen
+appearance\&.
 .PP
 TrueType outlines (including OpenType/TrueType and faces in collections) and ordinary name-keyed OpenType/CFF
 fonts are embedded\&. Complete font programs are stored once per document, without subsetting or compression,
@@ -197,6 +199,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

@@ -294,6 +294,10 @@ The complete strip-element option set is:
 │                          │                     │                     │ label\&. The default is flat\&.                   │
 │ -linewidth width         │ lineWidth           │ LineWidth           │ Sets the built-in normal pen's trace width\&.   │
 │                          │                     │                     │ The default is 1; 0 suppresses the trace\&.     │
+│ -track name              │ track               │ Track               │ Assigns the element to a named                │
+│                          │                     │                     │ ::rbc::TRACKGRAPH track\&. The selected -mapy   │
+│                          │                     │                     │ axis must belong to the same track\&. Empty by  │
+│                          │                     │                     │ default; required in trackgraph\&.              │
 │ -mapx axisName           │ mapX                │ MapX                │ Specifies the X axis used to map the          │
 │                          │                     │                     │ element's X coordinates\&. The axis must exist  │
 │                          │                     │                     │ and must be an X axis\&. The default is x\&.      │
@@ -404,6 +408,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

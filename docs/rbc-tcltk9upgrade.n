@@ -12,6 +12,44 @@ is not a goal of this fork\&. Build instructions and dependency details are in t
 .SH "USER-VISIBLE ADDITIONS"
 .PP
 This fork adds plotting, interaction and numerical features alongside the Tcl/Tk 9 API migration\&.
+.SS "STACKED TRACKS WITH SHARED AXES"
+.PP
+\fI::rbc::trackgraph\fP places line and strip elements in named, weighted rows inside one native widget\&.
+Tracks share the horizontal plot bounds and X axes, with independent Y axes, clipping and picking\&.
+Existing RBC vector notifications update each track, and SVG, PDF and PostScript exports use the same
+layout\&. Line, polygon, arc, text, bitmap and image markers can select a row with -track and -mapy,
+with clipped drawing, picking and exports\&. See \fI::rbc::TRACKGRAPH\fP for the track API, \fI::rbc::MARKER\fP for
+track annotations, and demos/trackgraph2\&.tcl for a working example\&. track order rearranges existing
+rows; track sashpos redistributes adjacent heights\&. Enable -trackresize yes for mouse dragging of the
+separators, with Escape cancellation, without requiring graphtoolbar\&. The optional toolbar now supports
+-type trackgraph: rectangle zoom and pan affect shared X axes and the starting row's Y axes, wheel zoom
+follows the pointed row, and coordinate/closest-point annotations stay clipped to their track\&. Navigation
+history follows axis names across reordering\&. Both toolbar and context-menu controls work with the global
+legend and individual axis scale toggles\&. Each track can also show a local legend with
+track legend name configure -hide no\&. Its entries, bindings and clipping belong to the row; global and
+local legends can coexist\&. Graphtoolbar active-legend controls work with both\&.
+-invertxy yes arranges tracks left to right with shared vertical X axes and local horizontal Y axes\&.
+Weights and -minheight divide the available width; separator dragging becomes horizontal\&. Marker and
+legend clipping, picking, toolbar navigation and all exports follow the rotated layout\&. The merged
+demos/trackgraph2\&.tcl demonstrates both legend types, line/strip elements, markers and orientation switching;
+the separate trackgraph1\&.tcl demo is retired\&.
+.SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
+.PP
+\fI::rbc::TRACKGRAPH\fP line, polygon and arc markers now accept -xor yes, using native XOR within the clipped
+redraw pass in either renderer\&. Graphtoolbar zoom outlines can use it too\&. Optional
+-trackseparatorcolor and -trackseparatorwidth graph options draw dividers at the separator centres,
+following rows or inverted columns; the default empty colour keeps them hidden\&.
+Line/strip -decimate auto uses the shared X span with the existing eligibility rules and full-detail
+exports\&. The fast strip mapping path now attaches its reduced segments to the drawing pen, fixing dense
+strips disappearing with decimation enabled in both stripcharts and trackgraphs\&. Regression coverage
+checks visible extrema, vector updates and picking in both orientations\&.
+.SS "WINDOW-MARKER VISIBILITY AND TRACK SUPPORT"
+.PP
+Window markers now unmap their live child when hidden, emptied, moved completely outside the plot,
+or associated with a hidden element, and remap it when visible again\&. \fI::rbc::TRACKGRAPH\fP widgets accept window markers
+with -track and -mapy in either orientation\&. They follow track placement and resizing, preserving
+ordinary graph behaviour: partially overlapping children keep their full size and may extend beyond
+the track\&. There is no internal window clipping container\&. See \fI::rbc::MARKER\fP\&.
 .SS "CONFIGURABLE LOGARITHMIC BAR BASELINE"
 .PP
 Bar elements honor a positive graph -baseline on logarithmic Y axes, including automatic limits,
@@ -1250,6 +1288,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

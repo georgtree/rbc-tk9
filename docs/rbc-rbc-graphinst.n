@@ -6,7 +6,7 @@
 rbc::GRAPHINST - Commands in namespace rbc::GRAPHINST
 .SH "GRAPH WIDGET INSTANCE GRAPHINST COMMAND"
 .PP
-Commands in this namespace document operations accepted by graph, barchart, stripchart, and polar widget
+Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph widget
 instances\&.
 .PP
 GRAPHINST is used below as a placeholder for the actual widget command:
@@ -18,18 +18,20 @@ graph \&.g
 .fi
 .RE
 .PP
-The same widget instance interface is shared by all four graph types\&. The main difference is the default
+The common widget instance interface is shared by these graph types; track-specific differences are
+documented in \fI::rbc::TRACKGRAPH\fP\&. The main difference is the default
 element type used by the element operation\&.
 .PP
 .nf
-┌───────────────────┬──────────────────────┐
-│ Widget created by │ Default element type │
-├───────────────────┼──────────────────────┤
-│ graph             │ line                 │
-│ barchart          │ bar                  │
-│ stripchart        │ strip                │
-│ polar             │ polar                │
-└───────────────────┴──────────────────────┘
+┌───────────────────┬──────────────────────────────────────────┐
+│ Widget created by │ Default element type                     │
+├───────────────────┼──────────────────────────────────────────┤
+│ graph             │ line                                     │
+│ barchart          │ bar                                      │
+│ stripchart        │ strip                                    │
+│ polar             │ polar                                    │
+│ ::rbc::trackgraph │ line (tracks also accept strip elements) │
+└───────────────────┴──────────────────────────────────────────┘
 
 .fi
 .PP
@@ -58,7 +60,8 @@ Graph widgets contain several components with their own command interfaces:
 
 .fi
 .PP
-These component interfaces are documented separately\&.
+These component interfaces are documented separately\&. The track component is documented in
+\fI::rbc::TRACKGRAPH\fP\&.
 .SH MARGINS
 .PP
 The graph has four margins surrounding the plotting area\&. Their sizes are normally calculated automatically
@@ -189,6 +192,7 @@ reverse conversion\&.
 .PP
 The general transform and invtransform operations use the graph's primary X and Y axes\&. To transform a
 value using a particular axis, use that axis's transform or invtransform operation\&.
+Trackgraphs use \fI::rbc::TRACKGRAPH::transform\fP and \fI::rbc::TRACKGRAPH::invtransform\fP to select a track\&.
 .SH "POLAR AND SMITH CHARTS"
 .PP
 A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized
@@ -327,6 +331,11 @@ mode\&.
 .PP
 Singular impedance or admittance conversions are omitted from the mapped trace and create a real trace break\&.
 Smoothing is applied independently to valid continuous runs and never bridges such a gap\&.
+.SH "STACKED TRACKS"
+.PP
+\fI::rbc::trackgraph\fP creates a widget with shared X axes and independent Y axes in named tracks\&.
+See \fI::rbc::TRACKGRAPH\fP for layout, ownership, inversion, resizing, dividers and the track command API\&.
+Common widget options and component commands remain documented here\&.
 .SH "RENDERING BACKEND"
 .PP
 -renderer native|cairo selects the screen renderer\&. Builds configured with --enable-cairo default to
@@ -595,6 +604,11 @@ on all four graph widget types\&.
 │                          │                     │                     │ background of the graph margins\&. An empty     │
 │                          │                     │                     │ value disables tiling and uses the normal     │
 │                          │                     │                     │ -background instead\&.                          │
+│ -trackresize boolean     │ trackResize         │ TrackResize         │ Enables mouse dragging of separators in       │
+│                          │                     │                     │ trackgraph widgets\&. Default no; ordinary      │
+│                          │                     │                     │ graphs reject yes\&. Native track layout        │
+│                          │                     │                     │ commands remain available when disabled\&. See  │
+│                          │                     │                     │ ::rbc::TRACKGRAPH\&.                            │
 │ -title text              │ title               │ Title               │ Specifies the graph title\&. An empty value     │
 │                          │                     │                     │ suppresses the title\&.                         │
 │ -topmargin size          │ topMargin           │ Margin              │ Sets the requested size of the top margin\&. A  │
@@ -1151,6 +1165,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

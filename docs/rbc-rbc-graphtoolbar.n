@@ -111,6 +111,61 @@ alternatively be obtained with:
 set graph [\&.gtb subwidget graph]
 .fi
 .RE
+.SH "STACKED-TRACK INTERACTION"
+.PP
+Select -type trackgraph to use the same controls with named tracks; see \fI::rbc::TRACKGRAPH\fP for the native API\&. Create tracks and their axes through
+the embedded graph command, then enable scale toggling for the custom axis names:
+.PP
+.RS 4n
+.nf
+package require rbc::graphtoolbar
+rbc::graphtoolbar \&.gtb -type trackgraph -interactive -crosshairsmode current
+set g [\&.gtb subwidget graph]
+$g axis create volts -min -1 -max 1
+$g axis create amps -min -10 -max 10
+$g track create voltage -yaxes volts
+$g track create current -yaxes amps
+$g line create v -track voltage -mapy volts -data {0 -1 5 1 10 -1}
+$g strip create i -track current -mapy amps -data {0 10 5 -10 10 10} -linewidth 2
+$g configure -trackresize yes
+\&.gtb setAxisActiveScale all
+pack \&.gtb -fill both -expand yes
+.fi
+.RE
+.TP
+\(bu
+\fBBox zoom\fP changes all used shared X axes and all Y axes owned by the starting track\&. The selection rectangle and its corner annotations stay inside that track, even when the pointer crosses another row\&.
+.TP
+\(bu
+\fBPan\fP changes the shared X axes and the starting track's Y axes for the whole drag\&.
+.TP
+\(bu
+\fBWheel zoom\fP inside a track changes shared X axes and that track's Y axes\&. Over an axis it changes only that axis, using the usual axis-targeting rules\&. Empty tracks permit shared-X wheel zoom and pan; box zoom requires at least one owned Y axis\&.
+.TP
+\(bu
+\fBPrevious view\fP and \fBReset view\fP restore the axes saved by navigation, by name\&. Reordering tracks does not change their identity\&. An axis deleted after navigation is skipped during restoration; unrelated rows' limits are not restored by an entry that did not affect them\&.
+.TP
+\(bu
+\fBCurrent point\fP reports shared visible X axes and the pointed track's visible Y axes\&. When every owned Y axis is hidden, its first Y axis is used\&. \fBClosest point\fP searches the pointed track's elements\&. Text, backgrounds and point markers are clipped to their owning row\&. Gaps have no coordinate annotation\&.
+.TP
+\(bu
+\fBActive legend\fP operates on the global legend and any visible track-local legends\&. \fBScale toggling\fP operates on each enabled axis separately\&. -interactive initially enables scale toggling for x and y; call setAxisActiveScale all after creating custom axes, or pass an explicit list of names\&. Newly created axes are not automatically added to that list\&.
+.PP
+Separator gaps do not start toolbar navigation\&. Native separator dragging remains available when
+-trackresize yes is configured\&. Changing track order, ownership, weights, minimum heights, orientation, or widget size
+during a box selection or pan cancels the gesture on its next motion or release\&. A cancelled pan restores
+its saved limits\&. Toolbar and context-menu modes share these behaviors, including -controlmode both\&.
+.PP
+Track zoom boxes use clipped redraws, including when -zoomboxopts {-xor yes} selects native XOR drawing\&.
+With -invertxy yes, tracks become columns: shared X navigation is vertical and local Y navigation
+is horizontal\&. Point selection and separator dragging follow the columns\&. Window markers retain ordinary
+graph overlap behaviour\&.
+.PP
+Show a local legend with $g track legend voltage configure -hide no\&. Active-legend bindings are added
+for tracks created after the toolbar, once graph changes are displayed\&. Existing nonempty custom local
+bindings are preserved\&. Box zoom and pan do not start over local legend rectangles, and coordinate
+annotations are suppressed there\&. Global and local legends remain independently configurable; hide the
+global legend explicitly if only local legends are desired\&. See \fI::rbc::LEGEND\fP and demos/trackgraph2\&.tcl\&.
 .SH "CONTROL SURFACES"
 .PP
 Use -interactive to enable the standard graph interactions with their defaults:
@@ -892,7 +947,7 @@ Initial requested height of the embedded Rbc graph\&. The default is 600\&.
 Selects the user-interface control surface\&. Must be toolbar, contextmenu, or both\&. The default is both\&.
 .TP
 -type type
-Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, or polar\&. The default is graph\&.
+Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, polar, or trackgraph\&. The default is graph\&.
 .TP
 -representation mode
 For -type polar, selects polar or smith representation\&. The default is polar\&. It is ignored by the other graph types\&.
@@ -1272,6 +1327,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

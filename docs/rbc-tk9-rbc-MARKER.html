@@ -272,33 +272,71 @@ option valid for one marker type is not necessarily valid for another.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">MapY</span></code></p></td>
 <td><p>Specifies the Y axis used to map marker coordinates. The axis must exist and must be a Y axis. The default is <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">markerName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">track</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Track</span></code></p></td>
+<td><p>Assigns a marker to a <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> track. The <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> axis must belong to the same track. Default empty (graph-wide). Window markers use overlap visibility, not strict track clipping.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-name</span> <span class="pre">markerName</span></code></p></td>
 <td><p>—</p></td>
 <td><p>—</p></td>
 <td><p>Specifies the marker name. During creation, an omitted name is generated automatically. Reconfiguring <code class="docutils literal notranslate"><span class="pre">-name</span></code> renames the marker; the new name must be non-empty, must not begin with <code class="docutils literal notranslate"><span class="pre">-</span></code>, and must not already belong to another marker.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">State</span></code></p></td>
 <td><p>Specifies the marker state: <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">active</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">normal</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-under</span> <span class="pre">boolean</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-under</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">under</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Under</span></code></p></td>
 <td><p>Specifies whether the marker is drawn below graph elements rather than above them. The default is <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xoffset</span> <span class="pre">distance</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xoffset</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xOffset</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XOffset</span></code></p></td>
 <td><p>Adds a horizontal screen-coordinate offset after the marker has been mapped. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yoffset</span> <span class="pre">distance</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yoffset</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yOffset</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YOffset</span></code></p></td>
 <td><p>Adds a vertical screen-coordinate offset after the marker has been mapped. The default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="markers-in-stacked-tracks">
+<span id="r-rbc-marker-markers-in-stacked-tracks"></span><span id="r-3a3arbc3a3amarkerqzmarkers20in20stacked20tracks"></span><h3>Markers in stacked tracks<a class="headerlink" href="#markers-in-stacked-tracks" title="Link to this heading">¶</a></h3>
+<p>In a <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> widget, <code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span></code> assigns a marker to one track. Supply <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> with an axis owned by that
+track; <code class="docutils literal notranslate"><span class="pre">-mapx</span></code> selects a shared horizontal axis as usual. The default empty <code class="docutils literal notranslate"><span class="pre">-track</span></code> retains a graph-wide
+marker and requires a Y axis not owned by a track, such as the built-in <code class="docutils literal notranslate"><span class="pre">y</span></code> axis.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># A threshold in one row, extending across its shared X range.</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>line<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>threshold<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>voltageY<span class="w">  </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">-Inf</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span>Inf<span class="w"> </span><span class="mf">0.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>outline<span class="w"> </span>red<span class="w"> </span><span class="o">-</span>dashes<span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
+<span class="c"># A time interval behind the current trace; +/-Inf follows this row&#39;s Y bounds.</span>
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>polygon<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>interval<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>currentY<span class="w">  </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">-</span>Inf<span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">-</span>Inf<span class="w"> </span><span class="mi">3</span><span class="w"> </span>Inf<span class="w"> </span><span class="mi">2</span><span class="w"> </span>Inf<span class="k">}</span><span class="w"> </span><span class="o">-</span>fill<span class="w"> </span>lightyellow<span class="w"> </span><span class="o">-</span>outline<span class="w"> </span><span class="k">{}</span><span class="w"> </span><span class="o">-</span>under<span class="w"> </span>yes
+<span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>text<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>note<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>voltageY<span class="w">  </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>text<span class="w"> </span>Threshold<span class="w"> </span><span class="o">-</span>anchor<span class="w"> </span>sw
+</pre></div>
+</div>
+<p>Painted track markers support line, polygon, arc, text, image and bitmap types. Drawing is clipped to the
+track’s plotting rectangle, including text/image overhangs, thick strokes and arrowheads, with native and Cairo
+rendering and SVG, PDF and PostScript output. Resizing, axis changes and export recalculate their mapping.
+Bindings and overlapping-region searches do not select clipped portions outside the row. As for ordinary
+markers, <code class="docutils literal notranslate"><span class="pre">find</span> <span class="pre">enclosed</span></code> tests the complete marker geometry rather than only its visible fragment.</p>
+<p>Change <code class="docutils literal notranslate"><span class="pre">-track</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> together to move a marker between rows. Remove or move its markers before deleting
+a track or detaching their Y axis. Hidden markers and markers with no coordinates still hold this
+association. An axis referenced by a graph-wide marker cannot be assigned to a track until those markers are
+removed or remapped to another unowned axis. <code class="docutils literal notranslate"><span class="pre">-element</span></code> controls visibility independently; it does not select a
+track. Marker stacking order and <code class="docutils literal notranslate"><span class="pre">-under</span></code> keep their existing meanings, including when graph-wide and track
+markers are mixed.</p>
+<p>Window markers accept <code class="docutils literal notranslate"><span class="pre">-track</span></code> and use the same overlap visibility as ordinary graphs. They are real child
+widgets: a partially overlapping window is displayed at its full size and can extend into a gap, another track,
+or the graph margins. Only the graph widget’s outer boundary clips the live child. No clipping containers are
+introduced.</p>
+<p>Line, polygon and arc track markers accept <code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">yes</span></code>. Their native XOR operation is applied within the clipped
+redraw pass, also when the graph renderer is Cairo. Unlike graph-wide immediate XOR, track updates are
+displayed on the next redraw (use <code class="docutils literal notranslate"><span class="pre">update</span> <span class="pre">idletasks</span></code> if immediate display is needed). Moving, hiding,
+deleting, resizing or reordering tracks therefore does not rely on erasing old geometry against a changed
+clipping region. Exports retain ordinary marker colours rather than XOR compositing.</p>
 </section>
 <section id="bitmap-marker-options">
 <span id="r-rbc-marker-bitmap-marker-options"></span><span id="r-3a3arbc3a3amarkerqzbitmap20marker20options"></span><h3>Bitmap marker options<a class="headerlink" href="#bitmap-marker-options" title="Link to this heading">¶</a></h3>
@@ -765,7 +803,18 @@ path. Switching renderers does not change marker options.</p>
 <section id="window-marker-options">
 <span id="r-rbc-marker-window-marker-options"></span><span id="r-3a3arbc3a3amarkerqzwindow20marker20options"></span><h3>Window marker options<a class="headerlink" href="#window-marker-options" title="Link to this heading">¶</a></h3>
 <p>Window markers display a Tk window inside the graph.</p>
-<p>The window must be managed by the graph marker.</p>
+<p>The window must be a direct child of the graph and is geometry-managed by the marker. Its position
+follows the selected axes, anchor and offsets; its size comes from its requested size or the explicit
+marker dimensions. Zooming, resizing or inverting axes does not scale or rotate the child widget.</p>
+<p>On redraw, the child is unmapped when the marker is hidden, has no coordinates, lies completely outside
+its plot/track, or references a hidden element. It is mapped again when visible. Partial overlap keeps
+the whole widget visible, including any portion extending beyond the plot/track into margins or other
+tracks. Real child windows are not clipped or layered like painted markers; <code class="docutils literal notranslate"><span class="pre">-under</span></code> does not place a
+live child behind graph drawing.</p>
+<p>Track windows use <code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span> <span class="pre">-mapy</span> <span class="pre">axisName</span></code>, follow track resizing, reordering and inversion, and retain
+the same child-parent and deletion rules as ordinary window markers. Deleting the marker destroys its
+managed child. SVG/PDF capture the mapped child as a raster image, without an additional track clip;
+they retain the existing window-capture controls and limitations.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">button</span><span class="w"> </span>.g.info<span class="w"> </span><span class="o">-</span>text<span class="w"> </span>Info
 <span class="nv">.g</span><span class="w"> </span>marker<span class="w"> </span>create<span class="w"> </span>window<span class="w"> </span><span class="o">-</span>name<span class="w"> </span>infoMarker<span class="w"> </span><span class="o">-</span>coords<span class="w"> </span><span class="k">{</span><span class="nv">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>window<span class="w"> </span>.g.info<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">2</span>c<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">1</span>c
 </pre></div>
@@ -877,6 +926,7 @@ class:</p>
 <li><a class="reference internal" href="#marker-bindings">Marker bindings</a></li>
 <li><a class="reference internal" href="#marker-types-and-options">Marker types and options</a><ul>
 <li><a class="reference internal" href="#common-marker-options">Common marker options</a></li>
+<li><a class="reference internal" href="#markers-in-stacked-tracks">Markers in stacked tracks</a></li>
 <li><a class="reference internal" href="#bitmap-marker-options">Bitmap marker options</a></li>
 <li><a class="reference internal" href="#image-marker-options">Image marker options</a></li>
 <li><a class="reference internal" href="#line-marker-options">Line marker options</a></li>

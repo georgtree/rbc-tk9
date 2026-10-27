@@ -16,7 +16,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Graph virtual axis AXIS command" href="rbc-tk9-rbc-AXIS.html" />
+    <link rel="next" title="Trackgraph layout and TRACKGRAPH commands" href="rbc-tk9-rbc-TRACKGRAPH.html" />
     <link rel="prev" title="graphtoolbar" href="rbc-tk9-rbc-graphtoolbar.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -26,7 +26,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-AXIS.html" title="Graph virtual axis AXIS command"
+          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph layout and TRACKGRAPH commands"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-graphtoolbar.html" title="graphtoolbar"
@@ -43,14 +43,15 @@
             
   <section id="graph-widget-instance-graphinst-command">
 <span id="r-graph-widget-instance-graphinst-command"></span><span id="r-graph20widget20instance2060graphinst6020command"></span><span id="r-namespaceqz3a3arbc3a3agraphinst"></span><h1>Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command<a class="headerlink" href="#graph-widget-instance-graphinst-command" title="Link to this heading">¶</a></h1>
-<p>Commands in this namespace document operations accepted by graph, barchart, stripchart, and polar widget
+<p>Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph widget
 instances.</p>
 <p><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> is used below as a placeholder for the actual widget command:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example&quot;</span>
 </pre></div>
 </div>
-<p>The same widget instance interface is shared by all four graph types. The main difference is the default
+<p>The common widget instance interface is shared by these graph types; track-specific differences are
+documented in <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a>. The main difference is the default
 element type used by the <code class="docutils literal notranslate"><span class="pre">element</span></code> operation.</p>
 <table class="docutils align-default">
 <colgroup>
@@ -74,6 +75,9 @@ element type used by the <code class="docutils literal notranslate"><span class=
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></td>
 <td><p>polar</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="xref std std-ref">::rbc::trackgraph</span></p></td>
+<td><p>line (tracks also accept strip elements)</p></td>
 </tr>
 </tbody>
 </table>
@@ -131,7 +135,8 @@ element type used by the <code class="docutils literal notranslate"><span class=
 </tr>
 </tbody>
 </table>
-<p>These component interfaces are documented separately.</p>
+<p>These component interfaces are documented separately. The <code class="docutils literal notranslate"><span class="pre">track</span></code> component is documented in
+<a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a>.</p>
 <section id="margins">
 <span id="r-rbc-graphinst-margins"></span><span id="r-3a3arbc3a3agraphinstqzmargins"></span><h2>Margins<a class="headerlink" href="#margins" title="Link to this heading">¶</a></h2>
 <p>The graph has four margins surrounding the plotting area. Their sizes are normally calculated automatically
@@ -224,7 +229,8 @@ dimensions:</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">transform</span></code> operation converts graph coordinates to window coordinates, while <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> performs the
 reverse conversion.</p>
 <p>The general <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operations use the graph’s primary X and Y axes. To transform a
-value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.</p>
+value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.
+Trackgraphs use <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3atransform"><span class="std std-ref">::rbc::TRACKGRAPH::transform</span></a> and <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3ainvtransform"><span class="std std-ref">::rbc::TRACKGRAPH::invtransform</span></a> to select a track.</p>
 </section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h2>
@@ -323,6 +329,12 @@ mode.</p>
 <p>Singular impedance or admittance conversions are omitted from the mapped trace and create a real trace break.
 Smoothing is applied independently to valid continuous runs and never bridges such a gap.</p>
 </section>
+</section>
+<section id="stacked-tracks">
+<span id="r-rbc-graphinst-stacked-tracks"></span><span id="r-3a3arbc3a3agraphinstqzstacked20tracks"></span><h2>Stacked tracks<a class="headerlink" href="#stacked-tracks" title="Link to this heading">¶</a></h2>
+<p><span class="xref std std-ref">::rbc::trackgraph</span> creates a widget with shared X axes and independent Y axes in named tracks.
+See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> for layout, ownership, inversion, resizing, dividers and the track command API.
+Common widget options and component commands remain documented here.</p>
 </section>
 <section id="rendering-backend">
 <span id="r-rbc-graphinst-rendering-backend"></span><span id="r-3a3arbc3a3agraphinstqzrendering20backend"></span><h2>Rendering backend<a class="headerlink" href="#rendering-backend" title="Link to this heading">¶</a></h2>
@@ -617,22 +629,27 @@ on all four graph widget types.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">Tile</span></code></p></td>
 <td><p>Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal <code class="docutils literal notranslate"><span class="pre">-background</span></code> instead.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-title</span> <span class="pre">text</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-trackresize</span> <span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">trackResize</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TrackResize</span></code></p></td>
+<td><p>Enables mouse dragging of separators in trackgraph widgets. Default <code class="docutils literal notranslate"><span class="pre">no</span></code>; ordinary graphs reject <code class="docutils literal notranslate"><span class="pre">yes</span></code>. Native track layout commands remain available when disabled. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-title</span> <span class="pre">text</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Title</span></code></p></td>
 <td><p>Specifies the graph title. An empty value suppresses the title.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-topmargin</span> <span class="pre">size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-topmargin</span> <span class="pre">size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">topMargin</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Margin</span></code></p></td>
 <td><p>Sets the requested size of the top margin. A value of <code class="docutils literal notranslate"><span class="pre">0</span></code> lets the graph calculate the required size automatically. <code class="docutils literal notranslate"><span class="pre">-tm</span></code> is a synonym.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-topvariable</span> <span class="pre">varName</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-topvariable</span> <span class="pre">varName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">topVariable</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TopVariable</span></code></p></td>
 <td><p>Names a global Tcl variable that is updated with the actual size of the top margin after graph layout. An empty value disables the variable update.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-width</span> <span class="pre">distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">width</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Width</span></code></p></td>
 <td><p>Specifies the requested width of the graph widget. The default is <code class="docutils literal notranslate"><span class="pre">5i</span></code>.</p></td>
@@ -1142,6 +1159,7 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
 <li><a class="reference internal" href="#limitations-and-domain-rules">Limitations and domain rules</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a></li>
 <li><a class="reference internal" href="#rendering-backend">Rendering backend</a></li>
 <li><a class="reference internal" href="#widget-options">Widget options</a></li>
 <li><a class="reference internal" href="#tk-option-database">Tk option database</a><ul>
@@ -1179,8 +1197,8 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="rbc-tk9-rbc-AXIS.html"
-                          title="next chapter">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a></p>
+    <p class="topless"><a href="rbc-tk9-rbc-TRACKGRAPH.html"
+                          title="next chapter">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -1210,7 +1228,7 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-AXIS.html" title="Graph virtual axis AXIS command"
+          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph layout and TRACKGRAPH commands"
              >next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-graphtoolbar.html" title="graphtoolbar"

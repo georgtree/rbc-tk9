@@ -30,13 +30,64 @@ graph \&.g
 .fi
 .RE
 .PP
-The legend is a single component of the graph\&. Unlike elements, markers, or pens, there are no named legend
-objects\&.
+Each graph has one global legend\&. A \fI::rbc::TRACKGRAPH\fP widget also has an optional local legend for each named track;
+see Track-local legends below\&.
 .PP
 With -renderer cairo, legend line samples, geometric and bitmap symbols, and bar swatches use Cairo\&. They
 follow -antialias and the normal element pen, including dash colors and stipples\&. Swatch stipples restart at
 the sample origin\&. Text, backgrounds, and relief borders remain native\&. The same behavior applies to external
 legend windows\&.
+.SH "TRACK-LOCAL LEGENDS"
+.PP
+Each \fI::rbc::TRACKGRAPH\fP track (row or inverted column) owns a legend addressed through TRACKGRAPH legend
+trackName\&. It accepts the same configure, cget, get, activate, deactivate, and bind operations as
+the global legend:
+.PP
+.RS 4n
+.nf
+\&.g legend configure -hide yes
+\&.g track legend voltage configure -hide no -position right -anchor ne -background white
+\&.g track legend current configure -hide no -position top -anchor nw -rows 1
+\&.g track legend voltage bind all <ButtonPress-1> {
+    puts [\&.g track legend voltage get current]
+}
+.fi
+.RE
+.PP
+Local legends default to -hide yes, -position plotarea, -anchor ne, and -raised yes\&. They use the
+same font, color, symbol, padding, border and row/column options as the global legend\&. Their option-database
+component is trackLegend, class TrackLegend\&. Configure each track legend separately for different styles\&.
+.PP
+A local legend contains only its track's displayed elements with nonempty labels, in element display order\&.
+-hideplot yes retains an entry so an active legend can show that element again\&. Moving an element to
+another track moves its entry; deleting the element or clearing its label removes the entry\&. Empty legends
+occupy no space\&. Reordering or resizing tracks carries each legend along without replacing its bindings\&.
+.PP
+Local -position accepts plotarea, left, right, top, or bottom, all \fBinside the track\fP\&. With
+plotarea, -anchor positions the legend within the entire row\&. The other positions pin it to the named
+edge; -anchor chooses its position along that edge\&. Margin positions, @x,y, and external windows are
+not supported for local legends\&. The global legend retains all its existing positions and external-window
+behavior\&. Local legends overlay the plot and do not reserve margins or change shared X alignment\&.
+.PP
+Drawing and picking are clipped to the owning row, including when labels are too large to fit\&. Native and
+Cairo drawing, and SVG/PDF/PostScript output, use the same membership and layout\&. -raised selects drawing
+above or below elements, as for a global plot legend\&. If global and local legends overlap, the raised one
+receives legend events; at equal -raised values the global legend takes precedence\&.
+.PP
+TRACKGRAPH legend trackName bbox returns the visible, clipped rectangle as x y width height in
+graph-window pixels, or an empty list when nothing is visible\&. Unlike track bbox, the last two values are
+dimensions, not opposite corners\&. get @x,y uses the same graph-window coordinates and never selects an
+entry outside the row\&. get current refers only to the entry currently picked in that particular legend\&.
+.PP
+Local binding tables are scoped: binding all, an element name, its class, or one of its tags in one local
+legend does not install that binding in another legend\&. Local activate/deactivate patterns select only
+that track's elements\&. Label activation and element -labelrelief are shared element state, so a label's
+appearance is consistent when the element is present in both a local and the global legend\&.
+.PP
+Global and local legends can coexist; neither is hidden automatically\&. Deleting an empty track destroys
+its local legend and bindings\&. graphtoolbar -type trackgraph -activelegend supplies its normal state cycle
+for local legends, including tracks created later, and does not start box zoom or pan over their rectangles\&.
+See demos/trackgraph2\&.tcl for a working example\&.
 .SH "LEGEND ENTRIES"
 .PP
 Legend entries correspond to graph elements\&. The element's -label option supplies the text displayed in the
@@ -132,10 +183,10 @@ Legend entries are arranged as a table\&.
 .PP
 A value of 0 leaves that dimension automatic\&.
 .PP
-When the legend has a single row, each entry uses its own label width, plus space for its symbol,
-borders and internal padding\&. For example, -rows 1 produces a compact horizontal legend\&.
-Multi-row legends retain equal-width cells based on the widest label\&. Automatic layout in the top
-and bottom margins uses one row when the combined individual entry widths fit the available width\&.
+When the legend has a single row, each entry uses its own label width, plus space for its symbol, borders and
+internal padding\&. For example, -rows 1 produces a compact horizontal legend\&. Multi-row legends retain
+equal-width cells based on the widest label\&. Automatic layout in the top and bottom margins uses one row when
+the combined individual entry widths fit the available width\&.
 .PP
 -ipadx and -ipady specify padding inside individual legend entries\&. -padx and -pady specify padding
 around the outside of the complete legend\&.
@@ -287,6 +338,8 @@ rbc-rbc(n)
 rbc-rbc-graphtoolbar(n)
 .br
 rbc-rbc-graphinst(n)
+.br
+rbc-rbc-trackgraph(n)
 .br
 rbc-rbc-axis(n)
 .br

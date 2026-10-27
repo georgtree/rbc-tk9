@@ -82,6 +82,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html">Tcl/Tk 9 upgrade and additions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#user-visible-additions">User-visible additions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#stacked-tracks-with-shared-axes">Stacked tracks with shared axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#track-xor-markers-dividers-and-decimation">Track XOR markers, dividers and decimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#window-marker-visibility-and-track-support">Window-marker visibility and track support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>
@@ -191,7 +194,9 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-pen"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-postscript"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-snap"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-strip"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">strip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-svg"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">svg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-track"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">track</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-transform"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-x2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-xaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code></a></li>
@@ -256,6 +261,21 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-cget"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">cget</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-configure"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">configure</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-output"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#id1"><code class="docutils literal notranslate"><span class="pre">trackgraph</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-bbox"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">bbox</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-cget"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-configure"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-create"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-delete"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-identify"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">identify</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-invtransform"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-legend"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">legend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-names"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-order"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-sashpos"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">sashpos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-separator"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">separator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-transform"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202a"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202b"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code></a></li>
@@ -325,6 +345,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html">graphtoolbar</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#basic-example">Basic example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#stacked-track-interaction">Stacked-track interaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#control-surfaces">Control surfaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#zooming-and-navigation">Zooming and navigation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#wheel-zoom">Wheel zoom</a></li>
@@ -377,6 +398,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#limitations-and-domain-rules">Limitations and domain rules</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#stacked-tracks">Stacked tracks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#rendering-backend">Rendering backend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#widget-options">Widget options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#tk-option-database">Tk option database</a><ul>
@@ -402,6 +424,30 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#legacy-graph-helpers">Legacy graph helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#stacked-tracks">Stacked tracks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#inverted-tracks">Inverted tracks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#reordering-and-resizing-tracks">Reordering and resizing tracks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#bbox"><code class="docutils literal notranslate"><span class="pre">bbox</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#create"><code class="docutils literal notranslate"><span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#delete"><code class="docutils literal notranslate"><span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3aidentify"><code class="docutils literal notranslate"><span class="pre">identify</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#invtransform"><code class="docutils literal notranslate"><span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#legend"><code class="docutils literal notranslate"><span class="pre">legend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#names"><code class="docutils literal notranslate"><span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#order"><code class="docutils literal notranslate"><span class="pre">order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#sashpos"><code class="docutils literal notranslate"><span class="pre">sashpos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#separator"><code class="docutils literal notranslate"><span class="pre">separator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#transform"><code class="docutils literal notranslate"><span class="pre">transform</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a><ul>
@@ -560,6 +606,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#marker-bindings">Marker bindings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#marker-types-and-options">Marker types and options</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#common-marker-options">Common marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#markers-in-stacked-tracks">Markers in stacked tracks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#bitmap-marker-options">Bitmap marker options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#image-marker-options">Image marker options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#line-marker-options">Line marker options</a></li>
@@ -576,6 +623,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#track-local-legends">Track-local legends</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-entries">Legend entries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-position">Legend position</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-layout">Legend layout</a></li>
