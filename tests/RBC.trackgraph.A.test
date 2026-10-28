@@ -1019,6 +1019,99 @@ namespace eval trackGraphTest {
         set ::localHits
     } -cleanup {destroy .tg; unset ::localHits} -result legend
 
+    test trackgraph-optiondb-defaults {track creation uses named Track resources without creating child windows} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *Track.Weight 2.5
+            option add *Track.MinHeight 55
+            option add *Track.Height 200
+            option add *voltage.height 300
+            .tg track create voltage
+            .tg track create current
+            list [.tg track cget voltage -weight] [.tg track cget voltage -minheight] \
+                [.tg track cget voltage -height] [.tg track cget current -height] [winfo children .tg]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {2.5 55 300 200 {}}
+
+    test trackgraph-optiondb-precedence {explicit values override database defaults and existing tracks do not reread defaults} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *Track.height 200
+            .tg track create voltage -height 250 -weight 3
+            option add *Track.height 400
+            .tg track configure voltage -minheight 60
+            .tg track create current
+            list [.tg track cget voltage -height] [.tg track cget voltage -weight] \
+                [.tg track cget voltage -minheight] [.tg track cget current -height]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {250 3.0 60 400}
+
+    test trackgraph-optiondb-axes {database Y axes obey ownership and failed creation leaves axes reusable} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            .tg axis create volts
+            option add *voltage.yAxes volts
+            option add *voltage.weight -1
+            set invalid [catch {.tg track create voltage}]
+            set empty [.tg track names]
+            .tg track create voltage -weight 2
+            option add *current.yAxes volts
+            set conflict [catch {.tg track create current}]
+            .tg track delete voltage
+            .tg track create current
+            list $invalid $empty $conflict [.tg track names] [.tg track cget current -yaxes]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {1 {} 1 current volts}
+
+    test trackgraph-optiondb-validation {invalid database values fail atomically and explicit replacements are validated normally} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            set result {}
+            foreach {resource value option replacement} {
+                weight NaN -weight 1
+                minHeight -2 -minheight 40
+                height 1000001 -height 160
+                yAxes missing -yaxes {}
+            } {
+                option clear
+                option add *voltage.$resource $value
+                lappend result [catch {.tg track create voltage}] [expr {[.tg track names] eq {}}]
+                .tg track create voltage $option $replacement
+                lappend result [expr {[.tg track names] eq "voltage"}]
+                .tg track delete voltage
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {interp delete trackOptionChild} -result 1
+
     test tracklegend-optiondb {local option-database tests do not clear the caller's renderer defaults} -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]

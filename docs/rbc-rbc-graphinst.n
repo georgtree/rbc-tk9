@@ -6,8 +6,8 @@
 rbc::GRAPHINST - Commands in namespace rbc::GRAPHINST
 .SH "GRAPH WIDGET INSTANCE GRAPHINST COMMAND"
 .PP
-Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph widget
-instances\&.
+Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph
+widget instances\&.
 .PP
 GRAPHINST is used below as a placeholder for the actual widget command:
 .PP
@@ -18,20 +18,19 @@ graph \&.g
 .fi
 .RE
 .PP
-The common widget instance interface is shared by these graph types; track-specific differences are
-documented in \fI::rbc::TRACKGRAPH\fP\&. The main difference is the default
+The common widget instance interface is shared by these graph types\&. The main difference is the default
 element type used by the element operation\&.
 .PP
 .nf
-┌───────────────────┬──────────────────────────────────────────┐
-│ Widget created by │ Default element type                     │
-├───────────────────┼──────────────────────────────────────────┤
-│ graph             │ line                                     │
-│ barchart          │ bar                                      │
-│ stripchart        │ strip                                    │
-│ polar             │ polar                                    │
-│ ::rbc::trackgraph │ line (tracks also accept strip elements) │
-└───────────────────┴──────────────────────────────────────────┘
+┌───────────────────┬──────────────────────┐
+│ Widget created by │ Default element type │
+├───────────────────┼──────────────────────┤
+│ graph             │ line                 │
+│ barchart          │ bar                  │
+│ stripchart        │ strip                │
+│ polar             │ polar                │
+│ trackgraph        │ line                 │
+└───────────────────┴──────────────────────┘
 
 .fi
 .PP
@@ -192,7 +191,8 @@ reverse conversion\&.
 .PP
 The general transform and invtransform operations use the graph's primary X and Y axes\&. To transform a
 value using a particular axis, use that axis's transform or invtransform operation\&.
-Trackgraphs use \fItrack transform\fP and \fItrack invtransform\fP to select a track\&.
+Trackgraphs use \fItrack transform\fP and
+\fItrack invtransform\fP to select a track\&.
 .SH "POLAR AND SMITH CHARTS"
 .PP
 A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized
@@ -673,23 +673,26 @@ the component's resource name and resource class\&.
 .SS "COMPONENT RESOURCE NAMES AND CLASSES"
 .PP
 .nf
-┌────────────────┬─────────────────────────────────────────┬────────────────┐
-│ Component      │ Resource name                           │ Resource class │
-├────────────────┼─────────────────────────────────────────┼────────────────┤
-│ Axis           │ axis name, such as x, y, or temperature │ Axis           │
-│ Element        │ element name                            │ Element        │
-│ Pen            │ pen name                                │ Pen            │
-│ Bitmap marker  │ marker name                             │ BitmapMarker   │
-│ Image marker   │ marker name                             │ ImageMarker    │
-│ Line marker    │ marker name                             │ LineMarker     │
-│ Polygon marker │ marker name                             │ PolygonMarker  │
-│ Text marker    │ marker name                             │ TextMarker     │
-│ Window marker  │ marker name                             │ WindowMarker   │
-│ Legend         │ legend                                  │ Legend         │
-│ Grid           │ grid                                    │ Grid           │
-│ Crosshairs     │ crosshairs                              │ Crosshairs     │
-│ PostScript     │ postscript                              │ Postscript     │
-└────────────────┴─────────────────────────────────────────┴────────────────┘
+┌────────────────────┬─────────────────────────────────────────┬────────────────┐
+│ Component          │ Resource name                           │ Resource class │
+├────────────────────┼─────────────────────────────────────────┼────────────────┤
+│ Track              │ track name, such as voltage             │ Track          │
+│ Axis               │ axis name, such as x, y, or temperature │ Axis           │
+│ Element            │ element name                            │ Element        │
+│ Pen                │ pen name                                │ Pen            │
+│ Arc marker         │ marker name                             │ ArcMarker      │
+│ Bitmap marker      │ marker name                             │ BitmapMarker   │
+│ Image marker       │ marker name                             │ ImageMarker    │
+│ Line marker        │ marker name                             │ LineMarker     │
+│ Polygon marker     │ marker name                             │ PolygonMarker  │
+│ Text marker        │ marker name                             │ TextMarker     │
+│ Window marker      │ marker name                             │ WindowMarker   │
+│ Legend             │ legend                                  │ Legend         │
+│ Track-local legend │ trackLegend                             │ TrackLegend    │
+│ Grid               │ grid                                    │ Grid           │
+│ Crosshairs         │ crosshairs                              │ Crosshairs     │
+│ PostScript         │ postscript                              │ Postscript     │
+└────────────────────┴─────────────────────────────────────────┴────────────────┘
 
 .fi
 .PP

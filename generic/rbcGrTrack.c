@@ -364,6 +364,60 @@ error:
     return TCL_ERROR;
 }
 
+/* Read creation defaults through the same named component proxy as axes and
+ * markers. Keep these as objects: ConfigureTrack performs conversion and axis
+ * ownership validation together, before committing any of the effective values.
+ * Explicit creation options replace database defaults before validation. */
+static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    typedef struct {
+        Tcl_Obj *weight, *minHeight, *height, *yAxes;
+    } TrackDefaults;
+    static const Tk_OptionSpec specs[] = {
+        {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0",
+         offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
+        {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40",
+         offsetof(TrackDefaults, minHeight), -1, 0, NULL, 0},
+        {TK_OPTION_STRING, "-height", "height", "Height", "160",
+         offsetof(TrackDefaults, height), -1, 0, NULL, 0},
+        {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "",
+         offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
+        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+    };
+    TrackDefaults defaults = {0};
+    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
+    Tcl_Obj *options = Tcl_NewListObj(0, NULL);
+    Tcl_Obj **values;
+    Tcl_Size count, i, j;
+    int result;
+
+    Tcl_IncrRefCount(options);
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
+                                     track->name, "Track", (char *)&defaults, table);
+    if (result == TCL_OK) {
+        for (i = 0; specs[i].type != TK_OPTION_END; i++) {
+            for (j = 0; j + 1 < objc; j += 2) {
+                if (strcmp(Tcl_GetString(objv[j]), specs[i].optionName) == 0) {
+                    break;
+                }
+            }
+            if (j + 1 >= objc) {
+                Tcl_Obj *value = *(Tcl_Obj **)((char *)&defaults + specs[i].objOffset);
+                Tcl_ListObjAppendElement(NULL, options, Tcl_NewStringObj(specs[i].optionName, -1));
+                Tcl_ListObjAppendElement(NULL, options, value != NULL ? value : Tcl_NewObj());
+            }
+        }
+        for (i = 0; i < objc; i++) {
+            Tcl_ListObjAppendElement(NULL, options, objv[i]);
+        }
+        Tcl_ListObjGetElements(NULL, options, &count, &values);
+        result = ConfigureTrack(graphPtr, track, count, values);
+    }
+    Tk_FreeConfigOptions((char *)&defaults, table, graphPtr->tkwin);
+    Tk_DeleteOptionTable(table);
+    Tcl_DecrRefCount(options);
+    return result;
+}
+
 /* Validate the complete permutation before modifying the linked list. Track
  * objects, axes, elements and markers retain their identity and ownership. */
 static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
@@ -703,10 +757,7 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         memset(track, 0, sizeof(*track));
         track->name = ckalloc(strlen(name) + 1);
         strcpy(track->name, name);
-        track->weight = 1.0;
-        track->minHeight = 40;
-        track->height = 160;
-        if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK ||
+        if (InitTrackOptions(graphPtr, track, objc - 4, objv + 4) != TCL_OK ||
             Rbc_CreateTrackLegend(graphPtr, track) != TCL_OK) {
             FreeTrack(graphPtr, track);
             return TCL_ERROR;

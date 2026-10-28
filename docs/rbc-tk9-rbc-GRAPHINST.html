@@ -16,7 +16,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Trackgraph layout" href="rbc-tk9-rbc-TRACKGRAPH.html" />
+    <link rel="next" title="Trackgraph widget instance TRACKGRAPH command" href="rbc-tk9-rbc-TRACKGRAPH.html" />
     <link rel="prev" title="graphtoolbar" href="rbc-tk9-rbc-graphtoolbar.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
@@ -26,7 +26,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph layout"
+          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph widget instance TRACKGRAPH command"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-graphtoolbar.html" title="graphtoolbar"
@@ -43,15 +43,14 @@
             
   <section id="graph-widget-instance-graphinst-command">
 <span id="r-graph-widget-instance-graphinst-command"></span><span id="r-graph20widget20instance2060graphinst6020command"></span><span id="r-namespaceqz3a3arbc3a3agraphinst"></span><h1>Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command<a class="headerlink" href="#graph-widget-instance-graphinst-command" title="Link to this heading">¶</a></h1>
-<p>Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph widget
-instances.</p>
+<p>Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph
+widget instances.</p>
 <p><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> is used below as a placeholder for the actual widget command:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g
 <span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>title<span class="w"> </span><span class="s2">&quot;Example&quot;</span>
 </pre></div>
 </div>
-<p>The common widget instance interface is shared by these graph types; track-specific differences are
-documented in <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a>. The main difference is the default
+<p>The common widget instance interface is shared by these graph types. The main difference is the default
 element type used by the <code class="docutils literal notranslate"><span class="pre">element</span></code> operation.</p>
 <table class="docutils align-default">
 <colgroup>
@@ -76,8 +75,8 @@ element type used by the <code class="docutils literal notranslate"><span class=
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">polar</span></code></p></td>
 <td><p>polar</p></td>
 </tr>
-<tr class="row-even"><td><p><span class="xref std std-ref">::rbc::trackgraph</span></p></td>
-<td><p>line (tracks also accept strip elements)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trackgraph</span></code></p></td>
+<td><p>line</p></td>
 </tr>
 </tbody>
 </table>
@@ -230,7 +229,8 @@ dimensions:</p>
 reverse conversion.</p>
 <p>The general <code class="docutils literal notranslate"><span class="pre">transform</span></code> and <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operations use the graph’s primary X and Y axes. To transform a
 value using a particular axis, use that axis’s <code class="docutils literal notranslate"><span class="pre">transform</span></code> or <code class="docutils literal notranslate"><span class="pre">invtransform</span></code> operation.
-Trackgraphs use <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20coordinate20conversion"><span class="std std-ref">track transform</span></a> and <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20coordinate20conversion"><span class="std std-ref">track invtransform</span></a> to select a track.</p>
+Trackgraphs use <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20coordinate20conversion"><span class="std std-ref">track transform</span></a> and
+<a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20coordinate20conversion"><span class="std std-ref">track invtransform</span></a> to select a track.</p>
 </section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading">¶</a></h2>
@@ -722,17 +722,25 @@ the component’s resource name and resource class.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Axis</p></td>
+<tr class="row-even"><td><p>Track</p></td>
+<td><p>track name, such as <code class="docutils literal notranslate"><span class="pre">voltage</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Track</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Axis</p></td>
 <td><p>axis name, such as <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, or <code class="docutils literal notranslate"><span class="pre">temperature</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Axis</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Element</p></td>
+<tr class="row-even"><td><p>Element</p></td>
 <td><p>element name</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Element</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Pen</p></td>
+<tr class="row-odd"><td><p>Pen</p></td>
 <td><p>pen name</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Pen</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Arc marker</p></td>
+<td><p>marker name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ArcMarker</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Bitmap marker</p></td>
 <td><p>marker name</p></td>
@@ -762,15 +770,19 @@ the component’s resource name and resource class.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">legend</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Legend</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Grid</p></td>
+<tr class="row-even"><td><p>Track-local legend</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">trackLegend</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Grid</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">grid</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Grid</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Crosshairs</p></td>
+<tr class="row-even"><td><p>Crosshairs</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">crosshairs</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Crosshairs</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>PostScript</p></td>
+<tr class="row-odd"><td><p>PostScript</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">postscript</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Postscript</span></code></p></td>
 </tr>
@@ -1208,7 +1220,7 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="rbc-tk9-rbc-TRACKGRAPH.html"
-                          title="next chapter">Trackgraph layout</a></p>
+                          title="next chapter">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -1238,7 +1250,7 @@ bindings, and per-widget state are cleared when the graph is destroyed.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph layout"
+          <a href="rbc-tk9-rbc-TRACKGRAPH.html" title="Trackgraph widget instance TRACKGRAPH command"
              >next</a> |</li>
         <li class="right" >
           <a href="rbc-tk9-rbc-graphtoolbar.html" title="graphtoolbar"

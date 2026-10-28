@@ -751,6 +751,14 @@ int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window pro
         Tcl_DString pathName;
         int result;
 
+        /*
+         * Refresh the parent stack before changing the proxy class. An option
+         * database update invalidates Tk's cache, but Tk_SetClass() can replace
+         * that invalidation with a cached parent still containing old values.
+         * Looking up an option on the parent first rebuilds it when necessary
+         * and removes the proxy level before it is reused.
+         */
+        (void)Tk_GetOption(parent, "background", "Background");
         winPtr = (Tk_FakeWin *)proxy;
         /*
          * Tk's option database matcher identifies this level of the

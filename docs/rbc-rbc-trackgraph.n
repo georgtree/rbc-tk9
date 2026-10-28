@@ -4,7 +4,7 @@
 .TH "rbc::TRACKGRAPH" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::TRACKGRAPH - Commands in namespace rbc::TRACKGRAPH
-.SH "TRACKGRAPH LAYOUT"
+.SH "TRACKGRAPH WIDGET INSTANCE TRACKGRAPH COMMAND"
 .PP
 This page documents widgets created by \fI::rbc::trackgraph\fP and their named-track operations\&.
 TRACKGRAPH is a fictional documentation prefix for widgetPath track, not a runtime command\&.
@@ -60,6 +60,38 @@ from each track's first Y axis\&. An empty axis selection disables that directio
 └──────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────────────┘
 
 .fi
+.SS "TRACK OPTION DATABASE"
+.PP
+Tracks are named option-database components with class Track\&. The resource name is the track name\&.
+Creation reads these defaults once; explicit track create options take precedence\&. Later database
+changes do not modify existing tracks, including during track configure, resizing or scrolling\&.
+.PP
+.nf
+┌────────────┬───────────────┬────────────────┐
+│ Option     │ Resource name │ Resource class │
+├────────────┼───────────────┼────────────────┤
+│ -weight    │ weight        │ Weight         │
+│ -minheight │ minHeight     │ MinHeight      │
+│ -height    │ height        │ Height         │
+│ -yaxes     │ yAxes         │ YAxes          │
+└────────────┴───────────────┴────────────────┘
+
+.fi
+.PP
+.RS 4n
+.nf
+option add *Track\&.height 200
+option add *Track\&.minHeight 60
+option add *voltage\&.height 300
+\&.g track create voltage -yaxes volts
+\&.g track create current -yaxes amps -height 240
+.fi
+.RE
+.PP
+Database values undergo the same validation as explicit values\&. Axes supplied through yAxes must
+already exist and satisfy the usual exclusive ownership rules\&. Prefer a track-specific resource for
+axis assignments; a class-wide assignment cannot give the same axis to several tracks\&. Failed creation
+leaves no track or axis ownership behind\&. Tracks do not create child windows for resource lookup\&.
 .SS "SCROLLING TRACKS AND THEIR DATA"
 .PP
 The default -tracklayout fit divides the available plot space using -weight and -minheight, as before\&.
@@ -259,13 +291,13 @@ controls only the supplied mouse bindings\&. Custom interaction code can leave i
 commands\&. Keep the Trackgraph class in bindtags to use the standard bindings; a widget binding that returns
 break before the class binding can intentionally suppress them\&.
 .PP
-Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&.
-The optional rbc::graphtoolbar package accepts -type trackgraph: zoom and
-pan use shared X axes and the starting track's Y axes; wheel zoom and coordinate annotations follow the pointed
-track\&. Separator dragging remains available\&. See \fI::rbc::graphtoolbar\fP and demos/trackgraph1\&.tcl for the
-interaction controls\&.  Markers can select a track with -track name -mapy axisName; see \fI::rbc::MARKER\fP for
-clipping, ownership and restrictions\&. See demos/trackgraph1\&.tcl for multiple shared X axes, live vector
-updates, track weights, annotations and shared horizontal navigation\&.
+Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&. The
+optional rbc::graphtoolbar package accepts -type trackgraph: zoom and pan use shared X axes and the
+starting track's Y axes; wheel zoom and coordinate annotations follow the pointed track\&. Separator dragging
+remains available\&. See \fI::rbc::graphtoolbar\fP and demos/trackgraph1\&.tcl for the interaction controls\&. Markers
+can select a track with -track name -mapy axisName; see \fI::rbc::MARKER\fP for clipping, ownership and
+restrictions\&. See demos/trackgraph1\&.tcl for multiple shared X axes, live vector updates, track weights,
+annotations and shared horizontal navigation\&.
 
 
 .SH SEE ALSO

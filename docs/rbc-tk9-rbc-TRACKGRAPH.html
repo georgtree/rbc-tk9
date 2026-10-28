@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Trackgraph layout &#8212; rbc  documentation</title>
+    <title>Trackgraph widget instance TRACKGRAPH command &#8212; rbc  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=f11ead97" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=306bc2d5" />
@@ -32,7 +32,7 @@
           <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Trackgraph layout</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a></li> 
       </ul>
     </div>  
 
@@ -41,8 +41,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="trackgraph-layout">
-<span id="r-trackgraph-layout"></span><span id="r-trackgraph20layout"></span><span id="r-namespaceqz3a3arbc3a3atrackgraph"></span><h1>Trackgraph layout<a class="headerlink" href="#trackgraph-layout" title="Link to this heading">¶</a></h1>
+  <section id="trackgraph-widget-instance-trackgraph-command">
+<span id="r-trackgraph-widget-instance-trackgraph-command"></span><span id="r-trackgraph20widget20instance2060trackgraph6020command"></span><span id="r-namespaceqz3a3arbc3a3atrackgraph"></span><h1>Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command<a class="headerlink" href="#trackgraph-widget-instance-trackgraph-command" title="Link to this heading">¶</a></h1>
 <p>This page documents widgets created by <span class="xref std std-ref">::rbc::trackgraph</span> and their named-track operations.
 <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> is a fictional documentation prefix for <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">track</span></code>, not a runtime command.
 For example, <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">create</span> <span class="pre">voltage</span> <span class="pre">-yaxes</span> <span class="pre">volts</span></code> means <code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">track</span> <span class="pre">create</span> <span class="pre">voltage</span> <span class="pre">-yaxes</span> <span class="pre">volts</span></code>.
@@ -105,6 +105,54 @@ from each track’s first Y axis. An empty axis selection disables that directio
 </tr>
 </tbody>
 </table>
+<section id="track-option-database">
+<span id="r-rbc-trackgraph-track-option-database"></span><span id="r-3a3arbc3a3atrackgraphqztrack20option20database"></span><h3>Track option database<a class="headerlink" href="#track-option-database" title="Link to this heading">¶</a></h3>
+<p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. The resource name is the track name.
+Creation reads these defaults once; explicit <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">create</span></code> options take precedence. Later database
+changes do not modify existing tracks, including during <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">configure</span></code>, resizing or scrolling.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Resource name</p></th>
+<th class="head"><p>Resource class</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-weight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">weight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Weight</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-minheight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">minHeight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MinHeight</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Height</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yAxes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">YAxes</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Track.height<span class="w"> </span><span class="mi">200</span>
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>Track.minHeight<span class="w"> </span><span class="mi">60</span>
+<span class="nv">option</span><span class="w"> </span>add<span class="w"> </span><span class="o">*</span>voltage.height<span class="w"> </span><span class="mi">300</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>create<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>volts
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>create<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>yaxes<span class="w"> </span>amps<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">240</span>
+</pre></div>
+</div>
+<p>Database values undergo the same validation as explicit values. Axes supplied through <code class="docutils literal notranslate"><span class="pre">yAxes</span></code> must
+already exist and satisfy the usual exclusive ownership rules. Prefer a track-specific resource for
+axis assignments; a class-wide assignment cannot give the same axis to several tracks. Failed creation
+leaves no track or axis ownership behind. Tracks do not create child windows for resource lookup.</p>
+</section>
 <section id="scrolling-tracks-and-their-data">
 <span id="r-rbc-trackgraph-scrolling-tracks-and-their-data"></span><span id="r-3a3arbc3a3atrackgraphqzscrolling20tracks20and20their20data"></span><h3>Scrolling tracks and their data<a class="headerlink" href="#scrolling-tracks-and-their-data" title="Link to this heading">¶</a></h3>
 <p>The default <code class="docutils literal notranslate"><span class="pre">-tracklayout</span> <span class="pre">fit</span></code> divides the available plot space using <code class="docutils literal notranslate"><span class="pre">-weight</span></code> and <code class="docutils literal notranslate"><span class="pre">-minheight</span></code>, as before.
@@ -269,13 +317,13 @@ exports when <code class="docutils literal notranslate"><span class="pre">-decor
 controls only the supplied mouse bindings. Custom interaction code can leave it disabled and use the same
 commands. Keep the <code class="docutils literal notranslate"><span class="pre">Trackgraph</span></code> class in <code class="docutils literal notranslate"><span class="pre">bindtags</span></code> to use the standard bindings; a widget binding that returns
 <code class="docutils literal notranslate"><span class="pre">break</span></code> before the class binding can intentionally suppress them.</p>
-<p>Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected.
-The optional <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code> package accepts <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: zoom and
-pan use shared X axes and the starting track’s Y axes; wheel zoom and coordinate annotations follow the pointed
-track. Separator dragging remains available. See <a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-namespaceqz3a3arbc3a3agraphtoolbar"><span class="std std-ref">::rbc::graphtoolbar</span></a> and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for the
-interaction controls.  Markers can select a track with <code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span> <span class="pre">-mapy</span> <span class="pre">axisName</span></code>; see <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for
-clipping, ownership and restrictions. See <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for multiple shared X axes, live vector
-updates, track weights, annotations and shared horizontal navigation.</p>
+<p>Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. The
+optional <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code> package accepts <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: zoom and pan use shared X axes and the
+starting track’s Y axes; wheel zoom and coordinate annotations follow the pointed track. Separator dragging
+remains available. See <a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-namespaceqz3a3arbc3a3agraphtoolbar"><span class="std std-ref">::rbc::graphtoolbar</span></a> and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for the interaction controls. Markers
+can select a track with <code class="docutils literal notranslate"><span class="pre">-track</span> <span class="pre">name</span> <span class="pre">-mapy</span> <span class="pre">axisName</span></code>; see <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a> for clipping, ownership and
+restrictions. See <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for multiple shared X axes, live vector updates, track weights,
+annotations and shared horizontal navigation.</p>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -292,8 +340,9 @@ updates, track weights, annotations and shared horizontal navigation.</p>
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Trackgraph layout</a><ul>
+<li><a class="reference internal" href="#">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a><ul>
 <li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
+<li><a class="reference internal" href="#track-option-database">Track option database</a></li>
 <li><a class="reference internal" href="#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
 <li><a class="reference internal" href="#track-coordinate-conversion">Track coordinate conversion</a></li>
 <li><a class="reference internal" href="#track-grid-selection">Track grid selection</a></li>
@@ -350,7 +399,7 @@ updates, track weights, annotations and shared horizontal navigation.</p>
           <a href="rbc-tk9-rbc-GRAPHINST.html" title="Graph widget instance GRAPHINST command"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Trackgraph layout</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

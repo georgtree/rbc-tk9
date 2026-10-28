@@ -594,22 +594,24 @@ namespace eval ::rbc::GRAPHINST {
         the component's resource name and resource class.
 
         ### Component resource names and classes
-
-        | Component      | Resource name                                 | Resource class  |
-        |----------------|-----------------------------------------------|-----------------|
-        | Axis           | axis name, such as `x`, `y`, or `temperature` | `Axis`          |
-        | Element        | element name                                  | `Element`       |
-        | Pen            | pen name                                      | `Pen`           |
-        | Bitmap marker  | marker name                                   | `BitmapMarker`  |
-        | Image marker   | marker name                                   | `ImageMarker`   |
-        | Line marker    | marker name                                   | `LineMarker`    |
-        | Polygon marker | marker name                                   | `PolygonMarker` |
-        | Text marker    | marker name                                   | `TextMarker`    |
-        | Window marker  | marker name                                   | `WindowMarker`  |
-        | Legend         | `legend`                                      | `Legend`        |
-        | Grid           | `grid`                                        | `Grid`          |
-        | Crosshairs     | `crosshairs`                                  | `Crosshairs`    |
-        | PostScript     | `postscript`                                  | `Postscript`    |
+        | Component          | Resource name                                 | Resource class  |
+        |--------------------|-----------------------------------------------|-----------------|
+        | Track              | track name, such as `voltage`                 | `Track`         |
+        | Axis               | axis name, such as `x`, `y`, or `temperature` | `Axis`          |
+        | Element            | element name                                  | `Element`       |
+        | Pen                | pen name                                      | `Pen`           |
+        | Arc marker         | marker name                                   | `ArcMarker`     |
+        | Bitmap marker      | marker name                                   | `BitmapMarker`  |
+        | Image marker       | marker name                                   | `ImageMarker`   |
+        | Line marker        | marker name                                   | `LineMarker`    |
+        | Polygon marker     | marker name                                   | `PolygonMarker` |
+        | Text marker        | marker name                                   | `TextMarker`    |
+        | Window marker      | marker name                                   | `WindowMarker`  |
+        | Legend             | `legend`                                      | `Legend`        |
+        | Track-local legend | `trackLegend`                                 | `TrackLegend`   |
+        | Grid               | `grid`                                        | `Grid`          |
+        | Crosshairs         | `crosshairs`                                  | `Crosshairs`    |
+        | PostScript         | `postscript`                                  | `Postscript`    |
 
         Thus an option-database entry can target either a whole component class:
         ```tcl
@@ -1270,6 +1272,32 @@ namespace eval ::rbc::TRACKGRAPH {
         | `-minheight` | `40`    | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units.                                                                                                          |
         | `-height`    | `160`   | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
         | `-yaxes`     | empty   | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).                                                                                   |
+
+        ### Track option database
+
+        Tracks are named option-database components with class `Track`. The resource name is the track name.
+        Creation reads these defaults once; explicit `track create` options take precedence. Later database
+        changes do not modify existing tracks, including during `track configure`, resizing or scrolling.
+
+        | Option | Resource name | Resource class |
+        |--------|---------------|----------------|
+        | `-weight` | `weight` | `Weight` |
+        | `-minheight` | `minHeight` | `MinHeight` |
+        | `-height` | `height` | `Height` |
+        | `-yaxes` | `yAxes` | `YAxes` |
+
+        ```tcl
+        option add *Track.height 200
+        option add *Track.minHeight 60
+        option add *voltage.height 300
+        .g track create voltage -yaxes volts
+        .g track create current -yaxes amps -height 240
+        ```
+
+        Database values undergo the same validation as explicit values. Axes supplied through `yAxes` must
+        already exist and satisfy the usual exclusive ownership rules. Prefer a track-specific resource for
+        axis assignments; a class-wide assignment cannot give the same axis to several tracks. Failed creation
+        leaves no track or axis ownership behind. Tracks do not create child windows for resource lookup.
 
         ### Scrolling tracks and their data
         The default `-tracklayout fit` divides the available plot space using `-weight` and `-minheight`, as before.
