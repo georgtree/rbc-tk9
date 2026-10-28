@@ -1,0 +1,274 @@
+# RBC.trackgraph.legend.A.test --
+#
+###Abstract
+# Trackgraph legend tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.legend
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.legend {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {3 0 4 0 11 0 12 0}
+
+    test RBC.trackgraph.legend.A.1.1 {local legends are opt-in and do not reserve graph margins} -setup {
+        Create
+    } -body {
+        set bounds [.tg track bbox voltage]
+        set defaults [list [.tg track legend voltage cget -hide] [.tg track legend voltage cget -position]\
+                          [.tg track legend voltage cget -raised] [.tg track legend voltage bbox]]
+        .tg track legend voltage configure -hide no
+        update
+        list $defaults [expr {$bounds eq [.tg track bbox voltage]}] [.tg legend cget -hide]
+    } -cleanup {destroy .tg} -result {{1 plotarea 1 {}} 1 1}
+
+    test RBC.trackgraph.legend.A.2.1 {local get and activation are scoped; global activation shares element state} -setup {
+        LocalLegendSetup
+    } -body {
+        lassign [LocalLegendPoint voltage v] x y
+        set result [list [.tg track legend voltage get @$x,$y] [.tg track legend current get @$x,$y]]
+        lappend result [.tg track legend voltage activate *] [.tg track legend current activate]
+        lappend result [lsort [.tg legend activate]]
+        .tg legend deactivate v
+        lappend result [.tg track legend voltage activate]
+        set result
+    } -cleanup {destroy .tg} -result {v {} v {} v {}}
+
+    foreach position {plotarea left right top bottom} {
+        test RBC.trackgraph.legend.A.3.[incr testCase(3)] {position and anchor use the track rectangle} -setup {
+            LocalLegendSetup
+        } -body {
+            .tg track legend current configure -position $position -anchor se
+            lassign [.tg track bbox current] left top right bottom
+            lassign [.tg track legend current bbox] x y w h
+            expr {$w>0 && $h>0 && $x >= $left && $y >= $top && $x+$w <= $right+1 && $y+$h <= $bottom+1}
+        } -cleanup {destroy .tg} -result 1
+    }
+
+    foreach position {rightmargin .external @10,10 nonsense} {
+        test RBC.trackgraph.legend.A.4.[incr testCase(4)] {invalid local positions roll back all changed options} -setup {
+            LocalLegendSetup
+        } -body {
+            set before [.tg track legend voltage configure]
+            list [catch {.tg track legend voltage configure -foreground red -position $position}]\
+                [expr {$before eq [.tg track legend voltage configure]}] [winfo exists .external]
+        } -cleanup {destroy .tg} -result {1 1 0}
+    }
+
+    test RBC.trackgraph.legend.A.5.1 {reordering and resizing move legend geometry without replacing bindings} -setup {
+        LocalLegendSetup
+    } -body {
+        .tg track legend voltage bind v <Enter> {set ::localEntered yes}
+        set before [.tg track legend voltage bbox]
+        .tg track order {current voltage}
+        update
+        set reordered [.tg track legend voltage bbox]
+        .tg track sashpos current [expr {[.tg track sashpos current]+15}]
+        update
+        list [expr {[lindex $reordered 1]>[lindex $before 1]}]\
+            [expr {$reordered ne [.tg track legend voltage bbox]}]\
+            [.tg track legend voltage bind v <Enter>]
+    } -cleanup {destroy .tg} -result {1 1 {set ::localEntered yes}}
+
+    test RBC.trackgraph.legend.A.6.1 {bindings and current entries are scoped independently to each legend} -setup {
+        LocalLegendSetup
+        set ::localHits {}
+        .tg legend bind all <ButtonPress-1> {lappend ::localHits global}
+        foreach track {voltage current} {
+            .tg track legend $track bind all <ButtonPress-1> [list apply [list {track} {
+                lappend ::localHits $track [.tg track legend $track get current]
+            }] $track]
+        }
+    } -body {
+        foreach track {voltage current} element {v i} {
+            lassign [LocalLegendPoint $track $element] x y
+            event generate .tg <Motion> -x $x -y $y
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            event generate .tg <ButtonRelease-1> -x $x -y $y
+            update
+        }
+        set ::localHits
+    } -cleanup {destroy .tg; unset ::localHits} -result {voltage v current i}
+
+    test RBC.trackgraph.legend.A.7.1 {global external legend does not steal local event routing} -setup {
+        LocalLegendSetup
+        .tg legend configure -hide no -position .outsideLegend
+        pack .outsideLegend
+        set ::localHits {}
+        .tg track legend voltage bind all <ButtonPress-1> {lappend ::localHits local}
+        update
+    } -body {
+        lassign [LocalLegendPoint voltage v] x y
+        event generate .tg <Motion> -x $x -y $y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonRelease-1> -x $x -y $y
+        update
+        list $::localHits [winfo exists .outsideLegend] [.tg legend cget -position]
+    } -cleanup {destroy .tg; catch {destroy .outsideLegend}; unset ::localHits} -result {local 1 .outsideLegend}
+
+    test RBC.trackgraph.legend.A.8.1 {deleting the picked element and track inside a binding is safe} -setup {
+        LocalLegendSetup
+        .tg track legend voltage bind all <ButtonPress-1> {
+            .tg element delete v
+            .tg track delete voltage
+        }
+    } -body {
+        lassign [LocalLegendPoint voltage v] x y
+        event generate .tg <Motion> -x $x -y $y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonRelease-1> -x $x -y $y
+        update
+        .tg track create voltage -yaxes volts
+        list [.tg track legend voltage cget -hide] [catch {.tg track legend voltage bind all <ButtonPress-1>}]
+    } -cleanup {destroy .tg} -result {1 1}
+
+    test RBC.trackgraph.legend.A.9.1 {destroying the graph inside a local binding is safe} -setup {
+        LocalLegendSetup
+        .tg track legend voltage bind all <ButtonPress-1> {destroy .tg}
+    } -body {
+        lassign [LocalLegendPoint voltage v] x y
+        event generate .tg <Motion> -x $x -y $y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        update
+        winfo exists .tg
+    } -cleanup {catch {destroy .tg}} -result 0
+
+    test RBC.trackgraph.legend.A.10.1 {moving elements, hiding plots and deleting entries update local membership} -setup {
+        LocalLegendSetup
+    } -body {
+        .tg element configure v -track current -mapy amps -hideplot yes
+        update
+        set old [.tg track legend voltage bbox]
+        lassign [LocalLegendPoint current v] x y
+        set hidden [.tg track legend current get @$x,$y]
+        .tg element configure v -label {}
+        .tg element delete i
+        update
+        list $old $hidden [.tg track legend current bbox]
+    } -cleanup {destroy .tg} -result {{} v {}}
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            test RBC.trackgraph.legend.A.11.[incr testCase(11)] {oversized legend drawing and picking are clipped to the owning track}\
+                    -constraints trackRenderer$renderer -setup {
+                LocalLegendSetup
+                .tg configure -invertxy $inverted
+                .tg configure -renderer $renderer
+                .tg track legend current configure -hide yes
+                .tg track legend voltage configure -background #00ff00 -foreground black -anchor sw
+                .tg element configure v -label [string repeat "very wide legend\n" 35]
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg track bbox voltage] left top right bottom
+                set count 0
+                set outside 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$green>240 && $red<15 && $blue<15} {
+                            incr count
+                            if {$x<$left || $x>$right || $y<$top || $y>$bottom} {incr outside}
+                        }
+                    }
+                }
+                list [expr {$count>0}] $outside [.tg track legend voltage get @$left,[expr {$bottom+3}]]
+            } -cleanup {image delete $photo; destroy .tg} -result {1 0 {}}
+        }
+
+        foreach format {svg pdf postscript} {
+            test RBC.trackgraph.legend.A.12.[incr testCase(12)] {export remaps local legends and restores screen geometry} -setup {
+                LocalLegendSetup
+                .tg configure -invertxy $inverted
+            } -body {
+                set before [.tg track legend current bbox]
+                set original [.tg $format output]
+                set resized [.tg $format output -width 900 -height 700]
+                .tg $format configure -width 0 -height 0
+                update
+                set restored [.tg $format output]
+                list [expr {$original ne $resized}] [expr {$original eq $restored}]\
+                    [expr {$before eq [.tg track legend current bbox]}]
+            } -cleanup {destroy .tg} -result {1 1 1}
+        }
+    }
+
+    test RBC.trackgraph.legend.A.13.1 {local legend labels use export clipping and hide independently} -setup {
+        LocalLegendSetup
+    } -body {
+        set both [.tg svg output]
+        .tg track legend voltage configure -hide yes
+        set one [.tg svg output]
+        list [expr {[string first VoltageLegend $both]>=0 && [string first CurrentLegend $both]>=0}]\
+            [expr {[string first VoltageLegend $one]<0 && [string first CurrentLegend $one]>=0}]\
+            [expr {[string first {clip-path=} $both]>=0}]
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test RBC.trackgraph.legend.A.14.1 {global/local legend overlap routes each click to only the top legend} -setup {
+        LocalLegendSetup
+        .tg legend configure -hide no -position plotarea -anchor ne -raised yes
+        set ::localHits {}
+        .tg legend bind all <ButtonPress-1> {lappend ::localHits global}
+        .tg track legend voltage bind all <ButtonPress-1> {lappend ::localHits local}
+        update
+    } -body {
+        lassign [LocalLegendPoint voltage v] x y
+        foreach raised {yes no} {
+            .tg legend configure -raised $raised
+            update
+            event generate .tg <Motion> -x $x -y $y
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            event generate .tg <ButtonRelease-1> -x $x -y $y
+            update
+        }
+        set ::localHits
+    } -cleanup {destroy .tg; unset ::localHits} -result {global local}
+
+    test RBC.trackgraph.legend.A.15.1 {local legend clicks do not also select underlying plotted elements} -setup {
+        LocalLegendSetup
+        lassign [LocalLegendPoint voltage v] x y
+        .tg element configure v -data [list [.tg axis invtransform x $x] [.tg axis invtransform volts $y]]
+        set ::localHits {}
+        .tg element bind v <ButtonPress-1> {lappend ::localHits element}
+        .tg track legend voltage bind all <ButtonPress-1> {lappend ::localHits legend}
+        update
+    } -body {
+        event generate .tg <Motion> -x $x -y $y
+        event generate .tg <ButtonPress-1> -x $x -y $y
+        event generate .tg <ButtonRelease-1> -x $x -y $y
+        update
+        set ::localHits
+    } -cleanup {destroy .tg; unset ::localHits} -result legend
+
+    test RBC.trackgraph.legend.A.16.1 {local option-database tests do not clear the caller's renderer defaults} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            option add *trackLegend.foreground purple widgetDefault
+            option add *trackLegend.anchor sw widgetDefault
+            rbc::trackgraph .tg
+            .tg track create voltage
+            .tg track create current
+        }
+    } -body {
+        interp eval trackOptionChild {
+            list [.tg track legend voltage cget -foreground] [.tg track legend current cget -anchor]\
+                [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {purple sw 1 n}
+    cleanupTests
+}
+namespace delete ::trackgraph.legend

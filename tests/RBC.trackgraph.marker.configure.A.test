@@ -1,0 +1,83 @@
+# RBC.trackgraph.marker.configure.A.test --
+#
+###Abstract
+# Trackgraph marker configure tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.marker {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.marker.configure.A.1.1 {track assignment cannot silently adopt graph-wide markers} -setup {
+        MarkerSetup
+        .tg marker create line -name m -mapy y -coords {0 0 1 1}
+    } -body {
+        set result [list [catch {.tg track create extra -yaxes y}] [.tg track names] [.tg marker cget m -track]]
+        .tg marker delete m
+        .tg track create extra -yaxes y
+        lappend result [.tg track cget extra -yaxes]
+        set result
+    } -cleanup {destroy .tg} -result {1 {voltage current} {} y}
+
+    test RBC.trackgraph.marker.configure.A.2.1 {ordinary graphs reject a nonempty track without altering the marker} -setup {
+        ::rbc::graph .tg
+        .tg marker create text -name m -text Keep
+    } -body {
+        list [catch {.tg marker configure m -track missing -text Lost}] \
+            [.tg marker cget m -text] [.tg marker cget m -track]
+    } -cleanup {destroy .tg} -result {1 Keep {}}
+
+    test RBC.trackgraph.marker.configure.A.3.1 {track and Y axis changes commit together or roll back} -setup {
+        MarkerSetup
+        .tg marker create line -name m -track voltage -mapy volts -coords {0 0 10 0}
+    } -body {
+        set result [list [.tg marker cget m -track] [catch {.tg marker configure m -track current}] \
+            [.tg marker cget m -track] [.tg marker cget m -mapy]]
+        .tg marker configure m -track current -mapy amps
+        lappend result [.tg marker cget m -track] [.tg marker cget m -mapy]
+        set result
+    } -cleanup {destroy .tg} -result {voltage 1 voltage volts current amps}
+
+    test RBC.trackgraph.marker.configure.A.4.1 {hidden markers protect their track and axis until moved or deleted} -setup {
+        MarkerSetup
+        .tg marker create text -name m -track voltage -mapy volts -hide yes
+    } -body {
+        set result [list [catch {.tg track delete voltage}] \
+            [catch {.tg track configure voltage -yaxes {}}] [catch {.tg axis delete volts}]]
+        .tg marker configure m -track current -mapy amps
+        .tg track delete voltage
+        .tg marker delete m
+        .tg track delete current
+        lappend result [.tg track names]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1 {}}
+
+    test RBC.trackgraph.marker.configure.A.5.1 {unsupported combinations fail without replacing existing markers} -setup {
+        MarkerSetup
+        button .tg.child
+        .tg marker create text -name m -text Keep -track voltage -mapy volts
+    } -body {
+        set result {}
+        foreach command {
+            {.tg marker create line -name m -track missing -mapy volts}
+            {.tg marker create line -name m -track voltage -mapy amps}
+            {.tg marker configure m -track {}}
+        } {
+            lappend result [catch {eval $command}]
+        }
+        lappend result [.tg marker cget m -text] [.tg marker cget m -track]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1 Keep voltage}
+    cleanupTests
+}
+namespace delete ::trackgraph.marker

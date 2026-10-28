@@ -1,0 +1,40 @@
+# RBC.trackgraph.export.A.test --
+#
+###Abstract
+# Trackgraph export tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.export
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.export {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0}
+
+    foreach format {svg postscript pdf} {
+        test RBC.trackgraph.export.A.1.[incr testCase(1)] {resized export remaps tracks and restores screen geometry} -setup {
+            Create
+        } -body {
+            set before [.tg track bbox voltage]
+            set point [.tg track transform current 5 0]
+            set original [.tg $format output]
+            set enlarged [.tg $format output -width 900 -height 700]
+            .tg $format configure -width 0 -height 0
+            update
+            list [expr {$original ne $enlarged}] [expr {$before eq [.tg track bbox voltage]}] \
+                [expr {$point eq [.tg track transform current 5 0]}]
+        } -cleanup {destroy .tg} -result {1 1 1}
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.export

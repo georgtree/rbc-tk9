@@ -1,0 +1,53 @@
+# RBC.trackgraph.order.A.test --
+#
+###Abstract
+# Trackgraph order tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.order
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.order {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {2 0}
+
+    test RBC.trackgraph.order.A.1.1 {reorder moves elements and markers without recreating them} -setup {
+        Create
+        .tg marker create text -name note -track voltage -mapy volts -coords {5 0} -text V
+    } -body {
+        set before [.tg track transform voltage 5 0]
+        set result [list [.tg track order {current voltage}] [.tg track names] [.tg yaxis use]]
+        lassign [.tg track transform voltage 5 0] x y
+        lappend result [expr {$y > [lindex $before 1]}] [.tg element cget v -track] [.tg marker cget note -track]
+        .tg track order {voltage current}
+        lappend result [expr {$before eq [.tg track transform voltage 5 0]}]
+        set result
+    } -cleanup {destroy .tg} -result {{current voltage} {current voltage} {amps volts} 1 voltage voltage 1}
+
+    foreach names {{} {voltage} {voltage voltage} {voltage missing} {current voltage extra}} {
+        test RBC.trackgraph.order.A.2.[incr testCase(2)] {invalid permutations do not change layout or ownership} -setup {
+            Create
+        } -body {
+            set before [.tg track bbox voltage]
+            list [catch {.tg track order $names}] [.tg track order] [expr {$before eq [.tg track bbox voltage]}]
+        } -cleanup {destroy .tg} -result {1 {voltage current} 1}
+    }
+
+    test RBC.trackgraph.order.A.3.1 {empty graphs accept an empty order} -setup {
+        ::rbc::trackgraph .tg
+    } -body {
+        list [.tg track order] [.tg track order {}] [.tg track separator 0 0]
+    } -cleanup {destroy .tg} -result {{} {} {}}
+    cleanupTests
+}
+namespace delete ::trackgraph.order

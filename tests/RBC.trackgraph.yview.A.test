@@ -1,0 +1,69 @@
+# RBC.trackgraph.yview.A.test --
+#
+###Abstract
+# Trackgraph yview tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.yview
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.yview {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0 2 0}
+
+    foreach inverted {0 1} {
+        test RBC.trackgraph.yview.A.1.[incr testCase(1)] {local view can scroll all owned Y axes or one selected axis without moving tracks or X} -setup {
+            ScrollSetup $inverted
+            .tg axis configure volts -scrollmin -10 -scrollmax 10
+            .tg axis create other -min -10 -max 10 -scrollmin -100 -scrollmax 100 -loose no
+            .tg track configure voltage -yaxes {volts other}
+            update
+        } -body {
+            set trackView [.tg track view]
+            set x [.tg axis limits x]
+            set current [.tg axis limits amps]
+            .tg track yview voltage moveto 0.25
+            update
+            set v [.tg axis view volts]
+            set o [.tg axis view other]
+            set result [list [expr {abs([lindex $v 0]-0.25)<1e-9}] [expr {abs([lindex $v 0]-[lindex $o 0])<1e-9 && abs([lindex $v 1]-[lindex $o 1])<1e-9}] \
+                [expr {$trackView eq [.tg track view]}] [expr {$x eq [.tg axis limits x]}] \
+                [expr {$current eq [.tg axis limits amps]}]]
+            .tg track yview voltage -mapy other scroll 1 pages
+            update
+            lappend result [expr {$v eq [.tg axis view volts]}] [expr {$o ne [.tg axis view other]}] \
+                [expr {[.tg track yview voltage -mapy other] eq [.tg axis view other]}]
+            set result
+        } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1}
+    }
+
+    foreach inverted {0 1} {
+        foreach descending {0 1} {
+            test RBC.trackgraph.yview.A.2.[incr testCase(2)] {local scrollbar fractions honor logarithmic axes and descending direction} -setup {
+                ScrollSetup $inverted
+                .tg axis configure volts -min 10 -max 100 -logscale yes -descending $descending \
+                    -scrollmin 1 -scrollmax 1000000 -loose no
+                update
+            } -body {
+                set box [.tg track bbox voltage]
+                .tg track yview voltage -mapy volts moveto 0.25
+                update
+                lassign [.tg axis limits volts] low high
+                list [expr {abs([lindex [.tg track yview voltage] 0]-0.25)<1e-9}] \
+                    [expr {abs($high/$low-10)<1e-8}] [expr {$box eq [.tg track bbox voltage]}]
+            } -cleanup {destroy .tg} -result {1 1 1}
+        }
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.yview

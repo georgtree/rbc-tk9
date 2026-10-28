@@ -1,0 +1,76 @@
+# RBC.trackgraph.marker.xor.A.test --
+#
+###Abstract
+# Trackgraph marker xor tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.marker {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0}
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            foreach under {0 1} {
+                foreach {kind coords} {line {5 -100 5 100} polygon {3 -100 7 -100 7 100 3 100} arc {3 -100 7 100}} {
+                    test RBC.trackgraph.marker.xor.A.1.[incr testCase(1)] {XOR drawing is clipped and redraws without cumulative toggling} \
+                            -constraints trackRenderer$renderer -setup {
+                        MarkerSetup
+                        .tg configure -invertxy $inverted -renderer $renderer
+                        set photo [image create photo]
+                        .tg snap $photo
+                        set baseline [$photo data]
+                    } -body {
+                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes -outline red -linewidth 3 -under $under
+                        update
+                        .tg snap $photo
+                        set first [$photo data]
+                        .tg snap $photo
+                        set result [list [expr {$first ne $baseline}] [expr {$first eq [$photo data]}]]
+                        lassign [.tg track bbox current] l t r b
+                        set other [$photo data -from $l $t $r $b]
+                        .tg marker configure xor -hide yes
+                        update
+                        .tg snap $photo
+                        lappend result [expr {$baseline eq [$photo data]}] [expr {$other eq [$photo data -from $l $t $r $b]}]
+                        .tg marker configure xor -hide no
+                        .tg track order {current voltage}
+                        .tg track configure voltage -weight 3
+                        .tg configure -invertxy [expr {!$inverted}]
+                        update
+                        .tg snap $photo
+                        set moved [$photo data]
+                        .tg marker delete xor
+                        update
+                        .tg snap $photo
+                        set clean [$photo data]
+                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes -outline red -linewidth 3 -under $under
+                        update
+                        .tg snap $photo
+                        lappend result [expr {$moved eq [$photo data]}] [expr {$clean ne $moved}]
+                        .tg marker configure xor -xor no
+                        .tg marker delete xor
+                        update
+                        .tg snap $photo
+                        lappend result [expr {$clean eq [$photo data]}]
+                        set result
+                    } -cleanup {image delete $photo; destroy .tg} -result {1 1 1 1 1 1 1}
+                }
+            }
+        }
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.marker

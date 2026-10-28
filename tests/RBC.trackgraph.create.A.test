@@ -1,0 +1,58 @@
+# RBC.trackgraph.create.A.test --
+#
+###Abstract
+# Trackgraph create tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.create
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.create {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.create.A.1.1 {trackgraph supports the ordinary rbc namespace import} -body {
+        namespace eval importTrack {
+            namespace import ::rbc::trackgraph
+            namespace origin trackgraph
+        }
+    } -cleanup {namespace delete importTrack} -result ::rbc::trackgraph
+
+    test RBC.trackgraph.create.A.2.1 {unsupported or ambiguous operations fail without leaving objects} -setup {
+        Create
+    } -body {
+        list [catch {.tg bar create nope -data {1 1}}] [catch {.tg line create nope -data {1 1}}] \
+            [expr {"nope" ni [.tg element names]}] [catch {.tg transform 1 1}] \
+            [catch {.tg track transform voltage 1 1 -mapy amps}]
+    } -cleanup {destroy .tg} -result {1 1 1 1 1}
+
+    test RBC.trackgraph.create.A.3.1 {failed creation does not retain an axis reference or track name} -setup {
+        Create
+        .tg axis create auxiliary
+    } -body {
+        set result [list [catch {.tg track create extra -yaxes {auxiliary missing}}] [.tg track names]]
+        .tg track create extra -yaxes auxiliary
+        .tg track delete extra
+        .tg axis delete auxiliary
+        lappend result [expr {"auxiliary" ni [.tg axis names]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 {voltage current} 1}
+
+    test RBC.trackgraph.create.A.4.1 {repeated creation and destruction releases track-owned axis references} -body {
+        for {set i 0} {$i<20} {incr i} {
+            Create
+            destroy .tg
+            update
+        }
+        winfo exists .tg
+    } -result 0
+    cleanupTests
+}
+namespace delete ::trackgraph.create

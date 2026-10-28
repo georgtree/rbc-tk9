@@ -1,0 +1,73 @@
+# RBC.trackgraph.element.decimate.A.test --
+#
+###Abstract
+# Trackgraph element decimate tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.element {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0}
+
+    foreach inverted {0 1} {
+        foreach kind {line strip} {
+            test RBC.trackgraph.element.decimate.A.1.[incr testCase(1)] {dense track traces preserve extrema and original picking after remapping and vector updates} -setup {
+                Create $inverted
+                ::rbc::vector create trackDenseX trackDenseY
+                set xs {}; set ys {}
+                for {set i 0} {$i<10000} {incr i} {
+                    lappend xs [expr {$i*0.001}]
+                    lappend ys [expr {$i==5000 ? 0.9 : 0.0}]
+                }
+                trackDenseX set $xs
+                trackDenseY set $ys
+                .tg element delete v
+                .tg $kind create v -track voltage -mapy volts -xdata trackDenseX -ydata trackDenseY \
+                    -decimate auto -symbol none -linewidth 1 -color red
+                set photo [image create photo]
+                update
+            } -body {
+                set result {}
+                foreach value {0.9 -0.9} {
+                    trackDenseY index 5000 $value
+                    .tg track configure voltage -weight 3
+                    .tg axis configure x -min 4 -max 6
+                    update
+                    lassign [.tg track transform voltage 5 $value] x y
+                    set found [.tg element closest $x $y hit -halo 3 -interpolate no v]
+                    lappend result [expr {$found && $hit(index)==5000 && abs($hit(y)-$value)<1e-9}]
+                    .tg snap $photo
+                    set visible 0
+                    for {set px [expr {int($x)-2}]} {$px<=int($x)+2} {incr px} {
+                        for {set py [expr {int($y)-2}]} {$py<=int($y)+2} {incr py} {
+                            lassign [$photo get $px $py] red green blue
+                            # A one-pixel Cairo stroke between columns has partial coverage.
+                            # Require red dominance rather than an almost solid red pixel.
+                            if {$red>180 && $red-$green>80 && $red-$blue>80} {set visible 1}
+                        }
+                    }
+                    lappend result $visible
+                }
+                .tg element configure v -decimate none
+                set full [.tg svg output]
+                .tg element configure v -decimate auto
+                lappend result [expr {$full eq [.tg svg output]}]
+                set result
+            } -cleanup {image delete $photo; destroy .tg; ::rbc::vector destroy trackDenseX trackDenseY} -result {1 1 1 1 1}
+        }
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.element

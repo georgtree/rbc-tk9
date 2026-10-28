@@ -1,0 +1,227 @@
+# RBC.trackgraph.grid.A.test --
+#
+###Abstract
+# Trackgraph grid tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.grid
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.grid {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {3 0 6 0 7 0 8 0 9 0}
+
+    test RBC.trackgraph.grid.A.1.1 {queries preserve inheritance and report each track's effective Y axis} -setup {
+        Create
+    } -body {
+        set result [list [.tg track grid voltage cget -mapy] [.tg track grid current cget -mapy]]
+        .tg track grid voltage configure
+        .tg track grid voltage configure -color
+        .tg grid configure -color purple -mapx {} -minor no
+        lappend result [.tg track grid voltage cget -color] [.tg track grid current cget -mapx] \
+            [.tg track grid voltage cget -minor]
+        .tg grid configure -mapy {}
+        lappend result [.tg track grid voltage cget -mapy]
+        set result
+    } -cleanup {destroy .tg} -result {volts amps purple {} 0 {}}
+
+    test RBC.trackgraph.grid.A.2.1 {first mutation copies current defaults and further global changes remain independent} -setup {
+        Create
+        .tg axis create samples -min 0 -max 100 -loose no
+        .tg x2axis use samples
+        .tg grid configure -color purple -dashes {3 2} -linewidth 2 -minor no
+    } -body {
+        .tg track grid voltage configure -mapx samples -hide no
+        .tg grid configure -color orange -linewidth 4 -hide yes
+        list [.tg track grid voltage cget -mapx] [.tg track grid voltage cget -mapy] \
+            [.tg track grid voltage cget -color] [.tg track grid voltage cget -linewidth] \
+            [.tg track grid voltage cget -dashes] [.tg track grid voltage cget -minor] \
+            [.tg track grid voltage cget -hide] [.tg track grid current cget -color] [.tg grid cget -mapx]
+    } -cleanup {destroy .tg} -result {samples volts purple 2 {3 2} 0 0 orange x}
+
+    foreach local {0 1} {
+        test RBC.trackgraph.grid.A.3.[incr testCase(3)] {bad options and foreign axes roll back without freezing inherited state} -setup {
+            Create
+            if {$local} {.tg track grid voltage configure -color green}
+        } -body {
+            set before [.tg track grid voltage configure]
+            set result {}
+            foreach options {{-color red -mapy amps} {-color red -mapx volts} {-linewidth -1} \
+                    {-dashes {-1}} {-color red -mapy nonexistent} {-color red -unknown no} {-color red -minor}} {
+                lappend result [catch {.tg track grid voltage configure {*}$options}]
+                lappend result [expr {$before eq [.tg track grid voltage configure]}]
+            }
+            .tg grid configure -color purple
+            lappend result [expr {[.tg track grid voltage cget -color] eq ($local ? "green" : "purple")}]
+            set result
+        } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
+    }
+
+    test RBC.trackgraph.grid.A.4.1 {local grid references prevent axis detachment and are released on track deletion} -setup {
+        Create
+        .tg element delete v i
+        .tg axis create alternate -min 0 -max 100
+        .tg track configure voltage -yaxes {volts alternate}
+        .tg track grid voltage configure -mapy alternate
+    } -body {
+        set result [list [catch {.tg track configure voltage -yaxes volts} message] $message]
+        .tg track grid voltage configure -mapy {}
+        .tg track configure voltage -yaxes volts
+        .tg track grid voltage configure -mapy volts
+        .tg track delete voltage
+        .tg track create voltage -yaxes volts
+        .tg grid configure -color purple
+        lappend result [.tg track grid voltage cget -color] [.tg track grid voltage cget -mapy]
+        .tg axis delete alternate
+        set result
+    } -cleanup {destroy .tg} -result {1 {cannot detach a Y axis used by a track grid} purple volts}
+
+    test RBC.trackgraph.grid.A.5.1 {empty tracks allow X-only grids and invalid operations do not create overrides} -setup {
+        Create
+        .tg track create empty
+    } -body {
+        set result [list [.tg track grid empty cget -mapy] \
+            [catch {.tg track grid missing cget -hide}] [catch {.tg track grid empty bogus}] \
+            [catch {.tg track grid empty}] [catch {.tg track grid empty on extra}]]
+        .tg grid configure -color purple
+        lappend result [.tg track grid empty cget -color]
+        .tg track grid empty on
+        lappend result [.tg track grid empty cget -hide]
+        .tg track grid empty toggle
+        lappend result [.tg track grid empty cget -hide]
+        .tg track grid empty off
+        lappend result [.tg track grid empty cget -hide]
+        set result
+    } -cleanup {destroy .tg} -result {{} 1 1 1 1 purple 0 1 1}
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            test RBC.trackgraph.grid.A.6.[incr testCase(6)] {selected axes draw only in their own tracks across layout and range changes} \
+                    -constraints trackRenderer$renderer -setup {
+                GridSetup $inverted $renderer
+                set photo [image create photo]
+            } -body {
+                set result {}
+                foreach step {initial reorder resize logarithmic} {
+                    switch $step {
+                        reorder {.tg track order {current voltage}}
+                        resize {.tg configure -width 760 -height 560; .tg track configure voltage -weight 1}
+                        logarithmic {.tg axis configure samples -min 1 -max 100 -logscale yes -descending yes -majorticks {}}
+                    }
+                    update
+                    .tg snap $photo
+                    # X from samples, Y from the second owned axis; default X must not leak in.
+                    set gridX [expr {$step eq "logarithmic" ? 10 : 40}]
+                    lassign [.tg track transform voltage $gridX 75 -mapx samples -mapy alternate] x y
+                    lappend result [GridPixel $photo $x $y {255 0 255}]
+                    lassign [.tg track transform voltage 30 25 -mapx samples -mapy alternate] x y
+                    lappend result [GridPixel $photo $x $y {255 0 255}]
+                    lassign [.tg track transform current 2 0] x y
+                    lappend result [GridPixel $photo $x $y {0 255 255}]
+                    lassign [.tg track transform current 4 0] x y
+                    lappend result [expr {![GridPixel $photo $x $y {255 0 255}]}]
+                }
+                .tg track grid voltage off
+                update
+                .tg snap $photo
+                lassign [.tg track transform voltage 40 75 -mapx samples -mapy alternate] x y
+                lappend result [expr {![GridPixel $photo $x $y {255 0 255}]}]
+                set result
+            } -cleanup {image delete $photo; destroy .tg} -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
+        }
+
+        foreach format {svg pdf postscript} {
+            test RBC.trackgraph.grid.A.7.[incr testCase(7)] {local grids export independently of global visibility and restore screen geometry} -setup {
+                GridSetup $inverted native
+            } -body {
+                set before [.tg track transform voltage 40 25 -mapx samples -mapy alternate]
+                set original [.tg $format output]
+                # Exercise restoration across a PostScript timestamp boundary.
+                if {$format eq "postscript"} {after 1100}
+                set enlarged [.tg $format output -width 900 -height 700]
+                .tg $format configure -width 0 -height 0
+                update
+                set restored [.tg $format output]
+                .tg track grid voltage off
+                set hidden [.tg $format output]
+                # PostScript records wall-clock time even when the drawing is identical.
+                if {$format eq "postscript"} {
+                    foreach document {original enlarged restored hidden} {
+                        regsub -line {^%%CreationDate:.*$} [set $document] {%%CreationDate: ignored} $document
+                    }
+                }
+                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] \
+                    [expr {$original ne $hidden}] \
+                    [expr {$before eq [.tg track transform voltage 40 25 -mapx samples -mapy alternate]}]
+            } -cleanup {destroy .tg} -result {1 1 1 1}
+        }
+    }
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            test RBC.trackgraph.grid.A.8.[incr testCase(8)] {minor tick selection is local and inherited tracks still follow the graph grid} \
+                    -constraints trackRenderer$renderer -setup {
+                GridSetup $inverted $renderer
+                .tg axis configure x -minorticks {0.5}
+                .tg track grid current configure -minor yes
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg track transform current 5 0] x y
+                set result [list [GridPixel $photo $x $y {0 255 255}]]
+                .tg track grid current configure -minor no
+                update
+                .tg snap $photo
+                lappend result [expr {![GridPixel $photo $x $y {0 255 255}]}]
+                # Recreated current inherits the default grid, including its first Y axis.
+                .tg track delete current
+                .tg track create current -yaxes amps
+                .tg axis configure amps -majorticks {0}
+                .tg grid configure -hide no -mapx {} -mapy y -color #00ffff
+                update
+                .tg snap $photo
+                lassign [.tg track transform current 3 0] x y
+                lappend result [GridPixel $photo $x $y {0 255 255}]
+                set result
+            } -cleanup {image delete $photo; destroy .tg} -result {1 1 1}
+
+            test RBC.trackgraph.grid.A.9.[incr testCase(9)] {wide boundary grid strokes never escape their owning plot rectangle} \
+                    -constraints trackRenderer$renderer -setup {
+                GridSetup $inverted $renderer
+                .tg axis configure samples -majorticks {0 100}
+                .tg axis configure alternate -majorticks {0 100}
+                .tg track grid voltage configure -linewidth 15
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg track bbox voltage] l t r b
+                set valid 1
+                set count 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$red>200 && $green<100 && $blue>200} {
+                            incr count
+                            if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                        }
+                    }
+                }
+                list $valid [expr {$count>0}]
+            } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+        }
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.grid

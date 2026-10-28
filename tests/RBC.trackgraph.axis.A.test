@@ -1,0 +1,79 @@
+# RBC.trackgraph.axis.A.test --
+#
+###Abstract
+# Trackgraph axis tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.axis {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.axis.A.1.1 {one X range change affects both tracks identically; multiple shared axes work} -setup {
+        Create
+        .tg axis create samples -min 0 -max 100 -loose no
+        .tg x2axis use samples
+    } -body {
+        set result {}
+        foreach range {{0 10} {2 8}} {
+            .tg axis configure x -min [lindex $range 0] -max [lindex $range 1]
+            lassign [.tg track transform voltage 4 0] x1 y1
+            lassign [.tg track transform current 4 0] x2 y2
+            lappend result [expr {$x1 == $x2 && $y1 < $y2}]
+        }
+        lassign [.tg track transform voltage 50 0 -mapx samples] x1 y1
+        lassign [.tg track transform current 50 0 -mapx samples] x2 y2
+        lappend result [expr {$x1 == $x2}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test RBC.trackgraph.axis.A.2.1 {axes in one track share vertical geometry and reserve a common margin} -setup {
+        Create
+        .tg axis create volts2 -min 0 -max 100 -loose no -title Auxiliary
+        .tg track configure voltage -yaxes {volts volts2}
+    } -body {
+        lassign [.tg track transform voltage 5 0] x1 y1
+        lassign [.tg track transform voltage 5 50 -mapy volts2] x2 y2
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        list [expr {$x1 == $x2 && $y1 == $y2}] [expr {$l1==$l2 && $r1==$r2}] \
+            [.tg yaxis use]
+    } -cleanup {destroy .tg} -result {1 1 {volts volts2 amps}}
+
+    test RBC.trackgraph.axis.A.3.1 {automatic Y limits remain independent while X limits are shared} -setup {
+        Create
+        .tg axis configure volts -min {} -max {}
+        .tg axis configure amps -min {} -max {}
+        .tg axis configure x -min {} -max {}
+        .tg element configure i -data {0 1000 15 2000}
+    } -body {
+        update
+        lassign [.tg axis limits volts] vmin vmax
+        lassign [.tg axis limits amps] imin imax
+        lassign [.tg axis limits x] xmin xmax
+        list [expr {$vmin<=-1 && $vmax>=1 && $vmax<100}] \
+            [expr {$imin>100 && $imax>=2000}] [expr {$xmax>=15}]
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test RBC.trackgraph.axis.A.4.1 {multiple local axes share horizontal bounds and use the bottom margin} -setup {
+        Create
+        .tg configure -invertxy yes
+        .tg axis create volts2 -min 0 -max 100 -loose no -title Auxiliary
+        .tg track configure voltage -yaxes {volts volts2}
+    } -body {
+        lassign [.tg track transform voltage 5 0] x1 y1
+        lassign [.tg track transform voltage 5 50 -mapy volts2] x2 y2
+        list [expr {$x1==$x2 && $y1==$y2}] [.tg yaxis use]
+    } -cleanup {destroy .tg} -result {1 {volts volts2 amps}}
+    cleanupTests
+}
+namespace delete ::trackgraph.axis

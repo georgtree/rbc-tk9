@@ -1,0 +1,186 @@
+# RBC.trackgraph.configure.A.test --
+#
+###Abstract
+# Trackgraph configure tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.configure
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.configure {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0}
+
+    foreach options {{-weight 0} {-weight Inf} {-minheight -1} {-yaxes missing} {-yaxes amps} {-yaxes {volts volts}}} {
+        test RBC.trackgraph.configure.A.1.[incr testCase(1)] {invalid options leave track configuration unchanged} -setup {
+            Create
+        } -body {
+            set before [.tg track configure voltage]
+            list [catch {.tg track configure voltage {*}$options}] \
+                [expr {$before eq [.tg track configure voltage]}]
+        } -cleanup {destroy .tg} -result {1 1}
+    }
+
+    test RBC.trackgraph.configure.A.2.1 {configure returns Tk metadata while cget returns live values} -setup {
+        Create
+    } -body {
+        set result {}
+        foreach {option resource class default} {
+            -weight weight Weight 1.0 -minheight minHeight MinHeight 40
+            -height height Height 160 -yaxes yAxes YAxes {}
+        } {
+            set info [.tg track configure voltage $option]
+            lappend result [expr {[llength $info]==5 && [lrange $info 0 3] eq [list $option $resource $class $default]}] \
+                [expr {[lindex $info 4] eq [.tg track cget voltage $option]}]
+        }
+        set options [.tg track configure voltage]
+        .tg track configure voltage -weight 3 -height 250
+        lappend result [expr {[llength $options]==5}] \
+            [expr {[lindex [.tg track configure voltage -weight] 4]==3.0}] \
+            [expr {[lindex [.tg track configure voltage -height] 4]==250}]
+        expr {0 ni $result}
+    } -cleanup {destroy .tg} -result 1
+
+    test RBC.trackgraph.configure.A.3.1 {creation, setting and queries accept unambiguous option prefixes} -setup {
+        Create
+    } -body {
+        .tg track create extra -w 3 -min 50 -hei 220 -y {}
+        .tg track conf extra -w 4 -h 240
+        list [.tg track cg extra -w] [.tg track cg extra -min] [.tg track cg extra -h] \
+            [.tg track conf extra -h] [catch {.tg track configure extra - 1}] \
+            [catch {.tg track cget extra -unknown}]
+    } -cleanup {destroy .tg} -result {4.0 50 240 {-height height Height 160 240} 1 1}
+
+    test RBC.trackgraph.configure.A.4.1 {failed abbreviated changes preserve all track state and ownership} -setup {
+        Create
+    } -body {
+        set before [.tg track configure voltage]
+        list [catch {.tg track configure voltage -w 3 -y amps}] \
+            [expr {$before eq [.tg track configure voltage]}] \
+            [catch {.tg track configure voltage -h 220 -min 0}] \
+            [expr {$before eq [.tg track configure voltage]}]
+    } -cleanup {destroy .tg} -result {1 1 1 1}
+
+    test RBC.trackgraph.configure.A.5.1 {operation arity is checked before track lookup} -setup {
+        Create
+    } -body {
+        set result {}
+        foreach {args usage} {
+            {cget voltage} {cget name option}
+            {exists} {exists name}
+            {bbox missing extra} {bbox name}
+            {identify} {identify coordinate}
+            {order a b} {order ?nameList?}
+            {sashpos missing 1 2} {sashpos name ?coordinate?}
+        } {
+            set code [catch {.tg track {*}$args} message]
+            lappend result [expr {$code==1 && $message eq "wrong # args: should be \".tg track $usage\""}]
+        }
+        expr {0 ni $result}
+    } -cleanup {destroy .tg} -result 1
+
+    test RBC.trackgraph.configure.A.6.1 {track creation uses named Track resources without creating child windows} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *Track.Weight 2.5
+            option add *Track.MinHeight 55
+            option add *Track.Height 200
+            option add *voltage.height 300
+            .tg track create voltage
+            .tg track create current
+            list [.tg track cget voltage -weight] [.tg track cget voltage -minheight] \
+                [.tg track cget voltage -height] [.tg track cget current -height] [winfo children .tg]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {2.5 55 300 200 {}}
+
+    test RBC.trackgraph.configure.A.7.1 {explicit values override database defaults and existing tracks do not reread defaults} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *Track.height 200
+            .tg track create voltage -height 250 -weight 3
+            option add *Track.height 400
+            .tg track configure voltage -minheight 60
+            .tg track create current
+            list [.tg track cget voltage -height] [.tg track cget voltage -weight] \
+                [.tg track cget voltage -minheight] [.tg track cget current -height]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {250 3.0 60 400}
+
+    test RBC.trackgraph.configure.A.8.1 {database Y axes obey ownership and failed creation leaves axes reusable} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            .tg axis create volts
+            option add *voltage.yAxes volts
+            option add *voltage.weight -1
+            set invalid [catch {.tg track create voltage}]
+            set empty [.tg track names]
+            .tg track create voltage -w 2
+            option add *current.yAxes volts
+            set conflict [catch {.tg track create current}]
+            .tg track delete voltage
+            .tg track create current
+            list $invalid $empty $conflict [.tg track names] [.tg track cget current -yaxes]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {1 {} 1 current volts}
+
+    test RBC.trackgraph.configure.A.9.1 {invalid database values fail atomically and explicit replacements are validated normally} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            set result {}
+            foreach {resource value option replacement} {
+                weight NaN -weight 1
+                minHeight -2 -minheight 40
+                height 1000001 -height 160
+                yAxes missing -yaxes {}
+            } {
+                option clear
+                option add *voltage.$resource $value
+                lappend result [catch {.tg track create voltage}] [expr {[.tg track names] eq {}}]
+                .tg track create voltage $option $replacement
+                lappend result [expr {[.tg track names] eq "voltage"}]
+                .tg track delete voltage
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {interp delete trackOptionChild} -result 1
+    cleanupTests
+}
+namespace delete ::trackgraph.configure

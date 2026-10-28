@@ -1,0 +1,32 @@
+# RBC.trackgraph.names.A.test --
+#
+###Abstract
+# Trackgraph names tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.names
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.names {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.names.A.1.1 {glob patterns form a union in layout order without duplicate names} -setup {
+        Create
+        .tg track create Voltage2
+        .tg track order {current Voltage2 voltage}
+    } -body {
+        list [.tg track names] [.tg track names v* *age] [.tg track names V* current] \
+            [.tg track names missing*] [.tg track exists voltage] [.tg track exists v*] \
+            [.tg track exists missing]
+    } -cleanup {destroy .tg} -result {{current Voltage2 voltage} voltage {current Voltage2} {} 1 0 0}
+    cleanupTests
+}
+namespace delete ::trackgraph.names

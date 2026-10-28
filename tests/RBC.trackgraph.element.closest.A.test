@@ -1,0 +1,55 @@
+# RBC.trackgraph.element.closest.A.test --
+#
+###Abstract
+# Trackgraph element closest tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.element {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.element.closest.A.1.1 {interpolated strip picking uses the strip geometry in a mixed graph} -setup {
+        Create
+    } -body {
+        set x [expr {round([.tg axis transform x 2.5])}]
+        set y [expr {round([.tg axis transform amps 0])}]
+        set found [.tg element closest $x $y stripClosest -interpolate yes -halo 3 i]
+        list $found $stripClosest(name) [expr {abs($stripClosest(x)-2.5)<0.1 && abs($stripClosest(y))<0.2}]
+    } -cleanup {destroy .tg; unset -nocomplain stripClosest} -result {1 i 1}
+
+    test RBC.trackgraph.element.closest.A.2.1 {picking and bindings cannot select an element in another track} -setup {
+        Create
+    } -body {
+        lassign [.tg track transform voltage 5 1] x y
+        set result [list [.tg element closest $x $y hit -halo 3] $hit(name) [.tg track identify $y]]
+        lassign [.tg track transform current 5 -10] x y
+        lappend result [.tg element closest $x $y hit -halo 3] $hit(name) [.tg track identify $y]
+        lassign [.tg track bbox voltage] l t r b
+        lappend result [.tg track identify [expr {$b+6}]]
+        set result
+    } -cleanup {destroy .tg} -result {1 v voltage 1 i current {}}
+
+    test RBC.trackgraph.element.closest.A.3.1 {closest points cannot cross column boundaries} -setup {
+        Create
+        .tg configure -invertxy yes
+    } -body {
+        set result {}
+        foreach {track value name} {voltage 1 v current -10 i} {
+            lassign [.tg track transform $track 5 $value] x y
+            lappend result [.tg element closest $x $y hit -halo 3] $hit(name)
+        }
+        set result
+    } -cleanup {destroy .tg} -result {1 v 1 i}
+    cleanupTests
+}
+namespace delete ::trackgraph.element

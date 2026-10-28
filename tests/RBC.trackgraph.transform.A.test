@@ -1,0 +1,68 @@
+# RBC.trackgraph.transform.A.test --
+#
+###Abstract
+# Trackgraph transform tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.transform
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.transform {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    # Number the generated cases independently within each test group.
+    array set testCase {1 0 2 0}
+
+    foreach logarithmic {0 1} {
+        foreach descending {0 1} {
+            test RBC.trackgraph.transform.A.1.[incr testCase(1)] {track and axis transforms agree and round trip} -setup {
+                Create
+                .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
+                .tg axis configure amps -min 1 -max 100 -logscale $logarithmic -descending $descending
+            } -body {
+                set result {}
+                foreach {track axis} {voltage volts current amps} {
+                    lassign [.tg track transform $track 4 10] px py
+                    lassign [.tg track invtransform $track $px $py] x y
+                    lassign [.tg track bbox $track] l t r b
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
+                        [expr {$py >= $t && $py <= $b}] \
+                        [expr {abs([.tg axis transform $axis 10]-$py)<1.0}]
+                }
+                set result
+            } -cleanup {destroy .tg} -result {1 1 1 1 1 1}
+        }
+    }
+
+    foreach logarithmic {0 1} {
+        foreach descending {0 1} {
+            test RBC.trackgraph.transform.A.2.[incr testCase(2)] {inverted local axes round trip and agree with track transforms} -setup {
+                Create
+                .tg configure -invertxy yes
+                .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
+                .tg axis configure amps -min 1 -max 100 -logscale $logarithmic -descending $descending
+            } -body {
+                set result {}
+                foreach {track axis} {voltage volts current amps} {
+                    lassign [.tg track transform $track 4 10] px py
+                    lassign [.tg track invtransform $track $px $py] x y
+                    lassign [.tg track bbox $track] l t r b
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
+                        [expr {$px >= $l && $px <= $r}] \
+                        [expr {abs([.tg axis transform $axis 10]-$px)<1.0}]
+                }
+                set result
+            } -cleanup {destroy .tg} -result {1 1 1 1 1 1}
+        }
+    }
+    cleanupTests
+}
+namespace delete ::trackgraph.transform

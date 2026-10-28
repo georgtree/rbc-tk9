@@ -1,0 +1,113 @@
+# RBC.trackgraph.layout.A.test --
+#
+###Abstract
+# Trackgraph layout tests, including interactions with owned tracks.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide trackgraph.layout
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval trackgraph.layout {
+    source [file join [file dirname [info script]] RBC.trackgraph.support.tcl]
+
+    test RBC.trackgraph.layout.A.1.1 {shared horizontal bounds and weighted independent vertical bounds} -setup {
+        Create
+    } -body {
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        list [.tg track names] [expr {$l1 == $l2 && $r1 == $r2 && $b1 < $t2}] \
+            [expr {abs(($b1-$t1-40)-2*($b2-$t2-40)) <= 2}] \
+            [.tg element cget v -track] [.tg element type i]
+    } -cleanup {destroy .tg} -result {{voltage current} 1 1 voltage StripElement}
+
+    test RBC.trackgraph.layout.A.2.1 {small layouts and weight changes do not retain stale regions} -setup {
+        Create
+    } -body {
+        set old [.tg track bbox voltage]
+        .tg track configure voltage -weight 1
+        .tg track configure current -weight 3
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        set result [list [expr {$b-$t < $b2-$t2}]]
+        .tg configure -height 140
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lappend result [expr {$t <= $b && $b <= $t2 && $t2 <= $b2}]
+        .tg configure -height 480
+        .tg track configure voltage -weight 2
+        .tg track configure current -weight 1
+        update
+        lappend result [expr {$old eq [.tg track bbox voltage]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test RBC.trackgraph.layout.A.3.1 {adding a row reuses the existing Y margin} -setup {
+        Create
+        .tg axis create amps2 -min -10 -max 10 -loose no -title Current
+    } -body {
+        set before [lindex [.tg track bbox current] 0]
+        .tg track create extra -yaxes amps2
+        update
+        expr {$before == [lindex [.tg track bbox extra] 0]}
+    } -cleanup {destroy .tg} -result 1
+
+    test RBC.trackgraph.layout.A.4.1 {columns share X geometry and keep independent Y ranges} -setup {
+        Create 1
+    } -body {
+        lassign [.tg track bbox voltage] l1 t1 r1 b1
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lassign [.tg track transform voltage 4 0] x1 y1
+        lassign [.tg track transform current 4 0] x2 y2
+        list [expr {$t1==$t2 && $b1==$b2 && $r1<$l2}] \
+            [expr {abs(($r1-$l1-40)-2*($r2-$l2-40))<=2}] \
+            [expr {$y1==$y2 && $x1<$x2}] [.tg track identify $x1] [.tg track identify $x2] \
+            [.tg track separator [.tg track sashpos voltage] [expr {round($y1)}]]
+    } -cleanup {destroy .tg} -result {1 1 1 voltage current voltage}
+
+    test RBC.trackgraph.layout.A.5.1 {orientation changes restore ordinary geometry without recreating tracks} -setup {
+        Create
+    } -body {
+        set before [.tg track bbox voltage]
+        set point [.tg track transform current 5 0]
+        foreach inverted {1 0 1 0} {
+            .tg configure -invertxy $inverted
+            update
+        }
+        list [expr {$before eq [.tg track bbox voltage]}] [expr {$point eq [.tg track transform current 5 0]}]
+    } -cleanup {destroy .tg} -result {1 1}
+
+    test RBC.trackgraph.layout.A.6.1 {small layouts and weight changes do not retain stale regions} -setup {
+        Create 1
+    } -body {
+        set old [.tg track bbox voltage]
+        .tg track configure voltage -weight 1
+        .tg track configure current -weight 3
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        set result [list [expr {$r-$l < $r2-$l2}]]
+        .tg configure -width 140
+        update
+        lassign [.tg track bbox voltage] l t r b
+        lassign [.tg track bbox current] l2 t2 r2 b2
+        lappend result [expr {$l <= $r && $r <= $l2 && $l2 <= $r2}]
+        .tg configure -width 640
+        .tg track configure voltage -weight 2
+        .tg track configure current -weight 1
+        update
+        lappend result [expr {$old eq [.tg track bbox voltage]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1}
+    cleanupTests
+}
+namespace delete ::trackgraph.layout
