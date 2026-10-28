@@ -111,8 +111,8 @@ namespace eval ::rbc::GRAPHINST {
     }
 
     variable _ruff_preamble {
-        Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph widget
-        instances.
+        Commands in this namespace document operations accepted by graph, barchart, stripchart, polar and trackgraph
+        widget instances.
 
         `GRAPHINST` is used below as a placeholder for the actual widget command:
 
@@ -121,8 +121,7 @@ namespace eval ::rbc::GRAPHINST {
         .g configure -title "Example"
         ```
 
-        The common widget instance interface is shared by these graph types; track-specific differences are
-        documented in [::rbc::TRACKGRAPH]. The main difference is the default
+        The common widget instance interface is shared by these graph types. The main difference is the default
         element type used by the `element` operation.
 
         | Widget created by | Default element type |
@@ -131,7 +130,7 @@ namespace eval ::rbc::GRAPHINST {
         | `barchart`        | bar                  |
         | `stripchart`      | strip                |
         | `polar`           | polar                |
-        | [::rbc::trackgraph] | line (tracks also accept strip elements) |
+        | `trackgraph`      | line                 |
 
         Explicit `line` and `bar` operations are also available independently of the widget's default element type.
 
@@ -261,7 +260,8 @@ namespace eval ::rbc::GRAPHINST {
 
         The general `transform` and `invtransform` operations use the graph's primary X and Y axes. To transform a
         value using a particular axis, use that axis's `transform` or `invtransform` operation.
-        Trackgraphs use [track transform][::rbc::TRACKGRAPH::Track coordinate conversion] and [track invtransform][::rbc::TRACKGRAPH::Track coordinate conversion] to select a track.
+        Trackgraphs use [track transform][::rbc::TRACKGRAPH::Track coordinate conversion] and
+        [track invtransform][::rbc::TRACKGRAPH::Track coordinate conversion] to select a track.
 
         ## Polar and Smith charts
         A widget created with [::rbc::polar] uses the ordinary Rbc graph coordinate system but provides specialized
@@ -1223,7 +1223,7 @@ namespace eval ::rbc::GRAPHINST {
 
 namespace eval ::rbc::TRACKGRAPH {
     variable _ruff_ns_opts {
-        -heading {Trackgraph layout}
+        -heading {Trackgraph widget instance `TRACKGRAPH` command}
         -excludeprocs {.*}
     }
 
@@ -1264,15 +1264,14 @@ namespace eval ::rbc::TRACKGRAPH {
         from each track's first Y axis. An empty axis selection disables that direction. See 
         [track grid][::rbc::TRACKGRAPH::Track grid selection] for independent grid settings within each track.
 
-        | Track option | Default | Meaning |
-        |--------------|---------|---------|
-        | `-weight` | `1.0` | Positive finite share of remaining layout space after track minima are allocated; at most 1000000. |
-        | `-minheight` | `40` | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units. |
-        | `-height` | `160` | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
-        | `-yaxes` | empty | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted). |
+        | Track option | Default | Meaning                                                                                                                                                                                               |
+        |--------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | `-weight`    | `1.0`   | Positive finite share of remaining layout space after track minima are allocated; at most 1000000.                                                                                                    |
+        | `-minheight` | `40`    | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units.                                                                                                          |
+        | `-height`    | `160`   | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
+        | `-yaxes`     | empty   | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).                                                                                   |
 
         ### Scrolling tracks and their data
-
         The default `-tracklayout fit` divides the available plot space using `-weight` and `-minheight`, as before.
         With `-tracklayout scroll`, each track retains `max(-height, -minheight)` pixels and adjacent tracks have
         a 12-pixel gap. Content may extend beyond the visible viewport. Track weights are ignored in this mode.
@@ -1331,7 +1330,6 @@ namespace eval ::rbc::TRACKGRAPH {
         behaviour.
 
         ### Track coordinate conversion
-
         ```tcl
         .g track transform voltage x y ?-mapx axis? ?-mapy axis?
         .g track invtransform voltage x y ?-mapx axis? ?-mapy axis?
@@ -1443,7 +1441,6 @@ namespace eval ::rbc::TRACKGRAPH {
         `trackSeparatorColor`, class `TrackSeparatorColor`) defaults to empty, disabling the lines.
         `-trackseparatorwidth` (`trackSeparatorWidth`, `TrackSeparatorWidth`) defaults to `1` and accepts a positive Tk
         screen distance. These graph options affect only trackgraphs. For example:
-
         ```tcl
         .g configure -trackresize yes -trackseparatorcolor gray60 -trackseparatorwidth 2
         ```
@@ -1458,14 +1455,13 @@ namespace eval ::rbc::TRACKGRAPH {
         commands. Keep the `Trackgraph` class in `bindtags` to use the standard bindings; a widget binding that returns
         `break` before the class binding can intentionally suppress them.
 
-        Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected.
-        The optional `rbc::graphtoolbar` package accepts `-type trackgraph`: zoom and
-        pan use shared X axes and the starting track's Y axes; wheel zoom and coordinate annotations follow the pointed
-        track. Separator dragging remains available. See [::rbc::graphtoolbar] and `demos/trackgraph1.tcl` for the
-        interaction controls.  Markers can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for
-        clipping, ownership and restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector
-        updates, track weights, annotations and shared horizontal navigation.
-
+        Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. The
+        optional `rbc::graphtoolbar` package accepts `-type trackgraph`: zoom and pan use shared X axes and the
+        starting track's Y axes; wheel zoom and coordinate annotations follow the pointed track. Separator dragging
+        remains available. See [::rbc::graphtoolbar] and `demos/trackgraph1.tcl` for the interaction controls. Markers
+        can select a track with `-track name -mapy axisName`; see [::rbc::MARKER] for clipping, ownership and
+        restrictions. See `demos/trackgraph1.tcl` for multiple shared X axes, live vector updates, track weights,
+        annotations and shared horizontal navigation.
     }
 
     proc create {name args} {
