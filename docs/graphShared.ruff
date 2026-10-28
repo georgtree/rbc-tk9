@@ -15,8 +15,8 @@ namespace eval ::rbc::AXIS {
         GRAPHINST axis
         ```
 
-        Trackgraphs also provide [::rbc::TRACKGRAPH::yview] for local data scrolling and
-        [::rbc::TRACKGRAPH::view] for independently scrolling the list of tracks.
+        Trackgraphs also provide [track yview][::rbc::TRACKGRAPH::Scrolling tracks and their data] for local data scrolling and
+        [track view][::rbc::TRACKGRAPH::Scrolling tracks and their data] for independently scrolling the list of tracks.
 
         For example:
         ```tcl
@@ -497,8 +497,8 @@ namespace eval ::rbc::AXIS {
     }
 
     proc view {axisName args} {
-        # Trackgraphs also expose [::rbc::TRACKGRAPH::yview] for scrolling one track's owned Y axes.
-        # Track-list scrolling is separate; see [::rbc::TRACKGRAPH::view].
+        # Trackgraphs also expose [track yview][::rbc::TRACKGRAPH::Scrolling tracks and their data] for scrolling one track's owned Y axes.
+        # Track-list scrolling is separate; see [track view][::rbc::TRACKGRAPH::Scrolling tracks and their data].
         # Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
         # normalized `first last` fractions. `moveto` selects an absolute fraction. `scroll` moves by units or pages;
         # a page is 90 percent of the current viewport. A single number is accepted as a compatibility shorthand for
@@ -4892,7 +4892,7 @@ namespace eval ::rbc::GRID {
 
         The grid is a single component of an ordinary graph. Unlike elements, markers, or pens, there are no named
         grid objects. A [::rbc::TRACKGRAPH] can additionally configure an independent grid for each track using
-        [::rbc::TRACKGRAPH::grid]. Tracks initially inherit the graph-wide settings. Local grids support the seven
+        [track grid][::rbc::TRACKGRAPH::Track grid selection]. Tracks initially inherit the graph-wide settings. Local grids support the seven
         Cartesian options below; Polar/Smith options are not available through the track interface.
 
         The grid follows the graph's `-renderer` and `-antialias` settings. Cairo preserves its axis mappings,

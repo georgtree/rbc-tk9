@@ -510,7 +510,7 @@ Gives back the names of existing axes\&. If one or more Tcl glob patterns are su
 Converts a graph value to an integer window coordinate using the specified axis\&. value is evaluated as a Tcl numeric expression and must be finite\&. Values transformed through a logarithmic axis must be positive\&.
 .TP
 \fIview\fP
-Trackgraphs also expose \fI::rbc::TRACKGRAPH::yview\fP for scrolling one track's owned Y axes\&. Track-list scrolling is separate; see \fI::rbc::TRACKGRAPH::view\fP\&. Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages; a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for scrolling that number of units\&.
+Trackgraphs also expose \fItrack yview\fP for scrolling one track's owned Y axes\&. Track-list scrolling is separate; see \fItrack view\fP\&. Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages; a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for scrolling that number of units\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -781,8 +781,8 @@ Corresponding integer window coordinate\&.
 \fBAXIS view\fR (::rbc)
 .RE
 .PP
-Trackgraphs also expose \fI::rbc::TRACKGRAPH::yview\fP for scrolling one track's owned Y axes\&.
-Track-list scrolling is separate; see \fI::rbc::TRACKGRAPH::view\fP\&.
+Trackgraphs also expose \fItrack yview\fP for scrolling one track's owned Y axes\&.
+Track-list scrolling is separate; see \fItrack view\fP\&.
 Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns
 normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages;
 a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for

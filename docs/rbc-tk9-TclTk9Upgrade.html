@@ -70,14 +70,14 @@ Weights and <code class="docutils literal notranslate"><span class="pre">-minhei
 legend clipping, picking, toolbar navigation and all exports follow the rotated layout. The merged
 <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> demonstrates both legend types, line/strip elements, markers and orientation switching;
 the example also selects independent grids from its Time and Samples X axes.</p>
-<p>Each track can select its own grid axes and style with [::rbc::TRACKGRAPH::grid], for example
+<p>Each track can select its own grid axes and style with <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20grid20selection"><span class="std std-ref">track grid</span></a>, for example
 <code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">track</span> <span class="pre">grid</span> <span class="pre">current</span> <span class="pre">configure</span> <span class="pre">-mapx</span> <span class="pre">samples</span> <span class="pre">-mapy</span> <span class="pre">currentY</span> <span class="pre">-hide</span> <span class="pre">no</span></code>. Unconfigured tracks inherit the
 graph-wide grid; the first successful local change copies the current settings and makes that track
 independent. Grid queries preserve inheritance. Local grids follow inversion, stay clipped to their
 tracks, and are included by all exporters.</p>
 <p>Optional <code class="docutils literal notranslate"><span class="pre">-tracklayout</span> <span class="pre">scroll</span></code> preserves each track’s requested <code class="docutils literal notranslate"><span class="pre">-height</span></code> and provides a Tk-compatible
-[::rbc::TRACKGRAPH::view] for navigating the list. The graph’s <code class="docutils literal notranslate"><span class="pre">-trackscrollcommand</span></code> updates a scrollbar.
-Local data scrolling is independent: [::rbc::TRACKGRAPH::yview] moves the track’s owned Y axes, or one
+<a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqzscrolling20tracks20and20their20data"><span class="std std-ref">track view</span></a> for navigating the list. The graph’s <code class="docutils literal notranslate"><span class="pre">-trackscrollcommand</span></code> updates a scrollbar.
+Local data scrolling is independent: <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqzscrolling20tracks20and20their20data"><span class="std std-ref">track yview</span></a> moves the track’s owned Y axes, or one
 selected with <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>, using existing axis scroll limits and callbacks. Both orientations, viewport
 clipping, separator resizing and exports are supported. Fit-to-window remains the default.</p>
 </section>

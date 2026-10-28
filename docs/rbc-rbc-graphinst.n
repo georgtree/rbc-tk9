@@ -192,7 +192,7 @@ reverse conversion\&.
 .PP
 The general transform and invtransform operations use the graph's primary X and Y axes\&. To transform a
 value using a particular axis, use that axis's transform or invtransform operation\&.
-Trackgraphs use \fI::rbc::TRACKGRAPH::transform\fP and \fI::rbc::TRACKGRAPH::invtransform\fP to select a track\&.
+Trackgraphs use \fItrack transform\fP and \fItrack invtransform\fP to select a track\&.
 .SH "POLAR AND SMITH CHARTS"
 .PP
 A widget created with \fI::rbc::polar\fP uses the ordinary Rbc graph coordinate system but provides specialized

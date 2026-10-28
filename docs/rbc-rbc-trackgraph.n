@@ -4,12 +4,12 @@
 .TH "rbc::TRACKGRAPH" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 rbc::TRACKGRAPH - Commands in namespace rbc::TRACKGRAPH
-.SH "TRACKGRAPH LAYOUT AND TRACKGRAPH COMMANDS"
+.SH "TRACKGRAPH LAYOUT"
 .PP
 This page documents widgets created by \fI::rbc::trackgraph\fP and their named-track operations\&.
 TRACKGRAPH is a fictional documentation prefix for widgetPath track, not a runtime command\&.
 For example, TRACKGRAPH create voltage -yaxes volts means \&.g track create voltage -yaxes volts\&.
-The procedures below describe that component API; they are not Tcl wrappers to invoke directly\&.
+The commands described here are native widget operations, not Tcl wrappers to invoke directly\&.
 .PP
 Common widget commands and configuration are described in \fI::rbc::GRAPHINST\fP\&. Use \fI::rbc::AXIS\fP for axes,
 \fI::rbc::LINEELEMENT\fP and \fI::rbc::STRIPELEMENT\fP for traces, \fI::rbc::MARKER\fP for annotations, and
@@ -41,8 +41,8 @@ The common left margin accommodates the widest set of track Y axes, including ti
 remain widget-wide: elements select them with -mapx, and ordinary xaxis use and x2axis use control their
 display\&. Independent X axes need not have matching tick positions\&. By default, tracks inherit the graph's
 \fI::rbc::GRID\fP settings: grid -mapx selects the shared X axis, and a nonempty grid -mapy enables grid lines
-from each track's first Y axis\&. An empty axis selection disables that direction\&. See \fIgrid\fP for independent
-grid settings within each track\&.
+from each track's first Y axis\&. An empty axis selection disables that direction\&. See
+\fItrack grid\fP for independent grid settings within each track\&.
 .PP
 .nf
 ┌──────────────┬─────────┬─────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -70,7 +70,9 @@ Tracks do not change their data ranges or rescale when partially visible\&. Draw
 the visible part\&. bbox returns that visible rectangle; a fully hidden track has zero size along the
 scrolling direction\&. Transforms still use the full track geometry and may return offscreen coordinates\&.
 .PP
-Use \fIview\fP for the track list and \fIyview\fP for local data scrolling\&. They are independent:
+Use \fItrack view\fP for the track list and
+\fItrack yview\fP for local data scrolling\&. They are
+independent:
 .PP
 .RS 4n
 .nf
@@ -81,6 +83,17 @@ ttk::scrollbar \&.tracks -orient vertical -command {\&.g track view}
 ttk::scrollbar \&.volts -orient vertical -command {\&.g track yview voltage -mapy voltageY}
 .fi
 .RE
+.PP
+track view with no arguments returns first last fractions of the track-list extent\&. Its moveto
+form places a fraction at the leading viewport edge; scroll moves by 20-pixel units or pages of 90%
+of the viewport\&. Movement is clamped\&. Fit layout, an empty list, or content fitting the viewport returns
+0\&.0 1\&.0\&. This command never changes data-axis limits\&.
+.PP
+track yview name ?-mapy axis? queries the selected owned Y axis, or the first owned Y axis by default\&.
+Append moveto fraction or scroll number units|pages to change the view\&. Without -mapy, changes apply
+to all Y axes owned by the track, using each axis's scroll range, increment, log scale and direction\&.
+Invalid multi-axis requests leave all requested limits unchanged\&. An unowned axis or a track without Y
+axes reports an error\&. Track position and shared X axes do not change\&.
 .PP
 Position the scrollbar widgets with ordinary Tk geometry management\&. For an inverted graph, use horizontal
 scrollbars\&. Each track may have a separate local scrollbar, and each of its Y axes may have one too\&.
@@ -105,8 +118,18 @@ Elements must specify both -track and a -mapy axis belonging to that track\&. Ch
 element configure call to move an element\&. An axis in use by an element cannot be detached, and an axis owned
 by a track cannot be deleted until detached\&. These ownership checks include markers, even hidden markers or
 markers with empty coordinates, and Y axes selected by independently configured track grids\&. Hiding an axis
-hides its decorations, not its track\&. Lists and RBC vectors retain their ordinary ownership and notification behaviour\&.
+hides its decorations, not its track\&. Lists and RBC vectors retain their ordinary ownership and notification
+behaviour\&.
+.SS "TRACK COORDINATE CONVERSION"
 .PP
+.RS 4n
+.nf
+\&.g track transform voltage x y ?-mapx axis? ?-mapy axis?
+\&.g track invtransform voltage x y ?-mapx axis? ?-mapy axis?
+.fi
+.RE
+.PP
+track transform maps data coordinates to physical widget pixels; track invtransform maps them back\&.
 Track transforms default to shared axis x and the track's first Y axis\&. Use -mapx or -mapy to select
 alternatives\&. Ordinary graph-level transform and invtransform are ambiguous in a trackgraph and report
 an error; individual axis transform and axis invtransform operations remain available\&.
@@ -137,6 +160,36 @@ Each row also owns an optional local legend, hidden by default\&. For example:
 shows only that row's element labels\&. Local legends overlay and clip to the track; they do not change shared X
 alignment\&. The global legend remains independent\&. See \fI::rbc::LEGEND\fP for options, bindings and export
 behavior\&.
+.SS "TRACK GRID SELECTION"
+.PP
+track grid name operation ?args \&.\&.\&.? queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP
+operations configure, cget, on, off and toggle, with Cartesian options -color, -dashes, -hide,
+-linewidth, -mapx, -mapy and -minor\&.
+.PP
+Until its first successful configuration or visibility change, a track inherits the graph-wide grid\&.
+Queries do not change inheritance\&. The first mutation copies the current effective settings, then applies
+the requested changes\&. Later graph-wide grid changes do not affect that track\&. Failed changes preserve
+both the previous settings and inheritance\&. Deleting and recreating the track restores inheritance\&.
+.PP
+-mapx selects an existing shared X axis; -mapy selects an existing Y axis owned by this track, including
+any of its additional Y axes\&. An empty string disables that direction\&. Inherited -mapy reports the
+first owned Y axis, or empty when the graph disables Y grid lines or the track owns no Y axes\&.
+A selected local Y axis cannot be detached until the grid is remapped or that direction is disabled\&.
+.PP
+Lines are clipped to the owning track and follow resizing, reordering, axis range changes and inversion\&.
+X lines are vertical normally and horizontal when inverted; Y lines rotate correspondingly\&. Native,
+Cairo, SVG, PDF and PostScript output use the same local configuration\&. A local visible grid is drawn
+even when the graph-wide grid is hidden\&.
+.PP
+.RS 4n
+.nf
+\&.g grid configure -hide no -minor no
+\&.g track grid voltage configure -mapx x -mapy voltageY -color steelblue
+\&.g track grid current configure -mapx samples -mapy currentY -color darkorange
+\&.g track grid current off
+\&.g track grid voltage cget -mapx
+.fi
+.RE
 .SS "INVERTED TRACKS"
 .PP
 Set \&.g configure -invertxy yes to rotate the layout into side-by-side columns\&. Track order runs left to
@@ -206,8 +259,8 @@ controls only the supplied mouse bindings\&. Custom interaction code can leave i
 commands\&. Keep the Trackgraph class in bindtags to use the standard bindings; a widget binding that returns
 break before the class binding can intentionally suppress them\&.
 .PP
-Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&. Track
-scrolling is not yet provided\&. The optional rbc::graphtoolbar package accepts -type trackgraph: zoom and
+Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&.
+The optional rbc::graphtoolbar package accepts -type trackgraph: zoom and
 pan use shared X axes and the starting track's Y axes; wheel zoom and coordinate annotations follow the pointed
 track\&. Separator dragging remains available\&. See \fI::rbc::graphtoolbar\fP and demos/trackgraph1\&.tcl for the
 interaction controls\&.  Markers can select a track with -track name -mapy axisName; see \fI::rbc::MARKER\fP for

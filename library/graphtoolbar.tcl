@@ -365,7 +365,7 @@ namespace eval ::rbc::graphtoolbar {
         would overlap.
 
         Closest annotations also show configured source-point errors when available: symmetric errors appear
-        as x error=±value or y error=±value; asymmetric bounds appear as x bounds=[low, high] or y bounds=[low, high].
+        as x error=±value or y error=±value; asymmetric bounds appear as `x bounds=[low, high]` or `y bounds=[low, high]`.
         The existing -formatx and -formaty settings format these numbers. Bounds remain in their original data
         coordinates, including in polar/Smith display modes. Custom closest callbacks receive the same optional
         xerror, yerror, xlow, xhigh, ylow and yhigh fields and control their own text.

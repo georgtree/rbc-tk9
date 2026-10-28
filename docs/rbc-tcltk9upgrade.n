@@ -34,15 +34,15 @@ legend clipping, picking, toolbar navigation and all exports follow the rotated 
 demos/trackgraph1\&.tcl demonstrates both legend types, line/strip elements, markers and orientation switching;
 the example also selects independent grids from its Time and Samples X axes\&.
 .PP
-Each track can select its own grid axes and style with \fI::rbc::TRACKGRAPH::grid\fP, for example
+Each track can select its own grid axes and style with \fItrack grid\fP, for example
 \&.g track grid current configure -mapx samples -mapy currentY -hide no\&. Unconfigured tracks inherit the
 graph-wide grid; the first successful local change copies the current settings and makes that track
 independent\&. Grid queries preserve inheritance\&. Local grids follow inversion, stay clipped to their
 tracks, and are included by all exporters\&.
 .PP
 Optional -tracklayout scroll preserves each track's requested -height and provides a Tk-compatible
-\fI::rbc::TRACKGRAPH::view\fP for navigating the list\&. The graph's -trackscrollcommand updates a scrollbar\&.
-Local data scrolling is independent: \fI::rbc::TRACKGRAPH::yview\fP moves the track's owned Y axes, or one
+\fItrack view\fP for navigating the list\&. The graph's -trackscrollcommand updates a scrollbar\&.
+Local data scrolling is independent: \fItrack yview\fP moves the track's owned Y axes, or one
 selected with -mapy, using existing axis scroll limits and callbacks\&. Both orientations, viewport
 clipping, separator resizing and exports are supported\&. Fit-to-window remains the default\&.
 .SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
