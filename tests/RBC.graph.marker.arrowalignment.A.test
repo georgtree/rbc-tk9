@@ -10,11 +10,16 @@
 #
 ###Package Definition
 package provide graph.marker.arrowalignment
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.marker.arrowalignment {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {5 0 6 0 7 0}
     proc Setup {renderer} {
         rbc::graph .arrowAlign -width 240 -height 240 -renderer $renderer -antialias gray \
             -plotbackground white -background white -plotborderwidth 0 -borderwidth 0 \
@@ -65,7 +70,7 @@ namespace eval graph.marker.arrowalignment {
     # 1. Native shafts and arrow vertices use nearest-integer conversion.
     foreach vertical {0 1} {
         foreach arrow {first last both} {
-            test RBC.graph.marker.arrowalignment.A.1.1-$vertical-$arrow \
+            test RBC.graph.marker.arrowalignment.A.5.[incr testCase(5)] \
                     {fractional native shaft agrees with nearest-pixel reference} -setup {
                 Setup native
                 if {$vertical} {
@@ -101,7 +106,7 @@ namespace eval graph.marker.arrowalignment {
     # 2. Coverage-weighted centers expose the half-pixel fill/stroke offset.
     #    Sampling well inside the head avoids its tip and neck boundaries.
     foreach arrow {first last both} {
-        test RBC.graph.marker.arrowalignment.A.2.1-$arrow \
+        test RBC.graph.marker.arrowalignment.A.6.[incr testCase(6)] \
                 {Cairo arrowhead is centered on the fractional shaft} \
                 -constraints arrowAlignmentCairo -setup {
             Setup cairo
@@ -129,7 +134,7 @@ namespace eval graph.marker.arrowalignment {
     # 3. A diagonal head is symmetric about x+y=240. Integer polygon
     #    boundaries must not shift the fill away from the shaft's centers.
     foreach width {1 3} {
-        test RBC.graph.marker.arrowalignment.A.3.1-$width \
+        test RBC.graph.marker.arrowalignment.A.7.[incr testCase(7)] \
                 {native diagonal arrowhead retains reflection symmetry} -setup {
             Setup native
             AddArrow {60 180 180 60} last $width

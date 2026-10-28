@@ -162,7 +162,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {element "Element1" is not plotted}
 
-    test RBC.graph.element.closest.A.param.1 {
+    test RBC.graph.element.closest.A.2.1 {
         graph element closest: parameter value
     } -setup {
         graph .graph1 -width 400 -height 300
@@ -180,7 +180,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 1 2.0 2.0 20.0}
 
-    test RBC.graph.element.closest.A.param.2 {
+    test RBC.graph.element.closest.A.3.1 {
         graph element closest: no parameter mapping produces no param key
     } -setup {
         graph .graph1 -width 400 -height 300
@@ -198,7 +198,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 0}
 
-    test RBC.graph.element.closest.A.param.3 {
+    test RBC.graph.element.closest.A.4.1 {
         graph element closest: interpolated search reports source-index parameter
     } -setup {
         graph .graph1 -width 400 -height 300
@@ -221,7 +221,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 0 100.0}
 
-    test RBC.graph.element.closest.A.param.4 {
+    test RBC.graph.element.closest.A.5.1 {
         graph element closest: external parameter resize mismatch and recovery
     } -setup {
         vector create p
@@ -252,7 +252,7 @@ namespace eval graph.element {
         vector destroy p
     } -result {30.0 1 0 1 30.0}
 
-    test RBC.graph.element.closest.A.param.5 {
+    test RBC.graph.element.closest.A.6.1 {
         graph element closest: external data resize mismatch and recovery
     } -setup {
         vector create xv yv p

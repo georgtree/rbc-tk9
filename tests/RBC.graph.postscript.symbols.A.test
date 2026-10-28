@@ -1,11 +1,17 @@
 # Shared-renderer symbol export regressions.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.symbols
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psSymbolTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.symbols {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 6 0}
     proc Create {type} {
         ::rbc::$type .psSymbol -width 400 -height 300
         .psSymbol legend configure -hide yes
@@ -43,7 +49,7 @@ namespace eval ::psSymbolTest {
             square Sq circle Ci diamond Di plus Pl cross Cr
             splus Sp scross Sc triangle Tr arrow Ar
         } {
-            test psSymbol-1-$type-$symbol {normal symbols retain prolog shapes and source count} -setup {
+            test RBC.graph.postscript.symbols.A.1.[incr testCase(1)] {normal symbols retain prolog shapes and source count} -setup {
                 Create $type
                 .psSymbol element create signal -data {2 3 5 7 8 4} -linewidth 0 \
                     -symbol $symbol -pixels 13 -fill red -outline blue -outlinewidth 2
@@ -58,7 +64,7 @@ namespace eval ::psSymbolTest {
             } -result {3 1 1 1}
         }
 
-        test psSymbol-2-$type {selected and fully active symbols use the active pen} -setup {
+        test RBC.graph.postscript.symbols.A.2.[incr testCase(2)] {selected and fully active symbols use the active pen} -setup {
             Create $type
             .psSymbol element create signal -data {2 3 5 7 8 4} -linewidth 0 -symbol circle
             .psSymbol pen create selected -type line -linewidth 0 -symbol triangle \
@@ -76,7 +82,7 @@ namespace eval ::psSymbolTest {
         } -result {1 3 1}
     }
 
-    test psSymbol-3 {default colors match explicit pen colors and disabled paint stays disabled} -setup {
+    test RBC.graph.postscript.symbols.A.3.1 {default colors match explicit pen colors and disabled paint stays disabled} -setup {
         Create graph
         .psSymbol element create signal -data {2 3 5 7} -linewidth 0 -symbol circle \
             -color red -fill defcolor -outline defcolor -outlinewidth 2
@@ -93,7 +99,7 @@ namespace eval ::psSymbolTest {
         destroy .psSymbol
     } -result {1 2 1 1}
 
-    test psSymbol-4 {bitmap symbols retain optional background masks} -setup {
+    test RBC.graph.postscript.symbols.A.4.1 {bitmap symbols retain optional background masks} -setup {
         Create graph
         .psSymbol element create signal -data {2 3 5 7} -linewidth 0 \
             -symbol {warning warning} -pixels 17 -fill red -outline blue
@@ -109,7 +115,7 @@ namespace eval ::psSymbolTest {
         destroy .psSymbol
     } -result {2 2 1 1 1}
 
-    test psSymbol-5 {line legend retains its symbol and thickened trace sample} -setup {
+    test RBC.graph.postscript.symbols.A.5.1 {line legend retains its symbol and thickened trace sample} -setup {
         Create graph
         .psSymbol element create signal -data {2 3 5 7} -linewidth 2 \
             -symbol circle -label Signal
@@ -124,7 +130,7 @@ namespace eval ::psSymbolTest {
     } -result {2 3 1}
 
     foreach stipple {{} gray25} {
-        test psSymbol-6-$stipple {bar legend retains its square and stippled background} -setup {
+        test RBC.graph.postscript.symbols.A.6.[incr testCase(6)] {bar legend retains its square and stippled background} -setup {
             Create barchart
             .psSymbol element create signal -data {2 3 5 7} -foreground red \
                 -background blue -borderwidth 0 -stipple $stipple -label Signal
@@ -139,6 +145,5 @@ namespace eval ::psSymbolTest {
             destroy .psSymbol
         } -result {1 1}
     }
-}
-namespace delete ::psSymbolTest
 ::tcltest::cleanupTests
+}

@@ -1,15 +1,19 @@
 # Signed screen distances remain valid with Tk 9.0 and Tk 9.1 (TIP 698).
 # See license.terms for details.
+###Package Definition
 package provide graph.signedpixels
 
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace import ::tcltest::*
+namespace import tcltest::*
 
 namespace eval graph.signedpixels {
-
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0}
     foreach type {text window bitmap image line polygon arc} {
-        test graph.signedpixels-marker-$type {negative marker offsets at creation and reconfiguration} -setup {
+        test RBC.graph.signedpixels.A.1.[incr testCase(1)] {negative marker offsets at creation and reconfiguration} -setup {
             ::rbc::graph .signedPixels
         } -body {
             .signedPixels marker create $type -name m -xoffset -7 -yoffset -11
@@ -22,7 +26,7 @@ namespace eval graph.signedpixels {
             destroy .signedPixels
         } -result {{-7 -11} {-2m -3p} 4 6}
 
-        test signedPixels-marker-units-$type {negative unit offsets at marker creation} -setup {
+        test RBC.graph.signedpixels.A.2.[incr testCase(2)] {negative unit offsets at marker creation} -setup {
             ::rbc::graph .signedPixels
         } -body {
             .signedPixels marker create $type -name m -xoffset -2m -yoffset -3p
@@ -32,7 +36,7 @@ namespace eval graph.signedpixels {
         } -result {-2m -3p}
     }
 
-    test graph.signedpixels-axis-1 {signed tick lengths at creation and reconfiguration} -setup {
+    test RBC.graph.signedpixels.A.3.1 {signed tick lengths at creation and reconfiguration} -setup {
         ::rbc::graph .signedPixels
     } -body {
         .signedPixels axis create signed -ticklength -9
@@ -47,7 +51,7 @@ namespace eval graph.signedpixels {
         destroy .signedPixels
     } -result {-9 1 -7 -7}
 
-    test graph.signedpixels-axis-2 {negative unit tick length at axis creation} -setup {
+    test RBC.graph.signedpixels.A.4.1 {negative unit tick length at axis creation} -setup {
         ::rbc::graph .signedPixels
     } -body {
         .signedPixels axis create signed -ticklength -3p

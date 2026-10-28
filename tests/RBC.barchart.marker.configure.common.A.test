@@ -514,7 +514,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -mapx command works correctly when given valid 
 	# axis name as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.1 {
+	test RBC.barchart.marker.configure.common.A.7.4 {
 		barchart marker configure: mapx - valid axis name
 	} -setup {
 		barchart .barchart1

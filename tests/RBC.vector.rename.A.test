@@ -1,8 +1,14 @@
 # Whole-vector rename preserves storage and mappings. No Tk/display required.
-package require rbc::vector
-package require tcltest
-namespace import ::tcltest::*
+###Package Definition
+package provide vector.rename
 
+package require rbc::vector
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.rename {
 proc RenameTest {script} {
     namespace eval ::renameTest {}
     try { namespace eval ::renameTest $script } finally {
@@ -11,7 +17,7 @@ proc RenameTest {script} {
     }
 }
 
-test vectorRename-1 {registry and command rename; array stays mapped} -body {
+test RBC.vector.rename.A.1.1 {registry and command rename; array stays mapped} -body {
     RenameTest {
         rbc::vector create old
         old set {1 2 3}
@@ -22,7 +28,7 @@ test vectorRename-1 {registry and command rename; array stays mapped} -body {
     }
 } -result {::renameTest::new {} ::renameTest::new {1.0 7.0 3.0} ::renameTest::old}
 
-test vectorRename-2 {complex literal numeric-parenthesis destination} -body {
+test RBC.vector.rename.A.2.1 {complex literal numeric-parenthesis destination} -body {
     RenameTest {
         rbc::vector create old -type complex
         old set {{1 2} {3 4}}
@@ -30,7 +36,7 @@ test vectorRename-2 {complex literal numeric-parenthesis destination} -body {
     }
 } -result {::renameTest::v(1) {{1.0 2.0} {3.0 4.0}} complex}
 
-test vectorRename-3 {cross namespace and canonical namespace separators} -body {
+test RBC.vector.rename.A.3.1 {cross namespace and canonical namespace separators} -body {
     RenameTest {
         namespace eval target {}
         rbc::vector create old -variable {}
@@ -42,7 +48,7 @@ test vectorRename-3 {cross namespace and canonical namespace separators} -body {
     }
 } -result {::renameTest::target::new {4.0 5.0} ::renameTest::target::new}
 
-test vectorRename-4 {vector or command collisions leave source intact} -body {
+test RBC.vector.rename.A.4.1 {vector or command collisions leave source intact} -body {
     RenameTest {
         rbc::vector create old other -variable {}
         old set {8}
@@ -53,7 +59,7 @@ test vectorRename-4 {vector or command collisions leave source intact} -body {
     }
 } -result {1 1 8.0 9.0 intact}
 
-test vectorRename-5 {invalid names and namespaces do not change the vector} -body {
+test RBC.vector.rename.A.5.1 {invalid names and namespaces do not change the vector} -body {
     RenameTest {
         rbc::vector create old -variable {}
         set results {}
@@ -64,7 +70,7 @@ test vectorRename-5 {invalid names and namespaces do not change the vector} -bod
     }
 } -result {{1 1 1 1} ::renameTest::old}
 
-test vectorRename-6 {oldName must identify a whole vector, never a slice} -body {
+test RBC.vector.rename.A.6.1 {oldName must identify a whole vector, never a slice} -body {
     RenameTest {
         rbc::vector create old -variable {}
         old set {1 2}
@@ -72,7 +78,7 @@ test vectorRename-6 {oldName must identify a whole vector, never a slice} -body 
     }
 } -result 1
 
-test vectorRename-7 {renames the actual instance command after a Tcl command rename} -body {
+test RBC.vector.rename.A.7.1 {renames the actual instance command after a Tcl command rename} -body {
     RenameTest {
         rbc::vector create old -variable {}
         old set {2}
@@ -81,7 +87,7 @@ test vectorRename-7 {renames the actual instance command after a Tcl command ren
     }
 } -result {::renameTest::new 2.0 {}}
 
-test vectorRename-8 {trace deletion is detected without accessing the freed vector} -body {
+test RBC.vector.rename.A.8.1 {trace deletion is detected without accessing the freed vector} -body {
     RenameTest {
         rbc::vector create old -variable {}
         proc remove {old new op} {rename $new {}}
@@ -91,7 +97,7 @@ test vectorRename-8 {trace deletion is detected without accessing the freed vect
     }
 } -result {1 {vector was deleted during rename} {}}
 
-test vectorRename-9 {recursive rename from a trace is rejected} -body {
+test RBC.vector.rename.A.9.1 {recursive rename from a trace is rejected} -body {
     RenameTest {
         rbc::vector create old -variable {}
         proc again {old new op} {set ::renameTest::recursive [catch {rbc::vector rename ::renameTest::old ::renameTest::other}]}
@@ -102,7 +108,7 @@ test vectorRename-9 {recursive rename from a trace is rejected} -body {
 
 if {[info exists ::env(RBC_CAPI_TEST_LIB)]} {
     load $::env(RBC_CAPI_TEST_LIB)
-    test vectorRename-10 {real and complex C objects and numeric storage stay identical} -body {
+    test RBC.vector.rename.A.10.1 {real and complex C objects and numeric storage stay identical} -body {
         RenameTest {
             set results {}
             foreach type {real complex} {
@@ -119,7 +125,7 @@ if {[info exists ::env(RBC_CAPI_TEST_LIB)]} {
 }
 testConstraint vectorRenameGui [expr {[package provide Tk] ne {} &&
                                      [llength [info commands ::rbc::graph]] != 0}]
-test vectorRename-11 {existing graph client follows updates; new clients use the new name} \
+test RBC.vector.rename.A.11.1 {existing graph client follows updates; new clients use the new name} \
         -constraints vectorRenameGui -body {
     RenameTest {
         rbc::vector create x old -variable {}
@@ -141,3 +147,4 @@ test vectorRename-11 {existing graph client follows updates; new clients use the
 
 rename RenameTest {}
 cleanupTests
+}

@@ -1,11 +1,16 @@
 # Area closure geometry. See license.terms for redistribution terms.
+###Package Definition
+package provide graph.element.areaclose
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval areaClose {
-    namespace import ::rbc::*
-    namespace import ::tcltest::*
-
+namespace eval graph.element.areaclose {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 6 0}
     proc Ink {photo x y} {
         lassign [.area transform $x $y] px py
         expr {[$photo get $px $py] eq {0 0 0}}
@@ -13,7 +18,7 @@ namespace eval areaClose {
 
     foreach type {graph polar} {
         foreach inverted {no yes} {
-            test areaClose-1-$type-$inverted {closure selects the intended interior and resets} -setup {
+            test RBC.graph.element.areaclose.A.1.[incr testCase(1)] {closure selects the intended interior and resets} -setup {
                 $type .area -width 400 -height 400 -invertxy $inverted -plotbackground white
                 pack .area
                 .area axis configure x -min -3 -max 3
@@ -42,7 +47,7 @@ namespace eval areaClose {
         }
     }
 
-    test areaClose-2 {invalid closure leaves configuration unchanged} -setup {
+    test RBC.graph.element.areaclose.A.2.1 {invalid closure leaves configuration unchanged} -setup {
         polar .area
         .area element create signal -areaclose origin
     } -body {
@@ -52,7 +57,7 @@ namespace eval areaClose {
         destroy .area
     } -result {1 origin}
 
-    test areaClose-3 {tiles use closure geometry too} -setup {
+    test RBC.graph.element.areaclose.A.3.1 {tiles use closure geometry too} -setup {
         polar .area -width 400 -height 400 -plotbackground white
         pack .area
         .area axis configure x -min -3 -max 3
@@ -77,7 +82,7 @@ namespace eval areaClose {
         image delete $photo $tile
     } -result {0 1}
 
-    test areaClose-4 {origin can close a two-point trace} -setup {
+    test RBC.graph.element.areaclose.A.4.1 {origin can close a two-point trace} -setup {
         polar .area -width 400 -height 400 -plotbackground white
         pack .area
         .area axis configure x -min -3 -max 3
@@ -99,7 +104,7 @@ namespace eval areaClose {
         image delete $photo
     } -result {1 0}
 
-    test areaClose-5 {PostScript closure changes and reset restores geometry} -setup {
+    test RBC.graph.element.areaclose.A.5.1 {PostScript closure changes and reset restores geometry} -setup {
         polar .area -width 400 -height 400
         pack .area
         .area axis configure x -min -3 -max 3
@@ -129,7 +134,7 @@ namespace eval areaClose {
     foreach type {graph polar} {
         foreach inverted {no yes} {
             foreach fill {solid tile} {
-                test areaClose-6-$type-$inverted-$fill {two-point baseline fill survives closure changes and clears} -setup {
+                test RBC.graph.element.areaclose.A.6.[incr testCase(6)] {two-point baseline fill survives closure changes and clears} -setup {
                     $type .area -width 400 -height 400 -invertxy $inverted -plotbackground white
                     pack .area
                     .area axis configure x -min -3 -max 3
@@ -167,5 +172,5 @@ namespace eval areaClose {
         }
     }
 
-}
 ::tcltest::cleanupTests
+}

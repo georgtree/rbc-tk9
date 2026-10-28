@@ -9,7 +9,10 @@
 #
 ###Package Definition
 package provide graph.export.font
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
 namespace import tcltest::*
 
@@ -126,7 +129,7 @@ namespace eval graph.export.font {
         destroy .exportFont
         removeFile export-font-error.svg
     } -result {1 1 sentinel 1 1}
-}
 
 ###Cleanup
 cleanupTests
+}

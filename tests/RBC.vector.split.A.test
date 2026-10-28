@@ -19,7 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-#namespace eval vector.split {
+
+namespace eval vector.split {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector split command works correctly when given a single vector 
 	# name.
@@ -144,4 +145,4 @@ namespace import tcltest::*
     } -result {1 real 9.0}
 	
 	cleanupTests
-#}
+}

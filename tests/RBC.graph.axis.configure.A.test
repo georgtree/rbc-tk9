@@ -20,6 +20,8 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 namespace eval graph.axis {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {41 0}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -bindtags command works correctly when given a 
 	# single tag name.
@@ -1035,7 +1037,7 @@ namespace eval graph.axis {
 	# Purpose: Ensure the axis configure -min command works correctly when given 
 	# an invalid option.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.axis.configure.A.17.2 {
+	test RBC.graph.axis.configure.A.17.3 {
 		Min invalid
 	} -setup {
 		graph .graph1
@@ -1997,7 +1999,7 @@ namespace eval graph.axis {
 	
     foreach widget {graph barchart stripchart} {
         foreach angle {0 45 90} {
-            test RBC.graph.axis.configure.A.small.$widget.$angle {
+            test RBC.graph.axis.configure.A.41.[incr testCase(41)] {
                 collapsed plot suppresses axis geometry and restores it after resizing
             } -setup {
                 toplevel .axisResize

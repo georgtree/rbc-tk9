@@ -1,4 +1,5 @@
 # Named-font changes refresh graph resources without widget reconfiguration.
+###Package Definition
 package provide graph.fontchanged
 
 package require rbc
@@ -8,7 +9,8 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.fontchanged {
-
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     proc Create {type} {
         font create rbcWorldFont -family Helvetica -size 8
         ::rbc::$type .world -width 560 -height 400 -background white -plotbackground white -borderwidth 0\
@@ -46,7 +48,7 @@ namespace eval graph.fontchanged {
 
     foreach type {graph stripchart barchart polar} {
         foreach role {title ticks axisTitle legend} {
-            test fontChanged-1-$type-$role {named-font resize updates layout and restoring size restores layout}\
+            test RBC.graph.fontchanged.A.1.[incr testCase(1)] {named-font resize updates layout and restoring size restores layout}\
                     -setup {
                 Create $type
                 .world element create signal -data {2 3 8 7} -label {Wide legend WWWWWW}
@@ -78,7 +80,7 @@ namespace eval graph.fontchanged {
             } -result {1 1 1 560}
         }
 
-        test fontChanged-2-$type {text marker hit geometry follows a named-font change} -setup {
+        test RBC.graph.fontchanged.A.2.[incr testCase(2)] {text marker hit geometry follows a named-font change} -setup {
             Create $type
             foreach axis {x y} { .world axis configure $axis -hide yes }
             .world legend configure -hide yes
@@ -102,7 +104,7 @@ namespace eval graph.fontchanged {
         } -result {{} label {}}
 
         foreach penMode {builtin named active} {
-            test fontChanged-3-$type-$penMode {value-label drawing follows named-font changes} -setup {
+            test RBC.graph.fontchanged.A.3.[incr testCase(3)] {value-label drawing follows named-font changes} -setup {
                 Create $type
                 foreach axis {x y} {
                     .world axis configure $axis -hide yes
@@ -158,7 +160,7 @@ namespace eval graph.fontchanged {
         }
     }
 
-    test fontChanged-4 {external legend requests new geometry after font changes} -setup {
+    test RBC.graph.fontchanged.A.4.1 {external legend requests new geometry after font changes} -setup {
         Create graph
         .world element create signal -data {2 3 8 7} -label WWWWWW
         .world legend configure -font rbcWorldFont -position .worldLegend -rows 1 -hide no
@@ -177,7 +179,7 @@ namespace eval graph.fontchanged {
         Cleanup
     } -result {1 1 1}
 
-    test fontChanged-5 {hidden text marker is refreshed before it is shown} -setup {
+    test RBC.graph.fontchanged.A.5.1 {hidden text marker is refreshed before it is shown} -setup {
         Create graph
         foreach axis {x y} {
             .world axis configure $axis -hide yes
@@ -196,7 +198,7 @@ namespace eval graph.fontchanged {
         Cleanup
     } -result 1
 
-    test fontChanged-6 {destroying a graph with a pending font notification is safe} -setup {
+    test RBC.graph.fontchanged.A.6.1 {destroying a graph with a pending font notification is safe} -setup {
         Create graph
         .world configure -font rbcWorldFont -title Title
     } -body {
@@ -207,5 +209,5 @@ namespace eval graph.fontchanged {
     } -cleanup {
         Cleanup
     } -result 0
-}
 cleanupTests
+}

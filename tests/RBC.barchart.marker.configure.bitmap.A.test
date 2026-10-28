@@ -469,7 +469,7 @@ namespace eval barchart.marker {
     # ------------------------------------------------------------------------------------
     # Purpose: Ensure configuring mask changes the corresponding option value.
     # ------------------------------------------------------------------------------------
-    test RBC.graph.marker.configure.bitmap.A.8.1 {
+    test RBC.barchart.marker.configure.bitmap.A.8.1 {
         barchart marker configure bitmap: mask - valid bitmap
     } -setup {
         barchart .barchart1
@@ -485,7 +485,7 @@ namespace eval barchart.marker {
     # ------------------------------------------------------------------------------------
     # Purpose: Ensure the mask can be removed by setting it to an empty value.
     # ------------------------------------------------------------------------------------
-    test RBC.graph.marker.configure.bitmap.A.8.2 {
+    test RBC.barchart.marker.configure.bitmap.A.9.1 {
         barchart marker configure bitmap: clear mask
     } -setup {
         barchart .barchart1
@@ -502,7 +502,7 @@ namespace eval barchart.marker {
     # ------------------------------------------------------------------------------------
     # Purpose: Ensure the mask dimensions must match the bitmap dimensions.
     # ------------------------------------------------------------------------------------
-    test RBC.graph.marker.configure.bitmap.A.8.3 {
+    test RBC.barchart.marker.configure.bitmap.A.10.1 {
         barchart marker configure bitmap: mismatched mask dimensions
     } -setup {
         barchart .barchart1
@@ -521,7 +521,7 @@ namespace eval barchart.marker {
     # Purpose: Ensure repeatedly mapping, transforming, clearing, and restoring a mask
     # does not use or free invalid pixmaps.
     # ------------------------------------------------------------------------------------
-    test RBC.graph.marker.configure.bitmap.A.8.4 {
+    test RBC.barchart.marker.configure.bitmap.A.11.1 {
         barchart marker configure bitmap: mask resource lifetime
     } -setup {
         set testDir [file dirname [info script]]
@@ -561,7 +561,7 @@ namespace eval barchart.marker {
         unset -nocomplain testDir bitmapFile maskFile
     } -result ok
 
-    test RBC.barchart.marker.configure.bitmap.A.rollback.1 {
+    test RBC.barchart.marker.configure.bitmap.A.12.1 {
         bitmap marker configuration is atomic
     } -setup {
         set testDir [file dirname [info script]]

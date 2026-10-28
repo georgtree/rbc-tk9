@@ -1,9 +1,16 @@
 # Element value-label placement. See license.terms for details.
-package require rbc
-package require tcltest
-namespace import ::tcltest::*
+###Package Definition
+package provide graph.element.valueoffset
 
-namespace eval ::valueoffsetTests {
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element.valueoffset {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     proc Create {kind} {
         ::rbc::$kind .offset -width 400 -height 300 -bufferelements no \
             -title {} -borderwidth 0 -highlightthickness 0
@@ -47,7 +54,7 @@ namespace eval ::valueoffsetTests {
     }
 
     foreach kind {graph stripchart polar barchart} {
-        test valueoffset-1-$kind {defaults, validation and transactional rollback on elements and pens} -setup {
+        test RBC.graph.element.valueoffset.A.1.[incr testCase(1)] {defaults, validation and transactional rollback on elements and pens} -setup {
             Create $kind
             set type [expr {$kind eq "barchart" ? "bar" : "line"}]
             .offset pen create custom -type $type
@@ -74,7 +81,7 @@ namespace eval ::valueoffsetTests {
         } -result {{0 0} {0 0} {}}
 
         foreach inverted {no yes} {
-            test valueoffset-2-$kind-$inverted {value offset moves labels and reset restores placement} -setup {
+            test RBC.graph.element.valueoffset.A.2.[incr testCase(2)] {value offset moves labels and reset restores placement} -setup {
                 Create $kind
                 .offset configure -invertxy $inverted
                 .offset grid configure -hide yes
@@ -127,7 +134,7 @@ namespace eval ::valueoffsetTests {
             } -result {}
         }
 
-        test valueoffset-3-$kind {named, weighted and active pens move callback labels in PostScript} -setup {
+        test RBC.graph.element.valueoffset.A.3.[incr testCase(3)] {named, weighted and active pens move callback labels in PostScript} -setup {
             Create $kind
             set type [expr {$kind eq "barchart" ? "bar" : "line"}]
             .offset pen create custom -type $type -showvalues y -valueanchor se -valuerotate 27 \
@@ -165,6 +172,5 @@ namespace eval ::valueoffsetTests {
             destroy .offset
         } -result {}
     }
-}
-namespace delete ::valueoffsetTests
 cleanupTests
+}

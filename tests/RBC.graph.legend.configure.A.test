@@ -20,6 +20,8 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 namespace eval graph.legend {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {23 0 24 0 26 0}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that the activebackground configuration works for valid colors.
 	# ------------------------------------------------------------------------------------
@@ -2025,7 +2027,7 @@ namespace eval graph.legend {
 	    destroy .graph1
 	} -result {}
 
-    test RBC.graph.legend.configure.A.rollback.1 {
+    test RBC.graph.legend.configure.A.19.1 {
         graph legend: padding configuration rollback
     } -setup {
         graph .graph1
@@ -2040,7 +2042,7 @@ namespace eval graph.legend {
         unset -nocomplain oldForeground oldPadX code message
     } -result {1 1 1}
 
-    test RBC.graph.legend.configure.A.rollback.2 {
+    test RBC.graph.legend.configure.A.20.1 {
         graph legend: external window rollback
     } -setup {
         graph .graph1
@@ -2057,7 +2059,7 @@ namespace eval graph.legend {
         unset -nocomplain oldBackground oldPosition code message
     } -result {1 1 1}
 
-    test RBC.graph.legend.configure.A.window.1 {
+    test RBC.graph.legend.configure.A.21.1 {
         graph legend: external window lifecycle
     } -setup {
         graph .graph1
@@ -2077,7 +2079,7 @@ namespace eval graph.legend {
         catch {destroy .graph1}
     } -result {1 1 rightmargin}
 
-    test RBC.graph.legend.configure.A.lifetime.1 {
+    test RBC.graph.legend.configure.A.22.1 {
         graph legend: modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {
@@ -2109,7 +2111,7 @@ namespace eval graph.legend {
     }
 
     foreach widget {graph barchart stripchart} {
-        test RBC.graph.legend.configure.A.compact.$widget.1 {
+        test RBC.graph.legend.configure.A.23.[incr testCase(23)] {
             single-row legend uses individual entry widths and hit regions
         } -setup {
             $widget .graph1 -width 800 -height 300
@@ -2128,7 +2130,7 @@ namespace eval graph.legend {
             destroy .graph1
         } -result {2 1}
 
-        test RBC.graph.legend.configure.A.compact.$widget.2 {
+        test RBC.graph.legend.configure.A.24.[incr testCase(24)] {
             multi-row legend retains equal-width columns after relayout
         } -setup {
             $widget .graph1 -width 800 -height 300
@@ -2148,7 +2150,7 @@ namespace eval graph.legend {
         } -result {2 1}
     }
 
-    test RBC.graph.legend.configure.A.compact.3 {
+    test RBC.graph.legend.configure.A.25.1 {
         external single-row geometry changes by the changed label width
     } -setup {
         graph .graph1
@@ -2169,7 +2171,7 @@ namespace eval graph.legend {
     } -result 1
 
     foreach position {topmargin bottommargin} {
-        test RBC.graph.legend.configure.A.compact.auto.$position {
+        test RBC.graph.legend.configure.A.26.[incr testCase(26)] {
             automatic horizontal layout fits the sum of individual widths
         } -setup {
             graph .graph1 -height 300
@@ -2195,7 +2197,7 @@ namespace eval graph.legend {
         } -result 1
     }
 
-    test RBC.graph.legend.configure.A.compact.export {
+    test RBC.graph.legend.configure.A.27.1 {
         SVG legend label spacing agrees with single-row hit regions
     } -setup {
         graph .graph1 -width 800 -height 300

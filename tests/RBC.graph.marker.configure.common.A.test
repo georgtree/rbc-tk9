@@ -514,7 +514,7 @@ namespace eval graph.marker {
 	# Purpose: Ensure the marker configure -mapx command works correctly when given valid 
 	# axis name as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.graph.marker.configure.common.A.7.1 {
+	test RBC.graph.marker.configure.common.A.7.4 {
 		graph marker configure: mapx - valid axis name
 	} -setup {
 		graph .graph1

@@ -479,7 +479,7 @@ namespace eval stripchart.marker {
 		destroy .stripchart1
 	} -result {0}
 	
-    test RBC.stripchart.marker.configure.window.A.rollback.1 {
+    test RBC.stripchart.marker.configure.window.A.5.1 {
         window marker configuration is atomic
     } -setup {
         stripchart .stripchart1

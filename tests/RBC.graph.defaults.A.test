@@ -11,11 +11,16 @@
 #
 ###Package Definition
 package provide graph.defaults
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.defaults {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {5 0 6 0 7 0}
     proc Setup {} {
         interp create defaultsChild
         interp eval defaultsChild [list set auto_path $::auto_path]
@@ -52,7 +57,7 @@ namespace eval graph.defaults {
     set case 0
     foreach kind {graph barchart stripchart} {
         incr case
-        test RBC.graph.defaults.A.1.$case {
+        test RBC.graph.defaults.A.5.[incr testCase(5)] {
             graph defaults: audited graph, axis and element values
         } -setup {
             Setup
@@ -93,7 +98,7 @@ namespace eval graph.defaults {
     set case 0
     foreach kind {graph stripchart polar} {
         incr case
-        test RBC.graph.defaults.A.2.$case {
+        test RBC.graph.defaults.A.6.[incr testCase(6)] {
             graph defaults: native scaling default agrees with configure metadata
         } -setup {
             Setup
@@ -147,7 +152,7 @@ namespace eval graph.defaults {
         bar -labelrelief LabelRelief raised
     } {
         incr case
-        test RBC.graph.defaults.A.3.$case {
+        test RBC.graph.defaults.A.7.[incr testCase(7)] {
             graph defaults: removed initialization flags do not block resource lookup
         } -setup {
             Setup

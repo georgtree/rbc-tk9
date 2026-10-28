@@ -1506,7 +1506,7 @@ namespace eval graph.postscript {
 	# FIXME: I have no idea how to do this.
 	# ------------------------------------------------------------------------------------
 
-    test RBC.graph.postscript.configure.A.rollback.1 {
+    test RBC.graph.postscript.configure.A.16.1 {
         graph postscript: atomic configuration rollback
     } -setup {
         graph .graph1
@@ -1523,7 +1523,7 @@ namespace eval graph.postscript {
         unset -nocomplain oldCenter oldPadX code message
     } -result {1 1 1 1}
 
-    test RBC.graph.postscript.configure.A.rollback.2 {
+    test RBC.graph.postscript.configure.A.17.1 {
         graph postscript: positive paper dimensions
     } -setup {
         graph .graph1
@@ -1540,7 +1540,7 @@ namespace eval graph.postscript {
         unset -nocomplain oldWidth oldPaperWidth code message
     } -result {1 1 1}
 
-    test RBC.graph.postscript.configure.A.lifetime.1 {
+    test RBC.graph.postscript.configure.A.18.1 {
         graph postscript: modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {

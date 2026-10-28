@@ -1,14 +1,20 @@
 # Segment batches must not stroke paths retained by filled decorations.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.path
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psPathTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.path {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0}
     foreach decorations {yes no} {
         foreach dashes {{} {3 5}} {
-            test psPath-1-$decorations-$dashes {legend strokes start a fresh path after decorations} -setup {
+            test RBC.graph.postscript.path.A.1.[incr testCase(1)] {legend strokes start a fresh path after decorations} -setup {
                 ::rbc::graph .psPath -width 400 -height 300
                 .psPath grid configure -hide yes
                 foreach axis [.psPath axis names] {
@@ -36,6 +42,5 @@ namespace eval ::psPathTest {
             } -result {1 1}
         }
     }
-}
-namespace delete ::psPathTest
 ::tcltest::cleanupTests
+}

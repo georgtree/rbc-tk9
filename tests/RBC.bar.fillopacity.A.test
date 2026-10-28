@@ -1,11 +1,17 @@
 # Bar fill opacity: configuration, screen rendering, legends, and export.
 # See license.terms for details.
+###Package Definition
+package provide bar.fillopacity
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval barFillOpacity {
-    namespace import ::tcltest::*
-
+namespace eval bar.fillopacity {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {2 0 6 0}
     ::rbc::graph .opacityProbe
     set code [catch {.opacityProbe configure -renderer cairo} message]
     destroy .opacityProbe
@@ -32,7 +38,7 @@ namespace eval barFillOpacity {
         return [$photo get [expr {round($px)}] [expr {round($py)}]]
     }
 
-    test barOpacity-options {element and pen defaults, metadata, and transactional validation} -setup {
+    test RBC.bar.fillopacity.A.1.1 {element and pen defaults, metadata, and transactional validation} -setup {
         Create
         .bo pen create p -type bar -foreground red
     } -body {
@@ -60,7 +66,7 @@ namespace eval barFillOpacity {
         if {$renderer eq "cairo"} {
             set constraints barOpacityCairo
         }
-        test barOpacity-screen-$renderer {zero, partial and full fill opacity} -constraints $constraints -setup {
+        test RBC.bar.fillopacity.A.2.[incr testCase(2)] {zero, partial and full fill opacity} -constraints $constraints -setup {
             Create $renderer
             set photo [image create photo]
         } -body {
@@ -83,7 +89,7 @@ namespace eval barFillOpacity {
         } -result {1 1 1}
     }
 
-    test barOpacity-active {active pen opacity overrides normal fill opacity} -constraints barOpacityCairo -setup {
+    test RBC.bar.fillopacity.A.3.1 {active pen opacity overrides normal fill opacity} -constraints barOpacityCairo -setup {
         Create cairo
         set photo [image create photo]
         .bo element configure e -fillopacity 0
@@ -97,7 +103,7 @@ namespace eval barFillOpacity {
         if {[info exists photo]} {catch {image delete $photo}}
     } -result 1
 
-    test barOpacity-stipple {Cairo blends both stipple colors} -constraints barOpacityCairo -setup {
+    test RBC.bar.fillopacity.A.4.1 {Cairo blends both stipple colors} -constraints barOpacityCairo -setup {
         Create cairo
         set photo [image create photo]
         .bo element configure e -foreground red -background blue -stipple gray25 -fillopacity 0.5
@@ -121,7 +127,7 @@ namespace eval barFillOpacity {
         if {[info exists photo]} {catch {image delete $photo}}
     } -result 1
 
-    test barOpacity-errors {zero fill leaves error bars visible} -setup {
+    test RBC.bar.fillopacity.A.5.1 {zero fill leaves error bars visible} -setup {
         Create
         set photo [image create photo]
         .bo element configure e -fillopacity 0 -yerror {1} -errorbarcolor black -errorbarwidth 3
@@ -133,7 +139,7 @@ namespace eval barFillOpacity {
     } -result {{255 255 255} {0 0 0}}
 
     foreach stipple {{} gray25} {
-        test barOpacity-svg-$stipple {SVG bar and legend preserve solid or stippled opacity} -setup {
+        test RBC.bar.fillopacity.A.6.[incr testCase(6)] {SVG bar and legend preserve solid or stippled opacity} -setup {
             Create
             .bo legend configure -hide no
             .bo pen create p -type bar -foreground red -background blue -borderwidth 0 \
@@ -157,7 +163,7 @@ namespace eval barFillOpacity {
         } -result {1 1 1}
     }
 
-    test barOpacity-postscript {PostScript omits zero fill and treats partial fill as opaque} -setup {
+    test RBC.bar.fillopacity.A.7.1 {PostScript omits zero fill and treats partial fill as opaque} -setup {
         Create
     } -body {
         set counts {}

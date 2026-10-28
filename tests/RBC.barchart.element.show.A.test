@@ -24,7 +24,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element show command works correctly when given a single element
 	# name.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.show.A.1.1 {
+	test RBC.barchart.element.show.A.1.1 {
 		element show: single element name
 	} -setup {
 		barchart .barchart1
@@ -43,7 +43,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element show command works correctly when given multiple element
 	# names.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.show.A.1.2 {
+	test RBC.barchart.element.show.A.2.1 {
 		element show: multiple element names
 	} -setup {
 		barchart .barchart1
@@ -62,7 +62,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element show command works correctly when given a non-existent 
 	# element name.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.show.A.1.3 {
+	test RBC.barchart.element.show.A.3.1 {
 		element show: non-existent element name
 	} -setup {
 		barchart .barchart1

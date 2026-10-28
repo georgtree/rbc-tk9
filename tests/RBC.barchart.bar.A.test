@@ -19,7 +19,10 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+
 namespace eval barchart.bar {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {2 0 3 0 4 0 6 0 7 0 8 0 9 0 13 0 15 0 18 0 21 0}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that a new barchart element can be created when given a unique name.
 	# ------------------------------------------------------------------------------------ 
@@ -83,7 +86,7 @@ namespace eval barchart.bar {
         foreach inverted {0 1} {
             foreach descending {0 1} {
                 foreach logarithmic {0 1} {
-                    test RBC.barchart.bar.align-$kind-$inverted-$descending-$logarithmic {
+                    test RBC.barchart.bar.A.2.[incr testCase(2)] {
                         alignment and signed offsets map data edges on all axis orientations
                     } -setup {
                         AlignmentCreate $kind $inverted $descending $logarithmic
@@ -104,7 +107,7 @@ namespace eval barchart.bar {
 
     foreach mode {aligned stacked overlap} {
         foreach align {center left right} {
-            test RBC.barchart.bar.group-$mode-$align {
+            test RBC.barchart.bar.A.3.[incr testCase(3)] {
                 alignment anchors the full group before subdivision
             } -setup {
                 AlignmentCreate barchart 0 0 0
@@ -149,7 +152,7 @@ namespace eval barchart.bar {
             foreach mode {aligned stacked overlap} {
                 foreach inverted {0 1} {
                     foreach descending {0 1} {
-                        test RBC.barchart.bar.mixed-$variation-$kind-$mode-$inverted-$descending {
+                        test RBC.barchart.bar.A.4.[incr testCase(4)] {
                             mixed settings preserve group membership and independently position each interval
                         } -setup {
                             AlignmentCreate $kind $inverted $descending 0
@@ -181,7 +184,7 @@ namespace eval barchart.bar {
         }
     }
 
-    test RBC.barchart.bar.align-defaults {defaults retain centered bars and width inheritance} -setup {
+    test RBC.barchart.bar.A.5.1 {defaults retain centered bars and width inheritance} -setup {
         AlignmentCreate barchart 0 0 0
     } -body {
         set result [list [.ba element cget a -baralign] [.ba element cget a -baroffset]]
@@ -195,7 +198,7 @@ namespace eval barchart.bar {
     } -cleanup {destroy .ba} -result {center 0.0 1 1 1}
 
     foreach {option value} {-baralign bottom -baroffset Inf -baroffset -Inf -baroffset NaN -baroffset invalid} {
-        test RBC.barchart.bar.align-invalid-$option-$value {failed configuration preserves previous geometry} -setup {
+        test RBC.barchart.bar.A.6.[incr testCase(6)] {failed configuration preserves previous geometry} -setup {
             AlignmentCreate barchart 0 0 0
             .ba element configure a -baralign left -baroffset 1
         } -body {
@@ -205,7 +208,7 @@ namespace eval barchart.bar {
     }
 
     foreach logarithmic {0 1} {
-        test RBC.barchart.bar.align-limits-$logarithmic {automatic limits include shifted edges and errors} -setup {
+        test RBC.barchart.bar.A.7.[incr testCase(7)] {automatic limits include shifted edges and errors} -setup {
             AlignmentCreate barchart 0 0 $logarithmic
             .ba axis configure x -min {} -max {}
         } -body {
@@ -234,7 +237,7 @@ namespace eval barchart.bar {
     }
 
     foreach format {svg postscript pdf} {
-        test RBC.barchart.bar.align-export-$format {exports remap alignment and restore the original geometry} -setup {
+        test RBC.barchart.bar.A.8.[incr testCase(8)] {exports remap alignment and restore the original geometry} -setup {
             AlignmentCreate barchart 0 0 0
         } -body {
             set original [AlignmentExport $format]
@@ -248,7 +251,7 @@ namespace eval barchart.bar {
     }
 
     foreach errors {{-yerror 2} {-ylow 1 -yhigh 5} {-xerror 2} {-xlow 2 -xhigh 6}} {
-        test RBC.barchart.bar.align-errors-$errors {offset translates error bars without altering input values} -setup {
+        test RBC.barchart.bar.A.9.[incr testCase(9)] {offset translates error bars without altering input values} -setup {
             AlignmentCreate barchart 0 0 0
             .ba element configure a -baralign left -baroffset 1 -errorbarcolor magenta -errorbarwidth 3 {*}$errors
             set photo [image create photo]
@@ -275,7 +278,7 @@ namespace eval barchart.bar {
         } -result {1 {4 3}}
     }
 
-    test RBC.barchart.bar.align-log-edge {left alignment admits positive bins that centered alignment crosses zero}\
+    test RBC.barchart.bar.A.10.1 {left alignment admits positive bins that centered alignment crosses zero}\
             -setup {
         AlignmentCreate barchart 0 0 1
         .ba element configure a -data {0.5 3} -baralign left
@@ -287,14 +290,14 @@ namespace eval barchart.bar {
         list $left [.ba element closest $px $py hit -halo 2 a]
     } -cleanup {destroy .ba} -result {1 0}
 
-    test RBC.barchart.bar.align-outside {an offset can move otherwise offscreen data into the plot} -setup {
+    test RBC.barchart.bar.A.11.1 {an offset can move otherwise offscreen data into the plot} -setup {
         AlignmentCreate barchart 0 0 0
         .ba element configure a -data {-20 3} -baralign left -baroffset 25
     } -body {
         AlignmentBounds a 5 7 1
     } -cleanup {destroy .ba} -result 1
 
-    test RBC.barchart.bar.align-negative {alignment also applies to downward bars} -setup {
+    test RBC.barchart.bar.A.12.1 {alignment also applies to downward bars} -setup {
         AlignmentCreate barchart 0 0 0
         .ba axis configure y -min -10 -max 10
         .ba element configure a -data {4 -3} -baralign right -baroffset -1
@@ -332,7 +335,7 @@ namespace eval barchart.bar {
             foreach errors {symmetric explicit} {
                 foreach inverted {0 1} {
                     foreach logarithmic {0 1} {
-                        test RBC.barchart.bar.errorposition-$kind-$mode-$errors-$inverted-$logarithmic {
+                        test RBC.barchart.bar.A.13.[incr testCase(13)] {
                             final placement translates symmetric and explicit endpoints before axis mapping
                         } -setup {
                             AlignmentCreate $kind $inverted 1 $logarithmic
@@ -377,7 +380,7 @@ namespace eval barchart.bar {
         }
     }
 
-    test RBC.barchart.bar.errorposition-options {metadata and invalid configuration retain the previous setting}\
+    test RBC.barchart.bar.A.14.1 {metadata and invalid configuration retain the previous setting}\
             -setup {
         AlignmentCreate barchart 0 0 0
         .ba element configure a -errorbarposition bar
@@ -387,7 +390,7 @@ namespace eval barchart.bar {
     } -cleanup {destroy .ba} -result {{errorBarPosition ErrorBarPosition data} 1 bar}
 
     foreach errors {symmetric explicit} {
-        test RBC.barchart.bar.errorposition-limits-$errors\
+        test RBC.barchart.bar.A.15.[incr testCase(15)]\
                 {automatic limits include translated stacked and horizontal endpoints} -setup {
             AlignmentCreate barchart 0 0 0
             .ba configure -barmode stacked
@@ -408,7 +411,7 @@ namespace eval barchart.bar {
         } -cleanup {destroy .ba} -result {1 {4 3}}
     }
 
-    test RBC.barchart.bar.errorposition-negative {negative stacked values translate before corner swapping} -setup {
+    test RBC.barchart.bar.A.16.1 {negative stacked values translate before corner swapping} -setup {
         AlignmentCreate barchart 0 0 0
         .ba axis configure y -min -12 -max 1
         .ba configure -barmode stacked
@@ -418,7 +421,7 @@ namespace eval barchart.bar {
         ErrorSegmentMatches [lindex [ErrorSegments] 0] 4 -6 4 -8
     } -cleanup {destroy .ba} -result 1
 
-    test RBC.barchart.bar.errorposition-membership {hiding and reordering bars recomputes error placement} -setup {
+    test RBC.barchart.bar.A.17.1 {hiding and reordering bars recomputes error placement} -setup {
         AlignmentCreate barchart 0 0 0
         .ba axis configure y -max 12
         .ba configure -barmode stacked
@@ -435,7 +438,7 @@ namespace eval barchart.bar {
     } -cleanup {destroy .ba} -result {1 1 1}
 
     foreach format {svg postscript pdf} {
-        test RBC.barchart.bar.errorposition-export-$format {export honours the option and resizing restores placement}\
+        test RBC.barchart.bar.A.18.[incr testCase(18)] {export honours the option and resizing restores placement}\
                 -setup {
             AlignmentCreate barchart 0 0 0
             .ba configure -barmode aligned
@@ -452,7 +455,7 @@ namespace eval barchart.bar {
     }
 
 
-    test RBC.barchart.bar.errorposition-perpoint\
+    test RBC.barchart.bar.A.19.1\
             {different group sizes and vector updates retain per-point translations} -setup {
         AlignmentCreate barchart 0 0 0
         .ba configure -barmode aligned
@@ -478,7 +481,7 @@ namespace eval barchart.bar {
         ::rbc::vector destroy barErrorY
     } -result {1 1 1 1 3 {6.0 8.0}}
 
-    test RBC.barchart.bar.errorposition-invalid-log {errors for invalid logarithmic bar placements are omitted} -setup {
+    test RBC.barchart.bar.A.20.1 {errors for invalid logarithmic bar placements are omitted} -setup {
         AlignmentCreate barchart 0 0 1
         .ba element configure a -data {0.5 3} -yerror 1 -errorbarcolor magenta -errorbarposition bar
     } -body {
@@ -500,7 +503,7 @@ namespace eval barchart.bar {
         if {$renderer eq "cairo"} {
             set constraints barErrorCairo
         }
-        test RBC.barchart.bar.errorposition-screen-$renderer {screen errors move between data and group-slot positions}\
+        test RBC.barchart.bar.A.21.[incr testCase(21)] {screen errors move between data and group-slot positions}\
             -constraints $constraints -setup {
                 AlignmentCreate barchart 0 0 0
                 .ba configure -renderer $renderer -barmode aligned

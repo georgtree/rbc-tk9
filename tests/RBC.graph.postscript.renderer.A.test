@@ -1,11 +1,17 @@
 # Shared renderer strokes must retain the existing PostScript behavior.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.renderer
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psRendererTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.renderer {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     proc Create {type} {
         ::rbc::$type .psRender -width 400 -height 300
         .psRender legend configure -hide yes
@@ -34,7 +40,7 @@ namespace eval ::psRendererTest {
     }
 
     foreach type {graph stripchart barchart} {
-        test psRenderer-1-$type {grid strokes retain widths and dashes and disappear when hidden} -setup {
+        test RBC.graph.postscript.renderer.A.1.[incr testCase(1)] {grid strokes retain widths and dashes and disappear when hidden} -setup {
             Create $type
         } -body {
             set empty [Strokes [Body]]
@@ -53,7 +59,7 @@ namespace eval ::psRendererTest {
             destroy .psRender
         } -result {0 1 1 1 1 1 0}
 
-        test psRenderer-2-$type {axis baseline and ticks retain visibility rules} -setup {
+        test RBC.graph.postscript.renderer.A.2.[incr testCase(2)] {axis baseline and ticks retain visibility rules} -setup {
             Create $type
             .psRender axis configure x -hide no -linewidth 9 -showticks yes
         } -body {
@@ -69,7 +75,7 @@ namespace eval ::psRendererTest {
             destroy .psRender
         } -result {1 1 0 1}
 
-        test psRenderer-3-$type {grid remains clipped and axes are drawn after plot clipping ends} -setup {
+        test RBC.graph.postscript.renderer.A.3.[incr testCase(3)] {grid remains clipped and axes are drawn after plot clipping ends} -setup {
             Create $type
             .psRender grid configure -hide no -linewidth 7
             .psRender axis configure x -hide no -linewidth 9
@@ -84,6 +90,5 @@ namespace eval ::psRendererTest {
             destroy .psRender
         } -result 1
     }
-}
-namespace delete ::psRendererTest
 ::tcltest::cleanupTests
+}

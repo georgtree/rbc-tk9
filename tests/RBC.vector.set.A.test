@@ -19,7 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-#namespace eval vector.set {
+
+namespace eval vector.set {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector set command works correctly when given a list of 
 	# numbers.
@@ -166,4 +167,4 @@ namespace import tcltest::*
     } -result {1 {expected complex value as a real number or {real imag}} 0}
 	
 	cleanupTests
-#}
+}

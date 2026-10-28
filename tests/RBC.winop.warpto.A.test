@@ -11,12 +11,15 @@
 ###Revision String
 # SVN: $Id$
 
-package require tcltest 2
-namespace import tcltest::*
+###Package Definition
+package provide winop.warpto
 
-package require Tk
 package require rbc
 namespace import rbc::*
+package require Tk
+
+package require tcltest 2
+namespace import tcltest::*
 
 namespace eval winop.warpto {
 	# ------------------------------------------------------------------------------------
@@ -35,5 +38,5 @@ namespace eval winop.warpto {
 	} -cleanup {
 	    destroy .graph1
 	} -result {2}
-	
+
 }

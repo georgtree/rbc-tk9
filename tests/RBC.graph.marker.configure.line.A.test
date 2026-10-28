@@ -627,7 +627,7 @@ namespace eval graph.marker {
 		destroy .graph1
 	} -result {round}
 
-    test RBC.graph.marker.configure.line.A.rollback.1 {
+    test RBC.graph.marker.configure.line.A.11.1 {
         line marker configuration is atomic
     } -setup {
         graph .graph1
@@ -648,7 +648,7 @@ namespace eval graph.marker {
         unset -nocomplain oldCoords oldOutline oldWidth oldMapX code message
     } -result {1 1 1 1 1}
 
-    test RBC.graph.marker.configure.line.A.lifetime.1 {
+    test RBC.graph.marker.configure.line.A.12.1 {
         modern line marker resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

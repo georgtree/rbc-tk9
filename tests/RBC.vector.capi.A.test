@@ -26,6 +26,8 @@ package require rbccapitest 1.0
 
 namespace eval vector.capi {
 
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {11 0}
     proc CleanupVectors {args} {
         foreach name $args {
             catch {::rbc::vector destroy $name}
@@ -328,7 +330,7 @@ namespace eval vector.capi {
     } -result {1 1 {0.0 2.0} {3.0 3.0}}
 
     foreach type {real complex} {
-        test RBC.vector.capi.A.readonly.$type {C/stubs protection, ownership, and reversible state} -setup {
+        test RBC.vector.capi.A.11.[incr testCase(11)] {C/stubs protection, ownership, and reversible state} -setup {
             CleanupVectors ::CapiLocked
             ::rbccapitest create ::CapiLocked $type 3
             set identity [::rbccapitest identity ::CapiLocked]
@@ -356,7 +358,7 @@ namespace eval vector.capi {
             CleanupVectors ::CapiLocked
         } -result {0 1 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} 1 {RBC VECTOR READONLY} {1 0} 1 3 0 2 0}
     }
-    test RBC.vector.capi.A.readonly.producer {native producer checks before a borrowed pointer write} -setup {
+    test RBC.vector.capi.A.12.1 {native producer checks before a borrowed pointer write} -setup {
         ::rbccapitest create ::CapiLocked real 2
         ::CapiLocked set {3 4}
         ::CapiLocked readonly true

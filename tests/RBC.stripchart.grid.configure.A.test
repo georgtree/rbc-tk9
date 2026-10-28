@@ -570,7 +570,7 @@ namespace eval stripchart.grid {
 		destroy .stripchart1
 	} -result {0}
 
-    test RBC.stripchart.grid.configure.A.rollback.1 {
+    test RBC.stripchart.grid.configure.A.8.1 {
         grid configuration is atomic
     } -setup {
         stripchart .stripchart1
@@ -584,7 +584,7 @@ namespace eval stripchart.grid {
         destroy .stripchart1
     } -result 1
 
-    test RBC.stripchart.grid.configure.A.destroy.1 {
+    test RBC.stripchart.grid.configure.A.9.1 {
         grid modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {
@@ -597,7 +597,7 @@ namespace eval stripchart.grid {
         catch {destroy .stripchart1}
     } -result ok
 
-    test RBC.stripchart.grid.configure.A.linewidth.1 {
+    test RBC.stripchart.grid.configure.A.10.1 {
         grid cget preserves pixel representation
     } -setup {
         stripchart .stripchart1
@@ -608,7 +608,7 @@ namespace eval stripchart.grid {
         destroy .stripchart1
     } -result 2m
 
-    test RBC.stripchart.grid.configure.A.dashes.1 {
+    test RBC.stripchart.grid.configure.A.11.1 {
         grid cget preserves named dash pattern
     } -setup {
         stripchart .stripchart1
@@ -619,7 +619,7 @@ namespace eval stripchart.grid {
         destroy .stripchart1
     } -result dashdot
 
-    test RBC.stripchart.grid.configure.A.dashes.2 {
+    test RBC.stripchart.grid.configure.A.12.1 {
         grid accepts dash expressions as list elements
     } -setup {
         stripchart .stripchart1

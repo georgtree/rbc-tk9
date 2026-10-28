@@ -479,7 +479,7 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {0}
 	
-    test RBC.barchart.marker.configure.window.A.rollback.1 {
+    test RBC.barchart.marker.configure.window.A.5.1 {
         window marker configuration is atomic
     } -setup {
         barchart .barchart1

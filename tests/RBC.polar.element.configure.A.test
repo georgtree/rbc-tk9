@@ -73,7 +73,7 @@ namespace eval polar.element {
 		destroy .polar1
 	} -result {Pen1}
 
-    test RBC.polar.element.configure.A.cdata.1 {
+    test RBC.polar.element.configure.A.3.1 {
         polar element configure: complex vector
     } -setup {
         vector create z -type complex
@@ -87,7 +87,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {PolarElement z}
 
-    test RBC.polar.element.configure.A.cdata.2 {
+    test RBC.polar.element.configure.A.4.1 {
         polar element configure: reject real vector
     } -setup {
         vector create z
@@ -101,7 +101,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {vector "z" is real; -cdata requires a complex vector}
 
-    test RBC.polar.element.configure.A.cdata.3 {
+    test RBC.polar.element.configure.A.5.1 {
         graph line element does not expose -cdata
     } -setup {
         vector create z -type complex
@@ -114,7 +114,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {1}
 
-    test RBC.polar.element.configure.A.cdata.4 {
+    test RBC.polar.element.configure.A.6.1 {
         polar element configure: later -cdata selects complex data
     } -setup {
         vector create z -type complex
@@ -129,7 +129,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {z}
 
-    test RBC.polar.element.configure.A.cdata.5 {
+    test RBC.polar.element.configure.A.7.1 {
         polar element configure: later -data selects XY data
     } -setup {
         vector create z -type complex
@@ -144,7 +144,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {}
 
-    test RBC.polar.element.configure.A.cdata.6 {
+    test RBC.polar.element.configure.A.8.1 {
         polar element configure: later -x selects XY data
     } -setup {
         vector create z -type complex
@@ -159,7 +159,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {}
 
-    test RBC.polar.element.configure.A.cdata.7 {
+    test RBC.polar.element.configure.A.9.1 {
         polar element configure: later -y selects XY data
     } -setup {
         vector create z -type complex
@@ -174,7 +174,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {}
 
-    test RBC.polar.element.configure.A.cdata.8 {
+    test RBC.polar.element.configure.A.10.1 {
         polar element configure: empty -cdata restores XY data
     } -setup {
         vector create z -type complex
@@ -201,7 +201,7 @@ namespace eval polar.element {
         catch {vector destroy z}
     } -result {{} 0 1 0 8.0 8.0}
 
-    test RBC.polar.element.configure.A.cdata.9 {
+    test RBC.polar.element.configure.A.11.1 {
         polar element configure: real vector failure rolls back
     } -setup {
         vector create z -type complex
@@ -226,7 +226,7 @@ namespace eval polar.element {
         vector destroy z r
     } -result {1 z 1 0 1.0 0.0}
 
-    test RBC.polar.element.configure.A.cdata.10 {
+    test RBC.polar.element.configure.A.12.1 {
         polar element configure: missing vector failure rolls back
     } -setup {
         vector create z -type complex
@@ -249,7 +249,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {1 z 1 0 1.0 0.0}
 
-    test RBC.polar.element.configure.A.cdata.11 {
+    test RBC.polar.element.configure.A.13.1 {
         polar element configure: deleting element releases complex vector client
     } -setup {
         vector create z -type complex
@@ -266,7 +266,7 @@ namespace eval polar.element {
         catch {vector destroy z}
     } -result {0 0}
 
-    test RBC.polar.element.configure.A.cdata.12 {
+    test RBC.polar.element.configure.A.14.1 {
         polar element configure: failed -cdata create leaves no element
     } -setup {
         vector create r
@@ -280,7 +280,7 @@ namespace eval polar.element {
         vector destroy r
     } -result {1 0}
 
-    test RBC.polar.element.configure.A.param.1 {
+    test RBC.polar.element.configure.A.15.1 {
         polar element configure: complex data with parameter vector
     } -setup {
         vector create z -type complex
@@ -296,7 +296,7 @@ namespace eval polar.element {
         vector destroy z p
     } -result {z p}
 
-    test RBC.polar.element.configure.A.param.2 {
+    test RBC.polar.element.configure.A.16.1 {
         polar element configure: parameter length mismatch on create
     } -setup {
         vector create z -type complex
@@ -312,7 +312,7 @@ namespace eval polar.element {
         vector destroy z p
     } -result {1 0 {parameter vector has 2 values, but element has 3 data points}}
 
-    test RBC.polar.element.configure.A.param.3 {
+    test RBC.polar.element.configure.A.17.1 {
         polar element configure: complex data and parameter resize atomically
     } -setup {
         vector create z1 -type complex
@@ -333,7 +333,7 @@ namespace eval polar.element {
         vector destroy z1 z2 p1 p2
     } -result {z2 p2}
 
-    test RBC.polar.element.configure.A.param.4 {
+    test RBC.polar.element.configure.A.18.1 {
         polar element configure: complex data length change alone rolls back
     } -setup {
         vector create z1 -type complex
@@ -352,7 +352,7 @@ namespace eval polar.element {
         vector destroy z1 z2 p
     } -result {1 {parameter vector has 2 values, but element has 3 data points} z1 p}
 
-    test RBC.polar.element.configure.A.param.5 {
+    test RBC.polar.element.configure.A.19.1 {
         polar element configure: switch complex to XY with matching parameter
     } -setup {
         vector create z -type complex
@@ -368,7 +368,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {{} {8 8 9 9 10 10} {1 2 3}}
 
-    test RBC.polar.element.configure.A.param.6 {
+    test RBC.polar.element.configure.A.20.1 {
         polar element configure: switch XY to complex with matching parameter
     } -setup {
         vector create z -type complex
@@ -383,7 +383,7 @@ namespace eval polar.element {
         vector destroy z
     } -result {z {10 20 30}}
 
-    test RBC.polar.element.configure.A.param.7 {
+    test RBC.polar.element.configure.A.21.1 {
         polar element configure: empty parameter allows later complex data length change
     } -setup {
         vector create z1 -type complex
@@ -401,7 +401,7 @@ namespace eval polar.element {
         vector destroy z1 z2
     } -result {z2 {}}
 
-    test RBC.polar.element.configure.A.cformat.1 {
+    test RBC.polar.element.configure.A.22.1 {
         polar complex data format: defaults
     } -setup {
         polar .polar1
@@ -412,7 +412,7 @@ namespace eval polar.element {
         destroy .polar1
     } -result {gamma 1}
 
-    test RBC.polar.element.configure.A.cformat.2 {
+    test RBC.polar.element.configure.A.23.1 {
         polar complex data format: invalid format
     } -setup {
         polar .polar1
@@ -424,7 +424,7 @@ namespace eval polar.element {
         destroy .polar1
     } -result {1 gamma}
 
-    test RBC.polar.element.configure.A.cformat.3 {
+    test RBC.polar.element.configure.A.24.1 {
         polar complex data format: invalid z0 rolls back
     } -setup {
         polar .polar1

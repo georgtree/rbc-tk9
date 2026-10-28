@@ -167,7 +167,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {0.75}
 
-    test RBC.polar.configure.A.representation.1 {
+    test RBC.polar.configure.A.2.1 {
         polar representation: default
     } -setup {
         polar .polar1
@@ -178,7 +178,7 @@ namespace eval polar.configure {
     } -result {polar}
 
 
-    test RBC.polar.configure.A.representation.2 {
+    test RBC.polar.configure.A.3.1 {
         polar representation: smith
     } -setup {
         polar .polar1
@@ -190,7 +190,7 @@ namespace eval polar.configure {
     } -result {smith}
 
 
-    test RBC.polar.configure.A.representation.3 {
+    test RBC.polar.configure.A.4.1 {
         polar representation: creation-time smith
     } -setup {
         polar .polar1 -representation smith
@@ -201,7 +201,7 @@ namespace eval polar.configure {
     } -result {smith}
 
 
-    test RBC.polar.configure.A.representation.4 {
+    test RBC.polar.configure.A.5.1 {
         polar representation: bad value rolls back
     } -setup {
         polar .polar1 -representation smith
@@ -212,7 +212,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 smith}
 
-    test RBC.polar.configure.A.representation.5 {
+    test RBC.polar.configure.A.6.1 {
         polar representation: live polar smith switching
     } -setup {
         vector create z -type complex
@@ -233,7 +233,7 @@ namespace eval polar.configure {
         vector destroy z
     } -result {smith polar}
 
-    test RBC.polar.configure.A.smithgrid.1 {
+    test RBC.polar.configure.A.7.1 {
         polar smithgrid: default
     } -setup {
         polar .polar1
@@ -243,7 +243,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {impedance}
 
-    test RBC.polar.configure.A.smithgrid.2 {
+    test RBC.polar.configure.A.8.1 {
         polar smithgrid: admittance
     } -setup {
         polar .polar1
@@ -254,7 +254,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {admittance}
 
-    test RBC.polar.configure.A.smithgrid.3 {
+    test RBC.polar.configure.A.9.1 {
         polar smithgrid: both
     } -setup {
         polar .polar1
@@ -265,7 +265,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {both}
 
-    test RBC.polar.configure.A.smithgrid.4 {
+    test RBC.polar.configure.A.10.1 {
         polar smithgrid: invalid value rolls back
     } -setup {
         polar .polar1
@@ -277,7 +277,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 admittance}
 
-    test RBC.polar.configure.A.smithticks.1 {
+    test RBC.polar.configure.A.11.1 {
         polar Smith ticks: defaults
     } -setup {
         polar .polar1
@@ -290,7 +290,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 0.2 0.5 1 2 5} {0.1 0.3 0.7 1.5 3 10} {0.2 0.5 1 2 5} {0.1 0.3 0.7 1.5 3 10}}
 
-    test RBC.polar.configure.A.smithticks.2 {
+    test RBC.polar.configure.A.12.1 {
         polar Smith ticks: custom grid values
     } -setup {
         polar .polar1
@@ -305,7 +305,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 0.25 0.5 1 4} {0.1 0.75 3} {0.25 0.5 1 4} {0.1 0.75 3}}
 
-    test RBC.polar.configure.A.smithticks.3 {
+    test RBC.polar.configure.A.13.1 {
         polar Smith ticks: live configuration
     } -setup {
         polar .polar1
@@ -323,7 +323,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 0.4 1 2} {0.2 0.7} {0.4 1 2} {0.2 0.7}}
 
-    test RBC.polar.configure.A.smithticks.4 {
+    test RBC.polar.configure.A.14.1 {
         polar Smith ticks: empty lists
     } -setup {
         polar .polar1
@@ -341,7 +341,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{} {} {} {}}
 
-    test RBC.polar.configure.A.smithticks.5 {
+    test RBC.polar.configure.A.15.1 {
         polar Smith ticks: zero is allowed for real contours
     } -setup {
         polar .polar1
@@ -352,7 +352,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 0.5 1} {0 0.25 2}}
 
-    test RBC.polar.configure.A.smithticks.6 {
+    test RBC.polar.configure.A.16.1 {
         polar Smith ticks: negative real tick rolls back
     } -setup {
         polar .polar1
@@ -364,7 +364,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 0.5 1}}
 
-    test RBC.polar.configure.A.smithticks.7 {
+    test RBC.polar.configure.A.17.1 {
         polar Smith ticks: zero imaginary tick rolls back
     } -setup {
         polar .polar1
@@ -376,7 +376,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0.5 1 2}}
 
-    test RBC.polar.configure.A.smithticks.8 {
+    test RBC.polar.configure.A.18.1 {
         polar Smith ticks: negative imaginary tick rolls back
     } -setup {
         polar .polar1
@@ -388,7 +388,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0.25 0.75 3}}
 
-    test RBC.polar.configure.A.smithticks.9 {
+    test RBC.polar.configure.A.19.1 {
         polar Smith ticks: non-finite tick rolls back
     } -setup {
         polar .polar1
@@ -400,7 +400,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0.1 0.3 0.7}}
 
-    test RBC.polar.configure.A.smithticks.10 {
+    test RBC.polar.configure.A.20.1 {
         polar Smith ticks: malformed list rolls back
     } -setup {
         polar .polar1
@@ -413,7 +413,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 0.5 1}}
 
-    test RBC.polar.configure.A.smithticks.11 {
+    test RBC.polar.configure.A.21.1 {
         polar Smith ticks: invalid earlier duplicate is not hidden
     } -setup {
         polar .polar1
@@ -424,7 +424,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 0.2 0.5 1 2 5}}
 
-    test RBC.polar.configure.A.smithticks.12 {
+    test RBC.polar.configure.A.22.1 {
         polar Smith ticks: failed multi-option transaction rolls back all values
     } -setup {
         polar .polar1
@@ -436,7 +436,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 0.5 1} {0.5 1 2}}
 
-    test RBC.polar.configure.A.smithticks.13 {
+    test RBC.polar.configure.A.23.1 {
         polar Smith ticks: later valid duplicate wins
     } -setup {
         polar .polar1
@@ -447,7 +447,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {0 2 4}
 
-    test RBC.polar.configure.A.smithticks.14 {
+    test RBC.polar.configure.A.24.1 {
         polar Smith ticks: custom contours redraw
     } -setup {
         polar .polar1 -representation smith
@@ -462,7 +462,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.configure.A.smithticks.15 {
+    test RBC.polar.configure.A.25.1 {
         polar Smith ticks: empty contours redraw
     } -setup {
         polar .polar1 -representation smith
@@ -476,7 +476,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.configure.A.angleticks.1 {
+    test RBC.polar.configure.A.26.1 {
         polar angular ticks: defaults
     } -setup {
         polar .polar1
@@ -486,7 +486,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 30 60 90 120 150 180 210 240 270 300 330} {15 45 75 105 135 165 195 225 255 285 315 345}}
 
-    test RBC.polar.configure.A.angleticks.2 {
+    test RBC.polar.configure.A.27.1 {
         polar angular ticks: custom values
     } -setup {
         polar .polar1
@@ -497,7 +497,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{0 45 90 180 270} {22.5 67.5}}
 
-    test RBC.polar.configure.A.angleticks.3 {
+    test RBC.polar.configure.A.28.1 {
         polar angular ticks: invalid major tick rolls back
     } -setup {
         polar .polar1
@@ -509,7 +509,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 45 90}}
 
-    test RBC.polar.configure.A.angleticks.4 {
+    test RBC.polar.configure.A.29.1 {
         polar angular ticks: invalid earlier duplicate is not hidden
     } -setup {
         polar .polar1
@@ -520,7 +520,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {0 30 60 90 120 150 180 210 240 270 300 330}}
 
-    test RBC.polar.configure.A.anglecommand.1 {
+    test RBC.polar.configure.A.30.1 {
         polar angle command: default
     } -setup {
         polar .polar1
@@ -530,7 +530,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {}
 
-    test RBC.polar.configure.A.anglecommand.2 {
+    test RBC.polar.configure.A.31.1 {
         polar angle command: command prefix
     } -setup {
         polar .polar1
@@ -541,7 +541,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {FormatAngle prefix}
 
-    test RBC.polar.configure.A.anglecommand.3 {
+    test RBC.polar.configure.A.32.1 {
         polar angle command: malformed prefix rolls back
     } -setup {
         polar .polar1
@@ -554,7 +554,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {FormatAngle good}}
 
-    test RBC.polar.configure.A.anglecommand.4 {
+    test RBC.polar.configure.A.33.1 {
         polar angle command: receives major angle values
     } -setup {
         set ::polarAngleValues {}
@@ -576,7 +576,7 @@ namespace eval polar.configure {
         unset -nocomplain ::polarAngleValues
     } -result {1 1 1}
 
-    test RBC.polar.configure.A.smithcommand.1 {
+    test RBC.polar.configure.A.34.1 {
         polar Smith commands: defaults
     } -setup {
         polar .polar1
@@ -587,7 +587,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{} {}}
 
-    test RBC.polar.configure.A.smithcommand.2 {
+    test RBC.polar.configure.A.35.1 {
         polar Smith commands: command prefixes
     } -setup {
         polar .polar1
@@ -599,7 +599,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {{FormatSmithReal prefix} {FormatSmithImag prefix}}
 
-    test RBC.polar.configure.A.smithcommand.3 {
+    test RBC.polar.configure.A.36.1 {
         polar Smith real command: malformed prefix rolls back
     } -setup {
         polar .polar1
@@ -612,7 +612,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {FormatSmithReal good}}
 
-    test RBC.polar.configure.A.smithcommand.4 {
+    test RBC.polar.configure.A.37.1 {
         polar Smith imaginary command: malformed prefix rolls back
     } -setup {
         polar .polar1
@@ -627,7 +627,7 @@ namespace eval polar.configure {
         destroy .polar1
     } -result {1 {FormatSmithImag good}}
 
-    test RBC.polar.configure.A.smithcommand.5 {
+    test RBC.polar.configure.A.38.1 {
         polar Smith real command: receives impedance values
     } -setup {
         set ::smithRealValues {}
@@ -649,7 +649,7 @@ namespace eval polar.configure {
         unset -nocomplain ::smithRealValues
     } -result {1 1 1}
 
-    test RBC.polar.configure.A.smithcommand.6 {
+    test RBC.polar.configure.A.39.1 {
         polar Smith imaginary command: receives signed impedance values
     } -setup {
         set ::smithImagValues {}
@@ -672,7 +672,7 @@ namespace eval polar.configure {
         unset -nocomplain ::smithImagValues
     } -result {1 1 1 1}
 
-    test RBC.polar.configure.A.smithcommand.7 {
+    test RBC.polar.configure.A.40.1 {
         polar Smith commands: distinguish impedance and admittance
     } -setup {
         set ::smithDomains {}
@@ -693,7 +693,7 @@ namespace eval polar.configure {
         unset -nocomplain ::smithDomains
     } -result {1 1}
 
-    test RBC.polar.configure.A.smithcommand.8 {
+    test RBC.polar.configure.A.41.1 {
         polar Smith commands: failed configuration rolls back both
     } -setup {
         polar .polar1

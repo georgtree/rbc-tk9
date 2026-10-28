@@ -1546,7 +1546,7 @@ namespace eval stripchart.pen {
 		destroy .stripchart1
 	} -result {0}
 
-    test RBC.stripchart.pen.configure.A.rollback.1 {
+    test RBC.stripchart.pen.configure.A.20.1 {
         named line pen configuration is atomic
     } -setup {
         stripchart .stripchart1
@@ -1567,7 +1567,7 @@ namespace eval stripchart.pen {
         unset -nocomplain oldColor oldWidth oldSymbol oldShadow code message
     } -result {1 1 1 1 1}
 
-    test RBC.stripchart.pen.configure.A.builtin.1 {
+    test RBC.stripchart.pen.configure.A.21.1 {
         embedded line pen remains legacy
     } -setup {
         stripchart .stripchart1
@@ -1579,7 +1579,7 @@ namespace eval stripchart.pen {
         destroy .stripchart1
     } -result 3.5
 
-    test RBC.stripchart.pen.configure.A.lifetime.1 {
+    test RBC.stripchart.pen.configure.A.22.1 {
         modern named line pen resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

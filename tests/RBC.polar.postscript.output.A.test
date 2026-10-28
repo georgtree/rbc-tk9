@@ -93,7 +93,7 @@ namespace eval polar.postscript {
         rename FormatRadius {}
     } -result {1}
 
-    test RBC.polar.postscript.output.A.smith.1 {
+    test RBC.polar.postscript.output.A.2.1 {
         smith postscript output: normalized reactance labels
     } -setup {
         polar .polar1 -width 400 -height 400 -representation smith
@@ -108,7 +108,7 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {1 1 1 1}
 
-    test RBC.polar.postscript.output.A.smith.2 {
+    test RBC.polar.postscript.output.A.3.1 {
         smith postscript output: y -showticks hides reactance labels
     } -setup {
         polar .polar1 -width 400 -height 400 -representation smith
@@ -122,7 +122,7 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.postscript.output.A.smithgrid.1 {
+    test RBC.polar.postscript.output.A.4.1 {
         smith postscript: live grid-domain switching
     } -setup {
         polar .polar1 -width 400 -height 400 -representation smith
@@ -143,7 +143,7 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {0 0 0}
 
-    test RBC.polar.postscript.output.A.anglecommand.1 {
+    test RBC.polar.postscript.output.A.5.1 {
         polar postscript: custom angle command
     } -setup {
         proc ::PolarPsAngleFormat {widget degrees} {
@@ -164,7 +164,7 @@ namespace eval polar.postscript {
         rename ::PolarPsAngleFormat {}
     } -result {1 1 1}
 
-    test RBC.polar.postscript.output.A.anglecommand.2 {
+    test RBC.polar.postscript.output.A.6.1 {
         polar postscript: empty angle command result suppresses label
     } -setup {
         proc ::PolarPsAngleSuppress {widget degrees} {
@@ -184,7 +184,7 @@ namespace eval polar.postscript {
         rename ::PolarPsAngleSuppress {}
     } -result {1}
 
-    test RBC.polar.postscript.output.A.smithcommand.1 {
+    test RBC.polar.postscript.output.A.7.1 {
         smith postscript: custom real label command
     } -setup {
         proc ::SmithPsRealFormat {widget domain value} {
@@ -204,7 +204,7 @@ namespace eval polar.postscript {
         rename ::SmithPsRealFormat {}
     } -result {1 1 1}
 
-    test RBC.polar.postscript.output.A.smithcommand.2 {
+    test RBC.polar.postscript.output.A.8.1 {
         smith postscript: custom imaginary command receives signed values
     } -setup {
         proc ::SmithPsImagFormat {widget domain value} {
@@ -225,7 +225,7 @@ namespace eval polar.postscript {
         rename ::SmithPsImagFormat {}
     } -result {1 1 1 1}
 
-    test RBC.polar.postscript.output.A.smithcommand.3 {
+    test RBC.polar.postscript.output.A.9.1 {
         smith postscript: custom labels distinguish impedance and admittance
     } -setup {
         proc ::SmithPsDomainFormat {widget domain value} {
@@ -244,7 +244,7 @@ namespace eval polar.postscript {
         rename ::SmithPsDomainFormat {}
     } -result {1 1}
 
-    test RBC.polar.postscript.output.A.smithcommand.4 {
+    test RBC.polar.postscript.output.A.10.1 {
         smith postscript: command prefix
     } -setup {
         proc ::SmithPsPrefixFormat {prefix widget domain value} {
@@ -263,7 +263,7 @@ namespace eval polar.postscript {
         rename ::SmithPsPrefixFormat {}
     } -result {1}
 
-    test RBC.polar.postscript.output.A.gridaxes.1 {
+    test RBC.polar.postscript.output.A.11.1 {
         polar postscript: labels use grid mapped axes
     } -setup {
         proc ::PolarGridAxisFormat {widget degrees} {
@@ -294,7 +294,7 @@ namespace eval polar.postscript {
         rename ::PolarGridAxisFormat {}
     } -result {x2 y2 1 1}
 
-    test RBC.polar.postscript.output.A.gridaxes.2 {
+    test RBC.polar.postscript.output.A.12.1 {
         polar postscript: live grid axis switching
     } -setup {
         proc ::PolarGridSwitchFormat {widget degrees} {
@@ -336,7 +336,7 @@ namespace eval polar.postscript {
         rename ::PolarGridSwitchFormat {}
     } -result {1 1 1}
 
-    test RBC.polar.postscript.output.A.smith.logaxis.1 {
+    test RBC.polar.postscript.output.A.13.1 {
         smith postscript: logarithmic mapped axes suppress Smith labels
     } -setup {
         proc ::SmithLogAxisFormat {widget domain value} {
@@ -356,7 +356,7 @@ namespace eval polar.postscript {
         rename ::SmithLogAxisFormat {}
     } -result {1}
 
-    test RBC.polar.postscript.output.A.geometry.1 {
+    test RBC.polar.postscript.output.A.14.1 {
         polar postscript: off-centre ranges still produce angular labels
     } -setup {
         proc ::PolarOffCenterFormat {widget degrees} {
@@ -381,7 +381,7 @@ namespace eval polar.postscript {
         rename ::PolarOffCenterFormat {}
     } -result {1 1 1 1}
 
-    test RBC.polar.postscript.output.A.geometry.2 {
+    test RBC.polar.postscript.output.A.15.1 {
         polar geometry: non-square widget keeps equal X/Y scale
     } -setup {
         polar .polar1 -width 600 -height 300
@@ -400,7 +400,7 @@ namespace eval polar.postscript {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.postscript.output.A.smith.invertxy.1 {
+    test RBC.polar.postscript.output.A.16.1 {
         smith postscript: inverted axes retain both-domain labels
     } -setup {
         proc ::SmithInvertFormat {widget domain value} {
@@ -420,7 +420,7 @@ namespace eval polar.postscript {
         rename ::SmithInvertFormat {}
     } -result {1 1}
 
-    test RBC.polar.postscript.output.A.smooth.1 {
+    test RBC.polar.postscript.output.A.17.1 {
         smith postscript: natural and quadratic output smoothed traces
     } -setup {
         vector create z -type complex

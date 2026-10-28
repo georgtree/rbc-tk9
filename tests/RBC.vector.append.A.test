@@ -19,7 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-#namespace eval vector.append {
+
+namespace eval vector.append {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector append command works correctly when given a list of 
 	# numbers.
@@ -201,4 +202,4 @@ namespace import tcltest::*
     } -result {1 {expected complex value as a real number or {real imag}} 2 {{1.0 2.0} {3.0 4.0}}}
 	
 	cleanupTests
-#}
+}

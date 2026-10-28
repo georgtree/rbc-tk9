@@ -1,8 +1,14 @@
 # Package initialization must keep the vector core independent of Tk.
-package require tcltest
+###Package Definition
+package provide vector.load
 
-namespace eval vectorLoad {
-    namespace import ::tcltest::*
+package require rbc::vector
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.load {
     testConstraint vectorLoadGui [expr {[package provide Tk] ne {}}]
 
     proc New {} {
@@ -20,7 +26,7 @@ namespace eval vectorLoad {
         return [file normalize rbccapitest[info sharedlibextension]]
     }
 
-    test vectorLoad-headless {vector loading does not load Tk, toolbar, or argparse} -setup {
+    test RBC.vector.load.A.1.1 {vector loading does not load Tk, toolbar, or argparse} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -34,7 +40,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{2.0 4.0 6.0} {} {} {} {} {} {} {}}
 
-    test vectorLoad-repeat {repeated requires preserve vectors and array access} -setup {
+    test RBC.vector.load.A.2.1 {repeated requires preserve vectors and array access} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -48,7 +54,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{1.0 7.0 3.0} {}}
 
-    test vectorLoad-failed-gui {a failed Tk require leaves the vector package usable} -setup {
+    test RBC.vector.load.A.3.1 {a failed Tk require leaves the vector package usable} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -63,7 +69,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 1 {1.0 2.0 3.0} {} {}}
 
-    test vectorLoad-direct {direct loading uses the same prefix across interpreters} -setup {
+    test RBC.vector.load.A.4.1 {direct loading uses the same prefix across interpreters} -setup {
         New
         set binary [interp eval vectorCoreChild {
             package require rbc::vector
@@ -86,7 +92,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{} {} ::rbc::vector}
 
-    test vectorLoad-capi {a C consumer loads vectors through stubs without Tk} -setup {
+    test RBC.vector.load.A.5.1 {a C consumer loads vectors through stubs without Tk} -setup {
         New
     } -body {
         interp eval vectorCoreChild [list load [CapiPath]]
@@ -99,7 +105,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {3 {} {} 1}
 
-    test vectorLoad-upgrade {full loading preserves vectors and command identity} \
+    test RBC.vector.load.A.6.1 {full loading preserves vectors and command identity} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -118,7 +124,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{1.0 9.0 3.0} 0 1 1}
 
-    test vectorLoad-full-first {full loading also provides the vector package} \
+    test RBC.vector.load.A.7.1 {full loading also provides the vector package} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -131,7 +137,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 {4.0 5.0}}
 
-    test vectorLoad-retry {GUI loading can be retried after Tk becomes available} \
+    test RBC.vector.load.A.8.1 {GUI loading can be retried after Tk becomes available} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -146,7 +152,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{7.0 8.0} 1}
 
-    test vectorLoad-capi-upgrade {legacy stubs initialization adds GUI without replacing vectors} \
+    test RBC.vector.load.A.9.1 {legacy stubs initialization adds GUI without replacing vectors} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -161,7 +167,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {{6.0 7.0} 2 1 1}
 
-    test vectorLoad-toolbar-registration {vector-only loading advertises but does not load the toolbar} -setup {
+    test RBC.vector.load.A.10.1 {vector-only loading advertises but does not load the toolbar} -setup {
         New
     } -body {
         interp eval vectorCoreChild {
@@ -171,7 +177,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 {} {} {}}
 
-    test vectorLoad-no-argparse {native widgets load even when argparse cannot load} \
+    test RBC.vector.load.A.11.1 {native widgets load even when argparse cannot load} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -184,7 +190,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 {} {} {} ::Rbc_ZoomStack}
 
-    test vectorLoad-toolbar-failure {missing toolbar dependency leaves native widgets usable} \
+    test RBC.vector.load.A.12.1 {missing toolbar dependency leaves native widgets usable} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -198,7 +204,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 1 {} 1 1}
 
-    test vectorLoad-toolbar-upgrade {adding toolbar preserves native widgets and repeat require preserves toolbar} \
+    test RBC.vector.load.A.13.1 {adding toolbar preserves native widgets and repeat require preserves toolbar} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -218,20 +224,21 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 {1.0 2.0 3.0} e 1 0 1}
 
-    test vectorLoad-toolbar-first {toolbar-only require loads native widgets and exports the existing command} \
+    test RBC.vector.load.A.14.1 {toolbar-only require loads native widgets and exports the existing command} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
         interp eval vectorCoreChild {
             set version [package require rbc::graphtoolbar]
             namespace import ::rbc::*
+
             list [expr {$version eq [package provide rbc]}] \
                 [expr {$version eq [package provide rbc::vector]}] \
                 [namespace origin graphtoolbar] [expr {[info commands ::rbc::graph] ne {}}]
         }
     } -cleanup {Clean} -result {1 1 ::rbc::graphtoolbar::graphtoolbar 1}
 
-    test vectorLoad-toolbar-bundled {missing argparse uses the bundled Tcl implementation} \
+    test RBC.vector.load.A.15.1 {missing argparse uses the bundled Tcl implementation} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -247,7 +254,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {0.65 ::argparse 1 closest}
 
-    test vectorLoad-toolbar-installed {registered argparse is preferred to the bundled copy} \
+    test RBC.vector.load.A.16.1 {registered argparse is preferred to the bundled copy} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -263,7 +270,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {999.0 installed ::rbc::graphtoolbar}
 
-    test vectorLoad-toolbar-preloaded {already loaded argparse retains its command identity} \
+    test RBC.vector.load.A.17.1 {already loaded argparse retains its command identity} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -278,7 +285,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {0.1 preloaded 0}
 
-    test vectorLoad-toolbar-broken {installed argparse initialization errors are preserved} \
+    test RBC.vector.load.A.18.1 {installed argparse initialization errors are preserved} \
             -constraints vectorLoadGui -setup {
         New
     } -body {
@@ -291,7 +298,7 @@ namespace eval vectorLoad {
         }
     } -cleanup {Clean} -result {1 {broken installed argparse} {ARGPARSE BROKEN} {} {}}
 
-    test vectorLoad-toolbar-missing-dependency {a missing dependency of installed argparse does not use fallback} \
+    test RBC.vector.load.A.19.1 {a missing dependency of installed argparse does not use fallback} \
             -constraints vectorLoadGui -setup {
         New
     } -body {

@@ -20,7 +20,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-#namespace eval vector.index {
+
+namespace eval vector.index {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector index command works correctly when given a valid vector 
 	# index.
@@ -201,4 +202,4 @@ namespace import tcltest::*
     } -result {1 {expected complex value as a real number or {real imag}} {{3.0 4.0}}}
 	
 	cleanupTests
-#}
+}

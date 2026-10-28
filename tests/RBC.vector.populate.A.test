@@ -19,6 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+
+namespace eval vector.populate {
 # namespace eval vector.populate {
 	# ------------------------------------------------------------------------------------
     # Purpose: Ensure the vector populate command overwrites the contents of an existing
@@ -129,3 +131,4 @@ namespace import tcltest::*
 
     cleanupTests
 # }
+}

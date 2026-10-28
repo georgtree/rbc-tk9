@@ -1,8 +1,16 @@
 # Source-point error metadata in closest results. See license.terms.
+###Package Definition
+package provide graph.element.closest.errors
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace eval ::closestErrorsTest {
-    namespace import ::tcltest::*
+namespace import tcltest::*
+
+namespace eval graph.element.closest.errors {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0 4 0 5 0 6 0 7 0 9 0 10 0}
     proc Create {kind} {
         ::rbc::$kind .ce -width 400 -height 400
         pack .ce
@@ -25,17 +33,17 @@ namespace eval ::closestErrorsTest {
         return $result
     }
     foreach kind {graph stripchart polar barchart} {
-        test closestErrors-symmetric-$kind {symmetric errors report the selected source sample} -setup {
+        test RBC.graph.element.closest.errors.A.1.[incr testCase(1)] {symmetric errors report the selected source sample} -setup {
             Create $kind
             .ce element configure e -xerror {0.1 0.2 0.3} -yerror {0.4 0.5 0.6}
         } -body {Query} -cleanup {destroy .ce} -result {xerror 0.2 yerror 0.5}
 
-        test closestErrors-bounds-$kind {asymmetric values are absolute bounds, not magnitudes} -setup {
+        test RBC.graph.element.closest.errors.A.2.[incr testCase(2)] {asymmetric values are absolute bounds, not magnitudes} -setup {
             Create $kind
             .ce element configure e -xlow {0 2 4} -xhigh {2 4 6} -ylow {0 1 4} -yhigh {2 5 6}
         } -body {Query} -cleanup {destroy .ce} -result {xlow 2.0 xhigh 4.0 ylow 1.0 yhigh 5.0}
 
-        test closestErrors-precedence-$kind {symmetric errors override bounds and clearing removes stale fields} -setup {
+        test RBC.graph.element.closest.errors.A.3.[incr testCase(3)] {symmetric errors override bounds and clearing removes stale fields} -setup {
             Create $kind
             .ce element configure e -xerror {1 2 3} -xlow {0 2 4} -xhigh {2 4 6}
         } -body {
@@ -47,12 +55,12 @@ namespace eval ::closestErrorsTest {
             set result
         } -cleanup {destroy .ce} -result {{xerror 2.0} {xlow 2.0 xhigh 4.0} {}}
 
-        test closestErrors-short-$kind {short or incomplete error arrays omit unavailable metadata} -setup {
+        test RBC.graph.element.closest.errors.A.4.[incr testCase(4)] {short or incomplete error arrays omit unavailable metadata} -setup {
             Create $kind
             .ce element configure e -xerror {0.1} -ylow {0 2 4}
         } -body {Query} -cleanup {destroy .ce} -result {}
 
-        test closestErrors-hidden-$kind {metadata is independent of displayed error bars and clears on a miss} -setup {
+        test RBC.graph.element.closest.errors.A.5.[incr testCase(5)] {metadata is independent of displayed error bars and clears on a miss} -setup {
             Create $kind
             .ce element configure e -yerror {1 2 3} -showerrorbars none
         } -body {
@@ -63,7 +71,7 @@ namespace eval ::closestErrorsTest {
         } -cleanup {destroy .ce} -result {{yerror 2.0} 0 0}
     }
     foreach kind {graph stripchart polar} {
-        test closestErrors-interpolate-$kind {interpolated hits use info(index) without interpolating errors} -setup {
+        test RBC.graph.element.closest.errors.A.6.[incr testCase(6)] {interpolated hits use info(index) without interpolating errors} -setup {
             Create $kind
             .ce element configure e -yerror {1 2 3}
         } -body {
@@ -71,12 +79,12 @@ namespace eval ::closestErrorsTest {
             expr {$hit(yerror) == [lindex {1 2 3} $hit(index)]}
         } -cleanup {destroy .ce} -result 1
 
-        test closestErrors-thinned-$kind {exact hits retain errors for omitted symbols and error bars} -setup {
+        test RBC.graph.element.closest.errors.A.7.[incr testCase(7)] {exact hits retain errors for omitted symbols and error bars} -setup {
             Create $kind
             .ce element configure e -yerror {1 2 3} -reduce 1 -symbolpoints reduced -maxsymbols 1
         } -body {Query} -cleanup {destroy .ce} -result {yerror 2.0}
     }
-    test closestErrors-vector {vector changes and resizing update error metadata} -setup {
+    test RBC.graph.element.closest.errors.A.8.1 {vector changes and resizing update error metadata} -setup {
         Create graph
         ::rbc::vector create ceErrors
         ceErrors set {1 2 3}
@@ -146,7 +154,7 @@ namespace eval ::closestErrorsTest {
             foreach inverted {0 1} {
                 foreach descending {0 1} {
                     foreach logarithmic {0 1} {
-                        test errorCaps-geometry-$kind-$errors-$inverted-$descending-$logarithmic {
+                        test RBC.graph.element.closest.errors.A.9.[incr testCase(9)] {
                             X and Y caps retain length and perpendicular direction on transformed axes
                         } -setup {
                             CapCreate $kind $inverted $descending $logarithmic $errors
@@ -171,7 +179,7 @@ namespace eval ::closestErrorsTest {
             set constraints {}
             if {$renderer eq "cairo"} {set constraints errorCapsCairo}
             foreach inverted {0 1} {
-                test errorCaps-screen-$kind-$renderer-$inverted {
+                test RBC.graph.element.closest.errors.A.10.[incr testCase(10)] {
                     both ends of X and Y caps are visible away from the error shaft
                 } -constraints $constraints -setup {
                     CapCreate $kind $inverted 0 0 symmetric
@@ -203,5 +211,5 @@ namespace eval ::closestErrorsTest {
         }
     }
 
-}
 ::tcltest::cleanupTests
+}

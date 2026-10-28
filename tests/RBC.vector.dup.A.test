@@ -19,6 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+
+namespace eval vector.dup {
 # namespace eval vector.dup {
     # ------------------------------------------------------------------------------------
     # Purpose: Ensure the vector dup command overwrites the contents of an existing 
@@ -101,3 +103,4 @@ namespace import tcltest::*
 
     cleanupTests
 # }
+}

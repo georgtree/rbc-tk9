@@ -1,10 +1,17 @@
 # Arc marker geometry, interaction, rendering and configuration regressions.
 # See license.terms for details.
-package require rbc
-package require tcltest
-namespace import ::tcltest::*
+###Package Definition
+package provide graph.marker.arc
 
-namespace eval arcMarker {
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.marker.arc {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {2 0 12 0 13 0 14 0 17 0}
     proc Setup {{renderer native}} {
         ::rbc::graph .arc -width 420 -height 320 -plotbackground white -renderer $renderer
         .arc axis configure x y -min 0 -max 10
@@ -28,7 +35,7 @@ namespace eval arcMarker {
         $photo get $x $y
     }
 
-    test arc-1.1 {defaults, type, and original box coordinates} -setup {
+    test RBC.graph.marker.arc.A.1.1 {defaults, type, and original box coordinates} -setup {
         Setup
     } -body {
         list [.arc marker type a] [.arc marker cget a -coords] \
@@ -43,7 +50,7 @@ namespace eval arcMarker {
         start {-start Inf} extent {-extent -Inf} width {-linewidth -1}
         color {-fill not-a-color}
     } {
-        test arc-1.2-$suffix {failed configure restores geometry, name and options} -setup {
+        test RBC.graph.marker.arc.A.2.[incr testCase(2)] {failed configure restores geometry, name and options} -setup {
             Setup
             update
         } -body {
@@ -53,7 +60,7 @@ namespace eval arcMarker {
         } -cleanup {destroy .arc} -result {1 0 1 a}
     }
 
-    test arc-2.1 {positive and negative sweeps select opposite quadrants} -setup {
+    test RBC.graph.marker.arc.A.3.1 {positive and negative sweeps select opposite quadrants} -setup {
         Setup
         .arc marker configure a -extent 90
     } -body {
@@ -62,7 +69,7 @@ namespace eval arcMarker {
         list $positive [list [Find .4 .4] [Find .4 -.4]]
     } -cleanup {destroy .arc} -result {{a {}} {{} a}}
 
-    test arc-2.2 {chord excludes the centre-side area included in a sector} -setup {
+    test RBC.graph.marker.arc.A.4.1 {chord excludes the centre-side area included in a sector} -setup {
         Setup
         .arc marker configure a -extent 90 -style chord
     } -body {
@@ -71,21 +78,21 @@ namespace eval arcMarker {
         list $chord [Find .2 .2]
     } -cleanup {destroy .arc} -result {{{} a} a}
 
-    test arc-2.3 {open arc ignores fill and has neither chord nor radii} -setup {
+    test RBC.graph.marker.arc.A.5.1 {open arc ignores fill and has neither chord nor radii} -setup {
         Setup
         .arc marker configure a -extent 90 -style arc -fill red
     } -body {
         list [Find .5 .5] [Find .4 0] [Find 0 0] [Find .707 .707]
     } -cleanup {destroy .arc} -result {{} {} {} a}
 
-    test arc-2.4 {empty fill leaves only the closed sector outline} -setup {
+    test RBC.graph.marker.arc.A.6.1 {empty fill leaves only the closed sector outline} -setup {
         Setup
         .arc marker configure a -extent 90 -fill {}
     } -body {
         list [Find .4 .4] [Find .4 0] [Find .707 .707]
     } -cleanup {destroy .arc} -result {{} a a}
 
-    test arc-2.5 {full sweep has no radius seam; zero sweep and zero box hide} -setup {
+    test RBC.graph.marker.arc.A.7.1 {full sweep has no radius seam; zero sweep and zero box hide} -setup {
         Setup
         .arc marker configure a -extent 720 -fill {}
     } -body {
@@ -96,7 +103,7 @@ namespace eval arcMarker {
         list $full $empty [Find -1 0]
     } -cleanup {destroy .arc} -result {{{} a} {} {}}
 
-    test arc-2.6 {empty coordinates discard interaction with previous geometry} -setup {
+    test RBC.graph.marker.arc.A.8.1 {empty coordinates discard interaction with previous geometry} -setup {
         Setup
         update
     } -body {
@@ -104,13 +111,13 @@ namespace eval arcMarker {
         Find 0 0
     } -cleanup {destroy .arc} -result {}
 
-    test arc-2.7 {reversed box corners preserve screen geometry} -setup {Setup} -body {
+    test RBC.graph.marker.arc.A.9.1 {reversed box corners preserve screen geometry} -setup {Setup} -body {
         set before [Find .6 .6]
         .arc marker configure a -coords {8 8 2 2}
         list $before [Find .6 .6]
     } -cleanup {destroy .arc} -result {a a}
 
-    test arc-2.8 {enclosed uses curved geometry including sector centre} -setup {Setup} -body {
+    test RBC.graph.marker.arc.A.10.1 {enclosed uses curved geometry including sector centre} -setup {Setup} -body {
         update
         lassign [Point -1 -1] l b
         lassign [Point 1 1] r t
@@ -118,7 +125,7 @@ namespace eval arcMarker {
              [.arc marker find enclosed [expr {$l+10}] $t $r $b]
     } -cleanup {destroy .arc} -result {a {}}
 
-    test arc-3.1 {Arc binding tag and marker get current use the curved outline} -setup {
+    test RBC.graph.marker.arc.A.11.1 {Arc binding tag and marker get current use the curved outline} -setup {
         Setup
         .arc marker configure a -style arc -extent 90
         set ::arcPicked {}
@@ -136,7 +143,7 @@ namespace eval arcMarker {
     destroy .arcProbe
     foreach renderer {native cairo} {
         set constraints [expr {$renderer eq "cairo" ? "arcCairo" : ""}]
-        test arc-4.1-$renderer {fill and open-arc snapshots} -constraints $constraints -setup {
+        test RBC.graph.marker.arc.A.12.[incr testCase(12)] {fill and open-arc snapshots} -constraints $constraints -setup {
             Setup $renderer
             .arc marker configure a -extent 90
             set photo [image create photo]
@@ -150,7 +157,7 @@ namespace eval arcMarker {
             list $sector [Pixel $photo .35 .35]
         } -cleanup {image delete $photo; destroy .arc} -result {{255 0 0} {255 255 255}}
 
-        test arc-4.2-$renderer {clip a filled ellipse crossing every plot boundary} -constraints $constraints -setup {
+        test RBC.graph.marker.arc.A.13.[incr testCase(13)] {clip a filled ellipse crossing every plot boundary} -constraints $constraints -setup {
             Setup $renderer
             .arc marker configure a -coords {-10 -10 20 20} -outline {} -fill red
             set photo [image create photo]
@@ -160,7 +167,7 @@ namespace eval arcMarker {
             Pixel $photo 0 0
         } -cleanup {image delete $photo; destroy .arc} -result {255 0 0}
 
-        test arc-4.3-$renderer {stipple color pair and dashed outline survive remapping} -constraints $constraints -setup {
+        test RBC.graph.marker.arc.A.14.[incr testCase(14)] {stipple color pair and dashed outline survive remapping} -constraints $constraints -setup {
             Setup $renderer
             .arc marker configure a -stipple gray50 -fill {red blue} -outline {black white} -dashes {4 4}
         } -body {
@@ -172,7 +179,7 @@ namespace eval arcMarker {
         } -cleanup {destroy .arc} -result {a {red blue} {4 4}}
     }
 
-    test arc-5.1 {SVG and PostScript export include the arc's unique fill color} -setup {
+    test RBC.graph.marker.arc.A.15.1 {SVG and PostScript export include the arc's unique fill color} -setup {
         Setup
         .arc marker configure a -fill #123456 -outline {} -extent 120
         update
@@ -186,7 +193,7 @@ namespace eval arcMarker {
             [expr {[string first {% Marker "a" is a ArcMarker marker} $ps] >= 0}]
     } -cleanup {destroy .arc} -result {1 1 1}
 
-    test arc-5.2 {logarithmic bounding box remains an ellipse in screen coordinates} -setup {
+    test RBC.graph.marker.arc.A.16.1 {logarithmic bounding box remains an ellipse in screen coordinates} -setup {
         Setup
         .arc axis configure x -min 1 -max 100 -logscale yes
         .arc marker configure a -extent 90
@@ -195,15 +202,14 @@ namespace eval arcMarker {
     } -cleanup {destroy .arc} -result {a {}}
 
     foreach kind {barchart stripchart} {
-        test arc-6.1-$kind {arc marker available to other Cartesian widgets} -body {
+        test RBC.graph.marker.arc.A.17.[incr testCase(17)] {arc marker available to other Cartesian widgets} -body {
             ::rbc::$kind .arc
             .arc marker create arc -name a -coords {0 0 1 1}
             .arc marker type a
         } -cleanup {destroy .arc} -result ArcMarker
     }
-}
 
-namespace eval arcMarker {
+
     proc SvgArcPaths {svg} {
         set paths {}
         foreach path [regexp -all -inline {<path\s[^>]*>} $svg] {
@@ -219,7 +225,7 @@ namespace eval arcMarker {
         string range $ps $start [expr {$end-1}]
     }
 
-    test arc-7.1 {SVG full ellipses use two curved sections and no radial seam} -setup {
+    test RBC.graph.marker.arc.A.18.1 {SVG full ellipses use two curved sections and no radial seam} -setup {
         Setup
         .arc marker configure a -fill {}
     } -body {
@@ -236,7 +242,7 @@ namespace eval arcMarker {
         lsort -unique $result
     } -cleanup {destroy .arc} -result 1
 
-    test arc-7.2 {SVG sweep and large-arc flags preserve positive and negative sweeps} -setup {
+    test RBC.graph.marker.arc.A.19.1 {SVG sweep and large-arc flags preserve positive and negative sweeps} -setup {
         Setup
         .arc marker configure a -fill {} -style arc -start 30
     } -body {
@@ -250,7 +256,7 @@ namespace eval arcMarker {
         set result
     } -cleanup {destroy .arc} -result {{0 0} {0 1} {1 0} {1 1}}
 
-    test arc-7.3 {SVG sector/chord closure and ignored open-arc fill} -setup {
+    test RBC.graph.marker.arc.A.20.1 {SVG sector/chord closure and ignored open-arc fill} -setup {
         Setup
         .arc marker configure a -extent 120 -fill #123456 -outline {}
     } -body {
@@ -265,7 +271,7 @@ namespace eval arcMarker {
         set result
     } -cleanup {destroy .arc} -result {{1 1 1} {1 0 1} {0 0 0}}
 
-    test arc-7.4 {clipped SVG ellipse retains its original path and continuous two-color dashes} -setup {
+    test RBC.graph.marker.arc.A.21.1 {clipped SVG ellipse retains its original path and continuous two-color dashes} -setup {
         Setup
         .arc marker configure a -coords {-5 2 15 8} -fill {} -outline {red blue} -dashes {6 4}
     } -body {
@@ -281,7 +287,7 @@ namespace eval arcMarker {
             [expr {[string first {stroke-dasharray="6 4"} $b] >= 0}]
     } -cleanup {destroy .arc} -result {2 1 2 1 1 1}
 
-    test arc-7.5 {PostScript uses arc/arcn, restores the CTM, and closes only closed styles} -setup {
+    test RBC.graph.marker.arc.A.22.1 {PostScript uses arc/arcn, restores the CTM, and closes only closed styles} -setup {
         Setup
         .arc marker configure a -fill {} -extent 90 -start 30
     } -body {
@@ -296,7 +302,7 @@ namespace eval arcMarker {
         set result
     } -cleanup {destroy .arc} -result {{arcn 0 0 1} {arc 0 1 1} {arcn 1 1 1} {arcn 0 1 1}}
 
-    test arc-7.6 {stipple exports retain curved fill paths in SVG and PostScript} -setup {
+    test RBC.graph.marker.arc.A.23.1 {stipple exports retain curved fill paths in SVG and PostScript} -setup {
         Setup
         .arc marker configure a -fill {red blue} -stipple gray50 -outline {} -extent 250
     } -body {
@@ -307,7 +313,7 @@ namespace eval arcMarker {
             [regexp {arcn\nsetmatrix} $ps] [expr {[string first {StippleFill} $ps] >= 0}]
     } -cleanup {destroy .arc} -result {1 1 1 1}
 
-    test arc-7.7 {resized SVG export remaps ellipse then restores screen geometry} -setup {
+    test RBC.graph.marker.arc.A.24.1 {resized SVG export remaps ellipse then restores screen geometry} -setup {
         Setup
         update
     } -body {
@@ -326,7 +332,7 @@ namespace eval arcMarker {
         destroy .arc
     } -result {1 1 1}
 
-    test arc-7.8 {curved exports do not depend on the screen renderer} -constraints arcCairo -setup {
+    test RBC.graph.marker.arc.A.25.1 {curved exports do not depend on the screen renderer} -constraints arcCairo -setup {
         Setup native
         .arc marker configure a -extent -270 -style chord -dashes {4 3}
     } -body {
@@ -338,7 +344,7 @@ namespace eval arcMarker {
             [expr {$ps eq [PsArcBody [.arc postscript output]]}]
     } -cleanup {destroy .arc} -result {1 1}
 
-    test arc-8.1 {Cairo eccentric ellipse keeps constant stroke width} -constraints arcCairo -setup {
+    test RBC.graph.marker.arc.A.26.1 {Cairo eccentric ellipse keeps constant stroke width} -constraints arcCairo -setup {
         Setup cairo
         .arc configure -antialias none
         .arc marker configure a -coords {1 4 9 6} -fill {} -linewidth 6
@@ -357,7 +363,7 @@ namespace eval arcMarker {
         expr {$horizontal >= 5 && $horizontal <= 7 && $vertical >= 5 && $vertical <= 7}
     } -cleanup {image delete $photo; destroy .arc} -result 1
 
-    test arc-8.2 {Cairo clips the curve without outlining the clip rectangle} -constraints arcCairo -setup {
+    test RBC.graph.marker.arc.A.27.1 {Cairo clips the curve without outlining the clip rectangle} -constraints arcCairo -setup {
         Setup cairo
         .arc marker configure a -coords {-10 -10 20 20} -fill {} -linewidth 6
         set photo [image create photo]
@@ -367,7 +373,7 @@ namespace eval arcMarker {
         list [Pixel $photo 0 0] [Pixel $photo 1 0] [Pixel $photo -1 0]
     } -cleanup {image delete $photo; destroy .arc} -result {{255 255 255} {255 255 255} {255 255 255}}
 
-    test arc-8.3 {Cairo stipple stays fixed in widget pixels when ellipse is stretched} -constraints arcCairo -setup {
+    test RBC.graph.marker.arc.A.28.1 {Cairo stipple stays fixed in widget pixels when ellipse is stretched} -constraints arcCairo -setup {
         Setup cairo
         .arc marker configure a -fill {red blue} -stipple gray50 -outline {}
         set photo [image create photo]
@@ -390,6 +396,6 @@ namespace eval arcMarker {
         list [expr {[lindex $samples 0] eq [lindex $samples 1]}] \
             [lsort -unique [lindex $samples 0]]
     } -cleanup {image delete $photo; destroy .arc} -result {1 {{0 0 255} {255 0 0}}}
-}
 
 cleanupTests
+}

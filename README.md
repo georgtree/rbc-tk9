@@ -428,7 +428,7 @@ from the repository's GitHub source archives.
 Packaging regression tests (no Tk or compiler needed):
 
 ```sh
-tclsh tests/build/installDist.test
+tclsh tests/build/RBC.build.installDist.A.test
 ```
 
 The tests use GNU make, a POSIX shell, `install` and `tar`; ZIP checks also require `zip` and `unzip`.

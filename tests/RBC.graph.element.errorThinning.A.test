@@ -1,8 +1,16 @@
 # Error bars follow symbol sample selection and density. See license.terms.
+###Package Definition
+package provide graph.element.errorThinning
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace eval ::errorThinningTest {
-    namespace import ::tcltest::*
+namespace import tcltest::*
+
+namespace eval graph.element.errorThinning {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     proc Create {kind symbol} {
         ::rbc::$kind .et -width 400 -height 400 -plotbackground white -bufferelements no
         pack .et
@@ -45,7 +53,7 @@ namespace eval ::errorThinningTest {
     foreach kind {graph stripchart polar} {
         foreach symbol {none circle} {
             foreach format {svg postscript} {
-                test errorThinning-export-$kind-$symbol-$format {selection, density, caps and reset agree in exports} -setup {
+                test RBC.graph.element.errorThinning.A.1.[incr testCase(1)] {selection, density, caps and reset agree in exports} -setup {
                     Create $kind $symbol
                 } -body {
                     set result [list [Count $format]]
@@ -64,7 +72,7 @@ namespace eval ::errorThinningTest {
                     set result
                 } -cleanup {destroy .et} -result {30 12 6 3 3 18 30}
             }
-            test errorThinning-screen-$kind-$symbol {screen error bars follow selected sample positions} -setup {
+            test RBC.graph.element.errorThinning.A.2.[incr testCase(2)] {screen error bars follow selected sample positions} -setup {
                 set photo {}
                 set photo [image create photo]
                 Create $kind $symbol
@@ -83,7 +91,7 @@ namespace eval ::errorThinningTest {
             } -result {{1 1 1 1 1} {1 0 0 0 1} {1 0 0 0 0} {1 1 1 1 1}}
         }
         foreach format {svg postscript} {
-            test errorThinning-palette-$kind-$format {hidden-symbol styles share the same density sequence} -setup {
+            test RBC.graph.element.errorThinning.A.3.[incr testCase(3)] {hidden-symbol styles share the same density sequence} -setup {
                 Create $kind none
                 .et axis configure x -max 6
                 .et axis configure y -max 6
@@ -100,5 +108,5 @@ namespace eval ::errorThinningTest {
             } -cleanup {destroy .et} -result {18 36}
         }
     }
-}
 ::tcltest::cleanupTests
+}

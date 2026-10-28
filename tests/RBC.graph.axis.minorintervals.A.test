@@ -1,11 +1,17 @@
 # Minor ticks subdivide successive explicit major ticks.
 # See license.terms for details.
+###Package Definition
+package provide graph.axis.minorintervals
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::rbcMinorIntervalsTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.axis.minorintervals {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0}
     proc Positions {document color} {
         set positions {}
         foreach tag [regexp -all -inline {<polyline\s[^>]*>} $document] {
@@ -26,7 +32,7 @@ namespace eval ::rbcMinorIntervalsTest {
             duplicate {0 0 2} {0.5} {0 0 1 2}
             outside {0 1 3} {-0.5 0 0.5 1 1.5} {0 0.5 1 2 3}
         } {
-            test minorIntervals-$mode-$case {axis ticks and grid use actual explicit major intervals} -setup {
+            test RBC.graph.axis.minorintervals.A.1.[incr testCase(1)] {axis ticks and grid use actual explicit major intervals} -setup {
                 ::rbc::graph .minorIntervals -width 500 -height 400
                 pack .minorIntervals
                 set minimum [expr {$logarithmic ? 0.1 : -1}]
@@ -60,5 +66,5 @@ namespace eval ::rbcMinorIntervalsTest {
             } -result {1 1}
         }
     }
-}
 ::tcltest::cleanupTests
+}

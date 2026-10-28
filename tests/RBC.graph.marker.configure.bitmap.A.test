@@ -561,7 +561,7 @@ namespace eval graph.marker {
         unset -nocomplain testDir bitmapFile maskFile
     } -result ok
 
-    test RBC.graph.marker.configure.bitmap.A.rollback.1 {
+    test RBC.graph.marker.configure.bitmap.A.9.1 {
         bitmap marker configuration is atomic
     } -setup {
         set testDir [file dirname [info script]]

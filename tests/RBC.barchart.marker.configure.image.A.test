@@ -251,7 +251,7 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {image.a.2.1}
 
-    test RBC.barchart.marker.configure.image.A.rollback.1 {
+    test RBC.barchart.marker.configure.image.A.3.1 {
         image marker configuration is atomic
     } -setup {
         barchart .barchart1
@@ -272,7 +272,7 @@ namespace eval barchart.marker {
         unset -nocomplain oldCoords oldAnchor oldImage code message
     } -result {1 1 1 1}
 
-    test RBC.barchart.marker.configure.image.A.lifetime.1 {
+    test RBC.barchart.marker.configure.image.A.4.1 {
         modern image marker resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

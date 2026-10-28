@@ -469,7 +469,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.1 {
+	test RBC.barchart.marker.configure.line.A.11.1 {
 		barchart marker configure: dashoffset - integer input
 	} -setup {
 		barchart .barchart1
@@ -486,7 +486,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an invalid integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.2 {
+	test RBC.barchart.marker.configure.line.A.12.1 {
 		barchart marker configure: dashoffset - negative integer input
 	} -setup {
 		barchart .barchart1
@@ -506,7 +506,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# a decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.3 {
+	test RBC.barchart.marker.configure.line.A.13.1 {
 		barchart marker configure: dashoffset - decimal input
 	} -setup {
 		barchart .barchart1
@@ -523,7 +523,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# an invalid decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.4 {
+	test RBC.barchart.marker.configure.line.A.14.1 {
 		barchart marker configure: dashoffset - invalid decimal input
 	} -setup {
 		barchart .barchart1
@@ -543,7 +543,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# a character as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.5 {
+	test RBC.barchart.marker.configure.line.A.15.1 {
 		barchart marker configure: dashoffset - character input
 	} -setup {
 		barchart .barchart1
@@ -563,7 +563,7 @@ namespace eval barchart.marker {
 	# Purpose: Ensure the marker configure -dashoffset command works correctly when given
 	# 0 as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.marker.configure.common.A.7.6 {
+	test RBC.barchart.marker.configure.line.A.16.1 {
 		barchart marker configure: dashoffset - zero
 	} -setup {
 		barchart .barchart1
@@ -627,7 +627,7 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {round}
 
-    test RBC.barchart.marker.configure.line.A.rollback.1 {
+    test RBC.barchart.marker.configure.line.A.17.1 {
         line marker configuration is atomic
     } -setup {
         barchart .barchart1
@@ -648,7 +648,7 @@ namespace eval barchart.marker {
         unset -nocomplain oldCoords oldOutline oldWidth oldMapX code message
     } -result {1 1 1 1 1}
 
-    test RBC.barchart.marker.configure.line.A.lifetime.1 {
+    test RBC.barchart.marker.configure.line.A.18.1 {
         modern line marker resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

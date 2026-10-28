@@ -1,11 +1,17 @@
 # Shared-renderer filled geometry export regressions.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.fills
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psFillTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.fills {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 5 0}
     proc Create {type} {
         ::rbc::$type .psFill -width 400 -height 300
         .psFill legend configure -hide yes
@@ -31,7 +37,7 @@ namespace eval ::psFillTest {
     }
 
     foreach pattern {solid gray25} {
-        test psFill-1-$pattern {area background and foreground preserve fill policy} -setup {
+        test RBC.graph.postscript.fills.A.1.[incr testCase(1)] {area background and foreground preserve fill policy} -setup {
             Create graph
             .psFill element create signal -data {1 2 4 8 9 3} -symbol none -linewidth 0 \
                 -areapattern $pattern -areaforeground red -areabackground blue
@@ -45,7 +51,7 @@ namespace eval ::psFillTest {
         } -result [expr {$pattern eq "solid" ? {1 2 0} : {1 1 1}}]
     }
 
-    test psFill-2 {PostScript area opacity remains ignored} -setup {
+    test RBC.graph.postscript.fills.A.2.1 {PostScript area opacity remains ignored} -setup {
         Create graph
         .psFill element create signal -data {1 2 4 8 9 3} -symbol none -linewidth 0 \
             -areapattern solid -areaforeground red
@@ -61,7 +67,7 @@ namespace eval ::psFillTest {
         destroy .psFill
     } -result 1
 
-    test psFill-3 {image-tiled areas retain background-only export} -setup {
+    test RBC.graph.postscript.fills.A.3.1 {image-tiled areas retain background-only export} -setup {
         Create graph
         set tile [image create photo -width 2 -height 2]
         $tile put red -to 0 0 2 2
@@ -76,7 +82,7 @@ namespace eval ::psFillTest {
         image delete $tile
     } -result {1 1}
 
-    test psFill-4 {polygon fill precedes dashed outline with an offdash background} -setup {
+    test RBC.graph.postscript.fills.A.4.1 {polygon fill precedes dashed outline with an offdash background} -setup {
         Create graph
         .psFill marker create polygon -name m -coords {1 2 4 8 9 3} \
             -fill {red blue} -stipple gray25 -outline {black green} -dashes {3 5} -linewidth 2
@@ -92,7 +98,7 @@ namespace eval ::psFillTest {
     } -result {1 1 1}
 
     foreach stipple {{} gray25} {
-        test psFill-5-$stipple {bar faces retain solid and stippled export} -setup {
+        test RBC.graph.postscript.fills.A.5.[incr testCase(5)] {bar faces retain solid and stippled export} -setup {
             Create barchart
             .psFill element create signal -data {3 4 7 6} -foreground red \
                 -background blue -borderwidth 0 -stipple $stipple
@@ -103,6 +109,5 @@ namespace eval ::psFillTest {
             destroy .psFill
         } -result [expr {$stipple eq {} ? {2 0} : {0 2}}]
     }
-}
-namespace delete ::psFillTest
 ::tcltest::cleanupTests
+}

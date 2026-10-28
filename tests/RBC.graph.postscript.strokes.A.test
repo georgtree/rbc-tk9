@@ -1,11 +1,17 @@
 # Shared-renderer trace and error-bar export regressions.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.strokes
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psStrokeTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.strokes {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 4 0}
     proc Create {type} {
         ::rbc::$type .psStroke -width 400 -height 300
         .psStroke legend configure -hide yes
@@ -32,7 +38,7 @@ namespace eval ::psStrokeTest {
     }
 
     foreach type {graph stripchart} {
-        test psStroke-1-$type {trace offdash underlay resets for solid strokes} -setup {
+        test RBC.graph.postscript.strokes.A.1.[incr testCase(1)] {trace offdash underlay resets for solid strokes} -setup {
             Create $type
             .psStroke element create signal -data {1 2 4 6 9 3} -symbol none \
                 -linewidth 3 -color blue -dashes {3 5} -offdash red
@@ -48,7 +54,7 @@ namespace eval ::psStrokeTest {
             destroy .psStroke
         } -result {1 1 1 1}
 
-        test psStroke-2-$type {fully active traces retain their active pen and offdash} -setup {
+        test RBC.graph.postscript.strokes.A.2.[incr testCase(2)] {fully active traces retain their active pen and offdash} -setup {
             Create $type
             .psStroke element create signal -data {1 2 4 6 9 3} -symbol none
             .psStroke pen create selected -type line -linewidth 7 -symbol none \
@@ -66,7 +72,7 @@ namespace eval ::psStrokeTest {
         } -result {1 1 1 1}
     }
 
-    test psStroke-3 {long connected traces retain every segment and share split endpoints} -setup {
+    test RBC.graph.postscript.strokes.A.3.1 {long connected traces retain every segment and share split endpoints} -setup {
         Create graph
         set x {}
         set y {}
@@ -105,7 +111,7 @@ namespace eval ::psStrokeTest {
     } -result {3 3500 1 1}
 
     foreach type {graph stripchart barchart} {
-        test psStroke-4-$type {error-bar axes and hidden state retain their stroke counts} -setup {
+        test RBC.graph.postscript.strokes.A.4.[incr testCase(4)] {error-bar axes and hidden state retain their stroke counts} -setup {
             Create $type
             .psStroke element create signal -data {3 4 7 6} -xerror {1 1} -yerror {1 1} \
                 -errorbarwidth 5 -errorbarcap 10 -showerrorbars both
@@ -130,6 +136,5 @@ namespace eval ::psStrokeTest {
             destroy .psStroke
         } -result {1 0 1}
     }
-}
-namespace delete ::psStrokeTest
 ::tcltest::cleanupTests
+}

@@ -1561,7 +1561,7 @@ namespace eval graph.pen {
 		destroy .graph1
 	} -result {0}
 
-    test RBC.graph.pen.configure.A.rollback.1 {
+    test RBC.graph.pen.configure.A.20.1 {
         named line pen configuration is atomic
     } -setup {
         graph .graph1
@@ -1582,7 +1582,7 @@ namespace eval graph.pen {
         unset -nocomplain oldColor oldWidth oldSymbol oldShadow code message
     } -result {1 1 1 1 1}
 
-    test RBC.graph.pen.configure.A.builtin.1 {
+    test RBC.graph.pen.configure.A.21.1 {
         embedded line pen remains legacy
     } -setup {
         graph .graph1
@@ -1594,7 +1594,7 @@ namespace eval graph.pen {
         destroy .graph1
     } -result 3.5
 
-    test RBC.graph.pen.configure.A.lifetime.1 {
+    test RBC.graph.pen.configure.A.22.1 {
         modern named line pen resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

@@ -10,6 +10,8 @@ namespace import tcltest::*
 
 namespace eval graph.renderer {
 
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {23 0 24 0 25 0 26 0 27 0 28 0 29 0 30 0 31 0 32 0 33 0 34 0 35 0 36 0 37 0 38 0 39 0 40 0 41 0 42 0 43 0 44 0 45 0 46 0 47 0 48 0 49 0 50 0 51 0 52 0 53 0 54 0 55 0 56 0 57 0 58 0 59 0 60 0 61 0 62 0 63 0 64 0 65 0 66 0 67 0}
     ::rbc::graph .rendererProbe
     set code [catch {.rendererProbe configure -renderer cairo} message]
     destroy .rendererProbe
@@ -62,7 +64,7 @@ namespace eval graph.renderer {
     } -result {1 native original}
 
     foreach kind {graph barchart stripchart polar} {
-        test RBC.graph.renderer.A.1.4-$kind {compiled renderer default follows Cairo availability} -setup {
+        test RBC.graph.renderer.A.23.[incr testCase(23)] {compiled renderer default follows Cairo availability} -setup {
             ::rbc::$kind .renderer
         } -body {
             # The descriptor exposes the compiled default even under the suite's option database.
@@ -71,7 +73,7 @@ namespace eval graph.renderer {
             destroy .renderer
         } -result 1
 
-        test RBC.graph.renderer.A.1.6-$kind {automated suite keeps native as its effective default}\
+        test RBC.graph.renderer.A.24.[incr testCase(24)] {automated suite keeps native as its effective default}\
                 -constraints rbcNativeSuiteDefault -setup {
             ::rbc::$kind .renderer
         } -body {
@@ -80,7 +82,7 @@ namespace eval graph.renderer {
             destroy .renderer
         } -result native
 
-        test RBC.graph.renderer.A.1.5-$kind {explicit Cairo overrides the automated native default}\
+        test RBC.graph.renderer.A.25.[incr testCase(25)] {explicit Cairo overrides the automated native default}\
                 -constraints rbcCairo -setup {
             ::rbc::$kind .renderer -renderer cairo
         } -body {
@@ -91,7 +93,7 @@ namespace eval graph.renderer {
     }
 
     foreach kind {graph stripchart} {
-        test RBC.graph.renderer.A.2.1-$kind {solid strokes use Cairo and can switch back}\
+        test RBC.graph.renderer.A.26.[incr testCase(26)] {solid strokes use Cairo and can switch back}\
                 -constraints rbcCairo -setup {
             ::rbc::$kind .renderer -width 240 -height 180 -background white -plotbackground white -borderwidth 0\
                     -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20\
@@ -167,7 +169,7 @@ namespace eval graph.renderer {
     foreach kind {graph stripchart} {
         foreach pattern {{} {8 4} {3 5 7} {5}} {
             set suffix [join $pattern -]
-            test RBC.graph.renderer.A.3.2-$kind-$suffix {Cairo antialias applies to solid and dashed strokes}\
+            test RBC.graph.renderer.A.27.[incr testCase(27)] {Cairo antialias applies to solid and dashed strokes}\
                     -constraints rbcCairo -setup {
                 StrokeFixture $kind
                 .renderer element configure signal -dashes $pattern
@@ -187,7 +189,7 @@ namespace eval graph.renderer {
             } -result {0 1 0}
         }
 
-        test RBC.graph.renderer.A.3.3-$kind {offdash colors and defcolor handling} -constraints rbcCairo -setup {
+        test RBC.graph.renderer.A.28.[incr testCase(28)] {offdash colors and defcolor handling} -constraints rbcCairo -setup {
             StrokeFixture $kind
             .renderer configure -antialias none
             .renderer element configure signal -data {1 5 9 5} -linewidth 3 -dashes {8 4}
@@ -274,7 +276,7 @@ namespace eval graph.renderer {
 
     foreach kind {graph stripchart} {
         foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
-            test RBC.graph.renderer.A.4.1-$kind-$symbol {geometric symbols use Cairo antialias selection}\
+            test RBC.graph.renderer.A.29.[incr testCase(29)] {geometric symbols use Cairo antialias selection}\
                     -constraints rbcCairo -setup {
                 StrokeFixture $kind
                 .renderer element configure signal -data {5 5} -linewidth 0 -symbol $symbol -pixels 17 -outlinewidth 2\
@@ -295,7 +297,7 @@ namespace eval graph.renderer {
             } -result {1 0 1 1 1 0}
         }
 
-        test RBC.graph.renderer.A.4.2-$kind {partial symbols clip at all plot edges, also with inverted axes}\
+        test RBC.graph.renderer.A.30.[incr testCase(30)] {partial symbols clip at all plot edges, also with inverted axes}\
                 -constraints rbcCairo -setup {
             StrokeFixture $kind
             .renderer configure -antialias gray
@@ -336,7 +338,7 @@ namespace eval graph.renderer {
             destroy .renderer
         } -result {}
 
-        test RBC.graph.renderer.A.4.3-$kind {symbol fill and outline remain independent} -constraints rbcCairo -setup {
+        test RBC.graph.renderer.A.31.[incr testCase(31)] {symbol fill and outline remain independent} -constraints rbcCairo -setup {
             StrokeFixture $kind
             .renderer element configure signal -data {5 5} -linewidth 0 -symbol circle -pixels 21 -fill red\
                     -outline blue -outlinewidth 2
@@ -356,7 +358,7 @@ namespace eval graph.renderer {
         } -result {1 1 0 1 1 0 0 0}
 
         foreach invert {no yes} {
-            test RBC.graph.renderer.A.4.4-$kind-$invert {error bars are solid, colored, clipped and antialiased}\
+            test RBC.graph.renderer.A.32.[incr testCase(32)] {error bars are solid, colored, clipped and antialiased}\
                     -constraints rbcCairo -setup {
                 StrokeFixture $kind
                 .renderer configure -invertxy $invert
@@ -485,7 +487,7 @@ namespace eval graph.renderer {
 
 
     foreach pattern {solid gray25 gray50 gray75} {
-        test RBC.graph.renderer.A.5.1-$pattern {area edges use Cairo antialias selection} -constraints rbcCairo -setup {
+        test RBC.graph.renderer.A.33.[incr testCase(33)] {area edges use Cairo antialias selection} -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areapattern $pattern\
                     -areaforeground black -areabackground {}
@@ -520,7 +522,7 @@ namespace eval graph.renderer {
     }
 
     foreach pattern {gray25 gray50 warning} {
-        test RBC.graph.renderer.A.5.2-$pattern {stipple pixels, colors and origin match native after remapping}\
+        test RBC.graph.renderer.A.34.[incr testCase(34)] {stipple pixels, colors and origin match native after remapping}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer configure -plotbackground red -antialias none
@@ -553,7 +555,7 @@ namespace eval graph.renderer {
     }
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.5.3-$invert {area fills clip to the plot with inverted axes too}\
+        test RBC.graph.renderer.A.35.[incr testCase(35)] {area fills clip to the plot with inverted axes too}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer configure -invertxy $invert -antialias gray
@@ -704,7 +706,7 @@ namespace eval graph.renderer {
     } -result {1 1}
 
     foreach renderer {native cairo} {
-        test RBC.graph.renderer.A.6.4-$renderer {tile edits invalidate the displayed element cache}\
+        test RBC.graph.renderer.A.36.[incr testCase(36)] {tile edits invalidate the displayed element cache}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer configure -renderer $renderer -bufferelements yes
@@ -784,7 +786,7 @@ namespace eval graph.renderer {
 
     foreach pattern {{} {6 4}} {
         set suffix [join $pattern -]
-        test RBC.graph.renderer.A.7.1-$suffix {grid strokes use Cairo AA and retain hide/axis settings}\
+        test RBC.graph.renderer.A.37.[incr testCase(37)] {grid strokes use Cairo AA and retain hide/axis settings}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -808,7 +810,7 @@ namespace eval graph.renderer {
     }
 
     foreach shape {line polygonFill polygonOutline} {
-        test RBC.graph.renderer.A.8.1-$shape {simple markers reach Cairo, including Windows batch candidates}\
+        test RBC.graph.renderer.A.38.[incr testCase(38)] {simple markers reach Cairo, including Windows batch candidates}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -921,7 +923,7 @@ namespace eval graph.renderer {
     } -result {{255 0 0} {0 0 255} {255 0 0}}
 
     foreach kind {text xorLine xorPolygon} {
-        test RBC.graph.renderer.A.8.6-$kind {text and XOR markers retain native rendering} -constraints rbcCairo\
+        test RBC.graph.renderer.A.39.[incr testCase(39)] {text and XOR markers retain native rendering} -constraints rbcCairo\
                 -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -951,7 +953,7 @@ namespace eval graph.renderer {
     }
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.8.7-$invert {geometric markers clip to the plotting area} -constraints rbcCairo\
+        test RBC.graph.renderer.A.40.[incr testCase(40)] {geometric markers clip to the plotting area} -constraints rbcCairo\
                 -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -990,7 +992,7 @@ namespace eval graph.renderer {
     } -result {{255 255 255} {0 0 0} {0 0 0}}
 
     foreach anchor {nw center se} {
-        test RBC.graph.renderer.A.9.1-$anchor {opaque photo markers preserve native placement and pixels}\
+        test RBC.graph.renderer.A.41.[incr testCase(41)] {opaque photo markers preserve native placement and pixels}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -1042,7 +1044,7 @@ namespace eval graph.renderer {
                        {127 255 127} {0 0 255} {255 255 255} {255 255 255}}
 
     foreach renderer {native cairo} {
-        test RBC.graph.renderer.A.9.3-$renderer {source resizing discards a stale scaled photo} -constraints rbcCairo\
+        test RBC.graph.renderer.A.42.[incr testCase(42)] {source resizing discards a stale scaled photo} -constraints rbcCairo\
                 -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -1077,7 +1079,7 @@ namespace eval graph.renderer {
     }
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.9.4-$invert {natural and scaled photo markers clip at plot edges}\
+        test RBC.graph.renderer.A.43.[incr testCase(43)] {natural and scaled photo markers clip at plot edges}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -1184,7 +1186,7 @@ namespace eval graph.renderer {
 
     foreach mode {normal aligned overlap stacked} {
         foreach invert {no yes} {
-            test RBC.graph.renderer.A.10.1-$mode-$invert {bar layouts and integer fill pixels match native}\
+            test RBC.graph.renderer.A.44.[incr testCase(44)] {bar layouts and integer fill pixels match native}\
                     -constraints rbcCairo -setup {
                 BarFixture
                 .renderer configure -barmode $mode -invertxy $invert
@@ -1211,7 +1213,7 @@ namespace eval graph.renderer {
 
     foreach colors {{black {}} {black red} {{} blue}} {
         foreach pattern {gray25 gray50 warning} {
-            test RBC.graph.renderer.A.10.2-$colors-$pattern\
+            test RBC.graph.renderer.A.45.[incr testCase(45)]\
                     {bar stipple colors and origin match native after remapping} -constraints rbcCairo -setup {
                 BarFixture
                 .renderer element configure signal -foreground [lindex $colors 0] -background [lindex $colors 1]\
@@ -1237,7 +1239,7 @@ namespace eval graph.renderer {
     }
 
     foreach relief {flat raised sunken ridge groove solid} {
-        test RBC.graph.renderer.A.10.3-$relief {bar relief borders and value labels retain native rendering}\
+        test RBC.graph.renderer.A.46.[incr testCase(46)] {bar relief borders and value labels retain native rendering}\
                 -constraints rbcCairo -setup {
             BarFixture
             .renderer element configure signal -foreground blue -background navy -borderwidth 2 -relief $relief\
@@ -1305,7 +1307,7 @@ namespace eval graph.renderer {
     } -result {1 0 1 1 1 0 1}
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.10.6-$invert {wide and negative bars clip to the plot} -constraints rbcCairo -setup {
+        test RBC.graph.renderer.A.47.[incr testCase(47)] {wide and negative bars clip to the plot} -constraints rbcCairo -setup {
             BarFixture
             .renderer configure -invertxy $invert
             .renderer element configure signal -data {0 30 5 -30 10 30} -barwidth 4
@@ -1364,7 +1366,7 @@ namespace eval graph.renderer {
 
     foreach kind {graph stripchart} {
         foreach shape {circle diamond triangle scross arrow} {
-            test RBC.graph.renderer.A.11.1-$kind-$shape {legend geometry uses Cairo outside the plot area}\
+            test RBC.graph.renderer.A.48.[incr testCase(48)] {legend geometry uses Cairo outside the plot area}\
                     -constraints rbcCairo -setup {
                 StrokeFixture $kind
                 .renderer element configure signal -symbol $shape -linewidth 0 -fill black -outline black
@@ -1407,7 +1409,7 @@ namespace eval graph.renderer {
 
     foreach pattern {{} gray25 gray50 warning} {
         foreach background {{} red} {
-            test RBC.graph.renderer.A.11.3-$pattern-$background {bar legend stipples restart at the swatch origin}\
+            test RBC.graph.renderer.A.49.[incr testCase(49)] {bar legend stipples restart at the swatch origin}\
                     -constraints rbcCairo -setup {
                 BarFixture
                 .renderer element configure signal -stipple $pattern -foreground black -background $background
@@ -1502,7 +1504,7 @@ namespace eval graph.renderer {
 
     foreach axis {x y x2 y2} {
         foreach invert {no yes} {
-            test RBC.graph.renderer.A.12.1-$axis-$invert {axis strokes use Cairo throughout the widget margins}\
+            test RBC.graph.renderer.A.50.[incr testCase(50)] {axis strokes use Cairo throughout the widget margins}\
                     -constraints rbcCairo -setup {
                 AxisFixture $axis
                 .renderer configure -invertxy $invert
@@ -1547,7 +1549,7 @@ namespace eval graph.renderer {
     } -result {1 1 0}
 
     foreach log {no yes} {
-        test RBC.graph.renderer.A.12.3-$log {descending and logarithmic axis remaps preserve Cairo strokes}\
+        test RBC.graph.renderer.A.51.[incr testCase(51)] {descending and logarithmic axis remaps preserve Cairo strokes}\
                 -constraints rbcCairo -setup {
             AxisFixture y
             .renderer axis configure y -min 1 -max 100 -logscale $log -color blue
@@ -1628,7 +1630,7 @@ namespace eval graph.renderer {
 
     foreach angle {0 90 180 270} {
         foreach masked {no yes} {
-            test RBC.graph.renderer.A.13.1-$angle-$masked {mapped bitmap pixels and masks match native rendering}\
+            test RBC.graph.renderer.A.52.[incr testCase(52)] {mapped bitmap pixels and masks match native rendering}\
                     -constraints rbcCairo -setup {
                 lassign [BitmapFixture] bitmap mask
                 .renderer marker configure m -rotate $angle -mask [expr {$masked ? "@$mask" : ""}]
@@ -1657,7 +1659,7 @@ namespace eval graph.renderer {
 
     foreach angle {0 27 90} {
       foreach masked {no yes} {
-        test RBC.graph.renderer.A.13.2-$angle-$masked {transparent bitmap markers retain sharp mapped pixels}\
+        test RBC.graph.renderer.A.53.[incr testCase(53)] {transparent bitmap markers retain sharp mapped pixels}\
                 -constraints rbcCairo -setup {
             lassign [BitmapFixture] bitmap mask
             .renderer marker configure m -background {} -rotate $angle -coords {3 3 7 7}\
@@ -1704,7 +1706,7 @@ namespace eval graph.renderer {
     } -result {1 0 1 1 1 0}
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.13.4-$invert {bitmap markers clip to the plot after rotation and scaling}\
+        test RBC.graph.renderer.A.54.[incr testCase(54)] {bitmap markers clip to the plot after rotation and scaling}\
                 -constraints rbcCairo -setup {
             lassign [BitmapFixture] bitmap mask
             .renderer configure -invertxy $invert
@@ -1757,7 +1759,7 @@ namespace eval graph.renderer {
     foreach kind {graph stripchart} {
         foreach masked {no yes} {
             foreach fill {{} blue} {
-                test RBC.graph.renderer.A.14.1-$kind-$masked-$fill {bitmap symbol colors and masks match native pixels}\
+                test RBC.graph.renderer.A.55.[incr testCase(55)] {bitmap symbol colors and masks match native pixels}\
                         -constraints rbcCairo -setup {
                     lassign [BitmapSymbolFixture $kind] bitmap mask
                     .renderer element configure signal -fill $fill\
@@ -1785,7 +1787,7 @@ namespace eval graph.renderer {
     }
 
     foreach invert {no yes} {
-        test RBC.graph.renderer.A.14.2-$invert {bitmap symbols remain partially visible at plot edges}\
+        test RBC.graph.renderer.A.56.[incr testCase(56)] {bitmap symbols remain partially visible at plot edges}\
                 -constraints rbcCairo -setup {
             lassign [BitmapSymbolFixture graph] bitmap mask
             .renderer configure -invertxy $invert -plotpadx 0 -plotpady 0
@@ -1878,7 +1880,7 @@ namespace eval graph.renderer {
 
     foreach backend {native cairo} {
         foreach shape {circle bitmap} {
-            test RBC.graph.renderer.A.14.6-$backend-$shape {explicit active points survive repeated snapshot remapping}\
+            test RBC.graph.renderer.A.57.[incr testCase(57)] {explicit active points survive repeated snapshot remapping}\
                     -constraints rbcCairo -setup {
                 lassign [BitmapSymbolFixture graph] bitmap mask
                 .renderer configure -renderer $backend
@@ -1906,7 +1908,7 @@ namespace eval graph.renderer {
     foreach kind {graph stripchart} {
         foreach shape {circle splus bitmap} {
             foreach fill {black defcolor {}} {
-                test RBC.graph.renderer.A.15.1-$kind-$shape-$fill\
+                test RBC.graph.renderer.A.58.[incr testCase(58)]\
                         {tiny symbols preserve pixels, fill and selection rules} -constraints rbcCairo -setup {
                     lassign [BitmapSymbolFixture $kind] bitmap mask
                     set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : $shape}]
@@ -1937,7 +1939,7 @@ namespace eval graph.renderer {
     }
 
     foreach inverted {no yes} {
-        test RBC.graph.renderer.A.15.2-$inverted {tiny symbols retain plot clipping with inverted axes}\
+        test RBC.graph.renderer.A.59.[incr testCase(59)] {tiny symbols retain plot clipping with inverted axes}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer configure -invertxy $inverted -plotpadx 0 -plotpady 0
@@ -1980,7 +1982,7 @@ namespace eval graph.renderer {
     } -result {1 1 1 1}
 
     foreach pattern {solid gray25 gray50} {
-        test RBC.graph.renderer.A.16.1-$pattern {empty area foreground uses the GC color through Cairo}\
+        test RBC.graph.renderer.A.60.[incr testCase(60)] {empty area foreground uses the GC color through Cairo}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areapattern $pattern\
@@ -2020,7 +2022,7 @@ namespace eval graph.renderer {
     } -result {1 0 1 1 1 0}
 
     foreach background {{} blue} {
-        test RBC.graph.renderer.A.16.3-$background {empty bitmap foreground preserves native colors and switching}\
+        test RBC.graph.renderer.A.61.[incr testCase(61)] {empty bitmap foreground preserves native colors and switching}\
                 -constraints rbcCairo -setup {
             lassign [BitmapFixture] bitmap mask
             .renderer marker configure m -foreground {} -background $background
@@ -2051,7 +2053,7 @@ namespace eval graph.renderer {
     }
 
     foreach angle {0 27 90} {
-        test RBC.graph.renderer.A.17.1-$angle {text background edges follow Cairo antialias selection}\
+        test RBC.graph.renderer.A.62.[incr testCase(62)] {text background edges follow Cairo antialias selection}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -2074,7 +2076,7 @@ namespace eval graph.renderer {
     }
 
     foreach inverted {no yes} {
-        test RBC.graph.renderer.A.17.2-$inverted {rotated text backgrounds clip to the plot} -constraints rbcCairo\
+        test RBC.graph.renderer.A.63.[incr testCase(63)] {rotated text backgrounds clip to the plot} -constraints rbcCairo\
                 -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -2121,7 +2123,7 @@ namespace eval graph.renderer {
     } -result {1 1 1 1 1 1}
 
     foreach mode {none default} {
-        test RBC.graph.renderer.A.18.1-$mode {marker target preserves geometry and native text ordering}\
+        test RBC.graph.renderer.A.64.[incr testCase(64)] {marker target preserves geometry and native text ordering}\
                 -constraints rbcCairo -setup {
             StrokeFixture graph
             .renderer element delete signal
@@ -2194,7 +2196,7 @@ namespace eval graph.renderer {
 
     foreach mode {none gray default} {
         foreach kind {line polygon} {
-            test RBC.graph.renderer.A.19.1-$mode-$kind {shared stroke contexts preserve overlapping marker pixels}\
+            test RBC.graph.renderer.A.65.[incr testCase(65)] {shared stroke contexts preserve overlapping marker pixels}\
                     -constraints rbcCairo -setup {
                 StrokeFixture graph
                 .renderer element delete signal
@@ -2262,7 +2264,7 @@ namespace eval graph.renderer {
 
     foreach kind {graph stripchart} {
         foreach inverted {no yes} {
-            test RBC.graph.renderer.A.20.1-$kind-$inverted {renderer switching refreshes auto-decimation geometry}\
+            test RBC.graph.renderer.A.66.[incr testCase(66)] {renderer switching refreshes auto-decimation geometry}\
                     -constraints rbcCairo -setup {
                 StrokeFixture $kind
                 .renderer configure -invertxy $inverted
@@ -2332,7 +2334,7 @@ namespace eval graph.renderer {
 
     foreach kind {graph polar} {
         foreach invert {no yes} {
-            test RBC.graph.renderer.A.22.1-$kind-$invert {solid opacity blends and survives renderer switching} \
+            test RBC.graph.renderer.A.67.[incr testCase(67)] {solid opacity blends and survives renderer switching} \
                     -constraints rbcCairo -setup {
                 OpacityFixture $kind $invert cairo
                 set photo [image create photo]

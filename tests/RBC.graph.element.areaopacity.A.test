@@ -1,12 +1,18 @@
 # Solid area opacity configuration. See license.terms for details.
+###Package Definition
+package provide graph.element.areaopacity
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval areaOpacity {
-    namespace import ::tcltest::*
-
+namespace eval graph.element.areaopacity {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0}
     foreach type {graph polar} {
-        test areaOpacity-1-$type {default and accepted opacity values} -setup {
+        test RBC.graph.element.areaopacity.A.1.[incr testCase(1)] {default and accepted opacity values} -setup {
             ::rbc::$type .area
             .area element create signal
         } -body {
@@ -20,7 +26,7 @@ namespace eval areaOpacity {
             destroy .area
         } -result {1.0 0.0 0.25 1.0}
 
-        test areaOpacity-2-$type {invalid opacity restores the complete configuration} -setup {
+        test RBC.graph.element.areaopacity.A.2.[incr testCase(2)] {invalid opacity restores the complete configuration} -setup {
             ::rbc::$type .area
             .area element create signal -areaopacity 0.5 -label original
         } -body {

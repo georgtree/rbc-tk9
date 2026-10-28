@@ -1506,7 +1506,7 @@ namespace eval barchart.postscript {
 	# FIXME: I have no idea how to do this.
 	# ------------------------------------------------------------------------------------
 
-    test RBC.barchart.postscript.configure.A.rollback.1 {
+    test RBC.barchart.postscript.configure.A.16.1 {
         barchart postscript: atomic configuration rollback
     } -setup {
         barchart .barchart1
@@ -1523,7 +1523,7 @@ namespace eval barchart.postscript {
         unset -nocomplain oldCenter oldPadX code message
     } -result {1 1 1 1}
 
-    test RBC.barchart.postscript.configure.A.rollback.2 {
+    test RBC.barchart.postscript.configure.A.17.1 {
         barchart postscript: positive paper dimensions
     } -setup {
         barchart .barchart1
@@ -1540,7 +1540,7 @@ namespace eval barchart.postscript {
         unset -nocomplain oldWidth oldPaperWidth code message
     } -result {1 1 1}
 
-    test RBC.barchart.postscript.configure.A.lifetime.1 {
+    test RBC.barchart.postscript.configure.A.18.1 {
         barchart postscript: modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {

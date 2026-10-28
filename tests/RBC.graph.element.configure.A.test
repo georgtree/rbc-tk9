@@ -4222,7 +4222,7 @@ namespace eval graph.element {
     # Parameter vector
     # ------------------------------------------------------------------------------------
 
-    test RBC.graph.element.configure.A.param.1 {
+    test RBC.graph.element.configure.A.52.1 {
         graph element configure: literal parameter vector
     } -setup {
         graph .graph1
@@ -4234,7 +4234,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {10 20 30}
 
-    test RBC.graph.element.configure.A.param.2 {
+    test RBC.graph.element.configure.A.53.1 {
         graph element configure: named parameter vector
     } -setup {
         vector create p
@@ -4248,7 +4248,7 @@ namespace eval graph.element {
         vector destroy p
     } -result {p}
 
-    test RBC.graph.element.configure.A.param.3 {
+    test RBC.graph.element.configure.A.54.1 {
         graph element configure: complex parameter vector rejected and rolled back
     } -setup {
         vector create z -type complex
@@ -4263,7 +4263,7 @@ namespace eval graph.element {
         vector destroy z
     } -result {1 {vector "z" is complex; graph elements require real vectors} {10 20 30}}
 
-    test RBC.graph.element.configure.A.param.4 {
+    test RBC.graph.element.configure.A.55.1 {
         graph element configure: wrong parameter length rolls back
     } -setup {
         graph .graph1
@@ -4275,7 +4275,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 {parameter vector has 2 values, but element has 3 data points} {10 20 30}}
 
-    test RBC.graph.element.configure.A.param.5 {
+    test RBC.graph.element.configure.A.56.1 {
         graph element configure: data and parameter length change atomically
     } -setup {
         graph .graph1
@@ -4287,7 +4287,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {{1 1 2 2 3 3 4 4} {10 20 30 40}}
 
-    test RBC.graph.element.configure.A.param.6 {
+    test RBC.graph.element.configure.A.57.1 {
         graph element configure: data length change alone is rejected
     } -setup {
         graph .graph1
@@ -4299,7 +4299,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 {parameter vector has 3 values, but element has 4 data points} {1 1 2 2 3 3} {10 20 30}}
 
-    test RBC.graph.element.configure.A.param.7 {
+    test RBC.graph.element.configure.A.58.1 {
         graph element configure: empty parameter disables mapping
     } -setup {
         graph .graph1
@@ -4312,7 +4312,7 @@ namespace eval graph.element {
         destroy .graph1
     } -result {{} {1 1 2 2 3 3 4 4}}
 
-    test RBC.graph.element.configure.A.param.8 {
+    test RBC.graph.element.configure.A.59.1 {
         graph element configure: external parameter mismatch does not block unrelated configure
     } -setup {
         vector create p
@@ -4333,7 +4333,7 @@ namespace eval graph.element {
         vector destroy p
     } -result {0 red p}
 
-    test RBC.graph.element.configure.A.param.9 {
+    test RBC.graph.element.configure.A.60.1 {
         graph element configure: replacing parameter vector releases old client
     } -setup {
         vector create p1
@@ -4355,7 +4355,7 @@ namespace eval graph.element {
         catch {vector destroy p2}
     } -result {0 p2}
 
-    test RBC.graph.element.configure.A.param.10 {
+    test RBC.graph.element.configure.A.61.1 {
         graph element configure: deleting element releases parameter vector client
     } -setup {
         vector create p
@@ -4372,7 +4372,7 @@ namespace eval graph.element {
         catch {vector destroy p}
     } -result {0 0}
 
-    test RBC.graph.element.configure.A.param.11 {
+    test RBC.graph.element.configure.A.62.1 {
         graph element configure: failed parameter create leaves no element
     } -setup {
         graph .graph1

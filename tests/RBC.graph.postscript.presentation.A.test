@@ -1,11 +1,17 @@
 # Export presentation primitives behind the renderer interface.
 # See license.terms for details.
+###Package Definition
+package provide graph.postscript.presentation
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::psPresentationTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.postscript.presentation {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 3 0 6 0}
     proc Create {{type graph}} {
         ::rbc::$type .psFinal -width 400 -height 300
         .psFinal legend configure -hide yes
@@ -30,7 +36,7 @@ namespace eval ::psPresentationTest {
     }
 
     foreach angle {0 27 90} {
-        test psPresentation-1-$angle {text marker background precedes anchored rotated text} -setup {
+        test RBC.graph.postscript.presentation.A.1.[incr testCase(1)] {text marker background precedes anchored rotated text} -setup {
             Create
             .psFinal marker create text -name m -coords {5 5} -text MarkerText \
                 -background blue -foreground red -rotate $angle -anchor center
@@ -46,7 +52,7 @@ namespace eval ::psPresentationTest {
         } -result {1 1 1}
     }
 
-    test psPresentation-2 {graph, axis and legend labels retain text export} -setup {
+    test RBC.graph.postscript.presentation.A.2.1 {graph, axis and legend labels retain text export} -setup {
         Create
         .psFinal configure -title GraphTitle
         .psFinal axis configure x -hide no -title XTitle
@@ -65,7 +71,7 @@ namespace eval ::psPresentationTest {
     } -result {1 1 1 1}
 
     foreach type {graph barchart} {
-        test psPresentation-3-$type {element value labels retain formatting} -setup {
+        test RBC.graph.postscript.presentation.A.3.[incr testCase(3)] {element value labels retain formatting} -setup {
             Create $type
             .psFinal element create signal -data {2 3 8 7} -showvalues y -valueformat {VALUE:%g}
         } -body {
@@ -77,7 +83,7 @@ namespace eval ::psPresentationTest {
         } -result {1 1}
     }
 
-    test psPresentation-4 {photo marker export survives repeated rendering} -setup {
+    test RBC.graph.postscript.presentation.A.4.1 {photo marker export survives repeated rendering} -setup {
         Create
         set photo [image create photo -width 8 -height 8]
         $photo put red -to 0 0 8 8
@@ -92,7 +98,7 @@ namespace eval ::psPresentationTest {
         image delete $photo
     } -result {1 1}
 
-    test psPresentation-5 {mapped window marker retains snapshot or legacy fallback} -setup {
+    test RBC.graph.postscript.presentation.A.5.1 {mapped window marker retains snapshot or legacy fallback} -setup {
         Create
         label .psFinal.child -text Child -background red
         .psFinal marker create window -name m -coords {5 5} -window .psFinal.child
@@ -107,7 +113,7 @@ namespace eval ::psPresentationTest {
     } -result {1 1}
 
     foreach decorations {yes no} {
-        test psPresentation-6-$decorations {plot clipping ends before margin text and page trailer} -setup {
+        test RBC.graph.postscript.presentation.A.6.[incr testCase(6)] {plot clipping ends before margin text and page trailer} -setup {
             Create
             .psFinal configure -title MarginTitle -plotborderwidth 3 -plotrelief sunken
             .psFinal marker create text -name m -coords {5 5} -text InsideText
@@ -125,6 +131,5 @@ namespace eval ::psPresentationTest {
             destroy .psFinal
         } -result 1
     }
-}
-namespace delete ::psPresentationTest
 ::tcltest::cleanupTests
+}

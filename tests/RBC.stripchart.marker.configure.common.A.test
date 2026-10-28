@@ -514,7 +514,7 @@ namespace eval stripchart.marker {
 	# Purpose: Ensure the marker configure -mapx command works correctly when given valid 
 	# axis name as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.common.A.7.1 {
+	test RBC.stripchart.marker.configure.common.A.7.4 {
 		stripchart marker configure: mapx - valid axis name
 	} -setup {
 		stripchart .stripchart1

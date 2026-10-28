@@ -1,8 +1,16 @@
+###Package Definition
+package provide graphtoolbar
+
+package require rbc
 package require rbc::graphtoolbar
 namespace import rbc::*
+
 package require tcltest
 namespace import tcltest::*
 
+namespace eval graphtoolbar {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {20 0 22 0 23 0 26 0 29 0 30 0 31 0 32 0 33 0 58 0 59 0 60 0 123 0 143 0 144 0 145 0 146 0 147 0 148 0 149 0 151 0 152 0 153 0 154 0 155 0 158 0 161 0 162 0 165 0 170 0 176 0 182 0 189 0 191 0 192 0}
 set atol 1e-8
 set rtol 1e-10
 set defaultDelay 100
@@ -602,7 +610,7 @@ proc InspectExportDialog {widget format action} {
 
 proc RunExportDialog {widget format action} {
     global exportDialogResult
-    after 0 [list InspectExportDialog $widget $format $action]
+    after 0 [list ::graphtoolbar::InspectExportDialog $widget $format $action]
     [$widget subwidget exportMenu] invoke [string toupper $format]...
     lassign $exportDialogResult code value options
     if {$code} {return -options $options $value}
@@ -610,7 +618,7 @@ proc RunExportDialog {widget format action} {
 }
 
 
-customMatch approxEqual approxNestedEqual
+customMatch approxEqual ::graphtoolbar::approxNestedEqual
 
 testConstraint isInteractive true
 testConstraint isZoom true
@@ -621,7 +629,7 @@ testConstraint isCross true
 testConstraint isActiveLegend true
 
 
-test renderer-suite-default {make test keeps native rendering for every embedded graph type} \
+test RBC.graphtoolbar.A.1.1 {make test keeps native rendering for every embedded graph type} \
         -constraints rbcNativeSuiteDefault -body {
     set result {}
     foreach type {graph barchart stripchart polar trackgraph} {
@@ -633,13 +641,15 @@ test renderer-suite-default {make test keeps native rendering for every embedded
 } -cleanup {catch {destroy .gtb}} -result {native native native native native}
 
 ### general configuration tests
-rbc::vector create xVec1 yVec1 xVec2 yVec2
+# widgetcommand resolves vector arguments in the widget object namespace.
+# Keep these shared fixtures globally named, as in the original tests.
+rbc::vector create ::xVec1 ::yVec1 ::xVec2 ::yVec2
 xVec1 set {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}
 yVec1 set {26.18 50.46 72.85 93.31 111.86 128.47 143.14 155.85 166.60 175.38}
 xVec2 set {0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0}
 yVec2 set {16.18 60.46 82.85 103.31 121.86 138.47 153.14 165.85 176.60 185.38}
 
-test generalConfiguration-1 {names subcommand} -setup {
+test RBC.graphtoolbar.A.2.1 {names subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -650,7 +660,7 @@ test generalConfiguration-1 {names subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-2 {names subcommand} -setup {
+test RBC.graphtoolbar.A.3.1 {names subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -661,7 +671,7 @@ test generalConfiguration-2 {names subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-3 {names subcommand} -setup {
+test RBC.graphtoolbar.A.4.1 {names subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -crosshairs]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -672,7 +682,7 @@ test generalConfiguration-3 {names subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-4 {subwidget subcommand} -setup {
+test RBC.graphtoolbar.A.5.1 {subwidget subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -683,7 +693,7 @@ test generalConfiguration-4 {subwidget subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-5 {subwidget subcommand} -setup {
+test RBC.graphtoolbar.A.6.1 {subwidget subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -695,7 +705,7 @@ test generalConfiguration-5 {subwidget subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-7 {graph subcommand} -setup {
+test RBC.graphtoolbar.A.7.1 {graph subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -707,7 +717,7 @@ test generalConfiguration-7 {graph subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-8 {widgetcommand subcommand} -setup {
+test RBC.graphtoolbar.A.8.1 {widgetcommand subcommand} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -719,7 +729,7 @@ test generalConfiguration-8 {widgetcommand subcommand} -setup {
     destroy $widget
 }
 
-test generalConfiguration-9 {options configuration} -setup {
+test RBC.graphtoolbar.A.9.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoomboxopts {-linewidth 2}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -730,7 +740,7 @@ test generalConfiguration-9 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-10 {options configuration} -setup {
+test RBC.graphtoolbar.A.10.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
                         -zoommarkopts {-font {Helvetica 10}}]
     grid .gtb -row 0 -column 0 -sticky nsew
@@ -743,7 +753,7 @@ test generalConfiguration-10 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-11 {options configuration} -setup {
+test RBC.graphtoolbar.A.11.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
                         -zoomtitleopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
@@ -755,7 +765,7 @@ test generalConfiguration-11 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-12 {options configuration} -setup {
+test RBC.graphtoolbar.A.12.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400  -crosshairs -crosshairsopts {-color red}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -766,7 +776,7 @@ test generalConfiguration-12 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-13 {options configuration} -setup {
+test RBC.graphtoolbar.A.13.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs\
                         -crosshairsmarkopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
@@ -779,7 +789,7 @@ test generalConfiguration-13 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-14 {options configuration} -setup {
+test RBC.graphtoolbar.A.14.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoommarkboxopts {-fill {}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -790,7 +800,7 @@ test generalConfiguration-14 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-15 {options configuration} -setup {
+test RBC.graphtoolbar.A.15.1 {options configuration} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmarkboxopts {-fill {}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -801,7 +811,7 @@ test generalConfiguration-15 {options configuration} -setup {
     destroy $widget
 }
 
-test generalConfiguration-16 {crosshairs properties and menu stay synchronized} -setup {
+test RBC.graphtoolbar.A.16.1 {crosshairs properties and menu stay synchronized} -setup {
     set widget [graphtoolbar .gtb -crosshairs -crosshairsmode current]
     set menu [$widget subwidget crosshairsMenu]
     set crossMenu $menu.crosshairs
@@ -823,7 +833,7 @@ test generalConfiguration-16 {crosshairs properties and menu stay synchronized} 
     destroy $widget
 }
 
-test generalConfiguration-17 {toolbar crosshair menu button replaces comboboxes} -setup {
+test RBC.graphtoolbar.A.17.1 {toolbar crosshair menu button replaces comboboxes} -setup {
     set widget [graphtoolbar .gtb -crosshairs]
     set button [$widget subwidget crosshairsMenuButton]
     set menu [$widget subwidget crosshairsMenu]
@@ -835,7 +845,7 @@ test generalConfiguration-17 {toolbar crosshair menu button replaces comboboxes}
     destroy $widget
 }
 
-test generalConfiguration-18 {context-menu mode has graph and menu but no visible toolbar controls} -setup {
+test RBC.graphtoolbar.A.18.1 {context-menu mode has graph and menu but no visible toolbar controls} -setup {
     set widget [graphtoolbar .gtb -width 400 -height 400 -controlmode contextmenu -zoom -crosshairs]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
@@ -850,7 +860,7 @@ test generalConfiguration-18 {context-menu mode has graph and menu but no visibl
     destroy $widget
 }
 
-test generalConfiguration-19 {context menu contains only controls for enabled features} -setup {
+test RBC.graphtoolbar.A.19.1 {context menu contains only controls for enabled features} -setup {
     set widgets [list]
 
     foreach {path options} {.ctx0 {} .ctx1 {-zoom} .ctx2 {-crosshairs} .ctx3 {-zoom -crosshairs}} {
@@ -876,7 +886,7 @@ test generalConfiguration-19 {context menu contains only controls for enabled fe
 }
 
 foreach control {toolbar contextmenu} {
-    test generalConfiguration-20-$control {crosshair menus expose representation-specific formats} -setup {
+    test RBC.graphtoolbar.A.20.[incr testCase(20)] {crosshair menus expose representation-specific formats} -setup {
         set widget [graphtoolbar .gtb -width 400 -height 400 -type polar -controlmode $control -crosshairs\
                             -crosshairsmode closest]
         set graph [$widget subwidget graph]
@@ -922,7 +932,7 @@ foreach control {toolbar contextmenu} {
 }
 
 ### interactive preset
-test interactive-1 {preset matches explicit features and defaults to both control surfaces} -body {
+test RBC.graphtoolbar.A.21.1 {preset matches explicit features and defaults to both control surfaces} -body {
     set presetStates {}
     foreach options {{-interactive} {-zoom -pan -zoomwheel -crosshairs -activelegend -scaletoggle {x y}}} {
         set widget [graphtoolbar .gtb {*}$options]
@@ -946,7 +956,7 @@ test interactive-1 {preset matches explicit features and defaults to both contro
 } -result {1 1 1 {x y}}
 
 foreach order {before after} {
-    test interactive-2-$order {explicit dependent options override the preset in either order} -setup {
+    test RBC.graphtoolbar.A.22.[incr testCase(22)] {explicit dependent options override the preset in either order} -setup {
         set options {-scaletoggle x -crosshairsmode current -activelegendmode show-hide -zoomwheelscale 1.5 -zoom}
         if {$order eq {before}} {
             set options [linsert $options 0 -interactive]
@@ -963,7 +973,7 @@ foreach order {before after} {
         destroy $widget
     } -result {x current show-hide 1}
 
-    test interactive-3-$order {empty explicit scale list disables preset scale toggling} -setup {
+    test RBC.graphtoolbar.A.23.[incr testCase(23)] {empty explicit scale list disables preset scale toggling} -setup {
         if {$order eq {before}} {
             set options {-interactive -scaletoggle {}}
         } else {
@@ -977,7 +987,7 @@ foreach order {before after} {
     } -result {}
 }
 
-test interactive-4 {explicit toolbar mode remains available with the preset} -setup {
+test RBC.graphtoolbar.A.24.1 {explicit toolbar mode remains available with the preset} -setup {
     set widget [graphtoolbar .gtb -interactive -controlmode toolbar]
 } -body {
     list [catch {$widget subwidget contextMenu}] [winfo manager [$widget subwidget toolbarFrame]]
@@ -985,7 +995,7 @@ test interactive-4 {explicit toolbar mode remains available with the preset} -se
     destroy $widget
 } -result {1 grid}
 
-test interactive-5 {preset is opt-in and does not suppress dependency errors} -body {
+test RBC.graphtoolbar.A.25.1 {preset is opt-in and does not suppress dependency errors} -body {
     set widget [graphtoolbar .gtb]
     set axes [$widget getAxisActiveScale]
     destroy $widget
@@ -996,7 +1006,7 @@ test interactive-5 {preset is opt-in and does not suppress dependency errors} -b
 
 ### combined control surfaces
 foreach side {top bottom} {
-    test controlModeBoth-1-$side {both surfaces exist and share crosshair settings} -setup {
+    test RBC.graphtoolbar.A.26.[incr testCase(26)] {both surfaces exist and share crosshair settings} -setup {
         set widget [graphtoolbar .gtb -controlmode both -toolbarside $side -zoom -crosshairs]
     } -body {
         set toolbar [$widget subwidget toolbarFrame]
@@ -1019,13 +1029,13 @@ foreach side {top bottom} {
     } -result [list grid [expr {$side eq {top} ? 0 : 1}] 1 1 1 current closest 1]
 }
 
-test activeLegendConfiguration-1 {invalid cycle rejected} -body {
+test RBC.graphtoolbar.A.27.1 {invalid cycle rejected} -body {
     catch {graphtoolbar .gtb -activelegend -activelegendmode invalid}
 } -cleanup {
     catch {destroy .gtb}
 } -result 1
 
-test activeLegendConfiguration-2 {explicit cycle requires active legend} -body {
+test RBC.graphtoolbar.A.28.1 {explicit cycle requires active legend} -body {
     catch {graphtoolbar .gtb -activelegendmode show-hide}
 } -cleanup {
     catch {destroy .gtb}
@@ -1033,7 +1043,7 @@ test activeLegendConfiguration-2 {explicit cycle requires active legend} -body {
 
 ### export controls and dialogs
 foreach mode {toolbar contextmenu} {
-    test export-1-$mode {one export menu exposes all formats} -setup {
+    test RBC.graphtoolbar.A.29.[incr testCase(29)] {one export menu exposes all formats} -setup {
         set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
         pack $widget -fill both -expand yes
         WaitForWindow [$widget subwidget graph]
@@ -1051,7 +1061,7 @@ foreach mode {toolbar contextmenu} {
         list [MenuDescription $menu] $linked $count
     } -cleanup {destroy $widget} -result {{{command {PNG snapshot...}} {command PostScript...} {command SVG...} {command PDF...}} 1 1}
 
-    test export-2-$mode {every format dispatches to its own action} -setup {
+    test RBC.graphtoolbar.A.30.[incr testCase(30)] {every format dispatches to its own action} -setup {
         set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
         pack $widget -fill both -expand yes
         WaitForWindow [$widget subwidget graph]
@@ -1067,7 +1077,7 @@ foreach mode {toolbar contextmenu} {
 
     foreach format {svg pdf} {
         set default [expr {$format eq "pdf"}]
-        test export-3-$mode-$format {embedding defaults, modal grab and cancel cleanup} -setup {
+        test RBC.graphtoolbar.A.31.[incr testCase(31)] {embedding defaults, modal grab and cancel cleanup} -setup {
             set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
             pack $widget -fill both -expand yes
             WaitForWindow [$widget subwidget graph]
@@ -1078,7 +1088,7 @@ foreach mode {toolbar contextmenu} {
                     [namespace eval [info object namespace $widget] {array size ExportData}]
         } -cleanup {destroy $widget} -result [list [list "[string toupper $format] dialog" $default 0 1] $default {} 0]
 
-        test export-4-$mode-$format {Reset reloads configured embedding option} -setup {
+        test RBC.graphtoolbar.A.32.[incr testCase(32)] {Reset reloads configured embedding option} -setup {
             set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
             pack $widget -fill both -expand yes
             WaitForWindow [$widget subwidget graph]
@@ -1088,7 +1098,7 @@ foreach mode {toolbar contextmenu} {
         } -cleanup {destroy $widget} -result [list [expr {!$default}] $default [expr {!$default}]]
 
         foreach setting {no yes} {
-            test export-5-$mode-$format-$setting {Print applies embedding and writes the selected format} -setup {
+            test RBC.graphtoolbar.A.33.[incr testCase(33)] {Print applies embedding and writes the selected format} -setup {
                 set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
                 pack $widget -fill both -expand yes
                 WaitForWindow [$widget subwidget graph]
@@ -1096,7 +1106,7 @@ foreach mode {toolbar contextmenu} {
                 set ::toolbarExportDestination $destination
                 rename ::tk_getSaveFile ::SavedExportGetSaveFile
                 proc ::tk_getSaveFile {args} {
-                    set ::exportSaveOptions $args
+                    set ::graphtoolbar::exportSaveOptions $args
                     return $::toolbarExportDestination
                 }
             } -body {
@@ -1124,7 +1134,7 @@ set titleFont {-font {ArialNarrow 8}}
 
 #### zoom
 
-test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.34.1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
@@ -1158,7 +1168,7 @@ test zoomInteractive-1 {single-stage zoom} -match approxEqual -constraints {isIn
     destroy $widget
 }
 
-test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.35.1 {multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
@@ -1195,7 +1205,7 @@ test zoomInteractive-2 {multi-stage zoom} -match approxEqual -constraints {isInt
     destroy $widget
 }
 
-test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.36.1 {single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
                         -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
@@ -1221,7 +1231,7 @@ test zoomInteractive-3 {single-stage zoom with no title} -constraints {isInterac
     destroy $widget
 }
 
-test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.37.1 {single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
                         {-linewidth 1}]
     pack .gtb -fill both -expand yes
@@ -1247,7 +1257,7 @@ test zoomInteractive-4 {single-stage zoom with no zoom marker} -constraints {isI
     destroy $widget
 }
 
-test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
+test RBC.graphtoolbar.A.38.1 {single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -1281,7 +1291,7 @@ test zoomInteractive-5 {single-stage zoom, check for disabled toolbar during sel
     destroy $widget
 }
 
-test zoomInteractive-6 {single-stage zoom, check marker positioning near the edge of plotting area}\
+test RBC.graphtoolbar.A.39.1 {single-stage zoom, check marker positioning near the edge of plotting area}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -1306,7 +1316,7 @@ test zoomInteractive-6 {single-stage zoom, check marker positioning near the edg
     destroy $widget
 }
 
-test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -match approxEqual\
+test RBC.graphtoolbar.A.40.1 {single-stage zoom, check clamping to visible area} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -1342,7 +1352,7 @@ test zoomInteractive-7 {single-stage zoom, check clamping to visible area} -matc
     destroy $widget
 }
 
-test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
+test RBC.graphtoolbar.A.41.1 {single-stage zoom, no marker box} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -zoommarkboxopts {-fill {} -outline {}}]
@@ -1369,7 +1379,7 @@ test zoomInteractive-8 {single-stage zoom, no marker box} -match approxEqual\
     destroy $widget
 }
 
-test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual\
+test RBC.graphtoolbar.A.42.1 {single-stage zoom with multiple axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -1411,7 +1421,7 @@ test zoomInteractive-9 {single-stage zoom with multiple axes} -match approxEqual
     destroy $widget
 }
 
-test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqual\
+test RBC.graphtoolbar.A.43.1 {single-stage zoom with inverted axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1}]
@@ -1447,7 +1457,7 @@ test zoomInteractive-10 {single-stage zoom with inverted axes} -match approxEqua
 }
 
 
-test zoomInteractive-11 {wheel zoom in and out in plot area} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.44.1 {wheel zoom in and out in plot area} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom in and out in plot area} {*}$titleFont
@@ -1474,7 +1484,7 @@ test zoomInteractive-11 {wheel zoom in and out in plot area} -constraints {isInt
     destroy $widget
 }
 
-test zoomInteractive-12 {wheel over axis scales only current axis} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.45.1 {wheel over axis scales only current axis} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel over axis scales only current axis} {*}$titleFont
@@ -1496,7 +1506,7 @@ test zoomInteractive-12 {wheel over axis scales only current axis} -constraints 
     destroy $widget
 }
 
-test zoomInteractive-13 {wheel zoom includes hidden used axes but not unused axes} -constraints {isInteractive isZoom}\
+test RBC.graphtoolbar.A.46.1 {wheel zoom includes hidden used axes but not unused axes} -constraints {isInteractive isZoom}\
         -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
@@ -1529,7 +1539,7 @@ test zoomInteractive-13 {wheel zoom includes hidden used axes but not unused axe
     destroy $widget
 }
 
-test zoomInteractive-14 {wheel zoom with logarithmic axes in plot area} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.47.1 {wheel zoom with logarithmic axes in plot area} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
@@ -1553,7 +1563,7 @@ test zoomInteractive-14 {wheel zoom with logarithmic axes in plot area} -constra
     destroy $widget
 }
 
-test zoomInteractive-15 {wheel over logarithmic axis scales around logarithmic center}\
+test RBC.graphtoolbar.A.48.1 {wheel over logarithmic axis scales around logarithmic center}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
@@ -1577,7 +1587,7 @@ test zoomInteractive-15 {wheel over logarithmic axis scales around logarithmic c
     destroy $widget
 }
 
-test zoomInteractive-16 {wheel zoom with inverted axes} -constraints {isInteractive isZoom} -setup {
+test RBC.graphtoolbar.A.49.1 {wheel zoom with inverted axes} -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
@@ -1602,7 +1612,7 @@ test zoomInteractive-16 {wheel zoom with inverted axes} -constraints {isInteract
     destroy $widget
 }
 
-test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop}\
+test RBC.graphtoolbar.A.50.1 {each wheel zoom step is reversible with right-click pop}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0]
@@ -1639,7 +1649,7 @@ test zoomInteractive-17 {each wheel zoom step is reversible with right-click pop
     destroy $widget
 }
 
-test zoomInteractive-18 {wheel zoom scales element-mapped axis not installed in a margin}\
+test RBC.graphtoolbar.A.51.1 {wheel zoom scales element-mapped axis not installed in a margin}\
          -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
@@ -1683,7 +1693,7 @@ test zoomInteractive-18 {wheel zoom scales element-mapped axis not installed in 
     destroy $widget
 }
 
-test zoomInteractive-19 {polar zoom box preserves plot aspect and clamps the second corner}\
+test RBC.graphtoolbar.A.52.1 {polar zoom box preserves plot aspect and clamps the second corner}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
                         -zoommark -zoomboxopts {-linewidth 1}]
@@ -1727,7 +1737,7 @@ test zoomInteractive-19 {polar zoom box preserves plot aspect and clamps the sec
     destroy $widget
 }
 
-test zoomInteractive-20 {polar zoom box scales hidden grid axes and multiple visible axes}\
+test RBC.graphtoolbar.A.53.1 {polar zoom box scales hidden grid axes and multiple visible axes}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
                         -zoommark -zoomboxopts {-linewidth 1}]
@@ -1764,7 +1774,7 @@ test zoomInteractive-20 {polar zoom box scales hidden grid axes and multiple vis
     destroy $widget
 }
 
-test zoomInteractive-21 {polar zoom corner markers use polar coordinates}\
+test RBC.graphtoolbar.A.54.1 {polar zoom corner markers use polar coordinates}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
                         -zoommark -coordmark polar -zoommarkopts {-formatx .6g -formaty .6g}]
@@ -1801,7 +1811,7 @@ test zoomInteractive-21 {polar zoom corner markers use polar coordinates}\
     destroy $widget
 }
 
-test zoomInteractive-22 {smith zoom corner markers use automatic normalized impedance coordinates}\
+test RBC.graphtoolbar.A.55.1 {smith zoom corner markers use automatic normalized impedance coordinates}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -zoom\
                         -zoommod {Any-} -zoommark -coordmark auto -zoommarkopts {-formatx .6g -formaty .6g}]
@@ -1841,7 +1851,7 @@ test zoomInteractive-22 {smith zoom corner markers use automatic normalized impe
     destroy $widget
 }
 
-test zoomInteractive-23 {wheel over polar grid axis scales both grid axes}\
+test RBC.graphtoolbar.A.56.1 {wheel over polar grid axis scales both grid axes}\
         -constraints {isInteractive isZoom} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoomwheel\
                         -zoomwheelmod {} -zoomwheelscale 2.0]
@@ -1861,7 +1871,7 @@ test zoomInteractive-23 {wheel over polar grid axis scales both grid axes}\
     destroy $widget
 }
 
-test zoomInteractive-24 {zoom is committed by button release} -match approxEqual -constraints {isInteractive isZoom}\
+test RBC.graphtoolbar.A.57.1 {zoom is committed by button release} -match approxEqual -constraints {isInteractive isZoom}\
         -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
@@ -1888,7 +1898,7 @@ test zoomInteractive-24 {zoom is committed by button release} -match approxEqual
 }
 
 foreach {variant inverted logarithmic} {normal 0 0 inverted 1 0 logarithmic 0 1} {
-    test touchpadZoom-$variant "touchpad zoom: deltas, modifiers and propagation ($variant)"\
+    test RBC.graphtoolbar.A.58.[incr testCase(58)] "touchpad zoom: deltas, modifiers and propagation ($variant)"\
             -constraints {isInteractive isZoom} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelscale 4.0]
         pack $widget -fill both -expand yes
@@ -2004,7 +2014,7 @@ foreach {variant inverted logarithmic} {normal 0 0 inverted 1 0 logarithmic 0 1}
 foreach device {mouse touchpad} {
     foreach selectedAxis {x y} {
         foreach action {retain expire motion-return leave click} {
-            test wheelAxisRetention-$device-$selectedAxis-$action\
+            test RBC.graphtoolbar.A.59.[incr testCase(59)]\
                     "axis scroll retention: $device, $selectedAxis, $action"\
                     -constraints {isInteractive isZoom} -setup {
                 set widget [graphtoolbar .gtb -width 600 -height 450 -zoom -zoomwheel -zoomwheelmod {}\
@@ -2122,7 +2132,7 @@ foreach device {mouse touchpad} {
 
 #### pan
 foreach inverted {no yes} {
-    test panInteractive-15-$inverted {stale motion does not reverse a pan; release removes its tag} \
+    test RBC.graphtoolbar.A.60.[incr testCase(60)] {stale motion does not reverse a pan; release removes its tag} \
             -constraints {isInteractive isPan} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
         pack .gtb -fill both -expand yes
@@ -2162,7 +2172,7 @@ foreach inverted {no yes} {
     } -result {true true 1}
 }
 
-test panInteractive-1 {pan translates linear axes and is reversible} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.61.1 {pan translates linear axes and is reversible} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {pan translates linear axes and is reversible} {*}$titleFont
@@ -2192,7 +2202,7 @@ test panInteractive-1 {pan translates linear axes and is reversible} -constraint
     destroy $widget
 }
 
-test panInteractive-2 {pan translates logarithmic axis in log space} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.62.1 {pan translates logarithmic axis in log space} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {pan translates logarithmic axis in log space} {*}$titleFont
@@ -2217,7 +2227,7 @@ test panInteractive-2 {pan translates logarithmic axis in log space} -constraint
     destroy $widget
 }
 
-test panInteractive-3 {pan follows physical drag with invertxy} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.63.1 {pan follows physical drag with invertxy} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {pan follows physical drag with invertxy} {*}$titleFont
@@ -2243,7 +2253,7 @@ test panInteractive-3 {pan follows physical drag with invertxy} -constraints {is
     destroy $widget
 }
 
-test panInteractive-4 {cancel pan restores view without consuming previous zoom history}\
+test RBC.graphtoolbar.A.64.1 {cancel pan restores view without consuming previous zoom history}\
         -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoommod {Any-}]
     pack .gtb -fill both -expand yes
@@ -2289,7 +2299,7 @@ test panInteractive-4 {cancel pan restores view without consuming previous zoom 
     destroy $widget
 }
 
-test panInteractive-5 {release position completes pan without Motion} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.65.1 {release position completes pan without Motion} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {release position completes pan without Motion} {*}$titleFont
@@ -2314,7 +2324,7 @@ test panInteractive-5 {release position completes pan without Motion} -constrain
     destroy $widget
 }
 
-test panInteractive-6 {pan includes hidden used axes but not unused axes} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.66.1 {pan includes hidden used axes but not unused axes} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {pan includes hidden used axes but not unused axes} {*}$titleFont
@@ -2359,7 +2369,7 @@ test panInteractive-6 {pan includes hidden used axes but not unused axes} -const
     destroy $widget
 }
 
-test panInteractive-7 {returning pan to start is a no-op and removes temporary zoom title}\
+test RBC.graphtoolbar.A.67.1 {returning pan to start is a no-op and removes temporary zoom title}\
         -constraints {isInteractive isPan} -setup {
     # Leave zoom titles disabled while establishing one older history
     # entry, so there is no existing title timer involved in this test.
@@ -2409,7 +2419,7 @@ test panInteractive-7 {returning pan to start is a no-op and removes temporary z
     destroy $widget
 }
 
-test panInteractive-8 {undo pan restores automatic axis limits} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.68.1 {undo pan restores automatic axis limits} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {undo pan restores automatic axis limits} {*}$titleFont
@@ -2439,7 +2449,7 @@ test panInteractive-8 {undo pan restores automatic axis limits} -constraints {is
     destroy $widget
 }
 
-test panInteractive-9 {polar pan includes axes used only by specialized grid} -constraints {isInteractive isPan}\
+test RBC.graphtoolbar.A.69.1 {polar pan includes axes used only by specialized grid} -constraints {isInteractive isPan}\
         -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -pan]
     pack .gtb -fill both -expand yes
@@ -2470,7 +2480,7 @@ test panInteractive-9 {polar pan includes axes used only by specialized grid} -c
     destroy $widget
 }
 
-test panInteractive-10 {completed pan zoom title is temporary} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.70.1 {completed pan zoom title is temporary} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoomtitle]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {completed pan zoom title is temporary} {*}$titleFont
@@ -2501,7 +2511,7 @@ test panInteractive-10 {completed pan zoom title is temporary} -constraints {isI
     destroy $widget
 }
 
-test panInteractive-11 {wheel zoom is ignored during active pan} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.71.1 {wheel zoom is ignored during active pan} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom is ignored during active pan} {*}$titleFont
@@ -2527,7 +2537,7 @@ test panInteractive-11 {wheel zoom is ignored during active pan} -constraints {i
     destroy $widget
 }
 
-test panInteractive-12 {pan stops at linear scroll boundaries without scaling} -constraints {isInteractive isPan}\
+test RBC.graphtoolbar.A.72.1 {pan stops at linear scroll boundaries without scaling} -constraints {isInteractive isPan}\
         -setup {
     proc ::PanScrollCallback12 {first last} {}
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
@@ -2572,7 +2582,7 @@ test panInteractive-12 {pan stops at linear scroll boundaries without scaling} -
     destroy $widget
 }
 
-test panInteractive-13 {log pan stops at scroll boundary without changing ratio} -constraints {isInteractive isPan}\
+test RBC.graphtoolbar.A.73.1 {log pan stops at scroll boundary without changing ratio} -constraints {isInteractive isPan}\
         -setup {
     proc ::PanScrollCallback13 {first last} {}
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
@@ -2604,7 +2614,7 @@ test panInteractive-13 {log pan stops at scroll boundary without changing ratio}
     destroy $widget
 }
 
-test panInteractive-14 {pan uses common scroll constraint for mapped axes} -constraints {isInteractive isPan} -setup {
+test RBC.graphtoolbar.A.74.1 {pan uses common scroll constraint for mapped axes} -constraints {isInteractive isPan} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
     pack .gtb -fill both -expand yes
     set graph [$widget subwidget graph]
@@ -2641,7 +2651,7 @@ test panInteractive-14 {pan uses common scroll constraint for mapped axes} -cons
 }
 
 #### crosshairs
-test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
+test RBC.graphtoolbar.A.75.1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     grid .gtb -row 0 -column 0 -sticky nsew
@@ -2670,7 +2680,7 @@ test crosshairsInteractive-1 {crosshairs with current coordinate marker}\
     destroy $widget
 }
 
-test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}\
+test RBC.graphtoolbar.A.76.1 {crosshairs with closest element coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
@@ -2702,7 +2712,7 @@ test crosshairsInteractive-2 {crosshairs with closest element coordinate marker}
     destroy $widget
 }
 
-test crosshairsInteractive-3 {crosshairs with no marker}\
+test RBC.graphtoolbar.A.77.1 {crosshairs with no marker}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
     pack .gtb -fill both -expand yes
@@ -2730,7 +2740,7 @@ test crosshairsInteractive-3 {crosshairs with no marker}\
     destroy $widget
 }
 
-test crosshairsInteractive-4 {crosshairs with closest element coordinate marker, larger halo}\
+test RBC.graphtoolbar.A.78.1 {crosshairs with closest element coordinate marker, larger halo}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-halo 30 -hide no}]
@@ -2764,7 +2774,7 @@ test crosshairsInteractive-4 {crosshairs with closest element coordinate marker,
     destroy $widget
 }
 
-test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, multiple elements}\
+test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, multiple elements}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -hide no}]
@@ -2804,7 +2814,7 @@ test crosshairsInteractive-5 {crosshairs with closes element coordinate marker, 
     destroy $widget
 }
 
-test crosshairsInteractive-6 {crosshairs with closest element coordinate marker, no interpolaton}\
+test RBC.graphtoolbar.A.80.1 {crosshairs with closest element coordinate marker, no interpolaton}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -hide no}]
@@ -2838,7 +2848,7 @@ test crosshairsInteractive-6 {crosshairs with closest element coordinate marker,
     destroy $widget
 }
 
-test crosshairsInteractive-7 {crosshairs with current coordinate marker, check marker positioning near\
+test RBC.graphtoolbar.A.81.1 {crosshairs with current coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
@@ -2865,7 +2875,7 @@ test crosshairsInteractive-7 {crosshairs with current coordinate marker, check m
     destroy $widget
 }
 
-test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check marker positioning near\
+test RBC.graphtoolbar.A.82.1 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
@@ -2892,7 +2902,7 @@ test crosshairsInteractive-8 {crosshairs with closest coordinate marker, check m
     destroy $widget
 }
 
-test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check marker positioning near\
+test RBC.graphtoolbar.A.83.1 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 30 -hide no}]
@@ -2920,7 +2930,7 @@ test crosshairsInteractive-9 {crosshairs with closest coordinate marker, check m
     destroy $widget
 }
 
-test crosshairsInteractive-10 {crosshairs with current coordinate marker and no marker box}\
+test RBC.graphtoolbar.A.84.1 {crosshairs with current coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkboxopts {-fill {} -outline {}}]
@@ -2950,7 +2960,7 @@ test crosshairsInteractive-10 {crosshairs with current coordinate marker and no 
     destroy $widget
 }
 
-test crosshairsInteractive-11 {crosshairs with closest element coordinate marker and no marker box}\
+test RBC.graphtoolbar.A.85.1 {crosshairs with closest element coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                        -crosshairsmarkboxopts {-fill {} -outline {}}]
@@ -2982,7 +2992,7 @@ test crosshairsInteractive-11 {crosshairs with closest element coordinate marker
     destroy $widget
 }
 
-test crosshairsInteractive-12 {crosshairs with current coordinate marker and inverted axes}\
+test RBC.graphtoolbar.A.86.1 {crosshairs with current coordinate marker and inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
@@ -3012,7 +3022,7 @@ test crosshairsInteractive-12 {crosshairs with current coordinate marker and inv
     destroy $widget
 }
 
-test crosshairsInteractive-13 {current crosshairs marker text with multiple axes}\
+test RBC.graphtoolbar.A.87.1 {current crosshairs marker text with multiple axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3052,7 +3062,7 @@ test crosshairsInteractive-13 {current crosshairs marker text with multiple axes
     destroy $widget
 }
 
-test crosshairsInteractive-14 {current crosshairs marker text with multiple inverted axes}\
+test RBC.graphtoolbar.A.88.1 {current crosshairs marker text with multiple inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3093,7 +3103,7 @@ test crosshairsInteractive-14 {current crosshairs marker text with multiple inve
     destroy $widget
 }
 
-test crosshairsInteractive-15 {closest crosshairs marker text uses element mapped axes}\
+test RBC.graphtoolbar.A.89.1 {closest crosshairs marker text uses element mapped axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
@@ -3133,7 +3143,7 @@ test crosshairsInteractive-15 {closest crosshairs marker text uses element mappe
     destroy $widget
 }
 
-test crosshairsInteractive-16 {closest crosshairs marker text uses element mapped axes when inverted}\
+test RBC.graphtoolbar.A.90.1 {closest crosshairs marker text uses element mapped axes when inverted}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
@@ -3175,7 +3185,7 @@ test crosshairsInteractive-16 {closest crosshairs marker text uses element mappe
     destroy $widget
 }
 
-test crosshairsInteractive-17 {closest marker: ordinary line marker is removed outside halo}\
+test RBC.graphtoolbar.A.91.1 {closest marker: ordinary line marker is removed outside halo}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3200,7 +3210,7 @@ test crosshairsInteractive-17 {closest marker: ordinary line marker is removed o
     destroy .gtb
 } -result {{1 1 1} {}}
 
-test crosshairsInteractive-18 {closest bar marker: bar annotation is removed outside halo}\
+test RBC.graphtoolbar.A.92.1 {closest bar marker: bar annotation is removed outside halo}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3226,7 +3236,7 @@ test crosshairsInteractive-18 {closest bar marker: bar annotation is removed out
     destroy .gtb
 } -result {{1 1 1 0} {}}
 
-test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
+test RBC.graphtoolbar.A.93.1 {closest bar marker: normal bar uses exact rectangle and preferred left placement}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3258,7 +3268,7 @@ test crosshairsInteractive-19 {closest bar marker: normal bar uses exact rectang
     destroy .gtb
 } -result {1 1 1 1 1 1 1 1 1 1 1 1}
 
-test crosshairsInteractive-20 {closest bar marker: uses right side when left has insufficient space}\
+test RBC.graphtoolbar.A.94.1 {closest bar marker: uses right side when left has insufficient space}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3288,7 +3298,7 @@ test crosshairsInteractive-20 {closest bar marker: uses right side when left has
     destroy .gtb
 } -result {1 1 1 1 1 1 1}
 
-test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selected segment}\
+test RBC.graphtoolbar.A.95.1 {closest bar marker: stacked mode marks only selected segment}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3327,7 +3337,7 @@ test crosshairsInteractive-21 {closest bar marker: stacked mode marks only selec
     destroy .gtb
 } -result {1 1 1 1 1}
 
-test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected rendered rectangle}\
+test RBC.graphtoolbar.A.96.1 {closest bar marker: aligned mode uses selected rendered rectangle}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3359,7 +3369,7 @@ test crosshairsInteractive-22 {closest bar marker: aligned mode uses selected re
     destroy .gtb
 } -result {1 1 1 1 1}
 
-test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker for each bar with single no}\
+test RBC.graphtoolbar.A.97.1 {closest bar marker: overlap mode creates marker for each bar with single no}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 500 -single no}]
@@ -3400,7 +3410,7 @@ test crosshairsInteractive-23 {closest bar marker: overlap mode creates marker f
     destroy .gtb
 } -result {1 1 1 1 1 1 1 1}
 
-test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizontal dimension line}\
+test RBC.graphtoolbar.A.98.1 {closest bar marker: inverted graph uses horizontal dimension line}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3433,7 +3443,7 @@ test crosshairsInteractive-24 {closest bar marker: inverted graph uses horizonta
     destroy .gtb
 } -result {1 1 1 1 1}
 
-test crosshairsInteractive-25 {closest marker: mixed bar and line elements select the correct marker type}\
+test RBC.graphtoolbar.A.99.1 {closest marker: mixed bar and line elements select the correct marker type}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3468,7 +3478,7 @@ test crosshairsInteractive-25 {closest marker: mixed bar and line elements selec
     destroy .gtb
 } -result {{BarElement Bar1 1 1 1 0} {LineElement Line1 1 1 0 1}}
 
-test crosshairsInteractive-26 {closest marker: mixed bar and line elements use independent marker types with single no}\
+test RBC.graphtoolbar.A.100.1 {closest marker: mixed bar and line elements use independent marker types with single no}\
         -constraints {isInteractive isCrosshairs}  -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -single no}]
@@ -3517,7 +3527,7 @@ test crosshairsInteractive-26 {closest marker: mixed bar and line elements use i
     destroy .gtb
 } -result {1 1 BarElement LineElement {1 1 1 0} {1 1 0 1}}
 
-test crosshairsInteractive-27 {polar current marker supports axis, complex, and polar representations}\
+test RBC.graphtoolbar.A.101.1 {polar current marker supports axis, complex, and polar representations}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3553,7 +3563,7 @@ test crosshairsInteractive-27 {polar current marker supports axis, complex, and 
     destroy $widget
 }
 
-test crosshairsInteractive-28 {smith current marker supports all coordinate representations}\
+test RBC.graphtoolbar.A.102.1 {smith current marker supports all coordinate representations}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
                         -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3607,7 +3617,7 @@ test crosshairsInteractive-28 {smith current marker supports all coordinate repr
     destroy $widget
 }
 
-test crosshairsInteractive-29 {polar current axis marker includes visible auxiliary axes and hidden grid axes}\
+test RBC.graphtoolbar.A.103.1 {polar current axis marker includes visible auxiliary axes and hidden grid axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode current -coordmark axis -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3638,7 +3648,7 @@ test crosshairsInteractive-29 {polar current axis marker includes visible auxili
     destroy $widget
 }
 
-test crosshairsInteractive-30 {polar closest marker supports axis, complex, and polar representations}\
+test RBC.graphtoolbar.A.104.1 {polar closest marker supports axis, complex, and polar representations}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode closest -crosshairsmarkopts {-formatx .6g -formaty .6g}\
@@ -3673,7 +3683,7 @@ test crosshairsInteractive-30 {polar closest marker supports axis, complex, and 
     destroy $widget
 }
 
-test crosshairsInteractive-31 {smith closest marker supports every available coordinate representation}\
+test RBC.graphtoolbar.A.105.1 {smith closest marker supports every available coordinate representation}\
         -constraints {isInteractive isCrosshairs} -setup {
     vector create gtbSmithGamma -type complex
     gtbSmithGamma set {{0.2 0.4}}
@@ -3713,7 +3723,7 @@ test crosshairsInteractive-31 {smith closest marker supports every available coo
     catch {vector destroy gtbSmithGamma}
 }
 
-test crosshairsInteractive-32 {closest coordinate selector chooses valid default when polar changes to smith}\
+test RBC.graphtoolbar.A.106.1 {closest coordinate selector chooses valid default when polar changes to smith}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode closest]
@@ -3733,7 +3743,7 @@ test crosshairsInteractive-32 {closest coordinate selector chooses valid default
     destroy $widget
 }
 
-test crosshairsInteractive-33 {smith normalized real/imag current marker follows inverted physical orientations}\
+test RBC.graphtoolbar.A.107.1 {smith normalized real/imag current marker follows inverted physical orientations}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
                         -crosshairsmode current -coordmark normalizedimpedanceri\
@@ -3760,7 +3770,7 @@ test crosshairsInteractive-33 {smith normalized real/imag current marker follows
     destroy $widget
 }
 
-test crosshairsInteractive-34 {closest bar marker: long bar keeps arrowheads inside dimension line}\
+test RBC.graphtoolbar.A.108.1 {closest bar marker: long bar keeps arrowheads inside dimension line}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
@@ -3793,7 +3803,7 @@ test crosshairsInteractive-34 {closest bar marker: long bar keeps arrowheads ins
 } -result {both 0 0 1 1}
 
 
-test crosshairsInteractive-35 {closest bar marker: short vertical bar moves arrowheads outside and points inward}\
+test RBC.graphtoolbar.A.109.1 {closest bar marker: short vertical bar moves arrowheads outside and points inward}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
@@ -3835,7 +3845,7 @@ test crosshairsInteractive-35 {closest bar marker: short vertical bar moves arro
 } -result {1 none first first 1 1 1 1 1 1 1 1}
 
 
-test crosshairsInteractive-36 {closest bar marker: short inverted bar moves arrowheads outside and points inward}\
+test RBC.graphtoolbar.A.110.1 {closest bar marker: short inverted bar moves arrowheads outside and points inward}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
@@ -3872,7 +3882,7 @@ test crosshairsInteractive-36 {closest bar marker: short inverted bar moves arro
     destroy .gtb
 } -result {1 none first first 1 1 1 1 1 1 1 1}
 
-test crosshairsInteractive-37 {closest bar marker: outside-arrow threshold follows configured arrow shape}\
+test RBC.graphtoolbar.A.111.1 {closest bar marker: outside-arrow threshold follows configured arrow shape}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type barchart -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
@@ -3907,7 +3917,7 @@ test crosshairsInteractive-37 {closest bar marker: outside-arrow threshold follo
     destroy .gtb
 } -result {1 none 1 first 1 first}
 
-test crosshairsInteractive-38 {closest marker: axis commands format bar values}\
+test RBC.graphtoolbar.A.112.1 {closest marker: axis commands format bar values}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestAxisFormat {prefix widget value} {
         return "${prefix}:${widget}:${value}"
@@ -3935,7 +3945,7 @@ test crosshairsInteractive-38 {closest marker: axis commands format bar values}\
     destroy .gtb
 } -result {Bar1 {x(h)=X label:.gtb.graph:2.34567} {y(v)=Y label:.gtb.graph:7.12549}}
 
-test crosshairsInteractive-39 {closest bar marker: categorical x-axis command replaces raw value}\
+test RBC.graphtoolbar.A.113.1 {closest bar marker: categorical x-axis command replaces raw value}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestCategoryFormat {widget value} {
         set labels [dict create 1 January 2 February 3 March]
@@ -3965,7 +3975,7 @@ test crosshairsInteractive-39 {closest bar marker: categorical x-axis command re
 } -result {x(h)=February y(v)=7.50}
 
 
-test crosshairsInteractive-40 {closest marker: failing axis command falls back to normal formatted value}\
+test RBC.graphtoolbar.A.114.1 {closest marker: failing axis command falls back to normal formatted value}\
         -constraints {isInteractive isCrosshairs} -setup {
     set ::closestAxisFailCalled 0
     proc ::ClosestAxisFailFormat {widget value} {
@@ -4010,7 +4020,7 @@ test crosshairsInteractive-40 {closest marker: failing axis command falls back t
 } -result {x(h)=2.250 y(v)=7.0 1}
 
 
-test crosshairsInteractive-41 {closest marker: formatter follows element mapped axes}\
+test RBC.graphtoolbar.A.115.1 {closest marker: formatter follows element mapped axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestMappedAxisFormat {prefix widget value} {
         return "${prefix}:$value"
@@ -4046,7 +4056,7 @@ test crosshairsInteractive-41 {closest marker: formatter follows element mapped 
 } -result {xAlt(h)=ALT-X:150 yAlt(v)=ALT-Y:1250}
 
 
-test crosshairsInteractive-42 {closest marker: log-axis command receives normal RBC log label}\
+test RBC.graphtoolbar.A.116.1 {closest marker: log-axis command receives normal RBC log label}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestLogAxisFormat {widget value} {
         return "log:$value"
@@ -4073,7 +4083,7 @@ test crosshairsInteractive-42 {closest marker: log-axis command receives normal 
     destroy .gtb
 } -result {x(h)=2.00 y(v)=log:1E2}
 
-test crosshairsInteractive-43 {polar closest axis mode uses mapped axis commands}\
+test RBC.graphtoolbar.A.117.1 {polar closest axis mode uses mapped axis commands}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestPolarAxisFormat {prefix widget value} {
         return "${prefix}:$value"
@@ -4103,7 +4113,7 @@ test crosshairsInteractive-43 {polar closest axis mode uses mapped axis commands
 } -result {Trace1 real(h)=REAL:0.2 imag(v)=IMAG:0.4}
 
 
-test crosshairsInteractive-44 {smith closest axis mode uses mapped axis commands}\
+test RBC.graphtoolbar.A.118.1 {smith closest axis mode uses mapped axis commands}\
         -constraints {isInteractive isCrosshairs} -setup {
     proc ::ClosestSmithAxisFormat {prefix widget value} {
         return "${prefix}:$value"
@@ -4140,7 +4150,7 @@ test crosshairsInteractive-44 {smith closest axis mode uses mapped axis commands
     destroy .gtb
 } -result {Trace1 real(h)=GAMMA-REAL:0.2 imag(v)=GAMMA-IMAG:0.4}
 
-test crosshairsInteractive-45 {closest line marker displays parameter mapping}\
+test RBC.graphtoolbar.A.119.1 {closest line marker displays parameter mapping}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest -crosshairsclosestopts\
                         {-interpolate no -halo 10 -single yes} -crosshairsmarkopts\
@@ -4160,7 +4170,7 @@ test crosshairsInteractive-45 {closest line marker displays parameter mapping}\
     destroy $widget
 }
 
-test crosshairsInteractive-46 {closest marker omits unavailable parameter mapping}\
+test RBC.graphtoolbar.A.120.1 {closest marker omits unavailable parameter mapping}\
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest -crosshairsclosestopts\
                         {-interpolate no -halo 10 -single yes}]
@@ -4185,7 +4195,7 @@ test crosshairsInteractive-46 {closest marker omits unavailable parameter mappin
     destroy $widget
 }
 
-test crosshairsInteractive-47 {smith closest marker displays parameter mapping} \
+test RBC.graphtoolbar.A.121.1 {smith closest marker displays parameter mapping} \
         -constraints {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -crosshairs -crosshairsmode closest\
                         -coordclosestmark gamma -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
@@ -4208,7 +4218,7 @@ test crosshairsInteractive-47 {smith closest marker displays parameter mapping} 
     destroy $widget
 }
 
-test crosshairsInteractive-48 {graphtoolbar crosshair cleanup preserves application markers} -constraints\
+test RBC.graphtoolbar.A.122.1 {graphtoolbar crosshair cleanup preserves application markers} -constraints\
         {isInteractive isCrosshairs} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
@@ -4241,7 +4251,7 @@ test crosshairsInteractive-48 {graphtoolbar crosshair cleanup preserves applicat
 }
 
 foreach invert {0 1} {
-    test crosshairsStreaming-[expr {$invert + 1}]\
+    test RBC.graphtoolbar.A.123.[incr testCase(123)]\
             "current annotation follows stationary pointer during autorange, invertxy=$invert"\
             -constraints {isInteractive isCrosshairs} -setup {
         set savedPointer [winfo pointerxy .]
@@ -4334,7 +4344,7 @@ foreach invert {0 1} {
     } -result {1 1 1 1 1 1 1}
 }
 
-test crosshairsStreaming-3 {closest annotation refreshes with fixed axes and preserves hidden hairs} \
+test RBC.graphtoolbar.A.124.1 {closest annotation refreshes with fixed axes and preserves hidden hairs} \
         -constraints {isInteractive isCrosshairs} -setup {
     set savedPointer [winfo pointerxy .]
     set motionTag GtbStreamingMotionObserver
@@ -4394,7 +4404,7 @@ test crosshairsStreaming-3 {closest annotation refreshes with fixed axes and pre
 } -result {true true true 1 1 1 1}
 
 #### axes
-test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
+test RBC.graphtoolbar.A.125.1 {change of axis scale} -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -scaletoggle all]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {change of axis scale} {*}$titleFont
@@ -4419,7 +4429,7 @@ test axesInteractive-1 {change of axis scale} -constraints {isInteractive isAxes
     destroy $widget
 }
 
-test axesInteractive-2 {polar grid axis cannot be toggled to logarithmic scale}\
+test RBC.graphtoolbar.A.126.1 {polar grid axis cannot be toggled to logarithmic scale}\
         -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -scaletoggle all]
     pack .gtb -fill both -expand yes
@@ -4440,7 +4450,7 @@ test axesInteractive-2 {polar grid axis cannot be toggled to logarithmic scale}\
     destroy $widget
 }
 
-test axesInteractive-3 {polar auxiliary axis can be toggled to logarithmic scale}\
+test RBC.graphtoolbar.A.127.1 {polar auxiliary axis can be toggled to logarithmic scale}\
         -constraints {isInteractive isAxes} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -scaletoggle all]
     pack .gtb -fill both -expand yes
@@ -4462,7 +4472,7 @@ test axesInteractive-3 {polar auxiliary axis can be toggled to logarithmic scale
 }
 
 #### cross-interactions
-test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling during selection}\
+test RBC.graphtoolbar.A.128.1 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
@@ -4492,7 +4502,7 @@ test crossInteractive-1 {single-stage zoom, check crosshairs marking disabling d
     destroy $widget
 }
 
-test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling during selection}\
+test RBC.graphtoolbar.A.129.1 {single-stage zoom, check crosshairs marking disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -crosshairs -crosshairsmode current]
@@ -4522,7 +4532,7 @@ test crossInteractive-2 {single-stage zoom, check crosshairs marking disabling d
     destroy $widget
 }
 
-test crossInteractive-3 {single-stage zoom, check active axis disabling during selection}\
+test RBC.graphtoolbar.A.130.1 {single-stage zoom, check active axis disabling during selection}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
                         -zoomboxopts {-linewidth 1} -scaletoggle all]
@@ -4562,7 +4572,7 @@ test crossInteractive-3 {single-stage zoom, check active axis disabling during s
     destroy $widget
 }
 
-test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in widget pixels}\
+test RBC.graphtoolbar.A.131.1 {wheel zoom redraws current crosshairs marker box in widget pixels}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
@@ -4593,7 +4603,7 @@ test crossInteractive-4 {wheel zoom redraws current crosshairs marker box in wid
     destroy $widget
 }
 
-test crossInteractive-5 {right-click pop redraws current crosshairs marker box in widget pixels}\
+test RBC.graphtoolbar.A.132.1 {right-click pop redraws current crosshairs marker box in widget pixels}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode current]
@@ -4624,7 +4634,7 @@ test crossInteractive-5 {right-click pop redraws current crosshairs marker box i
     destroy $widget
 }
 
-test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
+test RBC.graphtoolbar.A.133.1 {wheel zoom redraws closest crosshairs markers}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
                         -zoomwheelscale 2.0 -crosshairs -crosshairsmode closest\
@@ -4663,7 +4673,7 @@ test crossInteractive-6 {wheel zoom redraws closest crosshairs markers}\
     destroy $widget
 }
 
-test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with inverted axes}\
+test RBC.graphtoolbar.A.134.1 {wheel zoom redraws current crosshairs marker box with inverted axes}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0 -crosshairs\
                         -crosshairsmode current\
@@ -4697,7 +4707,7 @@ test crossInteractive-7 {wheel zoom redraws current crosshairs marker box with i
     destroy $widget
 }
 
-test crossInteractive-8 {closest marker with single no skips element hidden by active legend}\
+test RBC.graphtoolbar.A.135.1 {closest marker with single no skips element hidden by active legend}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
@@ -4759,7 +4769,7 @@ test crossInteractive-8 {closest marker with single no skips element hidden by a
     destroy $widget
 }
 
-test crossInteractive-9 {closest marker with single no handles all elements hidden by active legend}\
+test RBC.graphtoolbar.A.136.1 {closest marker with single no handles all elements hidden by active legend}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 100 -hide no} -activelegend]
@@ -4798,7 +4808,7 @@ test crossInteractive-9 {closest marker with single no handles all elements hidd
     destroy $widget
 }
 
-test crossInteractive-10 {zoom pop restores linear axis with negative limits after logscale toggle}\
+test RBC.graphtoolbar.A.137.1 {zoom pop restores linear axis with negative limits after logscale toggle}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
@@ -4847,7 +4857,7 @@ test crossInteractive-10 {zoom pop restores linear axis with negative limits aft
     destroy $widget
 }
 
-test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggle}\
+test RBC.graphtoolbar.A.138.1 {zoom pop restores logarithmic scale after linear toggle}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
@@ -4889,7 +4899,7 @@ test crossInteractive-11 {zoom pop restores logarithmic scale after linear toggl
     destroy $widget
 }
 
-test crossInteractive-12 {multi-stage zoom restores alternating linear and logarithmic axis states}\
+test RBC.graphtoolbar.A.139.1 {multi-stage zoom restores alternating linear and logarithmic axis states}\
         -match approxEqual -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -scaletoggle all]
     pack .gtb -fill both -expand yes
@@ -4983,7 +4993,7 @@ test crossInteractive-12 {multi-stage zoom restores alternating linear and logar
     destroy $widget
 }
 
-test crossInteractive-13 {zoom B motion passes through plotarea legend without activating it}\
+test RBC.graphtoolbar.A.140.1 {zoom B motion passes through plotarea legend without activating it}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -zoomboxopts {-linewidth 1} -activelegend]
     pack .gtb -fill both -expand yes
@@ -5031,7 +5041,7 @@ test crossInteractive-13 {zoom B motion passes through plotarea legend without a
     destroy $widget
 } -result {1 true 0}
 
-test crossInteractive-14 {releasing zoom drag on plotarea legend completes zoom without toggling legend} \
+test RBC.graphtoolbar.A.141.1 {releasing zoom drag on plotarea legend completes zoom without toggling legend} \
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -activelegend -zoommark -zoomboxopts\
                         {-linewidth 1}]
@@ -5087,7 +5097,7 @@ test crossInteractive-14 {releasing zoom drag on plotarea legend completes zoom 
     destroy $widget
 }
 
-test crossInteractive-15 {plotarea legend remains normally interactive while zoom is waiting for A}\
+test RBC.graphtoolbar.A.142.1 {plotarea legend remains normally interactive while zoom is waiting for A}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -activelegend]
     pack .gtb -fill both -expand yes
@@ -5124,7 +5134,7 @@ test crossInteractive-15 {plotarea legend remains normally interactive while zoo
 
 #### context menu
 foreach control {contextmenu both} {
-    test contextMenuInteractive-1-$control {Previous view menu command restores one zoom level}\
+    test RBC.graphtoolbar.A.143.[incr testCase(143)] {Previous view menu command restores one zoom level}\
             -constraints {isInteractive isZoom} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -zoom -zoommod {Any-}]
         pack .gtb -fill both -expand yes
@@ -5154,7 +5164,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-2-$control {Reset view menu command restores initial view and clears history}\
+    test RBC.graphtoolbar.A.144.[incr testCase(144)] {Reset view menu command restores initial view and clears history}\
             -constraints {isInteractive isZoom} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -zoom -zoommod {Any-}]
         pack .gtb -fill both -expand yes
@@ -5195,7 +5205,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-3-$control {crosshair mode menu switches behaviour and removes stale markers}\
+    test RBC.graphtoolbar.A.145.[incr testCase(145)] {crosshair mode menu switches behaviour and removes stale markers}\
             -constraints {isInteractive isCrosshairs} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -crosshairs -crosshairsmode current]
         pack .gtb -fill both -expand yes
@@ -5237,7 +5247,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-4-$control {right click cancels active zoom without posting context menu}\
+    test RBC.graphtoolbar.A.146.[incr testCase(146)] {right click cancels active zoom without posting context menu}\
             -constraints {isInteractive isZoom} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -zoom -zoommod {Any-}\
                             -zoomboxopts {-linewidth 1}]
@@ -5274,7 +5284,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-5-$control {right click cancels active pan without posting context menu}\
+    test RBC.graphtoolbar.A.147.[incr testCase(147)] {right click cancels active pan without posting context menu}\
             -constraints {isInteractive isPan} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -zoom -pan]
         pack .gtb -fill both -expand yes
@@ -5309,7 +5319,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-6-$control { current to hidden closest does not retain current-mode hairs }\
+    test RBC.graphtoolbar.A.148.[incr testCase(148)] { current to hidden closest does not retain current-mode hairs }\
             -constraints {isInteractive isCrosshairs} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -crosshairs -crosshairsmode current\
                             -crosshairsclosestopts {-interpolate yes -halo 100 -single yes -hide yes}]
@@ -5344,7 +5354,7 @@ foreach control {contextmenu both} {
         destroy $widget
     }
 
-    test contextMenuInteractive-7-$control {graphtoolbar crosshair mode changes preserve application bindtags}\
+    test RBC.graphtoolbar.A.149.[incr testCase(149)] {graphtoolbar crosshair mode changes preserve application bindtags}\
             -constraints {isInteractive isCrosshairs} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -controlmode $control -crosshairs -crosshairsmode current]
         pack .gtb -fill both -expand yes
@@ -5387,7 +5397,7 @@ foreach control {contextmenu both} {
 }
 
 #### active legend
-test activeLegendInteractive-1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
+test RBC.graphtoolbar.A.150.1 {three-state active legend} -constraints {isInteractive isActiveLegend}\
         -setup {
     set widget [graphtoolbar .gtb {*}$winSize -activelegend]
     pack .gtb -fill both -expand yes
@@ -5432,7 +5442,7 @@ foreach {mode expected} {
     show-hide {{0 0 flat} {0 1 sunken} {0 0 flat} {0 1 sunken} {0 0 flat}}
     show-active {{0 0 flat} {1 0 raised} {0 0 flat} {1 0 raised} {0 0 flat}}
 } {
-    test activeLegendInteractive-2-$mode {two-state legend repeats without entering omitted state} \
+    test RBC.graphtoolbar.A.151.[incr testCase(151)] {two-state legend repeats without entering omitted state} \
             -constraints {isInteractive isActiveLegend} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -activelegend -activelegendmode $mode -controlmode both]
         pack $widget -fill both -expand yes
@@ -5457,7 +5467,7 @@ foreach {mode expected} {
     } -cleanup {
         destroy $widget
     } -result [list $expected 1]
-    test activeLegendInteractive-3-$mode {hover remains transient and externally hidden elements recover}\
+    test RBC.graphtoolbar.A.152.[incr testCase(152)] {hover remains transient and externally hidden elements recover}\
             -constraints {isInteractive isActiveLegend} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -activelegend -activelegendmode $mode]
         pack $widget -fill both -expand yes
@@ -5487,11 +5497,11 @@ proc GtbCustomClosest {prefix element x y info} {
 }
 
 foreach control {toolbar contextmenu} {
-    test closestCustom-1-$control {Custom availability, selection and removal} -setup {
+    test RBC.graphtoolbar.A.153.[incr testCase(153)] {Custom availability, selection and removal} -setup {
         set widget [graphtoolbar .gtb -crosshairs -controlmode $control]
     } -body {
         set rejected [catch {$widget configure -coordclosestmark custom}]
-        set prefix [list ::GtbCustomClosest {Bound argument}]
+        set prefix [list ::graphtoolbar::GtbCustomClosest {Bound argument}]
         $widget configure -closestcommand $prefix
         set stored [$widget configure -closestcommand]
         if {$control eq {toolbar}} {
@@ -5518,11 +5528,11 @@ foreach control {toolbar contextmenu} {
 
 foreach type {graph stripchart barchart} {
     foreach invert {no yes} {
-        test closestCustom-2-$type-$invert {Custom receives mapped values and replaces the complete annotation}\
+        test RBC.graphtoolbar.A.154.[incr testCase(154)] {Custom receives mapped values and replaces the complete annotation}\
                 -constraints {isInteractive isCrosshairs} -setup {
             unset -nocomplain ::gtbCustomResult
             set widget [graphtoolbar .gtb -type $type -crosshairs\
-                                -closestcommand [list ::GtbCustomClosest {Selected sample}]\
+                                -closestcommand [list ::graphtoolbar::GtbCustomClosest {Selected sample}]\
                                 -coordclosestmark custom -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
             pack $widget -fill both -expand yes
             set graph [$widget subwidget graph]
@@ -5558,13 +5568,13 @@ foreach {representation grid expectedSystem expectedValues} {
     smith admittance normalizedadmittance {0.5 -0.5}
     smith both normalizedimpedance {1 1}
 } {
-    test closestCustom-3-$representation-$grid {Polar and Smith callbacks receive semantic coordinates}\
+    test RBC.graphtoolbar.A.155.[incr testCase(155)] {Polar and Smith callbacks receive semantic coordinates}\
             -constraints {isInteractive isCrosshairs} -setup {
         unset -nocomplain ::gtbCustomResult
         vector create gtbCustomGamma -type complex
         gtbCustomGamma set {{0.2 0.4}}
         set widget [graphtoolbar .gtb -type polar -representation $representation -smithgrid $grid\
-                    -crosshairs -closestcommand [list ::GtbCustomClosest Smith] -coordclosestmark custom\
+                    -crosshairs -closestcommand [list ::graphtoolbar::GtbCustomClosest Smith] -coordclosestmark custom\
                             -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
         pack $widget -fill both -expand yes
         set graph [$widget subwidget graph]
@@ -5586,9 +5596,9 @@ foreach {representation grid expectedSystem expectedValues} {
     } -result [list custom true $expectedSystem true]
 }
 
-test closestCustom-4 {Callback replacement refreshes without motion; param is metadata; empty text hides markers}\
+test RBC.graphtoolbar.A.156.1 {Callback replacement refreshes without motion; param is metadata; empty text hides markers}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [graphtoolbar .gtb -crosshairs -closestcommand [list ::GtbCustomClosest First] -coordclosestmark custom\
+    set widget [graphtoolbar .gtb -crosshairs -closestcommand [list ::graphtoolbar::GtbCustomClosest First] -coordclosestmark custom\
                         -crosshairsclosestopts {-interpolate no -single yes -halo 20}]
     pack $widget -fill both -expand yes
     set graph [$widget subwidget graph]
@@ -5601,7 +5611,7 @@ test closestCustom-4 {Callback replacement refreshes without motion; param is me
     WaitForWindow $graph
     lassign [$graph transform 5 5] x y
     PlaceGraphPointer $graph $x $y
-    $widget configure -closestcommand [list ::GtbCustomClosest Second]
+    $widget configure -closestcommand [list ::graphtoolbar::GtbCustomClosest Second]
     update idletasks
     lassign $::gtbCustomResult prefix element cx cy info
     set actual [$graph marker cget gtbCrosshairsClosestText -text]
@@ -5620,8 +5630,8 @@ test closestCustom-4 {Callback replacement refreshes without motion; param is me
     unset -nocomplain ::gtbCustomResult
 } -result {1 1 0 0 0}
 
-test closestCustom-5 {Invalid prefixes preserve the configured command} -setup {
-    set prefix [list ::GtbCustomClosest {Keep this prefix}]
+test RBC.graphtoolbar.A.157.1 {Invalid prefixes preserve the configured command} -setup {
+    set prefix [list ::graphtoolbar::GtbCustomClosest {Keep this prefix}]
     set widget [graphtoolbar .gtb -crosshairs -closestcommand $prefix -coordclosestmark custom]
 } -body {
     # A single opening brace is not a valid Tcl list.
@@ -5631,7 +5641,7 @@ test closestCustom-5 {Invalid prefixes preserve the configured command} -setup {
     destroy $widget
 } -result {1 1 custom}
 
-rename ::GtbCustomClosest {}
+rename ::graphtoolbar::GtbCustomClosest {}
 
 foreach {type representation} {
     graph {}
@@ -5640,7 +5650,7 @@ foreach {type representation} {
     polar polar
     polar smith
 } {
-    test closestLabel-1-$type-$representation {built-in closest text uses labels and falls back to element names}\
+    test RBC.graphtoolbar.A.158.[incr testCase(158)] {built-in closest text uses labels and falls back to element names}\
             -setup {
         set widget [graphtoolbar .gtb -type $type -crosshairs]
         set graph [$widget subwidget graph]
@@ -5683,7 +5693,7 @@ foreach {type representation} {
     } -result {}
 }
 
-test closestLabel-2 {custom callbacks retain element names and control their text} -setup {
+test RBC.graphtoolbar.A.159.1 {custom callbacks retain element names and control their text} -setup {
     set widget [graphtoolbar .gtb -crosshairs -closestcommand [list apply {{element x y info} {
             return [list $element [dict get $info name] CUSTOM]
         }}] -coordclosestmark custom]
@@ -5697,7 +5707,7 @@ test closestLabel-2 {custom callbacks retain element names and control their tex
 } -result {Signal Signal CUSTOM}
 
 
-test polarAngleUnits-1 {closest selector and text support radians and degrees} -setup {
+test RBC.graphtoolbar.A.160.1 {closest selector and text support radians and degrees} -setup {
     set widget [graphtoolbar .gtb -type polar -crosshairs -crosshairsmode closest]
     set graph [$widget subwidget graph]
     $graph element create Signal -data {0 -2} -label {}
@@ -5720,7 +5730,7 @@ test polarAngleUnits-1 {closest selector and text support radians and degrees} -
 
 
 foreach type {graph stripchart polar barchart} {
-    test closestErrors-text-$type {closest text formats symmetric errors and absolute bounds} -setup {
+    test RBC.graphtoolbar.A.161.[incr testCase(161)] {closest text formats symmetric errors and absolute bounds} -setup {
         set widget [graphtoolbar .gtb -type $type -crosshairs]
         set graph [$widget subwidget graph]
         $graph element create Signal -x {1} -y {2}
@@ -5740,7 +5750,7 @@ foreach type {graph stripchart polar barchart} {
 # sending Leave/Motion events. Only this object's winfo calls are intercepted.
 foreach location {inside margin covered hidden} {
     foreach mode {current closest} {
-        test crosshairsCleanup-$mode-$location\
+        test RBC.graphtoolbar.A.162.[incr testCase(162)]\
                 {periodic cleanup handles missed events and preserves application markers} -setup {
             set widget [graphtoolbar .gtb -crosshairs -crosshairsmode $mode]
             pack .gtb
@@ -5792,7 +5802,7 @@ foreach location {inside margin covered hidden} {
     }
 }
 
-test crosshairsCleanup-destroy {destroy cancels the independent periodic callback} -setup {
+test RBC.graphtoolbar.A.163.1 {destroy cancels the independent periodic callback} -setup {
     set widget [graphtoolbar .gtb -crosshairs]
     set objectNs [info object namespace $widget]
     set timer [namespace eval $objectNs {set CrosshairsCleanupAfter}]
@@ -5803,7 +5813,7 @@ test crosshairsCleanup-destroy {destroy cancels the independent periodic callbac
     catch {destroy $widget}
 } -result 1
 
-test crosshairsCleanup-disabled {no periodic callback without the crosshairs feature} -setup {
+test RBC.graphtoolbar.A.164.1 {no periodic callback without the crosshairs feature} -setup {
     set widget [graphtoolbar .gtb]
     set objectNs [info object namespace $widget]
 } -body {
@@ -5814,7 +5824,7 @@ test crosshairsCleanup-disabled {no periodic callback without the crosshairs fea
 
 #### trackgraph interactions
 proc SetupTrackToolbar {args} {
-    global winSize
+    variable winSize
     set widget [graphtoolbar .gtb {*}$winSize -type trackgraph -interactive -zoommod {Any-}\
                     -zoomwheelmod {} -zoomwheelscale 2.0 {*}$args]
     set graph [$widget subwidget graph]
@@ -5841,7 +5851,7 @@ proc TrackToolbarPoint {graph track {xFraction 0.5} {yFraction 0.5}} {
 }
 
 foreach mode {toolbar contextmenu both} {
-    test trackToolbar-controls-$mode {trackgraph supports both control surfaces} -constraints isInteractive -setup {
+    test RBC.graphtoolbar.A.165.[incr testCase(165)] {trackgraph supports both control surfaces} -constraints isInteractive -setup {
         lassign [SetupTrackToolbar -controlmode $mode] widget graph objectNs
     } -body {
         list [winfo class $graph] [$graph track names] [lsort [$widget getAxisActiveScale]]\
@@ -5851,7 +5861,7 @@ foreach mode {toolbar contextmenu both} {
     } -result [list Trackgraph {upper lower} {amps samples volts x x2 y y2} [expr {$mode ne {contextmenu}}]]
 }
 
-test trackToolbar-zoom-1 {box selection keeps its starting row and maps all overlays to it}\
+test RBC.graphtoolbar.A.166.1 {box selection keeps its starting row and maps all overlays to it}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar -zoommark] widget graph objectNs
 } -body {
@@ -5875,7 +5885,7 @@ test trackToolbar-zoom-1 {box selection keeps its starting row and maps all over
     destroy $widget
 } -result {1 true {-10.0 10.0} 1 0}
 
-test trackToolbar-wheel-1 {wheel changes shared X axes and only the pointed row's Y axes}\
+test RBC.graphtoolbar.A.167.1 {wheel changes shared X axes and only the pointed row's Y axes}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
@@ -5891,7 +5901,7 @@ test trackToolbar-wheel-1 {wheel changes shared X axes and only the pointed row'
     destroy $widget
 } -result {true {-1.0 1.0} 1}
 
-test trackToolbar-pan-1 {pan keeps the starting row across row boundaries; undo survives reordering}\
+test RBC.graphtoolbar.A.168.1 {pan keeps the starting row across row boundaries; undo survives reordering}\
         -constraints {isInteractive isPan} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
@@ -5912,7 +5922,7 @@ test trackToolbar-pan-1 {pan keeps the starting row across row boundaries; undo 
     destroy $widget
 } -result {1 {0.0 10.0} {0.0 100.0} {-1.0 1.0} {-20.0 20.0} {lower upper} 0}
 
-test trackToolbar-gap-1 {separator gaps ignore navigation and clear coordinate annotations}\
+test RBC.graphtoolbar.A.169.1 {separator gaps ignore navigation and clear coordinate annotations}\
         -constraints {isInteractive isZoom isPan isCrosshairs} -setup {
     lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
 } -body {
@@ -5935,7 +5945,7 @@ test trackToolbar-gap-1 {separator gaps ignore navigation and clear coordinate a
 } -result {1 false 0 {A 0} {0.0 10.0}}
 
 foreach gesture {zoom pan} {
-    test trackToolbar-cancel-$gesture {row structure changes cancel gestures and restore controls}\
+    test RBC.graphtoolbar.A.170.[incr testCase(170)] {row structure changes cancel gestures and restore controls}\
             -constraints {isInteractive isZoom isPan} -setup {
         lassign [SetupTrackToolbar -zoommark] widget graph objectNs
         lassign [TrackToolbarPoint $graph upper] x y
@@ -5963,7 +5973,7 @@ foreach gesture {zoom pan} {
     } -result {{0.0 10.0} {-1.0 1.0} 0 0 1 1}
 }
 
-test trackToolbar-history-1 {undo skips an axis deleted after navigation}\
+test RBC.graphtoolbar.A.171.1 {undo skips an axis deleted after navigation}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
@@ -5979,7 +5989,7 @@ test trackToolbar-history-1 {undo skips an axis deleted after navigation}\
     destroy $widget
 } -result {{0.0 10.0} {-10.0 10.0} 0}
 
-test trackToolbar-readout-1 {current readout follows rows, including hidden owned axes}\
+test RBC.graphtoolbar.A.172.1 {current readout follows rows, including hidden owned axes}\
         -constraints {isInteractive isCrosshairs} -setup {
     lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
     $graph axis configure amps -hide yes
@@ -5999,7 +6009,7 @@ test trackToolbar-readout-1 {current readout follows rows, including hidden owne
     destroy $widget
 } -result {1 upper upper 1 lower lower}
 
-test trackToolbar-closest-1 {closest markers stay with the selected element's track}\
+test RBC.graphtoolbar.A.173.1 {closest markers stay with the selected element's track}\
         -constraints {isInteractive isCrosshairs} -setup {
     lassign [SetupTrackToolbar -crosshairsmode closest] widget graph objectNs
 } -body {
@@ -6017,7 +6027,7 @@ test trackToolbar-closest-1 {closest markers stay with the selected element's tr
     destroy $widget
 } -result {1 1}
 
-test trackToolbar-separator-1 {native separator dragging remains available alongside toolbar gestures}\
+test RBC.graphtoolbar.A.174.1 {native separator dragging remains available alongside toolbar gestures}\
         -constraints {isInteractive isZoom isPan} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
@@ -6035,7 +6045,7 @@ test trackToolbar-separator-1 {native separator dragging remains available along
     destroy $widget
 } -result {1 {0.0 10.0} {-1.0 1.0} {A 0} 0}
 
-test trackToolbar-xor-1 {track XOR zoom outlines use the clipped redraw path}\
+test RBC.graphtoolbar.A.175.1 {track XOR zoom outlines use the clipped redraw path}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
 } -body {
@@ -6052,7 +6062,7 @@ test trackToolbar-xor-1 {track XOR zoom outlines use the clipped redraw path}\
 } -cleanup {destroy $widget} -result {yes 1 0}
 
 foreach descending {0 1} {
-    test trackToolbar-logwheel-$descending {wheel respects logarithmic and descending local Y transforms}\
+    test RBC.graphtoolbar.A.176.[incr testCase(176)] {wheel respects logarithmic and descending local Y transforms}\
             -constraints {isInteractive isZoom} -setup {
         lassign [SetupTrackToolbar] widget graph objectNs
         $graph axis configure amps -min 1 -max 100 -logscale yes -descending $descending
@@ -6067,7 +6077,7 @@ foreach descending {0 1} {
     } -result {true {-1.0 1.0}}
 }
 
-test trackToolbar-ownedaxes-1 {all owned Y axes participate, including an unused hidden axis, and undo restores them}\
+test RBC.graphtoolbar.A.177.1 {all owned Y axes participate, including an unused hidden axis, and undo restores them}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph axis create extra -min 20 -max 40 -hide yes -loose no
@@ -6083,7 +6093,7 @@ test trackToolbar-ownedaxes-1 {all owned Y axes participate, including an unused
     destroy $widget
 } -result {1 {20.0 40.0} {-1.0 1.0} {-10.0 10.0}}
 
-test trackToolbar-empty-1 {empty rows support X navigation without coordinate markers or box zoom}\
+test RBC.graphtoolbar.A.178.1 {empty rows support X navigation without coordinate markers or box zoom}\
         -constraints {isInteractive isZoom isCrosshairs} -setup {
     lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
     $graph track create empty
@@ -6102,7 +6112,7 @@ test trackToolbar-empty-1 {empty rows support X navigation without coordinate ma
     destroy $widget
 } -result {0 {A 1} 1 {-1.0 1.0} {-10.0 10.0}}
 
-test trackToolbar-defaultaxis-1 {zoom title and overlays work when a track owns the built-in Y axis}\
+test RBC.graphtoolbar.A.179.1 {zoom title and overlays work when a track owns the built-in Y axis}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar -zoomtitle -zoommark] widget graph objectNs
     $graph element delete voltage
@@ -6121,7 +6131,7 @@ test trackToolbar-defaultaxis-1 {zoom title and overlays work when a track owns 
     destroy $widget
 } -result {upper 1 {-10.0 10.0}}
 
-test trackToolbar-legend-1 {global active legend controls the selected track's element without starting zoom}\
+test RBC.graphtoolbar.A.180.1 {global active legend controls the selected track's element without starting zoom}\
         -constraints {isInteractive isZoom isActiveLegend} -setup {
     lassign [SetupTrackToolbar -activelegendmode show-hide] widget graph objectNs
 } -body {
@@ -6135,7 +6145,7 @@ test trackToolbar-legend-1 {global active legend controls the selected track's e
     destroy $widget
 } -result {1 0 {A 0}}
 
-test trackToolbar-axis-1 {Y-axis wheel and scale toggle affect exactly the pointed track axis}\
+test RBC.graphtoolbar.A.181.1 {Y-axis wheel and scale toggle affect exactly the pointed track axis}\
         -constraints {isInteractive isZoom isAxes} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph axis configure amps -min 1 -max 100 -loose no
@@ -6178,7 +6188,7 @@ proc ToolbarLocalLegendPoint {graph track element} {
 }
 
 foreach mode {toolbar contextmenu both} {
-    test trackToolbar-locallegend-$mode {local active legends work without starting navigation}\
+    test RBC.graphtoolbar.A.182.[incr testCase(182)] {local active legends work without starting navigation}\
             -constraints {isInteractive isActiveLegend isZoom isPan} -setup {
         lassign [SetupTrackToolbar -controlmode $mode -activelegendmode show-hide] widget graph objectNs
         $graph legend configure -hide yes
@@ -6198,7 +6208,7 @@ foreach mode {toolbar contextmenu both} {
     } -cleanup {destroy $widget} -result {1 0 0 false {A 0}}
 }
 
-test trackToolbar-locallegend-new {tracks added after construction receive bindings without a crosshair dependency}\
+test RBC.graphtoolbar.A.183.1 {tracks added after construction receive bindings without a crosshair dependency}\
         -constraints {isInteractive isActiveLegend} -setup {
     set widget [graphtoolbar .gtb -type trackgraph -activelegend -activelegendmode show-hide]
     set graph [$widget subwidget graph]
@@ -6216,7 +6226,7 @@ test trackToolbar-locallegend-new {tracks added after construction receive bindi
     $graph element cget later -hideplot
 } -cleanup {destroy $widget} -result 1
 
-test trackToolbar-locallegend-custom {custom local bindings survive synchronization and track reordering}\
+test RBC.graphtoolbar.A.184.1 {custom local bindings survive synchronization and track reordering}\
         -constraints {isInteractive isActiveLegend} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph track legend upper configure -hide no
@@ -6228,7 +6238,7 @@ test trackToolbar-locallegend-custom {custom local bindings survive synchronizat
         [expr {![catch {$graph track legend lower bind all <ButtonPress-1>}]}]
 } -cleanup {destroy $widget} -result {{set ::customLocalLegend yes} 1}
 
-test trackToolbar-locallegend-recreate {deleting and recreating a track does not retain obsolete toolbar bindings}\
+test RBC.graphtoolbar.A.185.1 {deleting and recreating a track does not retain obsolete toolbar bindings}\
         -constraints {isInteractive isActiveLegend} -setup {
     lassign [SetupTrackToolbar -activelegendmode show-hide] widget graph objectNs
     $graph element delete voltage
@@ -6246,7 +6256,7 @@ test trackToolbar-locallegend-recreate {deleting and recreating a track does not
 } -cleanup {destroy $widget} -result 1
 
 
-test trackToolbar-locallegend-readout {coordinate markers do not cover local legend controls}\
+test RBC.graphtoolbar.A.186.1 {coordinate markers do not cover local legend controls}\
         -constraints {isInteractive isCrosshairs} -setup {
     lassign [SetupTrackToolbar -crosshairsmode current] widget graph objectNs
     $graph track legend upper configure -hide no
@@ -6258,7 +6268,7 @@ test trackToolbar-locallegend-readout {coordinate markers do not cover local leg
 } -cleanup {destroy $widget} -result 0
 
 
-test trackToolbar-inverted-wheel {wheel selects a column and scales shared vertical X axes} \
+test RBC.graphtoolbar.A.187.1 {wheel selects a column and scales shared vertical X axes} \
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph configure -invertxy yes
@@ -6272,7 +6282,7 @@ test trackToolbar-inverted-wheel {wheel selects a column and scales shared verti
         {*}[$graph axis limits amps]] $expected] [$graph axis limits volts]
 } -cleanup {destroy $widget} -result {true {-1.0 1.0}}
 
-test trackToolbar-inverted-zoom {box zoom clamps to the starting column} \
+test RBC.graphtoolbar.A.188.1 {box zoom clamps to the starting column} \
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar -zoommark] widget graph objectNs
     $graph configure -invertxy yes
@@ -6294,7 +6304,7 @@ test trackToolbar-inverted-zoom {box zoom clamps to the starting column} \
 } -cleanup {destroy $widget} -result {1 true {-10.0 10.0}}
 
 foreach mode {current closest} {
-    test trackToolbar-inverted-readout-$mode {coordinate annotations use the pointed column} \
+    test RBC.graphtoolbar.A.189.[incr testCase(189)] {coordinate annotations use the pointed column} \
             -constraints {isInteractive isCrosshairs} -setup {
         lassign [SetupTrackToolbar -crosshairsmode $mode] widget graph objectNs
         $graph configure -invertxy yes
@@ -6316,7 +6326,7 @@ foreach mode {current closest} {
     } -cleanup {destroy $widget} -result {upper lower}
 }
 
-test trackToolbar-inverted-pan {pan keeps the starting row across row boundaries; undo survives reordering}\
+test RBC.graphtoolbar.A.190.1 {pan keeps the starting row across row boundaries; undo survives reordering}\
         -constraints {isInteractive isPan} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph configure -invertxy yes
@@ -6340,7 +6350,7 @@ test trackToolbar-inverted-pan {pan keeps the starting row across row boundaries
 } -result {1 {0.0 10.0} {0.0 100.0} {-1.0 1.0} {-20.0 20.0} {lower upper} 0}
 
 foreach gesture {zoom pan} {
-    test trackToolbar-inverted-cancel-$gesture {row structure changes cancel gestures and restore controls}\
+    test RBC.graphtoolbar.A.191.[incr testCase(191)] {row structure changes cancel gestures and restore controls}\
             -constraints {isInteractive isZoom isPan} -setup {
         lassign [SetupTrackToolbar -zoommark] widget graph objectNs
         lassign [TrackToolbarPoint $graph upper] x y
@@ -6369,7 +6379,7 @@ foreach gesture {zoom pan} {
 }
 
 foreach gesture {zoom pan} {
-    test trackToolbar-scroll-cancel-$gesture {scrolling the list cancels gestures tied to old track pixels}\
+    test RBC.graphtoolbar.A.192.[incr testCase(192)] {scrolling the list cancels gestures tied to old track pixels}\
             -constraints {isInteractive isZoom isPan} -setup {
         lassign [SetupTrackToolbar -zoommark] widget graph objectNs
         $graph configure -tracklayout scroll
@@ -6394,4 +6404,6 @@ foreach gesture {zoom pan} {
     } -cleanup {destroy $widget} -result {{0.0 10.0} {-1.0 1.0} 0 0}
 }
 
+rbc::vector destroy ::xVec1 ::yVec1 ::xVec2 ::yVec2
 cleanupTests
+}

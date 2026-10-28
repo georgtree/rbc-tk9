@@ -533,7 +533,7 @@ namespace eval stripchart.marker {
 		destroy .stripchart1
 	} -result {0}
 
-    test RBC.stripchart.marker.configure.polygon.A.rollback.1 {
+    test RBC.stripchart.marker.configure.polygon.A.9.1 {
         polygon marker configuration is atomic
     } -setup {
         stripchart .stripchart1

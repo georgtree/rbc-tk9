@@ -1,5 +1,6 @@
 # SVG repeating fills. See license.terms for details.
-package provide graph.svg
+###Package Definition
+package provide graph.svg.patterns
 
 package require rbc
 namespace import rbc::*
@@ -8,7 +9,8 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.svg.patterns {
-
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 6 0}
     proc Create {{kind graph}} {
         ::rbc::$kind .pattern -width 400 -height 300
         .pattern axis configure x -min -10 -max 10 -loose no
@@ -38,7 +40,7 @@ namespace eval graph.svg.patterns {
     }
 
     foreach kind {graph polar} {
-        test svgPattern-1-$kind {stipple areas preserve both colors and explicit pixel coordinates} -setup {
+        test RBC.graph.svg.patterns.A.1.[incr testCase(1)] {stipple areas preserve both colors and explicit pixel coordinates} -setup {
             Create $kind
             Area
         } -body {
@@ -54,7 +56,7 @@ namespace eval graph.svg.patterns {
         } -result {1 1 1 1 1}
     }
 
-    test svgPattern-2 {transparent gaps and stipple origin survive remapping; solid opacity does not affect stipples}\
+    test RBC.graph.svg.patterns.A.2.1 {transparent gaps and stipple origin survive remapping; solid opacity does not affect stipples}\
                 -setup {
         Create
         Area
@@ -69,7 +71,7 @@ namespace eval graph.svg.patterns {
         destroy .pattern
     } -result {1 1 1}
 
-    test svgPattern-3 {photo tiles take precedence, retain alpha, and update without stale data} -setup {
+    test RBC.graph.svg.patterns.A.3.1 {photo tiles take precedence, retain alpha, and update without stale data} -setup {
         set tile {}
         set decoded {}
         Create
@@ -101,7 +103,7 @@ namespace eval graph.svg.patterns {
         }
     } -result {2 2 {0 128 0 128} 1 1 {255 0 255}}
 
-    test svgPattern-4 {tile phase includes the graph placement in its toplevel} -setup {
+    test RBC.graph.svg.patterns.A.4.1 {tile phase includes the graph placement in its toplevel} -setup {
         set tile {}
         Create
         Area
@@ -118,7 +120,7 @@ namespace eval graph.svg.patterns {
         if {$tile ne {}} { image delete $tile }
     } -result 1
 
-    test svgPattern-5 {bar and legend stipples use separate pattern definitions} -setup {
+    test RBC.graph.svg.patterns.A.5.1 {bar and legend stipples use separate pattern definitions} -setup {
         Create barchart
         .pattern legend configure -hide no
         .pattern element create bars -data {-5 2 0 6 5 4} -foreground #112233 -background #445566 -stipple gray50\
@@ -139,7 +141,7 @@ namespace eval graph.svg.patterns {
         foreground-only #112233 {} {#112233}
         opaque #112233 #445566 {#112233 #445566}
     } {
-        test svgPattern-5-$name {bar and legend stipples preserve transparent gaps and color roles} -setup {
+        test RBC.graph.svg.patterns.A.6.[incr testCase(6)] {bar and legend stipples preserve transparent gaps and color roles} -setup {
             Create barchart
             .pattern legend configure -hide no
             .pattern element create bars -data {-5 2 0 6 5 4} -foreground $foreground \
@@ -165,7 +167,7 @@ namespace eval graph.svg.patterns {
         } -result {2 1 1 1 1}
     }
 
-    test svgPattern-6 {polygon marker stipples preserve foreground and background} -setup {
+    test RBC.graph.svg.patterns.A.7.1 {polygon marker stipples preserve foreground and background} -setup {
         Create
         .pattern marker create polygon -coords {-5 -5 -5 5 5 5 5 -5} -fill {#112233 #445566} -outline {}\
                 -stipple gray75
@@ -175,6 +177,6 @@ namespace eval graph.svg.patterns {
     } -cleanup {
         destroy .pattern
     } -result {1 1}
-}
 
 cleanupTests
+}

@@ -1,9 +1,16 @@
 # Axis change notifications. See license.terms for details.
-package require rbc
-package require tcltest
+###Package Definition
+package provide graph.axis.changed
 
-namespace eval ::rbcAxisChangedTest {
-    namespace import ::tcltest::*
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.axis.changed {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     variable changes {}
     variable limits {}
     variable states {}
@@ -34,8 +41,8 @@ namespace eval ::rbcAxisChangedTest {
         ::rbc::$type .axisChanged -width 400 -height 300
         .axisChanged axis configure x -min 1 -max 100 -loose no
         .axisChanged axis configure y -min 0 -max 10 -loose no
-        bind .axisChanged <<RbcAxisChanged>> [list ::rbcAxisChangedTest::Record changes %W %d]
-        bind .axisChanged <<RbcAxisLimitsChanged>> [list ::rbcAxisChangedTest::Record limits %W %d]
+        bind .axisChanged <<RbcAxisChanged>> [list ::graph.axis.changed::Record changes %W %d]
+        bind .axisChanged <<RbcAxisLimitsChanged>> [list ::graph.axis.changed::Record limits %W %d]
         Clear
         pack .axisChanged
         update
@@ -49,7 +56,7 @@ namespace eval ::rbcAxisChangedTest {
     }
 
     foreach type {graph barchart stripchart polar} {
-        test axisChanged-1-$type {initial display announces initialized axes} -setup {
+        test RBC.graph.axis.changed.A.1.[incr testCase(1)] {initial display announces initialized axes} -setup {
             Create $type
         } -body {
             list $changes $limits [dict get $states x] [dict get $states y]
@@ -57,7 +64,7 @@ namespace eval ::rbcAxisChangedTest {
             Cleanup
         } -result {{{x x2 y y2}} {{x x2 y y2}} {1.0 100.0} {0.0 10.0}}
 
-        test axisChanged-2-$type {changes coalesce and handlers can read final limits} -setup {
+        test RBC.graph.axis.changed.A.2.[incr testCase(2)] {changes coalesce and handlers can read final limits} -setup {
             Create $type
             Clear
         } -body {
@@ -80,7 +87,7 @@ namespace eval ::rbcAxisChangedTest {
         descending {-descending yes}
         hidden {-hide yes}
     } {
-        test axisChanged-3-$name {configuration notifies even when numeric limits stay fixed} -setup {
+        test RBC.graph.axis.changed.A.3.[incr testCase(3)] {configuration notifies even when numeric limits stay fixed} -setup {
             Create
             Clear
         } -body {
@@ -92,7 +99,7 @@ namespace eval ::rbcAxisChangedTest {
         } -result {x {}}
     }
 
-    test axisChanged-4 {queries and unchanged data bounds do not notify} -setup {
+    test RBC.graph.axis.changed.A.4.1 {queries and unchanged data bounds do not notify} -setup {
         Create
         .axisChanged element create signal -data {2 3 4 5} -symbol none
         update
@@ -111,7 +118,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {{} {}}
 
-    test axisChanged-5 {reapplying configuration does not report a limits change} -setup {
+    test RBC.graph.axis.changed.A.5.1 {reapplying configuration does not report a limits change} -setup {
         Create
         Clear
     } -body {
@@ -122,7 +129,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {x {}}
 
-    test axisChanged-6 {failed configuration produces no notification} -setup {
+    test RBC.graph.axis.changed.A.6.1 {failed configuration produces no notification} -setup {
         Create
         Clear
     } -body {
@@ -133,7 +140,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {1 {} {} {}}
 
-    test axisChanged-7 {vector autoscaling notifies while a limits query preserves the display baseline} -setup {
+    test RBC.graph.axis.changed.A.7.1 {vector autoscaling notifies while a limits query preserves the display baseline} -setup {
         Create
         ::rbc::vector create ::axisChangedY
         ::axisChangedY set {2 4}
@@ -151,7 +158,7 @@ namespace eval ::rbcAxisChangedTest {
         ::rbc::vector destroy ::axisChangedY
     } -result {y y 1}
 
-    test axisChanged-8 {returning to displayed limits before redraw only reports configuration} -setup {
+    test RBC.graph.axis.changed.A.8.1 {returning to displayed limits before redraw only reports configuration} -setup {
         Create
         Clear
     } -body {
@@ -164,7 +171,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {x {}}
 
-    test axisChanged-9 {axis names with spaces remain single list elements} -setup {
+    test RBC.graph.axis.changed.A.9.1 {axis names with spaces remain single list elements} -setup {
         Create
         .axisChanged axis create {extra axis} -min 0 -max 10
         update
@@ -177,7 +184,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {{{{extra axis}}} {{{extra axis}}}}
 
-    test axisChanged-10 {deleted axes are excluded from pending notifications} -setup {
+    test RBC.graph.axis.changed.A.10.1 {deleted axes are excluded from pending notifications} -setup {
         Create
         .axisChanged axis create temporary
         update
@@ -191,7 +198,7 @@ namespace eval ::rbcAxisChangedTest {
         Cleanup
     } -result {{} {}}
 
-    test axisChanged-11 {temporary export and snapshot layouts do not consume pending axis changes} -setup {
+    test RBC.graph.axis.changed.A.11.1 {temporary export and snapshot layouts do not consume pending axis changes} -setup {
         Create
         set photo [image create photo]
         Clear
@@ -207,7 +214,7 @@ namespace eval ::rbcAxisChangedTest {
         image delete $photo
     } -result {{{} {}} x x}
 
-    test axisChanged-12 {destroyed graphs do not receive queued events} -setup {
+    test RBC.graph.axis.changed.A.12.1 {destroyed graphs do not receive queued events} -setup {
         Create
         Clear
     } -body {
@@ -230,13 +237,13 @@ namespace eval ::rbcAxisChangedTest {
         }
     }
 
-    test axisChanged-13 {an event handler can synchronize another graph without synchronous reentry} -setup {
+    test RBC.graph.axis.changed.A.13.1 {an event handler can synchronize another graph without synchronous reentry} -setup {
         Create
         ::rbc::graph .axisFollower -width 400 -height 300
         pack .axisFollower
         .axisFollower axis configure x -min 1 -max 100 -loose no
         update
-        bind .axisChanged <<RbcAxisLimitsChanged>> +[list ::rbcAxisChangedTest::Follow %W .axisFollower %d]
+        bind .axisChanged <<RbcAxisLimitsChanged>> +[list ::graph.axis.changed::Follow %W .axisFollower %d]
         Clear
     } -body {
         .axisChanged axis configure x -min 2 -max 20
@@ -245,6 +252,5 @@ namespace eval ::rbcAxisChangedTest {
     } -cleanup {
         Cleanup
     } -result {x x {2.0 20.0}}
-}
-namespace delete ::rbcAxisChangedTest
 ::tcltest::cleanupTests
+}

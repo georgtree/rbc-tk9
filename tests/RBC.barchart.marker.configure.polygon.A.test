@@ -533,7 +533,7 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {0}
 
-    test RBC.barchart.marker.configure.polygon.A.rollback.1 {
+    test RBC.barchart.marker.configure.polygon.A.9.1 {
         polygon marker configuration is atomic
     } -setup {
         barchart .barchart1

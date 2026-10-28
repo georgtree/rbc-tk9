@@ -1,13 +1,19 @@
+###Package Definition
+package provide graph.destroy.cursor
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval graphCursorDestroy {
-    namespace import ::tcltest::*
-
+namespace eval graph.destroy.cursor {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0}
     foreach kind {graph barchart stripchart polar} {
         foreach mapped {0 1} {
             foreach deletion {command interpreter} {
-                test cursorDestroy-$kind-$mapped-$deletion {cursor remains valid when teardown realizes an unmapped graph} -setup {
+                test RBC.graph.destroy.cursor.A.1.[incr testCase(1)] {cursor remains valid when teardown realizes an unmapped graph} -setup {
                     interp create cursorChild
                     interp eval cursorChild [list set auto_path $::auto_path]
                     interp eval cursorChild {package require rbc}

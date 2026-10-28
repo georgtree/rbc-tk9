@@ -1,10 +1,17 @@
 # Element value-label command prefixes, ownership and output.
 # See license.terms for details.
-package require rbc
-package require tcltest
-namespace import ::tcltest::*
+###Package Definition
+package provide graph.element.valuecommand
 
-namespace eval ::valuecommandTests {
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element.valuecommand {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0 4 0 5 0}
     variable calls {}
 
     proc Format {tag graph element index x y} {
@@ -36,11 +43,11 @@ namespace eval ::valuecommandTests {
     }
 
     foreach kind {graph stripchart barchart polar} {
-        test valuecommand-1-$kind {element and pen command options validate and roll back} -setup {
+        test RBC.graph.element.valuecommand.A.1.[incr testCase(1)] {element and pen command options validate and roll back} -setup {
             Create $kind
             set penType [expr {$kind eq "barchart" ? "bar" : "line"}]
             .valuecmd pen create customPen -type $penType
-            set prefix [list ::valuecommandTests::Format {bound argument}]
+            set prefix [list ::graph.element.valuecommand::Format {bound argument}]
             .valuecmd element configure signal -valuecommand $prefix -valueformat %.2f
             .valuecmd pen configure customPen -valuecommand $prefix -valueformat %.3f
         } -body {
@@ -64,11 +71,11 @@ namespace eval ::valuecommandTests {
             destroy .valuecmd
         } -result {1 1 1 1 %.2f %.3f {} {}}
 
-        test valuecommand-2-$kind {screen callbacks receive source indices and data values} -setup {
+        test RBC.graph.element.valuecommand.A.2.[incr testCase(2)] {screen callbacks receive source indices and data values} -setup {
             Create $kind
             .valuecmd configure -invertxy yes
             .valuecmd element configure signal -showvalues both \
-                    -valuecommand [list ::valuecommandTests::Format {bound argument}]
+                    -valuecommand [list ::graph.element.valuecommand::Format {bound argument}]
             set photo [image create photo]
             set calls {}
         } -body {
@@ -85,7 +92,7 @@ namespace eval ::valuecommandTests {
             destroy .valuecmd
         } -result 1
 
-        test valuecommand-3-$kind {empty callback output hides labels; showvalues none skips callbacks} -setup {
+        test RBC.graph.element.valuecommand.A.3.[incr testCase(3)] {empty callback output hides labels; showvalues none skips callbacks} -setup {
             Create $kind
             set photo [image create photo]
         } -body {
@@ -97,7 +104,7 @@ namespace eval ::valuecommandTests {
             .valuecmd snap $photo
             set emptyMatches [expr {[$photo data] eq $without}]
             .valuecmd element configure signal -showvalues none \
-                    -valuecommand [list ::valuecommandTests::Format disabled]
+                    -valuecommand [list ::graph.element.valuecommand::Format disabled]
             set calls {}
             .valuecmd snap $photo
             list $emptyMatches [llength $calls]
@@ -106,10 +113,10 @@ namespace eval ::valuecommandTests {
             destroy .valuecmd
         } -result {1 0}
 
-        test valuecommand-4-$kind {PostScript uses custom text and clearing restores valueformat} -setup {
+        test RBC.graph.element.valuecommand.A.4.[incr testCase(4)] {PostScript uses custom text and clearing restores valueformat} -setup {
             Create $kind
             .valuecmd element configure signal -showvalues y -valueformat {FALLBACK=%.1f} \
-                -valuecommand [list ::valuecommandTests::Format export]
+                -valuecommand [list ::graph.element.valuecommand::Format export]
         } -body {
             set ps [.valuecmd postscript output]
             set custom [expr {[string first CUSTOM_export_1 $ps] >= 0}]
@@ -121,13 +128,13 @@ namespace eval ::valuecommandTests {
             destroy .valuecmd
         } -result {1 1 1}
 
-        test valuecommand-5-$kind {weighted and active pens use their own commands and original indices} -setup {
+        test RBC.graph.element.valuecommand.A.5.[incr testCase(5)] {weighted and active pens use their own commands and original indices} -setup {
             Create $kind
             set penType [expr {$kind eq "barchart" ? "bar" : "line"}]
             .valuecmd pen create weighted -type $penType -showvalues y \
-                -valuecommand [list ::valuecommandTests::Format weighted]
+                -valuecommand [list ::graph.element.valuecommand::Format weighted]
             .valuecmd pen create highlighted -type $penType -showvalues y \
-                -valuecommand [list ::valuecommandTests::Format highlighted]
+                -valuecommand [list ::graph.element.valuecommand::Format highlighted]
             .valuecmd element configure signal -showvalues none -weights {0 1 0} \
                 -styles {{weighted 0.5 1.5}} -activepen highlighted
             .valuecmd element activate signal 2
@@ -145,7 +152,7 @@ namespace eval ::valuecommandTests {
         } -result {{1 2} {1 2}}
     }
 
-    test valuecommand-6 {callback output is not truncated to the printf buffer} -setup {
+    test RBC.graph.element.valuecommand.A.6.1 {callback output is not truncated to the printf buffer} -setup {
         Create graph
         .valuecmd element configure signal -showvalues y \
             -valuecommand [list apply {{graph element index x y} {
@@ -158,12 +165,12 @@ namespace eval ::valuecommandTests {
         destroy .valuecmd
     } -result 1
 
-    test valuecommand-7 {callback errors report in the background and use valueformat} -setup {
+    test RBC.graph.element.valuecommand.A.7.1 {callback errors report in the background and use valueformat} -setup {
         Create graph
         set hadBgerror [expr {[llength [info commands ::bgerror]] > 0}]
-        if {$hadBgerror} {rename ::bgerror ::valuecommandTests::savedBgerror}
+        if {$hadBgerror} {rename ::bgerror ::graph.element.valuecommand::savedBgerror}
         set errors {}
-        proc ::bgerror {message} {lappend ::valuecommandTests::errors $message}
+        proc ::bgerror {message} {lappend ::graph.element.valuecommand::errors $message}
         .valuecmd element configure signal -showvalues y -valueformat {FALLBACK=%.1f} \
             -valuecommand [list apply {{graph element index x y} {error "value formatter failed"}}]
     } -body {
@@ -176,13 +183,13 @@ namespace eval ::valuecommandTests {
     } -cleanup {
         destroy .valuecmd
         rename ::bgerror {}
-        if {$hadBgerror} {rename ::valuecommandTests::savedBgerror ::bgerror}
+        if {$hadBgerror} {rename ::graph.element.valuecommand::savedBgerror ::bgerror}
     } -result {1 1}
 
-    test valuecommand-8 {pen references retain callbacks after the pen name is deleted} -setup {
+    test RBC.graph.element.valuecommand.A.8.1 {pen references retain callbacks after the pen name is deleted} -setup {
         Create graph
         .valuecmd pen create retained -showvalues y \
-            -valuecommand [list ::valuecommandTests::Format retained]
+            -valuecommand [list ::graph.element.valuecommand::Format retained]
         .valuecmd element configure signal -pen retained
         .valuecmd pen delete retained
     } -body {
@@ -191,7 +198,6 @@ namespace eval ::valuecommandTests {
     } -cleanup {
         destroy .valuecmd
     } -result 1
-}
 
-namespace delete ::valuecommandTests
 cleanupTests
+}

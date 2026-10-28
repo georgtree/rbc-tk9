@@ -1048,7 +1048,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element configure -xhigh command works correctly when given a
 	# valid vector name.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.element.configure.A.15..1 {
+	test RBC.barchart.element.configure.A.41.1 {
 		barchart element configure: xhigh - valid vector name
 	} -setup {
 		barchart .barchart1
@@ -1067,7 +1067,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
 	# invalid vector name.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.element.configure.A.15..2 {
+	test RBC.barchart.element.configure.A.42.1 {
 		barchart element configure: xhigh - invalid vector name
 	} -setup {
 		barchart .barchart1
@@ -1087,7 +1087,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element configure -xhigh command works correctly when given a
 	# valid list of numerical values.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.element.configure.A.15..3 {
+	test RBC.barchart.element.configure.A.43.1 {
 		barchart element configure: xhigh - valid list
 	} -setup {
 		barchart .barchart1
@@ -1104,7 +1104,7 @@ namespace eval barchart.element {
 	# Purpose: Ensure the element configure -xhigh command works correctly when given an
 	# invalid list.
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.element.configure.A.15..4 {
+	test RBC.barchart.element.configure.A.44.1 {
 		barchart element configure: xhigh - invalid list
 	} -setup {
 		barchart .barchart1
@@ -3166,7 +3166,7 @@ namespace eval barchart.element {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure configuring stipple changes the coresponding option value pair
 	# ------------------------------------------------------------------------------------
-	test RBC.barchart.configure.polygon.A.39.1 {
+	test RBC.barchart.element.configure.A.45.1 {
 	    barchart element configure: stipple - valid bitmap name
 	} -setup {
 		barchart .barchart1

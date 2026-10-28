@@ -2025,7 +2025,7 @@ namespace eval stripchart.legend {
 	    destroy .stripchart1
 	} -result {}
 	
-    test RBC.stripchart.legend.configure.A.rollback.1 {
+    test RBC.stripchart.legend.configure.A.19.1 {
         stripchart legend: padding configuration rollback
     } -setup {
         stripchart .stripchart1
@@ -2040,7 +2040,7 @@ namespace eval stripchart.legend {
         unset -nocomplain oldForeground oldPadX code message
     } -result {1 1 1}
 
-    test RBC.stripchart.legend.configure.A.rollback.2 {
+    test RBC.stripchart.legend.configure.A.20.1 {
         stripchart legend: external window rollback
     } -setup {
         stripchart .stripchart1
@@ -2057,7 +2057,7 @@ namespace eval stripchart.legend {
         unset -nocomplain oldBackground oldPosition code message
     } -result {1 1 1}
 
-    test RBC.stripchart.legend.configure.A.window.1 {
+    test RBC.stripchart.legend.configure.A.21.1 {
         stripchart legend: external window lifecycle
     } -setup {
         stripchart .stripchart1
@@ -2077,7 +2077,7 @@ namespace eval stripchart.legend {
         catch {destroy .stripchart1}
     } -result {1 1 rightmargin}
 
-    test RBC.stripchart.legend.configure.A.lifetime.1 {
+    test RBC.stripchart.legend.configure.A.22.1 {
         stripchart legend: modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {

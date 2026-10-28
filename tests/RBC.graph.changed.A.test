@@ -4,10 +4,16 @@
 #
 # See license.terms for copyright and redistribution terms.
 
-package require rbc
-package require tcltest
+###Package Definition
+package provide graph.changed
 
-namespace eval ::rbcGraphChangedTest {
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.changed {
     variable count 0
 
     proc CreateGraph {} {
@@ -16,72 +22,71 @@ namespace eval ::rbcGraphChangedTest {
         .graphChanged axis configure x -min 0 -max 10
         .graphChanged axis configure y -min 0 -max 10
         update
-        set ::rbcGraphChangedTest::count 0
+        set ::graph.changed::count 0
         bind .graphChanged <<RbcGraphChanged>> {
-            incr ::rbcGraphChangedTest::count
+            incr ::graph.changed::count
         }
     }
     proc Cleanup {} {
         catch {destroy .graphChanged}
         update
     }
-}
 
 ::tcltest::test RBC.graph.changed.A.1.1 {
     axis changes notify after display
 } -setup {
-    ::rbcGraphChangedTest::CreateGraph
+    ::graph.changed::CreateGraph
 } -body {
     .graphChanged axis configure x -min 1 -max 11
     update
-    expr {$::rbcGraphChangedTest::count > 0}
+    expr {${::graph.changed::count} > 0}
 } -cleanup {
-    ::rbcGraphChangedTest::Cleanup
+    ::graph.changed::Cleanup
 } -result 1
 
 ::tcltest::test RBC.graph.changed.A.1.2 {
     vector appends notify with fixed axis limits
 } -setup {
-    ::rbcGraphChangedTest::CreateGraph
+    ::graph.changed::CreateGraph
     ::rbc::vector create ::changedX ::changedY
     ::changedX set {0 1}
     ::changedY set {2 3}
     .graphChanged element create signal -xdata ::changedX -ydata ::changedY -symbol none
     update
-    set ::rbcGraphChangedTest::count 0
+    set ::graph.changed::count 0
 } -body {
     ::changedX append 2
     ::changedY append 4
     update
-    expr {$::rbcGraphChangedTest::count > 0}
+    expr {${::graph.changed::count} > 0}
 } -cleanup {
-    ::rbcGraphChangedTest::Cleanup
+    ::graph.changed::Cleanup
     catch {::rbc::vector destroy ::changedX ::changedY}
 } -result 1
 
 ::tcltest::test RBC.graph.changed.A.1.3 {
     marker creation configuration and deletion do not notify
 } -setup {
-    ::rbcGraphChangedTest::CreateGraph
+    ::graph.changed::CreateGraph
 } -body {
     .graphChanged marker create text -name annotation -coords {5 5} -text first
     update
-    set created $::rbcGraphChangedTest::count
+    set created ${::graph.changed::count}
     .graphChanged marker configure annotation -text second
     update
-    set configured $::rbcGraphChangedTest::count
+    set configured ${::graph.changed::count}
     .graphChanged marker delete annotation
     update
 
-    list $created $configured $::rbcGraphChangedTest::count
+    list $created $configured ${::graph.changed::count}
 } -cleanup {
-    ::rbcGraphChangedTest::Cleanup
+    ::graph.changed::Cleanup
 } -result {0 0 0}
 
 ::tcltest::test RBC.graph.changed.A.1.4 {
     destroyed graph does not receive a queued notification
 } -setup {
-    ::rbcGraphChangedTest::CreateGraph
+    ::graph.changed::CreateGraph
 } -body {
     .graphChanged axis configure x -min 1 -max 11
     # Run display idles, which queue the virtual event, without
@@ -89,10 +94,10 @@ namespace eval ::rbcGraphChangedTest {
     update idletasks
     destroy .graphChanged
     update
-    set ::rbcGraphChangedTest::count
+    set ::graph.changed::count
 } -cleanup {
-    ::rbcGraphChangedTest::Cleanup
+    ::graph.changed::Cleanup
 } -result 0
 
-namespace delete ::rbcGraphChangedTest
 ::tcltest::cleanupTests
+}

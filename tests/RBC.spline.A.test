@@ -16,7 +16,7 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 
-
+namespace eval spline {
 # ------------------------------------------------------------------------------------
 # Purpose: Ensure natural spline rejects duplicate source X coordinates.
 # ------------------------------------------------------------------------------------
@@ -893,3 +893,4 @@ test RBC.spline.readonly.A.1.3 {locked spline inputs produce writable output} -s
 } -result {{0.0 1.0 2.0} 0}
 
 cleanupTests
+}

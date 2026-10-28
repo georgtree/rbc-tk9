@@ -1338,7 +1338,7 @@ namespace eval barchart.pen {
 		destroy .barchart1
 	} -result {0}
 
-    test RBC.barchart.pen.configure.A.rollback.1 {
+    test RBC.barchart.pen.configure.A.17.1 {
         barchart named bar pen: atomic rollback
     } -setup {
         barchart .barchart1
@@ -1358,7 +1358,7 @@ namespace eval barchart.pen {
         unset -nocomplain oldBackground oldBorderWidth oldShadow code message
     } -result {1 1 1 1}
 
-    test RBC.barchart.pen.configure.A.builtin.1 {
+    test RBC.barchart.pen.configure.A.18.1 {
         embedded bar pen remains on legacy configuration
     } -setup {
         barchart .barchart1
@@ -1370,7 +1370,7 @@ namespace eval barchart.pen {
         destroy .barchart1
     } -result 3.5
 
-    test RBC.barchart.pen.configure.A.lifetime.1 {
+    test RBC.barchart.pen.configure.A.19.1 {
         modern named bar pen resource lifetime
     } -body {
         for {set i 0} {$i < 200} {incr i} {

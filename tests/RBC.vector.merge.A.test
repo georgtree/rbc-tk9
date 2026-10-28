@@ -41,7 +41,7 @@ namespace eval vector.merge {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that a multiple vector merge merges index by index
 	# ------------------------------------------------------------------------------------ 
-	test RBC.vector.merge.A.1.1 {
+	test RBC.vector.merge.A.1.2 {
 	    Test multiple vector merge
 	} -setup {
 		vector create Foobar

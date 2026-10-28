@@ -1,11 +1,17 @@
 # RBC.vector.readonly.A.test --
 # Tests reversible vector data protection without requiring Tk.
+###Package Definition
 package provide vector.readonly
+
 package require rbc::vector 0.8.1
+namespace import rbc::*
+
 package require tcltest
-namespace import ::tcltest::*
+namespace import tcltest::*
 
 namespace eval vector.readonly {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {11 0 12 0 13 0}
     proc Cleanup {} {
         foreach v [::rbc::vector names ::vector.readonly::*] {
             ::rbc::vector destroy $v
@@ -36,7 +42,7 @@ namespace eval vector.readonly {
         {length 4} {length 0} {offset 2} {expr {a + 1}} {random} {seq 0 3}
         {merge a} {sort} {window hann 4} {fftfreq 4} {binread noSuchChannel}
     } {
-        test RBC.vector.readonly.A.2.[incr n] "locked mutator: $operation" -setup {
+        test RBC.vector.readonly.A.11.[incr testCase(11)] "locked mutator: $operation" -setup {
             Make a
             a readonly true
         } -body {
@@ -59,7 +65,7 @@ namespace eval vector.readonly {
     set n 0
     foreach operation {{a dup b} {a normalize b} {a populate b 2} {a split fresh b} {a sort b} \
                        {::rbc::vector create fresh b} {::rbc::vector create b(8)}} {
-        test RBC.vector.readonly.A.4.[incr n] "locked secondary destination: $operation" -setup {
+        test RBC.vector.readonly.A.12.[incr testCase(12)] "locked secondary destination: $operation" -setup {
             Make a b
             b readonly true
         } -body {
@@ -148,7 +154,7 @@ namespace eval vector.readonly {
     foreach type {real complex} {
         set n 0
         foreach operation {{set {1}} {append {1}} {index 0 1} {delete 0} {expr {a + 1}} {random} {seq 0 1}} {
-            test RBC.vector.readonly.A.9.$type.[incr n] "real and complex protection: $operation" -setup {
+            test RBC.vector.readonly.A.13.[incr testCase(13)] "real and complex protection: $operation" -setup {
                 ::rbc::vector create a -type $type -variable {}
                 a set {1 2}
                 set before [a range 0 end]

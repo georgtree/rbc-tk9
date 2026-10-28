@@ -28,7 +28,7 @@ namespace eval vector.names {
 		vector create foo
 		vector create goo
 	} -body {
-		vector names
+		lsort [vector names]
 	} -cleanup {
 		vector destroy foo
 		vector destroy goo
@@ -60,11 +60,11 @@ namespace eval vector.names {
 		vector create foo
 		vector create food
 	} -body {
-		vector names *f*
+		lsort [vector names *f*]
 	} -cleanup {
 		vector destroy foo
 		vector destroy food
-	} -result {::vector.names::food ::vector.names::foo}
+	} -result {::vector.names::foo ::vector.names::food}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector names command works correctly when an incorrect pattern 

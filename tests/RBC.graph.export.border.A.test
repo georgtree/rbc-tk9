@@ -1,10 +1,16 @@
 # Export must initialize 3D shades even before a widget is mapped.
+###Package Definition
+package provide graph.export.border
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::rbcExportBorderTest {
-    namespace import ::tcltest::*
-
+namespace eval graph.export.border {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0}
     proc Colors {format document} {
         if {$format eq {svg}} {
             set pattern {fill="(#[[:xdigit:]]{6})"}
@@ -22,7 +28,7 @@ namespace eval ::rbcExportBorderTest {
     foreach type {graph stripchart barchart polar} {
         foreach format {svg postscript} {
             foreach relief {sunken raised} {
-                test exportBorder-1-$type-$format-$relief {unmapped export has the same border shades as mapped export} -setup {
+                test RBC.graph.export.border.A.1.[incr testCase(1)] {unmapped export has the same border shades as mapped export} -setup {
                     # A fresh color prevents earlier tests initializing a shared
                     # Tk border and masking the missing shadow allocation.
                     incr index
@@ -50,5 +56,5 @@ namespace eval ::rbcExportBorderTest {
             }
         }
     }
-}
 ::tcltest::cleanupTests
+}

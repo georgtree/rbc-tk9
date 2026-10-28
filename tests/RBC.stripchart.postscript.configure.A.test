@@ -1506,7 +1506,7 @@ namespace eval stripchart.postscript {
 	# FIXME: I have no idea how to do this.
 	# ------------------------------------------------------------------------------------
 
-    test RBC.stripchart.postscript.configure.A.rollback.1 {
+    test RBC.stripchart.postscript.configure.A.16.1 {
         stripchart postscript: atomic configuration rollback
     } -setup {
         stripchart .stripchart1
@@ -1523,7 +1523,7 @@ namespace eval stripchart.postscript {
         unset -nocomplain oldCenter oldPadX code message
     } -result {1 1 1 1}
 
-    test RBC.stripchart.postscript.configure.A.rollback.2 {
+    test RBC.stripchart.postscript.configure.A.17.1 {
         stripchart postscript: positive paper dimensions
     } -setup {
         stripchart .stripchart1
@@ -1540,7 +1540,7 @@ namespace eval stripchart.postscript {
         unset -nocomplain oldWidth oldPaperWidth code message
     } -result {1 1 1}
 
-    test RBC.stripchart.postscript.configure.A.lifetime.1 {
+    test RBC.stripchart.postscript.configure.A.18.1 {
         stripchart postscript: modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {

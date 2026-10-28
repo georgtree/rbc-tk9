@@ -1,17 +1,23 @@
 # Polar/Smith grid settings belong to the grid component.
+###Package Definition
+package provide polar.grid.options
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
+namespace import tcltest::*
 
-namespace eval ::rbcPolarGridOptionsTest {
-    namespace import ::tcltest::*
-
+namespace eval polar.grid.options {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {6 0 8 0}
     set options {
         -anglelabelanchor -radiallabelanchor -anglemajorticks -angleminorticks -anglecommand
         -smithgrid -smithrealmajorticks -smithrealminorticks -smithimagmajorticks -smithimagminorticks
         -smithrealcommand -smithimagcommand
     }
 
-    test polarGridOptions-1 {grid owns options and graph rejects the old location} -setup {
+    test RBC.polar.grid.options.A.1.1 {grid owns options and graph rejects the old location} -setup {
         ::rbc::polar .gridOptions
     } -body {
         set failures {}
@@ -28,7 +34,7 @@ namespace eval ::rbcPolarGridOptionsTest {
         destroy .gridOptions
     } -result {{} polar 1.0}
 
-    test polarGridOptions-2 {component option database supplies parsed defaults at creation} -setup {
+    test RBC.polar.grid.options.A.2.1 {component option database supplies parsed defaults at creation} -setup {
         option add *gridOptions.grid.AngleMajorTicks {10 70 190} interactive
         option add *gridOptions.grid.AngleLabelAnchor auto interactive
         option add *gridOptions.grid.SmithGrid admittance interactive
@@ -47,7 +53,7 @@ namespace eval ::rbcPolarGridOptionsTest {
         option add *gridOptions.grid.SmithRealMajorTicks {0 0.2 0.5 1 2 5} interactive
     } -result {{10 70 190} auto admittance {0 0.75 3}}
 
-    test polarGridOptions-3 {invalid ticks roll back style, mappings and parsed grid state together} -setup {
+    test RBC.polar.grid.options.A.3.1 {invalid ticks roll back style, mappings and parsed grid state together} -setup {
         ::rbc::polar .gridOptions
         .gridOptions grid configure -color navy -mapx x -smithgrid impedance -anglemajorticks {0 90}
         set before [.gridOptions grid configure]
@@ -61,7 +67,7 @@ namespace eval ::rbcPolarGridOptionsTest {
         destroy .gridOptions
     } -result {1 1}
 
-    test polarGridOptions-4 {invalid mapping does not commit new tick arrays} -setup {
+    test RBC.polar.grid.options.A.4.1 {invalid mapping does not commit new tick arrays} -setup {
         ::rbc::polar .gridOptions
         .gridOptions grid configure -anglemajorticks {0 90}
         set before [.gridOptions grid configure]
@@ -78,12 +84,12 @@ namespace eval ::rbcPolarGridOptionsTest {
         return "GRID-ANGLE-$angle"
     }
 
-    test polarGridOptions-5 {visible grid labels follow tick changes and mapped-axis showticks} -setup {
+    test RBC.polar.grid.options.A.5.1 {visible grid labels follow tick changes and mapped-axis showticks} -setup {
         ::rbc::polar .gridOptions -width 400 -height 400
         .gridOptions axis configure x -min -1 -max 1 -loose no
         .gridOptions axis configure y -min -1 -max 1 -loose no -showticks yes
         .gridOptions grid configure -hide no -anglemajorticks {30} \
-            -anglecommand ::rbcPolarGridOptionsTest::AngleLabel
+            -anglecommand ::polar.grid.options::AngleLabel
     } -body {
         set before [.gridOptions svg output]
         .gridOptions grid configure -anglemajorticks {60}
@@ -99,7 +105,7 @@ namespace eval ::rbcPolarGridOptionsTest {
     } -result {1 1 1 1}
 
     foreach {widget expected} {graph 1 stripchart 1 barchart 0 polar 0} {
-        test polarGridVisibility-default-$widget {grid visibility defaults and option metadata agree} -setup {
+        test RBC.polar.grid.options.A.6.[incr testCase(6)] {grid visibility defaults and option metadata agree} -setup {
             ::rbc::$widget .gridDefault
         } -body {
             list [.gridDefault grid cget -hide] \
@@ -109,7 +115,7 @@ namespace eval ::rbcPolarGridOptionsTest {
         } -result [list $expected $expected]
     }
 
-    test polarGridVisibility-optiondb {option database can hide a Smith grid at creation} -setup {
+    test RBC.polar.grid.options.A.7.1 {option database can hide a Smith grid at creation} -setup {
         option add *gridVisibilityOverride.grid.Hide yes interactive
         ::rbc::polar .gridVisibilityOverride -representation smith
     } -body {
@@ -131,18 +137,18 @@ namespace eval ::rbcPolarGridOptionsTest {
 
     foreach representation {polar smith} {
         foreach output {screen svg postscript} {
-            test polarGridVisibility-$representation-$output {
+            test RBC.polar.grid.options.A.8.[incr testCase(8)] {
                 grid off/on/toggle/configure hide and restore coordinate labels
             } -setup {
                 ::rbc::polar .gridVisibility -width 400 -height 400 -representation $representation
                 pack .gridVisibility
                 .gridVisibility axis configure x -min -1.2 -max 1.2 -loose no -showticks yes \
-                    -command ::rbcPolarGridOptionsTest::VisibilityRadiusLabel
+                    -command ::polar.grid.options::VisibilityRadiusLabel
                 .gridVisibility axis configure y -min -1.2 -max 1.2 -loose no -showticks yes
                 .gridVisibility grid configure -smithgrid both -anglemajorticks {30} \
-                    -anglecommand ::rbcPolarGridOptionsTest::VisibilityLabel \
-                    -smithrealcommand ::rbcPolarGridOptionsTest::VisibilityLabel \
-                    -smithimagcommand ::rbcPolarGridOptionsTest::VisibilityLabel
+                    -anglecommand ::polar.grid.options::VisibilityLabel \
+                    -smithrealcommand ::polar.grid.options::VisibilityLabel \
+                    -smithimagcommand ::polar.grid.options::VisibilityLabel
                 set photo [image create photo]
                 update idletasks
             } -body {
@@ -171,5 +177,5 @@ namespace eval ::rbcPolarGridOptionsTest {
         }
     }
 
-}
 ::tcltest::cleanupTests
+}

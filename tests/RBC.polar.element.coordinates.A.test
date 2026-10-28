@@ -7,13 +7,16 @@
 # See the file "license.terms" for information on usage and
 # redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
+###Package Definition
+package provide polar.element.coordinates
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace import ::rbc::*
-namespace import ::tcltest::*
+namespace import tcltest::*
 
-namespace eval polar.coordinates {
-
+namespace eval polar.element.coordinates {
     proc MakeGraph {} {
         polar .polar1 -width 400 -height 400
         pack .polar1
@@ -32,7 +35,7 @@ namespace eval polar.coordinates {
                     [expr {abs($info(y)-$y) < 1e-10}] $info(dataFormat)]
     }
 
-    test polarCoordinates-1 {lists use radians and preserve source values} -setup {
+    test RBC.polar.element.coordinates.A.1.1 {lists use radians and preserve source values} -setup {
         MakeGraph
     } -body {
         set theta [list 0 [expr {acos(-1)/2}] [expr {5*acos(-1)/2}]]
@@ -43,7 +46,7 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {{0 1 1 polar} {1 1 1 polar} {2 1 1 polar} 1}
 
-    test polarCoordinates-2 {coordinate changes remap existing data} -setup {
+    test RBC.polar.element.coordinates.A.2.1 {coordinate changes remap existing data} -setup {
         MakeGraph
         .polar1 element create signal -data {0 2}
     } -body {
@@ -56,7 +59,7 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {{0 1 1 xy} {0 1 1 polar} {0 1 1 xy}}
 
-    test polarCoordinates-3 {real vector changes update converted points} -setup {
+    test RBC.polar.element.coordinates.A.3.1 {real vector changes update converted points} -setup {
         MakeGraph
         vector create theta radius
         theta set {0}
@@ -72,7 +75,7 @@ namespace eval polar.coordinates {
         vector destroy theta radius
     } -result {{0 1 1 polar} {0 1 1 polar}}
 
-    test polarCoordinates-4 {complex input conflicts roll back configuration} -setup {
+    test RBC.polar.element.coordinates.A.4.1 {complex input conflicts roll back configuration} -setup {
         MakeGraph
         vector create z -type complex
         z set {{1 0}}
@@ -85,7 +88,7 @@ namespace eval polar.coordinates {
         vector destroy z
     } -result {1 cartesian {0 1 1 gamma}}
 
-    test polarCoordinates-5 {error data conflicts roll back coordinate changes} -setup {
+    test RBC.polar.element.coordinates.A.5.1 {error data conflicts roll back coordinate changes} -setup {
         MakeGraph
         .polar1 element create signal -data {0 2} -xerror {0.1}
     } -body {
@@ -96,7 +99,7 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {1 {0 1 1 polar}}
 
-    test polarCoordinates-6 {closest reports radians and normalized geometry} -setup {
+    test RBC.polar.element.coordinates.A.6.1 {closest reports radians and normalized geometry} -setup {
         MakeGraph
         .polar1 element create signal -data [list [expr {5*acos(-1)/2}] 2] -datacoordinates polar
     } -body {
@@ -109,7 +112,7 @@ namespace eval polar.coordinates {
         unset -nocomplain info
     } -result {1 1}
 
-    test polarCoordinates-7 {Smith coordinates describe Gamma} -setup {
+    test RBC.polar.element.coordinates.A.7.1 {Smith coordinates describe Gamma} -setup {
         MakeGraph
         .polar1 configure -representation smith
         .polar1 element create signal -data {0 0.5} -datacoordinates polar
@@ -123,7 +126,7 @@ namespace eval polar.coordinates {
         unset -nocomplain info
     } -result {1 polar}
 
-    test polarCoordinates-8 {automatic extents use radius rather than raw angle} -setup {
+    test RBC.polar.element.coordinates.A.8.1 {automatic extents use radius rather than raw angle} -setup {
         polar .polar1 -width 400 -height 400
         pack .polar1
         .polar1 element create signal -data {100 2} -datacoordinates polar
@@ -141,7 +144,7 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {}
 
-    test polarCoordinates-9 {negative radii and zero retain Cartesian semantics} -setup {
+    test RBC.polar.element.coordinates.A.9.1 {negative radii and zero retain Cartesian semantics} -setup {
         MakeGraph
         .polar1 element create signal -data {0 -2 100 0} -datacoordinates polar
     } -body {
@@ -150,7 +153,7 @@ namespace eval polar.coordinates {
         destroy .polar1
     } -result {{0 1 1 polar} {1 1 1 polar}}
 
-    test polarCoordinates-10 {interpolated closest returns the Cartesian chord} -setup {
+    test RBC.polar.element.coordinates.A.10.1 {interpolated closest returns the Cartesian chord} -setup {
         MakeGraph
         .polar1 element create signal -data [list 0 2 [expr {acos(-1)/2}] 2] \
             -datacoordinates polar -smooth linear -reduce 0 -symbol none
@@ -165,7 +168,7 @@ namespace eval polar.coordinates {
         unset -nocomplain info
     } -result {1 1 1 polar}
 
-    test polarCoordinates-11 {failed complex switch retains real vector subscriptions} -setup {
+    test RBC.polar.element.coordinates.A.11.1 {failed complex switch retains real vector subscriptions} -setup {
         MakeGraph
         vector create theta radius
         theta set {0}
@@ -182,6 +185,6 @@ namespace eval polar.coordinates {
         vector destroy theta radius z
     } -result {1 {0 1 1 polar}}
 
-}
 
 ::tcltest::cleanupTests
+}

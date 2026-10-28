@@ -69,7 +69,7 @@ namespace eval graph.axis {
 		destroy .graph1
 	} -result {0}
 
-    test RBC.graph.axis.create.A.title.1 {
+    test RBC.graph.axis.create.A.2.1 {
         graph axis create: -title is not -titleshadow
     } -setup {
         graph .graph1

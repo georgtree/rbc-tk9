@@ -203,7 +203,7 @@ and HTML generation do not require a browser installation.
 Run these headless tests separately from the Tk widget suite:
 
 ```sh
-tclsh tests/benchmark/compare.test
+tclsh tests/benchmark/RBC.benchmark.compare.A.test
 ```
 
 They cover both schemas, quoted/multiline CSV, repeated runs, matching rules, antialias variants, missing pairs,

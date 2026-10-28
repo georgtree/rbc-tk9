@@ -1,11 +1,16 @@
 # RBC.vector.parentheses.A.test -- literal names, range parsing and array mappings.
 # See license.terms for copyright and redistribution information.
 
-package require rbc::vector
-package require tcltest
-namespace import ::tcltest::*
+###Package Definition
+package provide vector.parentheses
 
-namespace eval ::vectorParenthesesTest {
+package require rbc::vector
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.parentheses {
     proc Run {script} {
         namespace eval ::parenTest {}
         try {
@@ -14,18 +19,17 @@ namespace eval ::vectorParenthesesTest {
             namespace delete ::parenTest
         }
     }
-}
 
-test vectorParentheses-1 {real command names need no array mapping} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.1.1 {real command names need no array mapping} -body {
+    ::vector.parentheses::Run {
         set name [::rbc::vector create v(out)]
         v(out) set {1 2 3 4}
         list $name [v(out) index 1:2] [info exists v] [array exists v(out)]
     }
 } -result {::parenTest::v(out) {2.0 3.0} 0 0}
 
-test vectorParentheses-2 {separate mapped array supports ranges and writes} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.2.1 {separate mapped array supports ranges and writes} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) -variable values
         v(out) set {1 2 3}
         set values(1) 8
@@ -33,8 +37,8 @@ test vectorParentheses-2 {separate mapped array supports ranges and writes} -bod
     }
 } -result {{1.0 8.0 3.0} {1.0 8.0 3.0}}
 
-test vectorParentheses-3 {complex names and ranges preserve imaginary components} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.3.1 {complex names and ranges preserve imaginary components} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) -type complex
         ::rbc::vector create result -type complex
         v(out) set {{1 2} {3 4} {5 6}}
@@ -43,8 +47,8 @@ test vectorParentheses-3 {complex names and ranges preserve imaginary components
     }
 } -result {complex {{3.0 4.0} {5.0 6.0}}}
 
-test vectorParentheses-4 {expressions accept literal names and ranges} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.4.1 {expressions accept literal names and ranges} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) result
         v(out) set {1 2 3 4}
         result expr {v(out)(1:2) * 2}
@@ -52,8 +56,8 @@ test vectorParentheses-4 {expressions accept literal names and ranges} -body {
     }
 } -result {4.0 6.0}
 
-test vectorParentheses-5 {math functions retain precedence; braces force a vector reference} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.5.1 {math functions retain precedence; braces force a vector reference} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create x sin(x) result
         x set {0 0}
         sin(x) set {4 5}
@@ -64,15 +68,15 @@ test vectorParentheses-5 {math functions retain precedence; braces force a vecto
     }
 } -result {{0.0 0.0} {5.0 6.0}}
 
-test vectorParentheses-6 {legacy size and offset forms also apply to parenthesized names} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.6.1 {legacy size and offset forms also apply to parenthesized names} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create plain(3) v(out)(2:4)
         list [plain length] [array exists plain] [v(out) length] [v(out) offset]
     }
 } -result {3 1 3 2}
 
-test vectorParentheses-7 {literal option disambiguates numeric names; exact lookup wins} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.7.1 {literal option disambiguates numeric names; exact lookup wins} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v -length 4
         v set {1 2 3 4}
         ::rbc::vector create v(1) -literal true -length 2
@@ -86,8 +90,8 @@ test vectorParentheses-7 {literal option disambiguates numeric names; exact look
     }
 } -result {{8.0 9.0} 8.0 2 4}
 
-test vectorParentheses-8 {nested names and arithmetic range expressions} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.8.1 {nested names and arithmetic range expressions} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(stage(out)) result
         v(stage(out)) set {0 1 2 3 4}
         result set v(stage(out))((1+1):end)
@@ -95,8 +99,8 @@ test vectorParentheses-8 {nested names and arithmetic range expressions} -body {
     }
 } -result {2.0 3.0 4.0}
 
-test vectorParentheses-9 {mapping rejection leaves the original mapping intact} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.9.1 {mapping rejection leaves the original mapping intact} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) -variable values
         v(out) set {7 8}
         set code [catch {v(out) variable bad(array)}]
@@ -104,16 +108,16 @@ test vectorParentheses-9 {mapping rejection leaves the original mapping intact} 
     }
 } -result {1 7.0 ::parenTest::values}
 
-test vectorParentheses-10 {bad explicit mapping does not create a vector or alter a scalar} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.10.1 {bad explicit mapping does not create a vector or alter a scalar} -body {
+    ::vector.parentheses::Run {
         set bad preserved
         set code [catch {::rbc::vector create v(out) -variable bad(array)}]
         list $code $bad [::rbc::vector names ::parenTest::*] [info commands v(out)]
     }
 } -result {1 preserved {} {}}
 
-test vectorParentheses-11 {unbalanced names and malformed numeric specifications fail} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.11.1 {unbalanced names and malformed numeric specifications fail} -body {
+    ::vector.parentheses::Run {
         set result {}
         foreach name {v(out v)out v(out)) v(out)(-1) v(out)(3:1) v(out)(99999999999999999999999)} {
             lappend result [catch {::rbc::vector create $name}]
@@ -122,8 +126,8 @@ test vectorParentheses-11 {unbalanced names and malformed numeric specifications
     }
 } -result {{1 1 1 1 1 1} {}}
 
-test vectorParentheses-12 {qualified names survive caller namespace changes and destroy} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.12.1 {qualified names survive caller namespace changes and destroy} -body {
+    ::vector.parentheses::Run {
         namespace eval nested {
             ::rbc::vector create v(out)
             v(out) set {10 20}
@@ -136,15 +140,15 @@ test vectorParentheses-12 {qualified names survive caller namespace changes and 
     }
 } -result {20.0 {}}
 
-test vectorParentheses-13 {literal creation uses explicit length instead of suffix} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.13.1 {literal creation uses explicit length instead of suffix} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out)(3) -literal true -length 2
         list [v(out)(3) length] [info commands v(out)]
     }
 } -result {2 {}}
 
-test vectorParentheses-14 {failed ranges do not corrupt later whole-vector lookup} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.14.1 {failed ranges do not corrupt later whole-vector lookup} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) result
         v(out) set {1 2 3}
         set code [catch {result set v(out)(1:10)}]
@@ -153,8 +157,8 @@ test vectorParentheses-14 {failed ranges do not corrupt later whole-vector looku
     }
 } -result {1 {1.0 2.0 3.0}}
 
-test vectorParentheses-16 {vector-producing operations accept literal destination names} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.15.1 {vector-producing operations accept literal destination names} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out)
         v(out) set {0 2 4 6}
         v(out) dup v(1)
@@ -166,8 +170,8 @@ test vectorParentheses-16 {vector-producing operations accept literal destinatio
     }
 } -result {{0.0 2.0 4.0 6.0} {0.0 0.3333333333333333 0.6666666666666666 1.0} {0.0 1.0 2.0 3.0 4.0 5.0 6.0} {0.0 4.0} {2.0 6.0} 0}
 
-test vectorParentheses-17 {append, quoted expression names and computed range bounds} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.16.1 {append, quoted expression names and computed range bounds} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) result
         v(out) set {1 2 3 4}
         result append v(out)(1:2) v(out)(3)
@@ -177,8 +181,8 @@ test vectorParentheses-17 {append, quoted expression names and computed range bo
     }
 } -result {{2.0 3.0 4.0} {2.0 3.0 4.0 5.0}}
 
-test vectorParentheses-18 {functions can contain named ranges and quoted function-like vectors} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.17.1 {functions can contain named ranges and quoted function-like vectors} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) sin(x) result
         v(out) set {-1 -2 -3}
         sin(x) set {8 9}
@@ -187,8 +191,8 @@ test vectorParentheses-18 {functions can contain named ranges and quoted functio
     }
 } -result {10.0 12.0}
 
-test vectorParentheses-19 {a second range is not silently ignored} -body {
-    ::vectorParenthesesTest::Run {
+test RBC.vector.parentheses.A.18.1 {a second range is not silently ignored} -body {
+    ::vector.parentheses::Run {
         ::rbc::vector create v(out) result
         v(out) set {1 2 3}
         result set {9}
@@ -202,9 +206,9 @@ test vectorParentheses-19 {a second range is not silently ignored} -body {
 # runner skips this test without loading Tk.
 ::tcltest::testConstraint vectorParenthesesGui [expr {[package provide Tk] ne {} &&
                                                     [llength [info commands ::rbc::graph]] != 0}]
-test vectorParentheses-15 {graph clients attach to parenthesized vector names} \
+test RBC.vector.parentheses.A.19.1 {graph clients attach to parenthesized vector names} \
         -constraints vectorParenthesesGui -body {
-    ::vectorParenthesesTest::Run {
+    ::vector.parentheses::Run {
         ::rbc::vector create t(time) v(out)
         t(time) set {0 1 2}
         v(out) set {2 3 4}
@@ -222,5 +226,5 @@ test vectorParentheses-15 {graph clients attach to parenthesized vector names} \
     catch {destroy .parenTestGraph}
 } -result {1 signal}
 
-namespace delete ::vectorParenthesesTest
 cleanupTests
+}

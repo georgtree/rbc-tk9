@@ -19,7 +19,11 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval graph.marker {	
+
+namespace eval graph.marker {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {6 0}
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window
 	# markers when given 'n' as input.
@@ -36,7 +40,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {n}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'ne' as input.
@@ -53,7 +57,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {ne}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'e' as input.
@@ -70,7 +74,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {e}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window
 	# markers when given 'se' as input.
@@ -87,7 +91,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {se}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 's' as input.
@@ -104,7 +108,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {s}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'sw' as input.
@@ -121,7 +125,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {sw}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'w' as input.
@@ -138,7 +142,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {w}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'nw' as input.
@@ -155,7 +159,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {nw}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given 'center' as input.
@@ -172,7 +176,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {center}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given invalid numerical input.
@@ -192,7 +196,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -anchor command works correctly for window 
 	# markers when given invalid character input.
@@ -212,7 +216,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
 	# an integer pixel value.
@@ -229,7 +233,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {2}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
 	# an invalid integer pixel value.
@@ -249,7 +253,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
 	# a decimal pixel value.
@@ -266,7 +270,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {3.5}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
 	# an invalid decimal pixel value.
@@ -286,7 +290,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given
 	# a character as input.
@@ -306,7 +310,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -height command works correctly when given 0
 	# as input.
@@ -326,7 +330,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
 	# an integer pixel value.
@@ -343,7 +347,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {2}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
 	# an invalid integer pixel value.
@@ -363,7 +367,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
 	# a decimal pixel value.
@@ -380,7 +384,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {3.5}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
 	# an invalid decimal pixel value.
@@ -400,7 +404,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given
 	# a character as input.
@@ -420,7 +424,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -width command works correctly when given 0
 	# as input.
@@ -440,7 +444,7 @@ namespace eval graph.marker {
 		.graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -window command works correctly when given a
 	# valid button name.
@@ -458,7 +462,7 @@ namespace eval graph.marker {
 	    .graph1 marker delete Marker1
 		destroy .graph1
 	} -result {.graph1.button1}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -window command works correctly when given a
 	# non-existent button name.
@@ -478,8 +482,8 @@ namespace eval graph.marker {
 	    .graph1 marker delete Marker1
 		destroy .graph1
 	} -result {0}
-	
-    test RBC.graph.marker.configure.window.A.rollback.1 {
+
+    test RBC.graph.marker.configure.window.A.5.1 {
         window marker configuration is atomic
     } -setup {
         graph .graph1
@@ -504,7 +508,7 @@ namespace eval graph.marker {
 	cleanupTests
     foreach kind {graph barchart stripchart} {
         foreach under {0 1} {
-            test window-visibility-$kind-$under {live children unmap and remap with marker and element visibility} -setup {
+            test RBC.graph.marker.configure.window.A.6.[incr testCase(6)] {live children unmap and remap with marker and element visibility} -setup {
                 ::rbc::$kind .graph1 -width 500 -height 400
                 .graph1 axis configure x -min 0 -max 10 -loose no
                 .graph1 axis configure y -min 0 -max 10 -loose no
@@ -532,5 +536,4 @@ namespace eval graph.marker {
             } -cleanup {destroy .graph1} -result {1 0 1 0 1 0 1 0 1}
         }
     }
-
 }

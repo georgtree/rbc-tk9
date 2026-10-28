@@ -20,6 +20,8 @@ namespace import rbc::*
 package require tcltest
 namespace import tcltest::*
 namespace eval graph.axis {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {3 0 4 0}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis view command works correctly
 	# ------------------------------------------------------------------------------------
@@ -105,7 +107,7 @@ namespace eval graph.axis {
         unset -nocomplain ::rbcScrollFractions
     } -result {1 1 {2.0 5.0}}
 
-    test RBC.graph.axis.view.A.log.1 {
+    test RBC.graph.axis.view.A.2.1 {
         logarithmic axis view with explicit scroll region
     } -setup {
         graph .graph1
@@ -124,7 +126,7 @@ namespace eval graph.axis {
         foreach axis {x y} {
             foreach descending {no yes} {
                 foreach logarithmic {no yes} {
-                    test RBC.graph.axis.view.A.fraction.$widget.$axis.$descending.$logarithmic {
+                    test RBC.graph.axis.view.A.3.[incr testCase(3)] {
                         fractional units, pages and shorthand preserve direction and viewport width
                     } -setup {
                         $widget .graph1 -width 500 -height 400 -leftmargin 80 -rightmargin 80 -topmargin 60 -bottommargin 60
@@ -174,7 +176,7 @@ namespace eval graph.axis {
 
     foreach form {units pages shorthand} {
         foreach count {Inf -Inf NaN invalid {}} {
-            test RBC.graph.axis.view.A.invalid.$form.$count {
+            test RBC.graph.axis.view.A.4.[incr testCase(4)] {
                 invalid scroll counts are rejected without changing the viewport
             } -setup {
                 graph .graph1
@@ -196,7 +198,7 @@ namespace eval graph.axis {
         }
     }
 
-    test RBC.graph.axis.view.A.wheel {
+    test RBC.graph.axis.view.A.5.1 {
         a MouseWheel binding can pass a fractional count to axis view
     } -setup {
         graph .graph1 -width 500 -height 400

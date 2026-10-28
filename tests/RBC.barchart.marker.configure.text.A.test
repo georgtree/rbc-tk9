@@ -1005,7 +1005,7 @@ namespace eval barchart.marker {
 		destroy .barchart1
 	} -result {0}
 
-    test RBC.barchart.marker.configure.text.A.rollback.1 {
+    test RBC.barchart.marker.configure.text.A.13.1 {
         text marker configuration is atomic
     } -setup {
         barchart .barchart1

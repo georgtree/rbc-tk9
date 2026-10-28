@@ -10,7 +10,10 @@
 #
 ###Package Definition
 package provide graph.pdf.font
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
 namespace import tcltest::*
 
@@ -190,7 +193,7 @@ namespace eval graph.pdf.font {
         set document [.pdfFont pdf output]
         expr {[string first $sample [Text $document]] >= 0}
     } -cleanup {destroy .pdfFont} -result 1
-}
 
 ###Cleanup
 cleanupTests
+}

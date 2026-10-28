@@ -1,0 +1,118 @@
+# Temporary native-trace regression tests for nested resize scheduling.
+package require rbc
+package require tcltest
+namespace eval ::resizeSettleTest {
+    namespace import ::tcltest::*
+    testConstraint resizeTrace [expr {[info commands ::rbc::resizeTrace] ne {}}]
+    variable graphs {}
+    proc Create {depth orient} {
+        variable graphs
+        set graphs {}
+        toplevel .rs
+        wm geometry .rs 900x600
+        ttk::panedwindow .rs.pw -orient $orient
+        pack .rs.pw -fill both -expand 1
+        foreach side {left right} {
+            set w .rs.pw.$side
+            ttk::frame $w
+            .rs.pw add $w -weight 1
+            for {set i 0} {$i < $depth} {incr i} {
+                set next $w.f
+                ttk::frame $next
+                pack $next -fill both -expand 1
+                set w $next
+            }
+            rbc::graph $w.g -width 400 -height 300
+            $w.g element create e -data {0 0 1 1 2 0} -symbol none
+            pack $w.g -fill both -expand 1
+            lappend graphs $w.g
+        }
+        update
+        .rs.pw sashpos 0 250
+        update
+    }
+    foreach depth {1 6} {
+        foreach orient {horizontal vertical} {
+            test resizeSettle-nested-$depth-$orient {presentations use final geometry after nested packing} \
+                    -constraints resizeTrace -setup {
+                Create $depth $orient
+            } -body {
+                set failures {}
+                for {set n 0} {$n < 12} {incr n} {
+                    ::rbc::resizeTrace start
+                    .rs.pw sashpos 0 [expr {$n % 2 ? 220 : 480}]
+                    update
+                    set trace [::rbc::resizeTrace dump]
+                    set seen {}
+                    foreach row [dict get $trace rows] {
+                        lassign $row us stage path x y width height cachedW cachedH
+                        if {$stage ne "present.before"} continue
+                        dict set seen $path 1
+                        if {$width != [winfo width $path] || $height != [winfo height $path] ||
+                            $cachedW != $width || $cachedH != $height} {
+                            lappend failures $row
+                        }
+                    }
+                    foreach g $graphs {
+                        if {![dict exists $seen $g]} {lappend failures "no presentation: $g"}
+                    }
+                    if {[dict get $trace dropped]} {lappend failures overflow}
+                }
+                set failures
+            } -cleanup {destroy .rs} -result {}
+        }
+    }
+    test resizeSettle-expose-before-layout {an exposure queued before nested layout must not present intermediate geometry} \
+            -constraints resizeTrace -setup {
+        Create 6 horizontal
+    } -body {
+        set g [lindex $graphs 1]
+        ::rbc::resizeTrace start
+        event generate $g <Expose> -count 0 -when now
+        # Model a geometry-manager idle callback already queued behind exposure.
+        after idle {.rs.pw sashpos 0 480}
+        update
+        set presented 0
+        set wrong {}
+        foreach row [dict get [::rbc::resizeTrace dump] rows] {
+            if {[lindex $row 1] eq "present.before" && [lindex $row 2] eq $g} {
+                incr presented
+                if {[lindex $row 5] != [winfo width $g]} {lappend wrong $row}
+            }
+        }
+        list [expr {$presented > 0}] $wrong
+    } -cleanup {destroy .rs} -result {1 {}}
+
+    test resizeSettle-destroy-between-passes {destroy cancels the next settling idle callback} \
+            -constraints resizeTrace -setup {
+        Create 2 horizontal
+    } -body {
+        set g [lindex $graphs 0]
+        ::rbc::resizeTrace start
+        event generate $g <Expose> -count 0 -when now
+        after idle [list destroy $g]
+        update idletasks
+        set stages {}
+        foreach row [dict get [::rbc::resizeTrace dump] rows] {
+            if {[lindex $row 2] eq $g} {lappend stages [lindex $row 1]}
+        }
+        list [winfo exists $g] [expr {"settle.wait" in $stages}] \
+            [expr {"present.before" in $stages}]
+    } -cleanup {destroy .rs} -result {0 1 0}
+
+    test resizeSettle-data {ordinary element redraw retains the direct idle path} \
+            -constraints resizeTrace -setup {
+        Create 1 horizontal
+    } -body {
+        set g [lindex $graphs 0]
+        ::rbc::resizeTrace start
+        $g element configure e -color red
+        update idletasks
+        set stages {}
+        foreach row [dict get [::rbc::resizeTrace dump] rows] {
+            if {[lindex $row 2] eq $g} {lappend stages [lindex $row 1]}
+        }
+        list [expr {"present.before" in $stages}] [expr {"settle.wait" in $stages}]
+    } -cleanup {destroy .rs} -result {1 0}
+}
+::tcltest::cleanupTests

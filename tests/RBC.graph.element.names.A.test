@@ -23,7 +23,7 @@ namespace eval graph.element {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element names command works correctly when no pattern is given.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.names.A.1.1 {
+	test RBC.graph.element.names.A.1.1 {
 		element names: no pattern
 	} -setup {
 		graph .graph1
@@ -41,7 +41,7 @@ namespace eval graph.element {
 	# Purpose: Ensure the element names command works correctly when an exact pattern is 
 	# given.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.names.A.1.2 {
+	test RBC.graph.element.names.A.2.1 {
 		element names: exact pattern
 	} -setup {
 		graph .graph1
@@ -59,7 +59,7 @@ namespace eval graph.element {
 	# Purpose: Ensure the element names command works correctly when a wildcard pattern is 
 	# given.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.names.A.1.3 {
+	test RBC.graph.element.names.A.3.1 {
 		element names: wildcard pattern
 	} -setup {
 		graph .graph1
@@ -77,7 +77,7 @@ namespace eval graph.element {
 	# Purpose: Ensure the element names command works correctly when an incorrect pattern 
 	# is given.
 	# ------------------------------------------------------------------------------------
-	test RBC.element.names.A.1.4 {
+	test RBC.graph.element.names.A.4.1 {
 		element names: incorrect pattern
 	} -setup {
 		graph .graph1

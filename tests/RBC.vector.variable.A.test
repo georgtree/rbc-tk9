@@ -19,6 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+
+namespace eval vector.variable {
 # namespace eval vector.variable {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector variable command creates a new Tcl variable reference to
@@ -151,3 +153,4 @@ namespace import tcltest::*
 	
 	cleanupTests
 # }
+}

@@ -1,4 +1,5 @@
 # SVG export commands and vector geometry. See license.terms for details.
+###Package Definition
 package provide graph.svg
 
 package require rbc
@@ -8,7 +9,8 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.svg {
-
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {7 0 13 0}
     proc Create {} {
         ::rbc::graph .svg -width 400 -height 300
         .svg axis configure x -min 0 -max 10 -loose no
@@ -18,7 +20,7 @@ namespace eval graph.svg {
         update idletasks
     }
 
-    test svg-optiondb-defaults {named export resources support class defaults, instance precedence and all graph types} -setup {
+    test RBC.graph.svg.A.1.1 {named export resources support class defaults, instance precedence and all graph types} -setup {
         interp create exportOptionChild
         interp eval exportOptionChild [list set auto_path $::auto_path]
         interp eval exportOptionChild {package require rbc; wm withdraw .}
@@ -41,7 +43,7 @@ namespace eval graph.svg {
         }
     } -cleanup {interp delete exportOptionChild} -result 1
 
-    test svg-optiondb-lifetime {database changes affect new widgets only; configure and output override initialized values} -setup {
+    test RBC.graph.svg.A.2.1 {database changes affect new widgets only; configure and output override initialized values} -setup {
         interp create exportOptionChild
         interp eval exportOptionChild [list set auto_path $::auto_path]
         interp eval exportOptionChild {package require rbc; wm withdraw .}
@@ -60,7 +62,7 @@ namespace eval graph.svg {
         }
     } -cleanup {interp delete exportOptionChild} -result {510 610 {-width width Width 0 520} 530 0}
 
-    test svg-optiondb-invalid {invalid database dimensions and booleans fail widget creation cleanly} -setup {
+    test RBC.graph.svg.A.3.1 {invalid database dimensions and booleans fail widget creation cleanly} -setup {
         interp create exportOptionChild
         interp eval exportOptionChild [list set auto_path $::auto_path]
         interp eval exportOptionChild {package require rbc; wm withdraw .}
@@ -79,7 +81,7 @@ namespace eval graph.svg {
         }
     } -cleanup {interp delete exportOptionChild} -result 1
 
-    test svg-optiondb-units {screen-distance resource values are converted to pixels} -setup {
+    test RBC.graph.svg.A.4.1 {screen-distance resource values are converted to pixels} -setup {
         interp create exportOptionChild
         interp eval exportOptionChild [list set auto_path $::auto_path]
         interp eval exportOptionChild {package require rbc; wm withdraw .}
@@ -93,7 +95,7 @@ namespace eval graph.svg {
         }
     } -cleanup {interp delete exportOptionChild} -result {1 1}
 
-    test svg-1 {options are independent and invalid configurations roll back} -setup {
+    test RBC.graph.svg.A.5.1 {options are independent and invalid configurations roll back} -setup {
         Create
     } -body {
         set ps [.svg postscript cget -width]
@@ -106,7 +108,7 @@ namespace eval graph.svg {
         destroy .svg
     } -result {{0 0 1} 1 500 350 1 4}
 
-    test svg-2 {document has XML, clipping, escaped text and no PostScript syntax} -setup {
+    test RBC.graph.svg.A.6.1 {document has XML, clipping, escaped text and no PostScript syntax} -setup {
         Create
         .svg configure -title {A & B < C}
         .svg marker create text -coords {5 5} -text {α & β} -rotate 27
@@ -124,7 +126,7 @@ namespace eval graph.svg {
     } -result {1 1 1 1 1 1 1}
 
     foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
-        test svg-3-$symbol {standard symbol exports without a screen-renderer dependency} -setup {
+        test RBC.graph.svg.A.7.[incr testCase(7)] {standard symbol exports without a screen-renderer dependency} -setup {
             Create
             .svg element configure signal -symbol $symbol
         } -body {
@@ -135,7 +137,7 @@ namespace eval graph.svg {
         } -result 1
     }
 
-    test svg-4 {solid area opacity is exported} -setup {
+    test RBC.graph.svg.A.8.1 {solid area opacity is exported} -setup {
         Create
         .svg element configure signal -areapattern solid -areaforeground blue -areaopacity 0.35
     } -body {
@@ -144,7 +146,7 @@ namespace eval graph.svg {
         destroy .svg
     } -result 1
 
-    test svg-5 {invalid XML text does not truncate an existing output file} -setup {
+    test RBC.graph.svg.A.9.1 {invalid XML text does not truncate an existing output file} -setup {
         Create
         .svg configure -title "invalid\u0001text"
         set path [makeFile KEEP svg-preserve.svg]
@@ -159,7 +161,7 @@ namespace eval graph.svg {
         removeFile svg-preserve.svg
     } -result {1 1 KEEP}
 
-    test svg-6 {output size persists as an SVG option and screen mapping is restored} -setup {
+    test RBC.graph.svg.A.10.1 {output size persists as an SVG option and screen mapping is restored} -setup {
         Create
         set before [.svg transform 5 5]
     } -body {
@@ -171,7 +173,7 @@ namespace eval graph.svg {
         destroy .svg
     } -result {1 500 1 1}
 
-    test svg-7 {UTF-8 file output matches returned document} -setup {
+    test RBC.graph.svg.A.11.1 {UTF-8 file output matches returned document} -setup {
         Create
         .svg configure -title {α & β}
         set path [makeFile {} svg-output.svg]
@@ -188,7 +190,7 @@ namespace eval graph.svg {
         removeFile svg-output.svg
     } -result 1
 
-    test svg-8 {bitmap symbols export as reusable vector geometry} -setup {
+    test RBC.graph.svg.A.12.1 {bitmap symbols export as reusable vector geometry} -setup {
         Create
         .svg element configure signal -symbol warning
     } -body {
@@ -198,7 +200,7 @@ namespace eval graph.svg {
     } -result 1
 
     foreach type {stripchart barchart polar} {
-        test svg-9-$type {other graph types use the SVG export traversal} -setup {
+        test RBC.graph.svg.A.13.[incr testCase(13)] {other graph types use the SVG export traversal} -setup {
             ::rbc::$type .svg -width 400 -height 300
             .svg element create signal -data {1 2 4 8 9 3}
             pack .svg
@@ -211,7 +213,7 @@ namespace eval graph.svg {
         } -result {1 1}
     }
 
-    test svg-10 {XML-incompatible text reports an error} -setup {
+    test RBC.graph.svg.A.14.1 {XML-incompatible text reports an error} -setup {
         Create
         .svg configure -title "invalid\u0001text"
     } -body {
@@ -221,7 +223,7 @@ namespace eval graph.svg {
         destroy .svg
     } -result {1 1}
 
-    test svg-11 {photo markers embed PNG data} -setup {
+    test RBC.graph.svg.A.15.1 {photo markers embed PNG data} -setup {
         Create
         set image [image create photo -width 8 -height 8]
         $image put red -to 0 0 8 8
@@ -233,7 +235,7 @@ namespace eval graph.svg {
         image delete $image
     } -result 1
 
-    test svg-12 {alternating exports preserve independent state and PostScript geometry} -setup {
+    test RBC.graph.svg.A.16.1 {alternating exports preserve independent state and PostScript geometry} -setup {
         Create
         .svg postscript configure -decorations yes
         set before [.svg postscript output]
@@ -248,7 +250,7 @@ namespace eval graph.svg {
         destroy .svg
     } -result {1 1 0 700}
 
-    test svg-13 {failed SVG export does not poison later PostScript or SVG exports} -setup {
+    test RBC.graph.svg.A.17.1 {failed SVG export does not poison later PostScript or SVG exports} -setup {
         Create
         .svg configure -title "invalid\u0001text"
     } -body {
@@ -261,6 +263,6 @@ namespace eval graph.svg {
         destroy .svg
     } -result {1 1 1}
 
-}
 
 cleanupTests
+}

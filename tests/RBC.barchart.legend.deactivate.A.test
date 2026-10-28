@@ -19,11 +19,13 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval barchart.legend {    
+
+namespace eval barchart.legend {
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that deactivating all legend elements works properly.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.barchart.legend.2.1 {
+	test RBC.barchart.legend.deactivate.A.1.1 {
 	    Test legend deactivate
 	} -setup {
 	    barchart .barchart1    
@@ -40,12 +42,12 @@ namespace eval barchart.legend {
 	} -cleanup {
 	    destroy .barchart1
 	} -result {}
-	
+
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that deactivating a subset of legend elements deactivates only that
 	# subset.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.barchart.legend.2.2 {
+	test RBC.barchart.legend.deactivate.A.2.1 {
 	    Test legend deactivate
 	} -setup {
 	    barchart .barchart1
@@ -62,6 +64,6 @@ namespace eval barchart.legend {
 	} -cleanup {
 	    destroy .barchart1
 	} -result {Line2}  
-	
+
 	cleanupTests
 }

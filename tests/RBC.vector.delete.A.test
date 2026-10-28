@@ -19,7 +19,8 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-#namespace eval vector.delete {
+
+namespace eval vector.delete {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the vector delete command works correctly when given a single vector 
 	# index.
@@ -168,4 +169,4 @@ namespace import tcltest::*
     } -result {1 4 {{1.0 2.0} {3.0 4.0} {5.0 6.0} {7.0 8.0}}}
 	
 	cleanupTests
-#}
+}

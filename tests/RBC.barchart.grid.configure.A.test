@@ -570,7 +570,7 @@ namespace eval barchart.grid {
 		destroy .barchart1
 	} -result {0}
 
-    test RBC.barchart.grid.configure.A.rollback.1 {
+    test RBC.barchart.grid.configure.A.8.1 {
         grid configuration is atomic
     } -setup {
         barchart .barchart1
@@ -585,7 +585,7 @@ namespace eval barchart.grid {
         destroy .barchart1
     } -result 1
 
-    test RBC.barchart.grid.configure.A.destroy.1 {
+    test RBC.barchart.grid.configure.A.9.1 {
         grid modern option resource lifetime
     } -body {
         for {set i 0} {$i < 100} {incr i} {
@@ -598,7 +598,7 @@ namespace eval barchart.grid {
         catch {destroy .barchart1}
     } -result ok
 
-    test RBC.barchart.grid.configure.A.linewidth.1 {
+    test RBC.barchart.grid.configure.A.10.1 {
         grid cget preserves pixel representation
     } -setup {
         barchart .barchart1
@@ -609,7 +609,7 @@ namespace eval barchart.grid {
         destroy .barchart1
     } -result 2m
 
-    test RBC.barchart.grid.configure.A.dashes.1 {
+    test RBC.barchart.grid.configure.A.11.1 {
         grid cget preserves named dash pattern
     } -setup {
         barchart .barchart1
@@ -620,7 +620,7 @@ namespace eval barchart.grid {
         destroy .barchart1
     } -result dashdot
 
-    test RBC.barchart.grid.configure.A.dashes.2 {
+    test RBC.barchart.grid.configure.A.12.1 {
         grid accepts dash expressions as list elements
     } -setup {
         barchart .barchart1

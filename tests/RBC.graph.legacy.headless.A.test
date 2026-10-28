@@ -1,7 +1,13 @@
-# Lifecycle logic can be checked without Tk. GUI/API integration is in graph-legacy.test.
+# Lifecycle logic can be checked without Tk. GUI/API integration is in RBC.graph.legacy.A.test.
+###Package Definition
+package provide graph.legacy.headless
+
+# This loader test intentionally requires neither RBC nor Tk.
+
 package require tcltest
-namespace import ::tcltest::*
-namespace eval ::legacyHeadlessTest {
+namespace import tcltest::*
+
+namespace eval graph.legacy.headless {
     variable sourceFile [file normalize [file join [file dirname [info script]] .. library graph.tcl]]
     proc New {} {
         variable sourceFile
@@ -49,14 +55,14 @@ namespace eval ::legacyHeadlessTest {
         interp delete legacyChild
     }
 
-    test graphLegacyHeadless-1 {script defines compatibility API without requiring Tk or argparse or setting options} \
+    test RBC.graph.legacy.headless.A.1.1 {script defines compatibility API without requiring Tk or argparse or setting options} \
             -setup {New} -body {
         interp eval legacyChild {
             list [llength [info commands Rbc_*]] [package provide argparse] [package provide Tk]
         }
     } -cleanup {Clean} -result {8 {} {}}
 
-    test graphLegacyHeadless-2 {repeated attachment and job replacement do not duplicate work} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.2.1 {repeated attachment and job replacement do not duplicate work} -setup {New} -body {
         interp eval legacyChild {
             ::rbc::LegacyAttach .g
             ::rbc::LegacyAttach .g
@@ -66,7 +72,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {1 1 1}
 
-    test graphLegacyHeadless-3 {destroy cancels jobs, clears exact widget state and leaves other widgets intact}\
+    test RBC.graph.legacy.headless.A.3.1 {destroy cancels jobs, clears exact widget state and leaves other widgets intact}\
             -setup {New} -body {
         interp eval legacyChild {
             set g {.g[1]}
@@ -82,7 +88,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {1 0 .g1,corner .g1.width {}}
 
-    test graphLegacyHeadless-4 {child destruction does not clear parent graph or dialog state} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.4.1 {child destruction does not clear parent graph or dialog state} -setup {New} -body {
         interp eval legacyChild {
             set id [::rbc::LegacySchedule .g title 10000 {error stale}]
             set ::rbc::psdata(.g.width) 500
@@ -92,7 +98,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {1 500}
 
-    test graphLegacyHeadless-5 {timer dispatch runs once and releases its bookkeeping} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.5.1 {timer dispatch runs once and releases its bookkeeping} -setup {New} -body {
         interp eval legacyChild {
             set calls 0
             ::rbc::LegacySchedule .g title 0 {incr ::calls}
@@ -102,7 +108,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {1 0}
 
-    test graphLegacyHeadless-6 {a vanished widget is not called by the timer dispatcher} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.6.1 {a vanished widget is not called by the timer dispatcher} -setup {New} -body {
         interp eval legacyChild {
             set calls 0
             ::rbc::LegacySchedule .g title 0 {incr ::calls}
@@ -113,7 +119,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {0 0}
 
-    test graphLegacyHeadless-7 {removal restores oldest limits and cancels only zoom jobs} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.7.1 {removal restores oldest limits and cancels only zoom jobs} -setup {New} -body {
         interp eval legacyChild {
             proc .g {args} {
                 if {[lrange $args 0 1] eq {marker exists}} {
@@ -139,7 +145,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {{{axis configure x -min {} -max {}}} 1 1 keep 0 {} {} legacy-rbc-.g}
 
-    test graphLegacyHeadless-8 {repeated setup retains history and replaces old event bindings} -setup {New} -body {
+    test RBC.graph.legacy.headless.A.8.1 {repeated setup retains history and replaces old event bindings} -setup {New} -body {
         interp eval legacyChild {
             proc .g {args} {return 0}
             ::rbc::ZoomStack .g
@@ -152,7 +158,7 @@ namespace eval ::legacyHeadlessTest {
         }
     } -cleanup {Clean} -result {history A 1 {<ButtonPress-2> <ButtonPress-4>}}
 
-    test graphLegacyHeadless-9 {removal treats bracket characters literally and permits enabling again} -setup {New}\
+    test RBC.graph.legacy.headless.A.9.1 {removal treats bracket characters literally and permits enabling again} -setup {New}\
             -body {
         interp eval legacyChild {
             set g {.g[1]}

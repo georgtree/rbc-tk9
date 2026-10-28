@@ -466,7 +466,7 @@ namespace eval stripchart.marker {
 		destroy .stripchart1
 	} -result {0}
 	
-    test RBC.stripchart.marker.configure.bitmap.A.rollback.1 {
+    test RBC.stripchart.marker.configure.bitmap.A.8.1 {
         bitmap marker configuration is atomic
     } -setup {
         set testDir [file dirname [info script]]

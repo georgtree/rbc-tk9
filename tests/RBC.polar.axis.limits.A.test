@@ -65,7 +65,7 @@ namespace eval polar.axis {
         vector destroy z
     } -result {1 1}
 
-    test RBC.polar.axis.limits.A.smith.1 {
+    test RBC.polar.axis.limits.A.2.1 {
         smith representation includes the unit circle
     } -setup {
         vector create z -type complex
@@ -83,7 +83,7 @@ namespace eval polar.axis {
         vector destroy z
     } -result {1 1 1 1}
 
-    test RBC.polar.axis.limits.A.smith.2 {
+    test RBC.polar.axis.limits.A.3.1 {
         smith representation includes data outside the unit circle
     } -setup {
         vector create z -type complex
@@ -101,7 +101,7 @@ namespace eval polar.axis {
         vector destroy z
     } -result {1 1 1 1}
 
-    test RBC.polar.axis.limits.A.aspect.1 {
+    test RBC.polar.axis.limits.A.4.1 {
         smith geometry: unequal ranges preserve equal data-unit scale
     } -setup {
         polar .polar1 -width 650 -height 430 -representation smith
@@ -120,7 +120,7 @@ namespace eval polar.axis {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.axis.limits.A.aspect.2 {
+    test RBC.polar.axis.limits.A.5.1 {
         smith geometry: inverted unequal ranges preserve equal data-unit scale
     } -setup {
         polar .polar1 -width 650 -height 430 -representation smith -invertxy yes
@@ -139,7 +139,7 @@ namespace eval polar.axis {
         destroy .polar1
     } -result {1}
 
-    test RBC.polar.axis.limits.A.aspect.3 {
+    test RBC.polar.axis.limits.A.6.1 {
         polar geometry: explicit aspect overrides automatic equal-unit layout
     } -setup {
         polar .polar1 -width 650 -height 430 -representation smith -aspect 1.0
@@ -158,7 +158,7 @@ namespace eval polar.axis {
         destroy .polar1
     } -result {1.0 1}
 
-    test RBC.polar.axis.limits.A.aspect.4 {
+    test RBC.polar.axis.limits.A.7.1 {
         polar geometry: grid mapped axes drive automatic unit aspect
     } -setup {
         polar .polar1 -width 650 -height 430

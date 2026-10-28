@@ -23,7 +23,7 @@ namespace eval graph.pen {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that names works with no given pattern
 	# ------------------------------------------------------------------------------------ 
-	test RBC.graph.pen.names.A.1.1 {
+	test RBC.barchart.pen.names.A.1.1 {
 	    Test pen names
 	} -setup {
 	    graph .graph1
@@ -40,7 +40,7 @@ namespace eval graph.pen {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure that names works with a pattern parameter
 	# ------------------------------------------------------------------------------------ 
-	test RBC.graph.pen.names.A.1.2 {
+	test RBC.barchart.pen.names.A.2.1 {
 	    Test pen names
 	} -setup {
 	    graph .graph1

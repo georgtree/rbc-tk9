@@ -351,7 +351,7 @@ namespace eval vector.expr {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating ceil (ceiling)
 	# ------------------------------------------------------------------------------------ 
-	test RBC.vector.expr.A.1.20- {
+	test RBC.vector.expr.A.20.1 {
 		Test ceil
 	} -setup {
 		vector create Vector1
@@ -362,7 +362,7 @@ namespace eval vector.expr {
 		vector destroy Vector1
 	} -result {4.0 5.0 9.0 1.0 -0.0 -0.0 -2.0}
 
-	test RBC.vector.expr.A.1.20+ {
+	test RBC.vector.expr.A.21.1 {
 		Test ceil
 	} -constraints threeDigitExponent -setup {
 		vector create Vector1
@@ -474,7 +474,7 @@ namespace eval vector.expr {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating sin
 	# ------------------------------------------------------------------------------------ 
-	test RBC.vector.expr.A.1.28-00 {
+	test RBC.vector.expr.A.22.1 {
 		Test sin
 	} -constraints twoDigitExponent -setup {
 		vector create Vector1
@@ -485,7 +485,7 @@ namespace eval vector.expr {
 		vector destroy Vector1
 	} -result {2.65358979335273e-6 0.9999999999991198 0.0 -2.65358979335273e-6 -0.8462204041751706 0.8414709848078965\
                        -0.8414709848078965}
-	test RBC.vector.expr.A.1.28-000 {
+	test RBC.vector.expr.A.23.1 {
 		Test sin
 	} -constraints threeDigitExponent -setup {
 		vector create Vector1
@@ -528,7 +528,7 @@ namespace eval vector.expr {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Tests different conditions when evaluating tan
 	# ------------------------------------------------------------------------------------ 
-	test RBC.vector.expr.A.1.31-00 {
+	test RBC.vector.expr.A.24.1 {
 		Test tan
 	} -constraints twoDigitExponent -setup {
 		vector create Vector1
@@ -539,7 +539,7 @@ namespace eval vector.expr {
 		vector destroy Vector1
 	} -result {-2.6535897933620727e-6 753695.9951408089 0.0 2.6535897933620727e-6 1.5881530833912738 1.5574077246549023\
                        -1.5574077246549023}
-	test RBC.vector.expr.A.1.31-000 {
+	test RBC.vector.expr.A.25.1 {
 		Test tan
 	} -constraints threeDigitExponent -setup {
 		vector create Vector1

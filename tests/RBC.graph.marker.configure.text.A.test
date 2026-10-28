@@ -1057,7 +1057,7 @@ namespace eval graph.marker {
 		destroy .graph1
 	} -result {black 40000}
 
-    test RBC.graph.marker.configure.text.A.rollback.1 {
+    test RBC.graph.marker.configure.text.A.13.1 {
         text marker configuration is atomic
     } -setup {
         graph .graph1

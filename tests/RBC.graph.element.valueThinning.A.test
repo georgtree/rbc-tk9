@@ -1,8 +1,16 @@
 # Value labels share symbol sample selection and density. See license.terms.
+###Package Definition
+package provide graph.element.valueThinning
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace eval ::valueThinningTest {
-    namespace import ::tcltest::*
+namespace import tcltest::*
+
+namespace eval graph.element.valueThinning {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
     variable calls {}
     proc Label {graph element index x y} {
         variable calls
@@ -17,7 +25,7 @@ namespace eval ::valueThinningTest {
         .vt grid configure -hide yes
         .vt legend configure -hide yes
         .vt element create e -data {0 0 1 1 2 2 3 3 4 4} -symbol $symbol -linewidth 0 \
-            -reduce 1 -showvalues y -valuecommand ::valueThinningTest::Label
+            -reduce 1 -showvalues y -valuecommand ::graph.element.valueThinning::Label
         update idletasks
     }
     proc Indices {format} {
@@ -39,7 +47,7 @@ namespace eval ::valueThinningTest {
     foreach kind {graph stripchart polar} {
         foreach format {screen svg postscript} {
             foreach symbol {none circle} {
-                test valueThinning-selection-$kind-$format-$symbol {callbacks follow final selection and density reset} -setup {
+                test RBC.graph.element.valueThinning.A.1.[incr testCase(1)] {callbacks follow final selection and density reset} -setup {
                     Create $kind $symbol
                 } -body {
                     set result [list [Indices $format]]
@@ -56,26 +64,26 @@ namespace eval ::valueThinningTest {
                     set result
                 } -cleanup {destroy .vt} -result {{0 1 2 3 4} {0 2 4} 0 {0 4} {0 1 2 3 4} {0 1 2 3 4}}
             }
-            test valueThinning-palette-$kind-$format {unlabelled and symbol-free styles preserve density position} -setup {
+            test RBC.graph.element.valueThinning.A.2.[incr testCase(2)] {unlabelled and symbol-free styles preserve density position} -setup {
                 Create $kind none
                 .vt pen create first -symbol none -showvalues none -linewidth 0
                 .vt pen create second -symbol circle -showvalues y -linewidth 0 \
-                    -valuecommand ::valueThinningTest::Label
+                    -valuecommand ::graph.element.valueThinning::Label
                 .vt element configure e -data {0 0 1 1 2 2 3 3 4 4 5 5} -reduce 0 -maxsymbols 3 \
                     -weights {1 1 1 2 2 2} -styles {{first 0.5 1.5} {second 1.5 2.5}}
             } -body {
                 set result [list [Indices $format]]
-                .vt pen configure first -showvalues y -valuecommand ::valueThinningTest::Label
+                .vt pen configure first -showvalues y -valuecommand ::graph.element.valueThinning::Label
                 lappend result [Indices $format]
                 .vt element configure e -maxsymbols 0
                 lappend result [Indices $format]
                 set result
             } -cleanup {destroy .vt} -result {4 {0 2 4} {0 1 2 3 4 5}}
 
-            test valueThinning-active-$kind-$format {active labels bypass density and explicit indices bypass reduction} -setup {
+            test RBC.graph.element.valueThinning.A.3.[incr testCase(3)] {active labels bypass density and explicit indices bypass reduction} -setup {
                 Create $kind none
                 .vt pen create highlight -symbol none -linewidth 0 -showvalues y \
-                    -valuecommand ::valueThinningTest::Label
+                    -valuecommand ::graph.element.valueThinning::Label
                 .vt element configure e -symbolpoints reduced -maxsymbols 1 -activepen highlight
             } -body {
                 .vt element activate e 1 2 3
@@ -87,5 +95,5 @@ namespace eval ::valueThinningTest {
             } -cleanup {destroy .vt} -result {{0 1 2 3} {0 0 4} 0}
         }
     }
-}
 ::tcltest::cleanupTests
+}

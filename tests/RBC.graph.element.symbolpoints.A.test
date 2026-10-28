@@ -1,8 +1,16 @@
 # Symbol selection after geometric reduction. See license.terms.
+###Package Definition
+package provide graph.element.symbolpoints
+
 package require rbc
+namespace import rbc::*
+
 package require tcltest
-namespace eval ::symbolPointsTest {
-    namespace import ::tcltest::*
+namespace import tcltest::*
+
+namespace eval graph.element.symbolpoints {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0 5 0 6 0 7 0 9 0 10 0}
     variable calls {}
     proc Label {graph element index x y} {
         variable calls
@@ -17,7 +25,7 @@ namespace eval ::symbolPointsTest {
         .sp grid configure -hide yes
         .sp legend configure -hide yes
         .sp element create e -data {0 0 1 1 2 2 3 3 4 4} -symbol square -pixels 9 \
-            -fill red -outline red -color blue -reduce 1 -showvalues y -valuecommand ::symbolPointsTest::Label
+            -fill red -outline red -color blue -reduce 1 -showvalues y -valuecommand ::graph.element.symbolpoints::Label
         update idletasks
     }
     proc Indices {photo} {
@@ -28,7 +36,7 @@ namespace eval ::symbolPointsTest {
         return $calls
     }
     foreach kind {graph stripchart polar} {
-        test symbolPoints-options-$kind {default, metadata and invalid-option rollback} -setup {
+        test RBC.graph.element.symbolpoints.A.1.[incr testCase(1)] {default, metadata and invalid-option rollback} -setup {
             Create $kind
         } -body {
             set default [.sp element cget e -symbolpoints]
@@ -39,7 +47,7 @@ namespace eval ::symbolPointsTest {
         } -cleanup {destroy .sp} -result {all all 1 reduced}
 
         foreach width {0 1} {
-            test symbolPoints-reduce-$kind-$width {reduce selects samples, reset restores all and exact closest survives} -setup {
+            test RBC.graph.element.symbolpoints.A.2.[incr testCase(2)] {reduce selects samples, reset restores all and exact closest survives} -setup {
                 set photo {}
                 set photo [image create photo]
                 Create $kind
@@ -62,7 +70,7 @@ namespace eval ::symbolPointsTest {
                 unset -nocomplain hit
             } -result {{0 1 2 3 4} {0 4} {1 2} {0 1 2 3 4} {0 1 2 3 4}}
         }
-        test symbolPoints-max-$kind {maxsymbols further thins the reduced set on screen} -setup {
+        test RBC.graph.element.symbolpoints.A.3.[incr testCase(3)] {maxsymbols further thins the reduced set on screen} -setup {
             set photo {}
             set photo [image create photo]
             Create $kind
@@ -80,7 +88,7 @@ namespace eval ::symbolPointsTest {
             if {$photo ne {}} {image delete $photo}
         } -result {1 0}
     }
-    test symbolPoints-strip-reduce-option {strip reduction metadata and invalid-value rollback} -setup {
+    test RBC.graph.element.symbolpoints.A.4.1 {strip reduction metadata and invalid-value rollback} -setup {
         Create stripchart
     } -body {
         set default [lindex [.sp element configure e -reduce] 3]
@@ -98,7 +106,7 @@ namespace eval ::symbolPointsTest {
 
     foreach kind {graph stripchart polar} {
         foreach format {svg postscript} {
-            test symbolPoints-export-max-$kind-$format {export density follows all and reduced samples and resets} -setup {
+            test RBC.graph.element.symbolpoints.A.5.[incr testCase(5)] {export density follows all and reduced samples and resets} -setup {
                 Create $kind
                 .sp element configure e -symbol circle
             } -body {
@@ -116,7 +124,7 @@ namespace eval ::symbolPointsTest {
                 set result
             } -cleanup {destroy .sp} -result {5 3 1 0 2 5}
 
-            test symbolPoints-export-palette-$kind-$format {symbol interval continues across pen boundaries} -setup {
+            test RBC.graph.element.symbolpoints.A.6.[incr testCase(6)] {symbol interval continues across pen boundaries} -setup {
                 Create $kind
                 .sp axis configure x -max 6
                 .sp axis configure y -max 6
@@ -130,7 +138,7 @@ namespace eval ::symbolPointsTest {
                 list $limited [ExportCount $format]
             } -cleanup {destroy .sp} -result {3 6}
 
-            test symbolPoints-export-active-$kind-$format {legend and explicit active symbols bypass density thinning} -setup {
+            test RBC.graph.element.symbolpoints.A.7.[incr testCase(7)] {legend and explicit active symbols bypass density thinning} -setup {
                 Create $kind
                 .sp pen create highlight -symbol circle -linewidth 0
                 .sp element configure e -symbol circle -symbolpoints reduced -maxsymbols 1 -activepen highlight
@@ -146,7 +154,7 @@ namespace eval ::symbolPointsTest {
         }
     }
 
-    test symbolPoints-gap {reduction retains endpoints of separate valid data runs} -setup {
+    test RBC.graph.element.symbolpoints.A.8.1 {reduction retains endpoints of separate valid data runs} -setup {
         set photo {}
         set photo [image create photo]
         Create graph
@@ -161,7 +169,7 @@ namespace eval ::symbolPointsTest {
     } -result {0 2 4 6}
 
     foreach output {svg postscript} {
-        test symbolPoints-export-$output {export uses selected source indices and restores all mode} -setup {
+        test RBC.graph.element.symbolpoints.A.9.[incr testCase(9)] {export uses selected source indices and restores all mode} -setup {
             Create graph
             .sp element configure e -symbolpoints reduced
         } -body {
@@ -176,7 +184,7 @@ namespace eval ::symbolPointsTest {
     }
 
     foreach smooth {step natural quadratic catrom} {
-        test symbolPoints-smooth-$smooth {generated geometry never adds symbol samples} -setup {
+        test RBC.graph.element.symbolpoints.A.10.[incr testCase(10)] {generated geometry never adds symbol samples} -setup {
             set photo {}
             set photo [image create photo]
             Create graph
@@ -195,5 +203,5 @@ namespace eval ::symbolPointsTest {
             if {$photo ne {}} {image delete $photo}
         } -result {1 {0 1 2 3}}
     }
-}
 ::tcltest::cleanupTests
+}

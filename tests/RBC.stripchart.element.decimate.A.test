@@ -19,6 +19,8 @@ namespace import tcltest::*
 
 namespace eval stripchart.element.decimate {
 
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {7 0}
     # ------------------------------------------------------------------
     # Option surface.
     # ------------------------------------------------------------------
@@ -658,7 +660,7 @@ namespace eval stripchart.element.decimate {
 
     cleanupTests
     foreach inverted {0 1} {
-        test RBC.stripchart.element.decimate.A.visible-$inverted {pre-map decimated strips remain visibly drawn} -setup {
+        test RBC.stripchart.element.decimate.A.7.[incr testCase(7)] {pre-map decimated strips remain visibly drawn} -setup {
             stripchart .stripchart1 -width 400 -height 300 -invertxy $inverted -renderer native
             .stripchart1 legend configure -hide yes
             .stripchart1 axis configure x -min 0 -max 9999 -loose no
