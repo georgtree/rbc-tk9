@@ -1699,6 +1699,39 @@ namespace eval trackGraphTest {
         } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1}
 
         foreach renderer {native cairo} {
+            test trackgraph-scroll-marker-position-$inverted-$renderer {partially scrolled markers follow full track transforms, not clipped bounds} \
+                    -constraints trackRenderer$renderer -setup {
+                ScrollSetup $inverted
+                .tg configure -renderer $renderer
+                .tg element delete v i
+                .tg grid off
+                .tg marker create line -name threshold -track voltage -mapy volts \
+                    -coords {-Inf 0 Inf 0} -outline #ff00ff -linewidth 3
+                set photo [image create photo]
+            } -body {
+                set result {}
+                foreach logarithmic {0 1} {
+                    foreach descending {0 1} {
+                        .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
+                        set value [expr {$logarithmic ? 10 : 50.5}]
+                        .tg marker configure threshold -coords [list -Inf $value Inf $value]
+                        foreach units {0 3 -3} {
+                            .tg track view scroll $units units
+                            update
+                            lassign [.tg track transform voltage 5 $value] x y
+                            .tg snap $photo
+                            lassign [$photo get [expr {int(round($x))}] [expr {int(round($y))}]] red green blue
+                            lappend result [expr {$red>200 && $green<80 && $blue>200}]
+                            lappend result [expr {[.tg marker find overlapping \
+                                [expr {int($x)-2}] [expr {int($y)-2}] [expr {int($x)+2}] [expr {int($y)+2}]] eq "threshold"}]
+                        }
+                    }
+                }
+                expr {0 ni $result}
+            } -cleanup {image delete $photo; destroy .tg} -result 1
+        }
+
+        foreach renderer {native cairo} {
             test trackgraph-scroll-clipping-$inverted-$renderer {wide traces, markers, grids and local axes remain inside the viewport when partially scrolled} \
                     -constraints trackRenderer$renderer -setup {
                 ScrollSetup $inverted

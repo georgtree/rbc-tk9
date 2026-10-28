@@ -1372,7 +1372,8 @@ static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
         norm = 1.0 - norm;
     }
     if (axisPtr->track != NULL) {
-        return norm * MAX(1, axisPtr->track->right - axisPtr->track->left) + axisPtr->track->left;
+        /* Map against the full track; visible bounds are only for clipping. */
+        return norm * MAX(1, axisPtr->track->worldRight - axisPtr->track->worldLeft) + axisPtr->track->worldLeft;
     }
     /* Horizontal transformation */
     return ((norm * graphPtr->hRange) + graphPtr->hOffset);
@@ -1422,7 +1423,8 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     }
     /* Region searches also map original points outside the drawing scope. */
     if (axisPtr->track != NULL) {
-        return (1.0 - norm) * MAX(1, axisPtr->track->bottom - axisPtr->track->top) + axisPtr->track->top;
+        /* Scrolling must not rescale markers into the remaining visible area. */
+        return (1.0 - norm) * MAX(1, axisPtr->track->worldBottom - axisPtr->track->worldTop) + axisPtr->track->worldTop;
     }
     /* Vertical transformation */
     return (((1.0 - norm) * graphPtr->vRange) + graphPtr->vOffset);
