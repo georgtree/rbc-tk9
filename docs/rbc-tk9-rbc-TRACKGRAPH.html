@@ -53,7 +53,7 @@ The commands described here are native widget operations, not Tcl wrappers to in
 <section id="stacked-tracks">
 <span id="r-rbc-trackgraph-stacked-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzstacked20tracks"></span><h2>Stacked tracks<a class="headerlink" href="#stacked-tracks" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">rbc::trackgraph</span></code> is one native graph window containing named vertical plot regions. It reuses the graph’s
-line and strip elements, renderers and SVG, PDF and PostScript exporters. It does not create child graphs.
+line, strip and bar elements, renderers and SVG, PDF and PostScript exporters. It does not create child graphs.
 The axis-region approach is also used by BLT’s <code class="docutils literal notranslate"><span class="pre">-stackaxes</span></code> feature; RBC tracks explicitly group one or
 more Y axes and their elements into a row.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">rbc</span><span class="o">::</span>trackgraph<span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>width<span class="w"> </span><span class="mi">800</span><span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">500</span>
@@ -102,6 +102,10 @@ from each track’s first Y axis. An empty axis selection disables that directio
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
 <td><p>empty</p></td>
 <td><p>List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barmode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">inherit</span></code></p></td>
+<td><p>Bar mode for this track: inherit the graph setting, or use normal, aligned, overlap or stacked.</p></td>
 </tr>
 </tbody>
 </table>
@@ -170,6 +174,26 @@ Temporary export layouts do not repick or run background bindings. Deleting a tr
 bindings and clears current/pending references; recreating its name starts with no name bindings. The
 <code class="docutils literal notranslate"><span class="pre">all</span></code> binding remains until removed or the widget is destroyed. Callbacks may delete tracks or the widget.</p>
 </section>
+<section id="bars-in-tracks">
+<span id="r-rbc-trackgraph-bars-in-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzbars20in20tracks"></span><h3>Bars in tracks<a class="headerlink" href="#bars-in-tracks" title="Link to this heading">¶</a></h3>
+<p>Create bars with <code class="docutils literal notranslate"><span class="pre">bar</span> <span class="pre">create</span> <span class="pre">name</span> <span class="pre">-track</span> <span class="pre">trackName</span> <span class="pre">-mapy</span> <span class="pre">axisName</span></code>, using an existing Y axis owned by
+the track. Bars can coexist with line and strip elements and use the same legends, bindings and exporters.
+Ordinary bar options, including width, alignment, offset, pens, value labels and error-bar positioning,
+retain their meaning. Scrolling maps bars in full track coordinates and clips them to the visible area.</p>
+<p>Each track has <code class="docutils literal notranslate"><span class="pre">-barmode</span> <span class="pre">inherit|normal|aligned|overlap|stacked</span></code>, default <code class="docutils literal notranslate"><span class="pre">inherit</span></code>, with resource name
+<code class="docutils literal notranslate"><span class="pre">barMode</span></code> and class <code class="docutils literal notranslate"><span class="pre">BarMode</span></code>. Inherited tracks follow the graph’s <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>; an explicit track setting
+overrides it until reset to <code class="docutils literal notranslate"><span class="pre">inherit</span></code>. <code class="docutils literal notranslate"><span class="pre">infront</span></code> is accepted as an alias of <code class="docutils literal notranslate"><span class="pre">normal</span></code>.
+Grouping and stacking use the mapped X/Y axis pair. Tracks exclusively own their Y axes, so bars in
+different tracks never form a group or stack together, even when their X values match. Within a track,
+bars mapped to different axes remain separate. Each Y axis autoscales from its own bars and stacks;
+shared X axes include bar widths and placement offsets across their tracks.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>barmode<span class="w"> </span>aligned
+<span class="nv">.g</span><span class="w"> </span>bar<span class="w"> </span>create<span class="w"> </span>measured<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>volts<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>bar<span class="w"> </span>create<span class="w"> </span>predicted<span class="w"> </span><span class="o">-</span>track<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>volts<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mf">2.2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mf">2.8</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>current<span class="w"> </span><span class="o">-</span>barmode<span class="w"> </span>stacked
+</pre></div>
+</div>
+</section>
 <section id="track-option-database">
 <span id="r-rbc-trackgraph-track-option-database"></span><span id="r-3a3arbc3a3atrackgraphqztrack20option20database"></span><h3>Track option database<a class="headerlink" href="#track-option-database" title="Link to this heading">¶</a></h3>
 <p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. The resource name is the track name.
@@ -203,6 +227,10 @@ changes do not modify existing tracks, including during <code class="docutils li
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yAxes</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YAxes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-barmode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">barMode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BarMode</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -382,7 +410,7 @@ exports when <code class="docutils literal notranslate"><span class="pre">-decor
 controls only the supplied mouse bindings. Custom interaction code can leave it disabled and use the same
 commands. Keep the <code class="docutils literal notranslate"><span class="pre">Trackgraph</span></code> class in <code class="docutils literal notranslate"><span class="pre">bindtags</span></code> to use the standard bindings; a widget binding that returns
 <code class="docutils literal notranslate"><span class="pre">break</span></code> before the class binding can intentionally suppress them.</p>
-<p>Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. The
+<p>Trackgraph supports line, strip and bar elements in both orientations. Polar elements are rejected. The
 optional <code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code> package accepts <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">trackgraph</span></code>: zoom and pan use shared X axes and the
 starting track’s Y axes; wheel zoom and coordinate annotations follow the pointed track. Separator dragging
 remains available. See <a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-namespaceqz3a3arbc3a3agraphtoolbar"><span class="std std-ref">::rbc::graphtoolbar</span></a> and <code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> for the interaction controls. Markers
@@ -409,6 +437,7 @@ annotations and shared horizontal navigation.</p>
 <li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
 <li><a class="reference internal" href="#track-configuration-and-lifecycle">Track configuration and lifecycle</a></li>
 <li><a class="reference internal" href="#track-background-bindings">Track background bindings</a></li>
+<li><a class="reference internal" href="#bars-in-tracks">Bars in tracks</a></li>
 <li><a class="reference internal" href="#track-option-database">Track option database</a></li>
 <li><a class="reference internal" href="#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
 <li><a class="reference internal" href="#track-coordinate-conversion">Track coordinate conversion</a></li>

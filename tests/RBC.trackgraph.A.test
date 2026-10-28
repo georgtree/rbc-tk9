@@ -1033,7 +1033,7 @@ namespace eval trackGraphTest {
         }
         set options [.tg track configure voltage]
         .tg track configure voltage -weight 3 -height 250
-        lappend result [expr {[llength $options]==4}] \
+        lappend result [expr {[llength $options]==5}] \
             [expr {[lindex [.tg track configure voltage -weight] 4]==3.0}] \
             [expr {[lindex [.tg track configure voltage -height] 4]==250}]
         expr {0 ni $result}
@@ -1531,7 +1531,9 @@ namespace eval trackGraphTest {
                     for {set px [expr {int($x)-2}]} {$px<=int($x)+2} {incr px} {
                         for {set py [expr {int($y)-2}]} {$py<=int($y)+2} {incr py} {
                             lassign [$photo get $px $py] red green blue
-                            if {$red>180 && $green<80 && $blue<80} {set visible 1}
+                            # A one-pixel Cairo stroke between columns has partial coverage.
+                            # Require red dominance rather than an almost solid red pixel.
+                            if {$red>180 && $red-$green>80 && $red-$blue>80} {set visible 1}
                         }
                     }
                     lappend result $visible
@@ -2290,6 +2292,185 @@ namespace eval trackGraphTest {
         lappend result [winfo exists .tg]
         set result
     } -cleanup {catch {destroy .tg}} -result {0 0}
+
+    proc BarsSetup {{inverted 0}} {
+        Create $inverted
+        .tg axis configure volts -min 0 -max 10 -loose no
+        .tg axis configure amps -min 0 -max 40 -loose no
+        .tg bar create a -track voltage -mapy volts -data {5 3} -barwidth 2 -foreground red -borderwidth 0
+        .tg bar create b -track voltage -mapy volts -data {5 4} -barwidth 2 -foreground blue -borderwidth 0
+        .tg bar create c -track current -mapy amps -data {5 10} -barwidth 2 -borderwidth 0
+        .tg bar create d -track current -mapy amps -data {5 20} -barwidth 2 -borderwidth 0
+        .tg element show {v i a b c d}
+        update
+    }
+
+    foreach inverted {0 1} {
+        foreach {mode x y expected} {normal 5 2 a aligned 5.5 2 a overlap 5.8 2 a stacked 5 5 b} {
+            test trackbars-placement-$inverted-$mode {bar groups are local to each track and coexist with line and strip elements} -setup {
+                BarsSetup $inverted
+                .tg track configure voltage -barmode $mode
+                .tg track configure current -barmode stacked
+                update
+            } -body {
+                lassign [.tg track transform voltage $x $y] px py
+                set barHit [.tg element closest [expr {round($px)}] [expr {round($py)}] barFound -halo 1 a b]
+                list $barHit $barFound(name) [.tg element cget a -track] [.tg element type v] [.tg element type i]
+            } -cleanup {destroy .tg; unset -nocomplain barFound barHit} -result [list 1 $expected voltage LineElement StripElement]
+        }
+        foreach format {svg pdf postscript} {
+            test trackbars-export-$inverted-$format {mixed bar modes and error bars export and restore track geometry} -setup {
+                BarsSetup $inverted
+                .tg track configure voltage -barmode aligned
+                .tg track configure current -barmode stacked
+                .tg element configure a -yerror {0.5} -errorbarposition bar
+                .tg element configure b -ylow {3.5} -yhigh {4.5} -errorbarposition bar
+                update
+            } -body {
+                set before [.tg track transform voltage 5 2]
+                set original [.tg $format output]
+                set enlarged [.tg $format output -width 900 -height 700]
+                .tg $format configure -width 0 -height 0
+                update
+                set restored [.tg $format output]
+                if {$format eq "postscript"} {
+                    foreach name {original restored} {regsub -line {^%%CreationDate:.*$} [set $name] {} $name}
+                }
+                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] \
+                    [expr {$before eq [.tg track transform voltage 5 2]}]
+            } -cleanup {destroy .tg} -result {1 1 1}
+        }
+    }
+
+    test trackbars-autoscale {local modes and inherited mode changes affect only the appropriate Y ranges} -setup {
+        BarsSetup
+        .tg element delete v i
+        .tg axis configure volts -min {} -max {} -loose no
+        .tg axis configure amps -min {} -max {} -loose no
+    } -body {
+        .tg configure -barmode stacked
+        update
+        set result [list [.tg axis limits volts] [.tg axis limits amps]]
+        .tg track configure voltage -barmode normal
+        update
+        lappend result [.tg axis limits volts] [.tg axis limits amps]
+        .tg track configure voltage -barmode inherit
+        update
+        lappend result [.tg axis limits volts] [.tg track cget voltage -barmode]
+        set result
+    } -cleanup {destroy .tg} -result {{0.0 7.0} {0.0 30.0} {0.0 4.0} {0.0 30.0} {0.0 7.0} inherit}
+
+    test trackbars-updates {local stacks remap after data updates with fixed axes and isolate additional Y axes} -setup {
+        BarsSetup
+        .tg track configure voltage -barmode stacked
+        .tg axis create alternate -min 0 -max 100 -loose no
+        .tg track configure voltage -yaxes {volts alternate}
+        .tg bar create separate -track voltage -mapy alternate -data {5 80}
+        update
+    } -body {
+        .tg element configure b -data {5 6}
+        update
+        lassign [.tg track transform voltage 5 8] x y
+        set barHit [.tg element closest [expr {round($x)}] [expr {round($y)}] barFound -halo 1 a b]
+        list $barHit $barFound(name) [.tg axis limits volts] [.tg track cget voltage -barmode]
+    } -cleanup {destroy .tg; unset -nocomplain barFound barHit} -result {1 b {0.0 10.0} stacked}
+
+    test trackbars-optiondb {track mode supports component defaults and explicit overrides} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+    } -body {
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            option add *Track.BarMode stacked
+            rbc::trackgraph .tg
+            .tg track create first
+            .tg track create second -barmode aligned
+            list [.tg track configure first -barmode] [.tg track cget second -barmode]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {{-barmode barMode BarMode inherit stacked} aligned}
+
+    test trackbars-ownership {bar moves validate the destination axis and mode changes roll back atomically} -setup {
+        BarsSetup
+    } -body {
+        set before [.tg track configure voltage]
+        list [catch {.tg element configure a -track current}] [.tg element cget a -track] \
+            [catch {.tg track configure voltage -barmode invalid -height 500}] \
+            [expr {$before eq [.tg track configure voltage]}] \
+            [catch {.tg element configure a -track current -mapy amps}] [.tg element cget a -track]
+    } -cleanup {destroy .tg} -result {1 voltage 1 1 0 current}
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            test trackbars-clip-$inverted-$renderer {scrolling clips wide bar outlines and error bars to their track} \
+                    -constraints trackRenderer$renderer -setup {
+                ScrollSetup $inverted
+                .tg configure -renderer $renderer
+                .tg element delete v i
+                .tg grid off
+                .tg bar create bars -track voltage -mapy volts -data {5 1} -barwidth 20 \
+                    -foreground #ff00ff -background #ff00ff -yerror {1} -errorbarcolor #ff00ff -errorbarwidth 12
+                .tg track view scroll 5 units
+                set photo [image create photo]
+                update
+            } -body {
+                .tg snap $photo
+                lassign [.tg track bbox voltage] l t r b
+                set valid 1; set count 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$red>200 && $green<80 && $blue>200} {
+                            incr count
+                            if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                        }
+                    }
+                }
+                list $valid [expr {$count>0}]
+            } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+        }
+    }
+
+    foreach inverted {0 1} {
+        foreach renderer {native cairo} {
+            foreach active {0 1} {
+                test trackbars-fit-border-$inverted-$renderer-$active {raised bar borders stay inside fitted tracks} \
+                        -constraints trackRenderer$renderer -setup {
+                    Create $inverted
+                    .tg configure -renderer $renderer
+                    .tg element delete v i
+                    .tg grid off
+                    # Windows text smoothing can give black glyph edges magenta pixels.
+                    # Exclude axis text so the colour scan identifies only bar pixels.
+                    foreach axis [.tg axis names] {
+                        .tg axis configure $axis -showticks no -title {}
+                    }
+                    .tg bar create bars -track voltage -mapy volts -data {3 5 7 -5} \
+                        -barwidth 1 -foreground magenta -background magenta -borderwidth 4 -relief raised
+                    .tg pen create borderActive -type bar -foreground magenta -background magenta \
+                        -borderwidth 4 -relief raised
+                    .tg element configure bars -activepen borderActive
+                    if {$active} {.tg element activate bars}
+                    set photo [image create photo]
+                    update
+                } -body {
+                    .tg snap $photo
+                    lassign [.tg track bbox voltage] l t r b
+                    set valid 1; set count 0
+                    for {set y 0} {$y<[image height $photo]} {incr y} {
+                        for {set x 0} {$x<[image width $photo]} {incr x} {
+                            lassign [$photo get $x $y] red green blue
+                            if {$red>80 && $blue>80 && $green<$red/2 && $green<$blue/2} {
+                                incr count
+                                if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                            }
+                        }
+                    }
+                    list $valid [expr {$count>0}]
+                } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+            }
+        }
+    }
 
 }
 ::tcltest::cleanupTests

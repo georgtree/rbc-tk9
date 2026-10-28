@@ -3688,8 +3688,8 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
                                 (char *)NULL);
         return TCL_ERROR;
     }
-    if (graphPtr->trackGraph && classUid != rbcLineElementUid && classUid != rbcStripElementUid) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("trackgraph supports line and strip elements", -1));
+    if (graphPtr->trackGraph && classUid != rbcLineElementUid && classUid != rbcStripElementUid && classUid != rbcBarElementUid) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("trackgraph supports line, strip and bar elements", -1));
         return TCL_ERROR;
     }
     hPtr = Tcl_CreateHashEntry(&graphPtr->elements.table, elemName, &isNew);
@@ -3847,7 +3847,7 @@ void Rbc_MapElements(Graph *graphPtr) {
     Element *elemPtr;
     Rbc_ChainLink *linkPtr;
 
-    if (graphPtr->mode != MODE_INFRONT) {
+    if (graphPtr->trackGraph || graphPtr->mode != MODE_INFRONT) {
         Rbc_ResetStacks(graphPtr);
     }
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -3876,8 +3876,8 @@ void Rbc_MapElements(Graph *graphPtr) {
     }
 }
 
-/* Clip complete native strokes at a scrolled track's viewport boundary. */
-static void DrawScrolledElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
+/* Clip complete strokes, including native bar borders, at a track viewport. */
+static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
     RbcTrack *track = elemPtr->track;
     Pixmap pixmap;
     XGCValues values;
@@ -3935,8 +3935,8 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
                                            elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                if (graphPtr->trackScroll && elemPtr->track != NULL) {
-                    DrawScrolledElement(graphPtr, drawable, elemPtr, 0);
+                if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
+                    DrawClippedTrackElement(graphPtr, drawable, elemPtr, 0);
                 } else {
                     (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
                 }
@@ -3979,8 +3979,8 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
                                            elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                if (graphPtr->trackScroll && elemPtr->track != NULL) {
-                    DrawScrolledElement(graphPtr, drawable, elemPtr, 1);
+                if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
+                    DrawClippedTrackElement(graphPtr, drawable, elemPtr, 1);
                 } else {
                     (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
                 }
@@ -4025,7 +4025,7 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
                     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
                     Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
                         elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);
@@ -4072,7 +4072,7 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
                     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
                     Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
                         elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);

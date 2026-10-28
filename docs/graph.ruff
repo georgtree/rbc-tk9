@@ -1243,7 +1243,7 @@ namespace eval ::rbc::TRACKGRAPH {
 
         ## Stacked tracks
         `rbc::trackgraph` is one native graph window containing named vertical plot regions. It reuses the graph's
-        line and strip elements, renderers and SVG, PDF and PostScript exporters. It does not create child graphs.
+        line, strip and bar elements, renderers and SVG, PDF and PostScript exporters. It does not create child graphs.
         The axis-region approach is also used by BLT's `-stackaxes` feature; RBC tracks explicitly group one or
         more Y axes and their elements into a row.
 
@@ -1274,6 +1274,7 @@ namespace eval ::rbc::TRACKGRAPH {
         | `-minheight` | `40`    | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units.                                                                                                          |
         | `-height`    | `160`   | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
         | `-yaxes`     | empty   | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).                                                                                   |
+        | `-barmode` | `inherit` | Bar mode for this track: inherit the graph setting, or use normal, aligned, overlap or stacked. |
 
         ### Track configuration and lifecycle
 
@@ -1350,6 +1351,28 @@ namespace eval ::rbc::TRACKGRAPH {
         bindings and clears current/pending references; recreating its name starts with no name bindings. The
         `all` binding remains until removed or the widget is destroyed. Callbacks may delete tracks or the widget.
 
+        ### Bars in tracks
+
+        Create bars with `bar create name -track trackName -mapy axisName`, using an existing Y axis owned by
+        the track. Bars can coexist with line and strip elements and use the same legends, bindings and exporters.
+        Ordinary bar options, including width, alignment, offset, pens, value labels and error-bar positioning,
+        retain their meaning. Scrolling maps bars in full track coordinates and clips them to the visible area.
+
+        Each track has `-barmode inherit|normal|aligned|overlap|stacked`, default `inherit`, with resource name
+        `barMode` and class `BarMode`. Inherited tracks follow the graph's `-barmode`; an explicit track setting
+        overrides it until reset to `inherit`. `infront` is accepted as an alias of `normal`.
+        Grouping and stacking use the mapped X/Y axis pair. Tracks exclusively own their Y axes, so bars in
+        different tracks never form a group or stack together, even when their X values match. Within a track,
+        bars mapped to different axes remain separate. Each Y axis autoscales from its own bars and stacks;
+        shared X axes include bar widths and placement offsets across their tracks.
+
+        ```tcl
+        .g track configure voltage -barmode aligned
+        .g bar create measured -track voltage -mapy volts -data {1 2 2 3}
+        .g bar create predicted -track voltage -mapy volts -data {1 2.2 2 2.8}
+        .g track configure current -barmode stacked
+        ```
+
         ### Track option database
 
         Tracks are named option-database components with class `Track`. The resource name is the track name.
@@ -1362,6 +1385,7 @@ namespace eval ::rbc::TRACKGRAPH {
         | `-minheight` | `minHeight` | `MinHeight` |
         | `-height` | `height` | `Height` |
         | `-yaxes` | `yAxes` | `YAxes` |
+        | `-barmode` | `barMode` | `BarMode` |
 
         ```tcl
         option add *Track.height 200
@@ -1560,7 +1584,7 @@ namespace eval ::rbc::TRACKGRAPH {
         commands. Keep the `Trackgraph` class in `bindtags` to use the standard bindings; a widget binding that returns
         `break` before the class binding can intentionally suppress them.
 
-        Trackgraph supports line and strip elements in both orientations. Bar/polar elements are rejected. The
+        Trackgraph supports line, strip and bar elements in both orientations. Polar elements are rejected. The
         optional `rbc::graphtoolbar` package accepts `-type trackgraph`: zoom and pan use shared X axes and the
         starting track's Y axes; wheel zoom and coordinate annotations follow the pointed track. Separator dragging
         remains available. See [::rbc::graphtoolbar] and `demos/trackgraph1.tcl` for the interaction controls. Markers
@@ -1570,7 +1594,7 @@ namespace eval ::rbc::TRACKGRAPH {
     }
 
     proc create {name args} {
-        # Creates a uniquely named track and returns its name. Options are `-yaxes`, `-weight`, `-height` and `-minheight`.
+        # Creates a uniquely named track and returns its name. Options are `-yaxes`, `-weight`, `-height`, `-minheight` and `-barmode`.
         # name - Track name.
         # args - Optional arguments shown in the synopsis.
         # Synopsis: name ?option value ...?

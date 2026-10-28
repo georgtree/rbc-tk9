@@ -3516,7 +3516,7 @@ void Rbc_ResetAxes(Graph *graphPtr) {
      * Needs to be done before the axis limits are set.
      */
     Rbc_InitFreqTable(graphPtr);
-    if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
+    if ((graphPtr->trackGraph || graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
         Rbc_ComputeStacks(graphPtr);
     }
     Rbc_ResetStacks(graphPtr);

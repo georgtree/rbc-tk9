@@ -55,6 +55,12 @@ lifecycle interface\&. See \fITrack configuration and lifecycle\fP\&.
 all event bindings plus track get current\&. Backgrounds are picked after elements and markers, exclude
 legends and separators, and follow scrolling and inversion\&. Enter/Leave callbacks are updated when native
 layout changes beneath a stationary pointer; export layouts do not dispatch them\&.
+.SS "BARS IN TRACKS"
+.PP
+Trackgraphs now accept bar elements alongside line and strip elements\&. Each track can override the
+graph's bar mode with -barmode, or use the default inherit\&. Groups, stacks and Y autoscaling stay
+isolated by mapped axes\&. Existing bar alignment, offsets, error bars, legends and exporters apply\&.
+See \fIBars in tracks\fP\&.
 .SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
 .PP
 \fI::rbc::TRACKGRAPH\fP line, polygon and arc markers now accept -xor yes, using native XOR within the clipped

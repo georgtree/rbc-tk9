@@ -55,6 +55,12 @@ namespace eval TclTk9Upgrade {
         legends and separators, and follow scrolling and inversion. Enter/Leave callbacks are updated when native
         layout changes beneath a stationary pointer; export layouts do not dispatch them.
 
+        ### Bars in tracks
+        Trackgraphs now accept bar elements alongside line and strip elements. Each track can override the
+        graph's bar mode with `-barmode`, or use the default `inherit`. Groups, stacks and Y autoscaling stay
+        isolated by mapped axes. Existing bar alignment, offsets, error bars, legends and exporters apply.
+        See [Bars in tracks][::rbc::TRACKGRAPH::Bars in tracks].
+
         ### Track XOR markers, dividers and decimation
         [::rbc::TRACKGRAPH] line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
         redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional

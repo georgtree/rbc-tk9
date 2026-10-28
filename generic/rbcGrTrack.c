@@ -16,7 +16,7 @@
 #define CLAMP(value, low, high) MIN(MAX((value), (low)), (high))
 
 typedef struct {
-    Tcl_Obj *weight, *minHeight, *height, *yAxes;
+    Tcl_Obj *weight, *minHeight, *height, *yAxes, *barMode;
 } TrackDefaults;
 static const Tk_OptionSpec trackOptionSpecs[] = {
     {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0",
@@ -27,6 +27,8 @@ static const Tk_OptionSpec trackOptionSpecs[] = {
      offsetof(TrackDefaults, height), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "",
      offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", "inherit",
+     offsetof(TrackDefaults, barMode), -1, 0, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
 };
 
@@ -224,13 +226,17 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
 
 /* Share option names and metadata with creation defaults. */
 static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
-    static const char *const names[] = {"-weight", "-minheight", "-height", "-yaxes", NULL};
+    static const char *const names[] = {"-weight", "-minheight", "-height", "-yaxes", "-barmode", NULL};
     return Tcl_GetIndexFromObj(interp, obj, names, "track option", 0, indexPtr);
 }
 
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     Tcl_Obj *result;
     Tcl_Size i;
+    if (strcmp(option, "-barmode") == 0) {
+        const char *names[] = {"normal", "stacked", "aligned", "overlap"};
+        return Tcl_NewStringObj(track->barMode < 0 ? "inherit" : names[track->barMode], -1);
+    }
     if (strcmp(option, "-height") == 0) {
         return Tcl_NewIntObj(track->height);
     }
@@ -265,6 +271,7 @@ static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
 
 /* Stage all options and axis references before committing a track change. */
 static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    int barMode = track->barMode;
     double weight = track->weight;
     int minHeight = track->minHeight;
     int height = track->height;
@@ -310,6 +317,11 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
                                  Tcl_NewStringObj("track height must be between 1 and 1000000 pixels", -1));
                 return TCL_ERROR;
             }
+        } else if (strcmp(option, "-barmode") == 0) {
+            static const char *const modes[] = {"inherit", "normal", "stacked", "aligned", "overlap", "infront", NULL};
+            int index;
+            if (Tcl_GetIndexFromObj(graphPtr->interp, objv[i+1], modes, "bar mode", 0, &index) != TCL_OK) {return TCL_ERROR;}
+            barMode = index == 5 ? MODE_INFRONT : index - 1;
         } else if (strcmp(option, "-yaxes") == 0) {
             axesObj = objv[i + 1];
         } else {
@@ -395,6 +407,7 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
             axes[i]->track = track;
         }
     }
+    track->barMode = barMode;
     track->weight = weight;
     track->minHeight = minHeight;
     track->height = height;

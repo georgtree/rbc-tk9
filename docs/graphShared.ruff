@@ -2972,6 +2972,10 @@ namespace eval ::rbc::BARELEMENT {
         layout, clipping, color defaults, and stipple origin are preserved. Tk relief borders and value labels retain
         native rendering.
 
+        Bars in [::rbc::TRACKGRAPH] require `-track name` and a `-mapy` axis owned by that track.
+        Tracks can independently select their bar mode; grouping and stacking remain separated by mapped axes.
+        See [Bars in tracks][::rbc::TRACKGRAPH::Bars in tracks].
+
         ## Data
         X and Y coordinates may be supplied separately with `-x` and `-y`:
         ```tcl
@@ -3501,6 +3505,7 @@ namespace eval ::rbc::BARELEMENT {
         | Option                  | Database name   | Database class  | Description                                                                                                                                                                                                       |
         |-------------------------|-----------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
         | `-activepen penName`    | `activePen`     | `ActivePen`     | Specifies the named bar pen used when the element is active. An empty value disables the named active pen. The default is `activeBar`.                                                                            |
+        | `-track name` | `track` | `Track` | Assigns the bar element to a [::rbc::TRACKGRAPH] track. The selected `-mapy` axis must belong to it. Empty by default; required in trackgraph. |
         | `-background color`     | `background`    | `Background`    | Sets the background color of bars and the color used for their 3-D border. The default is navy blue.                                                                                                              |
         | `-baralign mode` | `barAlign` | `BarAlign` | Anchors the full bar or group interval at its `center`, `left`, or `right` edge. The default is `center`. |
         | `-baroffset value` | `barOffset` | `BarOffset` | Translates bars and their error bars by a finite number of X-axis data units. The default is `0.0`. |

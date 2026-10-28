@@ -33,6 +33,10 @@ With -renderer cairo, solid/stippled bar fills and error bars use Cairo, includi
 pens\&. Integer rectangle edges and stipple pixels stay sharp; -antialias applies to error strokes\&. Bar
 layout, clipping, color defaults, and stipple origin are preserved\&. Tk relief borders and value labels retain
 native rendering\&.
+.PP
+Bars in \fI::rbc::TRACKGRAPH\fP require -track name and a -mapy axis owned by that track\&.
+Tracks can independently select their bar mode; grouping and stacking remain separated by mapped axes\&.
+See \fIBars in tracks\fP\&.
 .SH DATA
 .PP
 X and Y coordinates may be supplied separately with -x and -y:
@@ -643,6 +647,9 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │ -activepen penName     │ activePen        │ ActivePen        │ Specifies the named bar pen used when the element is  │
 │                        │                  │                  │ active\&. An empty value disables the named active pen\&. │
 │                        │                  │                  │ The default is activeBar\&.                             │
+│ -track name            │ track            │ Track            │ Assigns the bar element to a ::rbc::TRACKGRAPH track\&. │
+│                        │                  │                  │ The selected -mapy axis must belong to it\&. Empty by   │
+│                        │                  │                  │ default; required in trackgraph\&.                      │
 │ -background color      │ background       │ Background       │ Sets the background color of bars and the color used  │
 │                        │                  │                  │ for their 3-D border\&. The default is navy blue\&.       │
 │ -baralign mode         │ barAlign         │ BarAlign         │ Anchors the full bar or group interval at its center, │

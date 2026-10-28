@@ -3750,7 +3750,7 @@ Returns the current value of a track option\&.
 Configures a track\&. Queries return Tk five-field option descriptions; use cget for a bare value\&.
 .TP
 \fIcreate\fP
-Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height and -minheight\&.
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height, -minheight and -barmode\&.
 .TP
 \fIdelete\fP
 Deletes empty tracks, retaining axes\&. Missing or occupied tracks reject the entire batch\&. Repeated names are harmless\&. Move or delete elements and markers first\&.
@@ -3913,7 +3913,7 @@ Optional arguments shown in the synopsis\&.
 \fBTRACKGRAPH create\fR (::rbc)
 .RE
 .PP
-Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height and -minheight\&.
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height, -minheight and -barmode\&.
 .RS 4n
 \fBTRACKGRAPH create\fP \fIname ?option value \&.\&.\&.?\fP
 .br

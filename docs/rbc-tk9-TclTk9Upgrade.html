@@ -89,6 +89,13 @@ lifecycle interface. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGR
 legends and separators, and follow scrolling and inversion. Enter/Leave callbacks are updated when native
 layout changes beneath a stationary pointer; export layouts do not dispatch them.</p>
 </section>
+<section id="bars-in-tracks">
+<span id="r-tcltk9upgrade-bars-in-tracks"></span><span id="r-3a3atcltk9upgradeqzbars20in20tracks"></span><h3>Bars in tracks<a class="headerlink" href="#bars-in-tracks" title="Link to this heading">¶</a></h3>
+<p>Trackgraphs now accept bar elements alongside line and strip elements. Each track can override the
+graph’s bar mode with <code class="docutils literal notranslate"><span class="pre">-barmode</span></code>, or use the default <code class="docutils literal notranslate"><span class="pre">inherit</span></code>. Groups, stacks and Y autoscaling stay
+isolated by mapped axes. Existing bar alignment, offsets, error bars, legends and exporters apply.
+See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqzbars20in20tracks"><span class="std std-ref">Bars in tracks</span></a>.</p>
+</section>
 <section id="track-xor-markers-dividers-and-decimation">
 <span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>
 <p><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-namespaceqz3a3arbc3a3atrackgraph"><span class="std std-ref">::rbc::TRACKGRAPH</span></a> line, polygon and arc markers now accept <code class="docutils literal notranslate"><span class="pre">-xor</span> <span class="pre">yes</span></code>, using native XOR within the clipped
@@ -931,6 +938,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#">Tcl/Tk 9 upgrade and additions</a><ul>
 <li><a class="reference internal" href="#user-visible-additions">User-visible additions</a><ul>
 <li><a class="reference internal" href="#stacked-tracks-with-shared-axes">Stacked tracks with shared axes</a></li>
+<li><a class="reference internal" href="#bars-in-tracks">Bars in tracks</a></li>
 <li><a class="reference internal" href="#track-xor-markers-dividers-and-decimation">Track XOR markers, dividers and decimation</a></li>
 <li><a class="reference internal" href="#window-marker-visibility-and-track-support">Window-marker visibility and track support</a></li>
 <li><a class="reference internal" href="#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>

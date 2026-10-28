@@ -58,6 +58,12 @@ $graph strip create current -track current -mapy current -xdata trackTime -ydata
         -label Current
 $graph line create enable -track enable -mapy logic -xdata trackTime -ydata trackEnable -color seagreen -smooth step\
         -label Enable
+# Sampled measurements share the voltage track with its live reference trace.
+$graph track configure voltage -barmode aligned
+$graph bar create measured -track voltage -mapy voltage -data {0.5 0.8 2.5 -0.7 4.5 0.9 6.5 -0.8 8.5 0.7}\
+        -barwidth 0.4 -foreground lightblue -label Measured -yerror {0.1 0.1 0.1 0.1 0.1} -errorbarposition bar
+$graph bar create predicted -track voltage -mapy voltage -data {0.5 0.7 2.5 -0.8 4.5 0.8 6.5 -0.7 8.5 0.8}\
+        -barwidth 0.4 -foreground lightsteelblue -label Predicted
 # Each track can choose a different shared X axis and its own Y grid.
 # Samples uses a different tick spacing so the distinction is visible.
 $graph axis configure samples -stepsize 250
@@ -172,6 +178,14 @@ proc UpdateTrackScrollbars {} {
 bind $graph <<RbcGraphChanged>> +[list after idle UpdateTrackScrollbars]
 bind .yscrolls <Configure> {after idle UpdateTrackScrollbars}
 
+set voltageBarMode [$graph track cget voltage -barmode]
+ttk::label .controls.barmodelabel -text {Voltage bar mode}
+ttk::combobox .controls.barmode -state readonly -width 10 -textvariable voltageBarMode \
+        -values {inherit normal aligned overlap stacked}
+bind .controls.barmode <<ComboboxSelected>> {
+    $::graph track configure voltage -barmode $::voltageBarMode
+}
+
 ttk::label .controls.label -text {Voltage weight}
 ttk::spinbox .controls.weight -from 0.1 -to 5 -increment 0.1 -width 6 -textvariable voltageWeight -command {
     $::graph track configure voltage -weight $::voltageWeight
@@ -179,6 +193,8 @@ ttk::spinbox .controls.weight -from 0.1 -to 5 -increment 0.1 -width 6 -textvaria
 grid .controls.reverse .controls.advance .controls.samples .controls.scroll -padx 4 -pady 3 -sticky w
 grid .controls.legends .controls.global .controls.invert .controls.label .controls.weight .controls.dividers -padx 4\
         -pady 3 -sticky w
+
+grid .controls.barmodelabel .controls.barmode -padx 4 -pady 3 -sticky w
 
 grid .header -sticky ew
 grid .details -sticky ew

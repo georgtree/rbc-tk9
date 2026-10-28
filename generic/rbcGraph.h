@@ -665,6 +665,7 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 struct RbcTrack {
+    int barMode; /* -1 inherits the graph bar mode. */
     Grid *grid; /* NULL inherits the graph grid. */
     struct GridSegments gridX, gridY;
     Legend *legend;

@@ -205,6 +205,8 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
      BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_BAR_LABEL_RELIEF, -1,
      BAR_CORE_OFFSET(labelRelief), 0, NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-track", "track", "Track", "", BAR_CORE_OFFSET(trackObjPtr), -1, 0, NULL,
+     BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_BAR_AXIS_X, BAR_CORE_OFFSET(mapXObjPtr), -1, 0, NULL,
      BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_BAR_AXIS_Y, BAR_CORE_OFFSET(mapYObjPtr), -1, 0, NULL,
@@ -441,6 +443,11 @@ static ElementMapProc MapBar;
 static int Round(register double x);
 static void ClearPalette(Rbc_Chain *palette);
 static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
+/* Track-owned Y axes isolate grouping keys; only the mode needs a local override. */
+static int GetTrackBarMode(Graph *graphPtr, Axis *yAxis) {
+    return yAxis->track != NULL && yAxis->track->barMode >= 0 ? yAxis->track->barMode : graphPtr->mode;
+}
+
 static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double *maxPtr);
 static void MergePens(Bar *barPtr, PenStyle **dataToStyle);
 static void MapActiveBars(Bar *barPtr);
@@ -874,7 +881,7 @@ static void CheckStacks(Graph *graphPtr, Axis2D *pairPtr, double *minPtr, double
     FreqInfo *infoPtr;
     Tcl_Size i;
 
-    if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
+    if ((GetTrackBarMode(graphPtr, pairPtr->y) != MODE_STACKED) || (graphPtr->nStacks == 0)) {
         return;
     }
     infoPtr = graphPtr->freqArr;
@@ -1160,7 +1167,7 @@ static int PlaceBar(Graph *graphPtr, Bar *barPtr, Tcl_Size index, int clip,
      * If the mode is "aligned" or "stacked" we need to adjust the
      * x or y coordinates of the two corners.
      */
-    if ((graphPtr->nStacks > 0) && (graphPtr->mode != MODE_INFRONT)) {
+    if ((graphPtr->nStacks > 0) && (GetTrackBarMode(graphPtr, barPtr->core.axes.y) != MODE_INFRONT)) {
         Tcl_HashEntry *hPtr;
 
         key.value = (x == 0.0) ? 0.0 : x;
@@ -1171,7 +1178,7 @@ static int PlaceBar(Graph *graphPtr, Bar *barPtr, Tcl_Size index, int clip,
             double slice, width;
 
             infoPtr = (FreqInfo *)Tcl_GetHashValue(hPtr);
-            switch (graphPtr->mode) {
+            switch (GetTrackBarMode(graphPtr, barPtr->core.axes.y)) {
             case MODE_STACKED: {
                 double previousY;
                 double stackedY;
@@ -1296,7 +1303,7 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
      * If element is stacked, the sum of its ordinates may be outside
      * the minimum/maximum limits of the element's data points.
      */
-    if ((graphPtr->mode == MODE_STACKED) && (graphPtr->nStacks > 0)) {
+    if ((GetTrackBarMode(graphPtr, elemPtr->axes.y) == MODE_STACKED) && (graphPtr->nStacks > 0)) {
         CheckStacks(graphPtr, &(elemPtr->axes), &(extsPtr->top), &(extsPtr->bottom));
     }
     if (elemPtr->axes.x->logScale) {
@@ -2997,7 +3004,7 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
         Tcl_DeleteHashTable(&(graphPtr->freqTable));
         graphPtr->nStacks = 0;
     }
-    if (graphPtr->mode == MODE_INFRONT) {
+    if (!graphPtr->trackGraph && graphPtr->mode == MODE_INFRONT) {
         return; /* No frequency table is needed for
                  * "infront" mode */
     }
@@ -3126,7 +3133,7 @@ void Rbc_ComputeStacks(Graph *graphPtr) {
     const double *xArr;
     const double *yArr;
 
-    if ((graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
+    if ((!graphPtr->trackGraph && graphPtr->mode != MODE_STACKED) || (graphPtr->nStacks == 0)) {
         return;
     }
     /* Reset the sums for all duplicate values to zero. */

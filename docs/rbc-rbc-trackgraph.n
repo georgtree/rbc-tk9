@@ -17,7 +17,7 @@ Common widget commands and configuration are described in \fI::rbc::GRAPHINST\fP
 .SH "STACKED TRACKS"
 .PP
 rbc::trackgraph is one native graph window containing named vertical plot regions\&. It reuses the graph's
-line and strip elements, renderers and SVG, PDF and PostScript exporters\&. It does not create child graphs\&.
+line, strip and bar elements, renderers and SVG, PDF and PostScript exporters\&. It does not create child graphs\&.
 The axis-region approach is also used by BLT's -stackaxes feature; RBC tracks explicitly group one or
 more Y axes and their elements into a row\&.
 .PP
@@ -57,6 +57,8 @@ from each track's first Y axis\&. An empty axis selection disables that directio
 │              │         │ in fit layout\&.                                                                              │
 │ -yaxes       │ empty   │ List of existing Y axes assigned exclusively to this track and displayed in its left margin │
 │              │         │ (bottom when inverted)\&.                                                                     │
+│ -barmode     │ inherit │ Bar mode for this track: inherit the graph setting, or use normal, aligned, overlap or      │
+│              │         │ stacked\&.                                                                                    │
 └──────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────────────┘
 
 .fi
@@ -139,6 +141,29 @@ pointer after scrolling, reordering or resizing and generate the corresponding E
 Temporary export layouts do not repick or run background bindings\&. Deleting a track removes its name
 bindings and clears current/pending references; recreating its name starts with no name bindings\&. The
 all binding remains until removed or the widget is destroyed\&. Callbacks may delete tracks or the widget\&.
+.SS "BARS IN TRACKS"
+.PP
+Create bars with bar create name -track trackName -mapy axisName, using an existing Y axis owned by
+the track\&. Bars can coexist with line and strip elements and use the same legends, bindings and exporters\&.
+Ordinary bar options, including width, alignment, offset, pens, value labels and error-bar positioning,
+retain their meaning\&. Scrolling maps bars in full track coordinates and clips them to the visible area\&.
+.PP
+Each track has -barmode inherit|normal|aligned|overlap|stacked, default inherit, with resource name
+barMode and class BarMode\&. Inherited tracks follow the graph's -barmode; an explicit track setting
+overrides it until reset to inherit\&. infront is accepted as an alias of normal\&.
+Grouping and stacking use the mapped X/Y axis pair\&. Tracks exclusively own their Y axes, so bars in
+different tracks never form a group or stack together, even when their X values match\&. Within a track,
+bars mapped to different axes remain separate\&. Each Y axis autoscales from its own bars and stacks;
+shared X axes include bar widths and placement offsets across their tracks\&.
+.PP
+.RS 4n
+.nf
+\&.g track configure voltage -barmode aligned
+\&.g bar create measured -track voltage -mapy volts -data {1 2 2 3}
+\&.g bar create predicted -track voltage -mapy volts -data {1 2\&.2 2 2\&.8}
+\&.g track configure current -barmode stacked
+.fi
+.RE
 .SS "TRACK OPTION DATABASE"
 .PP
 Tracks are named option-database components with class Track\&. The resource name is the track name\&.
@@ -153,6 +178,7 @@ changes do not modify existing tracks, including during track configure, resizin
 │ -minheight │ minHeight     │ MinHeight      │
 │ -height    │ height        │ Height         │
 │ -yaxes     │ yAxes         │ YAxes          │
+│ -barmode   │ barMode       │ BarMode        │
 └────────────┴───────────────┴────────────────┘
 
 .fi
@@ -370,7 +396,7 @@ controls only the supplied mouse bindings\&. Custom interaction code can leave i
 commands\&. Keep the Trackgraph class in bindtags to use the standard bindings; a widget binding that returns
 break before the class binding can intentionally suppress them\&.
 .PP
-Trackgraph supports line and strip elements in both orientations\&. Bar/polar elements are rejected\&. The
+Trackgraph supports line, strip and bar elements in both orientations\&. Polar elements are rejected\&. The
 optional rbc::graphtoolbar package accepts -type trackgraph: zoom and pan use shared X axes and the
 starting track's Y axes; wheel zoom and coordinate annotations follow the pointed track\&. Separator dragging
 remains available\&. See \fI::rbc::graphtoolbar\fP and demos/trackgraph1\&.tcl for the interaction controls\&. Markers
