@@ -137,6 +137,39 @@ constraints are checked before any deletion: an unknown track or a track still u
 marker rejects the whole batch. Repeated names are accepted, and an empty batch does nothing. Local grids
 and legends are released along with their tracks. Move or delete elements and markers first.</p>
 </section>
+<section id="track-background-bindings">
+<span id="r-rbc-trackgraph-track-background-bindings"></span><span id="r-3a3arbc3a3atrackgraphqztrack20background20bindings"></span><h3>Track background bindings<a class="headerlink" href="#track-background-bindings" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">bind</span> <span class="pre">name|all</span> <span class="pre">?sequence</span> <span class="pre">?command??</span></code> uses the ordinary RBC component binding machinery. The named
+track must exist; <code class="docutils literal notranslate"><span class="pre">all</span></code> is a reserved binding selector applying to every track background, including tracks
+created later. Name bindings run before the track <code class="docutils literal notranslate"><span class="pre">all</span></code> binding. These tags are independent of element,
+marker, axis and legend tags, even when their names match.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>voltage<span class="w"> </span><span class="o">&lt;</span>ButtonPress-3<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span><span class="nv">ShowTrackMenu</span><span class="w"> </span><span class="o">%</span>W<span class="w"> </span>voltage<span class="w"> </span><span class="o">%</span>X<span class="w"> </span><span class="o">%</span>Y<span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>Enter<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span><span class="nv">ShowTrackStatus</span><span class="w"> </span><span class="k">[</span><span class="o">%</span><span class="nv">W</span><span class="w"> </span>track<span class="w"> </span>get<span class="w"> </span>current<span class="k">]}</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>all<span class="w"> </span><span class="o">&lt;</span>Leave<span class="o">&gt;</span><span class="w"> </span><span class="k">{</span><span class="nv">ClearTrackStatus</span><span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>voltage<span class="w"> </span><span class="o">&lt;</span>ButtonPress-3<span class="o">&gt;</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>voltage
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>bind<span class="w"> </span>voltage<span class="w"> </span><span class="o">&lt;</span>ButtonPress-3<span class="o">&gt;</span><span class="w"> </span><span class="k">{}</span>
+</pre></div>
+</div>
+<p>With no sequence, <code class="docutils literal notranslate"><span class="pre">bind</span></code> lists the target’s event sequences; with a sequence it queries that binding’s
+script. An empty script removes the binding. Prefix a script with <code class="docutils literal notranslate"><span class="pre">+</span></code> to append it. Standard Tk event
+substitutions such as <code class="docutils literal notranslate"><span class="pre">%W</span></code>, <code class="docutils literal notranslate"><span class="pre">%x</span></code>, <code class="docutils literal notranslate"><span class="pre">%y</span></code>, <code class="docutils literal notranslate"><span class="pre">%X</span></code> and <code class="docutils literal notranslate"><span class="pre">%Y</span></code> apply. <code class="docutils literal notranslate"><span class="pre">break</span></code> in a name binding stops the remaining
+component binding tags for that event; it does not disable ordinary widget/class bindings or toolbar gestures.</p>
+<p>Backgrounds are the lowest-priority plot targets: markers and elements retain their existing picking
+order and halo, and visible legends, including blank padding, exclude background picking. Track bindings
+do not receive events bubbling from those components. Axis margins and separator gaps are not backgrounds;
+separators continue to use the existing widget/class resize bindings.</p>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">get</span> <span class="pre">current</span></code> returns the currently picked track background, or an empty string when another
+component, a separator, or the outside of the plot is picked. It is not a general geometric owner lookup;
+use <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">identify</span></code> for that. During a Leave callback, <code class="docutils literal notranslate"><span class="pre">current</span></code> still identifies the background being
+left; during Enter it identifies the newly entered background. Existing component button-grab behaviour
+is retained while a button is held down.</p>
+<p>Only visible track rectangles are pickable in either orientation. Native redraws repick a stationary
+pointer after scrolling, reordering or resizing and generate the corresponding Enter/Leave transitions.
+Temporary export layouts do not repick or run background bindings. Deleting a track removes its name
+bindings and clears current/pending references; recreating its name starts with no name bindings. The
+<code class="docutils literal notranslate"><span class="pre">all</span></code> binding remains until removed or the widget is destroyed. Callbacks may delete tracks or the widget.</p>
+</section>
 <section id="track-option-database">
 <span id="r-rbc-trackgraph-track-option-database"></span><span id="r-3a3arbc3a3atrackgraphqztrack20option20database"></span><h3>Track option database<a class="headerlink" href="#track-option-database" title="Link to this heading">¶</a></h3>
 <p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. The resource name is the track name.
@@ -375,6 +408,7 @@ annotations and shared horizontal navigation.</p>
 <li><a class="reference internal" href="#">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a><ul>
 <li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
 <li><a class="reference internal" href="#track-configuration-and-lifecycle">Track configuration and lifecycle</a></li>
+<li><a class="reference internal" href="#track-background-bindings">Track background bindings</a></li>
 <li><a class="reference internal" href="#track-option-database">Track option database</a></li>
 <li><a class="reference internal" href="#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
 <li><a class="reference internal" href="#track-coordinate-conversion">Track coordinate conversion</a></li>

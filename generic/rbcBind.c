@@ -90,7 +90,8 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
         item = bindPtr->focusItem;
         context = bindPtr->focusContext;
     }
-    if (item == NULL) {
+    if (item == NULL || bindPtr->tkwin == NULL ||
+        (((Tk_FakeWin *)bindPtr->tkwin)->flags & TK_ALREADY_DEAD)) {
         return;
     }
     bindIds = Rbc_ListCreate(TCL_ONE_WORD_KEYS);
@@ -261,9 +262,19 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
          * always use NotifyAncestor.
          */
         event.xcrossing.detail = NotifyAncestor;
+        /* Publish the pending target so deletion from a Leave script can
+         * clear it through Rbc_DeleteBindings before we deliver Enter. */
+        if (!buttonDown) {
+            bindPtr->newItem = newItem;
+            bindPtr->newContext = newContext;
+        }
         bindPtr->flags |= REPICK_IN_PROGRESS;
         DoEvent(bindPtr, &event, bindPtr->currentItem, bindPtr->currentContext);
         bindPtr->flags &= ~REPICK_IN_PROGRESS;
+        if (!buttonDown) {
+            newItem = bindPtr->newItem;
+            newContext = bindPtr->newContext;
+        }
         /*
          * Note:  during DoEvent above, it's possible that
          * bindPtr->newItem got reset to NULL because the

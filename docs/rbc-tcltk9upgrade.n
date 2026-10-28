@@ -50,6 +50,11 @@ Track configuration queries now use standard Tk five-field option descriptions r
 dictionary/value forms\&. Use track cget for values\&. Track option names accept unambiguous abbreviations;
 track exists, pattern-filtered track names, and atomic multi-track track delete complete the component
 lifecycle interface\&. See \fITrack configuration and lifecycle\fP\&.
+.PP
+\fITrack background bindings\fP provide per-track and independent
+all event bindings plus track get current\&. Backgrounds are picked after elements and markers, exclude
+legends and separators, and follow scrolling and inversion\&. Enter/Leave callbacks are updated when native
+layout changes beneath a stationary pointer; export layouts do not dispatch them\&.
 .SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
 .PP
 \fI::rbc::TRACKGRAPH\fP line, polygon and arc markers now accept -xor yes, using native XOR within the clipped

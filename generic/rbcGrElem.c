@@ -4871,6 +4871,9 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size obj
 
     const char *str = Tcl_GetString(objv[3]);
     if ((str[0] == 'c') && (strcmp(str, "current") == 0)) {
+        if (PTR2INT(Rbc_GetCurrentContext(graphPtr->bindTable)) != GRAPH_BIND_CONTEXT_ELEMENT) {
+            return TCL_OK;
+        }
         elemPtr = (Element *)Rbc_GetCurrentItem(graphPtr->bindTable);
         /* Report only on elements. */
         if ((elemPtr != NULL) &&

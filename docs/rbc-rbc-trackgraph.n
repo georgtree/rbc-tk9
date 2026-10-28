@@ -100,6 +100,45 @@ track delete ?name \&.\&.\&.? deletes one or more empty tracks and retains their
 constraints are checked before any deletion: an unknown track or a track still used by an element or
 marker rejects the whole batch\&. Repeated names are accepted, and an empty batch does nothing\&. Local grids
 and legends are released along with their tracks\&. Move or delete elements and markers first\&.
+.SS "TRACK BACKGROUND BINDINGS"
+.PP
+track bind name|all ?sequence ?command?? uses the ordinary RBC component binding machinery\&. The named
+track must exist; all is a reserved binding selector applying to every track background, including tracks
+created later\&. Name bindings run before the track all binding\&. These tags are independent of element,
+marker, axis and legend tags, even when their names match\&.
+.PP
+.RS 4n
+.nf
+\&.g track bind voltage <ButtonPress-3> {ShowTrackMenu %W voltage %X %Y}
+\&.g track bind all <Enter> {ShowTrackStatus [%W track get current]}
+\&.g track bind all <Leave> {ClearTrackStatus}
+\&.g track bind voltage <ButtonPress-3>
+\&.g track bind voltage
+\&.g track bind voltage <ButtonPress-3> {}
+.fi
+.RE
+.PP
+With no sequence, bind lists the target's event sequences; with a sequence it queries that binding's
+script\&. An empty script removes the binding\&. Prefix a script with + to append it\&. Standard Tk event
+substitutions such as %W, %x, %y, %X and %Y apply\&. break in a name binding stops the remaining
+component binding tags for that event; it does not disable ordinary widget/class bindings or toolbar gestures\&.
+.PP
+Backgrounds are the lowest-priority plot targets: markers and elements retain their existing picking
+order and halo, and visible legends, including blank padding, exclude background picking\&. Track bindings
+do not receive events bubbling from those components\&. Axis margins and separator gaps are not backgrounds;
+separators continue to use the existing widget/class resize bindings\&.
+.PP
+track get current returns the currently picked track background, or an empty string when another
+component, a separator, or the outside of the plot is picked\&. It is not a general geometric owner lookup;
+use track identify for that\&. During a Leave callback, current still identifies the background being
+left; during Enter it identifies the newly entered background\&. Existing component button-grab behaviour
+is retained while a button is held down\&.
+.PP
+Only visible track rectangles are pickable in either orientation\&. Native redraws repick a stationary
+pointer after scrolling, reordering or resizing and generate the corresponding Enter/Leave transitions\&.
+Temporary export layouts do not repick or run background bindings\&. Deleting a track removes its name
+bindings and clears current/pending references; recreating its name starts with no name bindings\&. The
+all binding remains until removed or the widget is destroyed\&. Callbacks may delete tracks or the widget\&.
 .SS "TRACK OPTION DATABASE"
 .PP
 Tracks are named option-database components with class Track\&. The resource name is the track name\&.

@@ -6208,6 +6208,9 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
 
     const char *str = Tcl_GetString(objv[3]);
     if ((str[0] == 'c') && (strcmp(str, "current") == 0)) {
+        if (PTR2INT(Rbc_GetCurrentContext(graphPtr->bindTable)) != GRAPH_BIND_CONTEXT_MARKER) {
+            return TCL_OK;
+        }
         markerPtr = (Marker *)Rbc_GetCurrentItem(graphPtr->bindTable);
         /* Report only on markers. */
         if (markerPtr == NULL) {

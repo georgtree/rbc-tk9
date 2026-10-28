@@ -50,6 +50,11 @@ namespace eval TclTk9Upgrade {
         `track exists`, pattern-filtered `track names`, and atomic multi-track `track delete` complete the component
         lifecycle interface. See [Track configuration and lifecycle][::rbc::TRACKGRAPH::Track configuration and lifecycle].
 
+        [Track background bindings][::rbc::TRACKGRAPH::Track background bindings] provide per-track and independent
+        `all` event bindings plus `track get current`. Backgrounds are picked after elements and markers, exclude
+        legends and separators, and follow scrolling and inversion. Enter/Leave callbacks are updated when native
+        layout changes beneath a stationary pointer; export layouts do not dispatch them.
+
         ### Track XOR markers, dividers and decimation
         [::rbc::TRACKGRAPH] line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
         redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional

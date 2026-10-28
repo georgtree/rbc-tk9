@@ -29,6 +29,10 @@ typedef enum {
 } Rbc_Antialias;
 
 
+typedef enum {
+    GRAPH_BIND_CONTEXT_AXIS = 1, GRAPH_BIND_CONTEXT_ELEMENT, GRAPH_BIND_CONTEXT_MARKER, GRAPH_BIND_CONTEXT_TRACK
+} GraphBindContext;
+
 typedef struct RbcTrack RbcTrack;
 typedef struct {
     RbcTrack *activeTrack;
@@ -686,6 +690,7 @@ int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
 void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y);
+int Rbc_PointInLegend(Graph *graphPtr, int x, int y);
 void Rbc_MapTrackLegends(Graph *graphPtr);
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);

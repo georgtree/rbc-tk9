@@ -6476,6 +6476,9 @@ static int GetOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
     Axis *axisPtr;
 
+    if (PTR2INT(Rbc_GetCurrentContext(graphPtr->bindTable)) != GRAPH_BIND_CONTEXT_AXIS) {
+        return TCL_OK;
+    }
     axisPtr = (Axis *)Rbc_GetCurrentItem(graphPtr->bindTable);
     /* Report only on axes. */
     if ((axisPtr != NULL) &&

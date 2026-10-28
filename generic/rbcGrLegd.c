@@ -828,6 +828,10 @@ static Legend *LegendAtPoint(Graph *graphPtr, int x, int y) {
     return NULL;
 }
 
+int Rbc_PointInLegend(Graph *graphPtr, int x, int y) {
+    return LegendAtPoint(graphPtr, x, y) != NULL;
+}
+
 int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y) {
     Legend *legendPtr = LegendAtPoint(graphPtr, x, y);
     return (legendPtr != NULL && legendPtr->track != NULL);

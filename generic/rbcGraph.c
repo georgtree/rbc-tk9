@@ -122,7 +122,7 @@ Rbc_Uid rbcWindowMarkerUid;
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
      GRAPH_POLAR_REPRESENTATION_MASK)
 
-typedef enum { GRAPH_BIND_CONTEXT_AXIS = 1, GRAPH_BIND_CONTEXT_ELEMENT, GRAPH_BIND_CONTEXT_MARKER } GraphBindContext;
+
 
 typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
@@ -1312,6 +1312,10 @@ void Rbc_GraphTags(Rbc_BindTable table, ClientData object, ClientData context, R
     case GRAPH_BIND_CONTEXT_MARKER:
         Rbc_AppendMarkerBindingTags(graphPtr, (Marker *)object, list);
         break;
+    case GRAPH_BIND_CONTEXT_TRACK:
+        Rbc_ListAppend(list, object, 0);
+        Rbc_ListAppend(list, (const char *)&graphPtr->tracks, 0); /* Private token for the track "all" tag. */
+        break;
     default:
         /*
          * An object returned by PickEntry must always have a valid
@@ -1426,6 +1430,18 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
     if (markerPtr != NULL) {
         *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_MARKER);
         return markerPtr;
+    }
+    /* Backgrounds are last in the picking order. Legends, including their
+     * padding, and separators must not turn into background targets. */
+    if (graphPtr->trackGraph && !Rbc_PointInLegend(graphPtr, x, y)) {
+        RbcTrack *track;
+        for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            if (track->right > track->left && track->bottom > track->top &&
+                x >= track->left && x <= track->right && y >= track->top && y <= track->bottom) {
+                *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_TRACK);
+                return track;
+            }
+        }
     }
     return NULL;
 }

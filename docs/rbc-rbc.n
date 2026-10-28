@@ -291,6 +291,8 @@ rbc - Commands in namespace rbc
 .br
 \fBTRACKGRAPH bbox\fP \fIname\fP
 .br
+\fBTRACKGRAPH bind\fP \fIname|all ?sequence ?command??\fP
+.br
 \fBTRACKGRAPH cget\fP \fIname option\fP
 .br
 \fBTRACKGRAPH configure\fP \fIname ?option ?value \&.\&.\&.??\fP
@@ -300,6 +302,8 @@ rbc - Commands in namespace rbc
 \fBTRACKGRAPH delete\fP \fI?name \&.\&.\&.?\fP
 .br
 \fBTRACKGRAPH exists\fP \fIname\fP
+.br
+\fBTRACKGRAPH get\fP \fIcurrent\fP
 .br
 \fBTRACKGRAPH grid\fP \fIname operation ?args \&.\&.\&.?\fP
 .br
@@ -3736,6 +3740,9 @@ The ensemble supports the following subcommands:
 \fIbbox\fP
 Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
 .TP
+\fIbind\fP
+Queries or configures track-background bindings\&. Name bindings run before the independent all tag\&.
+.TP
 \fIcget\fP
 Returns the current value of a track option\&.
 .TP
@@ -3750,6 +3757,9 @@ Deletes empty tracks, retaining axes\&. Missing or occupied tracks reject the en
 .TP
 \fIexists\fP
 Returns whether an exact track name exists\&.
+.TP
+\fIget\fP
+Returns the currently picked track background, or empty when another component or no item is picked\&.
 .TP
 \fIgrid\fP
 Queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP operations configure, cget, on, off and toggle, with Cartesian options -color, -dashes, -hide, -linewidth, -mapx, -mapy and -minor\&.
@@ -3834,6 +3844,26 @@ Track name\&.
 \fBReturn value\fR
 .PP
 Returns the track plotting rectangle as left top right bottom in physical widget pixels\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH bind\fR (::rbc)
+.RE
+.PP
+Queries or configures track-background bindings\&. Name bindings run before the independent all tag\&.
+.RS 4n
+\fBTRACKGRAPH bind\fP \fIname|all ?sequence ?command??\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Existing track name, or all for every track background\&.
+.TP
+args
+Optional event sequence and script; an empty script removes it, a leading + appends\&.
+.RE
 .PP
 .RS -4n
 \fBTRACKGRAPH cget\fR (::rbc)
@@ -3937,6 +3967,27 @@ Track name, not a pattern\&.
 \fBReturn value\fR
 .PP
 Returns whether an exact track name exists\&.
+.PP
+.RS -4n
+\fBTRACKGRAPH get\fR (::rbc)
+.RE
+.PP
+Returns the currently picked track background, or empty when another component or no item is picked\&.
+.RS 4n
+\fBTRACKGRAPH get\fP \fIcurrent\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+item
+Must be current\&.
+.RE
+.PP
+\fBReturn value\fR
+.PP
+Returns the currently picked track background, or empty when another component or no item is picked\&.
 .PP
 .RS -4n
 \fBTRACKGRAPH grid\fR (::rbc)

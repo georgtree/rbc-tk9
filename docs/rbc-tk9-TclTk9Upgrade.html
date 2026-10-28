@@ -84,6 +84,10 @@ clipping, separator resizing and exports are supported. Fit-to-window remains th
 dictionary/value forms. Use <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">cget</span></code> for values. Track option names accept unambiguous abbreviations;
 <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">exists</span></code>, pattern-filtered <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">names</span></code>, and atomic multi-track <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">delete</span></code> complete the component
 lifecycle interface. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20configuration20and20lifecycle"><span class="std std-ref">Track configuration and lifecycle</span></a>.</p>
+<p><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20background20bindings"><span class="std std-ref">Track background bindings</span></a> provide per-track and independent
+<code class="docutils literal notranslate"><span class="pre">all</span></code> event bindings plus <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">get</span> <span class="pre">current</span></code>. Backgrounds are picked after elements and markers, exclude
+legends and separators, and follow scrolling and inversion. Enter/Leave callbacks are updated when native
+layout changes beneath a stationary pointer; export layouts do not dispatch them.</p>
 </section>
 <section id="track-xor-markers-dividers-and-decimation">
 <span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>

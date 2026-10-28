@@ -208,6 +208,7 @@ static void SyncTrackAxes(Graph *graphPtr) {
 
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
+    if (graphPtr->bindTable != NULL) {Rbc_DeleteBindings(graphPtr->bindTable, track);}
     Rbc_DestroyTrackGrid(graphPtr, track);
     Rbc_DestroyTrackLegend(graphPtr, track);
     for (i = 0; i < track->nAxes; i++) {
@@ -654,7 +655,7 @@ static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /* Run the scrollbar prefix only after drawing, with no subsequent graph access.
  * Cache before evaluation so a callback-triggered redraw does not notify forever. */
-void Rbc_NotifyTrackView(Graph *graphPtr) {
+static void NotifyTrackScrollbar(Graph *graphPtr) {
     Tcl_Obj *command;
     Tcl_Interp *interp = graphPtr->interp;
     Tcl_InterpState state;
@@ -681,6 +682,19 @@ void Rbc_NotifyTrackView(Graph *graphPtr) {
     Tcl_DecrRefCount(command);
     Tcl_Release(graphPtr);
     Tcl_Release(interp);
+}
+
+/* Repick stationary pointers after native layout changes, never during export.
+ * Enter/Leave scripts may delete tracks or the widget, so preserve the graph
+ * across both notifications and do not use it after releasing it. */
+void Rbc_NotifyTrackView(Graph *graphPtr) {
+    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT)) {return;}
+    Tcl_Preserve(graphPtr);
+    if (graphPtr->tkwin != NULL && graphPtr->bindTable != NULL) {
+        Rbc_PickCurrentItem(graphPtr->bindTable);
+    }
+    if (graphPtr->tkwin != NULL) {NotifyTrackScrollbar(graphPtr);}
+    Tcl_Release(graphPtr);
 }
 
 /* Validate the whole batch before unlinking anything. Repeated names are
@@ -747,6 +761,8 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         {"view", 3, 6, "?moveto fraction|scroll number units|pages?"},
         {"yview", 4, 9, "name ?-mapy axis? ?moveto fraction|scroll number units|pages?"},
         {"exists", 4, 4, "name"},
+        {"bind", 4, 6, "name|all ?sequence ?command??"},
+        {"get", 4, 4, "current"},
         {NULL, 0, 0, NULL}
     };
     enum {
@@ -766,7 +782,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         TRACK_OP_GRID,
         TRACK_OP_VIEW,
         TRACK_OP_YVIEW,
-        TRACK_OP_EXISTS
+        TRACK_OP_EXISTS,
+        TRACK_OP_BIND,
+        TRACK_OP_GET
     };
     RbcTrack *track, **slot;
     int operation;
@@ -778,6 +796,31 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
     if (Rbc_GetOpIndexFromObj(interp, operations, sizeof(operations[0]), RBC_OP_ARG2, objc, objv,
                              &operation) != TCL_OK) {
         return TCL_ERROR;
+    }
+    if (operation == TRACK_OP_GET) {
+        if (strcmp(Tcl_GetString(objv[3]), "current") != 0) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("expected current", -1));
+            return TCL_ERROR;
+        }
+        if (PTR2INT(Rbc_GetCurrentContext(graphPtr->bindTable)) == GRAPH_BIND_CONTEXT_TRACK) {
+            track = Rbc_GetCurrentItem(graphPtr->bindTable);
+            if (track != NULL) {Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));}
+        }
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_BIND) {
+        ClientData target;
+        const char *name = Tcl_GetString(objv[3]);
+        if (strcmp(name, "all") == 0) {
+            target = &graphPtr->tracks;
+        } else {
+            target = Rbc_FindTrack(graphPtr, name);
+            if (target == NULL) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", name));
+                return TCL_ERROR;
+            }
+        }
+        return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, target, objc - 4, objv + 4);
     }
     if (operation == TRACK_OP_EXISTS) {
         Tcl_SetObjResult(interp, Tcl_NewBooleanObj(Rbc_FindTrack(graphPtr, Tcl_GetString(objv[3])) != NULL));
