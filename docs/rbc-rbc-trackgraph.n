@@ -60,6 +60,46 @@ from each track's first Y axis\&. An empty axis selection disables that directio
 └──────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────────────┘
 
 .fi
+.SS "TRACK CONFIGURATION AND LIFECYCLE"
+.PP
+Track operations and option names accept unambiguous abbreviations\&. Configuration queries follow the
+ordinary Tk/RBC component convention:
+.PP
+.RS 4n
+.nf
+\&.g track cget voltage -height
+# Returns the current value, for example 160\&.
+\&.g track configure voltage -height
+# Returns {-height height Height 160 160}\&.
+\&.g track configure voltage
+# Returns a list of five-field descriptions, one for each option\&.
+\&.g track configure voltage -hei 240
+.fi
+.RE
+.PP
+Each description contains the option name, resource name, resource class, built-in default and current
+value\&. The default field remains the built-in default even when the option database supplied the initial
+value\&. Current values include subsequent separator resizing and explicit configuration changes\&.
+Earlier trackgraph versions returned an option/value dictionary from configure and a bare value from
+configure name option\&. Use cget for values; to build an option/value dictionary from all descriptions:
+.PP
+.RS 4n
+.nf
+set settings {}
+foreach option [\&.g track configure voltage] {
+    dict set settings [lindex $option 0] [lindex $option 4]
+}
+.fi
+.RE
+.PP
+track exists name returns a boolean for an exact name\&. track names ?pattern \&.\&.\&.? returns tracks in
+layout order, matching any supplied Tcl glob pattern, without duplicates\&. With no patterns it returns
+every track\&. Pattern matching is case-sensitive; exists and delete do not interpret patterns\&.
+.PP
+track delete ?name \&.\&.\&.? deletes one or more empty tracks and retains their axes\&. All names and ownership
+constraints are checked before any deletion: an unknown track or a track still used by an element or
+marker rejects the whole batch\&. Repeated names are accepted, and an empty batch does nothing\&. Local grids
+and legends are released along with their tracks\&. Move or delete elements and markers first\&.
 .SS "TRACK OPTION DATABASE"
 .PP
 Tracks are named option-database components with class Track\&. The resource name is the track name\&.

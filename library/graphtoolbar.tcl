@@ -2313,7 +2313,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set state [list [winfo width $graph] [winfo height $graph] [$graph cget -invertxy] [$graph cget -tracklayout]\
                            [$graph track view] [my UsedAxes x]]
         foreach name [$graph track names] {
-            lappend state $name [$graph track configure $name]
+            set values {}
+            foreach option [$graph track configure $name] {
+                lappend values [lindex $option 0] [lindex $option 4]
+            }
+            lappend state $name $values
         }
         return $state
     }

@@ -297,7 +297,9 @@ rbc - Commands in namespace rbc
 .br
 \fBTRACKGRAPH create\fP \fIname ?option value \&.\&.\&.?\fP
 .br
-\fBTRACKGRAPH delete\fP \fIname\fP
+\fBTRACKGRAPH delete\fP \fI?name \&.\&.\&.?\fP
+.br
+\fBTRACKGRAPH exists\fP \fIname\fP
 .br
 \fBTRACKGRAPH grid\fP \fIname operation ?args \&.\&.\&.?\fP
 .br
@@ -307,7 +309,7 @@ rbc - Commands in namespace rbc
 .br
 \fBTRACKGRAPH legend\fP \fIname operation ?args \&.\&.\&.?\fP
 .br
-\fBTRACKGRAPH names\fP
+\fBTRACKGRAPH names\fP \fI?pattern \&.\&.\&.?\fP
 .br
 \fBTRACKGRAPH order\fP \fI?nameList?\fP
 .br
@@ -3738,13 +3740,16 @@ Returns the track plotting rectangle as left top right bottom in physical widget
 Returns the current value of a track option\&.
 .TP
 \fIconfigure\fP
-Configures a track\&. With no options returns its option dictionary; with one option returns its value\&.
+Configures a track\&. Queries return Tk five-field option descriptions; use cget for a bare value\&.
 .TP
 \fIcreate\fP
-Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight and -minheight\&.
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height and -minheight\&.
 .TP
 \fIdelete\fP
-Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
+Deletes empty tracks, retaining axes\&. Missing or occupied tracks reject the entire batch\&. Repeated names are harmless\&. Move or delete elements and markers first\&.
+.TP
+\fIexists\fP
+Returns whether an exact track name exists\&.
 .TP
 \fIgrid\fP
 Queries or configures the named track's grid\&. Supports the \fI::rbc::GRID\fP operations configure, cget, on, off and toggle, with Cartesian options -color, -dashes, -hide, -linewidth, -mapx, -mapy and -minor\&.
@@ -3759,7 +3764,7 @@ Maps physical widget coordinates back to data using the selected shared X and lo
 Operates on the named track's local legend\&. See \fI::rbc::LEGEND\fP for configure, cget, bbox, get, activate, deactivate and bind\&.
 .TP
 \fInames\fP
-Returns track names in layout order: top to bottom, or left to right when inverted\&.
+Returns track names matching any glob pattern, once each, in layout order\&. No patterns selects all tracks\&.
 .TP
 \fIorder\fP
 Returns the layout order, or sets a complete permutation of all track names\&. Invalid lists leave it unchanged\&.
@@ -3858,7 +3863,7 @@ Returns the current value of a track option\&.
 \fBTRACKGRAPH configure\fR (::rbc)
 .RE
 .PP
-Configures a track\&. With no options returns its option dictionary; with one option returns its value\&.
+Configures a track\&. Queries return Tk five-field option descriptions; use cget for a bare value\&.
 .RS 4n
 \fBTRACKGRAPH configure\fP \fIname ?option ?value \&.\&.\&.??\fP
 .br
@@ -3878,7 +3883,7 @@ Optional arguments shown in the synopsis\&.
 \fBTRACKGRAPH create\fR (::rbc)
 .RE
 .PP
-Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight and -minheight\&.
+Creates a uniquely named track and returns its name\&. Options are -yaxes, -weight, -height and -minheight\&.
 .RS 4n
 \fBTRACKGRAPH create\fP \fIname ?option value \&.\&.\&.?\fP
 .br
@@ -3898,9 +3903,27 @@ Optional arguments shown in the synopsis\&.
 \fBTRACKGRAPH delete\fR (::rbc)
 .RE
 .PP
-Deletes an empty track, retaining its axes\&. Move or delete its elements and markers first\&.
+Deletes empty tracks, retaining axes\&. Missing or occupied tracks reject the entire batch\&.
+Repeated names are harmless\&. Move or delete elements and markers first\&.
 .RS 4n
-\fBTRACKGRAPH delete\fP \fIname\fP
+\fBTRACKGRAPH delete\fP \fI?name \&.\&.\&.?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Exact track names; no arguments does nothing\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH exists\fR (::rbc)
+.RE
+.PP
+Returns whether an exact track name exists\&.
+.RS 4n
+\fBTRACKGRAPH exists\fP \fIname\fP
 .br
 .RE
 .PP
@@ -3908,8 +3931,12 @@ Deletes an empty track, retaining its axes\&. Move or delete its elements and ma
 .RS 4n
 .TP
 name
-Track name\&.
+Track name, not a pattern\&.
 .RE
+.PP
+\fBReturn value\fR
+.PP
+Returns whether an exact track name exists\&.
 .PP
 .RS -4n
 \fBTRACKGRAPH grid\fR (::rbc)
@@ -4046,15 +4073,22 @@ Optional arguments shown in the synopsis\&.
 \fBTRACKGRAPH names\fR (::rbc)
 .RE
 .PP
-Returns track names in layout order: top to bottom, or left to right when inverted\&.
+Returns track names matching any glob pattern, once each, in layout order\&. No patterns selects all tracks\&.
 .RS 4n
-\fBTRACKGRAPH names\fP
+\fBTRACKGRAPH names\fP \fI?pattern \&.\&.\&.?\fP
 .br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Optional glob patterns\&.
 .RE
 .PP
 \fBReturn value\fR
 .PP
-Returns track names in layout order: top to bottom, or left to right when inverted\&.
+Returns track names matching any glob pattern, once each, in layout order\&. No patterns selects all tracks\&.
 .PP
 .RS -4n
 \fBTRACKGRAPH order\fR (::rbc)

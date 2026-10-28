@@ -15,6 +15,21 @@
 
 #define CLAMP(value, low, high) MIN(MAX((value), (low)), (high))
 
+typedef struct {
+    Tcl_Obj *weight, *minHeight, *height, *yAxes;
+} TrackDefaults;
+static const Tk_OptionSpec trackOptionSpecs[] = {
+    {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0",
+     offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40",
+     offsetof(TrackDefaults, minHeight), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-height", "height", "Height", "160",
+     offsetof(TrackDefaults, height), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "",
+     offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+};
+
 /* Validate the track-specific widget options before graph configuration commits. */
 int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged) {
     if (graphPtr->trackScroll && !graphPtr->trackGraph) {
@@ -206,6 +221,12 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     ckfree(track);
 }
 
+/* Share option names and metadata with creation defaults. */
+static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
+    static const char *const names[] = {"-weight", "-minheight", "-height", "-yaxes", NULL};
+    return Tcl_GetIndexFromObj(interp, obj, names, "track option", 0, indexPtr);
+}
+
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     Tcl_Obj *result;
     Tcl_Size i;
@@ -228,6 +249,19 @@ static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     return result;
 }
 
+/* Standard Tk five-field descriptions; current values come from live track
+ * state, including heights/weights changed by separator dragging. */
+static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
+    const Tk_OptionSpec *spec = trackOptionSpecs + index;
+    Tcl_Obj *items[5];
+    items[0] = Tcl_NewStringObj(spec->optionName, -1);
+    items[1] = Tcl_NewStringObj(spec->dbName, -1);
+    items[2] = Tcl_NewStringObj(spec->dbClass, -1);
+    items[3] = Tcl_NewStringObj(spec->defValue, -1);
+    items[4] = TrackOption(track, spec->optionName);
+    return Tcl_NewListObj(5, items);
+}
+
 /* Stage all options and axis references before committing a track change. */
 static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double weight = track->weight;
@@ -243,7 +277,12 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
         return TCL_ERROR;
     }
     for (i = 0; i < objc; i += 2) {
-        const char *option = Tcl_GetString(objv[i]);
+        int index;
+        const char *option;
+        if (TrackOptionIndex(graphPtr->interp, objv[i], &index) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        option = trackOptionSpecs[index].optionName;
         if (strcmp(option, "-weight") == 0) {
             if (Tcl_GetDoubleFromObj(graphPtr->interp, objv[i + 1], &weight) != TCL_OK) {
                 return TCL_ERROR;
@@ -369,40 +408,40 @@ error:
  * ownership validation together, before committing any of the effective values.
  * Explicit creation options replace database defaults before validation. */
 static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    typedef struct {
-        Tcl_Obj *weight, *minHeight, *height, *yAxes;
-    } TrackDefaults;
-    static const Tk_OptionSpec specs[] = {
-        {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0",
-         offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
-        {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40",
-         offsetof(TrackDefaults, minHeight), -1, 0, NULL, 0},
-        {TK_OPTION_STRING, "-height", "height", "Height", "160",
-         offsetof(TrackDefaults, height), -1, 0, NULL, 0},
-        {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "",
-         offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
-        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
-    };
     TrackDefaults defaults = {0};
-    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
+    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, trackOptionSpecs);
     Tcl_Obj *options = Tcl_NewListObj(0, NULL);
     Tcl_Obj **values;
     Tcl_Size count, i, j;
     int result;
 
     Tcl_IncrRefCount(options);
+    if (objc % 2) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("expected track option/value pairs", -1));
+        result = TCL_ERROR;
+        goto done;
+    }
+    for (i = 0; i < objc; i += 2) {
+        int index;
+        if (TrackOptionIndex(graphPtr->interp, objv[i], &index) != TCL_OK) {
+            result = TCL_ERROR;
+            goto done;
+        }
+    }
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
                                      track->name, "Track", (char *)&defaults, table);
     if (result == TCL_OK) {
-        for (i = 0; specs[i].type != TK_OPTION_END; i++) {
+        for (i = 0; trackOptionSpecs[i].type != TK_OPTION_END; i++) {
             for (j = 0; j + 1 < objc; j += 2) {
-                if (strcmp(Tcl_GetString(objv[j]), specs[i].optionName) == 0) {
+                int index;
+                TrackOptionIndex(graphPtr->interp, objv[j], &index);
+                if (index == i) {
                     break;
                 }
             }
             if (j + 1 >= objc) {
-                Tcl_Obj *value = *(Tcl_Obj **)((char *)&defaults + specs[i].objOffset);
-                Tcl_ListObjAppendElement(NULL, options, Tcl_NewStringObj(specs[i].optionName, -1));
+                Tcl_Obj *value = *(Tcl_Obj **)((char *)&defaults + trackOptionSpecs[i].objOffset);
+                Tcl_ListObjAppendElement(NULL, options, Tcl_NewStringObj(trackOptionSpecs[i].optionName, -1));
                 Tcl_ListObjAppendElement(NULL, options, value != NULL ? value : Tcl_NewObj());
             }
         }
@@ -412,6 +451,7 @@ static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl
         Tcl_ListObjGetElements(NULL, options, &count, &values);
         result = ConfigureTrack(graphPtr, track, count, values);
     }
+done:
     Tk_FreeConfigOptions((char *)&defaults, table, graphPtr->tkwin);
     Tk_DeleteOptionTable(table);
     Tcl_DecrRefCount(options);
@@ -643,10 +683,72 @@ void Rbc_NotifyTrackView(Graph *graphPtr) {
     Tcl_Release(interp);
 }
 
+/* Validate the whole batch before unlinking anything. Repeated names are
+ * harmless; missing or occupied tracks leave the complete batch unchanged. */
+static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    RbcTrack **tracks, **slot;
+    Tcl_Size i, j, count = 0;
+    Tcl_HashSearch search;
+    Tcl_HashEntry *entry;
+    if (objc == 0) {return TCL_OK;}
+    tracks = ckalloc((size_t)objc * sizeof(*tracks));
+    for (i = 0; i < objc; i++) {
+        RbcTrack *track = Rbc_FindTrack(graphPtr, Tcl_GetString(objv[i]));
+        if (track == NULL) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[i])));
+            goto error;
+        }
+        for (j = 0; j < count && tracks[j] != track; j++) {}
+        if (j < count) {continue;}
+        if (Rbc_MarkersUseTrack(graphPtr, track, NULL)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("delete or move track markers before deleting their track", -1));
+            goto error;
+        }
+        for (entry = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); entry != NULL;
+             entry = Tcl_NextHashEntry(&search)) {
+            Element *element = Tcl_GetHashValue(entry);
+            if (element->track == track) {
+                Tcl_SetObjResult(interp,
+                                 Tcl_NewStringObj("delete or move track elements before deleting their track", -1));
+                goto error;
+            }
+        }
+        tracks[count++] = track;
+    }
+    for (i = 0; i < count; i++) {
+        for (slot = &graphPtr->tracks; *slot != tracks[i]; slot = &(*slot)->next) {}
+        *slot = tracks[i]->next;
+        FreeTrack(graphPtr, tracks[i]);
+    }
+    ckfree(tracks);
+    SyncTrackAxes(graphPtr);
+    return TCL_OK;
+error:
+    ckfree(tracks);
+    return TCL_ERROR;
+}
+
 int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const operations[] = {"create",   "configure", "cget",         "delete", "names",   "bbox",
-                                             "identify", "transform", "invtransform", "order",  "sashpos", "separator",
-                                             "legend",   "grid",      "view",         "yview",  NULL};
+    static const Rbc_OpSpecHeader operations[] = {
+        {"create", 4, 0, "name ?option value ...?"},
+        {"configure", 4, 0, "name ?option ?value ...??"},
+        {"cget", 5, 5, "name option"},
+        {"delete", 3, 0, "?name ...?"},
+        {"names", 3, 0, "?pattern ...?"},
+        {"bbox", 4, 4, "name"},
+        {"identify", 4, 4, "coordinate"},
+        {"transform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
+        {"invtransform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
+        {"order", 3, 4, "?nameList?"},
+        {"sashpos", 4, 5, "name ?coordinate?"},
+        {"separator", 5, 5, "x y"},
+        {"legend", 5, 0, "name operation ?arg ...?"},
+        {"grid", 5, 0, "name operation ?arg ...?"},
+        {"view", 3, 6, "?moveto fraction|scroll number units|pages?"},
+        {"yview", 4, 9, "name ?-mapy axis? ?moveto fraction|scroll number units|pages?"},
+        {"exists", 4, 4, "name"},
+        {NULL, 0, 0, NULL}
+    };
     enum {
         TRACK_OP_CREATE,
         TRACK_OP_CONFIGURE,
@@ -663,7 +765,8 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         TRACK_OP_LEGEND,
         TRACK_OP_GRID,
         TRACK_OP_VIEW,
-        TRACK_OP_YVIEW
+        TRACK_OP_YVIEW,
+        TRACK_OP_EXISTS
     };
     RbcTrack *track, **slot;
     int operation;
@@ -672,12 +775,16 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         Tcl_SetObjResult(interp, Tcl_NewStringObj("track operations require a trackgraph widget", -1));
         return TCL_ERROR;
     }
-    if (objc < 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "operation ?arg ...?");
+    if (Rbc_GetOpIndexFromObj(interp, operations, sizeof(operations[0]), RBC_OP_ARG2, objc, objv,
+                             &operation) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(interp, objv[2], operations, "track operation", 0, &operation) != TCL_OK) {
-        return TCL_ERROR;
+    if (operation == TRACK_OP_EXISTS) {
+        Tcl_SetObjResult(interp, Tcl_NewBooleanObj(Rbc_FindTrack(graphPtr, Tcl_GetString(objv[3])) != NULL));
+        return TCL_OK;
+    }
+    if (operation == TRACK_OP_DELETE) {
+        return DeleteTracks(graphPtr, interp, objc - 3, objv + 3);
     }
     if (operation == TRACK_OP_VIEW) {
         return TrackViewOp(graphPtr, interp, objc, objv);
@@ -687,9 +794,16 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
             return TCL_ERROR;
         }
     }
-    if ((operation == TRACK_OP_NAMES && objc == 3) || (operation == TRACK_OP_ORDER && (objc == 3 || objc == 4))) {
+    if (operation == TRACK_OP_NAMES || operation == TRACK_OP_ORDER) {
         result = Tcl_NewListObj(0, NULL);
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
+            Tcl_Size i;
+            if (operation == TRACK_OP_NAMES && objc > 3) {
+                for (i = 3; i < objc; i++) {
+                    if (Tcl_StringMatch(track->name, Tcl_GetString(objv[i]))) {break;}
+                }
+                if (i == objc) {continue;}
+            }
             Tcl_ListObjAppendElement(interp, result, Tcl_NewStringObj(track->name, -1));
         }
         Tcl_SetObjResult(interp, result);
@@ -871,21 +985,19 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         return code;
     }
     if ((operation == TRACK_OP_CONFIGURE && objc == 5) || (operation == TRACK_OP_CGET && objc == 5)) {
-        result = TrackOption(track, Tcl_GetString(objv[4]));
-        if (result == NULL) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("unknown track option", -1));
-            return TCL_ERROR;
-        }
+        int index;
+        if (TrackOptionIndex(interp, objv[4], &index) != TCL_OK) {return TCL_ERROR;}
+        result = operation == TRACK_OP_CGET ? TrackOption(track, trackOptionSpecs[index].optionName)
+                                            : TrackOptionInfo(track, index);
         Tcl_SetObjResult(interp, result);
         return TCL_OK;
     }
     if (operation == TRACK_OP_CONFIGURE) {
         if (objc == 4) {
-            const char *options[] = {"-weight", "-minheight", "-yaxes", "-height"};
             int i;
-            result = Tcl_NewDictObj();
-            for (i = 0; i < 4; i++) {
-                Tcl_DictObjPut(interp, result, Tcl_NewStringObj(options[i], -1), TrackOption(track, options[i]));
+            result = Tcl_NewListObj(0, NULL);
+            for (i = 0; trackOptionSpecs[i].type != TK_OPTION_END; i++) {
+                Tcl_ListObjAppendElement(interp, result, TrackOptionInfo(track, i));
             }
             Tcl_SetObjResult(interp, result);
             return TCL_OK;
@@ -908,29 +1020,6 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
             Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(bounds[i]));
         }
         Tcl_SetObjResult(interp, result);
-        return TCL_OK;
-    }
-    if (operation == TRACK_OP_DELETE && objc == 4) {
-        Tcl_HashSearch search;
-        Tcl_HashEntry *entry;
-        if (Rbc_MarkersUseTrack(graphPtr, track, NULL)) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("delete or move track markers before deleting their track", -1));
-            return TCL_ERROR;
-        }
-        for (entry = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); entry != NULL;
-             entry = Tcl_NextHashEntry(&search)) {
-            Element *element = Tcl_GetHashValue(entry);
-            if (element->track == track) {
-                Tcl_SetObjResult(interp,
-                                 Tcl_NewStringObj("delete or move track elements before deleting their track", -1));
-                return TCL_ERROR;
-            }
-        }
-        for (slot = &graphPtr->tracks; *slot != track; slot = &(*slot)->next) {
-        }
-        *slot = track->next;
-        SyncTrackAxes(graphPtr);
-        FreeTrack(graphPtr, track);
         return TCL_OK;
     }
     Tcl_WrongNumArgs(interp, 2, objv, "operation name ?options?");

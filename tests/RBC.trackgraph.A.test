@@ -1019,6 +1019,101 @@ namespace eval trackGraphTest {
         set ::localHits
     } -cleanup {destroy .tg; unset ::localHits} -result legend
 
+    test trackgraph-options-info {configure returns Tk metadata while cget returns live values} -setup {
+        Create
+    } -body {
+        set result {}
+        foreach {option resource class default} {
+            -weight weight Weight 1.0 -minheight minHeight MinHeight 40
+            -height height Height 160 -yaxes yAxes YAxes {}
+        } {
+            set info [.tg track configure voltage $option]
+            lappend result [expr {[llength $info]==5 && [lrange $info 0 3] eq [list $option $resource $class $default]}] \
+                [expr {[lindex $info 4] eq [.tg track cget voltage $option]}]
+        }
+        set options [.tg track configure voltage]
+        .tg track configure voltage -weight 3 -height 250
+        lappend result [expr {[llength $options]==4}] \
+            [expr {[lindex [.tg track configure voltage -weight] 4]==3.0}] \
+            [expr {[lindex [.tg track configure voltage -height] 4]==250}]
+        expr {0 ni $result}
+    } -cleanup {destroy .tg} -result 1
+
+    test trackgraph-options-prefix {creation, setting and queries accept unambiguous option prefixes} -setup {
+        Create
+    } -body {
+        .tg track create extra -w 3 -min 50 -hei 220 -y {}
+        .tg track conf extra -w 4 -h 240
+        list [.tg track cg extra -w] [.tg track cg extra -min] [.tg track cg extra -h] \
+            [.tg track conf extra -h] [catch {.tg track configure extra - 1}] \
+            [catch {.tg track cget extra -unknown}]
+    } -cleanup {destroy .tg} -result {4.0 50 240 {-height height Height 160 240} 1 1}
+
+    test trackgraph-options-prefix-rollback {failed abbreviated changes preserve all track state and ownership} -setup {
+        Create
+    } -body {
+        set before [.tg track configure voltage]
+        list [catch {.tg track configure voltage -w 3 -y amps}] \
+            [expr {$before eq [.tg track configure voltage]}] \
+            [catch {.tg track configure voltage -h 220 -min 0}] \
+            [expr {$before eq [.tg track configure voltage]}]
+    } -cleanup {destroy .tg} -result {1 1 1 1}
+
+    test trackgraph-names-exists {glob patterns form a union in layout order without duplicate names} -setup {
+        Create
+        .tg track create Voltage2
+        .tg track order {current Voltage2 voltage}
+    } -body {
+        list [.tg track names] [.tg track names v* *age] [.tg track names V* current] \
+            [.tg track names missing*] [.tg track exists voltage] [.tg track exists v*] \
+            [.tg track exists missing]
+    } -cleanup {destroy .tg} -result {{current Voltage2 voltage} voltage {current Voltage2} {} 1 0 0}
+
+    test trackgraph-delete-batch {batch deletion accepts duplicates and retains axes for reuse} -setup {
+        Create
+        .tg element delete v i
+        .tg track grid voltage configure -hide no
+    } -body {
+        .tg track delete
+        .tg track delete voltage current voltage
+        set empty [.tg track names]
+        .tg track create restored -yaxes {volts amps}
+        list $empty [.tg track cget restored -yaxes]
+    } -cleanup {destroy .tg} -result {{} {volts amps}}
+
+    test trackgraph-delete-atomic {missing names and occupied tracks reject the entire deletion batch} -setup {
+        Create
+        .tg track create empty
+    } -body {
+        set before [.tg track names]
+        set result {}
+        foreach names {{empty missing} {empty voltage} {empty current}} {
+            lappend result [catch {.tg track delete {*}$names}] [expr {$before eq [.tg track names]}]
+        }
+        .tg element delete v i
+        .tg marker create line -name occupied -track voltage -mapy volts -coords {0 0 1 1}
+        lappend result [catch {.tg track delete empty voltage}] [expr {$before eq [.tg track names]}]
+        expr {0 ni $result}
+    } -cleanup {destroy .tg} -result 1
+
+    test trackgraph-argument-errors {operation arity is checked before track lookup} -setup {
+        Create
+    } -body {
+        set result {}
+        foreach {args usage} {
+            {cget voltage} {cget name option}
+            {exists} {exists name}
+            {bbox missing extra} {bbox name}
+            {identify} {identify coordinate}
+            {order a b} {order ?nameList?}
+            {sashpos missing 1 2} {sashpos name ?coordinate?}
+        } {
+            set code [catch {.tg track {*}$args} message]
+            lappend result [expr {$code==1 && $message eq "wrong # args: should be \".tg track $usage\""}]
+        }
+        expr {0 ni $result}
+    } -cleanup {destroy .tg} -result 1
+
     test trackgraph-optiondb-defaults {track creation uses named Track resources without creating child windows} -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
@@ -1075,7 +1170,7 @@ namespace eval trackGraphTest {
             option add *voltage.weight -1
             set invalid [catch {.tg track create voltage}]
             set empty [.tg track names]
-            .tg track create voltage -weight 2
+            .tg track create voltage -w 2
             option add *current.yAxes volts
             set conflict [catch {.tg track create current}]
             .tg track delete voltage

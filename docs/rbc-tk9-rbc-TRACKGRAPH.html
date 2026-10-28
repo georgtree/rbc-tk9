@@ -105,6 +105,38 @@ from each track’s first Y axis. An empty axis selection disables that directio
 </tr>
 </tbody>
 </table>
+<section id="track-configuration-and-lifecycle">
+<span id="r-rbc-trackgraph-track-configuration-and-lifecycle"></span><span id="r-3a3arbc3a3atrackgraphqztrack20configuration20and20lifecycle"></span><h3>Track configuration and lifecycle<a class="headerlink" href="#track-configuration-and-lifecycle" title="Link to this heading">¶</a></h3>
+<p>Track operations and option names accept unambiguous abbreviations. Configuration queries follow the
+ordinary Tk/RBC component convention:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>cget<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>height
+<span class="c"># Returns the current value, for example 160.</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>height
+<span class="c"># Returns {-height height Height 160 160}.</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage
+<span class="c"># Returns a list of five-field descriptions, one for each option.</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>hei<span class="w"> </span><span class="mi">240</span>
+</pre></div>
+</div>
+<p>Each description contains the option name, resource name, resource class, built-in default and current
+value. The default field remains the built-in default even when the option database supplied the initial
+value. Current values include subsequent separator resizing and explicit configuration changes.
+Earlier trackgraph versions returned an option/value dictionary from <code class="docutils literal notranslate"><span class="pre">configure</span></code> and a bare value from
+<code class="docutils literal notranslate"><span class="pre">configure</span> <span class="pre">name</span> <span class="pre">option</span></code>. Use <code class="docutils literal notranslate"><span class="pre">cget</span></code> for values; to build an option/value dictionary from all descriptions:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>settings<span class="w"> </span><span class="k">{}</span>
+<span class="k">foreach</span><span class="w"> </span>option<span class="w"> </span><span class="k">[</span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage<span class="k">]</span><span class="w"> </span><span class="k">{</span>
+<span class="w">    </span><span class="nb">dict</span><span class="w"> </span>set<span class="w"> </span>settings<span class="w"> </span><span class="k">[</span><span class="nb">lindex</span><span class="w"> </span><span class="nv">$option</span><span class="w"> </span><span class="mi">0</span><span class="k">]</span><span class="w"> </span><span class="k">[</span><span class="nb">lindex</span><span class="w"> </span><span class="nv">$option</span><span class="w"> </span><span class="mi">4</span><span class="k">]</span>
+<span class="k">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">exists</span> <span class="pre">name</span></code> returns a boolean for an exact name. <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">names</span> <span class="pre">?pattern</span> <span class="pre">...?</span></code> returns tracks in
+layout order, matching any supplied Tcl glob pattern, without duplicates. With no patterns it returns
+every track. Pattern matching is case-sensitive; <code class="docutils literal notranslate"><span class="pre">exists</span></code> and <code class="docutils literal notranslate"><span class="pre">delete</span></code> do not interpret patterns.</p>
+<p><code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">delete</span> <span class="pre">?name</span> <span class="pre">...?</span></code> deletes one or more empty tracks and retains their axes. All names and ownership
+constraints are checked before any deletion: an unknown track or a track still used by an element or
+marker rejects the whole batch. Repeated names are accepted, and an empty batch does nothing. Local grids
+and legends are released along with their tracks. Move or delete elements and markers first.</p>
+</section>
 <section id="track-option-database">
 <span id="r-rbc-trackgraph-track-option-database"></span><span id="r-3a3arbc3a3atrackgraphqztrack20option20database"></span><h3>Track option database<a class="headerlink" href="#track-option-database" title="Link to this heading">¶</a></h3>
 <p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. The resource name is the track name.
@@ -342,6 +374,7 @@ annotations and shared horizontal navigation.</p>
     <ul>
 <li><a class="reference internal" href="#">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a><ul>
 <li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
+<li><a class="reference internal" href="#track-configuration-and-lifecycle">Track configuration and lifecycle</a></li>
 <li><a class="reference internal" href="#track-option-database">Track option database</a></li>
 <li><a class="reference internal" href="#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
 <li><a class="reference internal" href="#track-coordinate-conversion">Track coordinate conversion</a></li>

@@ -1273,6 +1273,43 @@ namespace eval ::rbc::TRACKGRAPH {
         | `-height`    | `160`   | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
         | `-yaxes`     | empty   | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).                                                                                   |
 
+        ### Track configuration and lifecycle
+
+        Track operations and option names accept unambiguous abbreviations. Configuration queries follow the
+        ordinary Tk/RBC component convention:
+
+        ```tcl
+        .g track cget voltage -height
+        # Returns the current value, for example 160.
+        .g track configure voltage -height
+        # Returns {-height height Height 160 160}.
+        .g track configure voltage
+        # Returns a list of five-field descriptions, one for each option.
+        .g track configure voltage -hei 240
+        ```
+
+        Each description contains the option name, resource name, resource class, built-in default and current
+        value. The default field remains the built-in default even when the option database supplied the initial
+        value. Current values include subsequent separator resizing and explicit configuration changes.
+        Earlier trackgraph versions returned an option/value dictionary from `configure` and a bare value from
+        `configure name option`. Use `cget` for values; to build an option/value dictionary from all descriptions:
+
+        ```tcl
+        set settings {}
+        foreach option [.g track configure voltage] {
+            dict set settings [lindex $option 0] [lindex $option 4]
+        }
+        ```
+
+        `track exists name` returns a boolean for an exact name. `track names ?pattern ...?` returns tracks in
+        layout order, matching any supplied Tcl glob pattern, without duplicates. With no patterns it returns
+        every track. Pattern matching is case-sensitive; `exists` and `delete` do not interpret patterns.
+
+        `track delete ?name ...?` deletes one or more empty tracks and retains their axes. All names and ownership
+        constraints are checked before any deletion: an unknown track or a track still used by an element or
+        marker rejects the whole batch. Repeated names are accepted, and an empty batch does nothing. Local grids
+        and legends are released along with their tracks. Move or delete elements and markers first.
+
         ### Track option database
 
         Tracks are named option-database components with class `Track`. The resource name is the track name.
@@ -1493,14 +1530,14 @@ namespace eval ::rbc::TRACKGRAPH {
     }
 
     proc create {name args} {
-        # Creates a uniquely named track and returns its name. Options are `-yaxes`, `-weight` and `-minheight`.
+        # Creates a uniquely named track and returns its name. Options are `-yaxes`, `-weight`, `-height` and `-minheight`.
         # name - Track name.
         # args - Optional arguments shown in the synopsis.
         # Synopsis: name ?option value ...?
     }
 
     proc configure {name args} {
-        # Configures a track. With no options returns its option dictionary; with one option returns its value.
+        # Configures a track. Queries return Tk five-field option descriptions; use cget for a bare value.
         # name - Track name.
         # args - Optional arguments shown in the synopsis.
         # Synopsis: name ?option ?value ...??
@@ -1513,8 +1550,15 @@ namespace eval ::rbc::TRACKGRAPH {
         # Synopsis: name option
     }
 
-    proc names {} {
-        # Returns track names in layout order: top to bottom, or left to right when inverted.
+    proc names {args} {
+        # Returns track names matching any glob pattern, once each, in layout order. No patterns selects all tracks.
+        # args - Optional glob patterns.
+        # Synopsis: ?pattern ...?
+    }
+
+    proc exists {name} {
+        # Returns whether an exact track name exists.
+        # name - Track name, not a pattern.
     }
 
     proc order {args} {
@@ -1538,10 +1582,11 @@ namespace eval ::rbc::TRACKGRAPH {
         # Synopsis: x y
     }
 
-    proc delete {name} {
-        # Deletes an empty track, retaining its axes. Move or delete its elements and markers first.
-        # name - Track name.
-        # Synopsis: name
+    proc delete {args} {
+        # Deletes empty tracks, retaining axes. Missing or occupied tracks reject the entire batch.
+        # Repeated names are harmless. Move or delete elements and markers first.
+        # args - Exact track names; no arguments does nothing.
+        # Synopsis: ?name ...?
     }
 
     proc bbox {name} {

@@ -80,6 +80,10 @@ tracks, and are included by all exporters.</p>
 Local data scrolling is independent: <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqzscrolling20tracks20and20their20data"><span class="std std-ref">track yview</span></a> moves the track’s owned Y axes, or one
 selected with <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>, using existing axis scroll limits and callbacks. Both orientations, viewport
 clipping, separator resizing and exports are supported. Fit-to-window remains the default.</p>
+<p>Track configuration queries now use standard Tk five-field option descriptions rather than the earlier
+dictionary/value forms. Use <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">cget</span></code> for values. Track option names accept unambiguous abbreviations;
+<code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">exists</span></code>, pattern-filtered <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">names</span></code>, and atomic multi-track <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">delete</span></code> complete the component
+lifecycle interface. See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3atrackgraphqztrack20configuration20and20lifecycle"><span class="std std-ref">Track configuration and lifecycle</span></a>.</p>
 </section>
 <section id="track-xor-markers-dividers-and-decimation">
 <span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>

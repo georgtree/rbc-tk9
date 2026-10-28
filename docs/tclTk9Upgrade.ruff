@@ -45,6 +45,11 @@ namespace eval TclTk9Upgrade {
         selected with `-mapy`, using existing axis scroll limits and callbacks. Both orientations, viewport
         clipping, separator resizing and exports are supported. Fit-to-window remains the default.
 
+        Track configuration queries now use standard Tk five-field option descriptions rather than the earlier
+        dictionary/value forms. Use `track cget` for values. Track option names accept unambiguous abbreviations;
+        `track exists`, pattern-filtered `track names`, and atomic multi-track `track delete` complete the component
+        lifecycle interface. See [Track configuration and lifecycle][::rbc::TRACKGRAPH::Track configuration and lifecycle].
+
         ### Track XOR markers, dividers and decimation
         [::rbc::TRACKGRAPH] line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
         redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional
