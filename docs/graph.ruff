@@ -1223,8 +1223,8 @@ namespace eval ::rbc::GRAPHINST {
 
 namespace eval ::rbc::TRACKGRAPH {
     variable _ruff_ns_opts {
-        -heading {Trackgraph layout and `TRACKGRAPH` commands}
-        -includeimports false
+        -heading {Trackgraph layout}
+        -excludeprocs {.*}
     }
 
     variable _ruff_preamble {

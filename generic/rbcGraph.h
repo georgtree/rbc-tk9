@@ -675,6 +675,10 @@ struct RbcTrack {
     Tcl_Size nAxes;
     RbcTrack *next;
 };
+int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
+void Rbc_DestroyTracks(Graph *graphPtr);
+void Rbc_NotifyTrackView(Graph *graphPtr);
+int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
