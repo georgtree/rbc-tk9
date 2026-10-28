@@ -31,6 +31,7 @@ typedef enum {
 
 typedef struct RbcTrack RbcTrack;
 typedef struct {
+    RbcTrack *activeTrack;
     int top, bottom, range, offset, pad1, pad2;
     int left, right, hRange, hOffset, hPad1, hPad2;
     double scale, hScale;
@@ -499,9 +500,14 @@ struct GraphStruct {
     PolarRepresentation representation;
     XColor *trackSeparatorColor; /* NULL disables visible track dividers. */
     int trackSeparatorWidth;
+    int trackScroll;         /* Preserve requested track sizes instead of fitting. */
+    Tcl_Obj *trackScrollCmdObj;
+    double trackOffset, trackExtent;
+    double trackFirst, trackLast; /* Last notified scrollbar fractions. */
     int trackResize;         /* Enable the optional Trackgraph class drag bindings. */
     int trackGraph;          /* Named, vertically stacked plot regions. */
     RbcTrack *tracks;
+    RbcTrack *activeTrack;
     int left, right; /* Coordinates of plot bounding box. */
     int top, bottom;
     Rbc_Pad padX;        /* Vertical padding for plotarea */
@@ -661,7 +667,9 @@ struct RbcTrack {
     char *name;
     double weight;
     int minHeight;
-    int left, right, top, bottom;
+    int height; /* Requested plot size along the track stacking direction. */
+    int worldLeft, worldRight, worldTop, worldBottom;
+    int left, right, top, bottom; /* Visible intersection with the plot viewport. */
     int axisOffset;
     Axis **axes;
     Tcl_Size nAxes;
@@ -669,6 +677,7 @@ struct RbcTrack {
 };
 void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
 void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);

@@ -95,12 +95,48 @@ grid settings within each track.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">40</span></code></p></td>
 <td><p>Positive minimum requested plot height, or width when inverted, in Tk screen-distance units.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">160</span></code></p></td>
+<td><p>Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least <code class="docutils literal notranslate"><span class="pre">-minheight</span></code>. Ignored in fit layout.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yaxes</span></code></p></td>
 <td><p>empty</p></td>
 <td><p>List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted).</p></td>
 </tr>
 </tbody>
 </table>
+<section id="scrolling-tracks-and-their-data">
+<span id="r-rbc-trackgraph-scrolling-tracks-and-their-data"></span><span id="r-3a3arbc3a3atrackgraphqzscrolling20tracks20and20their20data"></span><h3>Scrolling tracks and their data<a class="headerlink" href="#scrolling-tracks-and-their-data" title="Link to this heading">¶</a></h3>
+<p>The default <code class="docutils literal notranslate"><span class="pre">-tracklayout</span> <span class="pre">fit</span></code> divides the available plot space using <code class="docutils literal notranslate"><span class="pre">-weight</span></code> and <code class="docutils literal notranslate"><span class="pre">-minheight</span></code>, as before.
+With <code class="docutils literal notranslate"><span class="pre">-tracklayout</span> <span class="pre">scroll</span></code>, each track retains <code class="docutils literal notranslate"><span class="pre">max(-height,</span> <span class="pre">-minheight)</span></code> pixels and adjacent tracks have
+a 12-pixel gap. Content may extend beyond the visible viewport. Track weights are ignored in this mode.
+Scrolling moves tracks vertically, or horizontally with <code class="docutils literal notranslate"><span class="pre">-invertxy</span> <span class="pre">yes</span></code>; shared X axes remain fixed.
+Tracks do not change their data ranges or rescale when partially visible. Drawing and picking use only
+the visible part. <code class="docutils literal notranslate"><span class="pre">bbox</span></code> returns that visible rectangle; a fully hidden track has zero size along the
+scrolling direction. Transforms still use the full track geometry and may return offscreen coordinates.</p>
+<p>Use <a class="reference internal" href="#r-symbolqz3a3arbc3a3atrackgraph3a3aview"><span class="std std-ref">view</span></a> for the track list and <a class="reference internal" href="#r-symbolqz3a3arbc3a3atrackgraph3a3ayview"><span class="std std-ref">yview</span></a> for local data scrolling. They are independent:</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>tracklayout<span class="w"> </span>scroll<span class="w"> </span><span class="o">-</span>trackscrollcommand<span class="w"> </span><span class="k">{</span><span class="nv">.tracks</span><span class="w"> </span>set<span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>configure<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>height<span class="w"> </span><span class="mi">280</span>
+<span class="nv">ttk</span><span class="o">::</span>scrollbar<span class="w"> </span>.tracks<span class="w"> </span><span class="o">-</span>orient<span class="w"> </span>vertical<span class="w"> </span><span class="o">-</span>command<span class="w"> </span><span class="k">{</span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>view<span class="k">}</span>
+<span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>voltageY<span class="w"> </span><span class="o">-</span>scrollmin<span class="w"> </span><span class="o">-</span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>scrollmax<span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">-</span>scrollcommand<span class="w"> </span><span class="k">{</span><span class="nv">.volts</span><span class="w"> </span>set<span class="k">}</span>
+<span class="nv">ttk</span><span class="o">::</span>scrollbar<span class="w"> </span>.volts<span class="w"> </span><span class="o">-</span>orient<span class="w"> </span>vertical<span class="w"> </span><span class="o">-</span>command<span class="w"> </span><span class="k">{</span><span class="nv">.g</span><span class="w"> </span>track<span class="w"> </span>yview<span class="w"> </span>voltage<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>voltageY<span class="k">}</span>
+</pre></div>
+</div>
+<p>Position the scrollbar widgets with ordinary Tk geometry management. For an inverted graph, use horizontal
+scrollbars. Each track may have a separate local scrollbar, and each of its Y axes may have one too.
+Existing axis <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code>, <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code>, <code class="docutils literal notranslate"><span class="pre">-scrollincrement</span></code>, and <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> settings apply to local
+scrolling; the graph’s <code class="docutils literal notranslate"><span class="pre">-trackscrollcommand</span></code> receives the track-list viewport’s first and last fractions.
+Use finite axis scroll limits when the full data range is not a useful scroll region.</p>
+<p>Separator dragging in scroll layout changes the preceding track’s requested <code class="docutils literal notranslate"><span class="pre">-height</span></code> and the total
+content extent. It leaves the next track’s size and both weights unchanged. Escape restores the original
+size. In fit layout, dragging continues to redistribute adjacent weights. A change to the list viewport,
+orientation or layout mode cancels active separator/toolbar gestures rather than reusing stale pixels.</p>
+<p>SVG, PDF and PostScript export the viewport at the current scroll offset, with track sizes expressed in
+output pixels; a differently sized export can include more or fewer tracks. Export does not change the
+screen scroll position or notify its scrollbar. Local axes, legends, grids and ordinary markers are
+clipped to the viewport. Window markers retain the existing partial-child-clipping limitations described
+in <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-namespaceqz3a3arbc3a3amarker"><span class="std std-ref">::rbc::MARKER</span></a>; fully offscreen track windows are hidden.
+<code class="docutils literal notranslate"><span class="pre">demos/trackgraph1.tcl</span></code> includes a track-list scrollbar and separate local Y scrollbars.</p>
 <p>Assign axes with <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">configure</span> <span class="pre">-yaxes</span></code>, rather than <code class="docutils literal notranslate"><span class="pre">yaxis</span> <span class="pre">use</span></code>. An axis may belong to only one track.
 Elements must specify both <code class="docutils literal notranslate"><span class="pre">-track</span></code> and a <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> axis belonging to that track. Change both options in one
 <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">configure</span></code> call to move an element. An axis in use by an element cannot be detached, and an axis owned
@@ -130,6 +166,7 @@ closest-point queries retain original samples, and exports use full geometry. Se
 <p>shows only that row’s element labels. Local legends overlay and clip to the track; they do not change shared X
 alignment. The global legend remains independent. See <a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#r-namespaceqz3a3arbc3a3alegend"><span class="std std-ref">::rbc::LEGEND</span></a> for options, bindings and export
 behavior.</p>
+</section>
 <section id="inverted-tracks">
 <span id="r-rbc-trackgraph-inverted-tracks"></span><span id="r-3a3arbc3a3atrackgraphqzinverted20tracks"></span><h3>Inverted tracks<a class="headerlink" href="#inverted-tracks" title="Link to this heading">¶</a></h3>
 <p>Set <code class="docutils literal notranslate"><span class="pre">.g</span> <span class="pre">configure</span> <span class="pre">-invertxy</span> <span class="pre">yes</span></code> to rotate the layout into side-by-side columns. Track order runs left to
@@ -438,6 +475,41 @@ axis <code class="docutils literal notranslate"><span class="pre">x</span></code
 <dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
 </dd>
 </dl>
+</section>
+<section id="view">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3aview"></span><span id="index-14"></span><h3><code class="docutils literal notranslate"><span class="pre">view</span></code><a class="headerlink" href="#view" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the track-list viewport. With no arguments, returns <code class="docutils literal notranslate"><span class="pre">first</span> <span class="pre">last</span></code> fractions of the
+content extent. <code class="docutils literal notranslate"><span class="pre">moveto</span></code> places the requested fraction at the leading viewport edge; <code class="docutils literal notranslate"><span class="pre">scroll</span></code> moves by
+20-pixel units or pages of 90% of the viewport. Movement is clamped to the content boundaries.
+Fit layout, an empty track list, or content smaller than the viewport returns <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">1.0</span></code>.
+Changing this view never modifies data-axis limits. Bind a scrollbar to <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">track</span> <span class="pre">view</span></code> and set
+the graph’s <code class="docutils literal notranslate"><span class="pre">-trackscrollcommand</span></code> to its <code class="docutils literal notranslate"><span class="pre">set</span></code> command prefix.</p>
+<pre class="literal-block"><strong>view</strong> <em>?moveto fraction|scroll number units|pages?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
+</section>
+<section id="yview">
+<span id="r-symbolqz3a3arbc3a3atrackgraph3a3ayview"></span><span id="index-15"></span><h3><code class="docutils literal notranslate"><span class="pre">yview</span></code><a class="headerlink" href="#yview" title="Link to this heading">¶</a></h3>
+<p>Queries or changes the local Y-axis view using the existing <a class="reference internal" href="rbc-tk9-rbc-AXIS.html#r-namespaceqz3a3arbc3a3aaxis"><span class="std std-ref">::rbc::AXIS</span></a> <code class="docutils literal notranslate"><span class="pre">view</span></code> machinery. With <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>,
+only that owned Y axis is used. Without it, queries use the first Y axis and mutations apply to all Y
+axes owned by the track, honoring each axis’s scroll range, increment, log scale and direction.
+Invalid multi-axis requests leave every destination’s requested limits unchanged. An axis must belong
+to the selected track; a track without Y axes reports an error. Track position and shared X axes do not
+change. A scrollbar should select one axis and use that axis’s <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> callback.</p>
+<pre class="literal-block"><strong>yview</strong> <em>name ?-mapy axis? ?moveto fraction|scroll number units|pages?</em></pre>
+<p class="rubric">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">name</span></code><span class="colon">:</span></dt>
+<dd class="field-odd"><p>Track name.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">args</span></code><span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional arguments shown in the synopsis.</p>
+</dd>
+</dl>
 <hr class="docutils" />
 <p class="centered">
 <strong>Copyright (c) George Yashin</strong></p></section>
@@ -456,6 +528,7 @@ axis <code class="docutils literal notranslate"><span class="pre">x</span></code
     <ul>
 <li><a class="reference internal" href="#">Trackgraph layout and <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> commands</a><ul>
 <li><a class="reference internal" href="#stacked-tracks">Stacked tracks</a><ul>
+<li><a class="reference internal" href="#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
 <li><a class="reference internal" href="#inverted-tracks">Inverted tracks</a></li>
 <li><a class="reference internal" href="#reordering-and-resizing-tracks">Reordering and resizing tracks</a></li>
 </ul>
@@ -475,6 +548,8 @@ axis <code class="docutils literal notranslate"><span class="pre">x</span></code
 <li><a class="reference internal" href="#sashpos"><code class="docutils literal notranslate"><span class="pre">sashpos</span></code></a></li>
 <li><a class="reference internal" href="#separator"><code class="docutils literal notranslate"><span class="pre">separator</span></code></a></li>
 <li><a class="reference internal" href="#transform"><code class="docutils literal notranslate"><span class="pre">transform</span></code></a></li>
+<li><a class="reference internal" href="#view"><code class="docutils literal notranslate"><span class="pre">view</span></code></a></li>
+<li><a class="reference internal" href="#yview"><code class="docutils literal notranslate"><span class="pre">yview</span></code></a></li>
 </ul>
 </li>
 </ul>

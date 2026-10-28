@@ -1501,8 +1501,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     variable PsData ZoomInfo ZoomMod zoomtitle ZoomMark zoomtitleopts zoomboxopts zoommarkopts ZoomTransientChecks\
-            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode ActiveLegendMode\
-            ExportData
+            zoommarkboxopts GraphType coordmark coordclosestmark crosshairsmode PanInfo PanTransientChecks ControlMode\
+            ActiveLegendMode ExportData
     variable CrosshairsSelector crosshairsmarkopts crosshairsmarkboxopts crosshairsclosestopts crosshairsopts
     variable crosshairsbarlineopts CrosshairsMarkerInfo pointeropts closestcommand
     variable CrosshairsSelector ClosestCoordSelector
@@ -1680,9 +1680,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 if {[dict get $arguments representation] eq {smith}} {
                     if {[dict get $arguments smithgrid] eq {impedance}} {
                         my configure -coordclosestmark normalizedimpedance
-                    } elseif {
-                        [dict get $arguments smithgrid] eq {admittance}
-                    } {
+                    } elseif {[dict get $arguments smithgrid] eq {admittance}} {
                         my configure -coordclosestmark normalizedadmittance
                     } else {
                         my configure -coordclosestmark normalizedimpedance
@@ -1938,7 +1936,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Returns and records an owned interaction tag so its binding
         # scripts can be removed when this object is destroyed.
         my variable PrivateBindTags
-
         set tag "gtb-${name}-$Subwidgets(graph)"
         dict set PrivateBindTags $tag 1
         return $tag
@@ -2242,24 +2239,30 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method TrackAt {x y} {
         # Returns the row under a plot point; gaps and margins have no owner.
-        if {$GraphType ne {trackgraph} || $x eq {} || $y eq {}} {return {}}
+        if {($GraphType ne {trackgraph}) || ($x eq {}) || ($y eq {})} {
+            return
+        }
         set graph $Subwidgets(graph)
-        if {![$graph inside $x $y]} {return {}}
+        if {![$graph inside $x $y]} {
+            return
+        }
         return [$graph track identify [expr {round([$graph cget -invertxy] ? $x : $y)}]]
     }
     method TrackDragging {} {
         # Native separator bindings precede toolbar navigation logically, even
         # though the toolbar's bindtags run first in Tk's event dispatch.
-        expr {$GraphType eq {trackgraph} && [info exists ::rbc::trackgraph::drag] &&
-              [dict exists $::rbc::trackgraph::drag $Subwidgets(graph)]}
+        expr {$GraphType eq {trackgraph} && [info exists ::rbc::trackgraph::drag] &&\
+                      [dict exists $::rbc::trackgraph::drag $Subwidgets(graph)]}
     }
     method TrackForAxis {axis} {
         if {$GraphType eq {trackgraph}} {
             foreach track [$Subwidgets(graph) track names] {
-                if {$axis in [$Subwidgets(graph) track cget $track -yaxes]} {return $track}
+                if {$axis in [$Subwidgets(graph) track cget $track -yaxes]} {
+                    return $track
+                }
             }
         }
-        return {}
+        return
     }
     method Marker {operation name args} {
         # Toolbar markers inherit the track owning their final Y-axis mapping.
@@ -2277,28 +2280,41 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method NavigationAxes {dimension track} {
         if {$GraphType eq {trackgraph} && $dimension eq {y}} {
-            if {$track ni [$Subwidgets(graph) track names]} {return {}}
+            if {$track ni [$Subwidgets(graph) track names]} {
+                return
+            }
             return [$Subwidgets(graph) track cget $track -yaxes]
         }
         return [my UsedAxes $dimension]
     }
     method ExistingAxes {axes} {
         # Structural changes during a gesture may have removed a saved axis.
-        if {$GraphType ne {trackgraph}} {return $axes}
+        if {$GraphType ne {trackgraph}} {
+            return $axes
+        }
         set result {}
         foreach axis $axes {
-            if {$axis in [$Subwidgets(graph) axis names]} {lappend result $axis}
+            if {$axis in [$Subwidgets(graph) axis names]} {
+                lappend result $axis
+            }
         }
         return $result
     }
     method TrackSignature {track} {
         # Limits change during navigation; ownership, order and row sizing must
         # stay fixed. Widget resizing also invalidates a pixel-based gesture.
-        if {$GraphType ne {trackgraph}} {return {}}
+        if {$GraphType ne {trackgraph}} {
+            return
+        }
         set graph $Subwidgets(graph)
-        if {$track ni [$graph track names]} {return {}}
-        set state [list [winfo width $graph] [winfo height $graph] [$graph cget -invertxy] [my UsedAxes x]]
-        foreach name [$graph track names] {lappend state $name [$graph track configure $name]}
+        if {$track ni [$graph track names]} {
+            return
+        }
+        set state [list [winfo width $graph] [winfo height $graph] [$graph cget -invertxy] [$graph cget -tracklayout]\
+                           [$graph track view] [my UsedAxes x]]
+        foreach name [$graph track names] {
+            lappend state $name [$graph track configure $name]
+        }
         return $state
     }
     method UsedAxes {dimension} {
@@ -2423,8 +2439,14 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {$GraphType eq {trackgraph} && $dimension eq {y}} {
             set owned [my NavigationAxes y $track]
             set visible {}
-            foreach axis $owned {if {$axis in $axes} {lappend visible $axis}}
-            if {[llength $visible]} {return $visible}
+            foreach axis $owned {
+                if {$axis in $axes} {
+                    lappend visible $axis
+                }
+            }
+            if {[llength $visible]} {
+                return $visible
+            }
             return [lrange $owned 0 0]
         }
         if {$GraphType ne {polar}} {
@@ -2660,7 +2682,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             if {$angle < 0.0} {
                 set angle [expr {$angle+2.0*acos(-1.0)}]
             }
-            if {$angle==0.0 || $angle>=2.0*acos(-1.0)} {
+            if {($angle==0.0) || ($angle>=2.0*acos(-1.0))} {
                 set angle 0.0
             }
         }
@@ -2929,7 +2951,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         $graph crosshairs configure -position @${x},$y
         # Always restore interaction, even if the pointer is outside.
         my ApplyCrosshairsMode
-        if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
+        if {([winfo containing $rootX $rootY] ne $graph) || ![$graph inside $x $y]} {
             $graph crosshairs off
             my DeleteCrosshairsMarkers
             return
@@ -3115,7 +3137,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method LegendCommand {track} {
         # Returns the command prefix for a global or track-local legend.
-        if {$track eq {}} {return [list $Subwidgets(graph) legend]}
+        if {$track eq {}} {
+            return [list $Subwidgets(graph) legend]
+        }
         return [list $Subwidgets(graph) track legend $track]
     }
     method SyncTrackLegendBindings {} {
@@ -3123,8 +3147,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # bindings intact while adding the standard controls to new legends.
         foreach track [$Subwidgets(graph) track names] {
             set legend [my LegendCommand $track]
-            foreach {event method} {<Enter> ActivateLegend <Leave> DeactivateLegend <ButtonPress-1> ToggleLegendElement} {
-                if {[catch {{*}$legend bind all $event} binding] || $binding eq {}} {
+            foreach {event method} {<Enter> ActivateLegend <Leave> DeactivateLegend\
+                                            <ButtonPress-1> ToggleLegendElement} {
+                if {[catch {{*}$legend bind all $event} binding] || ($binding eq {})} {
                     {*}$legend bind all $event [namespace code [list my $method $track]]
                 }
             }
@@ -3193,11 +3218,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             # restore plotting and clear any persistent element activation.
             $graph element configure $elem -hideplot no -labelrelief flat
             $graph element deactivate $elem
-        } elseif {$ActiveLegendMode eq {show-active} && $relief eq {raised}} {
+        } elseif {($ActiveLegendMode eq {show-active}) && ($relief eq {raised})} {
             # active -> normal in the activation-only cycle.
             $graph element deactivate $elem
             $graph element configure $elem -hideplot no -labelrelief flat
-        } elseif {$ActiveLegendMode eq {show-hide} || $relief eq {raised}} {
+        } elseif {($ActiveLegendMode eq {show-hide}) || ($relief eq {raised})} {
             # normal or active -> plot-hidden
             # remove the active drawing first, then suppress normal plotting.
             # -hideplot deliberately leaves the element in the display list,
@@ -3233,8 +3258,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         if {($x eq {}) || ($y eq {})} {
             return false
         }
-        if {$GraphType eq {trackgraph} && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||
-            ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
+        if {($GraphType eq {trackgraph}) && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||\
+                                                     ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
             my DeleteCrosshairsMarkers
             return false
         }
@@ -3326,7 +3351,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             lassign [winfo pointerxy $graph] rootX rootY
             set x [expr {$rootX - [winfo rootx $graph]}]
             set y [expr {$rootY - [winfo rooty $graph]}]
-            if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
+            if {([winfo containing $rootX $rootY] ne $graph) || ![$graph inside $x $y]} {
                 my DeleteCrosshairsMarkers
             }
         } finally {
@@ -3386,7 +3411,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set y [expr {$rootY - [winfo rooty $graph]}]
         # Do not leave an old annotation behind if the graph has moved
         # away from the pointer or its plot area no longer contains it.
-        if {[winfo containing $rootX $rootY] ne $graph || ![$graph inside $x $y]} {
+        if {([winfo containing $rootX $rootY] ne $graph) || ![$graph inside $x $y]} {
             my DeleteCrosshairsMarkers
             return
         }
@@ -3398,8 +3423,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Axis scrolling changes the annotation values, but does not
         # require erasing and redrawing hairs at the same pixel position.
         set mode [lindex $CrosshairsMarkerInfo 1]
-        if {$mode eq "current" ||
-            ![dict get [my configure -crosshairsclosestopts] hide]} {
+        if {($mode eq {current}) || ![dict get [my configure -crosshairsclosestopts] hide]} {
             set position @${x},$y
             if {[$graph crosshairs cget -position] ne $position} {
                 $graph crosshairs configure -position $position
@@ -3424,8 +3448,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # element and selects point/bar annotation rendering as appropriate.
         #
         # Returns: Nothing.
-        if {$GraphType eq {trackgraph} && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||
-            ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
+        if {($GraphType eq {trackgraph}) && ([my TrackDragging] || [my ZoomPointInLegend $x $y] ||\
+                                                     ![llength [my NavigationAxes y [my TrackAt $x $y]]])} {
             my DeleteCrosshairsMarkers
             return
         }
@@ -3502,7 +3526,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set element $pointVar(name)
             set closestInfo [array get pointVar]
             set marker gtbCrosshairsClosestText$i
-
             if {([$graph element type $element] eq {BarElement}) && [info exists pointVar(left)] &&\
                         [info exists pointVar(top)] && [info exists pointVar(right)] &&\
                         [info exists pointVar(bottom)]} {
@@ -3528,11 +3551,13 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set markerNames [$graph marker names gtbCrosshairs*]
         $graph marker delete {*}$markerNames
         if {$GraphType eq {trackgraph}} {
-            if {[my TrackDragging] || [my TrackAt $x $y] eq {}} {
+            if {[my TrackDragging] || ([my TrackAt $x $y] eq {})} {
                 $graph crosshairs off
                 return
             }
-            if {!$hide} {$graph crosshairs on}
+            if {!$hide} {
+                $graph crosshairs on
+            }
         }
         if {!$hide} {
             $graph crosshairs configure -position @${x},$y
@@ -3977,7 +4002,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             dict set closestInfo mapx [$graph element cget $element -mapx]
             dict set closestInfo mapy [$graph element cget $element -mapy]
             dict set closestInfo coordinateSystem axis
-            if {$GraphType eq {polar} && [$graph element type $element] eq {PolarElement}} {
+            if {($GraphType eq {polar}) && ([$graph element type $element] eq {PolarElement})} {
                 dict set closestInfo coordinateSystem complex
                 if {[$graph cget -representation] eq {smith}} {
                     if {[$graph grid cget -smithgrid] eq {admittance}} {
@@ -4317,8 +4342,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set minimumInsideLength [expr {2.0*$arrowDepth+$arrowGap}]
         set firstArrowMarker ${lineMarker}FirstArrow
         set lastArrowMarker  ${lineMarker}LastArrow
-        if {($arrowDepth <= 0.0) ||
-            ($lineLength >= $minimumInsideLength)} {
+        if {($arrowDepth <= 0.0) || ($lineLength >= $minimumInsideLength)} {
             # Enough room: retain the existing representation.
             my SetClosestBarLineMarker $lineMarker $lineCoords $mapx $mapy $lineOptions both
             # Remove auxiliary markers if the bar was previously short.
@@ -4372,7 +4396,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             #
             my SetClosestBarLineMarker $firstArrowMarker [list $lineXValue1 $lineYValue1 $outerXValue1 $outerYValue1]\
                     $mapx $mapy $lineOptions first
-
             my SetClosestBarLineMarker $lastArrowMarker [list $lineXValue2 $lineYValue2 $outerXValue2 $outerYValue2] \
                     $mapx $mapy $lineOptions first
         }
@@ -4676,9 +4699,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # axis is normally scaled; Polar grid axes are scaled as a pair to preserve equal-unit geometry.
         #
         # Returns: Tk `break` after a successful zoom so the wheel event is consumed.
-
-        if {[my TrackDragging]} {return}
-        if {$GraphType eq {trackgraph} && [$Subwidgets(graph) inside $x $y] && [my TrackAt $x $y] eq {}} {
+        if {[my TrackDragging]} {
+            return
+        }
+        if {($GraphType eq {trackgraph}) && [$Subwidgets(graph) inside $x $y] && ([my TrackAt $x $y] eq {})} {
             my ClearWheelAxisTarget
             return
         }
@@ -4706,8 +4730,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set factor [expr {pow($factor, $amount)}]
         }
         # Avoid applying an unrepresentable scale or recording a no-op.
-        if {!isfinite($factor) || ($factor <= 0.0) ||
-            ($factor == 1.0)} {
+        if {!isfinite($factor) || ($factor <= 0.0) || ($factor == 1.0)} {
             return
         }
         set changes [dict create]
@@ -4717,7 +4740,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 return
             }
             set track [my TrackAt $x $y]
-            if {$GraphType eq {trackgraph} && $track eq {}} {return}
+            if {($GraphType eq {trackgraph}) && ($track eq {})} {
+                return
+            }
             # Shared X axes and the pointed-to row's Y axes.
             lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
             set xPixel [expr {round($xPixel)}]
@@ -4733,8 +4758,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         } else {
             # Axis scrolling remains centered on the selected axis.
             # Polar grid axes continue to scale together.
-            if {($GraphType eq {polar}) &&
-                ($wheelAxis in [my PolarGridAxes])} {
+            if {($GraphType eq {polar}) && ($wheelAxis in [my PolarGridAxes])} {
                 foreach gridAxis [my PolarGridAxes] {
                     dict set changes $gridAxis [my ScaledAxisLimits $gridAxis $factor]
                 }
@@ -4820,7 +4844,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my DeleteCrosshairsMarkers
                 }
                 foreach cmd $cmds {
-                    if {$GraphType ne {trackgraph} || [lindex $cmd 3] in [$graph axis names]} {{*}$cmd}
+                    if {($GraphType ne {trackgraph}) || ([lindex $cmd 3] in [$graph axis names])} {
+                        {*}$cmd
+                    }
                 }
                 if {[my configure -zoomtitle]} {
                     my ZoomTitleLast
@@ -4846,7 +4872,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     my DeleteCrosshairsMarkers
                 }
                 foreach cmd $cmds {
-                    if {$GraphType ne {trackgraph} || [lindex $cmd 3] in [$graph axis names]} {{*}$cmd}
+                    if {($GraphType ne {trackgraph}) || ([lindex $cmd 3] in [$graph axis names])} {
+                        {*}$cmd
+                    }
                 }
                 if {[my configure -zoomtitle]} {
                     my ZoomTitleLast
@@ -5082,8 +5110,8 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         lassign [$Subwidgets(graph) extents plotarea] left top width height
         set right  [expr {$left+$width-1}]
         set bottom [expr {$top+$height-1}]
-        if {$GraphType eq {trackgraph} && [info exists ZoomInfo(track)] &&
-            $ZoomInfo(track) in [$Subwidgets(graph) track names]} {
+        if {($GraphType eq {trackgraph}) && [info exists ZoomInfo(track)] &&\
+                    ($ZoomInfo(track) in [$Subwidgets(graph) track names])} {
             lassign [$Subwidgets(graph) track bbox $ZoomInfo(track)] left top right bottom
         }
         set x [expr {max($left,min($right,$x))}]
@@ -5104,7 +5132,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 set bounds [$graph track legend $track bbox]
                 if {[llength $bounds]} {
                     lassign $bounds left top width height
-                    if {$x >= $left && $x < $left+$width && $y >= $top && $y < $top+$height} {return true}
+                    if {($x >= $left) && ($x < $left+$width) && ($y >= $top) && ($y < $top+$height)} {
+                        return true
+                    }
                 }
             }
         }
@@ -5251,8 +5281,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         set ZoomInfo(track) [my TrackAt $x $y]
-        if {$GraphType eq {trackgraph} && ($ZoomInfo(track) eq {} || [my TrackDragging] ||
-            ![llength [my NavigationAxes y $ZoomInfo(track)]] || ![llength [my UsedAxes x]])} {return}
+        if {($GraphType eq {trackgraph}) && (($ZoomInfo(track) eq {}) || [my TrackDragging] ||\
+                                                     ![llength [my NavigationAxes y $ZoomInfo(track)]] ||\
+                                                     ![llength [my UsedAxes x]])} {
+            return
+        }
         set ZoomInfo(trackSignature) [my TrackSignature $ZoomInfo(track)]
         my SaveZoomPoint $x $y A
         # During the drag, ordinary Motion events update corner B. The
@@ -5299,8 +5332,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         # The pointer may leave the plotting area while dragging.
-        if {$GraphType eq {trackgraph} &&
-            $ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)]} {
+        if {($GraphType eq {trackgraph}) && ($ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)])} {
             my ResetZoom
             return
         }
@@ -5330,13 +5362,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # Returns: Nothing.
         set graph $Subwidgets(graph)
-        if {![info exists ZoomInfo(corner)] ||
-            ($ZoomInfo(corner) ne {B})} {
+        if {![info exists ZoomInfo(corner)] || ($ZoomInfo(corner) ne {B})} {
             return
         }
         # Release may occur outside the plot area.
-        if {$GraphType eq {trackgraph} &&
-            $ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)]} {
+        if {($GraphType eq {trackgraph}) && ($ZoomInfo(trackSignature) ne [my TrackSignature $ZoomInfo(track)])} {
             my ResetZoom
             return
         }
@@ -5413,8 +5443,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return true
         }
         # Do not start panning while a rectangle zoom is already active.
-        if {[info exists ZoomInfo(corner)] &&
-            ($ZoomInfo(corner) ne {A})} {
+        if {[info exists ZoomInfo(corner)] && ($ZoomInfo(corner) ne {A})} {
             return false
         }
         # Panning must start inside the plotting area.
@@ -5426,7 +5455,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return false
         }
         set track [my TrackAt $x $y]
-        if {$GraphType eq {trackgraph} && ($track eq {} || [my TrackDragging])} {return false}
+        if {($GraphType eq {trackgraph}) && (($track eq {}) || [my TrackDragging])} {
+            return false
+        }
         lassign [my WidgetToAxisPixels $x $y] xPixel yPixel
         set xPixel [expr {round($xPixel)}]
         set yPixel [expr {round($yPixel)}]
@@ -5612,7 +5643,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         set graph $Subwidgets(graph)
         lassign [winfo pointerxy $graph] rootX rootY
         # Tk reports {-1 -1} when the pointer is on another screen.
-        if {$rootX == -1 && $rootY == -1} {
+        if {($rootX == -1) && ($rootY == -1)} {
             return
         }
         my DragPan [expr {$rootX-[winfo rootx $graph]}] [expr {$rootY-[winfo rooty $graph]}]
@@ -5638,7 +5669,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             return
         }
         set graph $Subwidgets(graph)
-        if {$GraphType eq {trackgraph} && $PanInfo(trackSignature) ne [my TrackSignature $PanInfo(track)]} {
+        if {($GraphType eq {trackgraph}) && ($PanInfo(trackSignature) ne [my TrackSignature $PanInfo(track)])} {
             my CancelPan
             return
         }
@@ -5670,7 +5701,6 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 # Translate in log space. Multiplying both limits by the same
                 # factor preserves max/min exactly.
                 set logShift [expr {-$unitsPerPixel*$deltaPixel}]
-
                 if {[catch {expr {exp($logShift)}} factor] || ![string is double -strict $factor] ||\
                             !isfinite($factor) || ($factor <= 0.0)} {
                     return
@@ -5766,7 +5796,9 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
         # Use the real release position even when there was no final Motion event.
         my DragPan $x $y
-        if {![info exists PanInfo(active)] || !$PanInfo(active)} {return true}
+        if {![info exists PanInfo(active)] || !$PanInfo(active)} {
+            return true
+        }
         set historySaved $PanInfo(historySaved)
         set changed $PanInfo(changed)
         set PanInfo(active) false

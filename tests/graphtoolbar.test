@@ -6368,4 +6368,30 @@ foreach gesture {zoom pan} {
     } -result {{0.0 10.0} {-1.0 1.0} 0 0 1 1}
 }
 
+foreach gesture {zoom pan} {
+    test trackToolbar-scroll-cancel-$gesture {scrolling the list cancels gestures tied to old track pixels}\
+            -constraints {isInteractive isZoom isPan} -setup {
+        lassign [SetupTrackToolbar -zoommark] widget graph objectNs
+        $graph configure -tracklayout scroll
+        $graph track configure upper -height 500
+        $graph track configure lower -height 500
+        update
+        lassign [TrackToolbarPoint $graph upper] x y
+    } -body {
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my StartZoom $x $y]
+        } else {
+            namespace eval $objectNs [list my StartPan $x $y]
+        }
+        $graph track view scroll 2 units
+        if {$gesture eq {zoom}} {
+            namespace eval $objectNs [list my FinishZoom [expr {$x+40}] [expr {$y+20}]]
+        } else {
+            namespace eval $objectNs [list my FinishPan [expr {$x+40}] [expr {$y+20}]]
+        }
+        list [$graph axis limits x] [$graph axis limits volts]\
+            [namespace eval $objectNs {llength $ZoomInfo(stack)}] [llength [$graph marker names gtbZoom*]]
+    } -cleanup {destroy $widget} -result {{0.0 10.0} {-1.0 1.0} 0 0}
+}
+
 cleanupTests

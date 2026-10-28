@@ -696,7 +696,7 @@ static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double
         value = 1.0 - value;
     }
     if (axisPtr->track != NULL) {
-        return value * MAX(1, axisPtr->track->right - axisPtr->track->left) + axisPtr->track->left;
+        return value * MAX(1, axisPtr->track->worldRight - axisPtr->track->worldLeft) + axisPtr->track->worldLeft;
     }
     return value * graphPtr->hRange + graphPtr->hOffset;
 }
@@ -710,7 +710,7 @@ static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double v
         value = 1.0 - value;
     }
     if (axisPtr->track != NULL) {
-        return (1.0 - value) * MAX(1, axisPtr->track->bottom - axisPtr->track->top) + axisPtr->track->top;
+        return (1.0 - value) * MAX(1, axisPtr->track->worldBottom - axisPtr->track->worldTop) + axisPtr->track->worldTop;
     }
     return (1.0 - value) * graphPtr->vRange + graphPtr->vOffset;
 }
@@ -2565,7 +2565,7 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double value;
 
     if (axisPtr->track != NULL) {
-        x = (x - axisPtr->track->left) / MAX(1, axisPtr->track->right - axisPtr->track->left);
+        x = (x - axisPtr->track->worldLeft) / MAX(1, axisPtr->track->worldRight - axisPtr->track->worldLeft);
     } else {
         x = (double)(x - graphPtr->hOffset) * graphPtr->hScale;
     }
@@ -2605,7 +2605,7 @@ double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double value;
 
     if (axisPtr->track != NULL) {
-        y = (y - axisPtr->track->top) / MAX(1, axisPtr->track->bottom - axisPtr->track->top);
+        y = (y - axisPtr->track->worldTop) / MAX(1, axisPtr->track->worldBottom - axisPtr->track->worldTop);
     } else {
         y = (double)(y - graphPtr->vOffset) * graphPtr->vScale;
     }
@@ -6685,7 +6685,7 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     }
     if (axisPtr->track != NULL) {
         scrollUnits = (double)axisPtr->scrollUnits / MAX(1, AxisIsHorizontal(graphPtr, axisPtr) ?
-            axisPtr->track->right - axisPtr->track->left : axisPtr->track->bottom - axisPtr->track->top);
+            axisPtr->track->worldRight - axisPtr->track->worldLeft : axisPtr->track->worldBottom - axisPtr->track->worldTop);
     }
     if (objc == 4) {
         Tcl_Obj *resultObj;
@@ -6730,6 +6730,95 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     graphPtr->flags |= (GET_AXIS_GEOMETRY | LAYOUT_NEEDED | RESET_AXES);
     Rbc_EventuallyRedrawGraph(graphPtr);
     return TCL_OK;
+}
+
+/* Local view operations reuse axis scrolling, including logarithmic ranges and
+ * screen orientation. Stage all destinations so a later axis error is atomic. */
+int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size start = 4, n, i;
+    Axis **axes = track->axes;
+    Axis *selected = NULL;
+    double *oldLimits;
+    Tcl_Obj *args[7];
+    unsigned int oldFlags;
+    int code = TCL_OK;
+    if (objc > start && strcmp(Tcl_GetString(objv[start]), "-mapy") == 0) {
+        if (objc <= start + 1) {
+            goto usage;
+        }
+        for (i = 0; i < track->nAxes; i++) {
+            if (strcmp(track->axes[i]->name, Tcl_GetString(objv[start + 1])) == 0) {
+                selected = track->axes[i];
+            }
+        }
+        if (selected == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("Y axis must belong to the selected track", -1));
+            return TCL_ERROR;
+        }
+        axes = &selected;
+        start += 2;
+    }
+    n = selected != NULL ? 1 : track->nAxes;
+    if (n == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("track has no Y axes", -1));
+        return TCL_ERROR;
+    }
+    if (objc != start) {
+        double value;
+        if (!((objc == start + 2 && strcmp(Tcl_GetString(objv[start]), "moveto") == 0) ||
+              (objc == start + 3 && strcmp(Tcl_GetString(objv[start]), "scroll") == 0))) {
+            goto usage;
+        }
+        if (Tcl_GetDoubleFromObj(interp, objv[start + 1], &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (!FINITE(value)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll request must be finite", -1));
+            return TCL_ERROR;
+        }
+        if (objc == start + 3 && strcmp(Tcl_GetString(objv[start + 2]), "units") != 0 &&
+            strcmp(Tcl_GetString(objv[start + 2]), "pages") != 0) {
+            goto usage;
+        }
+    }
+    Rbc_LayoutGraph(graphPtr);
+    if (objc == start) {
+        n = 1;
+    }
+    oldLimits = ckalloc(sizeof(double) * (size_t)n * 2);
+    oldFlags = graphPtr->flags;
+    for (i = 0; i < n; i++) {
+        oldLimits[2 * i] = axes[i]->reqMin;
+        oldLimits[2 * i + 1] = axes[i]->reqMax;
+    }
+    args[0] = objv[0];
+    args[1] = objv[1];
+    args[2] = objv[2];
+    for (i = start; i < objc; i++) {
+        args[4 + i - start] = objv[i];
+    }
+    for (i = 0; i < n; i++) {
+        args[3] = Tcl_NewStringObj(axes[i]->name, -1);
+        Tcl_IncrRefCount(args[3]);
+        code = ViewOp(graphPtr, 4 + objc - start, args);
+        Tcl_DecrRefCount(args[3]);
+        if (code != TCL_OK) {
+            break;
+        }
+    }
+    if (code != TCL_OK) {
+        for (i = 0; i < n; i++) {
+            axes[i]->reqMin = oldLimits[2 * i];
+            axes[i]->reqMax = oldLimits[2 * i + 1];
+        }
+        /* Retain the scheduled redraw flag; it may already own an idle callback. */
+        graphPtr->flags = oldFlags | (graphPtr->flags & REDRAW_PENDING);
+    }
+    ckfree(oldLimits);
+    return code;
+usage:
+    Tcl_WrongNumArgs(interp, 4, objv, "?-mapy axis? ?moveto fraction|scroll number units|pages?");
+    return TCL_ERROR;
 }
 
 /*
@@ -6855,7 +6944,12 @@ void Rbc_MapAxes(Graph *graphPtr) {
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
                 if (axisPtr->track != NULL) {
                     RbcTrackViewport saved;
+                    if (axisPtr->track->right <= axisPtr->track->left || axisPtr->track->bottom <= axisPtr->track->top) {continue;}
                     Rbc_EnterTrack(graphPtr, axisPtr->track, &saved);
+                    graphPtr->left = axisPtr->track->worldLeft;
+                    graphPtr->right = axisPtr->track->worldRight;
+                    graphPtr->top = axisPtr->track->worldTop;
+                    graphPtr->bottom = axisPtr->track->worldBottom;
                     MapAxis(graphPtr, axisPtr, axisPtr->track->axisOffset, margin);
                     axisPtr->track->axisOffset += AxisIsHorizontal(graphPtr, axisPtr) ? axisPtr->height : axisPtr->width;
                     Rbc_LeaveTrack(graphPtr, &saved);
@@ -6886,6 +6980,28 @@ void Rbc_MapAxes(Graph *graphPtr) {
  */
 static int AxisLayoutUsable(Graph *graphPtr) {
     return (graphPtr->hRange > 1) && (graphPtr->vRange > 1);
+}
+
+/* Local axis text and wide strokes must not paint over fixed shared axes.
+ * Restrict the copy to the visible track band, including its axis margin. */
+static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
+    RbcTrack *track = axisPtr->track;
+    int left = graphPtr->inverted ? track->left : 0;
+    int top = graphPtr->inverted ? 0 : track->top;
+    int width = graphPtr->inverted ? track->right-track->left+1 : graphPtr->width;
+    int height = graphPtr->inverted ? graphPtr->height : track->bottom-track->top+1;
+    XGCValues values;
+    GC gc;
+    Pixmap pixmap;
+    if (width <= 0 || height <= 0) {return;}
+    values.graphics_exposures = False;
+    gc = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+    pixmap = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
+    XCopyArea(graphPtr->display, drawable, pixmap, gc, left, top, width, height, left, top);
+    DrawAxis(graphPtr, pixmap, axisPtr);
+    XCopyArea(graphPtr->display, pixmap, drawable, gc, left, top, width, height, left, top);
+    Tk_FreePixmap(graphPtr->display, pixmap);
+    Tk_FreeGC(graphPtr->display, gc);
 }
 
 /*
@@ -6924,7 +7040,8 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
                 if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
                     continue;
                 }
-                DrawAxis(graphPtr, drawable, axisPtr);
+                if (graphPtr->trackScroll && axisPtr->track != NULL) {DrawTrackAxis(graphPtr, drawable, axisPtr);}
+                else {DrawAxis(graphPtr, drawable, axisPtr);}
             }
         }
     }
@@ -6957,16 +7074,27 @@ void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     if (!AxisLayoutUsable(graphPtr)) {
         return;
     }
-
     for (i = 0; i < 4; i++) {
         for (linkPtr = Rbc_ChainFirstLink(graphPtr->margins[i].axes); linkPtr != NULL;
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-                if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
+                if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 ||
+                                               axisPtr->track->bottom - axisPtr->track->top <= 1)) {
                     continue;
                 }
-                AxisExport(exportPtr, axisPtr);
+                if (graphPtr->trackScroll && axisPtr->track != NULL) {
+                    RbcTrack *track = axisPtr->track;
+                    Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
+                    Rbc_RenderClipBegin(ctx, graphPtr->inverted ? track->left : 0, graphPtr->inverted ? 0 : track->top,
+                                        graphPtr->inverted ? track->right - track->left + 1 : graphPtr->width,
+                                        graphPtr->inverted ? graphPtr->height : track->bottom - track->top + 1);
+                    AxisExport(exportPtr, axisPtr);
+                    Rbc_RenderClipEnd(ctx);
+                    Rbc_RenderEnd(ctx);
+                } else {
+                    AxisExport(exportPtr, axisPtr);
+                }
             }
         }
     }
@@ -7221,6 +7349,9 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
         if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
             continue;
         }
+        if (graphPtr->trackScroll && axisPtr->track != NULL &&
+            (graphPtr->inverted ? (x < axisPtr->track->left || x > axisPtr->track->right) :
+                                 (y < axisPtr->track->top || y > axisPtr->track->bottom))) {continue;}
         if (axisPtr->showTicks) {
             Rbc_ChainLink *linkPtr;
             TickLabel *labelPtr;

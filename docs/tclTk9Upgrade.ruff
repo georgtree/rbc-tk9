@@ -39,6 +39,12 @@ namespace eval TclTk9Upgrade {
         independent. Grid queries preserve inheritance. Local grids follow inversion, stay clipped to their
         tracks, and are included by all exporters.
 
+        Optional `-tracklayout scroll` preserves each track's requested `-height` and provides a Tk-compatible
+        [::rbc::TRACKGRAPH::view] for navigating the list. The graph's `-trackscrollcommand` updates a scrollbar.
+        Local data scrolling is independent: [::rbc::TRACKGRAPH::yview] moves the track's owned Y axes, or one
+        selected with `-mapy`, using existing axis scroll limits and callbacks. Both orientations, viewport
+        clipping, separator resizing and exports are supported. Fit-to-window remains the default.
+
         ### Track XOR markers, dividers and decimation
         [::rbc::TRACKGRAPH] line, polygon and arc markers now accept `-xor yes`, using native XOR within the clipped
         redraw pass in either renderer. Graphtoolbar zoom outlines can use it too. Optional

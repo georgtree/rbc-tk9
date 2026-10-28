@@ -39,6 +39,12 @@ Each track can select its own grid axes and style with \fI::rbc::TRACKGRAPH::gri
 graph-wide grid; the first successful local change copies the current settings and makes that track
 independent\&. Grid queries preserve inheritance\&. Local grids follow inversion, stay clipped to their
 tracks, and are included by all exporters\&.
+.PP
+Optional -tracklayout scroll preserves each track's requested -height and provides a Tk-compatible
+\fI::rbc::TRACKGRAPH::view\fP for navigating the list\&. The graph's -trackscrollcommand updates a scrollbar\&.
+Local data scrolling is independent: \fI::rbc::TRACKGRAPH::yview\fP moves the track's owned Y axes, or one
+selected with -mapy, using existing axis scroll limits and callbacks\&. Both orientations, viewport
+clipping, separator resizing and exports are supported\&. Fit-to-window remains the default\&.
 .SS "TRACK XOR MARKERS, DIVIDERS AND DECIMATION"
 .PP
 \fI::rbc::TRACKGRAPH\fP line, polygon and arc markers now accept -xor yes, using native XOR within the clipped

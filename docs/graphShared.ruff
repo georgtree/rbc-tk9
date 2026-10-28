@@ -15,6 +15,9 @@ namespace eval ::rbc::AXIS {
         GRAPHINST axis
         ```
 
+        Trackgraphs also provide [::rbc::TRACKGRAPH::yview] for local data scrolling and
+        [::rbc::TRACKGRAPH::view] for independently scrolling the list of tracks.
+
         For example:
         ```tcl
         graph .g
@@ -494,6 +497,8 @@ namespace eval ::rbc::AXIS {
     }
 
     proc view {axisName args} {
+        # Trackgraphs also expose [::rbc::TRACKGRAPH::yview] for scrolling one track's owned Y axes.
+        # Track-list scrolling is separate; see [::rbc::TRACKGRAPH::view].
         # Queries or changes the visible portion of an axis scrolling region. With no additional arguments, returns
         # normalized `first last` fractions. `moveto` selects an absolute fraction. `scroll` moves by units or pages;
         # a page is 90 percent of the current viewport. A single number is accepted as a compatibility shorthand for

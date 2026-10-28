@@ -112,6 +112,8 @@ Rbc_Uid rbcWindowMarkerUid;
 #define GRAPH_POLAR_REPRESENTATION_MASK (1u << 15)
 #define GRAPH_RENDERER_MASK (1u << 21)
 #define GRAPH_TRACK_SEPARATOR_MASK (1u << 22)
+#define GRAPH_TRACK_SCROLL_MASK (1u << 23)
+#define CLAMP(value, low, high) MIN(MAX((value), (low)), (high))
 
 #define GRAPH_TRANSACTION_MASK                                                                                         \
     (GRAPH_BAR_MODE_MASK | GRAPH_BAR_WIDTH_MASK | GRAPH_PIXELS_MASK | GRAPH_PADDING_MASK | GRAPH_SHADOW_MASK |         \
@@ -195,13 +197,18 @@ static const char *const graphAntialiasNames[] = {"default", "none", "gray", "fa
 #define DEF_GRAPH_RENDERER "native"
 #endif
 
+static const char *const trackLayoutNames[] = {"fit", "scroll", NULL};
 static const Tk_OptionSpec graphOptionSpecs[] = {
+    {TK_OPTION_STRING_TABLE, "-tracklayout", "trackLayout", "TrackLayout", "fit", -1, offsetof(Graph, trackScroll), 0,
+     (ClientData)trackLayoutNames, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-trackscrollcommand", "trackScrollCommand", "TrackScrollCommand", NULL,
+     offsetof(Graph, trackScrollCmdObj), -1, TK_OPTION_NULL_OK, NULL, GRAPH_TRACK_SCROLL_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_COLOR, "-trackseparatorcolor", "trackSeparatorColor", "TrackSeparatorColor", NULL, -1,
      offsetof(Graph, trackSeparatorColor), TK_OPTION_NULL_OK, NULL, GRAPH_TRACK_SEPARATOR_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_PIXELS, "-trackseparatorwidth", "trackSeparatorWidth", "TrackSeparatorWidth", "1", -1,
      offsetof(Graph, trackSeparatorWidth), 0, NULL, GRAPH_TRACK_SEPARATOR_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-trackresize", "trackResize", "TrackResize", "0", -1, offsetof(Graph, trackResize),
-     0, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-trackresize", "trackResize", "TrackResize", "0", -1, offsetof(Graph, trackResize), 0, NULL,
+     GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-antialias", "antialias", "Antialias", "default", -1, offsetof(Graph, antialias), 0,
      (ClientData)graphAntialiasNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1, offsetof(Graph, renderer), 0,
@@ -1754,6 +1761,19 @@ static int ConfigureGraph(Graph *graphPtr) {
     XGCValues gcValues;
     unsigned long gcMask;
 
+    if (graphPtr->trackScroll && !graphPtr->trackGraph) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("scroll track layout requires a trackgraph widget", -1));
+        return TCL_ERROR;
+    }
+    if (graphPtr->trackScrollCmdObj != NULL) {
+        Tcl_Size length;
+        if (Tcl_ListObjLength(graphPtr->interp, graphPtr->trackScrollCmdObj, &length) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+    if (graphPtr->optionMask & GRAPH_TRACK_SCROLL_MASK) {
+        graphPtr->trackFirst = -1.0;
+    }
     if (graphPtr->trackSeparatorWidth < 1) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track separator width must be positive", -1));
         return TCL_ERROR;
@@ -3007,6 +3027,8 @@ RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name) {
  * Always pair with Rbc_LeaveTrack, including when track is NULL. Axis mapping
  * itself uses the axis owner, so public transforms do not need this scope. */
 void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
+    saved->activeTrack = graphPtr->activeTrack;
+    graphPtr->activeTrack = track;
     saved->left = graphPtr->left;
     saved->right = graphPtr->right;
     saved->hRange = graphPtr->hRange;
@@ -3023,20 +3045,23 @@ void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
     saved->pad2 = graphPtr->padY.side2;
     if (track != NULL && graphPtr->inverted) {
         graphPtr->padX.side1 = graphPtr->padX.side2 = 0;
-        graphPtr->left = graphPtr->hOffset = track->left;
+        graphPtr->left = track->left;
+        graphPtr->hOffset = track->worldLeft;
         graphPtr->right = track->right;
-        graphPtr->hRange = MAX(1, track->right - track->left);
+        graphPtr->hRange = MAX(1, track->worldRight - track->worldLeft);
         graphPtr->hScale = 1.0 / graphPtr->hRange;
     } else if (track != NULL) {
         graphPtr->padY.side1 = graphPtr->padY.side2 = 0;
-        graphPtr->top = graphPtr->vOffset = track->top;
+        graphPtr->top = track->top;
+        graphPtr->vOffset = track->worldTop;
         graphPtr->bottom = track->bottom;
-        graphPtr->vRange = MAX(1, track->bottom - track->top);
+        graphPtr->vRange = MAX(1, track->worldBottom - track->worldTop);
         graphPtr->vScale = 1.0 / graphPtr->vRange;
     }
 }
 
 void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved) {
+    graphPtr->activeTrack = saved->activeTrack;
     graphPtr->left = saved->left;
     graphPtr->right = saved->right;
     graphPtr->hRange = saved->hRange;
@@ -3057,23 +3082,32 @@ void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved) {
  * when they cannot fit, shrink them proportionally and keep the order stable. */
 void Rbc_LayoutTracks(Graph *graphPtr) {
     RbcTrack *track;
-    double weights = 0.0, minima = 0.0, cursor;
+    double weights = 0.0, minima = 0.0, requested = 0.0, cursor, offset;
     int n = 0, gap, available;
     int range = graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         weights += track->weight;
         minima += track->minHeight;
+        requested += MAX(track->height, track->minHeight);
         n++;
     }
     if (n == 0) {
+        graphPtr->trackExtent = graphPtr->trackOffset = 0.0;
         return;
     }
-    gap = MIN(12, MAX(0, range / (n * 4)));
+    gap = graphPtr->trackScroll ? 12 : MIN(12, MAX(0, range / (n * 4)));
     available = MAX(0, range - gap * (n - 1));
-    cursor = graphPtr->inverted ? graphPtr->hOffset : graphPtr->vOffset;
+    graphPtr->trackExtent = graphPtr->trackScroll ? requested + gap * (double)(n - 1) : range;
+    offset = graphPtr->trackScroll ? CLAMP(graphPtr->trackOffset, 0.0, MAX(0.0, graphPtr->trackExtent - range)) : 0.0;
+    if (!(graphPtr->flags & GRAPH_EXPORT)) {
+        graphPtr->trackOffset = offset;
+    }
+    cursor = (graphPtr->inverted ? graphPtr->hOffset : graphPtr->vOffset) - offset;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         double height;
-        if (minima > available) {
+        if (graphPtr->trackScroll) {
+            height = MAX(track->height, track->minHeight);
+        } else if (minima > available) {
             height = available * (track->minHeight / minima);
         } else {
             height = track->minHeight + (available - minima) * (track->weight / weights);
@@ -3083,12 +3117,20 @@ void Rbc_LayoutTracks(Graph *graphPtr) {
         track->top = graphPtr->top;
         track->bottom = graphPtr->bottom;
         if (graphPtr->inverted) {
-            track->left = (int)floor(cursor + 0.5);
-            track->right = (int)floor(cursor + height + 0.5);
+            track->left = (int)CLAMP(floor(cursor + 0.5), -INT_MAX / 4, INT_MAX / 4);
+            track->right = (int)CLAMP(floor(cursor + height + 0.5), -INT_MAX / 4, INT_MAX / 4);
         } else {
-            track->top = (int)floor(cursor + 0.5);
-            track->bottom = (int)floor(cursor + height + 0.5);
+            track->top = (int)CLAMP(floor(cursor + 0.5), -INT_MAX / 4, INT_MAX / 4);
+            track->bottom = (int)CLAMP(floor(cursor + height + 0.5), -INT_MAX / 4, INT_MAX / 4);
         }
+        track->worldLeft = track->left;
+        track->worldRight = track->right;
+        track->worldTop = track->top;
+        track->worldBottom = track->bottom;
+        track->left = CLAMP(track->left, graphPtr->left, graphPtr->right);
+        track->right = CLAMP(track->right, graphPtr->left, graphPtr->right);
+        track->top = CLAMP(track->top, graphPtr->top, graphPtr->bottom);
+        track->bottom = CLAMP(track->bottom, graphPtr->top, graphPtr->bottom);
         cursor += height;
         track->axisOffset = 0;
         cursor += gap;
@@ -3138,6 +3180,9 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
     Tcl_Obj *result;
     Tcl_Size i;
+    if (strcmp(option, "-height") == 0) {
+        return Tcl_NewIntObj(track->height);
+    }
     if (strcmp(option, "-weight") == 0) {
         return Tcl_NewDoubleObj(track->weight);
     }
@@ -3158,6 +3203,7 @@ static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
 static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double weight = track->weight;
     int minHeight = track->minHeight;
+    int height = track->height;
     Tcl_Obj *axesObj = NULL;
     Axis **axes = NULL;
     Tcl_Size nAxes = 0, i, j;
@@ -3174,7 +3220,8 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
                 return TCL_ERROR;
             }
             if (!FINITE(weight) || weight <= 0.0 || weight > 1e6) {
-                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track weight must be greater than 0 and at most 1000000", -1));
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("track weight must be greater than 0 and at most 1000000", -1));
                 return TCL_ERROR;
             }
         } else if (strcmp(option, "-minheight") == 0) {
@@ -3183,6 +3230,15 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
             }
             if (minHeight < 1) {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track minimum height must be positive", -1));
+                return TCL_ERROR;
+            }
+        } else if (strcmp(option, "-height") == 0) {
+            if (Tk_GetPixelsFromObj(graphPtr->interp, graphPtr->tkwin, objv[i + 1], &height) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (height < 1 || height > 1000000) {
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("track height must be between 1 and 1000000 pixels", -1));
                 return TCL_ERROR;
             }
         } else if (strcmp(option, "-yaxes") == 0) {
@@ -3209,13 +3265,15 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
             }
             axes[i] = Tcl_GetHashValue(entry);
             if (Rbc_MarkersUseTrack(graphPtr, NULL, axes[i])) {
-                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot assign a Y axis used by a graph-wide marker", -1));
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("cannot assign a Y axis used by a graph-wide marker", -1));
                 goto error;
             }
             if (axes[i]->deletePending || (axes[i]->track != NULL && axes[i]->track != track) ||
                 (axes[i]->refCount > 0 && axes[i]->classUid != rbcYAxisUid) ||
                 (axes[i]->chainPtr != NULL && axes[i]->chainPtr != graphPtr->axisChain[1])) {
-                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("axis is already assigned to another track or margin", -1));
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("axis is already assigned to another track or margin", -1));
                 goto error;
             }
             for (j = 0; j < i; j++) {
@@ -3229,21 +3287,25 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
              entry = Tcl_NextHashEntry(&search)) {
             Element *element = Tcl_GetHashValue(entry);
             if (element->track == track) {
-                for (i = 0; i < nAxes && axes[i] != element->axes.y; i++) {}
+                for (i = 0; i < nAxes && axes[i] != element->axes.y; i++) {
+                }
                 if (i == nAxes) {
-                    Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track element", -1));
+                    Tcl_SetObjResult(graphPtr->interp,
+                                     Tcl_NewStringObj("cannot detach a Y axis used by a track element", -1));
                     goto error;
                 }
             }
         }
         for (i = 0; i < track->nAxes; i++) {
-            for (j = 0; j < nAxes && axes[j] != track->axes[i]; j++) {}
+            for (j = 0; j < nAxes && axes[j] != track->axes[i]; j++) {
+            }
             if (j == nAxes && track->grid != NULL && track->grid->axes.y == track->axes[i]) {
                 Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track grid", -1));
                 goto error;
             }
             if (j == nAxes && Rbc_MarkersUseTrack(graphPtr, track, track->axes[i])) {
-                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("cannot detach a Y axis used by a track marker", -1));
+                Tcl_SetObjResult(graphPtr->interp,
+                                 Tcl_NewStringObj("cannot detach a Y axis used by a track marker", -1));
                 goto error;
             }
         }
@@ -3266,6 +3328,7 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
     }
     track->weight = weight;
     track->minHeight = minHeight;
+    track->height = height;
     return TCL_OK;
 error:
     ckfree(axes);
@@ -3319,11 +3382,11 @@ static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
 
 /* Physical limits along the dimension divided between tracks. */
 static int TrackStart(Graph *graphPtr, RbcTrack *track) {
-    return graphPtr->inverted ? track->left : track->top;
+    return graphPtr->inverted ? track->worldLeft : track->worldTop;
 }
 
 static int TrackEnd(Graph *graphPtr, RbcTrack *track) {
-    return graphPtr->inverted ? track->right : track->bottom;
+    return graphPtr->inverted ? track->worldRight : track->worldBottom;
 }
 
 /* Draw optional dividers at the same centres used by track sashpos. The
@@ -3341,7 +3404,8 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
         int center = end + gap / 2;
         Segment2D segment;
         Rbc_RenderContext *ctx;
-        if (width < 1) {
+        if (width < 1 || center - width/2 < (graphPtr->inverted ? graphPtr->left : graphPtr->top) ||
+            center + width/2 > (graphPtr->inverted ? graphPtr->right : graphPtr->bottom)) {
             continue;
         }
         if (graphPtr->inverted) {
@@ -3381,7 +3445,14 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     if (y == TrackEnd(graphPtr, track) + gap / 2) {
         return TCL_OK;
     }
-    pairHeight = (double)(TrackEnd(graphPtr, track) - TrackStart(graphPtr, track)) + TrackEnd(graphPtr, next) - TrackStart(graphPtr, next);
+    if (graphPtr->trackScroll) {
+        track->height = (int)CLAMP((double)y - gap / 2 - TrackStart(graphPtr, track), track->minHeight, 1000000);
+        graphPtr->flags |= RESET_WORLD;
+        Rbc_EventuallyRedrawGraph(graphPtr);
+        return TCL_OK;
+    }
+    pairHeight = (double)(TrackEnd(graphPtr, track) - TrackStart(graphPtr, track)) + TrackEnd(graphPtr, next) -
+                 TrackStart(graphPtr, next);
     extra = pairHeight - track->minHeight - next->minHeight;
     if (extra <= 0.0) {
         return TCL_OK;
@@ -3394,7 +3465,8 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     first = sum * ratio;
     second = sum - first;
     if (first <= 0.0 || second <= 0.0) {
-        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("track weights are too small to resize this separator", -1));
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_NewStringObj("track weights are too small to resize this separator", -1));
         return TCL_ERROR;
     }
     track->weight = first;
@@ -3404,9 +3476,93 @@ static int SetTrackSash(Graph *graphPtr, RbcTrack *track, int y) {
     return TCL_OK;
 }
 
+/* Fractions describe the list viewport, independently of all data-axis limits. */
+static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
+    double range = MAX(1, graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange);
+    double total = MAX(range, graphPtr->trackExtent);
+    double offset = graphPtr->trackScroll ? CLAMP(graphPtr->trackOffset, 0.0, total - range) : 0.0;
+    *first = offset / total;
+    *last = (offset + range) / total;
+}
+
+static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    double first, last, value, offset;
+    double range;
+    Rbc_LayoutGraph(graphPtr);
+    TrackViewFractions(graphPtr, &first, &last);
+    if (objc == 3) {
+        Tcl_Obj *values[2] = {Tcl_NewDoubleObj(first), Tcl_NewDoubleObj(last)};
+        Tcl_SetObjResult(interp, Tcl_NewListObj(2, values));
+        return TCL_OK;
+    }
+    offset = graphPtr->trackOffset;
+    range = MAX(1, graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange);
+    if (objc == 5 && strcmp(Tcl_GetString(objv[3]), "moveto") == 0) {
+        if (Tcl_GetDoubleFromObj(interp, objv[4], &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        offset = value * MAX(range, graphPtr->trackExtent);
+    } else if (objc == 6 && strcmp(Tcl_GetString(objv[3]), "scroll") == 0) {
+        const char *units = Tcl_GetString(objv[5]);
+        if (Tcl_GetDoubleFromObj(interp, objv[4], &value) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (strcmp(units, "units") == 0) {
+            offset += value * 20.0;
+        } else if (strcmp(units, "pages") == 0) {
+            offset += value * range * 0.9;
+        } else {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("expected units or pages", -1));
+            return TCL_ERROR;
+        }
+    } else {
+        Tcl_WrongNumArgs(interp, 3, objv, "?moveto fraction|scroll number units|pages?");
+        return TCL_ERROR;
+    }
+    if (!FINITE(value) || !FINITE(offset)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("track scroll request must be finite", -1));
+        return TCL_ERROR;
+    }
+    graphPtr->trackOffset = graphPtr->trackScroll ? CLAMP(offset, 0.0, MAX(0.0, graphPtr->trackExtent - range)) : 0.0;
+    graphPtr->flags |= RESET_WORLD;
+    Rbc_EventuallyRedrawGraph(graphPtr);
+    return TCL_OK;
+}
+
+/* Run the scrollbar prefix only after drawing, with no subsequent graph access.
+ * Cache before evaluation so a callback-triggered redraw does not notify forever. */
+static void NotifyTrackView(Graph *graphPtr) {
+    Tcl_Obj *command;
+    Tcl_Interp *interp = graphPtr->interp;
+    Tcl_InterpState state;
+    double first, last;
+    Tcl_Size length;
+    int code;
+    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT) || graphPtr->trackScrollCmdObj == NULL) {return;}
+    TrackViewFractions(graphPtr, &first, &last);
+    if (first == graphPtr->trackFirst && last == graphPtr->trackLast) {return;}
+    graphPtr->trackFirst = first;
+    graphPtr->trackLast = last;
+    Tcl_ListObjLength(NULL, graphPtr->trackScrollCmdObj, &length);
+    if (length == 0) {return;}
+    command = Tcl_DuplicateObj(graphPtr->trackScrollCmdObj);
+    Tcl_IncrRefCount(command);
+    Tcl_ListObjAppendElement(NULL, command, Tcl_NewDoubleObj(first));
+    Tcl_ListObjAppendElement(NULL, command, Tcl_NewDoubleObj(last));
+    Tcl_Preserve(interp);
+    Tcl_Preserve(graphPtr);
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    code = Tcl_EvalObjEx(interp, command, TCL_EVAL_GLOBAL);
+    if (code != TCL_OK) {Tcl_BackgroundException(interp, code);}
+    Tcl_RestoreInterpState(interp, state);
+    Tcl_DecrRefCount(command);
+    Tcl_Release(graphPtr);
+    Tcl_Release(interp);
+}
+
 static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", "legend", "grid", NULL};
-    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR, TRACK_OP_LEGEND, TRACK_OP_GRID};
+    static const char *const operations[] = {"create", "configure", "cget", "delete", "names", "bbox", "identify", "transform", "invtransform", "order", "sashpos", "separator", "legend", "grid", "view", "yview", NULL};
+    enum {TRACK_OP_CREATE, TRACK_OP_CONFIGURE, TRACK_OP_CGET, TRACK_OP_DELETE, TRACK_OP_NAMES, TRACK_OP_BBOX, TRACK_OP_IDENTIFY, TRACK_OP_TRANSFORM, TRACK_OP_INVTRANSFORM, TRACK_OP_ORDER, TRACK_OP_SASHPOS, TRACK_OP_SEPARATOR, TRACK_OP_LEGEND, TRACK_OP_GRID, TRACK_OP_VIEW, TRACK_OP_YVIEW};
     RbcTrack *track, **slot;
     int operation;
     Tcl_Obj *result;
@@ -3421,6 +3577,7 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     if (Tcl_GetIndexFromObj(interp, objv[2], operations, "track operation", 0, &operation) != TCL_OK) {
         return TCL_ERROR;
     }
+    if (operation == TRACK_OP_VIEW) {return TrackViewOp(graphPtr, interp, objc, objv);}
     if (operation == TRACK_OP_ORDER && objc == 4) {
         if (OrderTracks(graphPtr, objv[3]) != TCL_OK) {
             return TCL_ERROR;
@@ -3454,7 +3611,9 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         if (x >= (graphPtr->inverted ? graphPtr->top : graphPtr->left) &&
             x <= (graphPtr->inverted ? graphPtr->bottom : graphPtr->right)) {
             for (track = graphPtr->tracks; track != NULL && track->next != NULL; track = track->next) {
-                if (y > TrackEnd(graphPtr, track) && y < TrackStart(graphPtr, track->next)) {
+                if (y >= (graphPtr->inverted ? graphPtr->left : graphPtr->top) &&
+                    y <= (graphPtr->inverted ? graphPtr->right : graphPtr->bottom) &&
+                    y > TrackEnd(graphPtr, track) && y < TrackStart(graphPtr, track->next)) {
                     Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
                     return TCL_OK;
                 }
@@ -3470,7 +3629,9 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         }
         Rbc_LayoutGraph(graphPtr);
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
-            if (y >= TrackStart(graphPtr, track) && y <= TrackEnd(graphPtr, track) &&
+            if (y >= (graphPtr->inverted ? graphPtr->left : graphPtr->top) &&
+                y <= (graphPtr->inverted ? graphPtr->right : graphPtr->bottom) &&
+                y >= TrackStart(graphPtr, track) && y <= TrackEnd(graphPtr, track) &&
                 TrackEnd(graphPtr, track) > TrackStart(graphPtr, track)) {
                 Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
                 return TCL_OK;
@@ -3496,6 +3657,7 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         strcpy(track->name, name);
         track->weight = 1.0;
         track->minHeight = 40;
+        track->height = 160;
         if (ConfigureTrack(graphPtr, track, objc - 4, objv + 4) != TCL_OK ||
             Rbc_CreateTrackLegend(graphPtr, track) != TCL_OK) {
             FreeTrack(graphPtr, track);
@@ -3511,6 +3673,7 @@ static int TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[3])));
         return TCL_ERROR;
     }
+    if (operation == TRACK_OP_YVIEW) {return Rbc_TrackYViewOp(graphPtr, track, interp, objc, objv);}
     if (operation == TRACK_OP_GRID) {
         return Rbc_TrackGridOp(graphPtr, track, interp, objc, objv);
     }
@@ -3613,10 +3776,10 @@ transformDone:
     }
     if (operation == TRACK_OP_CONFIGURE) {
         if (objc == 4) {
-            const char *options[] = {"-weight", "-minheight", "-yaxes"};
+            const char *options[] = {"-weight", "-minheight", "-yaxes", "-height"};
             int i;
             result = Tcl_NewDictObj();
-            for (i = 0; i < 3; i++) {
+            for (i = 0; i < 4; i++) {
                 Tcl_DictObjPut(interp, result, Tcl_NewStringObj(options[i], -1), TrackOption(track, options[i]));
             }
             Tcl_SetObjResult(interp, result);
@@ -4298,6 +4461,7 @@ static void DisplayGraph(ClientData clientData) {
         Rbc_NotifyAxisChanges(graphPtr);
     }
     UpdateMarginTraces(graphPtr);
+    NotifyTrackView(graphPtr);
 }
 
 /*

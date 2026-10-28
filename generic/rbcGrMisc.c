@@ -573,6 +573,12 @@ void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr) {
     extsPtr->top = (double)graphPtr->vOffset - (double)graphPtr->padY.side1;
     extsPtr->right = (double)graphPtr->hOffset + (double)graphPtr->hRange + (double)graphPtr->padX.side2;
     extsPtr->bottom = (double)graphPtr->vOffset + (double)graphPtr->vRange + (double)graphPtr->padY.side2;
+    if (graphPtr->trackScroll && graphPtr->activeTrack != NULL) {
+        extsPtr->left = MAX(extsPtr->left, graphPtr->activeTrack->left);
+        extsPtr->right = MIN(extsPtr->right, graphPtr->activeTrack->right);
+        extsPtr->top = MAX(extsPtr->top, graphPtr->activeTrack->top);
+        extsPtr->bottom = MIN(extsPtr->bottom, graphPtr->activeTrack->bottom);
+    }
 }
 
 /*

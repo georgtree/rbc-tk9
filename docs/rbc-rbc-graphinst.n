@@ -604,6 +604,12 @@ on all four graph widget types\&.
 │                          │                     │                     │ background of the graph margins\&. An empty     │
 │                          │                     │                     │ value disables tiling and uses the normal     │
 │                          │                     │                     │ -background instead\&.                          │
+│ -tracklayout mode        │ trackLayout         │ TrackLayout         │ Track layout policy; defaults to fit\&. scroll  │
+│                          │                     │                     │ preserves requested track sizes\&. See          │
+│                          │                     │                     │ ::rbc::TRACKGRAPH\&.                            │
+│ -trackscrollcommand      │ trackScrollCommand  │ TrackScrollCommand  │ Optional command prefix called with           │
+│ commandPrefix            │                     │                     │ track-list first last scrollbar fractions     │
+│                          │                     │                     │ after display\&. Empty disables it\&.             │
 │ -trackresize boolean     │ trackResize         │ TrackResize         │ Enables mouse dragging of separators in       │
 │                          │                     │                     │ trackgraph widgets\&. Default no; ordinary      │
 │                          │                     │                     │ graphs reject yes\&. Native track layout        │

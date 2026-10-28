@@ -17,6 +17,9 @@ GRAPHINST axis
 .fi
 .RE
 .PP
+Trackgraphs also provide \fI::rbc::TRACKGRAPH::yview\fP for local data scrolling and
+\fI::rbc::TRACKGRAPH::view\fP for independently scrolling the list of tracks\&.
+.PP
 For example:
 .PP
 .RS 4n

@@ -40,9 +40,9 @@ $graph x2axis use samples
 $graph axis create voltage -title {Voltage (V)} -min -1.5 -max 1.5 -loose no
 $graph axis create current -title {Current (mA)} -min -15 -max 15 -loose no
 $graph axis create logic -title Enable -min -0.2 -max 1.2 -loose no
-$graph track create voltage -yaxes voltage -weight 2
-$graph track create current -yaxes current
-$graph track create enable -yaxes logic
+$graph track create voltage -yaxes voltage -weight 2 -height 280
+$graph track create current -yaxes current -height 220
+$graph track create enable -yaxes logic -height 180
 
 vector create trackTime trackVoltage trackCurrent trackEnable
 for {set i 0} {$i<=1000} {incr i} {
@@ -125,24 +125,69 @@ ttk::checkbutton .controls.global -text {Global legend} -variable globalLegend -
 }
 ttk::checkbutton .controls.invert -text {Invert layout} -variable inverted -command {
     $::graph configure -invertxy $::inverted
+    UpdateTrackScrollbars
 }
 ttk::checkbutton .controls.dividers -text Dividers -variable trackDividers -command {
     $::graph configure -trackseparatorcolor [expr {$::trackDividers ? "gray60" : ""}]
 }
+set scrollTracks 0
+ttk::checkbutton .controls.scroll -text {Scroll tracks} -variable scrollTracks -command {
+    $::graph configure -tracklayout [expr {$::scrollTracks ? "scroll" : "fit"}]
+}
+# List scrolling and data scrolling have independent commands and callbacks.
+ttk::scrollbar .trackscroll -orient vertical -command [list $graph track view]
+$graph configure -trackscrollcommand {.trackscroll set}
+ttk::frame .yscrolls -width 18 -height 18
+foreach {track axis low high} {voltage voltage -5 5 current current -50 50 enable logic -2 3} {
+    ttk::scrollbar .yscrolls.$track -orient vertical -command [list $graph track yview $track -mapy $axis]
+    $graph axis configure $axis -scrollmin $low -scrollmax $high -scrollcommand [list .yscrolls.$track set]
+}
+proc UpdateTrackScrollbars {} {
+    if {![winfo exists $::graph] || ![winfo exists .yscrolls]} {return}
+    set inverted [$::graph cget -invertxy]
+    if {![info exists ::trackScrollOrientation] || $::trackScrollOrientation != $inverted} {
+        set ::trackScrollOrientation $inverted
+        grid forget .yscrolls .trackscroll
+        if {$inverted} {
+            grid .yscrolls -row 3 -column 0 -sticky ew
+            grid .trackscroll -row 4 -column 0 -sticky ew
+        } else {
+            grid .yscrolls -row 2 -column 1 -sticky ns
+            grid .trackscroll -row 2 -column 2 -sticky ns
+        }
+        .trackscroll configure -orient [expr {$inverted ? "horizontal" : "vertical"}]
+    }
+    foreach track [$::graph track names] {
+        set bar .yscrolls.$track
+        lassign [$::graph track bbox $track] l t r b
+        if {$r<=$l || $b<=$t} {place forget $bar; continue}
+        $bar configure -orient [expr {$inverted ? "horizontal" : "vertical"}]
+        if {$inverted} {
+            place $bar -x [expr {$l+[winfo rootx $::graph]-[winfo rootx .yscrolls]}] -y 0 -width [expr {$r-$l+1}] -height 18
+        } else {
+            place $bar -x 0 -y [expr {$t+[winfo rooty $::graph]-[winfo rooty .yscrolls]}] -width 18 -height [expr {$b-$t+1}]
+        }
+    }
+}
+bind $graph <<RbcGraphChanged>> +[list after idle UpdateTrackScrollbars]
+bind .yscrolls <Configure> {after idle UpdateTrackScrollbars}
+
 ttk::label .controls.label -text {Voltage weight}
 ttk::spinbox .controls.weight -from 0.1 -to 5 -increment 0.1 -width 6 -textvariable voltageWeight -command {
     $::graph track configure voltage -weight $::voltageWeight
 }
-grid .controls.reverse .controls.advance .controls.samples -padx 4 -pady 3 -sticky w
+grid .controls.reverse .controls.advance .controls.samples .controls.scroll -padx 4 -pady 3 -sticky w
 grid .controls.legends .controls.global .controls.invert .controls.label .controls.weight .controls.dividers -padx 4\
         -pady 3 -sticky w
 
 grid .header -sticky ew
 grid .details -sticky ew
 grid .g -sticky nsew
-grid .controls -sticky ew
+grid .controls -row 5 -column 0 -columnspan 3 -sticky ew
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 0
 grid rowconfigure . 1 -weight 0
 grid rowconfigure . 2 -weight 1
 grid rowconfigure . 3 -weight 0
+
+after idle UpdateTrackScrollbars

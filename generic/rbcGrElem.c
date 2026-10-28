@@ -18,6 +18,7 @@
 #include <X11/Xutil.h>
 
 #include "rbcGrElem.h"
+#include "rbcRender.h"
 #include "rbcVectorInt.h"
 
 static Rbc_VectorChangedProc VectorChangedProc;
@@ -3875,6 +3876,32 @@ void Rbc_MapElements(Graph *graphPtr) {
     }
 }
 
+/* Clip complete native strokes at a scrolled track's viewport boundary. */
+static void DrawScrolledElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
+    RbcTrack *track = elemPtr->track;
+    Pixmap pixmap;
+    XGCValues values;
+    GC gc;
+    int left = MAX(0, track->left), top = MAX(0, track->top);
+    int width = MIN(graphPtr->width - 1, track->right) - left + 1;
+    int height = MIN(graphPtr->height - 1, track->bottom) - top + 1;
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+    values.graphics_exposures = False;
+    gc = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+    pixmap = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
+    XCopyArea(graphPtr->display, drawable, pixmap, gc, left, top, width, height, left, top);
+    if (active) {
+        (*elemPtr->procsPtr->drawActiveProc)(graphPtr, pixmap, elemPtr);
+    } else {
+        (*elemPtr->procsPtr->drawNormalProc)(graphPtr, pixmap, elemPtr);
+    }
+    XCopyArea(graphPtr->display, pixmap, drawable, gc, left, top, width, height, left, top);
+    Tk_FreePixmap(graphPtr->display, pixmap);
+    Tk_FreeGC(graphPtr->display, gc);
+}
+
 /*
  * -----------------------------------------------------------------
  *
@@ -3904,10 +3931,15 @@ void Rbc_DrawElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                           elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
+                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                    DrawScrolledElement(graphPtr, drawable, elemPtr, 0);
+                } else {
+                    (*elemPtr->procsPtr->drawNormalProc)(graphPtr, drawable, elemPtr);
+                }
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }
@@ -3943,10 +3975,15 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable) {
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         elemPtr = Rbc_ChainGetValue(linkPtr);
         if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->flags & ELEM_ACTIVE)) {
-            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                           elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
+                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                    DrawScrolledElement(graphPtr, drawable, elemPtr, 1);
+                } else {
+                    (*elemPtr->procsPtr->drawActiveProc)(graphPtr, drawable, elemPtr);
+                }
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }
@@ -3988,7 +4025,14 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
+                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                    Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
+                    Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
+                        elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);
+                    (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
+                    Rbc_RenderClipEnd(ctx);
+                    Rbc_RenderEnd(ctx);
+                } else {(*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);}
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }
@@ -4028,7 +4072,14 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
-                (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
+                if (graphPtr->trackScroll && elemPtr->track != NULL) {
+                    Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
+                    Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
+                        elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);
+                    (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
+                    Rbc_RenderClipEnd(ctx);
+                    Rbc_RenderEnd(ctx);
+                } else {(*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);}
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }

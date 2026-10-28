@@ -1627,5 +1627,240 @@ namespace eval trackGraphTest {
         }
     }
 
+    proc ScrollSetup {{inverted 0}} {
+        Create $inverted
+        .tg axis create third -min -1 -max 1 -loose no
+        .tg track create third -yaxes third -height 300
+        .tg track configure voltage -height 300
+        .tg track configure current -height 300
+        .tg configure -tracklayout scroll
+        update
+    }
+
+    foreach inverted {0 1} {
+        test trackgraph-scroll-layout-$inverted {scrolling moves tracks without rescaling them or the shared X axes} -setup {
+            ScrollSetup $inverted
+        } -body {
+            set before [.tg track transform voltage 5 0]
+            set shared [.tg axis transform x 5]
+            set limits [.tg axis limits volts]
+            lassign [.tg track view] first last
+            .tg track view scroll 3 units
+            update
+            set after [.tg track transform voltage 5 0]
+            # Normal rows move on screen Y; inverted columns move on screen X.
+            set coordinate [expr {$inverted ? 0 : 1}]
+            list [expr {$first==0 && $last>0 && $last<1}] \
+                [expr {abs([lindex $after $coordinate]-[lindex $before $coordinate]+60)<1}] \
+                [expr {$shared==[.tg axis transform x 5]}] [expr {$limits eq [.tg axis limits volts]}] \
+                [expr {[lindex [.tg track view] 0]>0}]
+        } -cleanup {destroy .tg} -result {1 1 1 1 1}
+
+        test trackgraph-scroll-clamp-$inverted {endpoints clamp and all tracks remain reachable; fit mode restores full view} -setup {
+            ScrollSetup $inverted
+        } -body {
+            .tg track view moveto 1
+            update
+            lassign [.tg track view] first last
+            lassign [.tg track bbox third] l t r b
+            set result [list [expr {$first>0 && $last==1.0}] [expr {$r>$l && $b>$t}]]
+            .tg track view scroll -10000 pages
+            lappend result [expr {[lindex [.tg track view] 0]==0.0}]
+            .tg configure -tracklayout fit
+            update
+            lappend result [.tg track view]
+            .tg track view moveto 0.8
+            lappend result [.tg track view]
+            set result
+        } -cleanup {destroy .tg} -result {1 1 1 {0.0 1.0} {0.0 1.0}}
+
+        test trackgraph-scroll-local-$inverted {local view can scroll all owned Y axes or one selected axis without moving tracks or X} -setup {
+            ScrollSetup $inverted
+            .tg axis configure volts -scrollmin -10 -scrollmax 10
+            .tg axis create other -min -10 -max 10 -scrollmin -100 -scrollmax 100 -loose no
+            .tg track configure voltage -yaxes {volts other}
+            update
+        } -body {
+            set trackView [.tg track view]
+            set x [.tg axis limits x]
+            set current [.tg axis limits amps]
+            .tg track yview voltage moveto 0.25
+            update
+            set v [.tg axis view volts]
+            set o [.tg axis view other]
+            set result [list [expr {abs([lindex $v 0]-0.25)<1e-9}] [expr {abs([lindex $v 0]-[lindex $o 0])<1e-9 && abs([lindex $v 1]-[lindex $o 1])<1e-9}] \
+                [expr {$trackView eq [.tg track view]}] [expr {$x eq [.tg axis limits x]}] \
+                [expr {$current eq [.tg axis limits amps]}]]
+            .tg track yview voltage -mapy other scroll 1 pages
+            update
+            lappend result [expr {$v eq [.tg axis view volts]}] [expr {$o ne [.tg axis view other]}] \
+                [expr {[.tg track yview voltage -mapy other] eq [.tg axis view other]}]
+            set result
+        } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1}
+
+        foreach renderer {native cairo} {
+            test trackgraph-scroll-clipping-$inverted-$renderer {wide traces, markers, grids and local axes remain inside the viewport when partially scrolled} \
+                    -constraints trackRenderer$renderer -setup {
+                ScrollSetup $inverted
+                .tg configure -renderer $renderer
+                .tg element configure v -color #ff00ff -linewidth 15 -data {0 -1 10 1}
+                .tg axis configure volts -color #ff00ff -titlecolor #ff00ff
+                .tg track grid voltage configure -hide no -color #ff00ff -linewidth 10
+                .tg marker create polygon -name wash -track voltage -mapy volts \
+                    -coords {-Inf -Inf Inf -Inf Inf Inf -Inf Inf} -fill #ff00ff -outline #ff00ff -under yes
+                .tg track view scroll 5 units
+                set photo [image create photo]
+            } -body {
+                update
+                .tg snap $photo
+                lassign [.tg extents plotarea] left top width height
+                set valid 1; set count 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] red green blue
+                        if {$red>200 && $green<80 && $blue>200} {
+                            incr count
+                            if {$inverted ? ($x<$left || $x>$left+$width) : ($y<$top || $y>$top+$height)} {set valid 0}
+                        }
+                    }
+                }
+                list $valid [expr {$count>0}]
+            } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+        }
+
+        foreach format {svg pdf postscript} {
+            test trackgraph-scroll-export-$inverted-$format {viewport exports restore scrolling and screen transforms} -setup {
+                ScrollSetup $inverted
+                .tg track view scroll 7 units
+                update
+            } -body {
+                set view [.tg track view]
+                set point [.tg track transform current 5 0]
+                set original [.tg $format output]
+                set enlarged [.tg $format output -width 900 -height 700]
+                .tg $format configure -width 0 -height 0
+                update
+                set restored [.tg $format output]
+                if {$format eq "postscript"} {
+                    foreach name {original restored} {regsub -line {^%%CreationDate:.*$} [set $name] {} $name}
+                }
+                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] \
+                    [expr {$view eq [.tg track view]}] [expr {$point eq [.tg track transform current 5 0]}]
+            } -cleanup {destroy .tg} -result {1 1 1 1}
+        }
+    }
+
+    test trackgraph-scroll-callback {scrollbar prefix reports changes and may safely destroy the widget} -setup {
+        ScrollSetup
+        set notifications {}
+        proc ScrollChanged {tag first last} {lappend ::trackGraphTest::notifications [list $tag $first $last]}
+        .tg configure -trackscrollcommand [list ::trackGraphTest::ScrollChanged tag]
+    } -body {
+        update
+        set before [llength $notifications]
+        .tg track view scroll 1 pages
+        update
+        set result [list [expr {$before>0 && [llength $notifications]>$before}] \
+            [expr {[lrange [lindex $notifications end] 1 end] eq [.tg track view]}]]
+        .tg configure -trackscrollcommand {apply {{first last} {destroy .tg}}}
+        update
+        lappend result [winfo exists .tg]
+        set result
+    } -cleanup {catch {destroy .tg}; rename ScrollChanged {}; unset notifications} -result {1 1 0}
+
+    test trackgraph-scroll-errors {invalid scroll requests and sizes leave layout and axis limits unchanged} -setup {
+        ScrollSetup
+        set view [.tg track view]
+        set limits [.tg axis limits volts]
+    } -body {
+        set result {}
+        foreach script {
+            {.tg track view moveto Inf} {.tg track view moveto} {.tg track view scroll 1 bad}
+            {.tg track yview voltage -mapy amps moveto 0.5} {.tg track yview voltage moveto Inf}
+            {.tg track yview voltage scroll 1 bad} {.tg track yview voltage scroll 1}
+            {.tg track configure voltage -height 0} {.tg track configure voltage -height 1000001}
+            {.tg configure -tracklayout bad} {.tg configure -trackscrollcommand "\{"}
+        } {lappend result [catch {eval $script}]}
+        lappend result [expr {$view eq [.tg track view]}] [expr {$limits eq [.tg axis limits volts]}]
+        set result
+    } -cleanup {destroy .tg} -result {1 1 1 1 1 1 1 1 1 1 1 1 1}
+
+    test trackgraph-scroll-sash {scrolling layout resizes requested height, changing extent instead of adjacent weights} -setup {
+        ScrollSetup
+    } -body {
+        set height [.tg track cget voltage -height]
+        set next [.tg track cget current -height]
+        set weights [list [.tg track cget voltage -weight] [.tg track cget current -weight]]
+        .tg track sashpos voltage [expr {[.tg track sashpos voltage]+30}]
+        update
+        list [expr {[.tg track cget voltage -height]==$height+30}] \
+            [expr {[.tg track cget current -height]==$next}] \
+            [expr {$weights eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}]
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    foreach inverted {0 1} {
+        foreach descending {0 1} {
+            test trackgraph-scroll-log-$inverted-$descending {local scrollbar fractions honor logarithmic axes and descending direction} -setup {
+                ScrollSetup $inverted
+                .tg axis configure volts -min 10 -max 100 -logscale yes -descending $descending \
+                    -scrollmin 1 -scrollmax 1000000 -loose no
+                update
+            } -body {
+                set box [.tg track bbox voltage]
+                .tg track yview voltage -mapy volts moveto 0.25
+                update
+                lassign [.tg axis limits volts] low high
+                list [expr {abs([lindex [.tg track yview voltage] 0]-0.25)<1e-9}] \
+                    [expr {abs($high/$low-10)<1e-8}] [expr {$box eq [.tg track bbox voltage]}]
+            } -cleanup {destroy .tg} -result {1 1 1}
+        }
+        test trackgraph-scroll-window-$inverted {fully offscreen track windows unmap and return after scrolling back} -setup {
+            ScrollSetup $inverted
+            button .tg.child -text Window
+            .tg marker create window -name window -track voltage -mapy volts -coords {5 0} -window .tg.child
+            update
+        } -body {
+            set before [winfo ismapped .tg.child]
+            .tg track view moveto 1
+            update
+            set hidden [expr {![winfo ismapped .tg.child]}]
+            .tg track view moveto 0
+            update
+            list $before $hidden [winfo ismapped .tg.child]
+        } -cleanup {destroy .tg} -result {1 1 1}
+
+        test trackgraph-scroll-drag-$inverted {Escape restores requested size in scrolling mode and list scrolling cancels a gesture} -setup {
+            ScrollSetup $inverted
+            .tg track configure voltage -height 140
+            .tg configure -trackresize yes
+            update
+        } -body {
+            lassign [.tg track bbox voltage] l t r b
+            set sash [.tg track sashpos voltage]
+            if {$inverted} {set x $sash; set y [expr {($t+$b)/2}]} else {set x [expr {($l+$r)/2}]; set y $sash}
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            event generate .tg <B1-Motion> -x [expr {$x+($inverted?20:0)}] -y [expr {$y+($inverted?0:20)}]
+            set changed [expr {[.tg track cget voltage -height]==160}]
+            set canceled [catch {::rbc::trackgraph::Cancel .tg}]
+            set restored [expr {[.tg track cget voltage -height]==140}]
+            event generate .tg <ButtonPress-1> -x $x -y $y
+            .tg track view scroll 1 units
+            event generate .tg <B1-Motion> -x $x -y $y
+            list $changed $restored $canceled [dict exists $::rbc::trackgraph::drag .tg]
+        } -cleanup {destroy .tg} -result {1 1 3 0}
+    }
+
+    test trackgraph-scroll-delete {deleting tracks clamps an old list offset and preserves remaining ownership} -setup {
+        ScrollSetup
+        .tg track view moveto 1
+        update
+    } -body {
+        .tg track delete third
+        .tg element delete i
+        .tg track delete current
+        update
+        list [.tg track names] [.tg track view] [.tg element cget v -track]
+    } -cleanup {destroy .tg} -result {voltage {0.0 1.0} voltage}
+
 }
 ::tcltest::cleanupTests

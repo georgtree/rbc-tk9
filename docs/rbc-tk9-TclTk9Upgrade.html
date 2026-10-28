@@ -75,6 +75,11 @@ the example also selects independent grids from its Time and Samples X axes.</p>
 graph-wide grid; the first successful local change copies the current settings and makes that track
 independent. Grid queries preserve inheritance. Local grids follow inversion, stay clipped to their
 tracks, and are included by all exporters.</p>
+<p>Optional <code class="docutils literal notranslate"><span class="pre">-tracklayout</span> <span class="pre">scroll</span></code> preserves each track’s requested <code class="docutils literal notranslate"><span class="pre">-height</span></code> and provides a Tk-compatible
+<a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3aview"><span class="std std-ref">::rbc::TRACKGRAPH::view</span></a> for navigating the list. The graph’s <code class="docutils literal notranslate"><span class="pre">-trackscrollcommand</span></code> updates a scrollbar.
+Local data scrolling is independent: <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-symbolqz3a3arbc3a3atrackgraph3a3ayview"><span class="std std-ref">::rbc::TRACKGRAPH::yview</span></a> moves the track’s owned Y axes, or one
+selected with <code class="docutils literal notranslate"><span class="pre">-mapy</span></code>, using existing axis scroll limits and callbacks. Both orientations, viewport
+clipping, separator resizing and exports are supported. Fit-to-window remains the default.</p>
 </section>
 <section id="track-xor-markers-dividers-and-decimation">
 <span id="r-tcltk9upgrade-track-xor-markers-dividers-and-decimation"></span><span id="r-3a3atcltk9upgradeqztrack20xor20markers2c20dividers20and20decimation"></span><h3>Track XOR markers, dividers and decimation<a class="headerlink" href="#track-xor-markers-dividers-and-decimation" title="Link to this heading">¶</a></h3>

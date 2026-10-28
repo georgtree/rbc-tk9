@@ -556,6 +556,8 @@ namespace eval ::rbc::GRAPHINST {
         | `-shadow shadow`             | `shadow`              | `Shadow`              | Specifies the shadow used when drawing the graph title. An empty value disables the title shadow.                                                                                                                                                                                   |
         | `-takefocus focus`           | `takeFocus`           | `TakeFocus`           | Controls whether the graph participates in keyboard focus traversal. It has the same interpretation as the standard Tk `-takefocus` option. The default is an empty value.                                                                                                          |
         | `-tile image`                | `tile`                | `Tile`                | Specifies an image used to tile the background of the graph margins. An empty value disables tiling and uses the normal `-background` instead.                                                                                                                                      |
+        | `-tracklayout mode` | `trackLayout` | `TrackLayout` | Track layout policy; defaults to `fit`. `scroll` preserves requested track sizes. See [::rbc::TRACKGRAPH]. |
+        | `-trackscrollcommand commandPrefix` | `trackScrollCommand` | `TrackScrollCommand` | Optional command prefix called with track-list `first last` scrollbar fractions after display. Empty disables it. |
         | `-trackresize boolean` | `trackResize` | `TrackResize` | Enables mouse dragging of separators in trackgraph widgets. Default `no`; ordinary graphs reject `yes`. Native track layout commands remain available when disabled. See [::rbc::TRACKGRAPH]. |
         | `-title text`                | `title`               | `Title`               | Specifies the graph title. An empty value suppresses the title.                                                                                                                                                                                                                     |
         | `-topmargin size`            | `topMargin`           | `Margin`              | Sets the requested size of the top margin. A value of `0` lets the graph calculate the required size automatically. `-tm` is a synonym.                                                                                                                                             |
@@ -1266,7 +1268,46 @@ namespace eval ::rbc::TRACKGRAPH {
         |--------------|---------|---------|
         | `-weight` | `1.0` | Positive finite share of remaining layout space after track minima are allocated; at most 1000000. |
         | `-minheight` | `40` | Positive minimum requested plot height, or width when inverted, in Tk screen-distance units. |
+        | `-height` | `160` | Requested plot height in scroll layout, or width when inverted; from 1 to 1000000 pixels, with Tk screen-distance units accepted. The effective size is at least `-minheight`. Ignored in fit layout. |
         | `-yaxes` | empty | List of existing Y axes assigned exclusively to this track and displayed in its left margin (bottom when inverted). |
+
+        ### Scrolling tracks and their data
+
+        The default `-tracklayout fit` divides the available plot space using `-weight` and `-minheight`, as before.
+        With `-tracklayout scroll`, each track retains `max(-height, -minheight)` pixels and adjacent tracks have
+        a 12-pixel gap. Content may extend beyond the visible viewport. Track weights are ignored in this mode.
+        Scrolling moves tracks vertically, or horizontally with `-invertxy yes`; shared X axes remain fixed.
+        Tracks do not change their data ranges or rescale when partially visible. Drawing and picking use only
+        the visible part. `bbox` returns that visible rectangle; a fully hidden track has zero size along the
+        scrolling direction. Transforms still use the full track geometry and may return offscreen coordinates.
+
+        Use [view] for the track list and [yview] for local data scrolling. They are independent:
+
+        ```tcl
+        .g configure -tracklayout scroll -trackscrollcommand {.tracks set}
+        .g track configure voltage -height 280
+        ttk::scrollbar .tracks -orient vertical -command {.g track view}
+        .g axis configure voltageY -scrollmin -10 -scrollmax 10 -scrollcommand {.volts set}
+        ttk::scrollbar .volts -orient vertical -command {.g track yview voltage -mapy voltageY}
+        ```
+
+        Position the scrollbar widgets with ordinary Tk geometry management. For an inverted graph, use horizontal
+        scrollbars. Each track may have a separate local scrollbar, and each of its Y axes may have one too.
+        Existing axis `-scrollmin`, `-scrollmax`, `-scrollincrement`, and `-scrollcommand` settings apply to local
+        scrolling; the graph's `-trackscrollcommand` receives the track-list viewport's first and last fractions.
+        Use finite axis scroll limits when the full data range is not a useful scroll region.
+
+        Separator dragging in scroll layout changes the preceding track's requested `-height` and the total
+        content extent. It leaves the next track's size and both weights unchanged. Escape restores the original
+        size. In fit layout, dragging continues to redistribute adjacent weights. A change to the list viewport,
+        orientation or layout mode cancels active separator/toolbar gestures rather than reusing stale pixels.
+
+        SVG, PDF and PostScript export the viewport at the current scroll offset, with track sizes expressed in
+        output pixels; a differently sized export can include more or fewer tracks. Export does not change the
+        screen scroll position or notify its scrollbar. Local axes, legends, grids and ordinary markers are
+        clipped to the viewport. Window markers retain the existing partial-child-clipping limitations described
+        in [::rbc::MARKER]; fully offscreen track windows are hidden.
+        `demos/trackgraph1.tcl` includes a track-list scrollbar and separate local Y scrollbars.
 
         Assign axes with `track configure -yaxes`, rather than `yaxis use`. An axis may belong to only one track.
         Elements must specify both `-track` and a `-mapy` axis belonging to that track. Change both options in one
@@ -1458,6 +1499,29 @@ namespace eval ::rbc::TRACKGRAPH {
         # y - Y coordinate.
         # args - Optional arguments shown in the synopsis.
         # Synopsis: name x y ?-mapx axis? ?-mapy axis?
+    }
+
+    proc view {args} {
+        # Queries or changes the track-list viewport. With no arguments, returns `first last` fractions of the
+        # content extent. `moveto` places the requested fraction at the leading viewport edge; `scroll` moves by
+        # 20-pixel units or pages of 90% of the viewport. Movement is clamped to the content boundaries.
+        # Fit layout, an empty track list, or content smaller than the viewport returns `0.0 1.0`.
+        # Changing this view never modifies data-axis limits. Bind a scrollbar to `widgetPath track view` and set
+        # the graph's `-trackscrollcommand` to its `set` command prefix.
+        # args - Optional arguments shown in the synopsis.
+        # Synopsis: ?moveto fraction|scroll number units|pages?
+    }
+
+    proc yview {name args} {
+        # Queries or changes the local Y-axis view using the existing [::rbc::AXIS] `view` machinery. With `-mapy`,
+        # only that owned Y axis is used. Without it, queries use the first Y axis and mutations apply to all Y
+        # axes owned by the track, honoring each axis's scroll range, increment, log scale and direction.
+        # Invalid multi-axis requests leave every destination's requested limits unchanged. An axis must belong
+        # to the selected track; a track without Y axes reports an error. Track position and shared X axes do not
+        # change. A scrollbar should select one axis and use that axis's `-scrollcommand` callback.
+        # name - Track name.
+        # args - Optional arguments shown in the synopsis.
+        # Synopsis: name ?-mapy axis? ?moveto fraction|scroll number units|pages?
     }
 
     proc grid {name operation args} {

@@ -317,6 +317,10 @@ rbc - Commands in namespace rbc
 .br
 \fBTRACKGRAPH transform\fP \fIname x y ?-mapx axis? ?-mapy axis?\fP
 .br
+\fBTRACKGRAPH view\fP \fI?moveto fraction|scroll number units|pages?\fP
+.br
+\fBTRACKGRAPH yview\fP \fIname ?-mapy axis? ?moveto fraction|scroll number units|pages?\fP
+.br
 \fBVECINST\fP \fIsubcommand \&.\&.\&.\fP
 .br
 \fBVECINST *\fP \fIlist\fP
@@ -506,7 +510,7 @@ Gives back the names of existing axes\&. If one or more Tcl glob patterns are su
 Converts a graph value to an integer window coordinate using the specified axis\&. value is evaluated as a Tcl numeric expression and must be finite\&. Values transformed through a logarithmic axis must be positive\&.
 .TP
 \fIview\fP
-Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages; a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for scrolling that number of units\&.
+Trackgraphs also expose \fI::rbc::TRACKGRAPH::yview\fP for scrolling one track's owned Y axes\&. Track-list scrolling is separate; see \fI::rbc::TRACKGRAPH::view\fP\&. Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages; a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for scrolling that number of units\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -777,6 +781,8 @@ Corresponding integer window coordinate\&.
 \fBAXIS view\fR (::rbc)
 .RE
 .PP
+Trackgraphs also expose \fI::rbc::TRACKGRAPH::yview\fP for scrolling one track's owned Y axes\&.
+Track-list scrolling is separate; see \fI::rbc::TRACKGRAPH::view\fP\&.
 Queries or changes the visible portion of an axis scrolling region\&. With no additional arguments, returns
 normalized first last fractions\&. moveto selects an absolute fraction\&. scroll moves by units or pages;
 a page is 90 percent of the current viewport\&. A single number is accepted as a compatibility shorthand for
@@ -3766,6 +3772,12 @@ Returns the track before the separator gap at physical widget coordinates, or an
 .TP
 \fItransform\fP
 Maps data coordinates through the shared X axis and local Y axis into physical widget coordinates\&. Defaults to axis x and the first owned Y axis\&.
+.TP
+\fIview\fP
+Queries or changes the track-list viewport\&. With no arguments, returns first last fractions of the content extent\&. moveto places the requested fraction at the leading viewport edge; scroll moves by 20-pixel units or pages of 90% of the viewport\&. Movement is clamped to the content boundaries\&. Fit layout, an empty track list, or content smaller than the viewport returns 0\&.0 1\&.0\&. Changing this view never modifies data-axis limits\&. Bind a scrollbar to widgetPath track view and set the graph's -trackscrollcommand to its set command prefix\&.
+.TP
+\fIyview\fP
+Queries or changes the local Y-axis view using the existing \fI::rbc::AXIS\fP view machinery\&. With -mapy, only that owned Y axis is used\&. Without it, queries use the first Y axis and mutations apply to all Y axes owned by the track, honoring each axis's scroll range, increment, log scale and direction\&. Invalid multi-axis requests leave every destination's requested limits unchanged\&. An axis must belong to the selected track; a track without Y axes reports an error\&. Track position and shared X axes do not change\&. A scrollbar should select one axis and use that axis's -scrollcommand callback\&.
 .RE
 .PP
 Refer to the documentation of each subcommand for details\&.
@@ -4137,6 +4149,53 @@ X coordinate\&.
 .TP
 y
 Y coordinate\&.
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH view\fR (::rbc)
+.RE
+.PP
+Queries or changes the track-list viewport\&. With no arguments, returns first last fractions of the
+content extent\&. moveto places the requested fraction at the leading viewport edge; scroll moves by
+20-pixel units or pages of 90% of the viewport\&. Movement is clamped to the content boundaries\&.
+Fit layout, an empty track list, or content smaller than the viewport returns 0\&.0 1\&.0\&.
+Changing this view never modifies data-axis limits\&. Bind a scrollbar to widgetPath track view and set
+the graph's -trackscrollcommand to its set command prefix\&.
+.RS 4n
+\fBTRACKGRAPH view\fP \fI?moveto fraction|scroll number units|pages?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+args
+Optional arguments shown in the synopsis\&.
+.RE
+.PP
+.RS -4n
+\fBTRACKGRAPH yview\fR (::rbc)
+.RE
+.PP
+Queries or changes the local Y-axis view using the existing \fI::rbc::AXIS\fP view machinery\&. With -mapy,
+only that owned Y axis is used\&. Without it, queries use the first Y axis and mutations apply to all Y
+axes owned by the track, honoring each axis's scroll range, increment, log scale and direction\&.
+Invalid multi-axis requests leave every destination's requested limits unchanged\&. An axis must belong
+to the selected track; a track without Y axes reports an error\&. Track position and shared X axes do not
+change\&. A scrollbar should select one axis and use that axis's -scrollcommand callback\&.
+.RS 4n
+\fBTRACKGRAPH yview\fP \fIname ?-mapy axis? ?moveto fraction|scroll number units|pages?\fP
+.br
+.RE
+.PP
+\fBParameters\fR
+.RS 4n
+.TP
+name
+Track name\&.
 .TP
 args
 Optional arguments shown in the synopsis\&.

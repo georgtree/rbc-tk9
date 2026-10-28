@@ -611,10 +611,10 @@ static void SetLegendOrigin(Legend *legendPtr) {
     graphPtr = legendPtr->graphPtr;
     x = y = width = height = 0;
     if (legendPtr->track != NULL) {
-        x = legendPtr->track->left;
-        y = legendPtr->track->top;
-        width = (Tcl_WideInt)legendPtr->track->right - legendPtr->track->left;
-        height = (Tcl_WideInt)legendPtr->track->bottom - legendPtr->track->top;
+        x = legendPtr->track->worldLeft;
+        y = legendPtr->track->worldTop;
+        width = (Tcl_WideInt)legendPtr->track->worldRight - legendPtr->track->worldLeft;
+        height = (Tcl_WideInt)legendPtr->track->worldBottom - legendPtr->track->worldTop;
         switch (legendPtr->site) {
         case LEGEND_RIGHT: x += width - legendPtr->width; /* fall through */
         case LEGEND_LEFT: width = legendPtr->width; break;
@@ -2218,7 +2218,7 @@ void Rbc_MapTrackLegends(Graph *graphPtr) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         if (track->legend != NULL) {
-            Rbc_MapLegend(track->legend, track->right - track->left, track->bottom - track->top);
+            Rbc_MapLegend(track->legend, track->worldRight - track->worldLeft, track->worldBottom - track->worldTop);
             SetLegendOrigin(track->legend);
         }
     }
