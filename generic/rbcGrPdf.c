@@ -4,6 +4,33 @@
 /* PDF options intentionally exclude printer/page-specific PostScript settings. */
 static const char *const pdfOptions[] = {"-width", "-height", "-decorations", "-embedfonts", NULL};
 
+/* Initialize the named export component once during widget creation. These
+ * options contain only native integers, so no Tk-owned resources survive the
+ * temporary option table. Runtime configuration keeps its existing transaction. */
+int Rbc_InitPdfOptions(Graph *graphPtr) {
+    static const Tk_OptionSpec specs[] = {
+        {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1,
+         offsetof(Graph, pdfWidth), 0, NULL, 0},
+        {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1,
+         offsetof(Graph, pdfHeight), 0, NULL, 0},
+        {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1,
+         offsetof(Graph, pdfDecorations), 0, NULL, 0},
+        {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "1", -1,
+         offsetof(Graph, pdfEmbedFonts), 0, NULL, 0},
+        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+    };
+    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
+    int result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
+                                          "pdf", "Pdf", (char *)graphPtr, table);
+    if (result == TCL_OK && (graphPtr->pdfWidth < 0 || graphPtr->pdfHeight < 0)) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("PDF dimensions must be zero or positive", -1));
+        result = TCL_ERROR;
+    }
+    Tk_FreeConfigOptions((char *)graphPtr, table, graphPtr->tkwin);
+    Tk_DeleteOptionTable(table);
+    return result;
+}
+
 static Tcl_Obj *PdfOptionInfo(Graph *graphPtr, int index) {
     static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
     static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};

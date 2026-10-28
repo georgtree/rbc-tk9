@@ -56,6 +56,81 @@ namespace eval graph.pdf {
     }
 
     # 1. Command options and validation are independent of other exporters.
+    test pdf-optiondb-defaults {named export resources support class defaults, instance precedence and all graph types} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *Pdf.Width 510
+            option add *Pdf.Height 320
+            option add *Pdf.Decorations false
+            option add *Pdf.EmbedFonts false
+            option add *g.pdf.width 620
+            set result {}
+            foreach type {graph barchart stripchart polar trackgraph} {
+                rbc::$type .g
+                lappend result [.g pdf cget -width] [.g pdf cget -height] \
+                    [.g pdf cget -decorations] [.g pdf cget -embedfonts] \
+                    [.g svg cget -width] [expr {[winfo children .g] eq {}}]
+                destroy .g
+            }
+            expr {$result eq [concat {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1}]}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test pdf-optiondb-lifetime {database changes affect new widgets only; configure and output override initialized values} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *pdf.width 510
+            rbc::graph .g
+            option add *pdf.width 610
+            rbc::graph .h
+            set result [list [.g pdf cget -width] [.h pdf cget -width]]
+            .g pdf configure -width 520
+            lappend result [.g pdf configure -width]
+            .g pdf output -width 530
+            lappend result [.g pdf cget -width] [.g svg cget -width]
+            set result
+        }
+    } -cleanup {interp delete exportOptionChild} -result {510 610 {-width width Width 0 520} 530 0}
+
+    test pdf-optiondb-invalid {invalid database dimensions and booleans fail widget creation cleanly} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            set result {}
+            foreach {resource value} {width -1 height bogus decorations bogus embedFonts bogus} {
+                option clear
+                option add *pdf.$resource $value
+                lappend result [catch {rbc::graph .g}] [expr {![winfo exists .g] && [info commands .g] eq {}}]
+                option clear
+                rbc::graph .g
+                destroy .g
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test pdf-optiondb-units {screen-distance resource values are converted to pixels} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *pdf.width 2c
+            option add *pdf.height 1i
+            rbc::graph .g
+            list [expr {[.g pdf cget -width]==[winfo pixels .g 2c]}] \
+                [expr {[.g pdf cget -height]==[winfo pixels .g 1i]}]
+        }
+    } -cleanup {interp delete exportOptionChild} -result {1 1}
+
     test RBC.graph.pdf.A.1.1 {defaults and option descriptors} -setup {
         Setup
     } -body {

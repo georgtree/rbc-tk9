@@ -590,8 +590,8 @@ namespace eval ::rbc::GRAPHINST {
         resource class and option database class.
 
         RBC uses the same option-database mechanism for graph subcomponents even though most of them are not separate
-        Tk widgets. When a component is initialized, RBC performs option lookup using a temporary child window having
-        the component's resource name and resource class.
+        Tk widgets. When a component is initialized, RBC performs option lookup through an anonymous proxy with
+        the component's resource name and resource class, without creating a named child window.
 
         ### Component resource names and classes
         | Component          | Resource name                                 | Resource class  |
@@ -612,6 +612,8 @@ namespace eval ::rbc::GRAPHINST {
         | Grid               | `grid`                                        | `Grid`          |
         | Crosshairs         | `crosshairs`                                  | `Crosshairs`    |
         | PostScript         | `postscript`                                  | `Postscript`    |
+        | SVG            | `svg`                                         | `Svg`           |
+        | PDF            | `pdf`                                         | `Pdf`           |
 
         Thus an option-database entry can target either a whole component class:
         ```tcl

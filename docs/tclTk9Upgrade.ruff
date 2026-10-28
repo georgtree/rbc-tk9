@@ -733,6 +733,12 @@ namespace eval TclTk9Upgrade {
         Explicit pixel sizes and configured axis limits are preserved. See
         [Named fonts and display scaling][::rbc::GRAPHINST::Named fonts and display scaling].
 
+        ### Export option-database components
+        SVG and PDF now read creation-time defaults through named components `svg`/`Svg` and `pdf`/`Pdf`,
+        matching the PostScript component convention. Width, height, decorations and font embedding can be
+        configured independently for each exporter. Explicit exporter options override those defaults; existing
+        widgets do not reread the database. See [::rbc::SVG] and [::rbc::PDF] for resource names and examples.
+
         ### PDF output
         Graph, barchart, stripchart and polar widgets support `pdf cget`, `pdf configure` and `pdf output`.
         The exporter writes single-page PDF 1.4 directly through the shared rendering abstraction, without Cairo

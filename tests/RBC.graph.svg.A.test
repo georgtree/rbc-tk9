@@ -18,6 +18,81 @@ namespace eval graph.svg {
         update idletasks
     }
 
+    test svg-optiondb-defaults {named export resources support class defaults, instance precedence and all graph types} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *Svg.Width 510
+            option add *Svg.Height 320
+            option add *Svg.Decorations false
+            option add *Svg.EmbedFonts true
+            option add *g.svg.width 620
+            set result {}
+            foreach type {graph barchart stripchart polar trackgraph} {
+                rbc::$type .g
+                lappend result [.g svg cget -width] [.g svg cget -height] \
+                    [.g svg cget -decorations] [.g svg cget -embedfonts] \
+                    [.g pdf cget -width] [expr {[winfo children .g] eq {}}]
+                destroy .g
+            }
+            expr {$result eq [concat {620 320 0 1 0 1} {620 320 0 1 0 1} {620 320 0 1 0 1} {620 320 0 1 0 1} {620 320 0 1 0 1}]}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test svg-optiondb-lifetime {database changes affect new widgets only; configure and output override initialized values} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *svg.width 510
+            rbc::graph .g
+            option add *svg.width 610
+            rbc::graph .h
+            set result [list [.g svg cget -width] [.h svg cget -width]]
+            .g svg configure -width 520
+            lappend result [.g svg configure -width]
+            .g svg output -width 530
+            lappend result [.g svg cget -width] [.g pdf cget -width]
+            set result
+        }
+    } -cleanup {interp delete exportOptionChild} -result {510 610 {-width width Width 0 520} 530 0}
+
+    test svg-optiondb-invalid {invalid database dimensions and booleans fail widget creation cleanly} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            set result {}
+            foreach {resource value} {width -1 height bogus decorations bogus embedFonts bogus} {
+                option clear
+                option add *svg.$resource $value
+                lappend result [catch {rbc::graph .g}] [expr {![winfo exists .g] && [info commands .g] eq {}}]
+                option clear
+                rbc::graph .g
+                destroy .g
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test svg-optiondb-units {screen-distance resource values are converted to pixels} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *svg.width 2c
+            option add *svg.height 1i
+            rbc::graph .g
+            list [expr {[.g svg cget -width]==[winfo pixels .g 2c]}] \
+                [expr {[.g svg cget -height]==[winfo pixels .g 1i]}]
+        }
+    } -cleanup {interp delete exportOptionChild} -result {1 1}
+
     test svg-1 {options are independent and invalid configurations roll back} -setup {
         Create
     } -body {

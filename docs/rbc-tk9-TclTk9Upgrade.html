@@ -729,6 +729,13 @@ external legends and named/active pens. Redraws are scheduled through the normal
 Explicit pixel sizes and configured axis limits are preserved. See
 <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqznamed20fonts20and20display20scaling"><span class="std std-ref">Named fonts and display scaling</span></a>.</p>
 </section>
+<section id="export-option-database-components">
+<span id="r-tcltk9upgrade-export-option-database-components"></span><span id="r-3a3atcltk9upgradeqzexport20option2ddatabase20components"></span><h3>Export option-database components<a class="headerlink" href="#export-option-database-components" title="Link to this heading">¶</a></h3>
+<p>SVG and PDF now read creation-time defaults through named components <code class="docutils literal notranslate"><span class="pre">svg</span></code>/<code class="docutils literal notranslate"><span class="pre">Svg</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span></code>/<code class="docutils literal notranslate"><span class="pre">Pdf</span></code>,
+matching the PostScript component convention. Width, height, decorations and font embedding can be
+configured independently for each exporter. Explicit exporter options override those defaults; existing
+widgets do not reread the database. See <a class="reference internal" href="rbc-tk9-rbc-SVG.html#r-namespaceqz3a3arbc3a3asvg"><span class="std std-ref">::rbc::SVG</span></a> and <a class="reference internal" href="rbc-tk9-rbc-PDF.html#r-namespaceqz3a3arbc3a3apdf"><span class="std std-ref">::rbc::PDF</span></a> for resource names and examples.</p>
+</section>
 <section id="pdf-output">
 <span id="r-tcltk9upgrade-pdf-output"></span><span id="r-3a3atcltk9upgradeqzpdf20output"></span><h3>PDF output<a class="headerlink" href="#pdf-output" title="Link to this heading">¶</a></h3>
 <p>Graph, barchart, stripchart and polar widgets support <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">cget</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">configure</span></code> and <code class="docutils literal notranslate"><span class="pre">pdf</span> <span class="pre">output</span></code>.
@@ -967,6 +974,7 @@ relevant rendering code is replaced with an independent backend.</p>
 <li><a class="reference internal" href="#geometry-text-and-drawing">Geometry, text and drawing</a></li>
 <li><a class="reference internal" href="#image-and-bitmap-handling">Image and bitmap handling</a></li>
 <li><a class="reference internal" href="#named-font-changes">Named-font changes</a></li>
+<li><a class="reference internal" href="#export-option-database-components">Export option-database components</a></li>
 <li><a class="reference internal" href="#pdf-output">PDF output</a></li>
 <li><a class="reference internal" href="#svg-output">SVG output</a></li>
 <li><a class="reference internal" href="#postscript-output">PostScript output</a></li>

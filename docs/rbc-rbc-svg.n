@@ -47,6 +47,38 @@ set document [\&.g svg output]
 .PP
 File output uses UTF-8 with LF line endings\&. A filename starting with a dash must be prefixed with a directory,
 for example \&./-plot\&.svg\&. There is no -- filename separator\&.
+.SH "OPTION DATABASE"
+.PP
+SVG is a named component with resource name svg and class Svg, independent of the widget and
+other export formats\&. Defaults are read once when the graph widget is created, for all graph types\&.
+Later database changes affect new widgets only\&. Explicit svg configure and svg output options
+override the initialized values, with the existing persistent output-option behaviour unchanged\&.
+.PP
+.nf
+┌──────────────┬───────────────┬────────────────┐
+│ Option       │ Resource name │ Resource class │
+├──────────────┼───────────────┼────────────────┤
+│ -width       │ width         │ Width          │
+│ -height      │ height        │ Height         │
+│ -decorations │ decorations   │ Decorations    │
+│ -embedfonts  │ embedFonts    │ EmbedFonts     │
+└──────────────┴───────────────┴────────────────┘
+
+.fi
+.PP
+.RS 4n
+.nf
+option add *Svg\&.width 800
+option add *svg\&.embedFonts true
+rbc::graph \&.g
+\&.g svg configure -width 900
+.fi
+.RE
+.PP
+Dimensions accept Tk screen distances; zero selects the widget dimension\&. Invalid database values fail
+widget creation, as for other components\&. Configuration descriptions continue to report the built-in
+default separately from the current value\&. Use a component-qualified pattern so export dimensions do
+not also change the graph widget's size\&. No child window is created for this component\&.
 .SH "SVG OPTIONS"
 .PP
 .nf

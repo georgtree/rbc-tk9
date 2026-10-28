@@ -2091,9 +2091,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         return NULL;
     }
     graphPtr = RbcCalloc(1, sizeof(Graph));
-    graphPtr->svgDecorations = TRUE;
-    graphPtr->pdfDecorations = TRUE;
-    graphPtr->pdfEmbedFonts = TRUE;
     assert(graphPtr);
     /*
      * Initialize the graph data structure.
@@ -2179,6 +2176,9 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     }
     AdjustAxisPointers(graphPtr);
     if (Rbc_CreatePostScript(graphPtr) != TCL_OK) {
+        goto error;
+    }
+    if (Rbc_InitSvgOptions(graphPtr) != TCL_OK || Rbc_InitPdfOptions(graphPtr) != TCL_OK) {
         goto error;
     }
     if (Rbc_CreateCrosshairs(graphPtr) != TCL_OK) {

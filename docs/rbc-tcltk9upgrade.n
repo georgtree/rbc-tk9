@@ -992,6 +992,12 @@ text-marker geometry, title and axis layout, legends and value-label drawing res
 external legends and named/active pens\&. Redraws are scheduled through the normal idle mechanism\&.
 Explicit pixel sizes and configured axis limits are preserved\&. See
 \fINamed fonts and display scaling\fP\&.
+.SS "EXPORT OPTION-DATABASE COMPONENTS"
+.PP
+SVG and PDF now read creation-time defaults through named components svg/Svg and pdf/Pdf,
+matching the PostScript component convention\&. Width, height, decorations and font embedding can be
+configured independently for each exporter\&. Explicit exporter options override those defaults; existing
+widgets do not reread the database\&. See \fI::rbc::SVG\fP and \fI::rbc::PDF\fP for resource names and examples\&.
 .SS "PDF OUTPUT"
 .PP
 Graph, barchart, stripchart and polar widgets support pdf cget, pdf configure and pdf output\&.

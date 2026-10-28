@@ -34,6 +34,38 @@ close $channel
 Without a filename, output returns a binary Tcl bytearray\&. File output uses binary translation\&. Prefix a
 dash-leading filename with a directory, for example \&./-plot\&.pdf\&. There is no -- separator\&. Rendering and
 text validation finish before the destination is opened\&. An I/O failure can still leave a partial file\&.
+.SH "OPTION DATABASE"
+.PP
+PDF is a named component with resource name pdf and class Pdf, independent of the widget and
+other export formats\&. Defaults are read once when the graph widget is created, for all graph types\&.
+Later database changes affect new widgets only\&. Explicit pdf configure and pdf output options
+override the initialized values, with the existing persistent output-option behaviour unchanged\&.
+.PP
+.nf
+┌──────────────┬───────────────┬────────────────┐
+│ Option       │ Resource name │ Resource class │
+├──────────────┼───────────────┼────────────────┤
+│ -width       │ width         │ Width          │
+│ -height      │ height        │ Height         │
+│ -decorations │ decorations   │ Decorations    │
+│ -embedfonts  │ embedFonts    │ EmbedFonts     │
+└──────────────┴───────────────┴────────────────┘
+
+.fi
+.PP
+.RS 4n
+.nf
+option add *Pdf\&.width 800
+option add *pdf\&.embedFonts false
+rbc::graph \&.g
+\&.g pdf configure -width 900
+.fi
+.RE
+.PP
+Dimensions accept Tk screen distances; zero selects the widget dimension\&. Invalid database values fail
+widget creation, as for other components\&. Configuration descriptions continue to report the built-in
+default separately from the current value\&. Use a component-qualified pattern so export dimensions do
+not also change the graph widget's size\&. No child window is created for this component\&.
 .SH "PDF OPTIONS"
 .PP
 .nf

@@ -807,6 +807,8 @@ extern Rbc_Uid rbcWindowMarkerUid;
 extern Rbc_Uid rbcXAxisUid;
 extern Rbc_Uid rbcYAxisUid;
 
+int Rbc_InitSvgOptions(Graph *graphPtr);
+int Rbc_InitPdfOptions(Graph *graphPtr);
 int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 

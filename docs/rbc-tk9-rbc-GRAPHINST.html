@@ -705,8 +705,8 @@ on all four graph widget types.</p>
 <p>The first form targets the option by component and database name. The second targets all matching components by
 resource class and option database class.</p>
 <p>RBC uses the same option-database mechanism for graph subcomponents even though most of them are not separate
-Tk widgets. When a component is initialized, RBC performs option lookup using a temporary child window having
-the component’s resource name and resource class.</p>
+Tk widgets. When a component is initialized, RBC performs option lookup through an anonymous proxy with
+the component’s resource name and resource class, without creating a named child window.</p>
 <section id="component-resource-names-and-classes">
 <span id="r-rbc-graphinst-component-resource-names-and-classes"></span><span id="r-3a3arbc3a3agraphinstqzcomponent20resource20names20and20classes"></span><h3>Component resource names and classes<a class="headerlink" href="#component-resource-names-and-classes" title="Link to this heading">¶</a></h3>
 <table class="docutils align-default">
@@ -785,6 +785,14 @@ the component’s resource name and resource class.</p>
 <tr class="row-odd"><td><p>PostScript</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">postscript</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Postscript</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SVG</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">svg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Svg</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>PDF</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pdf</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Pdf</span></code></p></td>
 </tr>
 </tbody>
 </table>
