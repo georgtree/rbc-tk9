@@ -256,13 +256,13 @@ if test "${TEA_PLATFORM}" = "windows" ; then
     AC_DEFINE(BUILD_RBC, 1, [Build windows export dll])
     AC_DEFINE(WIN32, 1, [Tell rbc to use windows])
     CLEANFILES="$CLEANFILES *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
-    TEA_ADD_SOURCES([rbcWinDraw.c rbcWinImage.c rbcWinUtil.c])
+    TEA_ADD_SOURCES([rbcRenderNativeWin.c rbcWinDraw.c rbcWinImage.c rbcWinUtil.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
     TEA_ADD_LIBS([user32.lib winspool.lib advapi32.lib gdi32.lib])
 else
     # Ensure no empty else clauses
     :
-    TEA_ADD_SOURCES([rbcUnixImage.c])
+    TEA_ADD_SOURCES([rbcRenderNativeX11.c rbcUnixImage.c])
     TEA_ADD_LIBS([-lX11])
     #TEA_ADD_LIBS([-lsuperfly])
 fi

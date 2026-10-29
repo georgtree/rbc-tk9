@@ -5929,7 +5929,7 @@ printf "%s\n" "#define WIN32 1" >>confdefs.h
 
     CLEANFILES="$CLEANFILES *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
 
-    vars="rbcWinDraw.c rbcWinImage.c rbcWinUtil.c"
+    vars="rbcRenderNativeWin.c rbcWinDraw.c rbcWinImage.c rbcWinUtil.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -5979,7 +5979,7 @@ else
     # Ensure no empty else clauses
     :
 
-    vars="rbcUnixImage.c"
+    vars="rbcRenderNativeX11.c rbcUnixImage.c"
     for i in $vars; do
 	case $i in
 	    \$*)

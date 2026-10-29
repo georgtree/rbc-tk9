@@ -3080,5 +3080,42 @@ namespace eval graph.renderer {
         } -result {1 1}
     }
 
+    set testCase(84) 0
+    foreach symbol {circle square plus cross diamond triangle arrow} {
+        test RBC.graph.renderer.A.84.[incr testCase(84)] {native symbol batches retain every symbol independent of input order and resize} -setup {
+            StrokeFixture graph native
+            set data {}
+            set reverse {}
+            for {set row 0} {$row < 20} {incr row} {
+                for {set column 0} {$column < 20} {incr column} {
+                    set pair [list [expr {0.25 + $column * 0.5}] [expr {0.25 + $row * 0.5}]]
+                    lappend data {*}$pair
+                    set reverse [concat $pair $reverse]
+                }
+            }
+            .renderer element configure signal -data $data -linewidth 0 -symbol $symbol \
+                    -pixels 3 -scalesymbols no -fill red -outline black -outlinewidth 1
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            set ink [lindex [PlotInk $photo] 0]
+            .renderer element configure signal -data $reverse
+            .renderer snap $photo
+            set reordered [expr {$before eq [$photo data]}]
+            .renderer configure -width 320 -height 240
+            update
+            .renderer snap $photo
+            .renderer configure -width 240 -height 180
+            update
+            .renderer snap $photo
+            list [expr {$ink > 400}] $reordered [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
     cleanupTests
 }

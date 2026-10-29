@@ -13,7 +13,11 @@ in `rbcRender.h`. These interfaces are not part of the installed RBC C API.
 | `rbcRenderPdf.c` | PDF drawing, image resources, patterns, text, and clipping. |
 | `rbcRenderExport.c` | Export constructor selection, shared style helpers, and Tk image capture. |
 | `rbcRenderExportInt.h` | Shared export state and private cross-file helpers. |
-| `rbcRenderNative.c` | Native geometry, platform batching, and native clipping. |
+| `rbcRenderNative.c` | Shared mapped geometry, Tk text/images/decorations, and the native clip stack. |
+| `rbcRenderNativeWin.c` | GDI trace, strip, symbol, polygon and bar batches, plus DC clipping. |
+| `rbcRenderNativeX11.c` | X11 trace and symbol requests, protocol limits, and platform fallbacks. |
+| `rbcRenderNative.h` | Private native services; platform contexts are opaque. |
+| `rbcWinDraw.c` | Shared Windows/Tk compatibility, Xlib emulation, and XOR presentation. |
 
 The `rbcGrSvg.c`, `rbcGrPdf.c`, and `rbcGrPs.c` modules retain widget commands,
 options, and document orchestration. Font discovery and PDF font resources remain
@@ -62,3 +66,40 @@ the distributed `configure` and `win/makefile.vc` source lists synchronized.
 Use the renderer, export, and track tests for backend changes. Compare rendered
 snapshots and exported documents when moving code; preserve batching boundaries,
 coordinate rounding, painter order, and the lifetimes of native DCs and surfaces.
+
+## Native platform boundary
+
+Configure selects exactly one of `rbcRenderNativeWin.c` and
+`rbcRenderNativeX11.c`; the MSVC build selects the Windows file. Shared geometry
+calls the selected implementation once per batch, without a platform dispatch
+inside point loops. Trace state and its point buffer use one allocation. Native
+clip frames reserve trailing space for private platform state in the same
+allocation; that state is reused with the frame at each nesting depth.
+
+The common native implementation retains Tk's text, image, tile, and relief
+helpers. Xlib-shaped calls in this shared file are intentional: Tk implements
+these operations on Windows too. Platform files contain the algorithms that
+actually differ, including GDI path batching and X11 request-size limits.
+X11 declines the Windows-only polygon/DC fast paths, so existing callers retain
+their ordinary polygon and scratch-pixmap paths. Windows also retains scratch
+clipping where a caller does not request DC clipping.
+
+`rbcWinDraw.c` is not a graph backend. It isolates private Tk Windows headers,
+drawable/DC wrappers, GC-to-pen conversion, bitmap/palette helpers, and Xlib
+emulation used by graph, image, tile, and export code. Its XOR segment renderer
+builds a mask offscreen and presents it once; this preserves dash phase and
+avoids crosshair flicker. Keep that lower-level implementation shared.
+
+## Remaining component drawing audit
+
+Some narrow component paths still call native drawing directly: text-marker
+background polygons, scan-converted arrowhead spans, native legend samples,
+and Windows text/opaque-bitmap marker runs. Their extraction is a separate
+behavior-preserving change: retain integer conversions, span and DC batching,
+stipple origins, and fallback order. Depth-one mask construction and child-window
+geometry are resource/layout work and should remain with their owners.
+
+This document describes renderer boundaries only. A future source manual should
+also cover widget/component lifecycles, mapping and invalidation, binding and
+picking, vector notification, export orchestration, and platform resource
+ownership, with links from those topics to these renderer contracts.

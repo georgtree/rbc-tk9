@@ -39,4 +39,13 @@ void Rbc_NativePushClip(Rbc_NativeClip *, int, int, int, int);
 void Rbc_NativePopClip(Rbc_NativeClip *);
 Drawable Rbc_NativeClipDrawable(Rbc_NativeClip *);
 void Rbc_NativeDestroyClip(Rbc_NativeClip *);
+/* Platform services called once per mapped batch, never once per point. */
+void Rbc_NativeCircles(Display *, Drawable, Rbc_RenderNativeSymbolStyle *, Tcl_Size, const Point2D *, int);
+void Rbc_NativeSquares(Display *, Drawable, Rbc_RenderNativeSymbolStyle *, Tcl_Size, const Point2D *, int);
+void Rbc_NativePolygonSymbols(Display *, Drawable, Rbc_RenderNativeSymbolStyle *, const XPoint *, Tcl_Size, int, int);
+void Rbc_NativeBarRectangles(Graph *, Drawable, const Rbc_RenderBarStyle *, XRectangle *, int);
+int Rbc_NativeBarBorders(Graph *, Drawable, const Rbc_RenderBarStyle *, const Rbc_RenderRectangle *, Tcl_Size);
+size_t Rbc_NativeClipStateSize(void);
+int Rbc_NativePlatformClip(Graph *, Drawable, int, int, int, int, void *, Drawable *);
+void Rbc_NativePlatformUnclip(void *, Drawable);
 #endif

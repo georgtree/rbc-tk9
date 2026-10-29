@@ -31,6 +31,7 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcRenderPdf.obj \
     $(TMP_DIR)\rbcRenderExport.obj \
     $(TMP_DIR)\rbcRenderNative.obj \
+    $(TMP_DIR)\rbcRenderNativeWin.obj \
     $(TMP_DIR)\rbcAlloc.obj \
     $(TMP_DIR)\rbcBind.obj \
     $(TMP_DIR)\rbcCanvEps.obj \
