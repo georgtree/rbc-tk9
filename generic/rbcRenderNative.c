@@ -2136,3 +2136,128 @@ void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
 #endif
     ckfree(batch);
 }
+
+/* Rectangular screen clipping. Scratch storage is reused at each nesting
+ * depth. Seeding and copying only the visible rectangle preserves painter
+ * order, XOR, bitmap masks and Tk's shared GCs on both platforms. */
+typedef struct NativeClipFrame {
+    struct NativeClipFrame *previous, *next;
+    Drawable parent, drawable;
+    Pixmap scratch;
+    int left, top, right, bottom;
+#ifdef WIN32
+    Rbc_WinDrawableDC *dcState;
+    HDC dc;
+    int saved;
+#endif
+} NativeClipFrame;
+
+struct Rbc_NativeClip {
+    Graph *graphPtr;
+    Drawable drawable;
+    GC copyGC;
+    int ownGC, useDC;
+    NativeClipFrame *first, *active;
+};
+
+Rbc_NativeClip *Rbc_NativeCreateClip(Graph *graphPtr, Drawable drawable, GC copyGC, int useDC) {
+    Rbc_NativeClip *clip = (Rbc_NativeClip *)ckalloc(sizeof(*clip));
+    memset(clip, 0, sizeof(*clip));
+    clip->graphPtr = graphPtr;
+    clip->drawable = drawable;
+    clip->copyGC = copyGC;
+    clip->useDC = useDC;
+    return clip;
+}
+
+Drawable Rbc_NativeClipDrawable(Rbc_NativeClip *clip) {
+    return clip->active != NULL ? clip->active->drawable : clip->drawable;
+}
+
+void Rbc_NativePushClip(Rbc_NativeClip *clip, int x, int y, int width, int height) {
+    Graph *graphPtr = clip->graphPtr;
+    NativeClipFrame *parent = clip->active;
+    NativeClipFrame *frame = parent != NULL ? parent->next : clip->first;
+    if (frame == NULL) {
+        frame = (NativeClipFrame *)ckalloc(sizeof(*frame));
+        memset(frame, 0, sizeof(*frame));
+        frame->previous = parent;
+        if (parent != NULL) parent->next = frame;
+        else clip->first = frame;
+    }
+    frame->parent = Rbc_NativeClipDrawable(clip);
+    frame->drawable = None;
+    clip->active = frame;
+    frame->left = MAX(x, parent != NULL ? parent->left : 0);
+    frame->top = MAX(y, parent != NULL ? parent->top : 0);
+    /* Compute endpoints in a wide type before clamping to the drawable. */
+    frame->right = (int)MIN((Tcl_WideInt)x + MAX(0, width),
+                            parent != NULL ? parent->right : graphPtr->width);
+    frame->bottom = (int)MIN((Tcl_WideInt)y + MAX(0, height),
+                             parent != NULL ? parent->bottom : graphPtr->height);
+    if (frame->parent == None || frame->right <= frame->left || frame->bottom <= frame->top) return;
+#ifdef WIN32
+    if (clip->useDC) {
+        frame->dc = Rbc_WinAcquireDrawableDC(graphPtr->display, frame->parent, &frame->dcState);
+        if (frame->dc == NULL) return;
+        frame->saved = SaveDC(frame->dc);
+        if (frame->saved == 0) return;
+        /* A meta region survives the clip masks installed by bitmap drawing. */
+        if (IntersectClipRect(frame->dc, frame->left, frame->top, frame->right, frame->bottom) != ERROR &&
+            SetMetaRgn(frame->dc) != ERROR) {
+            frame->drawable = Rbc_WinCreateDrawableFromDC(frame->dc);
+        }
+        return;
+    }
+#endif
+    if (frame->scratch == None) {
+        frame->scratch = Tk_GetPixmap(graphPtr->display, frame->parent, graphPtr->width, graphPtr->height,
+                                       Tk_Depth(graphPtr->tkwin));
+    }
+    if (frame->scratch == None) return;
+    if (clip->copyGC == NULL) {
+        XGCValues values;
+        values.graphics_exposures = False;
+        clip->copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+        clip->ownGC = 1;
+    }
+    XCopyArea(graphPtr->display, frame->parent, frame->scratch, clip->copyGC,
+              frame->left, frame->top, frame->right-frame->left, frame->bottom-frame->top,
+              frame->left, frame->top);
+    frame->drawable = frame->scratch;
+}
+
+void Rbc_NativePopClip(Rbc_NativeClip *clip) {
+    NativeClipFrame *frame = clip->active;
+    Graph *graphPtr = clip->graphPtr;
+    if (frame == NULL) return;
+#ifdef WIN32
+    if (clip->useDC) {
+        if (frame->drawable != None) Rbc_WinFreeDrawableFromDC(frame->drawable);
+        if (frame->saved != 0) RestoreDC(frame->dc, frame->saved);
+        if (frame->dcState != NULL) Rbc_WinReleaseDrawableDC(frame->dcState);
+        frame->dcState = NULL;
+        frame->dc = NULL;
+        frame->saved = 0;
+    } else
+#endif
+    if (frame->drawable != None) {
+        XCopyArea(graphPtr->display, frame->scratch, frame->parent, clip->copyGC,
+                  frame->left, frame->top, frame->right-frame->left, frame->bottom-frame->top,
+                  frame->left, frame->top);
+    }
+    frame->drawable = None;
+    clip->active = frame->previous;
+}
+
+void Rbc_NativeDestroyClip(Rbc_NativeClip *clip) {
+    NativeClipFrame *frame, *next;
+    while (clip->active != NULL) Rbc_NativePopClip(clip);
+    for (frame = clip->first; frame != NULL; frame = next) {
+        next = frame->next;
+        if (frame->scratch != None) Tk_FreePixmap(clip->graphPtr->display, frame->scratch);
+        ckfree(frame);
+    }
+    if (clip->ownGC) Tk_FreeGC(clip->graphPtr->display, clip->copyGC);
+    ckfree(clip);
+}

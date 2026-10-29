@@ -943,8 +943,7 @@ void Rbc_MapGrid(Graph *graphPtr) {
 /* Draw each track with its effective grid and its own plotting-area clip. */
 static void DrawTrackGrids(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
     RbcTrack *track;
-    Pixmap scratch = None;
-    GC copyGC = NULL;
+    Rbc_RenderContext *clip = NULL;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
         Grid *gridPtr = track->grid != NULL ? track->grid : graphPtr->gridPtr;
         Rbc_RenderContext *ctx;
@@ -977,27 +976,22 @@ static void DrawTrackGrids(Graph *graphPtr, Drawable drawable, Rbc_ExportContext
              * its centerline, without changing the grid's dash coordinates.
              */
             if (width > 0 && height > 0) {
-                if (scratch == None) {
-                    XGCValues values;
-                    scratch = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height,
-                                           Tk_Depth(graphPtr->tkwin));
-                    values.graphics_exposures = False;
-                    copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+                Drawable target;
+                if (clip == NULL) clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
+                Rbc_RenderClipBegin(clip, left, top, width, height);
+                target = Rbc_RenderClipDrawable(clip);
+                if (target != None) {
+                    Rbc_RenderContext *stroke = Rbc_RenderBeginNativeSegments(graphPtr, target, gridPtr->gc);
+                    Rbc_RenderSegments(stroke, track->gridX.segments, track->gridX.nSegments);
+                    Rbc_RenderSegments(stroke, track->gridY.segments, track->gridY.nSegments);
+                    Rbc_RenderEnd(stroke);
                 }
-                XCopyArea(graphPtr->display, drawable, scratch, copyGC, left, top, width, height, left, top);
-                Rbc_Draw2DSegments(graphPtr->display, scratch, gridPtr->gc,
-                                   track->gridX.segments, track->gridX.nSegments);
-                Rbc_Draw2DSegments(graphPtr->display, scratch, gridPtr->gc,
-                                   track->gridY.segments, track->gridY.nSegments);
-                XCopyArea(graphPtr->display, scratch, drawable, copyGC, left, top, width, height, left, top);
+                Rbc_RenderClipEnd(clip);
             }
         }
         Rbc_LeaveTrack(graphPtr, &saved);
     }
-    if (scratch != None) {
-        Tk_FreePixmap(graphPtr->display, scratch);
-        Tk_FreeGC(graphPtr->display, copyGC);
-    }
+    if (clip != NULL) Rbc_RenderEnd(clip);
 }
 
 /*

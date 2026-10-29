@@ -6960,9 +6960,7 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
  * Ordinary graphs keep the existing batched marker path below. */
 static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *link;
-    Pixmap scratch = None;
-    GC copyGC = NULL;
-    XGCValues values;
+    Rbc_RenderContext *clip = NULL;
     for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
          link = Rbc_ChainNextLink(link)) {
         Marker *markerPtr = Rbc_ChainGetValue(link);
@@ -6986,23 +6984,17 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
             if (width <= 0 || height <= 2) {
                 continue;
             }
-            if (scratch == None) {
-                scratch = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height,
-                                       Tk_Depth(graphPtr->tkwin));
-                values.graphics_exposures = False;
-                copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
+            if (clip == NULL) clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
+            Rbc_RenderClipBegin(clip, left, top, width, height);
+            if (Rbc_RenderClipDrawable(clip) != None) {
+                Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
+                (*markerPtr->classPtr->drawProc)(markerPtr, Rbc_RenderClipDrawable(clip));
+                Rbc_LeaveTrack(graphPtr, &saved);
             }
-            XCopyArea(graphPtr->display, drawable, scratch, copyGC, left, top, width, height, left, top);
-            Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
-            (*markerPtr->classPtr->drawProc)(markerPtr, scratch);
-            Rbc_LeaveTrack(graphPtr, &saved);
-            XCopyArea(graphPtr->display, scratch, drawable, copyGC, left, top, width, height, left, top);
+            Rbc_RenderClipEnd(clip);
         }
     }
-    if (scratch != None) {
-        Tk_FreePixmap(graphPtr->display, scratch);
-        Tk_FreeGC(graphPtr->display, copyGC);
-    }
+    if (clip != NULL) Rbc_RenderEnd(clip);
 }
 
 /*

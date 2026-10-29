@@ -130,7 +130,18 @@ void Rbc_RenderBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
 void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                                    const XColor *background);
 void Rbc_RenderPlotEnd(Rbc_RenderContext *ctx);
-/* Nest a rectangular export clip without painting a background. */
+/* Screen clip scopes preserve absolute coordinates, shared GCs and bitmap
+ * masks. copyGC is borrowed, or NULL to create a private copy GC. useDC keeps
+ * the existing Windows symbol path; other scopes use reusable scratch pixmaps.
+ * Only ClipBegin/ClipEnd/ClipDrawable/End are supported by this context.
+ * Fetch ClipDrawable after each push; None means the clip is empty or failed.
+ * End balances any outstanding pushes. Native/Cairo drawing into the returned
+ * drawable is committed to its parent on ClipEnd. */
+Rbc_RenderContext *Rbc_RenderBeginScreenClip(Graph *, Drawable, GC copyGC, int useDC);
+Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *);
+
+/* Nest a rectangular clip without painting a background. Supported by screen
+ * clip scopes, Cairo geometry contexts and export contexts. */
 void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height);
 void Rbc_RenderClipEnd(Rbc_RenderContext *ctx);
 void Rbc_RenderBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,

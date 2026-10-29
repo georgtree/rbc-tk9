@@ -19,4 +19,10 @@ void Rbc_NativeArcStroke(Graph *, Drawable, GC, const Segment2D *, Tcl_Size);
 Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *, Drawable, GC, Tcl_Size);
 void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *, const Point2D *, Tcl_Size);
 void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *);
+typedef struct Rbc_NativeClip Rbc_NativeClip;
+Rbc_NativeClip *Rbc_NativeCreateClip(Graph *, Drawable, GC, int);
+void Rbc_NativePushClip(Rbc_NativeClip *, int, int, int, int);
+void Rbc_NativePopClip(Rbc_NativeClip *);
+Drawable Rbc_NativeClipDrawable(Rbc_NativeClip *);
+void Rbc_NativeDestroyClip(Rbc_NativeClip *);
 #endif

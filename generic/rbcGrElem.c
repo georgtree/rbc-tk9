@@ -3879,27 +3879,24 @@ void Rbc_MapElements(Graph *graphPtr) {
 /* Clip complete strokes, including native bar borders, at a track viewport. */
 static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element *elemPtr, int active) {
     RbcTrack *track = elemPtr->track;
-    Pixmap pixmap;
-    XGCValues values;
-    GC gc;
+    Rbc_RenderContext *clip;
+    Drawable target;
     int left = MAX(0, track->left), top = MAX(0, track->top);
     int width = MIN(graphPtr->width - 1, track->right) - left + 1;
     int height = MIN(graphPtr->height - 1, track->bottom) - top + 1;
-    if (width <= 0 || height <= 0) {
-        return;
+    if (width <= 0 || height <= 0) return;
+    clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
+    Rbc_RenderClipBegin(clip, left, top, width, height);
+    target = Rbc_RenderClipDrawable(clip);
+    if (target != None) {
+        if (active) {
+            (*elemPtr->procsPtr->drawActiveProc)(graphPtr, target, elemPtr);
+        } else {
+            (*elemPtr->procsPtr->drawNormalProc)(graphPtr, target, elemPtr);
+        }
     }
-    values.graphics_exposures = False;
-    gc = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
-    pixmap = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
-    XCopyArea(graphPtr->display, drawable, pixmap, gc, left, top, width, height, left, top);
-    if (active) {
-        (*elemPtr->procsPtr->drawActiveProc)(graphPtr, pixmap, elemPtr);
-    } else {
-        (*elemPtr->procsPtr->drawNormalProc)(graphPtr, pixmap, elemPtr);
-    }
-    XCopyArea(graphPtr->display, pixmap, drawable, gc, left, top, width, height, left, top);
-    Tk_FreePixmap(graphPtr->display, pixmap);
-    Tk_FreeGC(graphPtr->display, gc);
+    Rbc_RenderClipEnd(clip);
+    Rbc_RenderEnd(clip);
 }
 
 /*

@@ -58,6 +58,8 @@ typedef struct {
 
 struct Rbc_RenderContext {
     const Rbc_RenderOps *ops;
+    Rbc_NativeClip *nativeClip;
+    unsigned int clipDepth;
     /* Borrowed native GC; trace scratch storage and DC live until End. */
     Drawable nativeDrawable;
     GC nativeGC;
@@ -106,6 +108,29 @@ struct Rbc_RenderContext {
 #endif
 #endif
 };
+
+/* Screen clip scopes also enclose legacy Tk drawing that does not use a
+ * geometry context yet. Platform resource handling stays in the backend. */
+static void ScreenClipEnd(Rbc_RenderContext *ctx) {
+    Rbc_NativeDestroyClip(ctx->nativeClip);
+    ckfree(ctx);
+}
+
+static const Rbc_RenderOps screenClipOps = {
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ScreenClipEnd, NULL, NULL
+};
+
+Rbc_RenderContext *Rbc_RenderBeginScreenClip(Graph *graphPtr, Drawable drawable, GC copyGC, int useDC) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &screenClipOps;
+    ctx->nativeClip = Rbc_NativeCreateClip(graphPtr, drawable, copyGC, useDC);
+    return ctx;
+}
+
+Drawable Rbc_RenderClipDrawable(Rbc_RenderContext *ctx) {
+    return Rbc_NativeClipDrawable(ctx->nativeClip);
+}
 
 /* Native contexts dispatch once per trace/segment batch. The backend owns
  * trace scratch storage and platform drawing resources until End. */
@@ -1849,6 +1874,7 @@ void Rbc_RenderDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
 }
 
 void Rbc_RenderEnd(Rbc_RenderContext *ctx) {
+    while (ctx->clipDepth > 0) Rbc_RenderClipEnd(ctx);
     ctx->ops->end(ctx);
 }
 
@@ -1903,6 +1929,19 @@ void Rbc_RenderPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
 
 void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportContext *token = ctx->exportPtr;
+    ++ctx->clipDepth;
+    if (ctx->nativeClip != NULL) {
+        Rbc_NativePushClip(ctx->nativeClip, x, y, width, height);
+        return;
+    }
+#ifdef RBC_HAVE_CAIRO
+    if (ctx->cr != NULL) {
+        cairo_save(ctx->cr);
+        cairo_rectangle(ctx->cr, x, y, MAX(0, width), MAX(0, height));
+        cairo_clip(ctx->cr);
+        return;
+    }
+#endif
     switch (token->backend) {
     case RBC_EXPORT_SVG: {
         unsigned int id = ++token->nextResourceId;
@@ -1924,6 +1963,18 @@ void Rbc_RenderClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int he
 
 void Rbc_RenderClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportContext *token = ctx->exportPtr;
+    if (ctx->clipDepth == 0) return;
+    --ctx->clipDepth;
+    if (ctx->nativeClip != NULL) {
+        Rbc_NativePopClip(ctx->nativeClip);
+        return;
+    }
+#ifdef RBC_HAVE_CAIRO
+    if (ctx->cr != NULL) {
+        cairo_restore(ctx->cr);
+        return;
+    }
+#endif
     switch (token->backend) {
     case RBC_EXPORT_SVG:
         Rbc_ExportAppend(token, "</g>\n", (char *)NULL);

@@ -9348,58 +9348,17 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
         DrawSymbolsUnclipped(graphPtr, drawable, linePtr, penPtr, size, nSymbolPts, symbolPts);
         return;
     }
-#ifdef WIN32
     {
-        Rbc_WinDrawableDC *dcStatePtr;
-        HDC dc;
-        int saved;
-        Drawable clippedDrawable;
-
-        dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-        if (dc == NULL) {
-            Rbc_WinReleaseDrawableDC(dcStatePtr);
-            return;
+        Rbc_RenderContext *clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, graphPtr->drawGC, 1);
+        Drawable target;
+        Rbc_RenderClipBegin(clip, left, top, right-left+1, bottom-top+1);
+        target = Rbc_RenderClipDrawable(clip);
+        if (target != None) {
+            DrawSymbolsUnclipped(graphPtr, target, linePtr, penPtr, size, nSymbolPts, symbolPts);
         }
-        saved = SaveDC(dc);
-        if (saved == 0) {
-            Rbc_WinReleaseDrawableDC(dcStatePtr);
-            return;
-        }
-        /*
-         * Preserve the plot boundary even when bitmap drawing
-         * installs its own clipping mask.
-         */
-        if ((IntersectClipRect(dc, left, top, right + 1, bottom + 1) != ERROR) && (SetMetaRgn(dc) != ERROR)) {
-            clippedDrawable = Rbc_WinCreateDrawableFromDC(dc);
-            if (clippedDrawable != None) {
-                DrawSymbolsUnclipped(graphPtr, clippedDrawable, linePtr, penPtr, size, nSymbolPts, symbolPts);
-                Rbc_WinFreeDrawableFromDC(clippedDrawable);
-            }
-        }
-        RestoreDC(dc, saved);
-        Rbc_WinReleaseDrawableDC(dcStatePtr);
+        Rbc_RenderClipEnd(clip);
+        Rbc_RenderEnd(clip);
     }
-#else
-    {
-        Pixmap clippedPixmap;
-        unsigned int width = (unsigned int)(right - left + 1);
-        unsigned int height = (unsigned int)(bottom - top + 1);
-        /*
-         * Preserve absolute coordinates and existing bitmap masks.
-         * Seed the plot pixels, draw normally, then copy only the plot.
-         * The temporary pixmap is needed only for boundary batches.
-         */
-        clippedPixmap =
-            Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
-        if (clippedPixmap == None) {
-            return;
-        }
-        XCopyArea(graphPtr->display, drawable, clippedPixmap, graphPtr->drawGC, left, top, width, height, left, top);
-        DrawSymbolsUnclipped(graphPtr, clippedPixmap, linePtr, penPtr, size, nSymbolPts, symbolPts);
-        XCopyArea(graphPtr->display, clippedPixmap, drawable, graphPtr->drawGC, left, top, width, height, left, top);
-        Tk_FreePixmap(graphPtr->display, clippedPixmap);
-    }
-#endif
 }
 
 /*
