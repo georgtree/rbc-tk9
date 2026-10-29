@@ -22,13 +22,20 @@ namespace eval barchart.axis {
 	# Purpose: Ensure the axis transform command works correctly
 	# ------------------------------------------------------------------------------------
 	proc RBC.barchart.axis.invtransform.M.1.1.Setup {} {
-		barchart .barchart1
-		pack .barchart1
+        barchart .barchart1
+        .barchart1 axis configure x y -min 0 -max 10 -loose no
+        pack .barchart1
+        update idletasks
 	}
 	
 	proc RBC.barchart.axis.invtransform.M.1.1.Body {} {
-		puts [.barchart1 axis transform x 10]
-		puts {The result must be 54.}
+        set pixel [expr {[winfo width .barchart1]/2}]
+        set value [.barchart1 axis invtransform x $pixel]
+        set restored [.barchart1 axis transform x $value]
+        if {abs($restored-$pixel)>1} {
+            error "axis inverse round trip: expected $pixel, got $restored"
+        }
+        puts "CHECK axis inverse round trip: pixel=$pixel data=$value restored=$restored (tolerance 1 pixel)"
 	}
 	
 	proc RBC.barchart.axis.invtransform.M.1.1.Cleanup {} {

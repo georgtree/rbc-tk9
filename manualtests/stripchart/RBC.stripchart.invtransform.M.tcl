@@ -22,13 +22,21 @@ namespace eval stripchart.invtransform {
 	# Purpose: Ensure the invtransform command works correctly
 	# ------------------------------------------------------------------------------------
 	proc RBC.stripchart.invtransform.M.1.1.Setup {} {
-		stripchart .stripchart1
-		pack .stripchart1
+        stripchart .stripchart1
+        .stripchart1 axis configure x y -min 0 -max 10 -loose no
+        pack .stripchart1
+        update idletasks
 	}
 	
 	proc RBC.stripchart.invtransform.M.1.1.Body {} {
-		puts "RBC gave:  [.stripchart1 invtransform 12 25]"
-		puts "Should be: -0.0765550239234 0.972392638037"
+        set px [expr {[winfo width .stripchart1]/2.0}]
+        set py [expr {[winfo height .stripchart1]/2.0}]
+        lassign [.stripchart1 invtransform $px $py] x y
+        lassign [.stripchart1 transform $x $y] restoredX restoredY
+        if {abs($restoredX-$px)>1 || abs($restoredY-$py)>1} {
+            error "inverse round trip: expected $px,$py, got $restoredX,$restoredY"
+        }
+        puts "CHECK inverse round trip: pixel=$px,$py data=$x,$y restored=$restoredX,$restoredY (tolerance 1 pixel)"
 	}
 	
 	proc RBC.stripchart.invtransform.M.1.1.Cleanup {} {

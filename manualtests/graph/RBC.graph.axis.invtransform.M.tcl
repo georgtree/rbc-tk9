@@ -22,13 +22,20 @@ namespace eval graph.axis {
 	# Purpose: Ensure the axis invtransform command works correctly
 	# ------------------------------------------------------------------------------------
 	proc RBC.graph.axis.invtransform.M.1.1.Setup {} {
-		graph .graph1
-		.graph1 axis create A1
+        graph .graph1
+        .graph1 axis configure x y -min 0 -max 10 -loose no
+        pack .graph1
+        update idletasks
 	}
 	
 	proc RBC.graph.axis.invtransform.M.1.1.Body {} {
-		puts [.graph1 axis invtransform A1 10]
-		puts {The result must be -34.0}
+        set pixel [expr {[winfo width .graph1]/2}]
+        set value [.graph1 axis invtransform x $pixel]
+        set restored [.graph1 axis transform x $value]
+        if {abs($restored-$pixel)>1} {
+            error "axis inverse round trip: expected $pixel, got $restored"
+        }
+        puts "CHECK axis inverse round trip: pixel=$pixel data=$value restored=$restored (tolerance 1 pixel)"
 	}
 	
 	proc RBC.graph.axis.invtransform.M.1.1.Cleanup {} {

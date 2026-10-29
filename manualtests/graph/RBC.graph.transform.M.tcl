@@ -22,13 +22,23 @@ namespace eval graph.transform {
 	# Purpose: Ensure transform works as specified.
 	# ------------------------------------------------------------------------------------
 	proc RBC.graph.transform.M.1.1.Setup {} {
-		graph .graph1
-		pack .graph1
+        graph .graph1
+        .graph1 axis configure x y -min 0 -max 10 -loose no
+        pack .graph1
+        update idletasks
 	}
 	
 	proc RBC.graph.transform.M.1.1.Body {} {
-		puts "RBC gave:  [.graph1 transform 3.09330143541 5.15030674847]"
-		puts "Should be: 1337 -1337"
+        set x 3.09330143541
+        set y 5.15030674847
+        lassign [.graph1 transform $x $y] px py
+        lassign [.graph1 invtransform $px $py] restoredX restoredY
+        lassign [.graph1 transform 0 0] x0 y0
+        lassign [.graph1 transform 10 10] x1 y1
+        if {abs($restoredX-$x)>10.0/abs($x1-$x0) || abs($restoredY-$y)>10.0/abs($y1-$y0)} {
+            error "transform round trip: expected $x,$y, got $restoredX,$restoredY"
+        }
+        puts "CHECK transform round trip: data=$x,$y pixel=$px,$py restored=$restoredX,$restoredY (tolerance 1 pixel)"
 	}
 	
 	proc RBC.graph.transform.M.1.1.Cleanup {} {

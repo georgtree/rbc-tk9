@@ -1,3 +1,5 @@
+source [file join [file dirname [info script]] ManualRunAllSupportMethods.tcl]
+
 proc uniqkey { } {
     set key [expr {pow(2,31) + [clock clicks]}]
     set key [string range $key end-8 end-3]
@@ -28,18 +30,14 @@ proc ProcNameGenNoCommand {commandName major minor} {
 }
 
 proc ExecuteCommandSequenceCommand {CommandList CommandName} {
+    set before [::rbcManual::Counts]
     foreach command $CommandList {
         set minor 1
         set major 1
-        set delay 200
+        set delay [expr {[info exists ::manualTestDelay] ? $::manualTestDelay : 200}]
         while {1 == 1} {
             if {[info commands [ProcNameGenCommand $CommandName $command $major $minor].Setup] != ""} {
-                [ProcNameGenCommand $CommandName $command $major $minor].Setup
-                sleep $delay
-                [ProcNameGenCommand $CommandName $command $major $minor].Body
-                sleep $delay
-                [ProcNameGenCommand $CommandName $command $major $minor].Cleanup
-                sleep $delay
+                ::rbcManual::RunCase [ProcNameGenCommand $CommandName $command $major $minor] $delay
                 incr minor
             } else {
                 incr minor
@@ -53,21 +51,18 @@ proc ExecuteCommandSequenceCommand {CommandList CommandName} {
             }
         }
     }
-    puts "Finished"
+
+    ::rbcManual::Report polar.$CommandName $before
 }
 
 proc ExecuteCommandSequenceNoCommand {CommandName} {
+    set before [::rbcManual::Counts]
     set minor 1
     set major 1
-    set delay 200
+    set delay [expr {[info exists ::manualTestDelay] ? $::manualTestDelay : 200}]
     while {1 == 1} {
         if {[info commands [ProcNameGenNoCommand $CommandName $major $minor].Setup] != ""} {
-            [ProcNameGenNoCommand $CommandName $major $minor].Setup
-            sleep $delay
-            [ProcNameGenNoCommand $CommandName $major $minor].Body
-            sleep $delay
-            [ProcNameGenNoCommand $CommandName $major $minor].Cleanup
-            sleep $delay
+            ::rbcManual::RunCase [ProcNameGenNoCommand $CommandName $major $minor] $delay
             incr minor
         } else {
             incr minor
@@ -80,4 +75,5 @@ proc ExecuteCommandSequenceNoCommand {CommandName} {
             }
         }
     }
+    ::rbcManual::Report polar.$CommandName $before
 }

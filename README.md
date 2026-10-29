@@ -510,7 +510,8 @@ xvfb-run -a make test
 ```
 
 Review the test summary and any skipped-test constraints. The `manualtests` directory contains additional visual and
-interactive checks that are separate from the automated suite.
+interactive checks that are separate from the automated suite. See [the manual test guide](manualtests/README.md)
+for topic runners, individual interactive cases and the coverage checklist.
 
 ## Running demos
 

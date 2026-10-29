@@ -22,13 +22,21 @@ namespace eval barchart.invtransform {
 	# Purpose: Ensure the invtransform command works correctly
 	# ------------------------------------------------------------------------------------
 	proc RBC.barchart.invtransform.M.1.1.Setup {} {
-		barchart .barchart1
-		pack .barchart1
+        barchart .barchart1
+        .barchart1 axis configure x y -min 0 -max 10 -loose no
+        pack .barchart1
+        update idletasks
 	}
 	
 	proc RBC.barchart.invtransform.M.1.1.Body {} {
-		puts "RBC gave:  [.barchart1 invtransform 12 25]"
-		puts "Should be: -0.0765550239234 0.972392638037"
+        set px [expr {[winfo width .barchart1]/2.0}]
+        set py [expr {[winfo height .barchart1]/2.0}]
+        lassign [.barchart1 invtransform $px $py] x y
+        lassign [.barchart1 transform $x $y] restoredX restoredY
+        if {abs($restoredX-$px)>1 || abs($restoredY-$py)>1} {
+            error "inverse round trip: expected $px,$py, got $restoredX,$restoredY"
+        }
+        puts "CHECK inverse round trip: pixel=$px,$py data=$x,$y restored=$restoredX,$restoredY (tolerance 1 pixel)"
 	}
 	
 	proc RBC.barchart.invtransform.M.1.1.Cleanup {} {

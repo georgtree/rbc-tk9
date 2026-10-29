@@ -22,13 +22,20 @@ namespace eval stripchart.axis {
 	# Purpose: Ensure the axis transform command works correctly
 	# ------------------------------------------------------------------------------------
 	proc RBC.stripchart.axis.transform.M.1.1.Setup {} {
-		stripchart .stripchart1
-		pack .stripchart1
+        stripchart .stripchart1
+        .stripchart1 axis configure x y -min 0 -max 10 -loose no
+        pack .stripchart1
+        update idletasks
 	}
 	
 	proc RBC.stripchart.axis.transform.M.1.1.Body {} {
-		puts [.stripchart1 axis transform x 10]
-		puts {The result must be 54.}
+        set value 5.0
+        set pixel [.stripchart1 axis transform x $value]
+        set restored [.stripchart1 axis invtransform x $pixel]
+        if {abs($restored-$value)>10.0/abs([.stripchart1 axis transform x 10]-[.stripchart1 axis transform x 0])} {
+            error "axis round trip: expected $value, got $restored"
+        }
+        puts "CHECK axis round trip: data=$value pixel=$pixel restored=$restored (tolerance 1 pixel)"
 	}
 	
 	proc RBC.stripchart.axis.transform.M.1.1.Cleanup {} {
