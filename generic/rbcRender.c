@@ -42,6 +42,9 @@ typedef struct {
     /* Screen-only text capabilities preserve cached layouts and measured size. */
     void (*textLayout)(Rbc_RenderContext *, TextLayout *, TextStyle *, int, int);
     void (*textSize)(Rbc_RenderContext *, const char *, TextStyle *, int, int, Dim2D *);
+    /* Screen-only mapped raster presentation. */
+    void (*mappedBitmap)(Rbc_RenderContext *, const Rbc_RenderRectangle *, const Rbc_RenderBitmapStyle *);
+    void (*pixmap)(Rbc_RenderContext *, Pixmap, GC, const Rbc_RenderRectangle *);
 } Rbc_RenderOutputOps;
 
 /* Geometry dispatch is shared by screen and export contexts. */
@@ -154,6 +157,69 @@ void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle 
 
 void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size) {
     ctx->ops->output->textSize(ctx, string, style, x, y, size);
+}
+
+/* Raster presentation owns backend selection, including the existing Cairo
+ * fallback. No native surface/DC is retained across a Tk image redraw. */
+static void ScreenMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r,
+                                const Rbc_RenderBitmapStyle *style) {
+    const XColor *foreground = style->foreground;
+    XColor gcColor;
+
+    if ((foreground == NULL) && Rbc_RenderGCForeground(ctx->graphPtr, style->gc, &gcColor)) {
+        foreground = &gcColor;
+    }
+    if ((foreground != NULL) && Rbc_RenderBitmap(ctx->graphPtr, ctx->nativeDrawable, r, style->bitmap,
+            style->mask, foreground, style->background, style->backgroundPoints, style->backgroundCount)) {
+        return;
+    }
+    Rbc_NativeBitmap(ctx->graphPtr, ctx->nativeDrawable, r, style);
+}
+
+static void ScreenTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
+    if (ctx->graphPtr->renderer == RBC_RENDERER_CAIRO) {
+        Tk_PhotoHandle photo = Tk_FindPhoto(ctx->graphPtr->interp, Rbc_NameOfImage(image));
+        Tk_PhotoImageBlock block;
+
+        if ((photo != NULL) && Tk_PhotoGetImage(photo, &block) &&
+            Rbc_RenderPhoto(ctx->graphPtr, ctx->nativeDrawable, &block, (int)x, (int)y)) {
+            return;
+        }
+    }
+    Rbc_NativeImage(ctx->nativeDrawable, image, (int)x, (int)y);
+}
+
+static void ScreenPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
+    Rbc_NativePixmap(ctx->graphPtr, ctx->nativeDrawable, pixmap, gc, r);
+}
+
+static void ScreenRasterEnd(Rbc_RenderContext *ctx) {
+    ckfree(ctx);
+}
+
+static const Rbc_RenderOutputOps screenRasterOutputOps = {
+    .image = ScreenTkImage, .mappedBitmap = ScreenMappedBitmap, .pixmap = ScreenPixmap
+};
+static const Rbc_RenderOps screenRasterOps = {
+    .output = &screenRasterOutputOps, .end = ScreenRasterEnd
+};
+
+Rbc_RenderContext *Rbc_RenderBeginScreenRaster(Graph *graphPtr, Drawable drawable) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &screenRasterOps;
+    ctx->graphPtr = graphPtr;
+    ctx->nativeDrawable = drawable;
+    return ctx;
+}
+
+void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r,
+                            const Rbc_RenderBitmapStyle *style) {
+    ctx->ops->output->mappedBitmap(ctx, r, style);
+}
+
+void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
+    ctx->ops->output->pixmap(ctx, pixmap, gc, r);
 }
 
 /* Screen clip scopes also enclose legacy Tk drawing that does not use a
@@ -1692,7 +1758,7 @@ static const Rbc_RenderOutputOps postScriptOutputOps = {PostScriptText,
                                                         PostScriptPlotBegin,
                                                         PostScriptPlotEnd,
                                                         PostScriptBitmapMask,
-                                                        PostScriptTkImage, NULL, NULL};
+                                                        PostScriptTkImage, NULL, NULL, NULL, NULL};
 
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
@@ -3156,7 +3222,7 @@ static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
                                                  SvgPlotBegin,
                                                  SvgPlotEnd,
                                                  SvgBitmapMask,
-                                                 SvgTkImage, NULL, NULL};
+                                                 SvgTkImage, NULL, NULL, NULL, NULL};
 
 static const Rbc_RenderOps svgOps = {SvgPolyline,       SvgSegments,    ExportLineStyle,
                                      ExportDashBackground, SvgFillPolygon, SvgFillRectangles,
@@ -3885,7 +3951,7 @@ static const Rbc_RenderOutputOps pdfOutputOps = {PdfText,
                                                  PdfPlotBegin,
                                                  PdfPlotEnd,
                                                  PdfBitmapMask,
-                                                 PdfTkImage, NULL, NULL};
+                                                 PdfTkImage, NULL, NULL, NULL, NULL};
 
 static const Rbc_RenderOps pdfOps = {
     PdfPolyline,       PdfSegments,     ExportLineStyle, ExportDashBackground, PdfFillPolygon,

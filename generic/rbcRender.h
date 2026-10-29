@@ -23,6 +23,27 @@ typedef struct {
     int x, y, width, height;
 } Rbc_RenderRectangle;
 
+/* Mapped bitmap presentation borrows the marker's private GCs and resources.
+ * A rotated opaque background is already clipped/mapped by the component;
+ * mask then refers to the bitmap itself, as in the legacy drawing path. */
+#define RBC_RENDER_BITMAP_OUTLINE_POINTS 12
+typedef struct {
+    Pixmap bitmap, mask;
+    GC gc, fillGC;
+    const XColor *foreground, *background;
+    const Point2D *backgroundPoints;
+    Tcl_Size backgroundCount; /* At most RBC_RENDER_BITMAP_OUTLINE_POINTS. */
+} Rbc_RenderBitmapStyle;
+
+/* Screen raster contexts support TkImage, MappedBitmap, Pixmap and End only.
+ * Cairo is attempted for photos/bitmaps; native fallback preserves Tk image
+ * types and GC masks. The context borrows its drawable and all input resources.
+ * Scaling/rotation remain in component mapping, outside presentation. */
+Rbc_RenderContext *Rbc_RenderBeginScreenRaster(Graph *graphPtr, Drawable drawable);
+void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r,
+                            const Rbc_RenderBitmapStyle *style);
+void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r);
+
 /* Fill policy shared by screen and export. backgroundOnly preserves the
  * legacy PostScript fallback for image-tiled areas. */
 typedef struct {

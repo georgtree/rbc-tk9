@@ -25,6 +25,45 @@ void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, 
     Rbc_DrawText2(tkwin, drawable, string, style, x, y, size);
 }
 
+/* Present already mapped bitmaps using the original private GC state. Keep
+ * the polygon conversion, Convex fill rule, mask origin and XCopyPlane request
+ * unchanged: Tk implements these operations through GDI on Windows. */
+void Rbc_NativeBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
+                       const Rbc_RenderBitmapStyle *style) {
+    if (style->backgroundCount > 0) {
+        XPoint polygon[RBC_RENDER_BITMAP_OUTLINE_POINTS];
+        Tcl_Size i;
+
+        assert(style->backgroundCount <= RBC_RENDER_BITMAP_OUTLINE_POINTS);
+        for (i = 0; i < style->backgroundCount; i++) {
+            polygon[i].x = (short int)style->backgroundPoints[i].x;
+            polygon[i].y = (short int)style->backgroundPoints[i].y;
+        }
+        XFillPolygon(graphPtr->display, drawable, style->fillGC, polygon, (int)style->backgroundCount,
+                     Convex, CoordModeOrigin);
+    }
+    XSetClipMask(graphPtr->display, style->gc, style->mask);
+    if (style->mask != None) {
+        XSetClipOrigin(graphPtr->display, style->gc, r->x, r->y);
+    } else {
+        XSetClipOrigin(graphPtr->display, style->gc, 0, 0);
+    }
+    XCopyPlane(graphPtr->display, style->bitmap, drawable, style->gc, 0, 0, r->width, r->height, r->x, r->y, 1);
+}
+
+/* Tk retains responsibility for image types, alpha compositing and image
+ * resource ownership. The supplied image may be a mapped/scaled temporary. */
+void Rbc_NativeImage(Drawable drawable, Tk_Image image, int x, int y) {
+    int width, height;
+
+    Tk_SizeOfImage(image, &width, &height);
+    Tk_RedrawImage(image, 0, 0, width, height, drawable, x, y);
+}
+
+void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
+    XCopyArea(graphPtr->display, pixmap, drawable, gc, 0, 0, r->width, r->height, r->x, r->y);
+}
+
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;

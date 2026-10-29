@@ -16,7 +16,7 @@
 #include "rbcGrElem.h"
 #include "rbcRender.h"
 
-#define MAX_OUTLINE_POINTS 12
+#define MAX_OUTLINE_POINTS RBC_RENDER_BITMAP_OUTLINE_POINTS
 
 /* Map graph coordinates to normalized coordinates [0..1] */
 #define NORMALIZE(A, x) (((x) - (A)->axisRange.min) / (A)->axisRange.range)
@@ -2159,57 +2159,34 @@ static int RegionInBitmapMarker(Marker *markerPtr, Extents2D *extsPtr, int enclo
  * ----------------------------------------------------------------------
  */
 static void DrawBitmapMarker(Marker *markerPtr, Drawable drawable) {
-    Graph *graphPtr = markerPtr->graphPtr;
     BitmapMarker *bmPtr = BITMAP_MARKER_FROM_CORE(markerPtr);
-    Pixmap clipMask;
-    double theta;
+    Rbc_RenderContext *ctx;
+    Rbc_RenderRectangle r;
+    Rbc_RenderBitmapStyle style;
+    int rotatedBackground;
 
     if ((bmPtr->destBitmap == None) || (bmPtr->destWidth < 1) || (bmPtr->destHeight < 1)) {
         return;
     }
-    theta = FMOD(bmPtr->theta, 90.0);
-    clipMask = bmPtr->destMask;
-    /* Preserve the native foreground when the option is empty. */
-    XColor gcColor;
-    XColor *foreground = bmPtr->outlineColor;
-    if ((foreground == NULL) && Rbc_RenderGCForeground(graphPtr, bmPtr->gc, &gcColor)) {
-        foreground = &gcColor;
-    }
-    if (foreground != NULL) {
-        Rbc_RenderRectangle r = {(int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y, bmPtr->destWidth, bmPtr->destHeight};
-        int rotatedBackground = (bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) && (theta != 0.0);
-        if (Rbc_RenderBitmap(graphPtr, drawable, &r, bmPtr->destBitmap,
-                             rotatedBackground ? bmPtr->destBitmap : clipMask, foreground, bmPtr->fillColor,
-                             rotatedBackground ? bmPtr->outline : NULL, rotatedBackground ? bmPtr->nOutlinePts : 0))
-            return;
-    }
-    /*
-     * Preserve the existing arbitrary-rotation workaround when
-     * there is a background colour but no explicit mask.
-     *
-     * The polygon supplies the background, and the rotated bitmap
-     * supplies the foreground through its own bitmap mask.
-     */
-    if ((bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) && (theta != 0.0)) {
-        XPoint polygon[MAX_OUTLINE_POINTS];
-        int i;
-
-        for (i = 0; i < bmPtr->nOutlinePts; i++) {
-            polygon[i].x = (short int)bmPtr->outline[i].x;
-            polygon[i].y = (short int)bmPtr->outline[i].y;
-        }
-        XFillPolygon(graphPtr->display, drawable, bmPtr->fillGC, polygon, bmPtr->nOutlinePts, Convex, CoordModeOrigin);
-        clipMask = bmPtr->destBitmap;
-    }
-    if (clipMask != None) {
-        XSetClipMask(graphPtr->display, bmPtr->gc, clipMask);
-        XSetClipOrigin(graphPtr->display, bmPtr->gc, (int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y);
-    } else {
-        XSetClipMask(graphPtr->display, bmPtr->gc, None);
-        XSetClipOrigin(graphPtr->display, bmPtr->gc, 0, 0);
-    }
-    XCopyPlane(graphPtr->display, bmPtr->destBitmap, drawable, bmPtr->gc, 0, 0, bmPtr->destWidth, bmPtr->destHeight,
-               (int)bmPtr->anchorPos.x, (int)bmPtr->anchorPos.y, 1);
+    /* The mapper supplies the clipped rotated background; presentation keeps
+     * the bitmap-as-mask workaround for arbitrary rotations without a mask. */
+    rotatedBackground = (bmPtr->srcMask == None) && (bmPtr->fillColor != NULL) &&
+                        (FMOD(bmPtr->theta, 90.0) != 0.0);
+    r.x = (int)bmPtr->anchorPos.x;
+    r.y = (int)bmPtr->anchorPos.y;
+    r.width = bmPtr->destWidth;
+    r.height = bmPtr->destHeight;
+    style.bitmap = bmPtr->destBitmap;
+    style.mask = rotatedBackground ? bmPtr->destBitmap : bmPtr->destMask;
+    style.gc = bmPtr->gc;
+    style.fillGC = bmPtr->fillGC;
+    style.foreground = bmPtr->outlineColor;
+    style.background = bmPtr->fillColor;
+    style.backgroundPoints = rotatedBackground ? bmPtr->outline : NULL;
+    style.backgroundCount = rotatedBackground ? bmPtr->nOutlinePts : 0;
+    ctx = Rbc_RenderBeginScreenRaster(markerPtr->graphPtr, drawable);
+    Rbc_RenderMappedBitmap(ctx, &r, &style);
+    Rbc_RenderEnd(ctx);
 }
 
 /*
@@ -2831,39 +2808,20 @@ static int RegionInImageMarker(Marker *markerPtr, Extents2D *extsPtr, int enclos
  */
 static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
-    int width, height;
+    Rbc_RenderContext *ctx;
 
     if ((imPtr->tkImage == NULL) || (Tk_ImageIsDeleted(imPtr->tkImage))) {
         return;
     }
+    ctx = Rbc_RenderBeginScreenRaster(markerPtr->graphPtr, drawable);
     if (imPtr->pixmap == None) {
-        Pixmap pixmap;
-        Tk_Image tkImage;
-
-        tkImage = (imPtr->tmpImage != NULL) ? imPtr->tmpImage : imPtr->tkImage;
-        if (markerPtr->graphPtr->renderer == RBC_RENDERER_CAIRO) {
-            Tk_PhotoHandle photo = Tk_FindPhoto(markerPtr->graphPtr->interp, Rbc_NameOfImage(tkImage));
-            Tk_PhotoImageBlock block;
-
-            if ((photo != NULL) && Tk_PhotoGetImage(photo, &block) &&
-                Rbc_RenderPhoto(markerPtr->graphPtr, drawable, &block, (int)imPtr->anchorPos.x,
-                                (int)imPtr->anchorPos.y)) {
-                return;
-            }
-        }
-        Tk_SizeOfImage(tkImage, &width, &height);
-        /* pixmap = Tk_ImageGetPhotoPixmap(tkImage); */
-        pixmap = None;
-        if (pixmap == None) { /* May not be a "photo" image. */
-            Tk_RedrawImage(tkImage, 0, 0, width, height, drawable, (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
-        } else {
-            XCopyArea(imPtr->core.graphPtr->display, pixmap, drawable, imPtr->gc, 0, 0, width, height,
-                      (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
-        }
+        Tk_Image image = (imPtr->tmpImage != NULL) ? imPtr->tmpImage : imPtr->tkImage;
+        Rbc_RenderTkImage(ctx, image, (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
     } else {
-        XCopyArea(imPtr->core.graphPtr->display, imPtr->pixmap, drawable, imPtr->gc, 0, 0, imPtr->width, imPtr->height,
-                  (int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y);
+        Rbc_RenderRectangle r = {(int)imPtr->anchorPos.x, (int)imPtr->anchorPos.y, imPtr->width, imPtr->height};
+        Rbc_RenderPixmap(ctx, imPtr->pixmap, imPtr->gc, &r);
     }
+    Rbc_RenderEnd(ctx);
 }
 
 /*

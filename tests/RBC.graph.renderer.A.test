@@ -1606,8 +1606,8 @@ namespace eval graph.renderer {
         catch {image delete $photo}
     } -result {1 1 1 1 1 1}
 
-    proc BitmapFixture {} {
-        StrokeFixture graph
+    proc BitmapFixture {{renderer cairo}} {
+        StrokeFixture graph $renderer
         .renderer element delete signal
         set bitmap [makeFile {
             #define sample_width 8
@@ -2760,6 +2760,82 @@ namespace eval graph.renderer {
             catch {destroy .textLegend}
             image delete $photo
         } -result {1 1 1}
+    }
+
+    set testCase(78) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            foreach layout {fit scroll} {
+                test RBC.graph.renderer.A.78.[incr testCase(78)] {mapped raster markers retain track clips and restore after scrolling and remapping} \
+                        -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                    lassign [BitmapFixture $renderer] bitmap mask
+                    destroy .renderer
+                    ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout $layout \
+                            -width 320 -height 240 -plotbackground white -buffergraph no -bufferelements no
+                    pack .renderer
+                    .renderer legend configure -hide yes
+                    .renderer axis configure x -min 0 -max 10 -loose no -hide yes
+                    foreach track {first second} {
+                        .renderer axis create $track -min 0 -max 10 -loose no -hide yes
+                        .renderer track create $track -yaxes $track -height 200
+                        .renderer track legend $track configure -hide yes
+                    }
+                    set tile [image create photo -width 8 -height 8]
+                    $tile put magenta -to 0 0 8 8
+                    for {set i 0} {$i<8} {incr i} {$tile transparency set $i $i 1}
+                    set bitmapImage [image create bitmap -file $bitmap -foreground magenta -background {}]
+                    set photo [image create photo]
+                    update
+                    if {$layout eq "scroll"} {.renderer track view moveto 0.15; update}
+                } -body {
+                    set results {}
+                    foreach kind {bitmap photo tkbitmap} {
+                        if {$kind eq "bitmap"} {
+                            .renderer marker create bitmap -name raster -track first -mapy first \
+                                    -coords {-2 2 8 12} -bitmap @$bitmap -mask @$mask -rotate 45 \
+                                    -foreground magenta -background {}
+                        } else {
+                            set image [expr {$kind eq "photo" ? $tile : $bitmapImage}]
+                            # Non-photo Tk images retain their natural size.
+                            set coords [expr {$kind eq "photo" ? {-2 2 8 12} : {5 5}}]
+                            .renderer marker create image -name raster -track first -mapy first \
+                                    -coords $coords -image $image
+                        }
+                        .renderer snap $photo
+                        set original [$photo data]
+                        lassign [.renderer track bbox first] l t r b
+                        set valid 1; set count 0
+                        for {set y 0} {$y<[image height $photo]} {incr y} {
+                            for {set x 0} {$x<[image width $photo]} {incr x} {
+                                lassign [$photo get $x $y] red green blue
+                                if {$red>150 && $green<100 && $blue>150} {
+                                    incr count
+                                    if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                }
+                            }
+                        }
+                        .renderer marker configure raster -hide yes
+                        .renderer snap $photo
+                        set hidden [expr {$original ne [$photo data]}]
+                        .renderer marker configure raster -hide no
+                        .renderer axis configure x -max 12
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.3}
+                        .renderer snap $photo
+                        .renderer axis configure x -max 10
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.15}
+                        .renderer snap $photo
+                        lappend results [expr {$count>0 && $valid && $hidden && $original eq [$photo data]}]
+                        .renderer marker delete raster
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo $tile $bitmapImage}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1}
+            }
+        }
     }
 
     cleanupTests

@@ -7,6 +7,10 @@ void Rbc_NativeText(Tk_Window, Drawable, const char *, TextStyle *, int, int);
 void Rbc_NativeTextLayout(Tk_Window, Drawable, TextLayout *, TextStyle *, int, int);
 void Rbc_NativeTextSize(Tk_Window, Drawable, const char *, TextStyle *, int, int, Dim2D *);
 
+void Rbc_NativeBitmap(Graph *, Drawable, const Rbc_RenderRectangle *, const Rbc_RenderBitmapStyle *);
+void Rbc_NativeImage(Drawable, Tk_Image, int, int);
+void Rbc_NativePixmap(Graph *, Drawable, Pixmap, GC, const Rbc_RenderRectangle *);
+
 typedef struct Rbc_NativeTrace Rbc_NativeTrace;
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *, Drawable, GC);
 void Rbc_NativePolyline(Rbc_NativeTrace *, const Point2D *, Tcl_Size);
