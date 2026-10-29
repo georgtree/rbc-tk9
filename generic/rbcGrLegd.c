@@ -1134,6 +1134,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     symbolY = LegendLayoutInt((Tcl_WideInt)midY + (Tcl_WideInt)legendPtr->ipadY.side1);
     symbolX = LegendLayoutInt((Tcl_WideInt)midX + (Tcl_WideInt)legendPtr->ipadX.side1);
     pixmap = Tk_GetPixmap(graphPtr->display, Tk_WindowId(legendPtr->tkwin), width, height, Tk_Depth(legendPtr->tkwin));
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(legendPtr->tkwin, pixmap);
     if (legendPtr->border != NULL) {
         /* Background color and relief. */
         Rbc_Fill3DRectangle(legendPtr->tkwin, pixmap, legendPtr->border, 0, 0, width, height, 0, TK_RELIEF_FLAT);
@@ -1197,7 +1198,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         }
         (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width,
                                              height);
-        Rbc_DrawText(legendPtr->tkwin, pixmap, elemPtr->label, &legendPtr->style, x + labelX,
+        Rbc_RenderText(text, elemPtr->label, &legendPtr->style, x + labelX,
                      y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;
         /* Check when to move to the next column */
@@ -1229,6 +1230,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         XCopyArea(graphPtr->display, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x, legendPtr->y);
     }
     Tk_FreePixmap(graphPtr->display, pixmap);
+    Rbc_RenderEnd(text);
 }
 
 /*

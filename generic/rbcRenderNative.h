@@ -3,6 +3,10 @@
 #define RBC_RENDER_NATIVE_H
 #include "rbcRender.h"
 
+void Rbc_NativeText(Tk_Window, Drawable, const char *, TextStyle *, int, int);
+void Rbc_NativeTextLayout(Tk_Window, Drawable, TextLayout *, TextStyle *, int, int);
+void Rbc_NativeTextSize(Tk_Window, Drawable, const char *, TextStyle *, int, int, Dim2D *);
+
 typedef struct Rbc_NativeTrace Rbc_NativeTrace;
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *, Drawable, GC);
 void Rbc_NativePolyline(Rbc_NativeTrace *, const Point2D *, Tcl_Size);

@@ -10,6 +10,14 @@ typedef struct Rbc_RenderTarget Rbc_RenderTarget;
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr);
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target);
 
+/* Screen text uses Tk for native and Cairo graphs alike. Supports Text,
+ * TextLayout, TextSize and End only. The window, drawable and cached layout
+ * are borrowed; existing integer positions and clipping are retained. Reuse
+ * a context for a label batch. TextSize returns the rotated layout extent. */
+Rbc_RenderContext *Rbc_RenderBeginScreenText(Tk_Window tkwin, Drawable drawable);
+void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y);
+void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size);
+
 /* Keep bar geometry in full-width widget coordinates. */
 typedef struct {
     int x, y, width, height;

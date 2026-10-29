@@ -3363,8 +3363,10 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
         XFillPolygon(graphPtr->display, drawable, tmPtr->fillGC, pointArr, 4, Convex, CoordModeOrigin);
     }
     if (tmPtr->style.color != NULL) {
-        Rbc_DrawTextLayout(graphPtr->tkwin, drawable, tmPtr->textPtr, &tmPtr->style, (int)tmPtr->anchorPos.x,
-                           (int)tmPtr->anchorPos.y);
+        Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
+        Rbc_RenderTextLayout(text, tmPtr->textPtr, &tmPtr->style, (int)tmPtr->anchorPos.x,
+                             (int)tmPtr->anchorPos.y);
+        Rbc_RenderEnd(text);
     }
 }
 

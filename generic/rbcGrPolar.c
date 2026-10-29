@@ -533,6 +533,7 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
     /*
      * Use the X-axis tick style, but don't modify the live style.
      */
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     style.anchor = GetPolarRadialLabelAnchor(graphPtr);
@@ -556,11 +557,12 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
         if (labelPtr == NULL) {
             continue;
         }
-        Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string, &style, ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET,
+        Rbc_RenderText(text, labelPtr->string, &style, ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET,
                      ROUND(point.y) - POLAR_RADIAL_LABEL_OFFSET);
         ckfree(labelPtr);
     }
     ckfree(ticksPtr);
+    Rbc_RenderEnd(text);
 }
 
 static char *FormatPolarAngleLabel(Graph *graphPtr, double degrees, Tcl_DString *dsPtr) {
@@ -664,6 +666,7 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
         return;
     }
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     for (i = 0; i < graphPtr->gridPtr->nAngleMajorTicks; i++) {
@@ -680,10 +683,11 @@ static void DrawPolarAngularLabels(Graph *graphPtr, Drawable drawable, Grid *gri
         style.anchor = anchor;
         string = FormatPolarAngleLabel(graphPtr, degrees, &label);
         if (string[0] != '\0') {
-            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+            Rbc_RenderText(text, string, &style, ROUND(point.x), ROUND(point.y));
         }
         Tcl_DStringFree(&label);
     }
+    Rbc_RenderEnd(text);
 }
 
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
@@ -868,6 +872,7 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
         return;
     }
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     for (i = 0; i < graphPtr->gridPtr->nSmithRealMajorTicks; i++) {
@@ -895,27 +900,28 @@ static void DrawSmithRealLabels(Graph *graphPtr, Drawable drawable, Grid *gridPt
                  * g=0 -> Gamma=+1.
                  */
                 style.anchor = TK_ANCHOR_E;
-                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x) - SMITH_RESISTANCE_LABEL_OFFSET,
+                Rbc_RenderText(text, string, &style, ROUND(point.x) - SMITH_RESISTANCE_LABEL_OFFSET,
                              ROUND(point.y));
             } else {
                 /*
                  * r=0 -> Gamma=-1.
                  */
                 style.anchor = TK_ANCHOR_W;
-                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x) + SMITH_RESISTANCE_LABEL_OFFSET,
+                Rbc_RenderText(text, string, &style, ROUND(point.x) + SMITH_RESISTANCE_LABEL_OFFSET,
                              ROUND(point.y));
             }
         } else if (admittance) {
             style.anchor = TK_ANCHOR_N;
-            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x),
+            Rbc_RenderText(text, string, &style, ROUND(point.x),
                          ROUND(point.y) + SMITH_RESISTANCE_LABEL_OFFSET);
         } else {
             style.anchor = TK_ANCHOR_S;
-            Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x),
+            Rbc_RenderText(text, string, &style, ROUND(point.x),
                          ROUND(point.y) - SMITH_RESISTANCE_LABEL_OFFSET);
         }
         Tcl_DStringFree(&label);
     }
+    Rbc_RenderEnd(text);
 }
 
 static void PolarRadialLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Grid *gridPtr) {
@@ -1220,6 +1226,7 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
     if ((axisPtr == NULL) || (!axisPtr->showTicks)) {
         return;
     }
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     style = axisPtr->tickTextStyle;
     style.theta = 0.0;
     for (i = 0; i < graphPtr->gridPtr->nSmithImagMajorTicks; i++) {
@@ -1241,11 +1248,12 @@ static void DrawSmithReactiveLabels(Graph *graphPtr, Drawable drawable, Grid *gr
             style.anchor = anchor;
             string = FormatSmithLabel(graphPtr, graphPtr->gridPtr->smithImagCommandObjPtr, admittance, TRUE, reactive, &label);
             if (string[0] != '\0') {
-                Rbc_DrawText(graphPtr->tkwin, drawable, string, &style, ROUND(point.x), ROUND(point.y));
+                Rbc_RenderText(text, string, &style, ROUND(point.x), ROUND(point.y));
             }
             Tcl_DStringFree(&label);
         }
     }
+    Rbc_RenderEnd(text);
 }
 
 void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable) {

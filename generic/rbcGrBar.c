@@ -2047,6 +2047,7 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
     double y;
     Point2D anchorPos;
 
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     count = 0;
     for (rectPtr = rectangles, endPtr = rectangles + nRects; rectPtr < endPtr; rectPtr++) {
         Tcl_Size dataIndex;
@@ -2077,12 +2078,13 @@ static void DrawBarValues(Graph *graphPtr, Drawable drawable, Bar *barPtr, BarPe
             double labelY = anchorPos.y + penPtr->valueOffset.y;
             if ((labelX >= INT_MIN) && (labelX <= INT_MAX) &&
                 (labelY >= INT_MIN) && (labelY <= INT_MAX)) {
-                Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                Rbc_RenderText(text, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
                              (int)labelX, (int)labelY);
             }
         }
         Tcl_DecrRefCount(labelObjPtr);
     }
+    Rbc_RenderEnd(text);
 }
 
 /* Error strokes share bar color defaults and native hairline widths. */

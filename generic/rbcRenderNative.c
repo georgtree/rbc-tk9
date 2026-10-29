@@ -8,6 +8,23 @@
 #include <stdint.h>
 #include <X11/Xutil.h>
 
+/* Keep Tk font selection, multiline layout, rotation, padding, anchors and
+ * disabled/active text styling in the existing text helpers. Cached marker
+ * layouts must not be rebuilt, and axis limits need the original rotated
+ * dimensions to position subsequent labels. No text resources are retained. */
+void Rbc_NativeText(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style, int x, int y) {
+    Rbc_DrawText(tkwin, drawable, string, style, x, y);
+}
+
+void Rbc_NativeTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *layout, TextStyle *style, int x, int y) {
+    Rbc_DrawTextLayout(tkwin, drawable, layout, style, x, y);
+}
+
+void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style,
+                        int x, int y, Dim2D *size) {
+    Rbc_DrawText2(tkwin, drawable, string, style, x, y, size);
+}
+
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;

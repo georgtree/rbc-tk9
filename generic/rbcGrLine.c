@@ -9462,6 +9462,7 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Extents2D exts;
     Tcl_Obj *labelObjPtr;
 
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     Rbc_GraphExtents(linePtr->core.graphPtr, &exts);    
     count = 0;
     for (pointPtr = symbolPts, endPtr = symbolPts + nSymbolPts; pointPtr < endPtr; pointPtr++) {
@@ -9489,12 +9490,13 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
             double labelY = pointPtr->y + penPtr->valueOffset.y;
             if ((labelX >= INT_MIN) && (labelX <= INT_MAX) &&
                 (labelY >= INT_MIN) && (labelY <= INT_MAX)) {
-                Rbc_DrawText(graphPtr->tkwin, drawable, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
+                Rbc_RenderText(text, Tcl_GetString(labelObjPtr), &penPtr->valueStyle,
                              (int)labelX, (int)labelY);
             }
         }
         Tcl_DecrRefCount(labelObjPtr);
     }
+    Rbc_RenderEnd(text);
 }
 
 /*

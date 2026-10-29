@@ -4,6 +4,64 @@ These benchmarks are intentionally separate from the normal Tcl test suite.
 
 They measure performance rather than correctness and may process millions of data points.
 
+## Native renderer migration: stage 1
+
+Stage 1 routes line traces, strip segments, and line/strip error bars through the renderer interface.
+It retains the native GCs, clipping, coordinate rounding, X11 request splitting, and Windows batch limits.
+Symbols, fills, legend samples, and other component drawing paths are outside this stage.
+
+For before/after comparisons, use `line.tcl`, `line.tcl -stripchart`, and `errorbars.tcl -cases y,xy`,
+all with `-renderer native`. Use identical options, Tcl/Tk versions, compiler settings, display settings,
+and hardware on both revisions. Keep the window mapped throughout each run. Save each repetition and
+revision in a separate CSV directory; record the Git revision alongside the results.
+
+The primary measurement is redraw median, which isolates drawing of already mapped geometry. Creation,
+axis-remap and vector-update measurements are useful secondary checks. Closest-point timing is not a
+rendering measurement. Run both `-decimate none,auto` for line/strip workloads: the shorter decimated paths
+also reveal fixed per-batch overhead. The current line benchmark uses solid one-pixel strokes; wide-line
+and dash correctness is covered by tests, but these styles are not selected by its command-line options.
+
+`compare.tcl` compares native and Cairo renderers, not source revisions. Do not combine before/after CSV
+files under the same host label: they would be treated as repeated samples of the same implementation.
+
+## Comparing before and after revisions
+
+`compare-revisions.tcl` compares two source revisions using the existing wide line/strip CSV format and
+long CSV format used by the other workloads. It requires Tcl and Tcllib's `csv` package, but no Tk or RBC.
+Keep it beside `compare.tcl`, whose CSV parsing and normalization helpers it reuses.
+
+Run separately for each physical machine. Directories are searched recursively, including `run-1`, `run-2`, etc.:
+
+```sh
+tclsh91 tests/benchmark/compare-revisions.tcl \
+    -before results/native-stage1/linux/before \
+    -after results/native-stage1/linux/after \
+    -out results/native-stage1/linux-comparison.csv
+
+tclsh91 tests/benchmark/compare-revisions.tcl \
+    -before results/native-stage1/windows/before \
+    -after results/native-stage1/windows/after \
+    -out results/native-stage1/windows-comparison.csv
+```
+
+The default metrics are `redraw,axis-remap`; use `-metrics redraw` or `-metrics all` to change this.
+Each timing is the median of the separate run medians, not a pooled median of individual iterations.
+Change is `100 * (after / before - 1)`: positive means slower, negative means faster.
+The CSV includes each side's run count, minimum and maximum run median, RBC versions, and matching metadata.
+These ranges describe repeat variability, not statistical confidence intervals. Small changes within the
+run-to-run variation should not be treated as established regressions or improvements.
+
+Workload, count, requested and actual sizes, renderer/antialias settings, platform, architecture and Tcl/Tk
+versions must match. RBC versions may differ and are reported. Missing pairs remain visible; zero rounded
+timings have no percentage. The CSV does not identify compiler flags, Git commits or physical hosts, so
+keep those controlled and record them separately. Keep comparison output outside both input directories.
+
+Utility tests:
+
+```sh
+tclsh91 tests/benchmark/RBC.benchmark.revisions.A.test
+```
+
 ## Line and strip benchmark
 
 The same benchmark can exercise either ordinary line elements or strip elements.
@@ -208,3 +266,63 @@ tclsh tests/benchmark/RBC.benchmark.compare.A.test
 
 They cover both schemas, quoted/multiline CSV, repeated runs, matching rules, antialias variants, missing pairs,
 zero/non-finite timings and ratio arithmetic.
+
+### Native renderer stage 3: clipping
+
+Apply the benchmark additions before changing the renderer. Stage 2, including
+its native stroke file move, is the `before` build. Use the same Tcl/Tk, display,
+compiler options and benchmark scripts for both builds. Run from an otherwise
+idle desktop with the benchmark window visible.
+
+From Linux, run:
+
+```sh
+TCLSH=tclsh9.0 bash tests/benchmark/native-stage3.sh linux before 3
+```
+
+From Windows MSYS2, run:
+
+```sh
+TCLSH=tclsh91 bash tests/benchmark/native-stage3.sh windows before 3
+```
+
+After installing the stage 3 implementation, repeat with `after` instead of
+`before`. The runner writes into `results/native-stage3/PLATFORM/PHASE/run-N`
+and refuses to overwrite an existing run directory. `TCLSH` may also be an
+absolute executable path. Each invocation uses the RBC package resolved by
+that interpreter; ensure it loads the intended build.
+
+The runner covers line/strip batches, independent error-bar segments, symbols,
+bar fills/bevels, many elements, polygon/arc markers and track clipping. The
+new `trackclip.tcl` uses the existing common timing, reporting and long-format
+CSV machinery. It provides `-tracks`, `-points` (per track), `-cases line,mixed`,
+`-layouts fit,scroll`, `-inverted 0,1`, `-sizes`, `-renderer`, `-antialias`,
+`-iterations`, `-warmup` and `-csv` options.
+
+Track data deliberately cross the fixed X and Y limits. The mixed case adds
+symbols, error bars, raised bars and polygon/arc markers. Every track has its
+own Y axis; all tracks share X. Fit mode stresses repeated clip changes and
+scroll mode additionally includes partially visible tracks. Points per track
+are held fixed, so increasing the track count also increases total data: this
+is a before/after workload comparison, not an isolated measurement of clip
+setup cost. Data generation and graph construction are outside timed sections.
+
+`trackclip` CSV `count` is the number of tracks; the case identifies geometry,
+layout, inversion and points per track. It records `redraw`, `axis-remap`, and
+`track-scroll` when the content actually overflows. Track scrolling alternates
+between two fixed positions. These are performance measurements, not pixel
+correctness tests; XOR and clipping correctness remain regression-test work.
+
+If the separately supplied `compare-revisions.tcl` is present, compare with:
+
+```sh
+tclsh9.0 tests/benchmark/compare-revisions.tcl \
+    -before results/native-stage3/linux/before \
+    -after results/native-stage3/linux/after \
+    -metrics redraw,axis-remap,track-scroll \
+    -out results/native-stage3/linux-comparison.csv
+```
+
+For Windows, substitute `tclsh91` and `windows`. Keep comparisons within each
+platform. Investigate large differences with alternating before/after runs;
+run ranges are not confidence intervals.

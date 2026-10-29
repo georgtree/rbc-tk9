@@ -4392,6 +4392,7 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
  * -----------------------------------------------------------------
  */
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     if (axisPtr->border != NULL) {
         Rbc_Fill3DRectangle(
             graphPtr->tkwin, drawable, axisPtr->border, axisPtr->region.left + graphPtr->plotBorderWidth,
@@ -4399,7 +4400,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
             axisPtr->region.bottom - axisPtr->region.top, axisPtr->borderWidth, axisPtr->relief);
     }
     if (axisPtr->title != NULL) {
-        Rbc_DrawText(graphPtr->tkwin, drawable, axisPtr->title, &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,
+        Rbc_RenderText(text, axisPtr->title, &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,
                      (int)axisPtr->titlePos.y);
     }
     if (axisPtr->scrollCmdObjPtr != NULL) {
@@ -4457,7 +4458,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
         for (linkPtr = Rbc_ChainFirstLink(axisPtr->tickLabels); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
             /* Draw major tick labels */
             labelPtr = Rbc_ChainGetValue(linkPtr);
-            Rbc_DrawText(graphPtr->tkwin, drawable, labelPtr->string, &axisPtr->tickTextStyle,
+            Rbc_RenderText(text, labelPtr->string, &axisPtr->tickTextStyle,
                          (int)labelPtr->anchorPos.x, (int)labelPtr->anchorPos.y);
         }
     }
@@ -4473,6 +4474,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
             Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC, axisPtr->segments, axisPtr->nSegments);
         }
     }
+    Rbc_RenderEnd(text);
 }
 
 /*
@@ -7141,6 +7143,8 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
         return;
     }
 
+    Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
+
 #define SPACING 8
     vMin = vMax = graphPtr->left + graphPtr->padLeft + 2;
     hMin = hMax = graphPtr->bottom - graphPtr->padBottom - 2; /* Offsets */
@@ -7172,13 +7176,13 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
             if (isHoriz) {
                 axisPtr->limitsTextStyle.theta = 90.0;
                 axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SE;
-                Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr, &axisPtr->limitsTextStyle, graphPtr->right, hMax,
+                Rbc_RenderTextSize(text, maxPtr, &axisPtr->limitsTextStyle, graphPtr->right, hMax,
                               &textDim);
                 hMax -= (textDim.height + SPACING);
             } else {
                 axisPtr->limitsTextStyle.theta = 0.0;
                 axisPtr->limitsTextStyle.anchor = TK_ANCHOR_NW;
-                Rbc_DrawText2(graphPtr->tkwin, drawable, maxPtr, &axisPtr->limitsTextStyle, vMax, graphPtr->top,
+                Rbc_RenderTextSize(text, maxPtr, &axisPtr->limitsTextStyle, vMax, graphPtr->top,
                               &textDim);
                 vMax += (textDim.width + SPACING);
             }
@@ -7187,17 +7191,18 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable) {
             axisPtr->limitsTextStyle.anchor = TK_ANCHOR_SW;
             if (isHoriz) {
                 axisPtr->limitsTextStyle.theta = 90.0;
-                Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr, &axisPtr->limitsTextStyle, graphPtr->left, hMin,
+                Rbc_RenderTextSize(text, minPtr, &axisPtr->limitsTextStyle, graphPtr->left, hMin,
                               &textDim);
                 hMin -= (textDim.height + SPACING);
             } else {
                 axisPtr->limitsTextStyle.theta = 0.0;
-                Rbc_DrawText2(graphPtr->tkwin, drawable, minPtr, &axisPtr->limitsTextStyle, vMin, graphPtr->bottom,
+                Rbc_RenderTextSize(text, minPtr, &axisPtr->limitsTextStyle, vMin, graphPtr->bottom,
                               &textDim);
                 vMin += (textDim.width + SPACING);
             }
         }
     } /* Loop on axes */
+    Rbc_RenderEnd(text);
 }
 
 /*

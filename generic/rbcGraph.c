@@ -3300,8 +3300,9 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
         Rbc_DrawLegend(graphPtr->legend, drawable);
     }
     if (graphPtr->title != NULL) {
-        Rbc_DrawText(graphPtr->tkwin, drawable, graphPtr->title, &graphPtr->titleTextStyle, graphPtr->titleX,
-                     graphPtr->titleY);
+        Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
+        Rbc_RenderText(text, graphPtr->title, &graphPtr->titleTextStyle, graphPtr->titleX, graphPtr->titleY);
+        Rbc_RenderEnd(text);
     }
     Rbc_DrawAxes(graphPtr, drawable);
 }

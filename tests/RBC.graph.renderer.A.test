@@ -2620,5 +2620,147 @@ namespace eval graph.renderer {
         }
     }
 
+    # Screen text keeps Tk font/layout behavior on both rendering backends.
+    set testCase(74) 0
+    foreach renderer {native cairo} {
+        foreach angle {0 45 90} {
+            test RBC.graph.renderer.A.74.[incr testCase(74)] {cached multiline marker text survives style changes and remapping} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -width 320 -height 240 -plotbackground white
+                pack .renderer
+                .renderer legend configure -hide yes
+                foreach axis {x y} {.renderer axis configure $axis -min 0 -max 10 -hide yes}
+                .renderer marker create text -name label -coords {5 5} -text "Voltage \u03a9\nSecond line" \
+                        -foreground red -background {} -rotate $angle -font TkDefaultFont -anchor center
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                set redPixels 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] r g b
+                        if {$r>150 && $g<100 && $b<100} {incr redPixels}
+                    }
+                }
+                .renderer marker configure label -foreground blue -text Changed -rotate 15
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer marker configure label -foreground red -text "Voltage \u03a9\nSecond line" -rotate $angle
+                .renderer axis configure x -max 20
+                .renderer snap $photo
+                .renderer axis configure x -max 10
+                .renderer snap $photo
+                list [expr {$redPixels>0}] $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1 1}
+        }
+    }
+
+    set testCase(75) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test RBC.graph.renderer.A.75.[incr testCase(75)] {axis text and global legend redraw after text style changes} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -invertxy $inverted -width 420 -height 320 \
+                        -title "Title\nSecond line" -buffergraph no -bufferelements no
+                pack .renderer
+                foreach axis {x y} {
+                    .renderer axis configure $axis -min 0 -max 10 -rotate 45 -title "Axis $axis" \
+                            -limitsformat {%.1f}
+                }
+                .renderer element create a -data {2 3 8 7} -label "Signal\nVoltage" -showvalues y
+                .renderer legend configure -position plotarea -anchor ne -foreground red
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer legend configure -foreground blue
+                .renderer axis configure x -rotate 90
+                .renderer configure -title Changed
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer legend configure -foreground red
+                .renderer axis configure x -rotate 45
+                .renderer configure -title "Title\nSecond line"
+                .renderer snap $photo
+                list $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
+    set testCase(76) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test RBC.graph.renderer.A.76.[incr testCase(76)] {track text and local legends restore after scrolling} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout scroll \
+                        -width 400 -height 320 -bufferelements no
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -title $track -rotate 45
+                    .renderer track create $track -yaxes $track -height 240
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label "Signal $track"
+                    .renderer track legend $track configure -hide no -position right
+                    .renderer marker create text -track $track -mapy $track -coords {5 5} \
+                            -text "Track $track\nVoltage" -rotate 45 -foreground red -background {}
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer track view moveto 0.4
+                update
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer track view moveto 0
+                update
+                .renderer snap $photo
+                list $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
+    set testCase(77) 0
+    foreach renderer {native cairo} {
+        test RBC.graph.renderer.A.77.[incr testCase(77)] {external legend text uses its own window and restores active styling} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            ::rbc::graph .renderer -renderer $renderer -width 320 -height 240
+            pack .renderer
+            .renderer element create a -data {2 3 8 7} -label "External\nLegend" -symbol none -linewidth 0
+            .renderer legend configure -position .textLegend -background white -foreground red \
+                    -activeforeground blue -activebackground white -borderwidth 0 -activeborderwidth 0
+            pack .textLegend
+            set photo [image create photo]
+            update
+        } -body {
+            ::rbc::winop snap .textLegend $photo
+            set redPixels 0
+            for {set y 0} {$y<[image height $photo]} {incr y} {
+                for {set x 0} {$x<[image width $photo]} {incr x} {
+                    lassign [$photo get $x $y] r g b
+                    if {$r>150 && $g<100 && $b<100} {incr redPixels}
+                }
+            }
+            set original [$photo data]
+            .renderer legend activate a
+            update
+            ::rbc::winop snap .textLegend $photo
+            set changed [expr {$original ne [$photo data]}]
+            .renderer legend deactivate a
+            update
+            ::rbc::winop snap .textLegend $photo
+            list [expr {$redPixels>0}] $changed [expr {$original eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {destroy .textLegend}
+            image delete $photo
+        } -result {1 1 1}
+    }
+
     cleanupTests
 }

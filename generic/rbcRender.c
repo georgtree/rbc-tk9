@@ -22,7 +22,7 @@
 #endif
 #endif /* RBC_HAVE_CAIRO: headers */
 
-/* Presentation capabilities used by export contexts. */
+/* Presentation capabilities shared by screen and export contexts. */
 typedef struct {
     void (*text)(Rbc_RenderContext *, char *string, TextStyle *style, double x, double y);
     void (*photo)(Rbc_RenderContext *, Tk_PhotoHandle photo, double x, double y);
@@ -39,6 +39,9 @@ typedef struct {
     void (*bitmapMask)(Rbc_RenderContext *, Display *display, Pixmap bitmap, double x, double y, int width, int height,
                        const XColor *color, int background);
     void (*image)(Rbc_RenderContext *, Tk_Image image, double x, double y);
+    /* Screen-only text capabilities preserve cached layouts and measured size. */
+    void (*textLayout)(Rbc_RenderContext *, TextLayout *, TextStyle *, int, int);
+    void (*textSize)(Rbc_RenderContext *, const char *, TextStyle *, int, int, Dim2D *);
 } Rbc_RenderOutputOps;
 
 /* Geometry dispatch is shared by screen and export contexts. */
@@ -61,6 +64,7 @@ struct Rbc_RenderContext {
     Rbc_NativeClip *nativeClip;
     unsigned int clipDepth;
     /* Borrowed native GC; trace scratch storage and DC live until End. */
+    Tk_Window nativeWindow; /* Borrowed text target, including external legends. */
     Drawable nativeDrawable;
     GC nativeGC;
     Rbc_NativeTrace *nativeTrace;
@@ -108,6 +112,49 @@ struct Rbc_RenderContext {
 #endif
 #endif
 };
+
+/* Text stays on Tk's native font path for both screen renderers. A context
+ * borrows the exact window/drawable supplied by the component; it does not
+ * acquire a DC, allocate a surface or alter the surrounding clip scope. */
+static void NativeText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
+    Rbc_NativeText(ctx->nativeWindow, ctx->nativeDrawable, string, style, (int)x, (int)y);
+}
+
+static void NativeTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y) {
+    Rbc_NativeTextLayout(ctx->nativeWindow, ctx->nativeDrawable, layout, style, x, y);
+}
+
+static void NativeTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size) {
+    Rbc_NativeTextSize(ctx->nativeWindow, ctx->nativeDrawable, string, style, x, y, size);
+}
+
+static void NativeTextEnd(Rbc_RenderContext *ctx) {
+    ckfree(ctx);
+}
+
+static const Rbc_RenderOutputOps nativeTextOutputOps = {
+    .text = NativeText, .textLayout = NativeTextLayout, .textSize = NativeTextSize
+};
+static const Rbc_RenderOps nativeTextOps = {
+    .output = &nativeTextOutputOps, .end = NativeTextEnd
+};
+
+Rbc_RenderContext *Rbc_RenderBeginScreenText(Tk_Window tkwin, Drawable drawable) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &nativeTextOps;
+    ctx->nativeWindow = tkwin;
+    ctx->nativeDrawable = drawable;
+    return ctx;
+}
+
+void Rbc_RenderTextLayout(Rbc_RenderContext *ctx, TextLayout *layout, TextStyle *style, int x, int y) {
+    ctx->ops->output->textLayout(ctx, layout, style, x, y);
+}
+
+void Rbc_RenderTextSize(Rbc_RenderContext *ctx, const char *string, TextStyle *style, int x, int y, Dim2D *size) {
+    ctx->ops->output->textSize(ctx, string, style, x, y, size);
+}
 
 /* Screen clip scopes also enclose legacy Tk drawing that does not use a
  * geometry context yet. Platform resource handling stays in the backend. */
@@ -1645,7 +1692,7 @@ static const Rbc_RenderOutputOps postScriptOutputOps = {PostScriptText,
                                                         PostScriptPlotBegin,
                                                         PostScriptPlotEnd,
                                                         PostScriptBitmapMask,
-                                                        PostScriptTkImage};
+                                                        PostScriptTkImage, NULL, NULL};
 
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
@@ -3109,7 +3156,7 @@ static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
                                                  SvgPlotBegin,
                                                  SvgPlotEnd,
                                                  SvgBitmapMask,
-                                                 SvgTkImage};
+                                                 SvgTkImage, NULL, NULL};
 
 static const Rbc_RenderOps svgOps = {SvgPolyline,       SvgSegments,    ExportLineStyle,
                                      ExportDashBackground, SvgFillPolygon, SvgFillRectangles,
@@ -3838,7 +3885,7 @@ static const Rbc_RenderOutputOps pdfOutputOps = {PdfText,
                                                  PdfPlotBegin,
                                                  PdfPlotEnd,
                                                  PdfBitmapMask,
-                                                 PdfTkImage};
+                                                 PdfTkImage, NULL, NULL};
 
 static const Rbc_RenderOps pdfOps = {
     PdfPolyline,       PdfSegments,     ExportLineStyle, ExportDashBackground, PdfFillPolygon,
