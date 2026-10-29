@@ -5054,24 +5054,7 @@ static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int encl
  *----------------------------------------------------------------------
  */
 
-static int GetMarkerPolygonPointCount(Display *display, Tcl_Size nPoints) {
-    if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
-        return 0;
-    }
-#ifndef WIN32
-    {
-        int maxPoints;
 
-        maxPoints = Rbc_MaxRequestSize(display, sizeof(XPoint));
-        if ((maxPoints < 3) || (nPoints > (Tcl_Size)maxPoints)) {
-            return 0;
-        }
-    }
-#else
-    (void)display;
-#endif
-    return (int)nPoints;
-}
 
 static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr;
@@ -5086,23 +5069,12 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     if ((pmPtr->nFillPts >= 3) && (pmPtr->fill.fgColor != NULL) &&
         (pmPtr->xor || !Rbc_RenderArea(graphPtr, drawable, pmPtr->fillPts, pmPtr->nFillPts, pmPtr->fill.fgColor,
                                        pmPtr->fill.bgColor, pmPtr->stipple))) {
-        XPoint *pointArr;
-        Tcl_Size i;
-        int nPoints;
-
-        nPoints = GetMarkerPolygonPointCount(graphPtr->display, pmPtr->nFillPts);
-        if (nPoints > 0) {
-            pointArr = Tcl_AttemptAlloc((size_t)nPoints * sizeof(*pointArr));
-            if (pointArr != NULL) {
-                for (i = 0; i < pmPtr->nFillPts; i++) {
-                    pointArr[i].x = (short int)pmPtr->fillPts[i].x;
-                    pointArr[i].y = (short int)pmPtr->fillPts[i].y;
-                }
-                XFillPolygon(graphPtr->display, drawable, pmPtr->fillGC, pointArr, nPoints, Complex, CoordModeOrigin);
-                ckfree(pointArr);
-            }
-        }
+        Rbc_RenderContext *ctx = Rbc_RenderBeginNativeFill(graphPtr, drawable, pmPtr->fillGC, NULL,
+            (Pixmap)1);
+        Rbc_RenderFillPolygon(ctx, pmPtr->fillPts, pmPtr->nFillPts);
+        Rbc_RenderEnd(ctx);
     }
+
     /*
      * Outline segments can be safely chunked by
      * Rbc_Draw2DSegments().
@@ -5111,7 +5083,9 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
         if (!DrawRenderedMarkerSegments(graphPtr, drawable, pmPtr->outlinePts, pmPtr->nOutlinePts,
                                         pmPtr->outline.fgColor, pmPtr->outline.bgColor, pmPtr->lineWidth,
                                         &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle, pmPtr->xor)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, pmPtr->outlineGC, pmPtr->outlinePts, pmPtr->nOutlinePts);
+            Rbc_RenderContext *ctx = Rbc_RenderBeginNativeSegments(graphPtr, drawable, pmPtr->outlineGC);
+            Rbc_RenderSegments(ctx, pmPtr->outlinePts, pmPtr->nOutlinePts);
+            Rbc_RenderEnd(ctx);
         }
     }
 }
@@ -5653,8 +5627,6 @@ static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed
 static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = pmPtr->core.graphPtr;
     Rbc_RenderContext *ctx;
-    Point2D *points;
-    Tcl_Size i, n;
     if ((pmPtr->arc.extent == 0.0) || (pmPtr->outline.fgColor == NULL) || (pmPtr->lineWidth <= 0)) return;
     ctx = exportPtr ? Rbc_RenderBeginExport(exportPtr, pmPtr->outline.fgColor, pmPtr->lineWidth,
         &pmPtr->dashes, pmPtr->capStyle, pmPtr->joinStyle) :
@@ -5667,29 +5639,10 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
         Rbc_RenderEnd(ctx);
         return;
     }
-    if (pmPtr->nOutlinePts == 0) return;
-    points = Tcl_AttemptAlloc((size_t)(pmPtr->nOutlinePts + 1) * sizeof(*points));
-    if (points == NULL) return;
-    for (i = 0; i < pmPtr->nOutlinePts;) {
-        n = 0;
-        points[n++] = pmPtr->outlinePts[i].p;
-        do {
-            points[n++] = pmPtr->outlinePts[i++].q;
-        } while (i < pmPtr->nOutlinePts && points[n-1].x == pmPtr->outlinePts[i].p.x &&
-                 points[n-1].y == pmPtr->outlinePts[i].p.y);
-        {
-            XPoint *xp = Tcl_AttemptAlloc((size_t)n * sizeof(*xp));
-            Tcl_Size j;
-            if (xp == NULL) continue;
-            for (j = 0; j < n; j++) {
-                xp[j].x = (short)points[j].x;
-                xp[j].y = (short)points[j].y;
-            }
-            XDrawLines(graphPtr->display, drawable, pmPtr->outlineGC, xp, (int)n, CoordModeOrigin);
-            ckfree(xp);
-        }
-    }
-    ckfree(points);
+    ctx = Rbc_RenderBeginNativeArc(graphPtr, drawable, pmPtr->outlineGC,
+        NULL, 0, pmPtr->outlinePts, pmPtr->nOutlinePts);
+    Rbc_RenderArc(ctx, &pmPtr->arc);
+    Rbc_RenderEnd(ctx);
 }
 
 static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable) {
@@ -5699,8 +5652,9 @@ static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable)
         StrokeArcMarker(pmPtr, drawable, NULL);
         pmPtr->xor = savedXor;
     } else {
-        Rbc_Draw2DSegments(pmPtr->core.graphPtr->display, drawable, pmPtr->outlineGC,
-                          pmPtr->outlinePts, pmPtr->nOutlinePts);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginNativeSegments(pmPtr->core.graphPtr, drawable, pmPtr->outlineGC);
+        Rbc_RenderSegments(ctx, pmPtr->outlinePts, pmPtr->nOutlinePts);
+        Rbc_RenderEnd(ctx);
     }
 }
 
@@ -5714,11 +5668,10 @@ static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
             Rbc_RenderFillArc(ctx, &pmPtr->arc);
             Rbc_RenderEnd(ctx);
         } else {
-            /* Existing polygon fill is the native/resource-failure fallback. */
-            Tcl_Size count = pmPtr->nOutlinePts;
-            pmPtr->nOutlinePts = 0;
-            DrawPolygonMarker(markerPtr, drawable);
-            pmPtr->nOutlinePts = count;
+            ctx = Rbc_RenderBeginNativeArc(markerPtr->graphPtr, drawable, pmPtr->fillGC,
+                pmPtr->fillPts, pmPtr->nFillPts, NULL, 0);
+            Rbc_RenderFillArc(ctx, &pmPtr->arc);
+            Rbc_RenderEnd(ctx);
         }
     }
     StrokeArcMarker(pmPtr, drawable, NULL);
@@ -6858,7 +6811,9 @@ static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMark
 static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
                                        Segment2D *segments, Tcl_Size *nSegmentsPtr) {
     if ((*stylePtrPtr != NULL) && (*nSegmentsPtr > 0)) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, (*stylePtrPtr)->outlineGC, segments, *nSegmentsPtr);
+        Rbc_RenderContext *ctx = Rbc_RenderBeginNativeSegments(graphPtr, drawable, (*stylePtrPtr)->outlineGC);
+        Rbc_RenderSegments(ctx, segments, *nSegmentsPtr);
+        Rbc_RenderEnd(ctx);
     }
     *stylePtrPtr = NULL;
     *nSegmentsPtr = 0;
@@ -6866,92 +6821,17 @@ static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, Polyg
 
 static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, PolygonMarker *stylePtr,
                                       PolygonMarker **markers, Tcl_Size nMarkers) {
-    Rbc_WinDrawableDC *dcStatePtr;
-    POINT *points;
-    HBRUSH brush;
-    HBRUSH oldBrush;
-    HPEN oldPen;
-    HDC dc;
-    GC gc;
-    Tcl_Size maxPoints;
-    Tcl_Size i;
-    int oldFillMode;
-
-    if ((stylePtr == NULL) || (markers == NULL) || (nMarkers <= 0)) {
-        return;
-    }
-    /*
-     * One temporary POINT array is reused for every polygon.
-     */
-    maxPoints = 0;
+    Rbc_RenderContext *ctx;
+    Tcl_Size i, maxPoints = 0;
+    if (stylePtr == NULL || markers == NULL || nMarkers <= 0) return;
     for (i = 0; i < nMarkers; i++) {
-        if (markers[i]->nFillPts > maxPoints) {
-            maxPoints = markers[i]->nFillPts;
-        }
+        if (markers[i]->nFillPts > maxPoints) maxPoints = markers[i]->nFillPts;
     }
-    if ((maxPoints <= 0) || ((size_t)maxPoints > SIZE_MAX / sizeof(*points))) {
-        goto fallback;
-    }
-    points = Tcl_AttemptAlloc((size_t)maxPoints * sizeof(*points));
-    if (points == NULL) {
-        goto fallback;
-    }
-    gc = stylePtr->fillGC;
-    brush = CreateSolidBrush(gc->foreground);
-    if (brush == NULL) {
-        ckfree(points);
-        goto fallback;
-    }
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-    Rbc_WinSetROP2(dc, gc->function);
-    oldBrush = SelectBrush(dc, brush);
-    oldPen = SelectPen(dc, GetStockPen(NULL_PEN));
-    /*
-     * Preserve XFillPolygon's fill-rule selection.
-     */
-    oldFillMode = SetPolyFillMode(dc, (gc->fill_rule == EvenOddRule) ? ALTERNATE : WINDING);
+    ctx = Rbc_RenderBeginNativePolygonBatch(graphPtr, drawable, stylePtr->fillGC, maxPoints);
     for (i = 0; i < nMarkers; i++) {
-        PolygonMarker *pmPtr;
-        Tcl_Size j;
-        int nPoints;
-
-        pmPtr = markers[i];
-        nPoints = GetMarkerPolygonPointCount(graphPtr->display, pmPtr->nFillPts);
-        if (nPoints <= 0) {
-            continue;
-        }
-        /*
-         * Preserve the conversion currently used by
-         * DrawPolygonMarker().
-         */
-        for (j = 0; j < pmPtr->nFillPts; j++) {
-            points[j].x = (LONG)(short int)pmPtr->fillPts[j].x;
-            points[j].y = (LONG)(short int)pmPtr->fillPts[j].y;
-        }
-        /*
-         * NULL_PEN makes this a fill-only polygon.
-         *
-         * Keep polygons as independent operations initially.
-         */
-        Polygon(dc, points, nPoints);
+        Rbc_RenderFillPolygon(ctx, markers[i]->fillPts, markers[i]->nFillPts);
     }
-    if (oldFillMode != 0) {
-        SetPolyFillMode(dc, oldFillMode);
-    }
-    SelectPen(dc, oldPen);
-    DeleteBrush(SelectBrush(dc, oldBrush));
-    Rbc_WinReleaseDrawableDC(dcStatePtr);
-    ckfree(points);
-    return;
-
-fallback:
-    /*
-     * Preserve rendering if the optimized temporary allocation/setup
-     * cannot be performed.
-     */
-    for (i = 0; i < nMarkers; i++) {
-        DrawPolygonMarker(&markers[i]->core, drawable);
-    }
+    Rbc_RenderEnd(ctx);
 }
 
 static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,

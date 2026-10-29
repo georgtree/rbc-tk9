@@ -60,7 +60,7 @@ typedef enum {
     RBC_RENDER_SYMBOL_SQUARE, RBC_RENDER_SYMBOL_CIRCLE, RBC_RENDER_SYMBOL_DIAMOND,
     RBC_RENDER_SYMBOL_PLUS, RBC_RENDER_SYMBOL_CROSS, RBC_RENDER_SYMBOL_SPLUS,
     RBC_RENDER_SYMBOL_SCROSS, RBC_RENDER_SYMBOL_TRIANGLE, RBC_RENDER_SYMBOL_ARROW,
-    RBC_RENDER_SYMBOL_BITMAP
+    RBC_RENDER_SYMBOL_BITMAP, RBC_RENDER_SYMBOL_NONE
 } Rbc_RenderSymbolType;
 
 typedef struct {
@@ -69,6 +69,39 @@ typedef struct {
     const XColor *outlineColor, *fillColor;
     Pixmap bitmap, mask;
 } Rbc_RenderSymbolStyle;
+
+/* Borrowed native symbol resources. Sampling state is returned through counter;
+ * preserve it across batches belonging to the same element. */
+typedef struct {
+    Rbc_RenderSymbolType type;
+    int outlineWidth;
+    GC outlineGC, fillGC;
+    Pixmap bitmap, mask;
+    Tcl_Size interval, counter;
+} Rbc_RenderNativeSymbolStyle;
+
+typedef struct {
+    Tk_3DBorder border;
+    XColor *fgColor;
+    GC gc;
+    Pixmap stipple;
+    int borderWidth, relief;
+    double fillOpacity;
+} Rbc_RenderBarStyle;
+
+/* Screen-only adapters. Native symbol contexts support SymbolPoints/End;
+ * bar contexts support FillRectangles/End (including the existing bevel).
+ * Fill contexts support FillPolygon/End. Native arc contexts retain mapped,
+ * clipped fallback geometry and support Arc/FillArc/End. All input resources
+ * and geometry are borrowed until End; no public Tcl or vector ABI changes. */
+Rbc_RenderContext *Rbc_RenderBeginNativeSymbols(Graph *, Drawable, Rbc_RenderNativeSymbolStyle *, int size);
+Rbc_RenderContext *Rbc_RenderBeginBars(Graph *, Drawable, const Rbc_RenderBarStyle *);
+Rbc_RenderContext *Rbc_RenderBeginNativeFill(Graph *, Drawable, GC, Rbc_Tile, Pixmap);
+/* Native-only Segments/End; also preserves XOR and preinstalled GC clips. */
+Rbc_RenderContext *Rbc_RenderBeginNativeSegments(Graph *, Drawable, GC);
+Rbc_RenderContext *Rbc_RenderBeginNativeArc(Graph *, Drawable, GC, const Point2D *, Tcl_Size,
+    const Segment2D *, Tcl_Size);
+Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *, Drawable, GC, Tcl_Size maxPoints);
 
 /* Export symbol contexts support SymbolPoints and End. Screen shape batching
  * retains its existing interface. Contexts borrow bitmap/color resources.

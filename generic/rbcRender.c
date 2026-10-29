@@ -3,6 +3,7 @@
  * See license.terms for details.
  */
 #include "rbcRender.h"
+#include "rbcRenderNative.h"
 #include "rbcFont.h"
 #include <stdint.h>
 
@@ -60,14 +61,16 @@ struct Rbc_RenderContext {
     /* Borrowed native GC; trace scratch storage and DC live until End. */
     Drawable nativeDrawable;
     GC nativeGC;
-    void *nativePoints;
-    int nativeMaxPoints;
-#ifdef WIN32
-    Rbc_WinDrawableDC *nativeDCState;
-    HDC nativeDC;
-    HPEN nativeOldPen;
-    HBRUSH nativeOldBrush;
-#endif
+    Rbc_NativeTrace *nativeTrace;
+    Rbc_RenderNativeSymbolStyle *nativeSymbolStyle;
+    Rbc_RenderBarStyle nativeBarStyle;
+    Rbc_Tile nativeTile;
+    Pixmap nativeStipple;
+    const Point2D *nativeFillPoints;
+    Tcl_Size nativeFillCount;
+    const Segment2D *nativeArcSegments;
+    Tcl_Size nativeArcCount;
+    Rbc_NativePolygonBatch *nativePolygonBatch;
     PsToken psToken;
     Rbc_ExportContext *exportPtr;
     int postScriptDashed;
@@ -104,227 +107,22 @@ struct Rbc_RenderContext {
 #endif
 };
 
-/* Native stroke contexts borrow the configured GC, including its clip and
- * raster operation. Keep the original request splitting and integer conversion;
- * dispatch occurs once per trace/segment batch, never once per point. */
-static void NativePolyline(Rbc_RenderContext *ctx, const Point2D *screenPts, Tcl_Size nPoints) {
-    Tcl_Size count, j, remaining;
-    int maxPoints = ctx->nativeMaxPoints;
-    if (screenPts == NULL || nPoints < 2 || maxPoints < 2) {
-        return;
-    }
-#ifdef WIN32
-    POINT *points = ctx->nativePoints;
-    HDC dc = ctx->nativeDC;
-    Tcl_Size firstCount;
-
-    /*
-     * A polyline requires at least two points.
-     */
-    if (nPoints < 2) {
-        return;
-    }
-    /*
-     * Step 1: draw the first section.  It may contain the entire
-     * trace.
-     */
-    firstCount = MIN((Tcl_Size)maxPoints, nPoints);
-    for (count = 0; count < firstCount; count++) {
-        points[count].x = (int)screenPts[count].x;
-        points[count].y = (int)screenPts[count].y;
-    }
-    Polyline(dc, points, (int)firstCount);
-    /*
-     * Step 2: draw full continuation chunks.  Each continuation
-     * starts with the last point drawn by the preceding request.
-     */
-    while ((nPoints - count) > (Tcl_Size)maxPoints) {
-        points[0].x = (int)screenPts[count - 1].x;
-        points[0].y = (int)screenPts[count - 1].y;
-        for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
-            points[j + 1].x = (int)screenPts[count].x;
-            points[j + 1].y = (int)screenPts[count].y;
-        }
-        Polyline(dc, points, maxPoints + 1);
-    }
-    /*
-     * Step 3: draw the final partial chunk.
-     */
-    remaining = nPoints - count;
-    if (remaining > 0) {
-        points[0].x = (int)screenPts[count - 1].x;
-        points[0].y = (int)screenPts[count - 1].y;
-        for (j = 0; j < remaining; j++, count++) {
-            points[j + 1].x = (int)screenPts[count].x;
-            points[j + 1].y = (int)screenPts[count].y;
-        }
-        Polyline(dc, points, (int)remaining + 1);
-    }
-#else
-    XPoint *points = ctx->nativePoints;
-    Tcl_Size firstCount;
-
-    /*
-     * XDrawLines requires at least two useful points to produce a
-     * line.
-     */
-    if (nPoints < 2) {
-        return;
-    }
-    /*
-     * Step 1: draw the first section.  It may contain the entire
-     * trace.
-     */
-    firstCount = MIN((Tcl_Size)maxPoints, nPoints);
-    for (count = 0; count < firstCount; count++) {
-        points[count].x = (short int)screenPts[count].x;
-        points[count].y = (short int)screenPts[count].y;
-    }
-    XDrawLines(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, points, (int)firstCount, CoordModeOrigin);
-    /*
-     * Step 2: draw full continuation chunks.  Each continuation
-     * starts with the last point drawn by the preceding request.
-     */
-    while ((nPoints - count) > (Tcl_Size)maxPoints) {
-        points[0].x = (short int)screenPts[count - 1].x;
-        points[0].y = (short int)screenPts[count - 1].y;
-        for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
-            points[j + 1].x = (short int)screenPts[count].x;
-            points[j + 1].y = (short int)screenPts[count].y;
-        }
-        XDrawLines(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, points, maxPoints + 1, CoordModeOrigin);
-    }
-    /*
-     * Step 3: draw the final partial chunk.
-     */
-    remaining = nPoints - count;
-    if (remaining > 0) {
-        points[0].x = (short int)screenPts[count - 1].x;
-        points[0].y = (short int)screenPts[count - 1].y;
-        for (j = 0; j < remaining; j++, count++) {
-            points[j + 1].x = (short int)screenPts[count].x;
-            points[j + 1].y = (short int)screenPts[count].y;
-        }
-        XDrawLines(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, points, (int)remaining + 1, CoordModeOrigin);
-    }
-#endif
+/* Native contexts dispatch once per trace/segment batch. The backend owns
+ * trace scratch storage and platform drawing resources until End. */
+static void NativePolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    Rbc_NativePolyline(ctx->nativeTrace, points, count);
 }
 
-static void NativeStrips(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size nSegments) {
-    Graph *graphPtr = ctx->graphPtr;
-    Drawable drawable = ctx->nativeDrawable;
-    GC gc = ctx->nativeGC;
-#ifdef WIN32
-    enum {
-        /*
-         * GDI/EMF permits 16K points in one polyline operation.
-         * Each strip is an independent two-point polyline.
-         */
-        STRIP_BATCH_SEGMENTS = 8192,
-        /*
-         * Devices without wide-line support may have a 1360-point
-         * limit for wide lines.
-         */
-        STRIP_WIDE_BATCH_SEGMENTS = 680
-    };
-    Rbc_WinDrawableDC *dcStatePtr;
-    HDC dc;
-    HPEN pen, oldPen;
-    POINT *points;
-    DWORD *counts;
-    Tcl_Size maxSegments;
-    Tcl_Size first;
-    Tcl_Size i;
-
-    if ((drawable == None) || (gc == NULL) || (segments == NULL) || (nSegments <= 0)) {
-        return;
-    }
-    /*
-     * Long operations using wide geometric pens can themselves become
-     * expensive in GDI.  Use a smaller batch for wide lines, matching
-     * the same concern handled by NativePolyline().
-     */
-    if (gc->line_width > 1) {
-        maxSegments = STRIP_WIDE_BATCH_SEGMENTS;
-    } else {
-        maxSegments = STRIP_BATCH_SEGMENTS;
-    }
-    if (maxSegments > nSegments) {
-        maxSegments = nSegments;
-    }
-    /*
-     * Each independent strip consists of exactly two POINTs.
-     */
-    if ((size_t)maxSegments > SIZE_MAX / (2u * sizeof(*points))) {
-        return;
-    }
-    points = Tcl_AttemptAlloc((size_t)maxSegments * 2u * sizeof(*points));
-    if (points == NULL) {
-        return;
-    }
-    if ((size_t)maxSegments > SIZE_MAX / sizeof(*counts)) {
-        ckfree(points);
-        return;
-    }
-    counts = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*counts));
-    if (counts == NULL) {
-        ckfree(points);
-        return;
-    }
-    /*
-     * Every PolyPolyline entry is a separate two-point polyline.
-     * This array is invariant across all chunks.
-     */
-    for (i = 0; i < maxSegments; i++) {
-        counts[i] = 2;
-    }
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-    Rbc_WinSetROP2(dc, gc->function);
-    pen = Rbc_GCToPen(dc, gc);
-    oldPen = SelectPen(dc, pen);
-    first = 0;
-    while (first < nSegments) {
-        Tcl_Size count;
-
-        count = nSegments - first;
-        if (count > maxSegments) {
-            count = maxSegments;
-        }
-        for (i = 0; i < count; i++) {
-            const Segment2D *segPtr;
-
-            segPtr = segments + first + i;
-            points[2 * i].x = (LONG)segPtr->p.x;
-            points[2 * i].y = (LONG)segPtr->p.y;
-            points[2 * i + 1].x = (LONG)segPtr->q.x;
-            points[2 * i + 1].y = (LONG)segPtr->q.y;
-        }
-        PolyPolyline(dc, points, counts, (DWORD)count);
-        first += count;
-    }
-    DeletePen(SelectPen(dc, oldPen));
-    Rbc_WinReleaseDrawableDC(dcStatePtr);
-    ckfree(counts);
-    ckfree(points);
-#else
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, nSegments);
-#endif
+static void NativeStrips(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+    Rbc_NativeStrips(ctx->graphPtr, ctx->nativeDrawable, ctx->nativeGC, segments, count);
 }
-
 
 static void NativeSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
-    Rbc_Draw2DSegments(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, segments, count);
+    Rbc_NativeSegments(ctx->graphPtr, ctx->nativeDrawable, ctx->nativeGC, segments, count);
 }
 
 static void NativeEnd(Rbc_RenderContext *ctx) {
-    if (ctx->nativePoints != NULL) {
-        ckfree(ctx->nativePoints);
-#ifdef WIN32
-        DeletePen(SelectPen(ctx->nativeDC, ctx->nativeOldPen));
-        DeleteBrush(SelectBrush(ctx->nativeDC, ctx->nativeOldBrush));
-        Rbc_WinReleaseDrawableDC(ctx->nativeDCState);
-#endif
-    }
+    Rbc_NativeEndTrace(ctx->nativeTrace);
     ckfree(ctx);
 }
 
@@ -342,8 +140,6 @@ Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC 
     Rbc_RenderStrokeKind kind, const XColor *color, double width,
     const Rbc_Dashes *dashes, const XColor *offColor) {
     Rbc_RenderContext *ctx;
-    int maxPoints;
-    size_t pointSize;
 
     ctx = Rbc_RenderBegin(graphPtr, drawable, color, width, dashes, offColor);
     if (ctx != NULL) {
@@ -361,29 +157,116 @@ Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC 
     if (kind != RBC_RENDER_STROKE_TRACES) {
         return ctx;
     }
-#ifdef WIN32
-    pointSize = sizeof(POINT);
-    maxPoints = gc->line_width > 1 ? 100 : Rbc_MaxRequestSize(graphPtr->display, pointSize) - 1;
-#else
-    pointSize = sizeof(XPoint);
-    maxPoints = Rbc_MaxRequestSize(graphPtr->display, pointSize) - 1;
-#endif
-    if (maxPoints < 2 || ((size_t)maxPoints + 1u) > SIZE_MAX / pointSize) {
+    ctx->nativeTrace = Rbc_NativeBeginTrace(graphPtr, drawable, gc);
+    if (ctx->nativeTrace == NULL) {
         ckfree(ctx);
         return NULL;
     }
-    ctx->nativePoints = Tcl_AttemptAlloc(((size_t)maxPoints + 1u) * pointSize);
-    if (ctx->nativePoints == NULL) {
-        ckfree(ctx);
-        return NULL;
+    return ctx;
+}
+
+/* Native screen capabilities use the same dispatch as Cairo and exporters.
+ * These contexts borrow component resources; End releases only backend state. */
+static void NativeSymbolPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    Rbc_NativeSymbolPoints(ctx->graphPtr, ctx->nativeDrawable, ctx->nativeSymbolStyle,
+        (int)ctx->symbolSize, count, points);
+}
+
+static void NativeFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
+    if (ctx->nativePolygonBatch != NULL) {
+        Rbc_NativeBatchPolygon(ctx->nativePolygonBatch, points, count);
+    } else {
+        Rbc_NativeFillPolygon(ctx->graphPtr, ctx->nativeDrawable, ctx->nativeGC, ctx->nativeTile,
+            ctx->nativeStipple, points, count);
     }
-    ctx->nativeMaxPoints = maxPoints;
-#ifdef WIN32
-    ctx->nativeDC = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &ctx->nativeDCState);
-    ctx->nativeOldPen = SelectPen(ctx->nativeDC, Rbc_GCToPen(ctx->nativeDC, gc));
-    ctx->nativeOldBrush = SelectBrush(ctx->nativeDC, CreateSolidBrush(gc->foreground));
-    Rbc_WinSetROP2(ctx->nativeDC, gc->function);
-#endif
+}
+
+static void ScreenBarRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rects, Tcl_Size count) {
+    Rbc_RenderBarStyle style = ctx->nativeBarStyle;
+    if (style.fillOpacity > 0.0) {
+        const XColor *background = style.border != NULL ? Tk_3DBorderColor(style.border) : NULL;
+        const XColor *foreground = style.fgColor != NULL ? style.fgColor : background;
+        if (Rbc_RenderRectangles(ctx->graphPtr, ctx->nativeDrawable, rects, count, foreground,
+            style.fgColor != NULL ? background : NULL, style.stipple, style.fillOpacity)) {
+            style.fillOpacity = 0.0; /* Fill complete; native bevel still applies. */
+        }
+    }
+    Rbc_NativeBars(ctx->graphPtr, ctx->nativeDrawable, &style, rects, count);
+}
+
+static void NativeArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    (void)arc;
+    Rbc_NativeArcStroke(ctx->graphPtr, ctx->nativeDrawable, ctx->nativeGC,
+        ctx->nativeArcSegments, ctx->nativeArcCount);
+}
+
+static void NativeFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
+    (void)arc;
+    NativeFillPolygon(ctx, ctx->nativeFillPoints, ctx->nativeFillCount);
+}
+
+static void NativeGeometryEnd(Rbc_RenderContext *ctx) {
+    if (ctx->nativePolygonBatch != NULL) Rbc_NativeEndPolygonBatch(ctx->nativePolygonBatch);
+    ckfree(ctx);
+}
+
+static const Rbc_RenderOps nativeGeometryOps = {
+    NULL, NativeSegments, NULL, NULL, NativeFillPolygon, ScreenBarRectangles, NativeSymbolPoints, NULL,
+    NativeGeometryEnd, NativeArc, NativeFillArc
+};
+
+static Rbc_RenderContext *BeginNativeGeometry(Graph *graphPtr, Drawable drawable) {
+    Rbc_RenderContext *ctx = (Rbc_RenderContext *)ckalloc(sizeof(*ctx));
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->ops = &nativeGeometryOps;
+    ctx->graphPtr = graphPtr;
+    ctx->nativeDrawable = drawable;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginNativeSymbols(Graph *graphPtr, Drawable drawable,
+    Rbc_RenderNativeSymbolStyle *style, int size) {
+    Rbc_RenderContext *ctx = BeginNativeGeometry(graphPtr, drawable);
+    ctx->nativeSymbolStyle = style;
+    ctx->symbolSize = size;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *style) {
+    Rbc_RenderContext *ctx = BeginNativeGeometry(graphPtr, drawable);
+    ctx->nativeBarStyle = *style;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginNativeFill(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile tile,
+    Pixmap stipple) {
+    Rbc_RenderContext *ctx = BeginNativeGeometry(graphPtr, drawable);
+    ctx->nativeGC = gc;
+    ctx->nativeTile = tile;
+    ctx->nativeStipple = stipple;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginNativeSegments(Graph *graphPtr, Drawable drawable, GC gc) {
+    Rbc_RenderContext *ctx = BeginNativeGeometry(graphPtr, drawable);
+    ctx->nativeGC = gc;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginNativeArc(Graph *graphPtr, Drawable drawable, GC gc,
+    const Point2D *fillPoints, Tcl_Size fillCount, const Segment2D *segments, Tcl_Size count) {
+    Rbc_RenderContext *ctx = Rbc_RenderBeginNativeFill(graphPtr, drawable, gc, NULL, (Pixmap)1);
+    ctx->nativeFillPoints = fillPoints;
+    ctx->nativeFillCount = fillCount;
+    ctx->nativeArcSegments = segments;
+    ctx->nativeArcCount = count;
+    return ctx;
+}
+
+Rbc_RenderContext *Rbc_RenderBeginNativePolygonBatch(Graph *graphPtr, Drawable drawable, GC gc,
+    Tcl_Size maxPoints) {
+    Rbc_RenderContext *ctx = Rbc_RenderBeginNativeFill(graphPtr, drawable, gc, NULL, (Pixmap)1);
+    ctx->nativePolygonBatch = Rbc_NativeBeginPolygonBatch(graphPtr, drawable, gc, maxPoints);
     return ctx;
 }
 

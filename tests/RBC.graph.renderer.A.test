@@ -2466,5 +2466,91 @@ namespace eval graph.renderer {
         }
     }
 
+    # Native backend adapters must preserve symbol sampling and batch order.
+    set testCase(70) 0
+    foreach kind {graph stripchart} {
+        foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+            foreach inverted {0 1} {
+                test RBC.graph.renderer.A.70.[incr testCase(70)] {native symbol sampling matches explicit source subset} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -data {1 2 2 5 3 8 4 2 5 5 6 8 7 2 8 5 9 8} \
+                        -linewidth 0 -symbol $symbol -pixels 11 -scalesymbols no -maxsymbols 3 \
+                        -fill red -outline blue -outlinewidth 2
+                    set photo [image create photo]
+                    update
+                } -body {
+                    .renderer snap $photo
+                    set sampled [$photo data]
+                    .renderer element configure signal -maxsymbols 0 -data {1 2 4 2 7 2}
+                    .renderer snap $photo
+                    set same [expr {$sampled eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$sampled ne [$photo data]}]
+                } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+            }
+        }
+    }
+
+    set testCase(71) 0
+    foreach kind {polygon ellipse chord pieslice} {
+        test RBC.graph.renderer.A.71.[incr testCase(71)] {native marker fill batching preserves individual polygon pixels} -setup {
+            StrokeFixture graph native
+            .renderer element delete signal
+            for {set i 0} {$i < 100} {incr i} {
+                set x [expr {($i % 10)+0.1}]
+                set y [expr {($i / 10)+0.1}]
+                set coords [list $x $y [expr {$x+0.8}] [expr {$y+0.8}]]
+                if {$kind eq "polygon"} {
+                    .renderer marker create polygon -name m$i -coords [list $x $y $x [expr {$y+0.8}] \
+                        [expr {$x+0.8}] [expr {$y+0.8}]] -fill red -outline {} -linewidth 0
+                } else {
+                    .renderer marker create arc -name m$i -coords $coords -fill red -outline {} -linewidth 0 \
+                        -style [expr {$kind eq "pieslice" ? "pieslice" : "chord"}] \
+                        -extent [expr {$kind eq "ellipse" ? 360 : 120}]
+                }
+            }
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set batched [$photo data]
+            # An unused solid-fill background disables the Windows fast batch.
+            foreach name [.renderer marker names] {.renderer marker configure $name -fill {red white}}
+            .renderer snap $photo
+            expr {$batched eq [$photo data]}
+        } -cleanup {destroy .renderer; image delete $photo} -result 1
+    }
+
+    set testCase(72) 0
+    foreach style {flat raised stipple} {
+        foreach inverted {0 1} {
+            test RBC.graph.renderer.A.72.[incr testCase(72)] {native bar fill and bevel batches match a single identical bar} -setup {
+                ::rbc::barchart .renderer -renderer native -width 240 -height 180 -barmode normal \
+                    -invertxy $inverted
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                .renderer axis configure y -min 0 -max 10
+                .renderer element create signal -xdata [lrepeat 1001 5] -ydata [lrepeat 1001 7] \
+                    -barwidth 2 -foreground red -background white -borderwidth 0 -relief flat
+                if {$style eq "raised"} {.renderer element configure signal -borderwidth 2 -relief raised}
+                if {$style eq "stipple"} {.renderer element configure signal -stipple gray50}
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set batched [$photo data]
+                .renderer element configure signal -data {5 7}
+                .renderer snap $photo
+                set same [expr {$batched eq [$photo data]}]
+                .renderer element configure signal -hide yes
+                .renderer snap $photo
+                list $same [expr {$batched ne [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
     cleanupTests
 }

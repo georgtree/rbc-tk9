@@ -605,5 +605,7 @@ uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 rbcRender.$(OBJEXT) rbcGrLine.$(OBJEXT): $(srcdir)/generic/rbcRender.h
 $(PKG_OBJECTS): $(srcdir)/generic/rbcGraph.h $(srcdir)/generic/rbcExport.h $(srcdir)/generic/rbcRender.h
 
+rbcRender.$(OBJEXT) rbcRenderNative.$(OBJEXT): $(srcdir)/generic/rbcRenderNative.h
+
 # Shared native font parsing is private to the document exporters.
 rbcFont.$(OBJEXT) rbcPdfFont.$(OBJEXT) rbcRender.$(OBJEXT) rbcGrExport.$(OBJEXT): $(srcdir)/generic/rbcFont.h
