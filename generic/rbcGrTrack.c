@@ -567,7 +567,12 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
             values.line_width = width;
             values.cap_style = CapButt;
             gc = Tk_GetGC(graphPtr->tkwin, GCForeground | GCLineWidth | GCCapStyle, &values);
-            Rbc_Draw2DSegments(graphPtr->display, drawable, gc, &segment, 1);
+            ctx = Rbc_RenderBeginStroke(graphPtr, drawable, gc, RBC_RENDER_STROKE_SEGMENTS,
+                                        graphPtr->trackSeparatorColor, width, NULL, NULL);
+            if (ctx != NULL) {
+                Rbc_RenderSegments(ctx, &segment, 1);
+                Rbc_RenderEnd(ctx);
+            }
             Tk_FreeGC(graphPtr->display, gc);
         }
     }

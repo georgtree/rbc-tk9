@@ -64,6 +64,31 @@ void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, 
     XCopyArea(graphPtr->display, pixmap, drawable, gc, 0, 0, r->width, r->height, r->x, r->y);
 }
 
+/* Widget decorations intentionally use Tk/native painting even when element
+ * geometry uses Cairo. Tile origins and borrowed GCs are configured by the
+ * component; preserve relief shading and the original fill/draw distinction. */
+void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y,
+                       int width, int height, int borderWidth, int relief, int fill) {
+    if (fill) {
+        Rbc_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
+    } else {
+        Rbc_Draw3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
+    }
+}
+
+void Rbc_NativeRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile,
+                          int x, int y, int width, int height) {
+    if (tile != NULL) {
+        Rbc_TileRectangle(tkwin, drawable, tile, x, y, width, height);
+    } else {
+        XFillRectangle(Tk_Display(tkwin), drawable, gc, x, y, (unsigned int)width, (unsigned int)height);
+    }
+}
+
+void Rbc_NativeFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {
+    Tk_DrawFocusHighlight(tkwin, gc, width, drawable);
+}
+
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;

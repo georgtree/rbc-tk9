@@ -2838,5 +2838,91 @@ namespace eval graph.renderer {
         }
     }
 
+    set testCase(79) 0
+    foreach renderer {native cairo} {
+        foreach relief {flat raised sunken ridge groove solid} {
+            test RBC.graph.renderer.A.79.[incr testCase(79)] {widget and legend decorations restore after tiled backgrounds and focus changes} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -width 360 -height 260 -background ivory \
+                        -plotbackground white -borderwidth 4 -relief $relief -plotborderwidth 3 \
+                        -plotrelief $relief -highlightthickness 3 -highlightcolor magenta -buffergraph no
+                pack .renderer
+                .renderer axis configure x -min 0 -max 10 -background lightblue -borderwidth 2 -relief $relief
+                .renderer axis configure y -min 0 -max 10
+                .renderer element create a -data {2 3 8 7} -symbol none -linewidth 0 -label Signal
+                .renderer legend configure -position rightmargin -background lightyellow -borderwidth 3 \
+                        -relief $relief -activebackground orange -activeborderwidth 2 -activerelief $relief
+                .renderer legend activate a
+                set tile [image create photo -width 8 -height 8]
+                $tile put navy -to 0 0 8 8
+                $tile put gold -to 0 0 4 4
+                set photo [image create photo]
+                update
+                event generate .renderer <FocusOut>
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer configure -tile $tile
+                .renderer legend configure -background {}
+                .renderer snap $photo
+                set tiled [expr {$original ne [$photo data]}]
+                .renderer configure -tile {}
+                .renderer legend configure -background lightyellow
+                .renderer snap $photo
+                set restored [expr {$original eq [$photo data]}]
+                event generate .renderer <FocusIn>
+                update
+                .renderer snap $photo
+                set focused [expr {$original ne [$photo data]}]
+                event generate .renderer <FocusOut>
+                update
+                .renderer snap $photo
+                list $tiled $restored $focused [expr {$original eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo $tile}
+            } -result {1 1 1 1}
+        }
+    }
+
+    set testCase(80) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test RBC.graph.renderer.A.80.[incr testCase(80)] {track divider and local legend decorations survive divider reconfiguration} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                        -background ivory -plotbackground white -buffergraph no -bufferelements no \
+                        -trackseparatorcolor magenta -trackseparatorwidth 5
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -background lightblue -borderwidth 2 -relief raised
+                    .renderer track create $track -yaxes $track
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label $track
+                    .renderer track legend $track configure -hide no -position right -background lightyellow \
+                            -borderwidth 3 -relief ridge -activebackground orange -activeborderwidth 2
+                    .renderer track legend $track activate $track
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                set visible [expr {[CountPhotoColor $photo {255 0 255}]>0}]
+                .renderer configure -trackseparatorcolor {}
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer configure -trackseparatorcolor magenta
+                .renderer snap $photo
+                list $visible $changed [expr {$original eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1}
+        }
+    }
+
     cleanupTests
 }

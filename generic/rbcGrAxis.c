@@ -4394,10 +4394,10 @@ static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const o
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
     if (axisPtr->border != NULL) {
-        Rbc_Fill3DRectangle(
+        Rbc_RenderScreenBorder(
             graphPtr->tkwin, drawable, axisPtr->border, axisPtr->region.left + graphPtr->plotBorderWidth,
             axisPtr->region.top + graphPtr->plotBorderWidth, axisPtr->region.right - axisPtr->region.left,
-            axisPtr->region.bottom - axisPtr->region.top, axisPtr->borderWidth, axisPtr->relief);
+            axisPtr->region.bottom - axisPtr->region.top, axisPtr->borderWidth, axisPtr->relief, 1);
     }
     if (axisPtr->title != NULL) {
         Rbc_RenderText(text, axisPtr->title, &axisPtr->titleTextStyle, (int)axisPtr->titlePos.x,

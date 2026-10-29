@@ -44,6 +44,13 @@ void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r
                             const Rbc_RenderBitmapStyle *style);
 void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r);
 
+/* Native widget decorations retain Tk relief shading, GC state and tile
+ * origins for both screen renderers. These one-shot operations borrow all
+ * resources and do not change backing-store ownership or painter order. */
+void Rbc_RenderScreenBorder(Tk_Window, Drawable, Tk_3DBorder, int, int, int, int, int, int, int);
+void Rbc_RenderScreenRectangle(Tk_Window, Drawable, GC, Rbc_Tile, int, int, int, int);
+void Rbc_RenderScreenFocus(Tk_Window, Drawable, GC, int);
+
 /* Fill policy shared by screen and export. backgroundOnly preserves the
  * legacy PostScript fallback for image-tiled areas. */
 typedef struct {

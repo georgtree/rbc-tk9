@@ -45,6 +45,8 @@ typedef struct {
     /* Screen-only mapped raster presentation. */
     void (*mappedBitmap)(Rbc_RenderContext *, const Rbc_RenderRectangle *, const Rbc_RenderBitmapStyle *);
     void (*pixmap)(Rbc_RenderContext *, Pixmap, GC, const Rbc_RenderRectangle *);
+    void (*screenRectangle)(Rbc_RenderContext *, GC, Rbc_Tile, int, int, int, int);
+    void (*focus)(Rbc_RenderContext *, GC, int);
 } Rbc_RenderOutputOps;
 
 /* Geometry dispatch is shared by screen and export contexts. */
@@ -220,6 +222,45 @@ void Rbc_RenderMappedBitmap(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *r
 
 void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
     ctx->ops->output->pixmap(ctx, pixmap, gc, r);
+}
+
+/* Small decorations need no retained surfaces or allocated contexts. Stack
+ * contexts dispatch through the same presentation interface as export borders;
+ * they never escape these one-shot calls and must not be passed to RenderEnd. */
+static void ScreenBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y,
+                          int width, int height, int borderWidth, int relief, int fill) {
+    Rbc_NativeBorder(ctx->nativeWindow, ctx->nativeDrawable, border, (int)x, (int)y,
+                     width, height, borderWidth, relief, fill);
+}
+
+static void ScreenRectangle(Rbc_RenderContext *ctx, GC gc, Rbc_Tile tile, int x, int y, int width, int height) {
+    Rbc_NativeRectangle(ctx->nativeWindow, ctx->nativeDrawable, gc, tile, x, y, width, height);
+}
+
+static void ScreenFocus(Rbc_RenderContext *ctx, GC gc, int width) {
+    Rbc_NativeFocus(ctx->nativeWindow, ctx->nativeDrawable, gc, width);
+}
+
+static const Rbc_RenderOutputOps screenDecorationOutputOps = {
+    .border = ScreenBorder, .screenRectangle = ScreenRectangle, .focus = ScreenFocus
+};
+static const Rbc_RenderOps screenDecorationOps = {.output = &screenDecorationOutputOps};
+
+void Rbc_RenderScreenBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y,
+                            int width, int height, int borderWidth, int relief, int fill) {
+    Rbc_RenderContext ctx = {.ops = &screenDecorationOps, .nativeWindow = tkwin, .nativeDrawable = drawable};
+    Rbc_RenderBorder(&ctx, border, x, y, width, height, borderWidth, relief, fill);
+}
+
+void Rbc_RenderScreenRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile,
+                               int x, int y, int width, int height) {
+    Rbc_RenderContext ctx = {.ops = &screenDecorationOps, .nativeWindow = tkwin, .nativeDrawable = drawable};
+    ctx.ops->output->screenRectangle(&ctx, gc, tile, x, y, width, height);
+}
+
+void Rbc_RenderScreenFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {
+    Rbc_RenderContext ctx = {.ops = &screenDecorationOps, .nativeWindow = tkwin, .nativeDrawable = drawable};
+    ctx.ops->output->focus(&ctx, gc, width);
 }
 
 /* Screen clip scopes also enclose legacy Tk drawing that does not use a
@@ -1758,7 +1799,7 @@ static const Rbc_RenderOutputOps postScriptOutputOps = {PostScriptText,
                                                         PostScriptPlotBegin,
                                                         PostScriptPlotEnd,
                                                         PostScriptBitmapMask,
-                                                        PostScriptTkImage, NULL, NULL, NULL, NULL};
+                                                        PostScriptTkImage, NULL, NULL, NULL, NULL, NULL, NULL};
 
 static void PostScriptEnd(Rbc_RenderContext *ctx) {
     /* The export owns its token and clipping/page state. */
@@ -3222,7 +3263,7 @@ static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
                                                  SvgPlotBegin,
                                                  SvgPlotEnd,
                                                  SvgBitmapMask,
-                                                 SvgTkImage, NULL, NULL, NULL, NULL};
+                                                 SvgTkImage, NULL, NULL, NULL, NULL, NULL, NULL};
 
 static const Rbc_RenderOps svgOps = {SvgPolyline,       SvgSegments,    ExportLineStyle,
                                      ExportDashBackground, SvgFillPolygon, SvgFillRectangles,
@@ -3951,7 +3992,7 @@ static const Rbc_RenderOutputOps pdfOutputOps = {PdfText,
                                                  PdfPlotBegin,
                                                  PdfPlotEnd,
                                                  PdfBitmapMask,
-                                                 PdfTkImage, NULL, NULL, NULL, NULL};
+                                                 PdfTkImage, NULL, NULL, NULL, NULL, NULL, NULL};
 
 static const Rbc_RenderOps pdfOps = {
     PdfPolyline,       PdfSegments,     ExportLineStyle, ExportDashBackground, PdfFillPolygon,

@@ -3207,9 +3207,9 @@ static void FillMarginRectangle(Graph *graphPtr, Drawable drawable, int x, int y
         return;
     }
     if (graphPtr->tile != NULL) {
-        Rbc_TileRectangle(graphPtr->tkwin, drawable, graphPtr->tile, x, y, width, height);
+        Rbc_RenderScreenRectangle(graphPtr->tkwin, drawable, NULL, graphPtr->tile, x, y, width, height);
     } else {
-        XFillRectangle(graphPtr->display, drawable, graphPtr->fillGC, x, y, (unsigned int)width, (unsigned int)height);
+        Rbc_RenderScreenRectangle(graphPtr->tkwin, drawable, graphPtr->fillGC, NULL, x, y, width, height);
     }
 }
 
@@ -3293,8 +3293,8 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
         y = graphPtr->top - graphPtr->plotBorderWidth;
         width = (graphPtr->right - graphPtr->left) + (2 * graphPtr->plotBorderWidth);
         height = (graphPtr->bottom - graphPtr->top) + (2 * graphPtr->plotBorderWidth);
-        Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, graphPtr->border, x, y, width, height, graphPtr->plotBorderWidth,
-                            graphPtr->plotRelief);
+        Rbc_RenderScreenBorder(graphPtr->tkwin, drawable, graphPtr->border, x, y, width, height, graphPtr->plotBorderWidth,
+                            graphPtr->plotRelief, 0);
     }
     if (Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_MARGIN) {
         Rbc_DrawLegend(graphPtr->legend, drawable);
@@ -3332,7 +3332,7 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
  */
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
-    XFillRectangle(graphPtr->display, drawable, graphPtr->plotFillGC, graphPtr->left, graphPtr->top,
+    Rbc_RenderScreenRectangle(graphPtr->tkwin, drawable, graphPtr->plotFillGC, NULL, graphPtr->left, graphPtr->top,
                    graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
     Rbc_DrawTrackSeparators(graphPtr, drawable, NULL);
     /* Draw the elements, markers, legend, and axis limits. */
@@ -3475,9 +3475,9 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
         width = (Tcl_WideInt)graphPtr->width - (2 * (Tcl_WideInt)graphPtr->highlightWidth);
         height = (Tcl_WideInt)graphPtr->height - (2 * (Tcl_WideInt)graphPtr->highlightWidth);
         if ((width > 0) && (height > 0)) {
-            Rbc_Draw3DRectangle(graphPtr->tkwin, drawable, graphPtr->border, graphPtr->highlightWidth,
+            Rbc_RenderScreenBorder(graphPtr->tkwin, drawable, graphPtr->border, graphPtr->highlightWidth,
                                 graphPtr->highlightWidth, GraphLayoutInt(width), GraphLayoutInt(height),
-                                graphPtr->borderWidth, graphPtr->relief);
+                                graphPtr->borderWidth, graphPtr->relief, 0);
         }
     }
     /* Draw focus highlight ring. */
@@ -3485,7 +3485,7 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
         GC gc;
 
         gc = Tk_GCForColor(graphPtr->highlightColor, drawable);
-        Tk_DrawFocusHighlight(graphPtr->tkwin, gc, graphPtr->highlightWidth, drawable);
+        Rbc_RenderScreenFocus(graphPtr->tkwin, drawable, gc, graphPtr->highlightWidth);
     }
 }
 

@@ -1137,7 +1137,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     Rbc_RenderContext *text = Rbc_RenderBeginScreenText(legendPtr->tkwin, pixmap);
     if (legendPtr->border != NULL) {
         /* Background color and relief. */
-        Rbc_Fill3DRectangle(legendPtr->tkwin, pixmap, legendPtr->border, 0, 0, width, height, 0, TK_RELIEF_FLAT);
+        Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, legendPtr->border, 0, 0, width, height, 0, TK_RELIEF_FLAT, 1);
     } else if (legendPtr->track != NULL || (legendPtr->site & LEGEND_IN_PLOT)) {
         /*
          * Legend background is transparent and is positioned over the
@@ -1150,7 +1150,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                 int left = MAX(0, legendPtr->x), top = MAX(0, legendPtr->y);
                 int right = MIN(graphPtr->width, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
                 int bottom = MIN(graphPtr->height, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
-                XFillRectangle(graphPtr->display, pixmap, graphPtr->plotFillGC, 0, 0, width, height);
+                Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
                 if (right > left && bottom > top) {
                     XCopyArea(graphPtr->display, graphPtr->backPixmap, pixmap, graphPtr->drawGC, left, top,
                               right-left, bottom-top, left-legendPtr->x, top-legendPtr->y);
@@ -1160,7 +1160,7 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                           width, height, 0, 0);
             }
         } else {
-            XFillRectangle(graphPtr->display, pixmap, graphPtr->plotFillGC, 0, 0, width, height);
+            Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
         }
     } else {
         /*
@@ -1170,9 +1170,9 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
          */
         if (graphPtr->tile != NULL) {
             Rbc_SetTileOrigin(legendPtr->tkwin, graphPtr->tile, legendPtr->x, legendPtr->y);
-            Rbc_TileRectangle(legendPtr->tkwin, pixmap, graphPtr->tile, 0, 0, width, height);
+            Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, NULL, graphPtr->tile, 0, 0, width, height);
         } else {
-            XFillRectangle(graphPtr->display, pixmap, graphPtr->fillGC, 0, 0, width, height);
+            Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->fillGC, NULL, 0, 0, width, height);
         }
     }
     x = LegendLayoutInt((Tcl_WideInt)legendPtr->padLeft + (Tcl_WideInt)legendPtr->borderWidth);
@@ -1187,13 +1187,13 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         }
         if (elemPtr->flags & LABEL_ACTIVE) {
             legendPtr->style.state |= STATE_ACTIVE;
-            Rbc_Fill3DRectangle(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y, LegendEntryWidth(legendPtr, elemPtr),
-                                legendPtr->style.height, legendPtr->entryBorderWidth, legendPtr->activeRelief);
+            Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y, LegendEntryWidth(legendPtr, elemPtr),
+                                legendPtr->style.height, legendPtr->entryBorderWidth, legendPtr->activeRelief, 1);
         } else {
             legendPtr->style.state &= ~STATE_ACTIVE;
             if (elemPtr->labelRelief != TK_RELIEF_FLAT) {
-                Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, graphPtr->border, x, y, LegendEntryWidth(legendPtr, elemPtr),
-                                    legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief);
+                Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, graphPtr->border, x, y, LegendEntryWidth(legendPtr, elemPtr),
+                                    legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief, 0);
             }
         }
         (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width,
@@ -1216,8 +1216,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     if (border == NULL) {
         border = graphPtr->border;
     }
-    Rbc_Draw3DRectangle(legendPtr->tkwin, pixmap, border, 0, 0, width, height, legendPtr->borderWidth,
-                        legendPtr->relief);
+    Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, border, 0, 0, width, height, legendPtr->borderWidth,
+                        legendPtr->relief, 0);
     if (legendPtr->track != NULL) {
         int left = MAX(legendPtr->track->left, legendPtr->x), top = MAX(legendPtr->track->top, legendPtr->y);
         int right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
