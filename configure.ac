@@ -67,7 +67,7 @@ AC_SUBST([SHLIB_SUFFIX])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES([rbcRender.c rbcRenderNative.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrTrack.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcFont.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
+TEA_ADD_SOURCES([rbcRender.c rbcRenderCairo.c rbcRenderPostscript.c rbcRenderSvg.c rbcRenderPdf.c rbcRenderExport.c rbcRenderNative.c rbcAlloc.c rbcBind.c rbcCanvEps.c rbcChain.c rbcConfig.c rbcGraph.c rbcGrAxis.c rbcGrBar.c rbcGrElem.c rbcGrGrid.c rbcGrHairs.c rbcGrLegd.c rbcGrLine.c rbcGrMarker.c rbcGrMisc.c rbcGrPen.c rbcGrPolar.c rbcGrTrack.c rbcGrPs.c rbcGrExport.c rbcGrSvg.c rbcGrPdf.c rbcFont.c rbcPdfFont.c rbcImage.c rbcInt.c rbcList.c rbcPs.c rbcSpline.c rbcText.c rbcTile.c rbcUtil.c rbcVecMath.c rbcVecFft.c rbcVecCmd.c rbcVector.c rbcWindow.c rbcWinop.c rbcStubInit.c])
 TEA_ADD_HEADERS([generic/rbc.h generic/rbcVector.h generic/rbcDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])

@@ -25,6 +25,12 @@ CAIRO = 0
 
 PRJ_OBJS = \
     $(TMP_DIR)\rbcRender.obj \
+    $(TMP_DIR)\rbcRenderCairo.obj \
+    $(TMP_DIR)\rbcRenderPostscript.obj \
+    $(TMP_DIR)\rbcRenderSvg.obj \
+    $(TMP_DIR)\rbcRenderPdf.obj \
+    $(TMP_DIR)\rbcRenderExport.obj \
+    $(TMP_DIR)\rbcRenderNative.obj \
     $(TMP_DIR)\rbcAlloc.obj \
     $(TMP_DIR)\rbcBind.obj \
     $(TMP_DIR)\rbcCanvEps.obj \
@@ -42,6 +48,7 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcGrMisc.obj \
     $(TMP_DIR)\rbcGrPen.obj \
     $(TMP_DIR)\rbcGrPolar.obj \
+    $(TMP_DIR)\rbcGrTrack.obj \
     $(TMP_DIR)\rbcGrPs.obj \
     $(TMP_DIR)\rbcGrExport.obj \
     $(TMP_DIR)\rbcGrSvg.obj \

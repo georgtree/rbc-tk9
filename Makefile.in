@@ -608,4 +608,8 @@ $(PKG_OBJECTS): $(srcdir)/generic/rbcGraph.h $(srcdir)/generic/rbcExport.h $(src
 rbcRender.$(OBJEXT) rbcRenderNative.$(OBJEXT): $(srcdir)/generic/rbcRenderNative.h
 
 # Shared native font parsing is private to the document exporters.
-rbcFont.$(OBJEXT) rbcPdfFont.$(OBJEXT) rbcRender.$(OBJEXT) rbcGrExport.$(OBJEXT): $(srcdir)/generic/rbcFont.h
+rbcFont.$(OBJEXT) rbcPdfFont.$(OBJEXT) rbcGrExport.$(OBJEXT): $(srcdir)/generic/rbcFont.h
+
+# Private renderer dispatch and export state.
+rbcRender.$(OBJEXT) rbcRenderCairo.$(OBJEXT) rbcRenderPostscript.$(OBJEXT) rbcRenderSvg.$(OBJEXT) rbcRenderPdf.$(OBJEXT) rbcRenderExport.$(OBJEXT): $(srcdir)/generic/rbcRenderInt.h
+rbcRenderPostscript.$(OBJEXT) rbcRenderSvg.$(OBJEXT) rbcRenderPdf.$(OBJEXT) rbcRenderExport.$(OBJEXT): $(srcdir)/generic/rbcRenderExportInt.h $(srcdir)/generic/rbcFont.h

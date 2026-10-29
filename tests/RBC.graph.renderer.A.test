@@ -3045,5 +3045,40 @@ namespace eval graph.renderer {
         }
     }
 
+    set testCase(83) 0
+    foreach renderer {native cairo} {
+        test RBC.graph.renderer.A.83.[incr testCase(83)] {alternating export backends retain independent state and restore the screen} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            StrokeFixture graph $renderer
+            .renderer marker create arc -coords {2 2 8 8} -start 25 -extent 220 \
+                    -style pieslice -fill lightblue -outline navy
+            .renderer marker create text -coords {5 5} -text Backend -rotate 25 -foreground black
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            set outputs {}
+            set valid 1
+            foreach format {svg pdf postscript postscript pdf svg} {
+                set output [.renderer $format output]
+                # Only the wall-clock creation date may differ between PS documents.
+                if {$format eq "postscript"} {
+                    regsub -line {^%%CreationDate:.*$} $output {} output
+                }
+                if {[dict exists $outputs $format]} {
+                    if {$output ne [dict get $outputs $format]} {set valid 0}
+                } else {
+                    dict set outputs $format $output
+                }
+            }
+            .renderer snap $photo
+            list $valid [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1}
+    }
+
     cleanupTests
 }
