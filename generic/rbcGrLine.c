@@ -1392,7 +1392,6 @@ static void DrawSquares(Display *display, Drawable drawable, Line *linePtr, Line
                         register Point2D *symbolPts, int r);
 static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                         Tcl_Size nSymbolPts, Point2D *symbolPts);
-static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments);
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr);
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset);
@@ -9980,39 +9979,32 @@ static void DrawPolygonSymbols(Display *display, Drawable drawable, LinePen *pen
 
 #endif /* WIN32 */
 
-/* Try the optional renderer before entering the native trace implementation. */
-static int DrawRenderedTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
+/* Draw all traces through one screen renderer context. */
+static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
     Rbc_ChainLink *linkPtr;
 
-    if (graphPtr->renderer != RBC_RENDERER_CAIRO) {
-        return FALSE;
-    }
-    ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+    ctx = Rbc_RenderBeginStroke(graphPtr, drawable, penPtr->traceGC, RBC_RENDER_STROKE_TRACES,
+                          penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
                           (penPtr->traceOffColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->traceOffColor);
     if (ctx == NULL) {
-        return FALSE;
+        return;
     }
     for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         LineTrace *tracePtr = Rbc_ChainGetValue(linkPtr);
         Rbc_RenderPolyline(ctx, tracePtr->screenPts, tracePtr->nScreenPts);
     }
     Rbc_RenderEnd(ctx);
-    return TRUE;
 }
 
 static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                Tcl_Size count) {
-    Rbc_RenderContext *ctx = NULL;
-    if (graphPtr->renderer == RBC_RENDERER_CAIRO) {
-        ctx = Rbc_RenderBegin(graphPtr, drawable, penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
-                              (penPtr->traceOffColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->traceOffColor);
-    }
+    Rbc_RenderContext *ctx = Rbc_RenderBeginStroke(graphPtr, drawable, penPtr->traceGC, RBC_RENDER_STROKE_STRIPS,
+        penPtr->traceColor, penPtr->traceWidth, &penPtr->traceDashes,
+        (penPtr->traceOffColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->traceOffColor);
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, segments, count);
         Rbc_RenderEnd(ctx);
-    } else {
-        DrawStrips(graphPtr, drawable, penPtr->traceGC, segments, count);
     }
 }
 
@@ -10256,12 +10248,11 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
 static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                   Tcl_Size count) {
     XColor *color = (penPtr->errorBarColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->errorBarColor;
-    Rbc_RenderContext *ctx = Rbc_RenderBegin(graphPtr, drawable, color, MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
+    Rbc_RenderContext *ctx = Rbc_RenderBeginStroke(graphPtr, drawable, penPtr->errorBarGC,
+        RBC_RENDER_STROKE_SEGMENTS, color, MAX(1, penPtr->errorBarLineWidth), NULL, NULL);
     if (ctx != NULL) {
         Rbc_RenderSegments(ctx, segments, count);
         Rbc_RenderEnd(ctx);
-    } else {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, penPtr->errorBarGC, segments, count);
     }
 }
 
@@ -10875,355 +10866,6 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
         DrawSymbolsUnclipped(graphPtr, drawable, linePtr, penPtr, size, 1, &point);
     }
 }
-
-/*
- *----------------------------------------------------------------------
- *
- * DrawStrips --
- *
- *      Draws independent stripchart segments.
- *
- *      On Windows, drawing each segment through XDrawSegments is very
- *      expensive because RBC's Xlib emulation implements it as one
- *      MoveToEx/LineTo pair per segment.  Batch independent two-point
- *      polylines with PolyPolyline instead.
- *
- *      Other platforms retain the existing Rbc_Draw2DSegments path.
- *
- *----------------------------------------------------------------------
- */
-static void DrawStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
-#ifdef WIN32
-    enum {
-        /*
-         * GDI/EMF permits 16K points in one polyline operation.
-         * Each strip is an independent two-point polyline.
-         */
-        STRIP_BATCH_SEGMENTS = 8192,
-        /*
-         * Devices without wide-line support may have a 1360-point
-         * limit for wide lines.
-         */
-        STRIP_WIDE_BATCH_SEGMENTS = 680
-    };
-    Rbc_WinDrawableDC *dcStatePtr;
-    HDC dc;
-    HPEN pen, oldPen;
-    POINT *points;
-    DWORD *counts;
-    Tcl_Size maxSegments;
-    Tcl_Size first;
-    Tcl_Size i;
-    
-    if ((drawable == None) || (gc == NULL) || (segments == NULL) || (nSegments <= 0)) {
-        return;
-    }
-    /*
-     * Long operations using wide geometric pens can themselves become
-     * expensive in GDI.  Use a smaller batch for wide lines, matching
-     * the same concern handled by DrawTraces().
-     */
-    if (gc->line_width > 1) {
-        maxSegments = STRIP_WIDE_BATCH_SEGMENTS;
-    } else {
-        maxSegments = STRIP_BATCH_SEGMENTS;
-    }
-    if (maxSegments > nSegments) {
-        maxSegments = nSegments;
-    }
-    /*
-     * Each independent strip consists of exactly two POINTs.
-     */
-    if ((size_t)maxSegments > SIZE_MAX / (2u * sizeof(*points))) {
-        return;
-    }
-    points = Tcl_AttemptAlloc((size_t)maxSegments * 2u * sizeof(*points));
-    if (points == NULL) {
-        return;
-    }
-    if ((size_t)maxSegments > SIZE_MAX / sizeof(*counts)) {
-        ckfree(points);
-        return;
-    }
-    counts = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*counts));
-    if (counts == NULL) {
-        ckfree(points);
-        return;
-    }
-    /*
-     * Every PolyPolyline entry is a separate two-point polyline.
-     * This array is invariant across all chunks.
-     */
-    for (i = 0; i < maxSegments; i++) {
-        counts[i] = 2;
-    }
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-    Rbc_WinSetROP2(dc, gc->function);
-    pen = Rbc_GCToPen(dc, gc);
-    oldPen = SelectPen(dc, pen);
-    first = 0;
-    while (first < nSegments) {
-        Tcl_Size count;
-
-        count = nSegments - first;
-        if (count > maxSegments) {
-            count = maxSegments;
-        }
-        for (i = 0; i < count; i++) {
-            const Segment2D *segPtr;
-
-            segPtr = segments + first + i;
-            points[2 * i].x = (LONG)segPtr->p.x;
-            points[2 * i].y = (LONG)segPtr->p.y;
-            points[2 * i + 1].x = (LONG)segPtr->q.x;
-            points[2 * i + 1].y = (LONG)segPtr->q.y;
-        }
-        PolyPolyline(dc, points, counts, (DWORD)count);
-        first += count;
-    }
-    DeletePen(SelectPen(dc, oldPen));
-    Rbc_WinReleaseDrawableDC(dcStatePtr);
-    ckfree(counts);
-    ckfree(points);
-#else
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, nSegments);
-#endif
-}
-
-#ifdef WIN32
-
-/*
- *----------------------------------------------------------------------
- *
- * DrawTraces --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      Line *linePtr
- *      LinePen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
-    if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
-        return;
-    }
-    Rbc_ChainLink *linkPtr;
-    HBRUSH brush, oldBrush;
-    HDC dc;
-    HPEN pen, oldPen;
-    POINT *points;
-    Rbc_WinDrawableDC *dcStatePtr;
-    LineTrace *tracePtr;
-    Tcl_Size count;
-    Tcl_Size j;
-    Tcl_Size remaining;
-    int maxPoints;
-
-    /*
-     * Depending on whether the line is wide (> 1 pixel), arbitrarily
-     * break the line into sections of 100 points. Long polylines
-     * drawn with wide geometric pens can be prohibitively slow.
-     */
-    if (penPtr->traceGC->line_width > 1) {
-        maxPoints = 100;
-    } else {
-        int requestSize;
-
-        requestSize = Rbc_MaxRequestSize(graphPtr->display, sizeof(POINT));
-        /*
-         * Reserve one point in each request for the endpoint shared
-         * with the preceding chunk.
-         */
-        if (requestSize <= 1) {
-            return;
-        }
-        maxPoints = requestSize - 1;
-    }
-    if (maxPoints < 2) {
-        return;
-    }
-    if (((size_t)maxPoints + 1u) > SIZE_MAX / sizeof(*points)) {
-        return;
-    }
-    points = Tcl_AttemptAlloc(((size_t)maxPoints + 1u) * sizeof(*points));
-    if (points == NULL) {
-        return;
-    }
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-    pen = Rbc_GCToPen(dc, penPtr->traceGC);
-    oldPen = SelectPen(dc, pen);
-    brush = CreateSolidBrush(penPtr->traceGC->foreground);
-    oldBrush = SelectBrush(dc, brush);
-    Rbc_WinSetROP2(dc, penPtr->traceGC->function);
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        Tcl_Size firstCount;
-
-        tracePtr = Rbc_ChainGetValue(linkPtr);
-        /*
-         * A polyline requires at least two points.
-         */
-        if (tracePtr->nScreenPts < 2) {
-            continue;
-        }
-        /*
-         * Step 1: draw the first section.  It may contain the entire
-         * trace.
-         */
-        firstCount = MIN((Tcl_Size)maxPoints, tracePtr->nScreenPts);
-        for (count = 0; count < firstCount; count++) {
-            points[count].x = (int)tracePtr->screenPts[count].x;
-            points[count].y = (int)tracePtr->screenPts[count].y;
-        }
-        Polyline(dc, points, (int)firstCount);
-        /*
-         * Step 2: draw full continuation chunks.  Each continuation
-         * starts with the last point drawn by the preceding request.
-         */
-        while ((tracePtr->nScreenPts - count) > (Tcl_Size)maxPoints) {
-            points[0].x = (int)tracePtr->screenPts[count - 1].x;
-            points[0].y = (int)tracePtr->screenPts[count - 1].y;
-            for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
-                points[j + 1].x = (int)tracePtr->screenPts[count].x;
-                points[j + 1].y = (int)tracePtr->screenPts[count].y;
-            }
-            Polyline(dc, points, maxPoints + 1);
-        }
-        /*
-         * Step 3: draw the final partial chunk.
-         */
-        remaining = tracePtr->nScreenPts - count;
-        if (remaining > 0) {
-            points[0].x = (int)tracePtr->screenPts[count - 1].x;
-            points[0].y = (int)tracePtr->screenPts[count - 1].y;
-            for (j = 0; j < remaining; j++, count++) {
-                points[j + 1].x = (int)tracePtr->screenPts[count].x;
-                points[j + 1].y = (int)tracePtr->screenPts[count].y;
-            }
-            Polyline(dc, points, (int)remaining + 1);
-        }
-    }
-    ckfree(points);
-    DeletePen(SelectPen(dc, oldPen));
-    DeleteBrush(SelectBrush(dc, oldBrush));
-    Rbc_WinReleaseDrawableDC(dcStatePtr);
-}
-
-#else
-
-/*
- *----------------------------------------------------------------------
- *
- * DrawTraces --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      Line *linePtr
- *      LinePen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
-    if (DrawRenderedTraces(graphPtr, drawable, linePtr, penPtr)) {
-        return;
-    }
-    Rbc_ChainLink *linkPtr;
-    LineTrace *tracePtr;
-    XPoint *points;
-    Tcl_Size count;
-    Tcl_Size j;
-    Tcl_Size remaining;
-    int maxPoints;
-    int requestSize;
-
-    requestSize = Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
-    /*
-     * Reserve one point in each request for the endpoint shared with
-     * the preceding chunk.
-     */
-    if (requestSize <= 1) {
-        return;
-    }
-    maxPoints = requestSize - 1;
-    if (maxPoints < 2) {
-        return;
-    }
-    if (((size_t)maxPoints + 1u) > SIZE_MAX / sizeof(*points)) {
-        return;
-    }
-    points = Tcl_AttemptAlloc(((size_t)maxPoints + 1u) * sizeof(*points));
-    if (points == NULL) {
-        return;
-    }
-    for (linkPtr = Rbc_ChainFirstLink(linePtr->traces); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        Tcl_Size firstCount;
-
-        tracePtr = Rbc_ChainGetValue(linkPtr);
-        /*
-         * XDrawLines requires at least two useful points to produce a
-         * line.
-         */
-        if (tracePtr->nScreenPts < 2) {
-            continue;
-        }
-        /*
-         * Step 1: draw the first section.  It may contain the entire
-         * trace.
-         */
-        firstCount = MIN((Tcl_Size)maxPoints, tracePtr->nScreenPts);
-        for (count = 0; count < firstCount; count++) {
-            points[count].x = (short int)tracePtr->screenPts[count].x;
-            points[count].y = (short int)tracePtr->screenPts[count].y;
-        }
-        XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, (int)firstCount, CoordModeOrigin);
-        /*
-         * Step 2: draw full continuation chunks.  Each continuation
-         * starts with the last point drawn by the preceding request.
-         */
-        while ((tracePtr->nScreenPts - count) > (Tcl_Size)maxPoints) {
-            points[0].x = (short int)tracePtr->screenPts[count - 1].x;
-            points[0].y = (short int)tracePtr->screenPts[count - 1].y;
-            for (j = 0; j < (Tcl_Size)maxPoints; j++, count++) {
-                points[j + 1].x = (short int)tracePtr->screenPts[count].x;
-                points[j + 1].y = (short int)tracePtr->screenPts[count].y;
-            }
-            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, maxPoints + 1, CoordModeOrigin);
-        }
-        /*
-         * Step 3: draw the final partial chunk.
-         */
-        remaining = tracePtr->nScreenPts - count;
-        if (remaining > 0) {
-            points[0].x = (short int)tracePtr->screenPts[count - 1].x;
-            points[0].y = (short int)tracePtr->screenPts[count - 1].y;
-            for (j = 0; j < remaining; j++, count++) {
-                points[j + 1].x = (short int)tracePtr->screenPts[count].x;
-                points[j + 1].y = (short int)tracePtr->screenPts[count].y;
-            }
-            XDrawLines(graphPtr->display, drawable, penPtr->traceGC, points, (int)remaining + 1, CoordModeOrigin);
-        }
-    }
-    ckfree(points);
-}
-#endif /* WIN32 */
 
 /*
  *----------------------------------------------------------------------

@@ -124,8 +124,8 @@ namespace eval graph.renderer {
         } -result {0 1 0}
     }
 
-    proc StrokeFixture {kind} {
-        ::rbc::$kind .renderer -renderer cairo -width 240 -height 180 -background white -plotbackground white\
+    proc StrokeFixture {kind {renderer cairo}} {
+        ::rbc::$kind .renderer -renderer $renderer -width 240 -height 180 -background white -plotbackground white\
                 -borderwidth 0 -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20\
                 -bottommargin 20
         pack .renderer
@@ -2404,6 +2404,67 @@ namespace eval graph.renderer {
         destroy .opacity
         image delete $photo $tile
     } -result {1 1}
+
+    # Exercise native batching beyond the Windows strip limits, including wide
+    # pens. Collinear dense geometry must have the same pixels as a short trace.
+    set testCase(68) 0
+    set testCase(69) 0
+    foreach kind {graph stripchart} {
+        foreach width {1 4} {
+            foreach inverted {0 1} {
+                test RBC.graph.renderer.A.68.[incr testCase(68)] {native dense traces preserve pixels across batches} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    ::rbc::vector create rendererStrokeX rendererStrokeY
+                    rendererStrokeX seq 1 9 0.0004
+                    rendererStrokeY length [rendererStrokeX length]
+                    rendererStrokeY expr {rendererStrokeX*0+5}
+                    .renderer element configure signal -linewidth $width -decimate none
+                    if {$kind eq "graph"} {.renderer element configure signal -reduce 0}
+                    set photo [image create photo]
+                } -body {
+                    .renderer element configure signal -xdata rendererStrokeX -ydata rendererStrokeY
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -data {1 5 9 5}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                    ::rbc::vector destroy rendererStrokeX rendererStrokeY
+                } -result {1 1}
+
+                test RBC.graph.renderer.A.69.[incr testCase(69)] {native error-bar batches preserve clipping and hairlines} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -linewidth 0 -errorbarcolor red \
+                        -errorbarwidth [expr {$width == 1 ? 0 : $width}] -errorbarcap 8
+                    set photo [image create photo]
+                } -body {
+                    # Duplicate bars exercise batching without changing the picture.
+                    .renderer element configure signal -xdata [lrepeat 10001 5] -ydata [lrepeat 10001 5] \
+                        -yerror [lrepeat 10001 20]
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -xdata {5} -ydata {5} -yerror {20}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                } -result {1 1}
+            }
+        }
+    }
 
     cleanupTests
 }

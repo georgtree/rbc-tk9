@@ -115,6 +115,18 @@ typedef struct {
     Point2D points[12];
 } Rbc_RenderShape;
 
+/* Native/Cairo element strokes. The GC is borrowed, including its existing
+ * clip, dashes and raster operation. TRACES supports Polyline; STRIPS and
+ * SEGMENTS support Segments, retaining their respective native batching.
+ * Only these operations and End are valid on the returned context. Other
+ * screen capabilities continue to use Begin/BeginFill and native fallbacks. */
+typedef enum {
+    RBC_RENDER_STROKE_TRACES, RBC_RENDER_STROKE_STRIPS, RBC_RENDER_STROKE_SEGMENTS
+} Rbc_RenderStrokeKind;
+Rbc_RenderContext *Rbc_RenderBeginStroke(Graph *graphPtr, Drawable drawable, GC gc,
+    Rbc_RenderStrokeKind kind, const XColor *color, double width,
+    const Rbc_Dashes *dashes, const XColor *offColor);
+
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable,
                                    const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr);
