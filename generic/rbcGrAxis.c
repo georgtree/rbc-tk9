@@ -7002,9 +7002,9 @@ static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     values.graphics_exposures = False;
     gc = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
     pixmap = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
-    XCopyArea(graphPtr->display, drawable, pixmap, gc, left, top, width, height, left, top);
+    Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, pixmap, gc, left, top, width, height, left, top);
     DrawAxis(graphPtr, pixmap, axisPtr);
-    XCopyArea(graphPtr->display, pixmap, drawable, gc, left, top, width, height, left, top);
+    Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, gc, left, top, width, height, left, top);
     Tk_FreePixmap(graphPtr->display, pixmap);
     Tk_FreeGC(graphPtr->display, gc);
 }

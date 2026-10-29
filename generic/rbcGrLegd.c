@@ -1152,11 +1152,11 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                 int bottom = MIN(graphPtr->height, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
                 Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
                 if (right > left && bottom > top) {
-                    XCopyArea(graphPtr->display, graphPtr->backPixmap, pixmap, graphPtr->drawGC, left, top,
+                    Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, left, top,
                               right-left, bottom-top, left-legendPtr->x, top-legendPtr->y);
                 }
             } else {
-                XCopyArea(graphPtr->display, graphPtr->backPixmap, pixmap, graphPtr->drawGC, legendPtr->x, legendPtr->y,
+                Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, legendPtr->x, legendPtr->y,
                           width, height, 0, 0);
             }
         } else {
@@ -1223,11 +1223,11 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         int right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
         int bottom = MIN(legendPtr->track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
         if (right > left && bottom > top) {
-            XCopyArea(graphPtr->display, pixmap, drawable, graphPtr->drawGC, left-legendPtr->x, top-legendPtr->y,
+            Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, left-legendPtr->x, top-legendPtr->y,
                       right-left, bottom-top, left, top);
         }
     } else {
-        XCopyArea(graphPtr->display, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x, legendPtr->y);
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x, legendPtr->y);
     }
     Tk_FreePixmap(graphPtr->display, pixmap);
     Rbc_RenderEnd(text);

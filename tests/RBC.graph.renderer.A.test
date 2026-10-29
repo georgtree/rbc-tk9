@@ -2989,5 +2989,61 @@ namespace eval graph.renderer {
         }
     }
 
+    set testCase(82) 0
+    foreach renderer {native cairo} {
+        foreach type {graph trackgraph} {
+            foreach inverted {0 1} {
+                foreach buffers {{0 0} {0 1} {1 0} {1 1}} {
+                    test RBC.graph.renderer.A.82.[incr testCase(82)] {screen copies restore cached plots and transparent legends after redraw and resize} \
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        lassign $buffers bufferGraph bufferElements
+                        ::rbc::$type .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                                -buffergraph $bufferGraph -bufferelements $bufferElements -plotbackground white
+                        pack .renderer
+                        .renderer axis configure x -min 0 -max 10
+                        .renderer axis configure y -min 0 -max 10
+                        .renderer legend configure -position plotarea -anchor ne -background {}
+                        set options {}
+                        if {$type eq "trackgraph"} {
+                            .renderer legend configure -hide yes
+                            foreach track {first second} {
+                                .renderer axis create $track -min 0 -max 10 -title $track
+                                .renderer track create $track -yaxes $track
+                                .renderer line create $track -track $track -mapy $track \
+                                        -data {0 2 5 8 10 2} -color blue -symbol none -label $track
+                                .renderer track legend $track configure -hide no -position right -background {}
+                            }
+                            set options {-track first -mapy first}
+                        }
+                        .renderer element create signal -data {0 8 5 2 10 8} -color red -symbol none \
+                                -label Signal {*}$options
+                        set photo [image create photo]
+                        update
+                    } -body {
+                        ::rbc::winop snap .renderer $photo
+                        set original [$photo data]
+                        .renderer element configure signal -color green
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        set changed [expr {$original ne [$photo data]}]
+                        .renderer element configure signal -color red
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        set restored [expr {$original eq [$photo data]}]
+                        .renderer configure -width 480 -height 360
+                        update
+                        .renderer configure -width 400 -height 300
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        list $changed $restored [expr {$original eq [$photo data]}]
+                    } -cleanup {
+                        destroy .renderer
+                        catch {image delete $photo}
+                    } -result {1 1 1}
+                }
+            }
+        }
+    }
+
     cleanupTests
 }

@@ -52,6 +52,9 @@ void Rbc_RenderScreenRectangle(Tk_Window, Drawable, GC, Rbc_Tile, int, int, int,
 /* Native-only, even on Cairo graphs. Borrows the GC without changing its
  * raster operation, clipping or style. Does not allocate a context. */
 void Rbc_RenderScreenSegments(Tk_Window, Drawable, GC, const Segment2D *, Tcl_Size);
+/* Screen-only pixel copy, including backing-store restoration and final frame
+ * presentation. Borrows the GC and both drawables; never changes ownership. */
+void Rbc_RenderScreenCopyArea(Tk_Window, Drawable, Drawable, GC, int, int, unsigned int, unsigned int, int, int);
 void Rbc_RenderScreenFocus(Tk_Window, Drawable, GC, int);
 
 /* Fill policy shared by screen and export. backgroundOnly preserves the

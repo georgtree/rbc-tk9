@@ -9,6 +9,7 @@ void Rbc_NativeTextSize(Tk_Window, Drawable, const char *, TextStyle *, int, int
 
 void Rbc_NativeBitmap(Graph *, Drawable, const Rbc_RenderRectangle *, const Rbc_RenderBitmapStyle *);
 void Rbc_NativeImage(Drawable, Tk_Image, int, int);
+void Rbc_NativeCopyArea(Tk_Window, Drawable, Drawable, GC, int, int, unsigned int, unsigned int, int, int);
 void Rbc_NativePixmap(Graph *, Drawable, Pixmap, GC, const Rbc_RenderRectangle *);
 
 void Rbc_NativeBorder(Tk_Window, Drawable, Tk_3DBorder, int, int, int, int, int, int, int);

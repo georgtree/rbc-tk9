@@ -60,8 +60,13 @@ void Rbc_NativeImage(Drawable drawable, Tk_Image image, int x, int y) {
     Tk_RedrawImage(image, 0, 0, width, height, drawable, x, y);
 }
 
+void Rbc_NativeCopyArea(Tk_Window tkwin, Drawable source, Drawable destination, GC gc,
+                        int srcX, int srcY, unsigned int width, unsigned int height, int dstX, int dstY) {
+    XCopyArea(Tk_Display(tkwin), source, destination, gc, srcX, srcY, width, height, dstX, dstY);
+}
+
 void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, const Rbc_RenderRectangle *r) {
-    XCopyArea(graphPtr->display, pixmap, drawable, gc, 0, 0, r->width, r->height, r->x, r->y);
+    Rbc_NativeCopyArea(graphPtr->tkwin, pixmap, drawable, gc, 0, 0, r->width, r->height, r->x, r->y);
 }
 
 /* Widget decorations intentionally use Tk/native painting even when element

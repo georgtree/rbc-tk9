@@ -525,10 +525,10 @@ void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
      * with the completed frame in a single copy.
      */
     if (graphPtr->flags & DRAW_MARGINS) {
-        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
                   graphPtr->height, 0, 0);
     } else {
-        XCopyArea(graphPtr->display, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
                   graphPtr->top, graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1,
                   graphPtr->left, graphPtr->top);
     }

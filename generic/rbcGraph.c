@@ -3451,7 +3451,7 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
             graphPtr->flags &= ~REDRAW_BACKING_STORE;
         }
         /* Copy the pixmap to the one used for drawing the entire graph. */
-        XCopyArea(graphPtr->display, graphPtr->backPixmap, drawable, graphPtr->drawGC, graphPtr->left, graphPtr->top,
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, drawable, graphPtr->drawGC, graphPtr->left, graphPtr->top,
                   (graphPtr->right - graphPtr->left + 1), (graphPtr->bottom - graphPtr->top + 1), graphPtr->left,
                   graphPtr->top);
     } else {
