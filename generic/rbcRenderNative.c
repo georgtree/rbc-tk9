@@ -2342,3 +2342,8 @@ void Rbc_NativeDestroyClip(Rbc_NativeClip *clip) {
     if (clip->ownGC) Tk_FreeGC(clip->graphPtr->display, clip->copyGC);
     ckfree(clip);
 }
+
+void Rbc_NativeScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc,
+    const Segment2D *segments, Tcl_Size count) {
+    Rbc_Draw2DSegments(Tk_Display(tkwin), drawable, gc, segments, count);
+}

@@ -164,7 +164,9 @@ namespace eval trackgraph.bind {
         .tg track bind all <Enter> {lappend ::trackHits enter [%W track get current]}
     } -body {
         .tg track order {current voltage}
-        update
+        # Run layout and its repick, without admitting real pointer events
+        # that can replace the synthetic position set by BackgroundMotion.
+        update idletasks
         list [.tg track get current] $::trackHits
     } -cleanup {destroy .tg; unset ::trackHits} -result {current {leave voltage enter current}}
 

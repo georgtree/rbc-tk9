@@ -2924,5 +2924,70 @@ namespace eval graph.renderer {
         }
     }
 
+    set testCase(81) 0
+    foreach renderer {native cairo} {
+        foreach type {graph trackgraph} {
+            foreach inverted {0 1} {
+                foreach dashes {{} {4 2}} {
+                    test RBC.graph.renderer.A.81.[incr testCase(81)] {native XOR crosshairs erase exactly after movement and redraw} \
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        ::rbc::$type .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                                -plotbackground white
+                        pack .renderer
+                        .renderer axis configure x -min 0 -max 10
+                        .renderer axis configure y -min 0 -max 10
+                        if {$type eq "trackgraph"} {.renderer track create first -yaxes y}
+                        .renderer grid configure -hide no -color lightblue -dashes {3 2}
+                        .renderer crosshairs configure -hide yes -color red -linewidth 2 -dashes $dashes
+                        set background [.renderer cget -background]
+                        set photo [image create photo]
+                        update
+                    } -body {
+                        ::rbc::winop snap .renderer $photo
+                        set original [$photo data]
+                        if {$type eq "trackgraph"} {
+                            lassign [.renderer track transform first 3 4] x y
+                        } else {
+                            lassign [.renderer transform 3 4] x y
+                        }
+                        set position @[expr {int($x)}],[expr {int($y)}]
+                        .renderer crosshairs configure -position $position -hide no
+                        ::rbc::winop snap .renderer $photo
+                        set visible [expr {$original ne [$photo data]}]
+                        .renderer crosshairs configure -position @[expr {int($x)+12}],[expr {int($y)+12}]
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set erased [expr {$original eq [$photo data]}]
+                        # Also erase without movement, then retrace a round trip.
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set stationary [expr {$original eq [$photo data]}]
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer crosshairs configure -position @[expr {int($x)+12}],[expr {int($y)+12}]
+                        .renderer crosshairs configure -position $position
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set roundtrip [expr {$original eq [$photo data]}]
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer configure -background ivory
+                        update
+                        .renderer crosshairs configure -hide yes
+                        .renderer configure -background $background
+                        update
+                        # Compare against a full redraw with the original background.
+                        .renderer snap $photo
+                        set redrawn [$photo data]
+                        ::rbc::winop snap .renderer $photo
+                        list $visible $erased $stationary $roundtrip [expr {$redrawn eq [$photo data]}]
+                    } -cleanup {
+                        destroy .renderer
+                        catch {image delete $photo}
+                    } -result {1 1 1 1 1}
+                }
+            }
+        }
+    }
+
     cleanupTests
 }

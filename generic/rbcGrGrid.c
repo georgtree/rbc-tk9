@@ -1032,10 +1032,10 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
         return;
     }
     if (gridPtr->x.nSegments > 0) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc, gridPtr->x.segments, gridPtr->x.nSegments);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, gridPtr->gc, gridPtr->x.segments, gridPtr->x.nSegments);
     }
     if (gridPtr->y.nSegments > 0) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, gridPtr->gc, gridPtr->y.segments, gridPtr->y.nSegments);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, gridPtr->gc, gridPtr->y.segments, gridPtr->y.nSegments);
     }
 }
 

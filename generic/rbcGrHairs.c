@@ -10,6 +10,7 @@
 */
 
 #include "rbcGraph.h"
+#include "rbcRender.h"
 
 /*
  * -------------------------------------------------------------------
@@ -118,7 +119,7 @@ static RbcGrHairsOp ToggleOp;
  */
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr) {
     if (Tk_IsMapped(tkwin) && chPtr->visible) {
-        Rbc_Draw2DSegments(Tk_Display(tkwin), Tk_WindowId(tkwin), chPtr->gc, chPtr->segArr, 2);
+        Rbc_RenderScreenSegments(tkwin, Tk_WindowId(tkwin), chPtr->gc, chPtr->segArr, 2);
         chPtr->visible = FALSE;
     }
 }
@@ -148,7 +149,7 @@ static void TurnOnHairs(Graph *graphPtr, Crosshairs *chPtr) {
         if (!PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
             return;
         }
-        Rbc_Draw2DSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, chPtr->segArr, 2);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, Tk_WindowId(graphPtr->tkwin), chPtr->gc, chPtr->segArr, 2);
         chPtr->visible = TRUE;
     }
 }
@@ -246,7 +247,7 @@ static void MoveCrosshairs(Graph *graphPtr, Crosshairs *chPtr, const Point2D *ho
             segments[nSegments++] = newSegments[1];
         }
         if (nSegments > 0) {
-            Rbc_Draw2DSegments(graphPtr->display, Tk_WindowId(graphPtr->tkwin), chPtr->gc, segments, nSegments);
+            Rbc_RenderScreenSegments(graphPtr->tkwin, Tk_WindowId(graphPtr->tkwin), chPtr->gc, segments, nSegments);
         }
     }
     chPtr->hotSpot = *hotSpotPtr;
@@ -515,7 +516,7 @@ void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
     if (chPtr != NULL) {
         Rbc_UpdateCrosshairs(graphPtr);
         if (!chPtr->hidden && PointInGraph(graphPtr, chPtr->hotSpot.x, chPtr->hotSpot.y)) {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, chPtr->gc, chPtr->segArr, 2);
+            Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, chPtr->gc, chPtr->segArr, 2);
             visible = TRUE;
         }
     }

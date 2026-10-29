@@ -326,3 +326,64 @@ tclsh9.0 tests/benchmark/compare-revisions.tcl \
 For Windows, substitute `tclsh91` and `windows`. Keep comparisons within each
 platform. Investigate large differences with alternating before/after runs;
 run ranges are not confidence intervals.
+
+### Native renderer stage 4b: bitmaps and images
+
+Use the accepted stage 4a build as the baseline. Apply these benchmark files
+before changing the renderer, then run on an otherwise idle desktop with the
+window visible and the same Tcl/Tk, display and compiler settings for both builds:
+
+```sh
+# Linux
+TCLSH=tclsh9.0 bash tests/benchmark/native-stage4b.sh linux before 3
+# Windows MSYS2
+TCLSH=tclsh91 bash tests/benchmark/native-stage4b.sh windows before 3
+```
+
+After rebuilding/installing stage 4b, repeat with `after`. Results go into
+`results/native-stage4b/PLATFORM/PHASE/run-N`; existing run directories are never
+overwritten. Each interpreter must resolve the intended RBC build.
+
+`raster.tcl` uses the existing common timing, reporting and long CSV format.
+It measures `redraw` and `axis-remap`, with graph/resource construction outside
+both measurements. Graph and element backing caches are disabled. It provides:
+
+- `-cases`: `bitmap-transparent`, `bitmap-opaque`, `image-opaque`,
+  `image-transparent`, `image-scaled`, `image-scaled-transparent`,
+  `bitmap-symbol`, `bitmap-mask-symbol`.
+- `-counts`: markers or symbol points **per track** (one track in ordinary graphs).
+- `-pixels`: source bitmap/photo size, selected from `16,32,64`; also the requested
+  symbol size. Scaled images use two graph-coordinate corners and therefore have
+  a destination size determined by the graph size and marker count.
+- `-rotations`: `0,45,90`, applied only to bitmap markers. Image markers and bitmap
+  symbols have no rotation option in this benchmark.
+- `-layouts`: `graph,fit,scroll`; `-tracks` controls trackgraph track count.
+- `-inverted`: `0,1`; plus `-sizes`, `-renderer`, `-antialias`, `-iterations`,
+  `-warmup`, and `-csv`, as in the other workloads.
+
+The fixtures are generated locally and shared by all markers/symbols in a case.
+Bitmap patterns and optional masks have explicit dimensions, avoiding differences
+between platform built-in bitmaps. Transparent photos use alternating fully
+transparent/opaque blocks; fractional alpha is not exercised here. Half the
+positions lie on plot boundaries to exercise clipped presentation. Dense cases
+can overlap intentionally. Scroll layouts use four 240-pixel tracks in the runner,
+with a fixed scroll offset of 0.15, including partially visible tracks. This stage
+measures drawing/remapping at that offset, not scrolling latency.
+
+There are no photo-image symbols in the current element interface: the symbol
+cases exercise its supported `bitmap ?mask?` form. Window markers are excluded.
+These benchmarks measure performance; clipping and transparency correctness
+belong in the renderer regression tests.
+
+With your local comparison utility (not required in the repository), compare:
+
+```sh
+tclsh9.0 tests/benchmark/compare-revisions.tcl \
+    -before results/native-stage4b/linux/before \
+    -after results/native-stage4b/linux/after \
+    -metrics redraw,axis-remap \
+    -out results/native-stage4b/linux-comparison.csv
+```
+
+For Windows, substitute `tclsh91` and `windows`. Keep before/after measurements
+separate from native/Cairo comparisons.

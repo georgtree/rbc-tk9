@@ -13,6 +13,7 @@ void Rbc_NativePixmap(Graph *, Drawable, Pixmap, GC, const Rbc_RenderRectangle *
 
 void Rbc_NativeBorder(Tk_Window, Drawable, Tk_3DBorder, int, int, int, int, int, int, int);
 void Rbc_NativeRectangle(Tk_Window, Drawable, GC, Rbc_Tile, int, int, int, int);
+void Rbc_NativeScreenSegments(Tk_Window, Drawable, GC, const Segment2D *, Tcl_Size);
 void Rbc_NativeFocus(Tk_Window, Drawable, GC, int);
 
 typedef struct Rbc_NativeTrace Rbc_NativeTrace;

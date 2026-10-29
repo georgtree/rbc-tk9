@@ -4471,7 +4471,7 @@ static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
             Rbc_RenderSegments(ctx, axisPtr->segments, axisPtr->nSegments);
             Rbc_RenderEnd(ctx);
         } else {
-            Rbc_Draw2DSegments(graphPtr->display, drawable, axisPtr->tickGC, axisPtr->segments, axisPtr->nSegments);
+            Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, axisPtr->tickGC, axisPtr->segments, axisPtr->nSegments);
         }
     }
     Rbc_RenderEnd(text);

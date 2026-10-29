@@ -1060,6 +1060,69 @@ void Rbc_EmulateXFillArcs(Display *display, Drawable drawable, GC gc, XArc *arcA
  *
  *----------------------------------------------------------------------
  */
+/*
+ * Compose XOR coverage away from the window, then apply it once. Independent
+ * polylines preserve dash phase and XOR cancellation at intersections, while
+ * a single SRCINVERT avoids presenting the erased half of a crosshair move.
+ * A black pixel is the identity for XOR, so no screen readback is needed.
+ */
+static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
+    RECT clip;
+    HDC maskDC;
+    HBITMAP bitmap, oldBitmap;
+    HPEN pen, oldPen;
+    int i, result;
+    int left, top, right, bottom, margin;
+
+    if (GetClipBox(dc, &clip) == ERROR) {return FALSE;}
+    left = right = segments[0].x1;
+    top = bottom = segments[0].y1;
+    for (i = 0; i < count; i++) {
+        left = MIN(left, MIN(segments[i].x1, segments[i].x2));
+        right = MAX(right, MAX(segments[i].x1, segments[i].x2));
+        top = MIN(top, MIN(segments[i].y1, segments[i].y2));
+        bottom = MAX(bottom, MAX(segments[i].y1, segments[i].y2));
+    }
+    margin = MAX(1, gc->line_width) + 1;
+    left = MAX(clip.left, left - margin);
+    top = MAX(clip.top, top - margin);
+    right = MIN(clip.right, right + margin);
+    bottom = MIN(clip.bottom, bottom + margin);
+    if (right <= left || bottom <= top) {return TRUE;}
+    maskDC = CreateCompatibleDC(dc);
+    if (maskDC == NULL) {return FALSE;}
+    bitmap = CreateCompatibleBitmap(dc, right - left, bottom - top);
+    if (bitmap == NULL) {DeleteDC(maskDC); return FALSE;}
+    oldBitmap = SelectBitmap(maskDC, bitmap);
+    if (!PatBlt(maskDC, 0, 0, right - left, bottom - top, BLACKNESS)) {
+        SelectBitmap(maskDC, oldBitmap);
+        DeleteObject(bitmap);
+        DeleteDC(maskDC);
+        return FALSE;
+    }
+    SetViewportOrgEx(maskDC, -left, -top, NULL);
+    Rbc_WinSetROP2(maskDC, GXxor);
+    pen = Rbc_GCToPen(maskDC, gc);
+    oldPen = SelectPen(maskDC, pen);
+    result = TRUE;
+    for (i = 0; i < count; i++) {
+        POINT points[2];
+        points[0].x = segments[i].x1;
+        points[0].y = segments[i].y1;
+        points[1].x = segments[i].x2;
+        points[1].y = segments[i].y2;
+        if (!Polyline(maskDC, points, 2)) {result = FALSE; break;}
+    }
+    if (result) {
+        result = BitBlt(dc, left, top, right - left, bottom - top, maskDC, left, top, SRCINVERT);
+    }
+    DeletePen(SelectPen(maskDC, oldPen));
+    SelectBitmap(maskDC, oldBitmap);
+    DeleteObject(bitmap);
+    DeleteDC(maskDC);
+    return result;
+}
+
 void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegment *segArr, int nSegments) {
     enum {
         /*
@@ -1086,6 +1149,13 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
 
     if ((drawable == None) || (gc == NULL) || (segArr == NULL) || (nSegments <= 0)) {
         return;
+    }
+    if (gc->function == GXxor) {
+        int drawn;
+        dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
+        drawn = DrawXorSegments(dc, gc, segArr, nSegments);
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
+        if (drawn) {return;}
     }
     maxSegments = (gc->line_width > 1) ? SEGMENT_WIDE_BATCH : SEGMENT_BATCH;
     if (maxSegments > nSegments) {
@@ -1147,7 +1217,18 @@ void Rbc_EmulateXDrawSegments(Display *display, Drawable drawable, GC gc, XSegme
          * Fall back to the old per-segment implementation if the
          * device rejects the batched operation.
          */
-        if (!PolyPolyline(dc, points, counts, (DWORD)count)) {
+        /*
+         * XOR must be independent of batch grouping. In particular, moving
+         * crosshairs submits the old and new pairs together, whereas showing
+         * and hiding submit one pair at a time. Draw each XOR segment with
+         * its own Polyline operation so dash phase and overlapping coverage
+         * are identical when the same geometry is erased later.
+         */
+        if (gc->function == GXxor) {
+            for (i = 0; i < count; i++) {
+                Polyline(dc, points + 2 * i, 2);
+            }
+        } else if (!PolyPolyline(dc, points, counts, (DWORD)count)) {
             for (i = 0; i < count; i++) {
                 MoveToEx(dc, points[2 * i].x, points[2 * i].y, NULL);
                 LineTo(dc, points[2 * i + 1].x, points[2 * i + 1].y);

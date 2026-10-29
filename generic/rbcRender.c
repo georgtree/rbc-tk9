@@ -237,6 +237,10 @@ static void ScreenRectangle(Rbc_RenderContext *ctx, GC gc, Rbc_Tile tile, int x,
     Rbc_NativeRectangle(ctx->nativeWindow, ctx->nativeDrawable, gc, tile, x, y, width, height);
 }
 
+static void ScreenSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
+    Rbc_NativeScreenSegments(ctx->nativeWindow, ctx->nativeDrawable, ctx->nativeGC, segments, count);
+}
+
 static void ScreenFocus(Rbc_RenderContext *ctx, GC gc, int width) {
     Rbc_NativeFocus(ctx->nativeWindow, ctx->nativeDrawable, gc, width);
 }
@@ -244,7 +248,7 @@ static void ScreenFocus(Rbc_RenderContext *ctx, GC gc, int width) {
 static const Rbc_RenderOutputOps screenDecorationOutputOps = {
     .border = ScreenBorder, .screenRectangle = ScreenRectangle, .focus = ScreenFocus
 };
-static const Rbc_RenderOps screenDecorationOps = {.output = &screenDecorationOutputOps};
+static const Rbc_RenderOps screenDecorationOps = {.segments = ScreenSegments, .output = &screenDecorationOutputOps};
 
 void Rbc_RenderScreenBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y,
                             int width, int height, int borderWidth, int relief, int fill) {
@@ -256,6 +260,16 @@ void Rbc_RenderScreenRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Ti
                                int x, int y, int width, int height) {
     Rbc_RenderContext ctx = {.ops = &screenDecorationOps, .nativeWindow = tkwin, .nativeDrawable = drawable};
     ctx.ops->output->screenRectangle(&ctx, gc, tile, x, y, width, height);
+}
+
+/* Native-only presentation preserves the complete borrowed GC, including XOR,
+ * clip masks, dash offsets and cap style. Do not select Cairo here: drawing the
+ * same XOR geometry twice must restore the destination pixels exactly. */
+void Rbc_RenderScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc,
+    const Segment2D *segments, Tcl_Size count) {
+    Rbc_RenderContext ctx = {.ops = &screenDecorationOps, .nativeWindow = tkwin,
+                            .nativeDrawable = drawable, .nativeGC = gc};
+    Rbc_RenderSegments(&ctx, segments, count);
 }
 
 void Rbc_RenderScreenFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {

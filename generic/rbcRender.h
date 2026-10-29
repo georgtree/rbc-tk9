@@ -49,6 +49,9 @@ void Rbc_RenderPixmap(Rbc_RenderContext *ctx, Pixmap pixmap, GC gc, const Rbc_Re
  * resources and do not change backing-store ownership or painter order. */
 void Rbc_RenderScreenBorder(Tk_Window, Drawable, Tk_3DBorder, int, int, int, int, int, int, int);
 void Rbc_RenderScreenRectangle(Tk_Window, Drawable, GC, Rbc_Tile, int, int, int, int);
+/* Native-only, even on Cairo graphs. Borrows the GC without changing its
+ * raster operation, clipping or style. Does not allocate a context. */
+void Rbc_RenderScreenSegments(Tk_Window, Drawable, GC, const Segment2D *, Tcl_Size);
 void Rbc_RenderScreenFocus(Tk_Window, Drawable, GC, int);
 
 /* Fill policy shared by screen and export. backgroundOnly preserves the

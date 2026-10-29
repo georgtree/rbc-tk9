@@ -4305,7 +4305,7 @@ static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
     Tcl_Size first, count, i;
 
     if (!lmPtr->hasFirstArrow && !lmPtr->hasLastArrow) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, lmPtr->gc, lmPtr->segments, lmPtr->nSegments);
         return;
     }
     for (first = 0; first < lmPtr->nSegments; first += count) {
@@ -4316,7 +4316,7 @@ static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
             rounded[i].q.x = round(lmPtr->segments[first + i].q.x);
             rounded[i].q.y = round(lmPtr->segments[first + i].q.y);
         }
-        Rbc_Draw2DSegments(graphPtr->display, drawable, lmPtr->gc, rounded, count);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, lmPtr->gc, rounded, count);
     }
 }
 
@@ -6762,7 +6762,7 @@ static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
 static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMarker **stylePtrPtr, Segment2D *segments,
                                     Tcl_Size *nSegmentsPtr) {
     if ((*stylePtrPtr != NULL) && (*nSegmentsPtr > 0)) {
-        Rbc_Draw2DSegments(graphPtr->display, drawable, (*stylePtrPtr)->gc, segments, *nSegmentsPtr);
+        Rbc_RenderScreenSegments(graphPtr->tkwin, drawable, (*stylePtrPtr)->gc, segments, *nSegmentsPtr);
     }
     *stylePtrPtr = NULL;
     *nSegmentsPtr = 0;
