@@ -47,7 +47,7 @@
 <p>Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
 graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.</p>
-<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.8.1</strong>.</p>
+<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.8.5</strong>.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation</a></p></li>
@@ -58,6 +58,7 @@ graphical elements support SVG, PostScript and PDF export. All three exporters w
 <span id="r-components"></span><h2>Components<a class="headerlink" href="#components" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><strong>graph</strong> - Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output.</p></li>
+<li><p><strong>trackgraph</strong> - Multi-track plots with shared horizontal axes and independent vertical axes, supporting line, strip, and bar elements, resizable tracks, local legends and grids, and independent track and data scrolling.</p></li>
 <li><p><strong>barchart</strong> - Bar plots with normal, aligned, stacked, and overlapping presentations.</p></li>
 <li><p><strong>stripchart</strong> - Plots using independent line segments, suitable for waveform and continuously updated data displays.</p></li>
 <li><p><strong>polar</strong> - Complex-plane plots with polar or Smith-chart grids. Data coordinates remain Cartesian; elements can use real X/Y vectors or complex vectors directly.</p></li>
@@ -482,7 +483,8 @@ by the headless runner. Regenerate your Makefile with <code class="docutils lite
 </pre></div>
 </div>
 <p>Review the test summary and any skipped-test constraints. The <code class="docutils literal notranslate"><span class="pre">manualtests</span></code> directory contains additional visual and
-interactive checks that are separate from the automated suite.</p>
+interactive checks that are separate from the automated suite. See <a class="reference external" href="manualtests/README.md">the manual test guide</a>
+for topic runners, individual interactive cases and the coverage checklist.</p>
 </section>
 <section id="running-demos">
 <span id="r-running-demos"></span><span id="r-running20demos"></span><h2>Running demos<a class="headerlink" href="#running-demos" title="Link to this heading">¶</a></h2>

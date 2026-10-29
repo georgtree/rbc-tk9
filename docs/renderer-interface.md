@@ -4,16 +4,16 @@
 `Rbc_ExportContext`, with an explicit PostScript or SVG backend, output buffer, error state and decoration policy.
 Screen rendering and document export use separate constructors.
 
-| File                      | Responsibility                                                                         |
-|---------------------------|----------------------------------------------------------------------------------------|
-| `rbcGrExport.c`           | Shared export setup/cleanup, drawing order, plot clipping and margins                  |
-| `rbcGrPs.c`               | PostScript command/options, page layout, EPS preamble/trailer, preview and file output |
-| `rbcFont.c` | Shared Tk 9 font selection, native font programs, validation and Unicode character maps |
-| `rbcPdfFont.c` | PDF font resources, standard-font mode, CID/character mappings and ToUnicode |
-| `rbcGrPdf.c` | PDF options, binary file/bytearray output, document objects, resources and byte-offset cross-reference table |
-| `rbcGrSvg.c`              | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output    |
-| `rbcRender.c`             | Drawing dispatch and backend primitive implementations                                 |
-| `rbcPs.c`, `rbcGraph.pro` | Existing PostScript emitters and symbol procedures                                     |
+| File                      | Responsibility                                                                                               |
+|---------------------------|--------------------------------------------------------------------------------------------------------------|
+| `rbcGrExport.c`           | Shared export setup/cleanup, drawing order, plot clipping and margins                                        |
+| `rbcGrPs.c`               | PostScript command/options, page layout, EPS preamble/trailer, preview and file output                       |
+| `rbcFont.c`               | Shared Tk 9 font selection, native font programs, validation and Unicode character maps                      |
+| `rbcPdfFont.c`            | PDF font resources, standard-font mode, CID/character mappings and ToUnicode                                 |
+| `rbcGrPdf.c`              | PDF options, binary file/bytearray output, document objects, resources and byte-offset cross-reference table |
+| `rbcGrSvg.c`              | SVG command/options, canvas dimensions, XML document envelope and UTF-8 file output                          |
+| `rbcRender.c`             | Drawing dispatch and backend primitive implementations                                                       |
+| `rbcPs.c`, `rbcGraph.pro` | Existing PostScript emitters and symbol procedures                                                           |
 
 Graph components retain mapping, pen selection, label formatting and geometry preparation. Their `...Export`
 entry points receive a generic document context and call `Rbc_RenderBeginExport*` constructors. The shared
@@ -64,8 +64,9 @@ Glyph codes and Unicode mappings are separate so characters sharing a glyph reta
 Complete font programs are embedded; subsetting, variable fonts, CID-keyed CFF/CFF2 and color fonts are not implemented.
 The font data reader checks table bounds and embedding permissions; fonts are not sourced from the PDF viewer.
 
-Regression tests: `tests/RBC.graph.pdf.A.test` and `tests/RBC.graph.pdf.font.A.test`. They validate all object offsets and stream lengths, binary file
-roundtrips, option isolation, resource growth, font errors before opening files, transparency and geometry restoration.
+Regression tests: `tests/RBC.graph.pdf.A.test` and `tests/RBC.graph.pdf.font.A.test`. They validate all object offsets
+and stream lengths, binary file roundtrips, option isolation, resource growth, font errors before opening files,
+transparency and geometry restoration.
 
 PDF `-embedfonts` defaults to true. With false, `rbcPdfFont.c` creates standard Type1 resources with
 WinAnsiEncoding and rejects characters outside Windows-1252 before writing the file.

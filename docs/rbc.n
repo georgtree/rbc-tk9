@@ -1,7 +1,7 @@
 '\"
 '\" '\" Copyright (c) George Yashin
 '\"
-.TH "rbc" 3tcl 0\&.8\&.1 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
+.TH "rbc" 3tcl 0\&.8\&.5 "rbc" "Upgraded Tcl/Tk9\&.0-ready RBC package"
 .SH NAME
 Introduction - Upgraded Tcl/Tk9\&.0-ready RBC package
 .SH "RBC - REFACTORED BLT COMPONENTS FOR TCL/TK 9"
@@ -12,7 +12,7 @@ Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and
 and window and image utilities\&. Graphs update automatically when their attached vectors change\&. All types of plots and
 graphical elements support SVG, PostScript and PDF export\&. All three exporters work without Cairo\&.
 .PP
-This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.8\&.1\fP\&.
+This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current package version is \fB0\&.8\&.5\fP\&.
 .TP
 \(bu
 \fISource code\fP [URL: https://github\&.com/georgtree/rbc-tk9]
@@ -29,6 +29,9 @@ This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current packag
 .TP
 \(bu
 \fBgraph\fP - Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript output\&.
+.TP
+\(bu
+\fBtrackgraph\fP - Multi-track plots with shared horizontal axes and independent vertical axes, supporting line, strip, and bar elements, resizable tracks, local legends and grids, and independent track and data scrolling\&.
 .TP
 \(bu
 \fBbarchart\fP - Bar plots with normal, aligned, stacked, and overlapping presentations\&.
@@ -485,7 +488,7 @@ Packaging regression tests (no Tk or compiler needed):
 .PP
 .RS 4n
 .nf
-tclsh tests/build/installDist\&.test
+tclsh tests/build/RBC\&.build\&.installDist\&.A\&.test
 .fi
 .RE
 .PP
@@ -595,7 +598,8 @@ xvfb-run -a make test
 .RE
 .PP
 Review the test summary and any skipped-test constraints\&. The manualtests directory contains additional visual and
-interactive checks that are separate from the automated suite\&.
+interactive checks that are separate from the automated suite\&. See \fIthe manual test guide\fP [URL: manualtests/README\&.md]
+for topic runners, individual interactive cases and the coverage checklist\&.
 .SH "RUNNING DEMOS"
 .PP
 From an in-tree build, start the demo browser with:

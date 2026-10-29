@@ -6,7 +6,7 @@ Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
 graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
 
-This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.1**.
+This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.5**.
 
 - [Source code](https://github.com/georgtree/rbc-tk9)
 - [Documentation](https://georgtree.github.io/rbc-tk9/)
@@ -17,6 +17,8 @@ This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package ve
 
 - **graph** - Cartesian plots with line elements, symbols, multiple axes, error bars, markers, legends, and PostScript
   output.
+- **trackgraph** - Multi-track plots with shared horizontal axes and independent vertical axes, supporting line, strip,
+  and bar elements, resizable tracks, local legends and grids, and independent track and data scrolling.
 - **barchart** - Bar plots with normal, aligned, stacked, and overlapping presentations.
 - **stripchart** - Plots using independent line segments, suitable for waveform and continuously updated data displays.
 - **polar** - Complex-plane plots with polar or Smith-chart grids. Data coordinates remain Cartesian; elements can use
