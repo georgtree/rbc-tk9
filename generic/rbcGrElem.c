@@ -3530,11 +3530,13 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
         Tcl_HashEntry *entry;
         Axis *axis;
         newTrack = Rbc_FindTrack(graphPtr, name);
-        entry = (elemPtr->mapYObjPtr != NULL) ?
-            Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(elemPtr->mapYObjPtr)) : NULL;
+        entry = (elemPtr->mapYObjPtr != NULL)
+                    ? Tcl_FindHashEntry(&graphPtr->axes.table, Tcl_GetString(elemPtr->mapYObjPtr))
+                    : NULL;
         axis = (entry != NULL) ? Tcl_GetHashValue(entry) : NULL;
         if (newTrack == NULL || axis == NULL || axis->track != newTrack) {
-            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("element requires -track and a -mapy axis belonging to that track", -1));
+            Tcl_SetObjResult(graphPtr->interp,
+                             Tcl_NewStringObj("element requires -track and a -mapy axis belonging to that track", -1));
             trackValid = FALSE;
         }
     } else if (elemPtr->trackObjPtr != NULL && Tcl_GetCharLength(elemPtr->trackObjPtr) > 0) {
@@ -3688,7 +3690,8 @@ static int CreateElement(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
                                 (char *)NULL);
         return TCL_ERROR;
     }
-    if (graphPtr->trackGraph && classUid != rbcLineElementUid && classUid != rbcStripElementUid && classUid != rbcBarElementUid) {
+    if (graphPtr->trackGraph && classUid != rbcLineElementUid && classUid != rbcStripElementUid &&
+        classUid != rbcBarElementUid) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("trackgraph supports line, strip and bar elements", -1));
         return TCL_ERROR;
     }
@@ -3884,7 +3887,9 @@ static void DrawClippedTrackElement(Graph *graphPtr, Drawable drawable, Element 
     int left = MAX(0, track->left), top = MAX(0, track->top);
     int width = MIN(graphPtr->width - 1, track->right) - left + 1;
     int height = MIN(graphPtr->height - 1, track->bottom) - top + 1;
-    if (width <= 0 || height <= 0) return;
+    if (width <= 0 || height <= 0) {
+        return;
+    }
     clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
     Rbc_RenderClipBegin(clip, left, top, width, height);
     target = Rbc_RenderClipDrawable(clip);
@@ -4019,17 +4024,21 @@ void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Element \"%s\"\n\n", elemPtr->name);
             }
-            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                           elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
                     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
                     Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
-                        elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);
+                                        elemPtr->track->right - elemPtr->track->left + 1,
+                                        elemPtr->track->bottom - elemPtr->track->top + 1);
                     (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
                     Rbc_RenderClipEnd(ctx);
                     Rbc_RenderEnd(ctx);
-                } else {(*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);}
+                } else {
+                    (*elemPtr->procsPtr->exportNormalProc)(graphPtr, exportPtr, elemPtr);
+                }
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }
@@ -4066,17 +4075,21 @@ void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
                 Rbc_ExportFormat(exportPtr, "\n%% Active Element \"%s\"\n\n", elemPtr->name);
             }
-            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1)) {
+            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                           elemPtr->track->bottom - elemPtr->track->top > 1)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 if (elemPtr->track != NULL && (graphPtr->trackScroll || elemPtr->classUid == rbcBarElementUid)) {
                     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
                     Rbc_RenderClipBegin(ctx, elemPtr->track->left, elemPtr->track->top,
-                        elemPtr->track->right-elemPtr->track->left+1, elemPtr->track->bottom-elemPtr->track->top+1);
+                                        elemPtr->track->right - elemPtr->track->left + 1,
+                                        elemPtr->track->bottom - elemPtr->track->top + 1);
                     (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
                     Rbc_RenderClipEnd(ctx);
                     Rbc_RenderEnd(ctx);
-                } else {(*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);}
+                } else {
+                    (*elemPtr->procsPtr->exportActiveProc)(graphPtr, exportPtr, elemPtr);
+                }
                 Rbc_LeaveTrack(graphPtr, &saved);
             }
         }
@@ -4491,9 +4504,10 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 (Rbc_VectorNotifyPending(elemPtr->y.clientId))) {
                 continue;
             }
-            if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
-                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
-                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+            if (elemPtr->track == NULL ||
+                (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                 search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
+                 search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                 RbcTrackViewport saved;
                 Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                 (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
@@ -4518,9 +4532,10 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden)) {
-                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
-                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
-                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                               elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                                               search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
+                                               search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                     RbcTrackViewport saved;
                     Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                     (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);

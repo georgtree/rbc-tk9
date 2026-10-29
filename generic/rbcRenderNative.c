@@ -20,8 +20,8 @@ void Rbc_NativeTextLayout(Tk_Window tkwin, Drawable drawable, TextLayout *layout
     Rbc_DrawTextLayout(tkwin, drawable, layout, style, x, y);
 }
 
-void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style,
-                        int x, int y, Dim2D *size) {
+void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, TextStyle *style, int x, int y,
+                        Dim2D *size) {
     Rbc_DrawText2(tkwin, drawable, string, style, x, y, size);
 }
 
@@ -29,7 +29,7 @@ void Rbc_NativeTextSize(Tk_Window tkwin, Drawable drawable, const char *string, 
  * the polygon conversion, Convex fill rule, mask origin and XCopyPlane request
  * unchanged: Tk implements these operations through GDI on Windows. */
 void Rbc_NativeBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r,
-                       const Rbc_RenderBitmapStyle *style) {
+                      const Rbc_RenderBitmapStyle *style) {
     if (style->backgroundCount > 0) {
         XPoint polygon[RBC_RENDER_BITMAP_OUTLINE_POINTS];
         Tcl_Size i;
@@ -39,8 +39,8 @@ void Rbc_NativeBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectan
             polygon[i].x = (short int)style->backgroundPoints[i].x;
             polygon[i].y = (short int)style->backgroundPoints[i].y;
         }
-        XFillPolygon(graphPtr->display, drawable, style->fillGC, polygon, (int)style->backgroundCount,
-                     Convex, CoordModeOrigin);
+        XFillPolygon(graphPtr->display, drawable, style->fillGC, polygon, (int)style->backgroundCount, Convex,
+                     CoordModeOrigin);
     }
     XSetClipMask(graphPtr->display, style->gc, style->mask);
     if (style->mask != None) {
@@ -60,8 +60,8 @@ void Rbc_NativeImage(Drawable drawable, Tk_Image image, int x, int y) {
     Tk_RedrawImage(image, 0, 0, width, height, drawable, x, y);
 }
 
-void Rbc_NativeCopyArea(Tk_Window tkwin, Drawable source, Drawable destination, GC gc,
-                        int srcX, int srcY, unsigned int width, unsigned int height, int dstX, int dstY) {
+void Rbc_NativeCopyArea(Tk_Window tkwin, Drawable source, Drawable destination, GC gc, int srcX, int srcY,
+                        unsigned int width, unsigned int height, int dstX, int dstY) {
     XCopyArea(Tk_Display(tkwin), source, destination, gc, srcX, srcY, width, height, dstX, dstY);
 }
 
@@ -72,8 +72,8 @@ void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, 
 /* Widget decorations intentionally use Tk/native painting even when element
  * geometry uses Cairo. Tile origins and borrowed GCs are configured by the
  * component; preserve relief shading and the original fill/draw distinction. */
-void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y,
-                       int width, int height, int borderWidth, int relief, int fill) {
+void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
+                      int borderWidth, int relief, int fill) {
     if (fill) {
         Rbc_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
     } else {
@@ -81,8 +81,8 @@ void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, in
     }
 }
 
-void Rbc_NativeRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile,
-                          int x, int y, int width, int height) {
+void Rbc_NativeRectangle(Tk_Window tkwin, Drawable drawable, GC gc, Rbc_Tile tile, int x, int y, int width,
+                         int height) {
     if (tile != NULL) {
         Rbc_TileRectangle(tkwin, drawable, tile, x, y, width, height);
     } else {
@@ -94,9 +94,7 @@ void Rbc_NativeFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {
     Tk_DrawFocusHighlight(tkwin, gc, width, drawable);
 }
 
-
-void Rbc_NativeSegments(Graph *graphPtr, Drawable drawable, GC gc,
-    const Segment2D *segments, Tcl_Size count) {
+void Rbc_NativeSegments(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, count);
 }
 
@@ -111,7 +109,7 @@ INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); 
 #define MAX_DRAWARCS(d) Rbc_MaxRequestSize(d, sizeof(XArc))
 
 void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, int size,
-                                 Tcl_Size nSymbolPts, const Point2D *symbolPts) {
+                            Tcl_Size nSymbolPts, const Point2D *symbolPts) {
     XPoint pattern[13]; /* Template for polygon symbols */
     int r1, r2;
     Tcl_Size i, n;
@@ -469,8 +467,7 @@ void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNative
                     if ((style->fillGC == NULL) || (mask != None)) {
                         XSetClipOrigin(graphPtr->display, style->outlineGC, x, y);
                     }
-                    XCopyPlane(graphPtr->display, bitmap, drawable, style->outlineGC, 0, 0, bmWidth, bmHeight,
-                               x, y, 1);
+                    XCopyPlane(graphPtr->display, bitmap, drawable, style->outlineGC, 0, 0, bmWidth, bmHeight, x, y, 1);
                 }
                 style->counter++;
             }
@@ -481,8 +478,7 @@ void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNative
                 if ((style->fillGC == NULL) || (mask != None)) {
                     XSetClipOrigin(graphPtr->display, style->outlineGC, x, y);
                 }
-                XCopyPlane(graphPtr->display, bitmap, drawable, style->outlineGC, 0, 0, bmWidth, bmHeight, x, y,
-                           1);
+                XCopyPlane(graphPtr->display, bitmap, drawable, style->outlineGC, 0, 0, bmWidth, bmHeight, x, y, 1);
             }
         }
         Tk_FreePixmap(graphPtr->display, bitmap);
@@ -493,12 +489,14 @@ void Rbc_NativeSymbolPoints(Graph *graphPtr, Drawable drawable, Rbc_RenderNative
     }
 }
 
-void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile tile,
-    Pixmap stipple, const Point2D *points, Tcl_Size count) {
+void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile tile, Pixmap stipple,
+                           const Point2D *points, Tcl_Size count) {
     XPoint *nativePoints;
     Tcl_Size i;
     int n;
-    if (points == NULL || (tile != NULL && Rbc_PixmapOfTile(tile) == None)) return;
+    if (points == NULL || (tile != NULL && Rbc_PixmapOfTile(tile) == None)) {
+        return;
+    }        
     n = Rbc_NativePolygonPointCount(graphPtr->display, count);
     if (n == 0) {
         return;
@@ -519,7 +517,6 @@ void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile t
     }
     ckfree(nativePoints);
 }
-
 
 /*
  * -----------------------------------------------------------------
@@ -543,8 +540,8 @@ void Rbc_NativeFillPolygon(Graph *graphPtr, Drawable drawable, GC gc, Rbc_Tile t
  *
  * -----------------------------------------------------------------
  */
-void Rbc_NativeBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr, const Rbc_RenderRectangle *rectangles,
-                            Tcl_Size nRects) {
+void Rbc_NativeBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
+                    const Rbc_RenderRectangle *rectangles, Tcl_Size nRects) {
     const Rbc_RenderRectangle *rectPtr;
     const Rbc_RenderRectangle *endPtr;
     XRectangle *xRects;
@@ -619,25 +616,28 @@ void Rbc_NativeBars(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle
     }
 }
 
-
-void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc,
-    const Segment2D *segments, Tcl_Size count) {
+void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     Point2D *points;
     Tcl_Size i, n;
-    if (count == 0) return;
+    if (count == 0) {
+        return;
+    }        
     points = Tcl_AttemptAlloc((size_t)(count + 1) * sizeof(*points));
-    if (points == NULL) return;
+    if (points == NULL) {
+        return;
+    }        
     for (i = 0; i < count;) {
         n = 0;
         points[n++] = segments[i].p;
         do {
             points[n++] = segments[i++].q;
-        } while (i < count && points[n-1].x == segments[i].p.x &&
-                 points[n-1].y == segments[i].p.y);
+        } while (i < count && points[n - 1].x == segments[i].p.x && points[n - 1].y == segments[i].p.y);
         {
             XPoint *xp = Tcl_AttemptAlloc((size_t)n * sizeof(*xp));
             Tcl_Size j;
-            if (xp == NULL) continue;
+            if (xp == NULL) {
+                continue;
+            }                
             for (j = 0; j < n; j++) {
                 xp[j].x = (short)points[j].x;
                 xp[j].y = (short)points[j].y;
@@ -648,7 +648,6 @@ void Rbc_NativeArcStroke(Graph *graphPtr, Drawable drawable, GC gc,
     }
     ckfree(points);
 }
-
 
 /* Rectangular screen clipping. Scratch storage is reused at each nesting
  * depth. Seeding and copying only the visible rectangle preserves painter
@@ -691,8 +690,11 @@ void Rbc_NativePushClip(Rbc_NativeClip *clip, int x, int y, int width, int heigh
         frame = (NativeClipFrame *)ckalloc(sizeof(*frame) + Rbc_NativeClipStateSize());
         memset(frame, 0, sizeof(*frame));
         frame->previous = parent;
-        if (parent != NULL) parent->next = frame;
-        else clip->first = frame;
+        if (parent != NULL) {
+            parent->next = frame;
+        } else {
+            clip->first = frame;
+        }
     }
     frame->parent = Rbc_NativeClipDrawable(clip);
     frame->drawable = None;
@@ -700,46 +702,48 @@ void Rbc_NativePushClip(Rbc_NativeClip *clip, int x, int y, int width, int heigh
     frame->left = MAX(x, parent != NULL ? parent->left : 0);
     frame->top = MAX(y, parent != NULL ? parent->top : 0);
     /* Compute endpoints in a wide type before clamping to the drawable. */
-    frame->right = (int)MIN((Tcl_WideInt)x + MAX(0, width),
-                            parent != NULL ? parent->right : graphPtr->width);
-    frame->bottom = (int)MIN((Tcl_WideInt)y + MAX(0, height),
-                             parent != NULL ? parent->bottom : graphPtr->height);
-    if (frame->parent == None || frame->right <= frame->left || frame->bottom <= frame->top) return;
+    frame->right = (int)MIN((Tcl_WideInt)x + MAX(0, width), parent != NULL ? parent->right : graphPtr->width);
+    frame->bottom = (int)MIN((Tcl_WideInt)y + MAX(0, height), parent != NULL ? parent->bottom : graphPtr->height);
+    if (frame->parent == None || frame->right <= frame->left || frame->bottom <= frame->top) {
+        return;
+    }
     if (clip->useDC) {
-        frame->platformActive = Rbc_NativePlatformClip(graphPtr, frame->parent,
-            frame->left, frame->top, frame->right, frame->bottom,
-            frame + 1, &frame->drawable);
-        if (frame->platformActive) return;
+        frame->platformActive = Rbc_NativePlatformClip(graphPtr, frame->parent, frame->left, frame->top, frame->right,
+                                                       frame->bottom, frame + 1, &frame->drawable);
+        if (frame->platformActive) {
+            return;
+        }
     }
     if (frame->scratch == None) {
         frame->scratch = Tk_GetPixmap(graphPtr->display, frame->parent, graphPtr->width, graphPtr->height,
-                                       Tk_Depth(graphPtr->tkwin));
+                                      Tk_Depth(graphPtr->tkwin));
     }
-    if (frame->scratch == None) return;
+    if (frame->scratch == None) {
+        return;
+    }
     if (clip->copyGC == NULL) {
         XGCValues values;
         values.graphics_exposures = False;
         clip->copyGC = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
         clip->ownGC = 1;
     }
-    XCopyArea(graphPtr->display, frame->parent, frame->scratch, clip->copyGC,
-              frame->left, frame->top, frame->right-frame->left, frame->bottom-frame->top,
-              frame->left, frame->top);
+    XCopyArea(graphPtr->display, frame->parent, frame->scratch, clip->copyGC, frame->left, frame->top,
+              frame->right - frame->left, frame->bottom - frame->top, frame->left, frame->top);
     frame->drawable = frame->scratch;
 }
 
 void Rbc_NativePopClip(Rbc_NativeClip *clip) {
     NativeClipFrame *frame = clip->active;
     Graph *graphPtr = clip->graphPtr;
-    if (frame == NULL) return;
+    if (frame == NULL) {
+        return;
+    }        
     if (frame->platformActive) {
         Rbc_NativePlatformUnclip(frame + 1, frame->drawable);
         frame->platformActive = FALSE;
-    } else
-    if (frame->drawable != None) {
-        XCopyArea(graphPtr->display, frame->scratch, frame->parent, clip->copyGC,
-                  frame->left, frame->top, frame->right-frame->left, frame->bottom-frame->top,
-                  frame->left, frame->top);
+    } else if (frame->drawable != None) {
+        XCopyArea(graphPtr->display, frame->scratch, frame->parent, clip->copyGC, frame->left, frame->top,
+                  frame->right - frame->left, frame->bottom - frame->top, frame->left, frame->top);
     }
     frame->drawable = None;
     clip->active = frame->previous;
@@ -747,17 +751,133 @@ void Rbc_NativePopClip(Rbc_NativeClip *clip) {
 
 void Rbc_NativeDestroyClip(Rbc_NativeClip *clip) {
     NativeClipFrame *frame, *next;
-    while (clip->active != NULL) Rbc_NativePopClip(clip);
+    while (clip->active != NULL) {
+        Rbc_NativePopClip(clip);
+    }
     for (frame = clip->first; frame != NULL; frame = next) {
         next = frame->next;
-        if (frame->scratch != None) Tk_FreePixmap(clip->graphPtr->display, frame->scratch);
+        if (frame->scratch != None) {
+            Tk_FreePixmap(clip->graphPtr->display, frame->scratch);
+        }
         ckfree(frame);
     }
-    if (clip->ownGC) Tk_FreeGC(clip->graphPtr->display, clip->copyGC);
+    if (clip->ownGC) {
+        Tk_FreeGC(clip->graphPtr->display, clip->copyGC);
+    }
     ckfree(clip);
 }
 
-void Rbc_NativeScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc,
-    const Segment2D *segments, Tcl_Size count) {
+void Rbc_NativeScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
     Rbc_Draw2DSegments(Tk_Display(tkwin), drawable, gc, segments, count);
+}
+
+/*
+ * Rbc_NativeArrowHead --
+ *
+ *      Scan-convert the five-vertex head at integer pixel centers.
+ *      Rounding its vertices before XFillPolygon can distort the narrow
+ *      neck and unbalance diagonal heads. Native polygon filling also
+ *      uses boundary coordinates, unlike the shaft's pixel centers.
+ *      Keep the original doubles until choosing the covered pixels.
+ *
+ *      Half-open edges count shared vertices once. Clip spans before
+ *      converting to X protocol coordinates and send bounded batches.
+ */
+void Rbc_NativeArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *arrow) {
+    XRectangle spans[128];
+    double top = arrow[0].y, bottom = arrow[0].y;
+    int i, j, y, lastY, right, nSpans = 0;
+
+    for (i = 1; i < RBC_RENDER_ARROW_POINTS - 1; i++) {
+        top = MIN(top, arrow[i].y);
+        bottom = MAX(bottom, arrow[i].y);
+    }
+    top = MAX(0.0, ceil(top));
+    bottom = MIN((double)MIN(graphPtr->height - 1, SHRT_MAX), floor(bottom));
+    right = MIN(graphPtr->width - 1, SHRT_MAX);
+    if ((top > bottom) || (right < 0)) {
+        return;
+    }
+    lastY = (int)bottom;
+    for (y = (int)top; y <= lastY; y++) {
+        double intersections[RBC_RENDER_ARROW_POINTS - 1];
+        int count = 0;
+
+        for (i = 0; i < RBC_RENDER_ARROW_POINTS - 1; i++) {
+            const Point2D *p = arrow + i;
+            const Point2D *q = arrow + ((i + 1) % (RBC_RENDER_ARROW_POINTS - 1));
+
+            if (((p->y <= y) && (y < q->y)) || ((q->y <= y) && (y < p->y))) {
+                double x = p->x + ((double)y - p->y) / (q->y - p->y) * (q->x - p->x);
+
+                /* At most five crossings; insertion sort keeps pairs ordered. */
+                for (j = count; (j > 0) && (intersections[j - 1] > x); j--) {
+                    intersections[j] = intersections[j - 1];
+                }
+                intersections[j] = x;
+                count++;
+            }
+        }
+        for (i = 0; i + 1 < count; i += 2) {
+            double left = MAX(0.0, ceil(intersections[i]));
+            double end = MIN((double)right, ceil(intersections[i + 1]) - 1.0);
+
+            if (left > end) {
+                continue;
+            }
+            spans[nSpans].x = (short)left;
+            spans[nSpans].y = (short)y;
+            spans[nSpans].width = (unsigned short)(end - left + 1.0);
+            spans[nSpans].height = 1;
+            if (++nSpans == 128) {
+                XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
+                nSpans = 0;
+            }
+        }
+    }
+    if (nSpans > 0) {
+        XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
+    }
+}
+
+/* Preserve the original sum-before-short conversion and Convex fill rule. */
+void Rbc_NativeTextBackground(Graph *graphPtr, Drawable drawable, GC gc, const Point2D *outline,
+                              const Point2D *anchor) {
+    XPoint points[4];
+    int i;
+    for (i = 0; i < 4; i++) {
+        points[i].x = (short int)(outline[i].x + anchor->x);
+        points[i].y = (short int)(outline[i].y + anchor->y);
+    }
+    XFillPolygon(graphPtr->display, drawable, gc, points, 4, Convex, CoordModeOrigin);
+}
+
+/* Keep two independent line requests, including their original dash phase. */
+void Rbc_NativeLegendLine(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size) {
+    XDrawLine(graphPtr->display, drawable, gc, x - size, y, x + size, y);
+    XDrawLine(graphPtr->display, drawable, gc, x - size, y + 1, x + size, y + 1);
+}
+
+void Rbc_NativeLegendBar(Graph *graphPtr, Drawable drawable, GC gc, int x, int y, int size) {
+    XSetTSOrigin(graphPtr->display, gc, x, y);
+    XFillRectangle(graphPtr->display, drawable, gc, x, y, size, size);
+    XSetTSOrigin(graphPtr->display, gc, 0, 0);
+}
+
+void Rbc_NativeBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                         const Rbc_RenderPosition *positions, Tcl_Size count) {
+    Tcl_Size i;
+    if (positions == NULL || count <= 0) {
+        return;
+    }
+    if (Rbc_NativeOpaqueBitmapRun(graphPtr, drawable, bitmap, gc, width, height, positions, count)) {
+        return;
+    }
+    /* The optimized path is GXcopy-equivalent. After a partial failure it is
+     * safe to replay the complete run through the original XCopyPlane path. */
+    XSetClipMask(graphPtr->display, gc, None);
+    XSetClipOrigin(graphPtr->display, gc, 0, 0);
+    for (i = 0; i < count; i++) {
+        XCopyPlane(graphPtr->display, bitmap, drawable, gc, 0, 0, width, height, positions[i][0], positions[i][1], 1);
+    }
 }

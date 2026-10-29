@@ -4,9 +4,7 @@
 static void PdfClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "q %d %d %d %d re W n\n", x, y, width, height);
 }
-static void PdfClipEnd(Rbc_RenderContext *ctx) {
-    Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL);
-}
+static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
 /* ----------------------------------------------------------------------
  * PDF export. Geometry stays in graph coordinates; the document's initial
@@ -73,9 +71,10 @@ static void PdfStrokeStyle(Rbc_RenderContext *ctx, int background) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     int i;
     PdfColor(token, background ? &RENDER_EXPORT(ctx)->vectorOffColor : &RENDER_EXPORT(ctx)->vectorColor, TRUE);
-    Rbc_ExportFormat(token, "%d w %d J %d j\n[", RENDER_EXPORT(ctx)->vectorWidth,
-                     RENDER_EXPORT(ctx)->vectorCap == CapRound ? 1 : (RENDER_EXPORT(ctx)->vectorCap == CapProjecting ? 2 : 0),
-                     RENDER_EXPORT(ctx)->vectorJoin == JoinRound ? 1 : (RENDER_EXPORT(ctx)->vectorJoin == JoinBevel ? 2 : 0));
+    Rbc_ExportFormat(
+        token, "%d w %d J %d j\n[", RENDER_EXPORT(ctx)->vectorWidth,
+        RENDER_EXPORT(ctx)->vectorCap == CapRound ? 1 : (RENDER_EXPORT(ctx)->vectorCap == CapProjecting ? 2 : 0),
+        RENDER_EXPORT(ctx)->vectorJoin == JoinRound ? 1 : (RENDER_EXPORT(ctx)->vectorJoin == JoinBevel ? 2 : 0));
     if (!background) {
         for (i = 0; i < RBC_MAX_DASH_VALUES && RENDER_EXPORT(ctx)->vectorDashes.values[i]; i++) {
             Rbc_ExportFormat(token, "%u ", (unsigned char)RENDER_EXPORT(ctx)->vectorDashes.values[i]);
@@ -90,7 +89,8 @@ static void PdfPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
     if (!RENDER_EXPORT(ctx)->vectorHasColor || count < 2) {
         return;
     }
-    for (pass = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 1 : 0; pass >= 0; pass--) {
+    for (pass = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 1 : 0; pass >= 0;
+         pass--) {
         Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
         PdfStrokeStyle(ctx, pass);
         PdfPath(RENDER_EXPORT(ctx)->exportPtr, points, count, FALSE);
@@ -111,7 +111,8 @@ static void PdfArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     if (!RENDER_EXPORT(ctx)->vectorHasColor) {
         return;
     }
-    for (pass = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 1 : 0; pass >= 0; pass--) {
+    for (pass = RENDER_EXPORT(ctx)->vectorHasOffColor && RENDER_EXPORT(ctx)->vectorDashes.values[0] ? 1 : 0; pass >= 0;
+         pass--) {
         Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
         PdfStrokeStyle(ctx, pass);
         PdfArcPath(RENDER_EXPORT(ctx)->exportPtr, arc);
@@ -256,7 +257,8 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
     } else {
         Tk_SizeOfBitmap(ctx->graphPtr->display, RENDER_EXPORT(ctx)->fillStyle.stipple, &width, &height);
         if (width > 0 && height > 0) {
-            bits = XGetImage(ctx->graphPtr->display, RENDER_EXPORT(ctx)->fillStyle.stipple, 0, 0, width, height, 1, XYPixmap);
+            bits = XGetImage(ctx->graphPtr->display, RENDER_EXPORT(ctx)->fillStyle.stipple, 0, 0, width, height, 1,
+                             XYPixmap);
             if (bits == NULL) {
                 PdfError(token, "cannot read PDF stipple");
                 return 0;
@@ -281,7 +283,8 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
              "/BBox [0 0 %d %d] /XStep %d /YStep %d /Resources << %s >> "
              "/Matrix [%.8f 0 0 %.8f %.8f %.8f]",
              width, height, width, height, resources, scale, -scale, x * scale, (Rbc_PdfHeight(token) - y) * scale);
-    RENDER_EXPORT(ctx)->vectorPatternId = Rbc_PdfStream(token, 'P', dictionary, Tcl_DStringValue(&content), Tcl_DStringLength(&content));
+    RENDER_EXPORT(ctx)->vectorPatternId =
+        Rbc_PdfStream(token, 'P', dictionary, Tcl_DStringValue(&content), Tcl_DStringLength(&content));
     Tcl_DStringFree(&content);
     return RENDER_EXPORT(ctx)->vectorPatternId;
 }
@@ -428,8 +431,8 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
                 if (Rbc_PdfFontCharacter(token, style->font, ch, &fontId, &cid, &size, &digits, &advance) != TCL_OK) {
                     break;
                 }
-                Rbc_ExportFormat(token, "/F%d %.8f Tf\n1 0 0 -1 %d %d Tm <%0*X> Tj\n",
-                                 fontId, size, fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
+                Rbc_ExportFormat(token, "/F%d %.8f Tf\n1 0 0 -1 %d %d Tm <%0*X> Tj\n", fontId, size,
+                                 fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
                                  fragment->y + offset, digits, cid);
                 if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
                     extra += (int)ceil(advance);
@@ -449,7 +452,8 @@ static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
         PdfError(RENDER_EXPORT(ctx)->exportPtr, "cannot read photo image for PDF");
         return;
     }
-    PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfPhotoResource(RENDER_EXPORT(ctx)->exportPtr, &block), x, y, block.width, block.height);
+    PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfPhotoResource(RENDER_EXPORT(ctx)->exportPtr, &block), x, y,
+                block.width, block.height);
 }
 
 static void PdfTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
@@ -471,8 +475,8 @@ static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
         PdfError(RENDER_EXPORT(ctx)->exportPtr, "cannot capture window marker for PDF");
         return;
     }
-    PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfColorImageResource(RENDER_EXPORT(ctx)->exportPtr, captured), x, y, Rbc_ColorImageWidth(captured),
-                Rbc_ColorImageHeight(captured));
+    PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfColorImageResource(RENDER_EXPORT(ctx)->exportPtr, captured), x, y,
+                Rbc_ColorImageWidth(captured), Rbc_ColorImageHeight(captured));
     Rbc_FreeColorImage(captured);
 }
 
@@ -585,7 +589,6 @@ static void PdfPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
 
 static void PdfPlotEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
-
 /* Match the SVG/PostScript symbol size corrections and painter order. */
 static void PdfSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &RENDER_EXPORT(ctx)->vectorSymbol;
@@ -596,7 +599,8 @@ static void PdfSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
 
     if (RENDER_EXPORT(ctx)->vectorBarSymbol) {
         for (i = 0; i < count; i++) {
-            Rbc_RenderRectangle rect = {centers[i].x - RENDER_EXPORT(ctx)->symbolSize / 2, centers[i].y - RENDER_EXPORT(ctx)->symbolSize / 2,
+            Rbc_RenderRectangle rect = {centers[i].x - RENDER_EXPORT(ctx)->symbolSize / 2,
+                                        centers[i].y - RENDER_EXPORT(ctx)->symbolSize / 2,
                                         (int)RENDER_EXPORT(ctx)->symbolSize, (int)RENDER_EXPORT(ctx)->symbolSize};
             PdfFillRectangles(ctx, &rect, 1);
         }
@@ -731,12 +735,28 @@ static const Rbc_RenderOutputOps pdfOutputOps = {PdfText,
                                                  PdfPlotBegin,
                                                  PdfPlotEnd,
                                                  PdfBitmapMask,
-                                                 PdfTkImage, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+                                                 PdfTkImage,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL};
 
-static const Rbc_RenderOps rbcPdfOps = {
-    PdfPolyline,       PdfSegments,     Rbc_RenderExportLineStyle, Rbc_RenderExportDashBackground, PdfFillPolygon,
-    PdfFillRectangles, PdfSymbolPoints, &pdfOutputOps,   Rbc_RenderExportEnd,        PdfArc,
-    PdfFillArc, PdfClipBegin, PdfClipEnd};
+static const Rbc_RenderOps rbcPdfOps = {PdfPolyline,
+                                        PdfSegments,
+                                        Rbc_RenderExportLineStyle,
+                                        Rbc_RenderExportDashBackground,
+                                        PdfFillPolygon,
+                                        PdfFillRectangles,
+                                        PdfSymbolPoints,
+                                        &pdfOutputOps,
+                                        Rbc_RenderExportEnd,
+                                        PdfArc,
+                                        PdfFillArc,
+                                        PdfClipBegin,
+                                        PdfClipEnd};
 
 Rbc_RenderContext *Rbc_RenderCreatePdf(Rbc_ExportContext *token) {
     Rbc_RenderExportState *ctx = ckalloc(sizeof(*ctx));

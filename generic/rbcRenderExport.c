@@ -45,7 +45,9 @@ Rbc_RenderContext *Rbc_RenderBeginExportSymbol(Graph *graphPtr, Rbc_ExportContex
     Rbc_RenderContext *ctx = Rbc_RenderBeginExportOutput(exportPtr);
     ctx->graphPtr = graphPtr;
     RENDER_EXPORT(ctx)->vectorSymbol = *style;
-    if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) Rbc_RenderPostscriptSymbol(ctx, style);
+    if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
+        Rbc_RenderPostscriptSymbol(ctx, style);
+    }
     return ctx;
 }
 
@@ -55,15 +57,20 @@ Rbc_RenderContext *Rbc_RenderBeginExportBarSymbol(Graph *graphPtr, Rbc_ExportCon
     Rbc_RenderContext *ctx = Rbc_RenderBeginExportFill(graphPtr, exportPtr, style);
     RENDER_EXPORT(ctx)->vectorBarSymbol = TRUE;
     RENDER_EXPORT(ctx)->symbolSize = size;
-    if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) Rbc_RenderPostscriptBarSymbol(ctx, style, size);
+    if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
+        Rbc_RenderPostscriptBarSymbol(ctx, style, size);
+    }        
     return ctx;
 }
 
 Rbc_RenderContext *Rbc_RenderBeginExportOutput(Rbc_ExportContext *exportPtr) {
     switch (exportPtr->backend) {
-    case RBC_EXPORT_SVG: return Rbc_RenderCreateSvg(exportPtr);
-    case RBC_EXPORT_PDF: return Rbc_RenderCreatePdf(exportPtr);
-    case RBC_EXPORT_POSTSCRIPT: return Rbc_RenderCreatePostscript(exportPtr);
+    case RBC_EXPORT_SVG:
+        return Rbc_RenderCreateSvg(exportPtr);
+    case RBC_EXPORT_PDF:
+        return Rbc_RenderCreatePdf(exportPtr);
+    case RBC_EXPORT_POSTSCRIPT:
+        return Rbc_RenderCreatePostscript(exportPtr);
     }
     Tcl_Panic("unknown graph export backend");
     return NULL;
@@ -157,7 +164,9 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
 }
 
 void Rbc_RenderExportError(Rbc_ExportContext *token, const char *message) {
-    if (token->error == NULL) token->error = message;
+    if (token->error == NULL) {
+        token->error = message;
+    }
 }
 
 int Rbc_RenderExportSymbolRound(double value) { return (int)(value + ((value < 0.0) ? -0.5 : 0.5)); }

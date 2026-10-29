@@ -3,14 +3,12 @@
 
 /* The compact, non-embedded mode intentionally retains the standard-font
  * WinAnsi repertoire. Do not emit native glyph IDs without their font program. */
-static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch,
-                                int *idPtr, int *codePtr, double *sizePtr) {
-    static const unsigned short extra[32] = {
-        0x20ac, 0, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
-        0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0, 0x017d, 0,
-        0, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
-        0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0, 0x017e, 0x0178
-    };
+static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar ch, int *idPtr, int *codePtr,
+                                double *sizePtr) {
+    static const unsigned short extra[32] = {0x20ac, 0,      0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
+                                             0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0,      0x017d, 0,
+                                             0,      0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
+                                             0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0,      0x017e, 0x0178};
     Tcl_DString name;
     const char *native, *mapped;
     char dictionary[180];
@@ -40,9 +38,11 @@ static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniC
     } else if (strncmp(native, "Times", 5) == 0) {
         mapped = bold ? (italic ? "Times-BoldItalic" : "Times-Bold") : (italic ? "Times-Italic" : "Times-Roman");
     } else {
-        mapped = bold ? (italic ? "Helvetica-BoldOblique" : "Helvetica-Bold") : (italic ? "Helvetica-Oblique" : "Helvetica");
+        mapped =
+            bold ? (italic ? "Helvetica-BoldOblique" : "Helvetica-Bold") : (italic ? "Helvetica-Oblique" : "Helvetica");
     }
-    snprintf(dictionary, sizeof(dictionary), "<< /Type /Font /Subtype /Type1 /BaseFont /%s /Encoding /WinAnsiEncoding >>", mapped);
+    snprintf(dictionary, sizeof(dictionary),
+             "<< /Type /Font /Subtype /Type1 /BaseFont /%s /Encoding /WinAnsiEncoding >>", mapped);
     *idPtr = Rbc_PdfResource(token, 'F', dictionary, -1);
     *codePtr = code;
     Tcl_DStringFree(&name);
@@ -170,16 +170,17 @@ int Rbc_PdfFontsFinish(Rbc_ExportContext *token) {
                               : Rbc_PdfStream(token, 'D', dictionary, (char *)font->bytes, (Tcl_Size)font->length);
         token->buffer = &body;
         Tcl_DStringSetLength(&body, 0);
-        Rbc_ExportFormat(
-            token,
-            "<< /Type /FontDescriptor /FontName /%s /Flags %d /FontBBox [%.4f %.4f %.4f %.4f] "
-            "/ItalicAngle %.4f /Ascent %.4f /Descent %.4f /CapHeight %.4f /StemV 80 /%s %d 0 R >>",
-            font->name, flags, Rbc_FontS16(font->head.bytes + 36) * scale, Rbc_FontS16(font->head.bytes + 38) * scale,
-            Rbc_FontS16(font->head.bytes + 40) * scale, Rbc_FontS16(font->head.bytes + 42) * scale, italic,
-            Rbc_FontS16(font->hhea.bytes + 4) * scale, Rbc_FontS16(font->hhea.bytes + 6) * scale,
-            (os2.length >= 90 && Rbc_FontU16(os2.bytes) >= 2 ? Rbc_FontS16(os2.bytes + 88) : Rbc_FontS16(font->hhea.bytes + 4)) *
-                scale,
-            font->isCff ? "FontFile3" : "FontFile2", program);
+        Rbc_ExportFormat(token,
+                         "<< /Type /FontDescriptor /FontName /%s /Flags %d /FontBBox [%.4f %.4f %.4f %.4f] "
+                         "/ItalicAngle %.4f /Ascent %.4f /Descent %.4f /CapHeight %.4f /StemV 80 /%s %d 0 R >>",
+                         font->name, flags, Rbc_FontS16(font->head.bytes + 36) * scale,
+                         Rbc_FontS16(font->head.bytes + 38) * scale, Rbc_FontS16(font->head.bytes + 40) * scale,
+                         Rbc_FontS16(font->head.bytes + 42) * scale, italic, Rbc_FontS16(font->hhea.bytes + 4) * scale,
+                         Rbc_FontS16(font->hhea.bytes + 6) * scale,
+                         (os2.length >= 90 && Rbc_FontU16(os2.bytes) >= 2 ? Rbc_FontS16(os2.bytes + 88)
+                                                                          : Rbc_FontS16(font->hhea.bytes + 4)) *
+                             scale,
+                         font->isCff ? "FontFile3" : "FontFile2", program);
         descriptor = Rbc_PdfResource(token, 'D', Tcl_DStringValue(&body), Tcl_DStringLength(&body));
         if (font->isCff) {
             FontCffResources(token, font, descriptor);

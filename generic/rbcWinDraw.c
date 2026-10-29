@@ -177,6 +177,7 @@ HDC Rbc_WinAcquireDrawableDC(Display *display, Drawable drawable, Rbc_WinDrawabl
  *
  * Side effects:
  *      Restores Tk's drawable state and frees the RBC state object.
+ *      Failed acquisitions have no DC to restore but still own this object.
  *
  *----------------------------------------------------------------------
  */
@@ -184,7 +185,9 @@ void Rbc_WinReleaseDrawableDC(Rbc_WinDrawableDC *statePtr) {
     if (statePtr == NULL) {
         return;
     }
-    TkWinReleaseDrawableDC(statePtr->drawable, statePtr->dc, &statePtr->state);
+    if (statePtr->dc != NULL) {
+        TkWinReleaseDrawableDC(statePtr->drawable, statePtr->dc, &statePtr->state);
+    }
     ckfree((char *)statePtr);
 }
 
@@ -584,7 +587,7 @@ int Rbc_WinFillOpaqueStippledRectangles(Display *display, Drawable drawable, GC 
  *----------------------------------------------------------------------
  */
 int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
-                                 const POINT *positions, Tcl_Size nPositions) {
+                                 const int (*positions)[2], Tcl_Size nPositions) {
     Rbc_WinDrawableDC *dcStatePtr;
     TkWinDCState srcState;
     HDC srcDC;
@@ -601,6 +604,7 @@ int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bit
     }
     dc = Rbc_WinAcquireDrawableDC(display, drawable, &dcStatePtr);
     if (dc == NULL) {
+        Rbc_WinReleaseDrawableDC(dcStatePtr);
         return FALSE;
     }
     /*
@@ -622,7 +626,7 @@ int Rbc_WinCopyOpaqueBitmapBatch(Display *display, Drawable drawable, Pixmap bit
     oldTextColor = SetTextColor(dc, (COLORREF)gc->background);
     result = TRUE;
     for (i = 0; i < nPositions; i++) {
-        if (!BitBlt(dc, positions[i].x, positions[i].y, width, height, srcDC, 0, 0, SRCCOPY)) {
+        if (!BitBlt(dc, positions[i][0], positions[i][1], width, height, srcDC, 0, 0, SRCCOPY)) {
             result = FALSE;
             break;
         }

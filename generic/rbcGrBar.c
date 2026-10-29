@@ -443,6 +443,7 @@ static ElementMapProc MapBar;
 static int Round(register double x);
 static void ClearPalette(Rbc_Chain *palette);
 static void InitPen(BarPen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags);
+
 /* Track-owned Y axes isolate grouping keys; only the mode needs a local override. */
 static int GetTrackBarMode(Graph *graphPtr, Axis *yAxis) {
     return yAxis->track != NULL && yAxis->track->barMode >= 0 ? yAxis->track->barMode : graphPtr->mode;
@@ -1998,9 +1999,7 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
                                 (penPtr->fgColor != NULL) ? background : NULL, penPtr->stipple, penPtr->fillOpacity))
             return;
     }
-    XSetTSOrigin(graphPtr->display, penPtr->gc, x, y);
-    XFillRectangle(graphPtr->display, drawable, penPtr->gc, x, y, size, size);
-    XSetTSOrigin(graphPtr->display, penPtr->gc, 0, 0);
+    Rbc_RenderScreenLegendBar(graphPtr, drawable, penPtr->gc, x, y, size);
 }
 
 /* Draw the complete bar batch through the screen renderer. */

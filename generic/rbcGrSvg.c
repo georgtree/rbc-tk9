@@ -9,19 +9,16 @@ static const char *const svgOptions[] = {"-width", "-height", "-decorations", "-
  * temporary option table. Runtime configuration keeps its existing transaction. */
 int Rbc_InitSvgOptions(Graph *graphPtr) {
     static const Tk_OptionSpec specs[] = {
-        {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1,
-         offsetof(Graph, svgWidth), 0, NULL, 0},
-        {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1,
-         offsetof(Graph, svgHeight), 0, NULL, 0},
-        {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1,
-         offsetof(Graph, svgDecorations), 0, NULL, 0},
-        {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "0", -1,
-         offsetof(Graph, svgEmbedFonts), 0, NULL, 0},
-        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
-    };
+        {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1, offsetof(Graph, svgWidth), 0, NULL, 0},
+        {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1, offsetof(Graph, svgHeight), 0, NULL, 0},
+        {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1, offsetof(Graph, svgDecorations), 0,
+         NULL, 0},
+        {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "0", -1, offsetof(Graph, svgEmbedFonts), 0, NULL,
+         0},
+        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
     Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
-    int result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
-                                          "svg", "Svg", (char *)graphPtr, table);
+    int result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "svg", "Svg",
+                                          (char *)graphPtr, table);
     if (result == TCL_OK && (graphPtr->svgWidth < 0 || graphPtr->svgHeight < 0)) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("SVG dimensions must be zero or positive", -1));
         result = TCL_ERROR;
@@ -34,8 +31,9 @@ int Rbc_InitSvgOptions(Graph *graphPtr) {
 static Tcl_Obj *SvgOptionInfo(Graph *graphPtr, int index) {
     static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
     static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};
-    int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight :
-                (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
+    int value = index == 0 ? graphPtr->svgWidth
+                           : (index == 1 ? graphPtr->svgHeight
+                                         : (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
     Tcl_Obj *items[5];
 
     items[0] = Tcl_NewStringObj(svgOptions[index], -1);
@@ -100,8 +98,9 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             return TCL_ERROR;
         }
         if (command == 0) {
-            int value = index == 0 ? graphPtr->svgWidth : (index == 1 ? graphPtr->svgHeight :
-                (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
+            int value = index == 0 ? graphPtr->svgWidth
+                                   : (index == 1 ? graphPtr->svgHeight
+                                                 : (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
             Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
         } else {
             Tcl_SetObjResult(interp, SvgOptionInfo(graphPtr, index));

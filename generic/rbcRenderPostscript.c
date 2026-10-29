@@ -7,11 +7,15 @@ typedef struct {
     int postScriptDashed;
     const char *symbolMacro;
 } PostscriptRenderContext;
+
 #define POSTSCRIPT(ctx) ((PostscriptRenderContext *)(ctx))
 
 static void PostScriptClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
-    Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "gsave newpath %d %d moveto %d 0 rlineto 0 %d rlineto %d 0 rlineto closepath clip newpath\n", x, y, width, height, -width);
+    Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr,
+                     "gsave newpath %d %d moveto %d 0 rlineto 0 %d rlineto %d 0 rlineto closepath clip newpath\n", x, y,
+                     width, height, -width);
 }
+
 static void PostScriptClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "grestore\n", (char *)NULL);
 }
@@ -92,9 +96,9 @@ static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points,
  * stroking/filling so widths, dash lengths and stipples stay in display units. */
 static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken,
-        "newpath matrix currentmatrix\n%g %g translate %g %g scale\n0 0 1 %g %g %s\nsetmatrix\n",
-        arc->cx, arc->cy, arc->rx, arc->ry, -arc->start, -(arc->start + arc->extent),
-        arc->extent > 0.0 ? "arcn" : "arc");
+                           "newpath matrix currentmatrix\n%g %g translate %g %g scale\n0 0 1 %g %g %s\nsetmatrix\n",
+                           arc->cx, arc->cy, arc->rx, arc->ry, -arc->start, -(arc->start + arc->extent),
+                           arc->extent > 0.0 ? "arcn" : "arc");
     if (fabs(arc->extent) == 360.0) {
         Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "closepath\n", (char *)NULL);
     } else if (arc->style != RBC_RENDER_ARC_OPEN) {
@@ -141,8 +145,8 @@ static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *center
     Tcl_Size i;
 
     for (i = 0; i < count; i++) {
-        Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken, "%g %g %g %s\n", centers[i].x, centers[i].y, RENDER_EXPORT(ctx)->symbolSize,
-                               POSTSCRIPT(ctx)->symbolMacro);
+        Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken, "%g %g %g %s\n", centers[i].x, centers[i].y,
+                               RENDER_EXPORT(ctx)->symbolSize, POSTSCRIPT(ctx)->symbolMacro);
     }
 }
 
@@ -234,7 +238,8 @@ static void PostScriptBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixma
                            " %g %g translate\n"
                            " %d %d scale\n",
                            x, y + height, width, -height);
-    Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken, " %d %d true [%d 0 0 %d 0 %d] {", width, height, width, -height, height);
+    Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken, " %d %d true [%d 0 0 %d 0 %d] {", width, height, width, -height,
+                           height);
     Rbc_BitmapDataToPostScript(POSTSCRIPT(ctx)->psToken, display, bitmap, width, height);
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, " } imagemask\n", " grestore\n", (char *)NULL);
 }
@@ -249,15 +254,22 @@ static const Rbc_RenderOutputOps postScriptOutputOps = {PostScriptText,
                                                         PostScriptPlotBegin,
                                                         PostScriptPlotEnd,
                                                         PostScriptBitmapMask,
-                                                        PostScriptTkImage, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+                                                        PostScriptTkImage,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL};
 
-
-static const Rbc_RenderOps rbcPostScriptOps = {PostScriptPolyline,       PostScriptSegments,    PostScriptLineStyle,
-                                            PostScriptDashBackground, PostScriptFillPolygon, PostScriptFillRectangles,
-                                            PostScriptSymbolPoints,   &postScriptOutputOps,  Rbc_RenderExportEnd,
-                                            PostScriptArc, PostScriptFillArc, PostScriptClipBegin, PostScriptClipEnd};
-
-
+static const Rbc_RenderOps rbcPostScriptOps = {PostScriptPolyline,     PostScriptSegments,
+                                               PostScriptLineStyle,    PostScriptDashBackground,
+                                               PostScriptFillPolygon,  PostScriptFillRectangles,
+                                               PostScriptSymbolPoints, &postScriptOutputOps,
+                                               Rbc_RenderExportEnd,    PostScriptArc,
+                                               PostScriptFillArc,      PostScriptClipBegin,
+                                               PostScriptClipEnd};
 
 void Rbc_RenderPostscriptSymbol(Rbc_RenderContext *ctx, const Rbc_RenderSymbolStyle *style) {
     static const char *macros[] = {"Sq", "Ci", "Di", "Pl", "Cr", "Sp", "Sc", "Tr", "Ar", "Bm"};
@@ -341,11 +353,11 @@ void Rbc_RenderPostscriptBarSymbol(Rbc_RenderContext *ctx, const Rbc_RenderFillS
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "} def\n\n", (char *)NULL);
 }
 
-void Rbc_RenderPostscriptStroke(Rbc_RenderContext *ctx, const XColor *color, int lineWidth,
-                                const Rbc_Dashes *dashes, int capStyle, int joinStyle) {
+void Rbc_RenderPostscriptStroke(Rbc_RenderContext *ctx, const XColor *color, int lineWidth, const Rbc_Dashes *dashes,
+                                int capStyle, int joinStyle) {
     POSTSCRIPT(ctx)->postScriptDashed = (dashes != NULL) && (dashes->values[0] != 0);
-    Rbc_LineAttributesToPostScript(POSTSCRIPT(ctx)->psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes,
-                                  capStyle, joinStyle);
+    Rbc_LineAttributesToPostScript(POSTSCRIPT(ctx)->psToken, (XColor *)color, lineWidth, (Rbc_Dashes *)dashes, capStyle,
+                                   joinStyle);
 }
 
 Rbc_RenderContext *Rbc_RenderCreatePostscript(Rbc_ExportContext *token) {

@@ -1411,9 +1411,10 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
                 continue;
             }
             if ((!elemPtr->hidden) && (!elemPtr->plotHidden) && (elemPtr->state == STATE_NORMAL)) {
-                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 && elemPtr->track->bottom - elemPtr->track->top > 1 &&
-                    search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
-                    search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
+                if (elemPtr->track == NULL || (elemPtr->track->right - elemPtr->track->left > 1 &&
+                                               elemPtr->track->bottom - elemPtr->track->top > 1 &&
+                                               search.x >= elemPtr->track->left && search.x <= elemPtr->track->right &&
+                                               search.y >= elemPtr->track->top && search.y <= elemPtr->track->bottom)) {
                     RbcTrackViewport saved;
                     Rbc_EnterTrack(graphPtr, elemPtr->track, &saved);
                     (*elemPtr->procsPtr->closestProc)(graphPtr, elemPtr, &search);
@@ -1436,8 +1437,8 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
     if (graphPtr->trackGraph && !Rbc_PointInLegend(graphPtr, x, y)) {
         RbcTrack *track;
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
-            if (track->right > track->left && track->bottom > track->top &&
-                x >= track->left && x <= track->right && y >= track->top && y <= track->bottom) {
+            if (track->right > track->left && track->bottom > track->top && x >= track->left && x <= track->right &&
+                y >= track->top && y <= track->bottom) {
                 *contextPtr = INT2PTR(GRAPH_BIND_CONTEXT_TRACK);
                 return track;
             }
@@ -3333,7 +3334,7 @@ static void DrawMargins(Graph *graphPtr, Drawable drawable) {
 static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     /* Clear the background of the plotting area. */
     Rbc_RenderScreenRectangle(graphPtr->tkwin, drawable, graphPtr->plotFillGC, NULL, graphPtr->left, graphPtr->top,
-                   graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
+                              graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
     Rbc_DrawTrackSeparators(graphPtr, drawable, NULL);
     /* Draw the elements, markers, legend, and axis limits. */
     if (graphPtr->trackGraph || !graphPtr->gridPtr->hidden) {

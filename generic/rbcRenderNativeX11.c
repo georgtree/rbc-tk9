@@ -18,7 +18,9 @@ struct Rbc_NativeTrace {
 void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size nPoints) {
     Tcl_Size count, j, remaining;
     int maxPoints;
-    if (ctx == NULL) return;
+    if (ctx == NULL) {
+        return;
+    }        
     maxPoints = ctx->nativeMaxPoints;
     if (screenPts == NULL || nPoints < 2 || maxPoints < 2) {
         return;
@@ -67,14 +69,14 @@ void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size
             points[j + 1].x = (short int)screenPts[count].x;
             points[j + 1].y = (short int)screenPts[count].y;
         }
-        XDrawLines(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, points, (int)remaining + 1, CoordModeOrigin);
+        XDrawLines(ctx->graphPtr->display, ctx->nativeDrawable, ctx->nativeGC, points, (int)remaining + 1,
+                   CoordModeOrigin);
     }
 }
 
 void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, nSegments);
 }
-
 
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc) {
     Rbc_NativeTrace *ctx;
@@ -89,7 +91,9 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
     /* Keep state and point storage in one allocation, preserving the number
      * of allocations per trace batch before the backend was separated. */
     ctx = (Rbc_NativeTrace *)Tcl_AttemptAlloc(sizeof(*ctx) + ((size_t)maxPoints + 1u) * pointSize);
-    if (ctx == NULL) return NULL;
+    if (ctx == NULL) {
+        return NULL;
+    }        
     memset(ctx, 0, sizeof(*ctx));
     ctx->graphPtr = graphPtr;
     ctx->nativeDrawable = drawable;
@@ -100,7 +104,9 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
 }
 
 void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
-    if (ctx == NULL) return;
+    if (ctx == NULL) {
+        return;
+    }        
     ckfree(ctx);
 }
 
@@ -139,7 +145,7 @@ INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); 
  *----------------------------------------------------------------------
  */
 void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
-                        const Point2D *symbolPts, int radius) {
+                       const Point2D *symbolPts, int radius) {
     Tcl_Size i;
     XArc *arcArr; /* Array of arcs (circle) */
     XArc *arcPtr;
@@ -201,9 +207,6 @@ void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymb
     ckfree((char *)arcArr);
 }
 
-
-
-
 /*
  *----------------------------------------------------------------------
  *
@@ -214,7 +217,7 @@ void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymb
  *----------------------------------------------------------------------
  */
 void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
-                        const Point2D *symbolPts, int r) {
+                       const Point2D *symbolPts, int r) {
     XRectangle *rectArr;
     const Point2D *pointPtr, *endPtr;
     XRectangle *rectPtr;
@@ -274,7 +277,6 @@ void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymb
     ckfree(rectArr);
 }
 
-
 int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
     if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
         return 0;
@@ -289,7 +291,8 @@ int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
     return (int)nPoints;
 }
 
-void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr, XRectangle *rectangles, int nRects) {
+void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
+                             XRectangle *rectangles, int nRects) {
     XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects);
 }
 /* A fill-only marker run holds one native DC and brush. The component retains
@@ -299,12 +302,17 @@ struct Rbc_NativePolygonBatch {
 };
 
 Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable drawable, GC gc, Tcl_Size maxPoints) {
-    (void)graphPtr; (void)drawable; (void)gc; (void)maxPoints;
+    (void)graphPtr;
+    (void)drawable;
+    (void)gc;
+    (void)maxPoints;
     return NULL;
 }
 
 void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points, Tcl_Size count) {
-    (void)batch; (void)points; (void)count;
+    (void)batch;
+    (void)points;
+    (void)count;
 }
 
 void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
@@ -313,7 +321,7 @@ void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
 }
 
 void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style,
-    const XPoint *polygons, Tcl_Size count, int stride, int vertices) {
+                              const XPoint *polygons, Tcl_Size count, int stride, int vertices) {
     Tcl_Size i;
     const XPoint *p;
     int shape = vertices == 12 ? Complex : Convex;
@@ -330,20 +338,51 @@ void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNat
 }
 
 int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *style,
-    const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
-    (void)graphPtr; (void)drawable; (void)style; (void)rectangles; (void)count;
+                         const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)style;
+    (void)rectangles;
+    (void)count;
     return FALSE;
 }
 
 size_t Rbc_NativeClipStateSize(void) { return 0; }
 
-int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom,
-    void *state, Drawable *drawablePtr) {
-    (void)graphPtr; (void)parent; (void)left; (void)top; (void)right; (void)bottom;
-    (void)state; (void)drawablePtr;
+int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom, void *state,
+                           Drawable *drawablePtr) {
+    (void)graphPtr;
+    (void)parent;
+    (void)left;
+    (void)top;
+    (void)right;
+    (void)bottom;
+    (void)state;
+    (void)drawablePtr;
     return FALSE;
 }
 
 void Rbc_NativePlatformUnclip(void *state, Drawable drawable) {
-    (void)state; (void)drawable;
+    (void)state;
+    (void)drawable;
+}
+
+void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size count, Rbc_RenderRunProc *proc) {
+    (void)graphPtr;
+    if (data != NULL && count > 0) {
+        proc(data, drawable, count);
+    }        
+}
+
+int Rbc_NativeOpaqueBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                              const Rbc_RenderPosition *positions, Tcl_Size count) {
+    (void)graphPtr;
+    (void)drawable;
+    (void)bitmap;
+    (void)gc;
+    (void)width;
+    (void)height;
+    (void)positions;
+    (void)count;
+    return FALSE;
 }

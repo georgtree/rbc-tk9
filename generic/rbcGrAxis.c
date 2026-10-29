@@ -710,7 +710,8 @@ static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double v
         value = 1.0 - value;
     }
     if (axisPtr->track != NULL) {
-        return (1.0 - value) * MAX(1, axisPtr->track->worldBottom - axisPtr->track->worldTop) + axisPtr->track->worldTop;
+        return (1.0 - value) * MAX(1, axisPtr->track->worldBottom - axisPtr->track->worldTop) +
+               axisPtr->track->worldTop;
     }
     return (1.0 - value) * graphPtr->vRange + graphPtr->vOffset;
 }
@@ -6440,7 +6441,8 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
             return TCL_ERROR;
         }
         if (axisPtr->track != NULL) {
-            Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("detach the axis from its track before deleting it", -1));
+            Tcl_SetObjResult(graphPtr->interp,
+                             Tcl_NewStringObj("detach the axis from its track before deleting it", -1));
             return TCL_ERROR;
         }
         axisPtr->deletePending = TRUE;
@@ -6689,8 +6691,10 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
         scrollUnits = (double)axisPtr->scrollUnits * graphPtr->vScale;
     }
     if (axisPtr->track != NULL) {
-        scrollUnits = (double)axisPtr->scrollUnits / MAX(1, AxisIsHorizontal(graphPtr, axisPtr) ?
-            axisPtr->track->worldRight - axisPtr->track->worldLeft : axisPtr->track->worldBottom - axisPtr->track->worldTop);
+        scrollUnits =
+            (double)axisPtr->scrollUnits / MAX(1, AxisIsHorizontal(graphPtr, axisPtr)
+                                                      ? axisPtr->track->worldRight - axisPtr->track->worldLeft
+                                                      : axisPtr->track->worldBottom - axisPtr->track->worldTop);
     }
     if (objc == 4) {
         Tcl_Obj *resultObj;
@@ -6949,14 +6953,18 @@ void Rbc_MapAxes(Graph *graphPtr) {
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
                 if (axisPtr->track != NULL) {
                     RbcTrackViewport saved;
-                    if (axisPtr->track->right <= axisPtr->track->left || axisPtr->track->bottom <= axisPtr->track->top) {continue;}
+                    if (axisPtr->track->right <= axisPtr->track->left ||
+                        axisPtr->track->bottom <= axisPtr->track->top) {
+                        continue;
+                    }
                     Rbc_EnterTrack(graphPtr, axisPtr->track, &saved);
                     graphPtr->left = axisPtr->track->worldLeft;
                     graphPtr->right = axisPtr->track->worldRight;
                     graphPtr->top = axisPtr->track->worldTop;
                     graphPtr->bottom = axisPtr->track->worldBottom;
                     MapAxis(graphPtr, axisPtr, axisPtr->track->axisOffset, margin);
-                    axisPtr->track->axisOffset += AxisIsHorizontal(graphPtr, axisPtr) ? axisPtr->height : axisPtr->width;
+                    axisPtr->track->axisOffset +=
+                        AxisIsHorizontal(graphPtr, axisPtr) ? axisPtr->height : axisPtr->width;
                     Rbc_LeaveTrack(graphPtr, &saved);
                     continue;
                 }
@@ -6993,12 +7001,14 @@ static void DrawTrackAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr) {
     RbcTrack *track = axisPtr->track;
     int left = graphPtr->inverted ? track->left : 0;
     int top = graphPtr->inverted ? 0 : track->top;
-    int width = graphPtr->inverted ? track->right-track->left+1 : graphPtr->width;
-    int height = graphPtr->inverted ? graphPtr->height : track->bottom-track->top+1;
+    int width = graphPtr->inverted ? track->right - track->left + 1 : graphPtr->width;
+    int height = graphPtr->inverted ? graphPtr->height : track->bottom - track->top + 1;
     XGCValues values;
     GC gc;
     Pixmap pixmap;
-    if (width <= 0 || height <= 0) {return;}
+    if (width <= 0 || height <= 0) {
+        return;
+    }
     values.graphics_exposures = False;
     gc = Tk_GetGC(graphPtr->tkwin, GCGraphicsExposures, &values);
     pixmap = Tk_GetPixmap(graphPtr->display, drawable, graphPtr->width, graphPtr->height, Tk_Depth(graphPtr->tkwin));
@@ -7042,11 +7052,15 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable) {
              linkPtr = Rbc_ChainNextLink(linkPtr)) {
             axisPtr = Rbc_ChainGetValue(linkPtr);
             if ((!axisPtr->hidden) && (axisPtr->flags & AXIS_ONSCREEN)) {
-                if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
+                if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 ||
+                                               axisPtr->track->bottom - axisPtr->track->top <= 1)) {
                     continue;
                 }
-                if (graphPtr->trackScroll && axisPtr->track != NULL) {DrawTrackAxis(graphPtr, drawable, axisPtr);}
-                else {DrawAxis(graphPtr, drawable, axisPtr);}
+                if (graphPtr->trackScroll && axisPtr->track != NULL) {
+                    DrawTrackAxis(graphPtr, drawable, axisPtr);
+                } else {
+                    DrawAxis(graphPtr, drawable, axisPtr);
+                }
             }
         }
     }
@@ -7354,12 +7368,15 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
             continue; /* Don't check hidden axes or axes
                        * that are virtual. */
         }
-        if (axisPtr->track != NULL && (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
+        if (axisPtr->track != NULL &&
+            (axisPtr->track->right - axisPtr->track->left <= 1 || axisPtr->track->bottom - axisPtr->track->top <= 1)) {
             continue;
         }
         if (graphPtr->trackScroll && axisPtr->track != NULL &&
-            (graphPtr->inverted ? (x < axisPtr->track->left || x > axisPtr->track->right) :
-                                 (y < axisPtr->track->top || y > axisPtr->track->bottom))) {continue;}
+            (graphPtr->inverted ? (x < axisPtr->track->left || x > axisPtr->track->right)
+                                : (y < axisPtr->track->top || y > axisPtr->track->bottom))) {
+            continue;
+        }
         if (axisPtr->showTicks) {
             Rbc_ChainLink *linkPtr;
             TickLabel *labelPtr;

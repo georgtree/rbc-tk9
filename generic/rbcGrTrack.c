@@ -18,19 +18,15 @@
 typedef struct {
     Tcl_Obj *weight, *minHeight, *height, *yAxes, *barMode;
 } TrackDefaults;
+
 static const Tk_OptionSpec trackOptionSpecs[] = {
-    {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0",
-     offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40",
-     offsetof(TrackDefaults, minHeight), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-height", "height", "Height", "160",
-     offsetof(TrackDefaults, height), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "",
-     offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", "inherit",
-     offsetof(TrackDefaults, barMode), -1, 0, NULL, 0},
-    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
-};
+    {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0", offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40", offsetof(TrackDefaults, minHeight), -1, 0, NULL,
+     0},
+    {TK_OPTION_STRING, "-height", "height", "Height", "160", offsetof(TrackDefaults, height), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-yaxes", "yAxes", "YAxes", "", offsetof(TrackDefaults, yAxes), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", "inherit", offsetof(TrackDefaults, barMode), -1, 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Validate the track-specific widget options before graph configuration commits. */
 int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged) {
@@ -210,7 +206,9 @@ static void SyncTrackAxes(Graph *graphPtr) {
 
 static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
     Tcl_Size i;
-    if (graphPtr->bindTable != NULL) {Rbc_DeleteBindings(graphPtr->bindTable, track);}
+    if (graphPtr->bindTable != NULL) {
+        Rbc_DeleteBindings(graphPtr->bindTable, track);
+    }
     Rbc_DestroyTrackGrid(graphPtr, track);
     Rbc_DestroyTrackLegend(graphPtr, track);
     for (i = 0; i < track->nAxes; i++) {
@@ -320,7 +318,9 @@ static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_O
         } else if (strcmp(option, "-barmode") == 0) {
             static const char *const modes[] = {"inherit", "normal", "stacked", "aligned", "overlap", "infront", NULL};
             int index;
-            if (Tcl_GetIndexFromObj(graphPtr->interp, objv[i+1], modes, "bar mode", 0, &index) != TCL_OK) {return TCL_ERROR;}
+            if (Tcl_GetIndexFromObj(graphPtr->interp, objv[i + 1], modes, "bar mode", 0, &index) != TCL_OK) {
+                return TCL_ERROR;
+            }
             barMode = index == 5 ? MODE_INFRONT : index - 1;
         } else if (strcmp(option, "-yaxes") == 0) {
             axesObj = objv[i + 1];
@@ -442,8 +442,8 @@ static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl
             goto done;
         }
     }
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
-                                     track->name, "Track", (char *)&defaults, table);
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, track->name, "Track",
+                                      (char *)&defaults, table);
     if (result == TCL_OK) {
         for (i = 0; trackOptionSpecs[i].type != TK_OPTION_END; i++) {
             for (j = 0; j + 1 < objc; j += 2) {
@@ -541,8 +541,8 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
         int center = end + gap / 2;
         Segment2D segment;
         Rbc_RenderContext *ctx;
-        if (width < 1 || center - width/2 < (graphPtr->inverted ? graphPtr->left : graphPtr->top) ||
-            center + width/2 > (graphPtr->inverted ? graphPtr->right : graphPtr->bottom)) {
+        if (width < 1 || center - width / 2 < (graphPtr->inverted ? graphPtr->left : graphPtr->top) ||
+            center + width / 2 > (graphPtr->inverted ? graphPtr->right : graphPtr->bottom)) {
             continue;
         }
         if (graphPtr->inverted) {
@@ -554,9 +554,9 @@ void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportConte
             segment.p.x = graphPtr->left;
             segment.q.x = graphPtr->right;
         }
-        ctx = exportPtr != NULL ?
-            Rbc_RenderBeginExport(exportPtr, graphPtr->trackSeparatorColor, width, NULL, CapButt, JoinMiter) :
-            Rbc_RenderBegin(graphPtr, drawable, graphPtr->trackSeparatorColor, width, NULL, NULL);
+        ctx = exportPtr != NULL
+                  ? Rbc_RenderBeginExport(exportPtr, graphPtr->trackSeparatorColor, width, NULL, CapButt, JoinMiter)
+                  : Rbc_RenderBegin(graphPtr, drawable, graphPtr->trackSeparatorColor, width, NULL, NULL);
         if (ctx != NULL) {
             Rbc_RenderSegments(ctx, &segment, 1);
             Rbc_RenderEnd(ctx);
@@ -680,13 +680,19 @@ static void NotifyTrackScrollbar(Graph *graphPtr) {
     double first, last;
     Tcl_Size length;
     int code;
-    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT) || graphPtr->trackScrollCmdObj == NULL) {return;}
+    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT) || graphPtr->trackScrollCmdObj == NULL) {
+        return;
+    }
     TrackViewFractions(graphPtr, &first, &last);
-    if (first == graphPtr->trackFirst && last == graphPtr->trackLast) {return;}
+    if (first == graphPtr->trackFirst && last == graphPtr->trackLast) {
+        return;
+    }
     graphPtr->trackFirst = first;
     graphPtr->trackLast = last;
     Tcl_ListObjLength(NULL, graphPtr->trackScrollCmdObj, &length);
-    if (length == 0) {return;}
+    if (length == 0) {
+        return;
+    }
     command = Tcl_DuplicateObj(graphPtr->trackScrollCmdObj);
     Tcl_IncrRefCount(command);
     Tcl_ListObjAppendElement(NULL, command, Tcl_NewDoubleObj(first));
@@ -695,7 +701,9 @@ static void NotifyTrackScrollbar(Graph *graphPtr) {
     Tcl_Preserve(graphPtr);
     state = Tcl_SaveInterpState(interp, TCL_OK);
     code = Tcl_EvalObjEx(interp, command, TCL_EVAL_GLOBAL);
-    if (code != TCL_OK) {Tcl_BackgroundException(interp, code);}
+    if (code != TCL_OK) {
+        Tcl_BackgroundException(interp, code);
+    }
     Tcl_RestoreInterpState(interp, state);
     Tcl_DecrRefCount(command);
     Tcl_Release(graphPtr);
@@ -706,12 +714,16 @@ static void NotifyTrackScrollbar(Graph *graphPtr) {
  * Enter/Leave scripts may delete tracks or the widget, so preserve the graph
  * across both notifications and do not use it after releasing it. */
 void Rbc_NotifyTrackView(Graph *graphPtr) {
-    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT)) {return;}
+    if (!graphPtr->trackGraph || (graphPtr->flags & GRAPH_EXPORT)) {
+        return;
+    }
     Tcl_Preserve(graphPtr);
     if (graphPtr->tkwin != NULL && graphPtr->bindTable != NULL) {
         Rbc_PickCurrentItem(graphPtr->bindTable);
     }
-    if (graphPtr->tkwin != NULL) {NotifyTrackScrollbar(graphPtr);}
+    if (graphPtr->tkwin != NULL) {
+        NotifyTrackScrollbar(graphPtr);
+    }
     Tcl_Release(graphPtr);
 }
 
@@ -722,7 +734,9 @@ static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     Tcl_Size i, j, count = 0;
     Tcl_HashSearch search;
     Tcl_HashEntry *entry;
-    if (objc == 0) {return TCL_OK;}
+    if (objc == 0) {
+        return TCL_OK;
+    }
     tracks = ckalloc((size_t)objc * sizeof(*tracks));
     for (i = 0; i < objc; i++) {
         RbcTrack *track = Rbc_FindTrack(graphPtr, Tcl_GetString(objv[i]));
@@ -730,8 +744,11 @@ static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown track \"%s\"", Tcl_GetString(objv[i])));
             goto error;
         }
-        for (j = 0; j < count && tracks[j] != track; j++) {}
-        if (j < count) {continue;}
+        for (j = 0; j < count && tracks[j] != track; j++) {
+        }
+        if (j < count) {
+            continue;
+        }
         if (Rbc_MarkersUseTrack(graphPtr, track, NULL)) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj("delete or move track markers before deleting their track", -1));
             goto error;
@@ -748,7 +765,8 @@ static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         tracks[count++] = track;
     }
     for (i = 0; i < count; i++) {
-        for (slot = &graphPtr->tracks; *slot != tracks[i]; slot = &(*slot)->next) {}
+        for (slot = &graphPtr->tracks; *slot != tracks[i]; slot = &(*slot)->next) {
+        }
         *slot = tracks[i]->next;
         FreeTrack(graphPtr, tracks[i]);
     }
@@ -781,8 +799,7 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         {"exists", 4, 4, "name"},
         {"bind", 4, 6, "name|all ?sequence ?command??"},
         {"get", 4, 4, "current"},
-        {NULL, 0, 0, NULL}
-    };
+        {NULL, 0, 0, NULL}};
     enum {
         TRACK_OP_CREATE,
         TRACK_OP_CONFIGURE,
@@ -811,8 +828,8 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         Tcl_SetObjResult(interp, Tcl_NewStringObj("track operations require a trackgraph widget", -1));
         return TCL_ERROR;
     }
-    if (Rbc_GetOpIndexFromObj(interp, operations, sizeof(operations[0]), RBC_OP_ARG2, objc, objv,
-                             &operation) != TCL_OK) {
+    if (Rbc_GetOpIndexFromObj(interp, operations, sizeof(operations[0]), RBC_OP_ARG2, objc, objv, &operation) !=
+        TCL_OK) {
         return TCL_ERROR;
     }
     if (operation == TRACK_OP_GET) {
@@ -822,7 +839,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         }
         if (PTR2INT(Rbc_GetCurrentContext(graphPtr->bindTable)) == GRAPH_BIND_CONTEXT_TRACK) {
             track = Rbc_GetCurrentItem(graphPtr->bindTable);
-            if (track != NULL) {Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));}
+            if (track != NULL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj(track->name, -1));
+            }
         }
         return TCL_OK;
     }
@@ -861,9 +880,13 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
             Tcl_Size i;
             if (operation == TRACK_OP_NAMES && objc > 3) {
                 for (i = 3; i < objc; i++) {
-                    if (Tcl_StringMatch(track->name, Tcl_GetString(objv[i]))) {break;}
+                    if (Tcl_StringMatch(track->name, Tcl_GetString(objv[i]))) {
+                        break;
+                    }
                 }
-                if (i == objc) {continue;}
+                if (i == objc) {
+                    continue;
+                }
             }
             Tcl_ListObjAppendElement(interp, result, Tcl_NewStringObj(track->name, -1));
         }
@@ -1047,7 +1070,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
     }
     if ((operation == TRACK_OP_CONFIGURE && objc == 5) || (operation == TRACK_OP_CGET && objc == 5)) {
         int index;
-        if (TrackOptionIndex(interp, objv[4], &index) != TCL_OK) {return TCL_ERROR;}
+        if (TrackOptionIndex(interp, objv[4], &index) != TCL_OK) {
+            return TCL_ERROR;
+        }
         result = operation == TRACK_OP_CGET ? TrackOption(track, trackOptionSpecs[index].optionName)
                                             : TrackOptionInfo(track, index);
         Tcl_SetObjResult(interp, result);

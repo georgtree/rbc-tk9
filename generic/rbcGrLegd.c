@@ -24,8 +24,8 @@
  * -------------------------------------------------------------------
  */
 struct LegendStruct {
-    RbcTrack *track;          /* NULL for the graph-wide legend. */
-    Tcl_HashTable tags;       /* Local binding tags, separate from global tags. */
+    RbcTrack *track;    /* NULL for the graph-wide legend. */
+    Tcl_HashTable tags; /* Local binding tags, separate from global tags. */
     Tk_OptionTable optionTable;
     /*
      * Original Tcl representations for values requiring additional
@@ -227,10 +227,12 @@ static const Tk_OptionSpec legendOptionSpecs[] = {
 static const Tk_OptionSpec trackLegendOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "yes", -1, offsetof(Legend, hidden), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED},
-    {TK_OPTION_STRING, "-position", "position", "Position", "plotarea", offsetof(Legend, positionObjPtr), -1,
-     0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_POSITION_CHANGED},
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "ne", -1, offsetof(Legend, anchor), 0, NULL, LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_BOOLEAN, "-raised", "raised", "Raised", "yes", -1, offsetof(Legend, raised), 0, NULL, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_STRING, "-position", "position", "Position", "plotarea", offsetof(Legend, positionObjPtr), -1, 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_POSITION_CHANGED},
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "ne", -1, offsetof(Legend, anchor), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_BOOLEAN, "-raised", "raised", "Raised", "yes", -1, offsetof(Legend, raised), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, legendOptionSpecs, 0}};
 
 static Tcl_IdleProc DisplayLegend;
@@ -616,66 +618,73 @@ static void SetLegendOrigin(Legend *legendPtr) {
         width = (Tcl_WideInt)legendPtr->track->worldRight - legendPtr->track->worldLeft;
         height = (Tcl_WideInt)legendPtr->track->worldBottom - legendPtr->track->worldTop;
         switch (legendPtr->site) {
-        case LEGEND_RIGHT: x += width - legendPtr->width; /* fall through */
-        case LEGEND_LEFT: width = legendPtr->width; break;
-        case LEGEND_BOTTOM: y += height - legendPtr->height; /* fall through */
-        case LEGEND_TOP: height = legendPtr->height; break;
+        case LEGEND_RIGHT:
+            x += width - legendPtr->width; /* fall through */
+        case LEGEND_LEFT:
+            width = legendPtr->width;
+            break;
+        case LEGEND_BOTTOM:
+            y += height - legendPtr->height; /* fall through */
+        case LEGEND_TOP:
+            height = legendPtr->height;
+            break;
         }
-    } else switch (legendPtr->site) {
-    case LEGEND_RIGHT:
-        width = (Tcl_WideInt)graphPtr->rightMargin.width - (Tcl_WideInt)graphPtr->rightMargin.axesOffset;
-        height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
-        x = (Tcl_WideInt)graphPtr->width - width - (Tcl_WideInt)graphPtr->inset;
-        y = graphPtr->top;
-        break;
-    case LEGEND_LEFT:
-        width = (Tcl_WideInt)graphPtr->leftMargin.width - (Tcl_WideInt)graphPtr->leftMargin.axesOffset;
-        height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
-        x = graphPtr->inset;
-        y = graphPtr->top;
-        break;
-    case LEGEND_TOP:
-        width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
-        height = (Tcl_WideInt)graphPtr->topMargin.height - (Tcl_WideInt)graphPtr->topMargin.axesOffset;
-        if (graphPtr->title != NULL) {
-            height -= (Tcl_WideInt)graphPtr->titleTextStyle.height;
+    } else
+        switch (legendPtr->site) {
+        case LEGEND_RIGHT:
+            width = (Tcl_WideInt)graphPtr->rightMargin.width - (Tcl_WideInt)graphPtr->rightMargin.axesOffset;
+            height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
+            x = (Tcl_WideInt)graphPtr->width - width - (Tcl_WideInt)graphPtr->inset;
+            y = graphPtr->top;
+            break;
+        case LEGEND_LEFT:
+            width = (Tcl_WideInt)graphPtr->leftMargin.width - (Tcl_WideInt)graphPtr->leftMargin.axesOffset;
+            height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
+            x = graphPtr->inset;
+            y = graphPtr->top;
+            break;
+        case LEGEND_TOP:
+            width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
+            height = (Tcl_WideInt)graphPtr->topMargin.height - (Tcl_WideInt)graphPtr->topMargin.axesOffset;
+            if (graphPtr->title != NULL) {
+                height -= (Tcl_WideInt)graphPtr->titleTextStyle.height;
+            }
+            x = graphPtr->left;
+            y = graphPtr->inset;
+            if (graphPtr->title != NULL) {
+                y += (Tcl_WideInt)graphPtr->titleTextStyle.height;
+            }
+            break;
+        case LEGEND_BOTTOM:
+            width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
+            height = (Tcl_WideInt)graphPtr->bottomMargin.height - (Tcl_WideInt)graphPtr->bottomMargin.axesOffset;
+            x = graphPtr->left;
+            y = (Tcl_WideInt)graphPtr->height - height - (Tcl_WideInt)graphPtr->inset;
+            break;
+        case LEGEND_PLOT:
+            width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
+            height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
+            x = graphPtr->left;
+            y = graphPtr->top;
+            break;
+        case LEGEND_XY:
+            width = legendPtr->width;
+            height = legendPtr->height;
+            x = LegendCoordinate(legendPtr->anchorPos.x);
+            y = LegendCoordinate(legendPtr->anchorPos.y);
+            if (x < 0) {
+                x += (Tcl_WideInt)graphPtr->width;
+            }
+            if (y < 0) {
+                y += (Tcl_WideInt)graphPtr->height;
+            }
+            break;
+        case LEGEND_WINDOW:
+            legendPtr->anchor = TK_ANCHOR_NW;
+            legendPtr->x = 0;
+            legendPtr->y = 0;
+            return;
         }
-        x = graphPtr->left;
-        y = graphPtr->inset;
-        if (graphPtr->title != NULL) {
-            y += (Tcl_WideInt)graphPtr->titleTextStyle.height;
-        }
-        break;
-    case LEGEND_BOTTOM:
-        width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
-        height = (Tcl_WideInt)graphPtr->bottomMargin.height - (Tcl_WideInt)graphPtr->bottomMargin.axesOffset;
-        x = graphPtr->left;
-        y = (Tcl_WideInt)graphPtr->height - height - (Tcl_WideInt)graphPtr->inset;
-        break;
-    case LEGEND_PLOT:
-        width = (Tcl_WideInt)graphPtr->right - (Tcl_WideInt)graphPtr->left;
-        height = (Tcl_WideInt)graphPtr->bottom - (Tcl_WideInt)graphPtr->top;
-        x = graphPtr->left;
-        y = graphPtr->top;
-        break;
-    case LEGEND_XY:
-        width = legendPtr->width;
-        height = legendPtr->height;
-        x = LegendCoordinate(legendPtr->anchorPos.x);
-        y = LegendCoordinate(legendPtr->anchorPos.y);
-        if (x < 0) {
-            x += (Tcl_WideInt)graphPtr->width;
-        }
-        if (y < 0) {
-            y += (Tcl_WideInt)graphPtr->height;
-        }
-        break;
-    case LEGEND_WINDOW:
-        legendPtr->anchor = TK_ANCHOR_NW;
-        legendPtr->x = 0;
-        legendPtr->y = 0;
-        return;
-    }
     width = (Tcl_WideInt)legendPtr->width - width;
     height = (Tcl_WideInt)legendPtr->height - height;
     ix = LegendLayoutInt(x);
@@ -737,10 +746,14 @@ static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
     Tcl_Size n;
 
     graphPtr = legendPtr->graphPtr;
-    if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {return NULL;}
+    if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {
+        return NULL;
+    }
     SetLegendOrigin(legendPtr);
     if (legendPtr->track != NULL && (x < legendPtr->track->left || x > legendPtr->track->right ||
-        y < legendPtr->track->top || y > legendPtr->track->bottom)) {return NULL;}
+                                     y < legendPtr->track->top || y > legendPtr->track->bottom)) {
+        return NULL;
+    }
     localX = (Tcl_WideInt)x - (Tcl_WideInt)legendPtr->x - (Tcl_WideInt)legendPtr->borderWidth;
     localY = (Tcl_WideInt)y - (Tcl_WideInt)legendPtr->y - (Tcl_WideInt)legendPtr->borderWidth;
     width = (Tcl_WideInt)legendPtr->width - (2 * (Tcl_WideInt)legendPtr->borderWidth) - PADDING(legendPtr->padX);
@@ -803,10 +816,14 @@ static ClientData PickLegendIn(Legend *legendPtr, int x, int y) {
 
 /* Test the entire visible rectangle, including blank padding, for occlusion. */
 static int LegendContains(Legend *legendPtr, int x, int y) {
-    if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {return FALSE;}
+    if (legendPtr->tkwin == NULL || legendPtr->hidden || legendPtr->nEntries == 0) {
+        return FALSE;
+    }
     SetLegendOrigin(legendPtr);
     if (legendPtr->track != NULL && (x < legendPtr->track->left || x > legendPtr->track->right ||
-        y < legendPtr->track->top || y > legendPtr->track->bottom)) {return FALSE;}
+                                     y < legendPtr->track->top || y > legendPtr->track->bottom)) {
+        return FALSE;
+    }
     return ((Tcl_WideInt)x >= legendPtr->x && (Tcl_WideInt)x < (Tcl_WideInt)legendPtr->x + legendPtr->width &&
             (Tcl_WideInt)y >= legendPtr->y && (Tcl_WideInt)y < (Tcl_WideInt)legendPtr->y + legendPtr->height);
 }
@@ -828,9 +845,7 @@ static Legend *LegendAtPoint(Graph *graphPtr, int x, int y) {
     return NULL;
 }
 
-int Rbc_PointInLegend(Graph *graphPtr, int x, int y) {
-    return LegendAtPoint(graphPtr, x, y) != NULL;
-}
+int Rbc_PointInLegend(Graph *graphPtr, int x, int y) { return LegendAtPoint(graphPtr, x, y) != NULL; }
 
 int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y) {
     Legend *legendPtr = LegendAtPoint(graphPtr, x, y);
@@ -840,8 +855,12 @@ int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y) {
 static ClientData PickLegendEntry(ClientData clientData, int x, int y, ClientData *contextPtr) {
     Graph *graphPtr = clientData;
     Legend *legendPtr = graphPtr->legend;
-    if (contextPtr != NULL) {*contextPtr = legendPtr;}
-    if (legendPtr->site != LEGEND_WINDOW && LegendAtPoint(graphPtr, x, y) != legendPtr) {return NULL;}
+    if (contextPtr != NULL) {
+        *contextPtr = legendPtr;
+    }
+    if (legendPtr->site != LEGEND_WINDOW && LegendAtPoint(graphPtr, x, y) != legendPtr) {
+        return NULL;
+    }
     return PickLegendIn(legendPtr, x, y);
 }
 
@@ -849,7 +868,9 @@ static ClientData PickTrackLegendEntry(ClientData clientData, int x, int y, Clie
     Graph *graphPtr = clientData;
     Legend *legendPtr = LegendAtPoint(graphPtr, x, y);
     *contextPtr = legendPtr;
-    if (legendPtr == NULL || legendPtr->track == NULL) {return NULL;}
+    if (legendPtr == NULL || legendPtr->track == NULL) {
+        return NULL;
+    }
     return PickLegendIn(legendPtr, x, y);
 }
 
@@ -1153,11 +1174,11 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                 Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
                 if (right > left && bottom > top) {
                     Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, left, top,
-                              right-left, bottom-top, left-legendPtr->x, top-legendPtr->y);
+                                             right - left, bottom - top, left - legendPtr->x, top - legendPtr->y);
                 }
             } else {
-                Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, legendPtr->x, legendPtr->y,
-                          width, height, 0, 0);
+                Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, legendPtr->x,
+                                         legendPtr->y, width, height, 0, 0);
             }
         } else {
             Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
@@ -1187,19 +1208,21 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         }
         if (elemPtr->flags & LABEL_ACTIVE) {
             legendPtr->style.state |= STATE_ACTIVE;
-            Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y, LegendEntryWidth(legendPtr, elemPtr),
-                                legendPtr->style.height, legendPtr->entryBorderWidth, legendPtr->activeRelief, 1);
+            Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, legendPtr->activeBorder, x, y,
+                                   LegendEntryWidth(legendPtr, elemPtr), legendPtr->style.height,
+                                   legendPtr->entryBorderWidth, legendPtr->activeRelief, 1);
         } else {
             legendPtr->style.state &= ~STATE_ACTIVE;
             if (elemPtr->labelRelief != TK_RELIEF_FLAT) {
-                Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, graphPtr->border, x, y, LegendEntryWidth(legendPtr, elemPtr),
-                                    legendPtr->style.height, legendPtr->entryBorderWidth, elemPtr->labelRelief, 0);
+                Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, graphPtr->border, x, y,
+                                       LegendEntryWidth(legendPtr, elemPtr), legendPtr->style.height,
+                                       legendPtr->entryBorderWidth, elemPtr->labelRelief, 0);
             }
         }
         (*elemPtr->procsPtr->drawSymbolProc)(graphPtr, pixmap, elemPtr, x + symbolX, y + symbolY, symbolSize, width,
                                              height);
         Rbc_RenderText(text, elemPtr->label, &legendPtr->style, x + labelX,
-                     y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
+                       y + legendPtr->entryBorderWidth + legendPtr->ipadY.side1);
         count++;
         /* Check when to move to the next column */
         if ((count % legendPtr->nRows) > 0) {
@@ -1217,17 +1240,18 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         border = graphPtr->border;
     }
     Rbc_RenderScreenBorder(legendPtr->tkwin, pixmap, border, 0, 0, width, height, legendPtr->borderWidth,
-                        legendPtr->relief, 0);
+                           legendPtr->relief, 0);
     if (legendPtr->track != NULL) {
         int left = MAX(legendPtr->track->left, legendPtr->x), top = MAX(legendPtr->track->top, legendPtr->y);
         int right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
         int bottom = MIN(legendPtr->track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
         if (right > left && bottom > top) {
-            Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, left-legendPtr->x, top-legendPtr->y,
-                      right-left, bottom-top, left, top);
+            Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, left - legendPtr->x,
+                                     top - legendPtr->y, right - left, bottom - top, left, top);
         }
     } else {
-        Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x, legendPtr->y);
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, 0, 0, width, height, legendPtr->x,
+                                 legendPtr->y);
     }
     Tk_FreePixmap(graphPtr->display, pixmap);
     Rbc_RenderEnd(text);
@@ -1462,14 +1486,20 @@ static int ConfigureLegend(Graph *graphPtr, Legend *legendPtr, int mask) {
         if (legendPtr->track != NULL) {
             const char *position = Tcl_GetString(legendPtr->positionObjPtr);
             memset(&newPosition, 0, sizeof(newPosition));
-            if (strcmp(position, "plotarea") == 0) {newPosition.site = LEGEND_PLOT;}
-            else if (strcmp(position, "left") == 0) {newPosition.site = LEGEND_LEFT;}
-            else if (strcmp(position, "right") == 0) {newPosition.site = LEGEND_RIGHT;}
-            else if (strcmp(position, "top") == 0) {newPosition.site = LEGEND_TOP;}
-            else if (strcmp(position, "bottom") == 0) {newPosition.site = LEGEND_BOTTOM;}
-            else {
-                Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj(
-                    "bad track legend position: must be plotarea, left, right, top or bottom", -1));
+            if (strcmp(position, "plotarea") == 0) {
+                newPosition.site = LEGEND_PLOT;
+            } else if (strcmp(position, "left") == 0) {
+                newPosition.site = LEGEND_LEFT;
+            } else if (strcmp(position, "right") == 0) {
+                newPosition.site = LEGEND_RIGHT;
+            } else if (strcmp(position, "top") == 0) {
+                newPosition.site = LEGEND_TOP;
+            } else if (strcmp(position, "bottom") == 0) {
+                newPosition.site = LEGEND_BOTTOM;
+            } else {
+                Tcl_SetObjResult(
+                    graphPtr->interp,
+                    Tcl_NewStringObj("bad track legend position: must be plotarea, left, right, top or bottom", -1));
                 goto error;
             }
         } else if (GetLegendPositionFromObj(graphPtr->interp, legendPtr->positionObjPtr, &newPosition) != TCL_OK) {
@@ -1682,6 +1712,7 @@ error:
     Rbc_DestroyLegend(graphPtr);
     return TCL_ERROR;
 }
+
 /* Allocate a scoped legend sharing the graph's local-legend event table. */
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track) {
     Legend *legendPtr;
@@ -1697,8 +1728,8 @@ int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track) {
     legendPtr->style.justify = TK_JUSTIFY_LEFT;
     legendPtr->style.anchor = TK_ANCHOR_NW;
     if (graphPtr->trackLegendBindings == NULL) {
-        graphPtr->trackLegendBindings = Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr,
-                                                             PickTrackLegendEntry, LegendTags);
+        graphPtr->trackLegendBindings =
+            Rbc_CreateBindingTable(graphPtr->interp, graphPtr->tkwin, graphPtr, PickTrackLegendEntry, LegendTags);
     }
     legendPtr->bindTable = graphPtr->trackLegendBindings;
     legendPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, trackLegendOptionSpecs);
@@ -1797,14 +1828,15 @@ static int ActivateOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     Tcl_Size i;
     Tcl_Obj *resultObj;
 
-
     const char *str = Tcl_GetString(objv[2]);
     active = (str[0] == 'a') ? LABEL_ACTIVE : 0;
     redraw = 0;
     for (hPtr = Tcl_FirstHashEntry(&(graphPtr->elements.table), &cursor); hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&cursor)) {
         elemPtr = Tcl_GetHashValue(hPtr);
-        if (!LegendHasElement(legendPtr, elemPtr)) {continue;}
+        if (!LegendHasElement(legendPtr, elemPtr)) {
+            continue;
+        }
         for (i = 3; i < objc; i++) {
             str = Tcl_GetString(objv[i]);
             if (Tcl_StringMatch(elemPtr->name, str)) {
@@ -1851,7 +1883,9 @@ static int ActivateOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     for (hPtr = Tcl_FirstHashEntry(&(graphPtr->elements.table), &cursor); hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&cursor)) {
         elemPtr = Tcl_GetHashValue(hPtr);
-        if (!LegendHasElement(legendPtr, elemPtr)) {continue;}
+        if (!LegendHasElement(legendPtr, elemPtr)) {
+            continue;
+        }
         if (elemPtr->flags & LABEL_ACTIVE) {
             Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewStringObj(elemPtr->name, -1));
         }
@@ -1890,16 +1924,15 @@ static int BindOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
         Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
         for (hPtr = Tcl_FirstHashEntry(legendPtr->track ? &legendPtr->tags : &graphPtr->elements.tagTable, &cursor);
-             hPtr != NULL;
-             hPtr = Tcl_NextHashEntry(&cursor)) {
+             hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
             tagName = Tcl_GetHashKey(legendPtr->track ? &legendPtr->tags : &graphPtr->elements.tagTable, hPtr);
             Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewStringObj(tagName, -1));
         }
         Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
     }
-    return Rbc_ConfigureBindingsFromObj(interp, legendPtr->bindTable,
-                                        LegendTag(legendPtr, Tcl_GetString(objv[3])), objc - 4, objv + 4);
+    return Rbc_ConfigureBindingsFromObj(interp, legendPtr->bindTable, LegendTag(legendPtr, Tcl_GetString(objv[3])),
+                                        objc - 4, objv + 4);
 }
 
 /*
@@ -2233,7 +2266,8 @@ void Rbc_MapTrackLegends(Graph *graphPtr) {
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
-        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top && track->right > track->left) {
+        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top &&
+            track->right > track->left) {
             Rbc_DrawLegend(track->legend, drawable);
         }
     }
@@ -2242,10 +2276,11 @@ void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised) {
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised) {
     RbcTrack *track;
     for (track = graphPtr->tracks; track != NULL; track = track->next) {
-        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top && track->right > track->left) {
+        if (track->legend != NULL && track->legend->raised == raised && track->bottom > track->top &&
+            track->right > track->left) {
             Rbc_RenderContext *context = Rbc_RenderBeginExportOutput(exportPtr);
-            Rbc_RenderClipBegin(context, track->left, track->top,
-                                track->right - track->left + 1, track->bottom - track->top + 1);
+            Rbc_RenderClipBegin(context, track->left, track->top, track->right - track->left + 1,
+                                track->bottom - track->top + 1);
             Rbc_LegendExport(track->legend, exportPtr);
             Rbc_RenderClipEnd(context);
             Rbc_RenderEnd(context);
@@ -2263,14 +2298,16 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
     if (objc == 5 && strcmp(Tcl_GetString(objv[4]), "bbox") == 0) {
         int left, top, right, bottom;
         Rbc_LayoutGraph(graphPtr);
-        if (legendPtr->hidden || legendPtr->nEntries == 0) {return TCL_OK;}
+        if (legendPtr->hidden || legendPtr->nEntries == 0) {
+            return TCL_OK;
+        }
         SetLegendOrigin(legendPtr);
         left = MAX(legendPtr->track->left, legendPtr->x);
         top = MAX(track->top, legendPtr->y);
         right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
         bottom = MIN(track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
         if (right > left && bottom > top) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right-left, bottom-top));
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right - left, bottom - top));
         }
         return TCL_OK;
     }
@@ -2284,9 +2321,13 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
     Tcl_IncrRefCount(prefix);
     args[0] = objv[0];
     args[1] = prefix;
-    for (i = 2; i < count; i++) {args[i] = objv[i+2];}
+    for (i = 2; i < count; i++) {
+        args[i] = objv[i + 2];
+    }
     code = Rbc_GetOpIndexFromObj(interp, legendOps, (Tcl_Size)sizeof(legendOps[0]), RBC_OP_ARG2, count, args, &index);
-    if (code == TCL_OK) {code = legendOps[index].proc(legendPtr, interp, count, args);}
+    if (code == TCL_OK) {
+        code = legendOps[index].proc(legendPtr, interp, count, args);
+    }
     Tcl_DecrRefCount(prefix);
     ckfree(args);
     return code;

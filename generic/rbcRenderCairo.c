@@ -36,6 +36,7 @@ typedef struct {
     int savedDC;
 #endif
 } CairoRenderContext;
+
 #define CAIRO(ctx) ((CairoRenderContext *)(ctx))
 
 static void CairoClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
@@ -43,9 +44,7 @@ static void CairoClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int 
     cairo_rectangle(CAIRO(ctx)->cr, x, y, MAX(0, width), MAX(0, height));
     cairo_clip(CAIRO(ctx)->cr);
 }
-static void CairoClipEnd(Rbc_RenderContext *ctx) {
-    cairo_restore(CAIRO(ctx)->cr);
-}
+static void CairoClipEnd(Rbc_RenderContext *ctx) { cairo_restore(CAIRO(ctx)->cr); }
 
 static void CairoPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count);
 static void CairoSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count);
@@ -58,9 +57,8 @@ static void CairoArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc);
 
 static const Rbc_RenderOps cairoOps = {
-    CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground,
-    CairoFillPolygon, CairoFillRectangles, NULL, NULL, CairoEnd, CairoArc, CairoFillArc, CairoClipBegin, CairoClipEnd
-};
+    CairoPolyline, CairoSegments, CairoLineStyle, CairoDashBackground, CairoFillPolygon, CairoFillRectangles, NULL,
+    NULL,          CairoEnd,      CairoArc,       CairoFillArc,        CairoClipBegin,   CairoClipEnd};
 
 #ifdef WIN32
 struct Rbc_RenderTarget {
@@ -154,7 +152,6 @@ Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawableP
 }
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
 #endif
-
 
 static void FreeRenderContext(Rbc_RenderContext *ctx) {
     if (CAIRO(ctx)->bitmapPattern != NULL) {
@@ -300,7 +297,8 @@ static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable, 
         goto fail;
     }
     CAIRO(ctx)->cr = cairo_create(CAIRO(ctx)->surface);
-    cairo_rectangle(CAIRO(ctx)->cr, left, top, MAX(0.0, (double)right - left + 1.0), MAX(0.0, (double)bottom - top + 1.0));
+    cairo_rectangle(CAIRO(ctx)->cr, left, top, MAX(0.0, (double)right - left + 1.0),
+                    MAX(0.0, (double)bottom - top + 1.0));
     cairo_clip(CAIRO(ctx)->cr);
     /* RBC integer screen coordinates identify pixel centers. */
     cairo_translate(CAIRO(ctx)->cr, 0.5, 0.5);
@@ -404,11 +402,11 @@ static void CairoFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *ar
 /* Marker options use X cap/join constants; keep them out of Cairo callers. */
 static void CairoLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     cairo_set_line_cap(CAIRO(ctx)->cr, (capStyle == CapRound)        ? CAIRO_LINE_CAP_ROUND
-                                : (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE
-                                                              : CAIRO_LINE_CAP_BUTT);
+                                       : (capStyle == CapProjecting) ? CAIRO_LINE_CAP_SQUARE
+                                                                     : CAIRO_LINE_CAP_BUTT);
     cairo_set_line_join(CAIRO(ctx)->cr, (joinStyle == JoinRound)   ? CAIRO_LINE_JOIN_ROUND
-                                 : (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL
-                                                            : CAIRO_LINE_JOIN_MITER);
+                                        : (joinStyle == JoinBevel) ? CAIRO_LINE_JOIN_BEVEL
+                                                                   : CAIRO_LINE_JOIN_MITER);
 }
 
 /* Change only the off-dash underlay; retain the configured dash pattern. */
@@ -1014,6 +1012,7 @@ Rbc_RenderContext *Rbc_RenderBeginFill(Graph *graphPtr, Drawable drawable, const
     (void)style;
     return NULL;
 }
+
 Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, int width, int height,
                                            const XColor *color, double lineWidth, const Rbc_Dashes *dashes,
                                            const XColor *offColor) {
@@ -1027,6 +1026,7 @@ Rbc_RenderContext *Rbc_RenderBeginDrawable(Graph *graphPtr, Drawable drawable, i
     (void)offColor;
     return NULL;
 }
+
 int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int height, const Rbc_RenderRectangle *r,
                         const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
@@ -1040,12 +1040,15 @@ int Rbc_RenderLegendBar(Graph *graphPtr, Drawable drawable, int width, int heigh
     (void)opacity;
     return FALSE;
 }
+
 Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawablePtr) {
     (void)graphPtr;
     (void)drawablePtr;
     return NULL;
 }
+
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
+
 Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                    const Rbc_Dashes *dashesPtr, const XColor *offColorPtr) {
     (void)graphPtr;
@@ -1056,17 +1059,20 @@ Rbc_RenderContext *Rbc_RenderBegin(Graph *graphPtr, Drawable drawable, const XCo
     (void)offColorPtr;
     return NULL;
 }
+
 int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
     (void)graphPtr;
     (void)gc;
     (void)color;
     return FALSE;
 }
+
 void Rbc_RenderPoints(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     (void)ctx;
     (void)points;
     (void)count;
 }
+
 void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, const Point2D *centers, Tcl_Size count,
                        const XColor *fillColor, int outline) {
     (void)ctx;
@@ -1076,6 +1082,7 @@ void Rbc_RenderSymbols(Rbc_RenderContext *ctx, const Rbc_RenderShape *shape, con
     (void)fillColor;
     (void)outline;
 }
+
 int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *rectangles, Tcl_Size count,
                          const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
@@ -1088,6 +1095,7 @@ int Rbc_RenderRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderRec
     (void)opacity;
     return FALSE;
 }
+
 Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawable, Pixmap bitmap, Pixmap mask,
                                                 int width, int height, const XColor *foreground,
                                                 const XColor *background, int targetWidth, int targetHeight) {
@@ -1103,11 +1111,13 @@ Rbc_RenderContext *Rbc_RenderBeginBitmapSymbols(Graph *graphPtr, Drawable drawab
     (void)targetHeight;
     return NULL;
 }
+
 void Rbc_RenderBitmapSymbols(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     (void)ctx;
     (void)centers;
     (void)count;
 }
+
 int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectangle *r, Pixmap bitmap, Pixmap mask,
                      const XColor *foreground, const XColor *background, const Point2D *polygon, Tcl_Size nPoints) {
     (void)graphPtr;
@@ -1121,6 +1131,7 @@ int Rbc_RenderBitmap(Graph *graphPtr, Drawable drawable, const Rbc_RenderRectang
     (void)nPoints;
     return FALSE;
 }
+
 int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock *block, int x, int y) {
     (void)graphPtr;
     (void)drawable;
@@ -1129,6 +1140,7 @@ int Rbc_RenderPhoto(Graph *graphPtr, Drawable drawable, const Tk_PhotoImageBlock
     (void)y;
     return FALSE;
 }
+
 int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                           const XColor *foreground, const XColor *background, Pixmap stipple, double opacity) {
     (void)graphPtr;
@@ -1141,6 +1153,7 @@ int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *poi
     (void)opacity;
     return FALSE;
 }
+
 int Rbc_RenderTileArea(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                        const Tk_PhotoImageBlock *block) {
     (void)graphPtr;

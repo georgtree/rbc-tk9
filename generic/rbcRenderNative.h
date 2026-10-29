@@ -39,6 +39,7 @@ void Rbc_NativePushClip(Rbc_NativeClip *, int, int, int, int);
 void Rbc_NativePopClip(Rbc_NativeClip *);
 Drawable Rbc_NativeClipDrawable(Rbc_NativeClip *);
 void Rbc_NativeDestroyClip(Rbc_NativeClip *);
+
 /* Platform services called once per mapped batch, never once per point. */
 void Rbc_NativeCircles(Display *, Drawable, Rbc_RenderNativeSymbolStyle *, Tcl_Size, const Point2D *, int);
 void Rbc_NativeSquares(Display *, Drawable, Rbc_RenderNativeSymbolStyle *, Tcl_Size, const Point2D *, int);
@@ -48,4 +49,15 @@ int Rbc_NativeBarBorders(Graph *, Drawable, const Rbc_RenderBarStyle *, const Rb
 size_t Rbc_NativeClipStateSize(void);
 int Rbc_NativePlatformClip(Graph *, Drawable, int, int, int, int, void *, Drawable *);
 void Rbc_NativePlatformUnclip(void *, Drawable);
+void Rbc_NativeTextBackground(Graph *, Drawable, GC, const Point2D *, const Point2D *);
+void Rbc_NativeArrowHead(Graph *, Drawable, GC, const Point2D *);
+void Rbc_NativeLegendLine(Graph *, Drawable, GC, int, int, int);
+void Rbc_NativeLegendBar(Graph *, Drawable, GC, int, int, int);
+
+/* Runs are synchronous: callback/data/positions are borrowed only until return.
+ * Run owns a shared platform target when available, otherwise uses the original
+ * drawable. BitmapRun requires an opaque, unmasked GXcopy-compatible bitmap. */
+void Rbc_NativeRun(Graph *, Drawable, void *, Tcl_Size, Rbc_RenderRunProc *);
+void Rbc_NativeBitmapRun(Graph *, Drawable, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
+int Rbc_NativeOpaqueBitmapRun(Graph *, Drawable, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
 #endif

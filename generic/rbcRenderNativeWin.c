@@ -22,7 +22,9 @@ struct Rbc_NativeTrace {
 void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size nPoints) {
     Tcl_Size count, j, remaining;
     int maxPoints;
-    if (ctx == NULL) return;
+    if (ctx == NULL) {
+        return;
+    }        
     maxPoints = ctx->nativeMaxPoints;
     if (screenPts == NULL || nPoints < 2 || maxPoints < 2) {
         return;
@@ -169,7 +171,6 @@ void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D
     ckfree(points);
 }
 
-
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc) {
     Rbc_NativeTrace *ctx;
     int maxPoints;
@@ -183,7 +184,9 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
     /* Keep state and point storage in one allocation, preserving the number
      * of allocations per trace batch before the backend was separated. */
     ctx = (Rbc_NativeTrace *)Tcl_AttemptAlloc(sizeof(*ctx) + ((size_t)maxPoints + 1u) * pointSize);
-    if (ctx == NULL) return NULL;
+    if (ctx == NULL) {
+        return NULL;
+    }
     memset(ctx, 0, sizeof(*ctx));
     ctx->graphPtr = graphPtr;
     ctx->nativeDrawable = drawable;
@@ -198,7 +201,9 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
 }
 
 void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
-    if (ctx == NULL) return;
+    if (ctx == NULL) {
+        return;
+    }        
     DeletePen(SelectPen(ctx->nativeDC, ctx->nativeOldPen));
     DeleteBrush(SelectBrush(ctx->nativeDC, ctx->nativeOldBrush));
     Rbc_WinReleaseDrawableDC(ctx->nativeDCState);
@@ -403,7 +408,7 @@ static int DrawCirclePathBatch(HDC dc, const POINT *points, const BYTE *types, i
  *----------------------------------------------------------------------
  */
 void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
-                        const Point2D *symbolPts, int radius) {
+                       const Point2D *symbolPts, int radius) {
     Rbc_WinDrawableDC *dcStatePtr;
     const Point2D *pointPtr;
     const Point2D *endPtr;
@@ -611,12 +616,8 @@ done:
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-
-
-void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, const XPoint *polygons,
-                               Tcl_Size nPolygons, int stride, int nVertices);
-
-
+void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style,
+                              const XPoint *polygons, Tcl_Size nPolygons, int stride, int nVertices);
 
 /*
  *----------------------------------------------------------------------
@@ -640,7 +641,7 @@ void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNat
  *----------------------------------------------------------------------
  */
 void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
-                        const Point2D *symbolPts, int r) {
+                       const Point2D *symbolPts, int r) {
     XPoint *polygons;
     XPoint *p;
     const Point2D *pointPtr;
@@ -711,8 +712,6 @@ void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymb
     ckfree(polygons);
 }
 
-
-
 /*
  *----------------------------------------------------------------------
  *
@@ -767,8 +766,8 @@ static void LoadPolygonBatch(POINT *points, const XPoint *polygons, Tcl_Size fir
  *
  *----------------------------------------------------------------------
  */
-void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, const XPoint *polygons,
-                               Tcl_Size nPolygons, int stride, int nVertices) {
+void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style,
+                              const XPoint *polygons, Tcl_Size nPolygons, int stride, int nVertices) {
     enum {
         /*
          * GDI/EMF point budget for polygon outlines.  PolyPolyline scales
@@ -1135,8 +1134,8 @@ static int Clamp3DBorderWidth(int width, int height, int borderWidth) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr, const Rbc_RenderRectangle *rectangles,
-                               Tcl_Size nRects) {
+int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
+                         const Rbc_RenderRectangle *rectangles, Tcl_Size nRects) {
     Rbc_Win3DBorderColors colors;
     Rbc_WinDrawableDC *dcStatePtr;
     HDC dc;
@@ -1222,13 +1221,14 @@ int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBar
     return TRUE;
 }
 
-
-void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr, XRectangle *rectangles, int nRects) {
+void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
+                             XRectangle *rectangles, int nRects) {
     if (Rbc_WinFillOpaqueStippledRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects)) {
         return;
     }
     XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects);
 }
+
 /* A fill-only marker run holds one native DC and brush. The component retains
  * style grouping and painter order; the backend only consumes mapped polygons. */
 struct Rbc_NativePolygonBatch {
@@ -1245,13 +1245,22 @@ struct Rbc_NativePolygonBatch {
 Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable drawable, GC gc, Tcl_Size maxPoints) {
     Rbc_NativePolygonBatch *batch;
     HBRUSH brush;
-    if (maxPoints <= 0 || (size_t)maxPoints > SIZE_MAX / sizeof(POINT)) return NULL;
+    if (maxPoints <= 0 || (size_t)maxPoints > SIZE_MAX / sizeof(POINT)) {
+        return NULL;
+    }        
     batch = (Rbc_NativePolygonBatch *)ckalloc(sizeof(*batch));
     memset(batch, 0, sizeof(*batch));
     batch->points = Tcl_AttemptAlloc((size_t)maxPoints * sizeof(POINT));
-    if (batch->points == NULL) {ckfree(batch); return NULL;}
+    if (batch->points == NULL) {
+        ckfree(batch);
+        return NULL;
+    }
     brush = CreateSolidBrush(gc->foreground);
-    if (brush == NULL) {ckfree(batch->points); ckfree(batch); return NULL;}
+    if (brush == NULL) {
+        ckfree(batch->points);
+        ckfree(batch);
+        return NULL;
+    }
     batch->display = graphPtr->display;
     batch->capacity = maxPoints;
     batch->dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &batch->dcState);
@@ -1265,7 +1274,9 @@ Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable dr
 void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points, Tcl_Size count) {
     Tcl_Size i;
     int n = Rbc_NativePolygonPointCount(batch->display, count);
-    if (n <= 0 || count > batch->capacity) return;
+    if (n <= 0 || count > batch->capacity) {
+        return;
+    }        
     for (i = 0; i < count; i++) {
         batch->points[i].x = (LONG)(short int)points[i].x;
         batch->points[i].y = (LONG)(short int)points[i].y;
@@ -1274,7 +1285,9 @@ void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points
 }
 
 void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
-    if (batch->oldFillMode != 0) SetPolyFillMode(batch->dc, batch->oldFillMode);
+    if (batch->oldFillMode != 0) {
+        SetPolyFillMode(batch->dc, batch->oldFillMode);
+    }        
     SelectPen(batch->dc, batch->oldPen);
     DeleteBrush(SelectBrush(batch->dc, batch->oldBrush));
     Rbc_WinReleaseDrawableDC(batch->dcState);
@@ -1291,14 +1304,18 @@ typedef struct NativeDCClip {
 
 size_t Rbc_NativeClipStateSize(void) { return sizeof(NativeDCClip); }
 
-int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom,
-    void *clientData, Drawable *drawablePtr) {
+int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom, void *clientData,
+                           Drawable *drawablePtr) {
     NativeDCClip *state = clientData;
     memset(state, 0, sizeof(*state));
     state->dc = Rbc_WinAcquireDrawableDC(graphPtr->display, parent, &state->dcState);
-    if (state->dc == NULL) return TRUE;
+    if (state->dc == NULL) {
+        return TRUE;
+    }        
     state->saved = SaveDC(state->dc);
-    if (state->saved == 0) return TRUE;
+    if (state->saved == 0) {
+        return TRUE;
+    }        
     /* A meta region survives the clip masks installed by bitmap drawing. */
     if (IntersectClipRect(state->dc, left, top, right, bottom) != ERROR && SetMetaRgn(state->dc) != ERROR) {
         *drawablePtr = Rbc_WinCreateDrawableFromDC(state->dc);
@@ -1308,7 +1325,39 @@ int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, 
 
 void Rbc_NativePlatformUnclip(void *clientData, Drawable drawable) {
     NativeDCClip *state = clientData;
-    if (drawable != None) Rbc_WinFreeDrawableFromDC(drawable);
-    if (state->saved != 0) RestoreDC(state->dc, state->saved);
-    if (state->dcState != NULL) Rbc_WinReleaseDrawableDC(state->dcState);
+    if (drawable != None) {
+        Rbc_WinFreeDrawableFromDC(drawable);
+    }        
+    if (state->saved != 0) {
+        RestoreDC(state->dc, state->saved);
+    }        
+    if (state->dcState != NULL) {
+        Rbc_WinReleaseDrawableDC(state->dcState);
+    }        
+}
+
+/* Acquire one destination DC for the entire run. If either acquisition or
+ * wrapping fails, replay on the original drawable in the same painter order. */
+void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size count, Rbc_RenderRunProc *proc) {
+    Rbc_WinDrawableDC *state;
+    HDC dc;
+    Drawable target;
+    if (data == NULL || count <= 0) {
+        return;
+    }        
+    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &state);
+    target = dc != NULL ? Rbc_WinCreateDrawableFromDC(dc) : None;
+    if (target == None) {
+        Rbc_WinReleaseDrawableDC(state);
+        proc(data, drawable, count);
+        return;
+    }
+    proc(data, target, count);
+    Rbc_WinFreeDrawableFromDC(target);
+    Rbc_WinReleaseDrawableDC(state);
+}
+
+int Rbc_NativeOpaqueBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
+                              const Rbc_RenderPosition *positions, Tcl_Size count) {
+    return Rbc_WinCopyOpaqueBitmapBatch(graphPtr->display, drawable, bitmap, gc, width, height, positions, count);
 }

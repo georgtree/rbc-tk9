@@ -6,21 +6,24 @@ typedef struct {
     unsigned int bitmapId;
     int bitmapWidth, bitmapHeight;
 } SvgRenderContext;
+
 #define SVG(ctx) ((SvgRenderContext *)(ctx))
 
 static void SvgClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     unsigned int id = ++token->nextResourceId;
     Rbc_ExportFormat(token,
-        "<defs><clipPath id=\"rbcClip%u\" clipPathUnits=\"userSpaceOnUse\"><rect x=\"%d\" y=\"%d\" "
-        "width=\"%d\" height=\"%d\"/></clipPath></defs>\n<g clip-path=\"url(#rbcClip%u)\">\n",
-        id, x, y, width, height, id);
+                     "<defs><clipPath id=\"rbcClip%u\" clipPathUnits=\"userSpaceOnUse\"><rect x=\"%d\" y=\"%d\" "
+                     "width=\"%d\" height=\"%d\"/></clipPath></defs>\n<g clip-path=\"url(#rbcClip%u)\">\n",
+                     id, x, y, width, height, id);
 }
+
 static void SvgClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
 }
 
 static unsigned int SvgFillPattern(Rbc_RenderContext *, const XColor *);
+
 static void SvgError(Rbc_ExportContext *token, const char *message) {
     if (token->error == NULL) {
         token->error = message;
@@ -80,10 +83,16 @@ static void SvgStrokeAttributes(Rbc_RenderContext *ctx, int underlay) {
     int i;
 
     Rbc_ExportAppend(token, " fill=\"none\" stroke=\"", (char *)NULL);
-    SvgColor(token, underlay ? &RENDER_EXPORT(ctx)->vectorOffColor : (RENDER_EXPORT(ctx)->vectorHasColor ? &RENDER_EXPORT(ctx)->vectorColor : NULL));
-    Rbc_ExportFormat(token, "\" stroke-width=\"%d\" stroke-linecap=\"%s\" stroke-linejoin=\"%s\"", RENDER_EXPORT(ctx)->vectorWidth,
-                     RENDER_EXPORT(ctx)->vectorCap == CapRound ? "round" : (RENDER_EXPORT(ctx)->vectorCap == CapProjecting ? "square" : "butt"),
-                     RENDER_EXPORT(ctx)->vectorJoin == JoinRound ? "round" : (RENDER_EXPORT(ctx)->vectorJoin == JoinBevel ? "bevel" : "miter"));
+    SvgColor(token, underlay ? &RENDER_EXPORT(ctx)->vectorOffColor
+                             : (RENDER_EXPORT(ctx)->vectorHasColor ? &RENDER_EXPORT(ctx)->vectorColor : NULL));
+    Rbc_ExportFormat(token, "\" stroke-width=\"%d\" stroke-linecap=\"%s\" stroke-linejoin=\"%s\"",
+                     RENDER_EXPORT(ctx)->vectorWidth,
+                     RENDER_EXPORT(ctx)->vectorCap == CapRound
+                         ? "round"
+                         : (RENDER_EXPORT(ctx)->vectorCap == CapProjecting ? "square" : "butt"),
+                     RENDER_EXPORT(ctx)->vectorJoin == JoinRound
+                         ? "round"
+                         : (RENDER_EXPORT(ctx)->vectorJoin == JoinBevel ? "bevel" : "miter"));
     if (!underlay && RENDER_EXPORT(ctx)->vectorDashes.values[0] != 0) {
         Rbc_ExportAppend(token, " stroke-dasharray=\"", (char *)NULL);
         for (i = 0; i < RBC_MAX_DASH_VALUES && RENDER_EXPORT(ctx)->vectorDashes.values[i] != 0; i++) {
@@ -120,8 +129,6 @@ static void SvgSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
         SvgPolyline(ctx, points, 2);
     }
 }
-
-
 
 static void SvgPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, const XColor *color,
                        double opacity) {
@@ -173,12 +180,11 @@ static void SvgArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *ar
 
     Rbc_ExportFormat(token, "<path d=\"M %g %g", x, y);
     if (fabs(arc->extent) == 360.0) {
-        Rbc_ExportFormat(token, " A %g %g 0 0 %d %g %g A %g %g 0 0 %d %g %g Z",
-            arc->rx, arc->ry, sweep, arc->cx - arc->rx * cos(start), arc->cy + arc->ry * sin(start),
-            arc->rx, arc->ry, sweep, x, y);
+        Rbc_ExportFormat(token, " A %g %g 0 0 %d %g %g A %g %g 0 0 %d %g %g Z", arc->rx, arc->ry, sweep,
+                         arc->cx - arc->rx * cos(start), arc->cy + arc->ry * sin(start), arc->rx, arc->ry, sweep, x, y);
     } else {
-        Rbc_ExportFormat(token, " A %g %g 0 %d %d %g %g", arc->rx, arc->ry, fabs(arc->extent) > 180.0,
-            sweep, arc->cx + arc->rx * cos(end), arc->cy - arc->ry * sin(end));
+        Rbc_ExportFormat(token, " A %g %g 0 %d %d %g %g", arc->rx, arc->ry, fabs(arc->extent) > 180.0, sweep,
+                         arc->cx + arc->rx * cos(end), arc->cy - arc->ry * sin(end));
         if (arc->style == RBC_RENDER_ARC_PIESLICE) {
             Rbc_ExportFormat(token, " L %g %g", arc->cx, arc->cy);
         }
@@ -215,7 +221,8 @@ static void SvgFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc)
     } else {
         Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, " fill=\"", (char *)NULL);
         SvgColor(RENDER_EXPORT(ctx)->exportPtr, style->foreground);
-        Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "\" fill-opacity=\"%g\" fill-rule=\"evenodd\"/>\n", style->opacity);
+        Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "\" fill-opacity=\"%g\" fill-rule=\"evenodd\"/>\n",
+                         style->opacity);
     }
 }
 
@@ -238,11 +245,13 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
             continue;
         }
         if (RENDER_EXPORT(ctx)->fillStyle.opacity != 1.0) {
-            Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "<g opacity=\"%g\">\n", RENDER_EXPORT(ctx)->fillStyle.opacity);
+            Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "<g opacity=\"%g\">\n",
+                             RENDER_EXPORT(ctx)->fillStyle.opacity);
         }
         if (RENDER_EXPORT(ctx)->fillStyle.stipple != None || RENDER_EXPORT(ctx)->fillStyle.backgroundOnly) {
-            const XColor *foreground =
-                RENDER_EXPORT(ctx)->fillStyle.foreground ? RENDER_EXPORT(ctx)->fillStyle.foreground : RENDER_EXPORT(ctx)->fillStyle.background;
+            const XColor *foreground = RENDER_EXPORT(ctx)->fillStyle.foreground
+                                           ? RENDER_EXPORT(ctx)->fillStyle.foreground
+                                           : RENDER_EXPORT(ctx)->fillStyle.background;
             unsigned int id = SvgFillPattern(ctx, foreground);
 
             if (id == 0) {
@@ -255,7 +264,8 @@ static void SvgFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
                              "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" fill=\"url(#rbcPattern%u)\"/>\n",
                              rect->x, rect->y, rect->width, rect->height, id);
         } else {
-            SvgRectangle(RENDER_EXPORT(ctx)->exportPtr, rect->x, rect->y, rect->width, rect->height, RENDER_EXPORT(ctx)->fillStyle.foreground);
+            SvgRectangle(RENDER_EXPORT(ctx)->exportPtr, rect->x, rect->y, rect->width, rect->height,
+                         RENDER_EXPORT(ctx)->fillStyle.foreground);
         }
         if (RENDER_EXPORT(ctx)->fillStyle.opacity != 1.0) {
             Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
@@ -575,7 +585,8 @@ static void SvgSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
         for (i = 0; i < count; i++) {
             Rbc_RenderRectangle rect = {0, 0, (int)RENDER_EXPORT(ctx)->symbolSize, (int)RENDER_EXPORT(ctx)->symbolSize};
 
-            Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "<g transform=\"translate(%g %g)\">\n", centers[i].x - RENDER_EXPORT(ctx)->symbolSize / 2,
+            Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "<g transform=\"translate(%g %g)\">\n",
+                             centers[i].x - RENDER_EXPORT(ctx)->symbolSize / 2,
                              centers[i].y - RENDER_EXPORT(ctx)->symbolSize / 2);
             SvgFillRectangles(ctx, &rect, 1);
             Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
@@ -704,8 +715,8 @@ int Rbc_SvgFontsFinish(Rbc_ExportContext *token) {
             Tcl_DStringFree(&program);
             return TCL_ERROR;
         }
-        Rbc_ExportFormat(token, "@font-face { font-family: '%s-%d'; src: url(data:font/%s;base64,",
-                         prefix, font->id, font->isCff ? "otf" : "ttf");
+        Rbc_ExportFormat(token, "@font-face { font-family: '%s-%d'; src: url(data:font/%s;base64,", prefix, font->id,
+                         font->isCff ? "otf" : "ttf");
         SvgBase64(token, (const unsigned char *)Tcl_DStringValue(&program), Tcl_DStringLength(&program));
         Rbc_ExportFormat(token, ") format('%s'); font-weight: normal; font-style: normal; }\n",
                          font->isCff ? "opentype" : "truetype");
@@ -770,10 +781,11 @@ static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *sty
     }
     Rbc_GetBoundingBox(layout->width, layout->height, style->theta, &width, &height, NULL);
     anchor = Rbc_TranslatePoint(&anchor, ROUND(width), ROUND(height), style->anchor);
-    Rbc_ExportFormat(token, "<g transform=\"translate(%g %g) rotate(%g) translate(%g %g)\" "
+    Rbc_ExportFormat(token,
+                     "<g transform=\"translate(%g %g) rotate(%g) translate(%g %g)\" "
                      "font-weight=\"normal\" font-style=\"normal\">\n",
-                     anchor.x + width / 2, anchor.y + height / 2, -style->theta,
-                     -layout->width / 2.0, -layout->height / 2.0);
+                     anchor.x + width / 2, anchor.y + height / 2, -style->theta, -layout->width / 2.0,
+                     -layout->height / 2.0);
     for (pass = 0; pass < 2; pass++) {
         const XColor *color =
             pass == 0 ? style->shadow.color : ((style->state & STATE_ACTIVE) ? style->activeColor : style->color);
@@ -795,9 +807,10 @@ static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *sty
                 if (Rbc_ExportFontCharacter(token, style->font, ch, &font, &cid, &size, &advance) != TCL_OK) {
                     break;
                 }
-                Rbc_ExportFormat(token, "<tspan font-family=\"RbcEmbeddedFont%d\" font-size=\"%.8f\" x=\"%d\" y=\"%d\">",
-                                 font->id, size, fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
-                                 fragment->y + offset);
+                Rbc_ExportFormat(
+                    token, "<tspan font-family=\"RbcEmbeddedFont%d\" font-size=\"%.8f\" x=\"%d\" y=\"%d\">", font->id,
+                    size, fragment->x + offset + extra + Tk_TextWidth(style->font, fragment->text, n),
+                    fragment->y + offset);
                 SvgString(token, fragment->text + n, consumed);
                 Rbc_ExportAppend(token, "</tspan>", (char *)NULL);
                 if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
@@ -1041,7 +1054,9 @@ static void SvgPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
                      x, y, width, height);
 }
 
-static void SvgPlotEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL); }
+static void SvgPlotEnd(Rbc_RenderContext *ctx) {
+    Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "</g>\n", (char *)NULL);
+}
 
 static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
                                                  SvgPhoto,
@@ -1053,12 +1068,28 @@ static const Rbc_RenderOutputOps svgOutputOps = {SvgText,
                                                  SvgPlotBegin,
                                                  SvgPlotEnd,
                                                  SvgBitmapMask,
-                                                 SvgTkImage, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+                                                 SvgTkImage,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL};
 
-static const Rbc_RenderOps rbcSvgOps = {SvgPolyline,       SvgSegments,    Rbc_RenderExportLineStyle,
-                                     Rbc_RenderExportDashBackground, SvgFillPolygon, SvgFillRectangles,
-                                     SvgSymbolPoints,   &svgOutputOps,  Rbc_RenderExportEnd, SvgArc, SvgFillArc, SvgClipBegin, SvgClipEnd};
-
+static const Rbc_RenderOps rbcSvgOps = {SvgPolyline,
+                                        SvgSegments,
+                                        Rbc_RenderExportLineStyle,
+                                        Rbc_RenderExportDashBackground,
+                                        SvgFillPolygon,
+                                        SvgFillRectangles,
+                                        SvgSymbolPoints,
+                                        &svgOutputOps,
+                                        Rbc_RenderExportEnd,
+                                        SvgArc,
+                                        SvgFillArc,
+                                        SvgClipBegin,
+                                        SvgClipEnd};
 
 Rbc_RenderContext *Rbc_RenderCreateSvg(Rbc_ExportContext *token) {
     SvgRenderContext *ctx = ckalloc(sizeof(*ctx));

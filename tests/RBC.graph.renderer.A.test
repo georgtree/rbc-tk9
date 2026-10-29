@@ -3117,5 +3117,90 @@ namespace eval graph.renderer {
         } -result {1 1 1}
     }
 
+    set testCase(85) 0
+    foreach renderer {native cairo} {
+        foreach kind {text bitmap mixed} {
+            test RBC.graph.renderer.A.85.[incr testCase(85)] {marker runs match individually flushed drawing without changing painter order} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                lassign [BitmapFixture $renderer] bitmap mask
+                .renderer marker delete m
+                set separators {}
+                for {set i 0} {$i < 12} {incr i} {
+                    set x [expr {1.0 + ($i % 4) * 2.5}]
+                    set y [expr {2.0 + ($i / 4) * 3.0}]
+                    if {$kind ne "bitmap"} {
+                        .renderer marker create text -name text$i -coords [list $x $y] \
+                                -text "Run $i" -foreground red -background {} -rotate [expr {($i % 3) * 30}]
+                        lappend separators [.renderer marker create polygon -coords {1 1 2 1 2 2} \
+                                -fill {} -outline {} -hide yes]
+                    }
+                    if {$kind ne "text"} {
+                        .renderer marker create bitmap -name bitmap$i -coords [list $x $y] \
+                                -bitmap @$bitmap -foreground black -background blue -rotate 0
+                        lappend separators [.renderer marker create polygon -coords {1 1 2 1 2 2} \
+                                -fill {} -outline {} -hide yes]
+                    }
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set before [$photo data]
+                set visible [expr {[lindex [PlotInk $photo] 0] > 0}]
+                # A visible, unpainted polygon ends the preceding Windows run.
+                # Hidden separators are skipped, allowing adjacent markers to batch.
+                foreach marker $separators {.renderer marker configure $marker -hide no}
+                .renderer snap $photo
+                set individual [expr {$before eq [$photo data]}]
+                foreach marker $separators {.renderer marker configure $marker -hide yes}
+                .renderer snap $photo
+                list $visible $individual [expr {$before eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile renderer-bitmap.xbm
+                removeFile renderer-mask.xbm
+            } -result {1 1 1}
+        }
+    }
+
+    set testCase(86) 0
+    foreach renderer {native cairo} {
+        test RBC.graph.renderer.A.86.[incr testCase(86)] {rotated backgrounds, arrowheads and native legend samples restore after redraw} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            StrokeFixture graph $renderer
+            .renderer configure -width 400 -height 300 -buffergraph no -bufferelements no
+            .renderer element configure signal -label Dashed -dashes {3 5} -linewidth 2 -color navy
+            .renderer bar create bars -data {3 4 7 6} -label Stipple -foreground purple \
+                    -background yellow -stipple gray50 -barwidth 0.8
+            .renderer legend configure -hide no -position rightmargin
+            .renderer marker create text -name label -coords {5 7} -text "Rotated\nbackground" \
+                    -rotate 37 -foreground black -background lightblue
+            .renderer marker create line -name arrow -coords {1 1 9 9} -arrow both -arrowshape {12 18 6} \
+                    -linewidth 2 -dashes {4 3} -outline red
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            .renderer marker configure label -background orange
+            .renderer marker configure arrow -outline blue
+            .renderer snap $photo
+            set changed [expr {$before ne [$photo data]}]
+            .renderer marker configure label -background lightblue
+            .renderer marker configure arrow -outline red
+            .renderer snap $photo
+            set restored [expr {$before eq [$photo data]}]
+            .renderer legend configure -hide yes
+            .renderer snap $photo
+            .renderer legend configure -hide no
+            .renderer snap $photo
+            list $changed $restored [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
     cleanupTests
 }

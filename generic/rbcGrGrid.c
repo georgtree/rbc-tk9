@@ -78,22 +78,19 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
-     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
      offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
      offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR,
-     -1, offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1,
-     offsetof(Grid, smithGrid), 0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR, -1,
+     offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1, offsetof(Grid, smithGrid),
+     0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
-     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
-     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
      DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
      GRID_POLAR_CHANGED | GRID_REDRAW},
@@ -148,22 +145,19 @@ static const Tk_OptionSpec barGridOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
-     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
      offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
      offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR,
-     -1, offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1,
-     offsetof(Grid, smithGrid), 0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR, -1,
+     offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1, offsetof(Grid, smithGrid),
+     0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
-     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
-     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+     offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
     {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
      DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
      GRID_POLAR_CHANGED | GRID_REDRAW},
@@ -1468,8 +1462,7 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
  *      Temporary graph selection lets the ordinary transactional grid operations
  *      share their implementation; none of these operations evaluates Tcl scripts.
  */
-int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp,
-                    Tcl_Size objc, Tcl_Obj *const objv[]) {
+int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *global = graphPtr->gridPtr;
     Grid view, *local = track->grid;
     Tcl_Obj **args, *prefix, *mapY;
@@ -1484,9 +1477,13 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp,
     Tcl_IncrRefCount(prefix);
     args[0] = objv[0];
     args[1] = prefix;
-    for (i = 2; i < count; i++) {args[i] = objv[i+2];}
+    for (i = 2; i < count; i++) {
+        args[i] = objv[i + 2];
+    }
     code = Rbc_GetOpIndexFromObj(interp, gridOps, sizeof(gridOps[0]), RBC_OP_ARG2, count, args, &index);
-    if (code != TCL_OK) {goto done;}
+    if (code != TCL_OK) {
+        goto done;
+    }
     query = gridOps[index].proc == CgetOp || (gridOps[index].proc == ConfigureOp && count <= 4);
     /* Queries must not materialize a local grid or freeze inherited defaults. */
     view = *global;
@@ -1506,20 +1503,24 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp,
         code = Tk_InitOptions(interp, (char *)local, local->optionTable, graphPtr->tkwin);
         if (code == TCL_OK) {
             for (i = 0; i < 7; i++) {
-                values[i*2] = Tcl_NewStringObj(trackGridOptionSpecs[i].optionName, -1);
-                Tcl_IncrRefCount(values[i*2]);
-                values[i*2+1] = Tk_GetOptionValue(interp, (char *)&view, view.optionTable,
-                                                 values[i*2], graphPtr->tkwin);
-                Tcl_IncrRefCount(values[i*2+1]);
+                values[i * 2] = Tcl_NewStringObj(trackGridOptionSpecs[i].optionName, -1);
+                Tcl_IncrRefCount(values[i * 2]);
+                values[i * 2 + 1] =
+                    Tk_GetOptionValue(interp, (char *)&view, view.optionTable, values[i * 2], graphPtr->tkwin);
+                Tcl_IncrRefCount(values[i * 2 + 1]);
             }
-            code = Tk_SetOptions(interp, (char *)local, local->optionTable, 14, values,
-                                  graphPtr->tkwin, &saved, &mask);
+            code = Tk_SetOptions(interp, (char *)local, local->optionTable, 14, values, graphPtr->tkwin, &saved, &mask);
             if (code == TCL_OK) {
                 code = ConfigureGrid(graphPtr, local, GRID_GC_CHANGED | GRID_AXES_CHANGED);
-                if (code == TCL_OK) {Tk_FreeSavedOptions(&saved);}
-                else {Tk_RestoreSavedOptions(&saved);}
+                if (code == TCL_OK) {
+                    Tk_FreeSavedOptions(&saved);
+                } else {
+                    Tk_RestoreSavedOptions(&saved);
+                }
             }
-            for (i = 0; i < 14; i++) {Tcl_DecrRefCount(values[i]);}
+            for (i = 0; i < 14; i++) {
+                Tcl_DecrRefCount(values[i]);
+            }
         }
         if (code != TCL_OK) {
             DestroyGrid(graphPtr, local);
@@ -1531,8 +1532,11 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp,
     code = gridOps[index].proc(graphPtr, interp, count, args);
     graphPtr->gridPtr = global;
     if (track->grid == NULL && local != NULL) {
-        if (code == TCL_OK) {track->grid = local;}
-        else {DestroyGrid(graphPtr, local);}
+        if (code == TCL_OK) {
+            track->grid = local;
+        } else {
+            DestroyGrid(graphPtr, local);
+        }
     }
     Tcl_DecrRefCount(mapY);
 done:

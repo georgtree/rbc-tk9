@@ -1,9 +1,11 @@
 /* Shared export state and helpers. Not installed. See license.terms. */
 #ifndef RBC_RENDER_EXPORT_INT_H
 #define RBC_RENDER_EXPORT_INT_H
+
 #include "rbcRenderInt.h"
 #include "rbcFont.h"
 #include <stdint.h>
+
 typedef struct {
     Rbc_RenderContext core;
     Rbc_ExportContext *exportPtr;
@@ -18,6 +20,7 @@ typedef struct {
     unsigned int vectorPatternId;
     Rbc_Tile vectorTile;
 } Rbc_RenderExportState;
+
 #define RENDER_EXPORT(ctx) ((Rbc_RenderExportState *)(ctx))
 Rbc_RenderContext *Rbc_RenderCreatePostscript(Rbc_ExportContext *);
 Rbc_RenderContext *Rbc_RenderCreateSvg(Rbc_ExportContext *);

@@ -60,7 +60,7 @@
 #define DEF_MARKER_Y_OFFSET "0"
 #define DEF_MARKER_ARROW "none"
 #define DEF_MARKER_ARROW_SHAPE "8 10 3"
-#define PTS_IN_ARROW 6
+#define PTS_IN_ARROW RBC_RENDER_ARROW_POINTS
 #define DEF_MARKER_TEXT_TAGS "Text all"
 #define DEF_MARKER_IMAGE_TAGS "Image all"
 #define DEF_MARKER_BITMAP_TAGS "Bitmap all"
@@ -553,21 +553,12 @@ typedef struct {
     Rbc_RenderArcGeometry arc; /* Unclipped ellipse for curved renderers. */
 } PolygonMarker;
 
-enum { ARC_OPEN = RBC_RENDER_ARC_OPEN, ARC_CHORD = RBC_RENDER_ARC_CHORD,
-       ARC_PIESLICE = RBC_RENDER_ARC_PIESLICE };
+enum { ARC_OPEN = RBC_RENDER_ARC_OPEN, ARC_CHORD = RBC_RENDER_ARC_CHORD, ARC_PIESLICE = RBC_RENDER_ARC_PIESLICE };
 static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
 
-#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                                     \
-    {TK_OPTION_STRING,                                                                                                   \
-     "-bindtags",                                                                                                        \
-     "bindTags",                                                                                                         \
-     "BindTags",                                                                                                         \
-     TAGS_DEFAULT,                                                                                            \
-     offsetof(Marker, bindTagsObjPtr),                                                                                   \
-     -1,                                                                                                                 \
-     TK_OPTION_NULL_OK,                                                                                                  \
-     NULL,                                                                                                               \
-     0},                                                                                                                 \
+#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                       \
+    {TK_OPTION_STRING,  "-bindtags", "bindTags", "BindTags", TAGS_DEFAULT, offsetof(Marker, bindTagsObjPtr), -1,         \
+     TK_OPTION_NULL_OK, NULL,        0},                                                                                 \
         {TK_OPTION_STRING,                                                                                               \
          "-cap",                                                                                                         \
          "cap",                                                                                                          \
@@ -609,7 +600,8 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
         {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},         \
         {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},     \
         {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},     \
-        {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
+        {TK_OPTION_STRING,  "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1,                           \
+         TK_OPTION_NULL_OK, NULL,     0},                                                                                \
         {TK_OPTION_STRING,       "-name",           NULL, NULL, DEF_MARKER_NAME, -1,                                     \
          offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},                                                            \
         {TK_OPTION_STRING,                                                                                               \
@@ -633,7 +625,7 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
          DEF_MARKER_X_OFFSET,                                                                                            \
          offsetof(Marker, xOffsetObjPtr),                                                                                \
          offsetof(Marker, xOffset),                                                                                      \
-         TK_OPTION_NEG_OK,                                                                                                              \
+         TK_OPTION_NEG_OK,                                                                                               \
          NULL,                                                                                                           \
          0},                                                                                                             \
         {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(PolygonMarker, xor), 0, NULL, 0},         \
@@ -644,7 +636,7 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
          DEF_MARKER_Y_OFFSET,                                                                                            \
          offsetof(Marker, yOffsetObjPtr),                                                                                \
          offsetof(Marker, yOffset),                                                                                      \
-         TK_OPTION_NEG_OK,                                                                                                              \
+         TK_OPTION_NEG_OK,                                                                                               \
          NULL,                                                                                                           \
          0}
 
@@ -656,19 +648,18 @@ static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, DEF_MARKER_POLYGON_TAGS),
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-#define ARC_MARKER_OPTION_ENTRIES \
-    {TK_OPTION_DOUBLE, "-start", "start", "Start", "0", -1, offsetof(PolygonMarker, start), 0, NULL, 0}, \
-    {TK_OPTION_DOUBLE, "-extent", "extent", "Extent", "360", -1, offsetof(PolygonMarker, extent), 0, NULL, 0}, \
-    {TK_OPTION_STRING_TABLE, "-style", "style", "Style", "pieslice", -1, offsetof(PolygonMarker, arcStyle), \
-     0, (ClientData)arcStyles, 0}, \
-    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+#define ARC_MARKER_OPTION_ENTRIES                                                                                      \
+    {TK_OPTION_DOUBLE, "-start", "start", "Start", "0", -1, offsetof(PolygonMarker, start), 0, NULL, 0},               \
+        {TK_OPTION_DOUBLE, "-extent", "extent", "Extent", "360", -1, offsetof(PolygonMarker, extent), 0, NULL, 0},     \
+        {TK_OPTION_STRING_TABLE, "-style", "style", "Style", "pieslice", -1, offsetof(PolygonMarker, arcStyle), 0,     \
+         (ClientData)arcStyles,  0},                                                                                   \
+        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
 
 static const Tk_OptionSpec arcMarkerOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, "Arc all"),
     ARC_MARKER_OPTION_ENTRIES};
 static const Tk_OptionSpec arcMarkerMonoOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, "Arc all"),
-    ARC_MARKER_OPTION_ENTRIES};
+    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, "Arc all"), ARC_MARKER_OPTION_ENTRIES};
 #undef ARC_MARKER_OPTION_ENTRIES
 #undef POLYGON_MARKER_OPTION_ENTRIES
 
@@ -3307,18 +3298,7 @@ static void DrawTextMarker(Marker *markerPtr, Drawable drawable) {
         return;
     }
     if ((tmPtr->fillGC != NULL) && !DrawRenderedTextBackground(graphPtr, drawable, tmPtr)) {
-        XPoint pointArr[4];
-        int i;
-
-        /*
-         * Simulate the rotated background of the bitmap by
-         * filling a bounding polygon with the background color.
-         */
-        for (i = 0; i < 4; i++) {
-            pointArr[i].x = (short int)(tmPtr->outline[i].x + tmPtr->anchorPos.x);
-            pointArr[i].y = (short int)(tmPtr->outline[i].y + tmPtr->anchorPos.y);
-        }
-        XFillPolygon(graphPtr->display, drawable, tmPtr->fillGC, pointArr, 4, Convex, CoordModeOrigin);
+        Rbc_RenderScreenTextBackground(graphPtr, drawable, tmPtr->fillGC, tmPtr->outline, &tmPtr->anchorPos);
     }
     if (tmPtr->style.color != NULL) {
         Rbc_RenderContext *text = Rbc_RenderBeginScreenText(graphPtr->tkwin, drawable);
@@ -3722,8 +3702,7 @@ static void DrawWindowMarker(Marker *markerPtr, Drawable drawable) {
  */
 static void SyncWindowMarkers(Graph *graphPtr) {
     Rbc_ChainLink *link;
-    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
-         link = Rbc_ChainNextLink(link)) {
+    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL; link = Rbc_ChainNextLink(link)) {
         Marker *markerPtr = Rbc_ChainGetValue(link);
         WindowMarker *wmPtr;
         int visible;
@@ -3735,9 +3714,8 @@ static void SyncWindowMarkers(Graph *graphPtr) {
             continue;
         }
         visible = markerPtr->nWorldPts > 0 && !markerPtr->hidden && !markerPtr->clipped;
-        if (markerPtr->track != NULL &&
-            (markerPtr->track->right - markerPtr->track->left <= 1 ||
-             markerPtr->track->bottom - markerPtr->track->top <= 1)) {
+        if (markerPtr->track != NULL && (markerPtr->track->right - markerPtr->track->left <= 1 ||
+                                         markerPtr->track->bottom - markerPtr->track->top <= 1)) {
             visible = FALSE;
         }
         if (markerPtr->elemName != NULL) {
@@ -4339,74 +4317,6 @@ static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point
     return Rbc_RenderArea(graphPtr, drawable, points, PTS_IN_ARROW - 1, color, NULL, None);
 }
 
-/*
- * DrawArrowHead --
- *
- *      Scan-convert the five-vertex head at integer pixel centers.
- *      Rounding its vertices before XFillPolygon can distort the narrow
- *      neck and unbalance diagonal heads. Native polygon filling also
- *      uses boundary coordinates, unlike the shaft's pixel centers.
- *      Keep the original doubles until choosing the covered pixels.
- *
- *      Half-open edges count shared vertices once. Clip spans before
- *      converting to X protocol coordinates and send bounded batches.
- */
-static void DrawArrowHead(Graph *graphPtr, Drawable drawable, GC gc, const Point2D arrow[PTS_IN_ARROW]) {
-    XRectangle spans[128];
-    double top = arrow[0].y, bottom = arrow[0].y;
-    int i, j, y, lastY, right, nSpans = 0;
-
-    for (i = 1; i < PTS_IN_ARROW - 1; i++) {
-        top = MIN(top, arrow[i].y);
-        bottom = MAX(bottom, arrow[i].y);
-    }
-    top = MAX(0.0, ceil(top));
-    bottom = MIN((double)MIN(graphPtr->height - 1, SHRT_MAX), floor(bottom));
-    right = MIN(graphPtr->width - 1, SHRT_MAX);
-    if ((top > bottom) || (right < 0)) {
-        return;
-    }
-    lastY = (int)bottom;
-    for (y = (int)top; y <= lastY; y++) {
-        double intersections[PTS_IN_ARROW - 1];
-        int count = 0;
-
-        for (i = 0; i < PTS_IN_ARROW - 1; i++) {
-            const Point2D *p = arrow + i;
-            const Point2D *q = arrow + ((i + 1) % (PTS_IN_ARROW - 1));
-
-            if (((p->y <= y) && (y < q->y)) || ((q->y <= y) && (y < p->y))) {
-                double x = p->x + ((double)y - p->y) / (q->y - p->y) * (q->x - p->x);
-
-                /* At most five crossings; insertion sort keeps pairs ordered. */
-                for (j = count; (j > 0) && (intersections[j - 1] > x); j--) {
-                    intersections[j] = intersections[j - 1];
-                }
-                intersections[j] = x;
-                count++;
-            }
-        }
-        for (i = 0; i + 1 < count; i += 2) {
-            double left = MAX(0.0, ceil(intersections[i]));
-            double end = MIN((double)right, ceil(intersections[i + 1]) - 1.0);
-
-            if (left > end) {
-                continue;
-            }
-            spans[nSpans].x = (short)left;
-            spans[nSpans].y = (short)y;
-            spans[nSpans].width = (unsigned short)(end - left + 1.0);
-            spans[nSpans].height = 1;
-            if (++nSpans == 128) {
-                XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
-                nSpans = 0;
-            }
-        }
-    }
-    if (nSpans > 0) {
-        XFillRectangles(graphPtr->display, drawable, gc, spans, nSpans);
-    }
-}
 
 /*
  *----------------------------------------------------------------------
@@ -4447,20 +4357,18 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
         drawn = TRUE;
     }
     if (lmPtr->hasFirstArrow) {
-        if (lmPtr->xor ||
-            !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->firstArrow, outline)) {
-            DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
+        if (lmPtr->xor || !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->firstArrow, outline)) {
+            Rbc_RenderScreenArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
         }
         drawn = TRUE;
     }
     if (lmPtr->hasLastArrow) {
-        if (lmPtr->xor ||
-            !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->lastArrow, outline)) {
-            DrawArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
+        if (lmPtr->xor || !DrawRenderedArrowHead(graphPtr, drawable, lmPtr->lastArrow, outline)) {
+            Rbc_RenderScreenArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
         }
         drawn = TRUE;
     }
-    if (drawn && lmPtr->xor && markerPtr->track == NULL) {
+    if (drawn && lmPtr->xor &&markerPtr->track == NULL) {
         lmPtr->xorState = !lmPtr->xorState;
     }
 }
@@ -4649,7 +4557,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
      * uses the clipped redraw pass instead. DrawLineMarker()
      * updates xorState after drawing.
      */
-    if (lmPtr->xor && !trackRedraw && markerPtr->track == NULL && (drawable != None)) {
+    if (lmPtr->xor &&!trackRedraw && markerPtr->track == NULL && (drawable != None)) {
         MapLineMarker(markerPtr);
         DrawLineMarker(markerPtr, drawable);
         return TCL_OK;
@@ -6290,7 +6198,9 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         }
         Extents2D searchExts = exts;
         if (markerPtr->track != NULL) {
-            if (markerPtr->clipped || (markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) ||
+            if (markerPtr->clipped ||
+                (markerPtr->track->right - markerPtr->track->left <= 1 ||
+                 markerPtr->track->bottom - markerPtr->track->top <= 1) ||
                 exts.right < markerPtr->track->left || exts.left > markerPtr->track->right ||
                 exts.bottom < markerPtr->track->top || exts.top > markerPtr->track->bottom) {
                 continue;
@@ -6473,18 +6383,20 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
         }
         if (exportPtr->backend == RBC_EXPORT_POSTSCRIPT) {
             Rbc_ExportAppend(exportPtr, "\n% Marker \"", markerPtr->name, "\" is a ", markerPtr->classUid, " marker\n",
-                               (char *)NULL);
+                             (char *)NULL);
         }
         if (markerPtr->track != NULL && markerPtr->classUid != rbcWindowMarkerUid) {
             RbcTrackViewport saved;
             Rbc_RenderContext *context;
-            if ((markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) || markerPtr->clipped) {
+            if ((markerPtr->track->right - markerPtr->track->left <= 1 ||
+                 markerPtr->track->bottom - markerPtr->track->top <= 1) ||
+                markerPtr->clipped) {
                 continue;
             }
             Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
             context = Rbc_RenderBeginExportOutput(exportPtr);
-            Rbc_RenderClipBegin(context, graphPtr->left, graphPtr->top,
-                                graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1);
+            Rbc_RenderClipBegin(context, graphPtr->left, graphPtr->top, graphPtr->right - graphPtr->left + 1,
+                                graphPtr->bottom - graphPtr->top + 1);
             (*markerPtr->classPtr->exportProc)(markerPtr, exportPtr);
             Rbc_RenderClipEnd(context);
             Rbc_RenderEnd(context);
@@ -6497,35 +6409,14 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
 
 #ifdef WIN32
 
-static void DrawWinTextMarkerRun(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size nMarkers) {
-    Rbc_WinDrawableDC *dcStatePtr;
-    Drawable dcDrawable;
-    HDC dc;
+/* The renderer owns the shared native target; marker order and eligibility
+ * remain with the component. The callback is synchronous and retains nothing. */
+static void DrawTextMarkerRun(void *clientData, Drawable drawable, Tcl_Size count) {
+    TextMarker **markers = clientData;
     Tcl_Size i;
-
-    if ((markers == NULL) || (nMarkers <= 0)) {
-        return;
+    for (i = 0; i < count; i++) {
+        DrawTextMarker(&markers[i]->core, drawable);
     }
-    dc = Rbc_WinAcquireDrawableDC(graphPtr->display, drawable, &dcStatePtr);
-    if (dc == NULL) {
-        for (i = 0; i < nMarkers; i++) {
-            DrawTextMarker(&markers[i]->core, drawable);
-        }
-        return;
-    }
-    dcDrawable = Rbc_WinCreateDrawableFromDC(dc);
-    if (dcDrawable == None) {
-        Rbc_WinReleaseDrawableDC(dcStatePtr);
-        for (i = 0; i < nMarkers; i++) {
-            DrawTextMarker(&markers[i]->core, drawable);
-        }
-        return;
-    }
-    for (i = 0; i < nMarkers; i++) {
-        DrawTextMarker(&markers[i]->core, dcDrawable);
-    }
-    Rbc_WinFreeDrawableFromDC(dcDrawable);
-    Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
 static int CanBatchWinTextMarker(TextMarker *tmPtr) {
@@ -6805,32 +6696,17 @@ static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, Polygon
 
 static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size *nMarkersPtr) {
     if (*nMarkersPtr > 0) {
-        DrawWinTextMarkerRun(graphPtr, drawable, markers, *nMarkersPtr);
+        Rbc_RenderScreenRun(graphPtr, drawable, markers, *nMarkersPtr, DrawTextMarkerRun);
     }
     *nMarkersPtr = 0;
 }
 
-static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, BitmapMarker **stylePtrPtr, POINT *positions,
-                                      Tcl_Size *nPositionsPtr) {
-    BitmapMarker *bmPtr;
-    Tcl_Size i;
-
-    bmPtr = *stylePtrPtr;
+static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, BitmapMarker **stylePtrPtr,
+                                      Rbc_RenderPosition *positions, Tcl_Size *nPositionsPtr) {
+    BitmapMarker *bmPtr = *stylePtrPtr;
     if ((bmPtr != NULL) && (*nPositionsPtr > 0)) {
-        if (!Rbc_WinCopyOpaqueBitmapBatch(graphPtr->display, drawable, bmPtr->destBitmap, bmPtr->gc, bmPtr->destWidth,
-                                          bmPtr->destHeight, positions, *nPositionsPtr)) {
-            /*
-             * The fast path is GXcopy-equivalent, so if it failed
-             * after drawing a partial run it is safe to redraw the
-             * complete run through the normal XCopyPlane path.
-             */
-            XSetClipMask(graphPtr->display, bmPtr->gc, None);
-            XSetClipOrigin(graphPtr->display, bmPtr->gc, 0, 0);
-            for (i = 0; i < *nPositionsPtr; i++) {
-                XCopyPlane(graphPtr->display, bmPtr->destBitmap, drawable, bmPtr->gc, 0, 0, bmPtr->destWidth,
-                           bmPtr->destHeight, positions[i].x, positions[i].y, 1);
-            }
-        }
+        Rbc_RenderScreenBitmapRun(graphPtr, drawable, bmPtr->destBitmap, bmPtr->gc,
+                                  bmPtr->destWidth, bmPtr->destHeight, positions, *nPositionsPtr);
     }
     *stylePtrPtr = NULL;
     *nPositionsPtr = 0;
@@ -6921,10 +6797,10 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
 static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *link;
     Rbc_RenderContext *clip = NULL;
-    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL;
-         link = Rbc_ChainNextLink(link)) {
+    for (link = Rbc_ChainFirstLink(graphPtr->markers.displayList); link != NULL; link = Rbc_ChainNextLink(link)) {
         Marker *markerPtr = Rbc_ChainGetValue(link);
-        if (markerPtr->classUid == rbcWindowMarkerUid || markerPtr->nWorldPts == 0 || markerPtr->drawUnder != under || markerPtr->hidden || markerPtr->clipped) {
+        if (markerPtr->classUid == rbcWindowMarkerUid || markerPtr->nWorldPts == 0 || markerPtr->drawUnder != under ||
+            markerPtr->hidden || markerPtr->clipped) {
             continue;
         }
         if (markerPtr->elemName != NULL) {
@@ -6944,7 +6820,9 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
             if (width <= 0 || height <= 2) {
                 continue;
             }
-            if (clip == NULL) clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
+            if (clip == NULL) {
+                clip = Rbc_RenderBeginScreenClip(graphPtr, drawable, NULL, 0);
+            }                
             Rbc_RenderClipBegin(clip, left, top, width, height);
             if (Rbc_RenderClipDrawable(clip) != None) {
                 Rbc_EnterTrack(graphPtr, markerPtr->track, &saved);
@@ -6954,7 +6832,9 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
             Rbc_RenderClipEnd(clip);
         }
     }
-    if (clip != NULL) Rbc_RenderEnd(clip);
+    if (clip != NULL) {
+        Rbc_RenderEnd(clip);
+    }        
 }
 
 /*
@@ -7026,7 +6906,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Tcl_Size nTextMarkers;
     size_t textCapacity;
     int textCapacityValid;
-    POINT *bitmapPositions;
+    Rbc_RenderPosition *bitmapPositions;
     BitmapMarker *bitmapStylePtr;
     Tcl_Size nBitmapPositions;
     size_t bitmapCapacity;
@@ -7187,8 +7067,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     for (linkPtr = Rbc_ChainFirstLink(graphPtr->markers.displayList); linkPtr != NULL;
          linkPtr = Rbc_ChainNextLink(linkPtr)) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
-        if (markerPtr->classUid == rbcWindowMarkerUid || (markerPtr->nWorldPts == 0) || (markerPtr->drawUnder != under) || (markerPtr->hidden) ||
-            (markerPtr->clipped)) {
+        if (markerPtr->classUid == rbcWindowMarkerUid || (markerPtr->nWorldPts == 0) ||
+            (markerPtr->drawUnder != under) || (markerPtr->hidden) || (markerPtr->clipped)) {
             continue;
         }
         if (markerPtr->elemName != NULL) {
@@ -7334,8 +7214,8 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
                 if (bitmapStylePtr == NULL) {
                     bitmapStylePtr = bmPtr;
                 }
-                bitmapPositions[nBitmapPositions].x = (LONG)(int)bmPtr->anchorPos.x;
-                bitmapPositions[nBitmapPositions].y = (LONG)(int)bmPtr->anchorPos.y;
+                bitmapPositions[nBitmapPositions][0] = (int)bmPtr->anchorPos.x;
+                bitmapPositions[nBitmapPositions][1] = (int)bmPtr->anchorPos.y;
                 nBitmapPositions++;
                 continue;
             }
@@ -7517,10 +7397,11 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
         markerPtr = Rbc_ChainGetValue(linkPtr);
         if ((markerPtr->drawUnder == under) && (markerPtr->nWorldPts > 0) && (!markerPtr->hidden) &&
             (markerPtr->state == STATE_NORMAL)) {
-            if (markerPtr->track != NULL &&
-                (markerPtr->clipped || (markerPtr->track->right - markerPtr->track->left <= 1 || markerPtr->track->bottom - markerPtr->track->top <= 1) ||
-                 x < markerPtr->track->left || x > markerPtr->track->right ||
-                 y < markerPtr->track->top || y > markerPtr->track->bottom)) {
+            if (markerPtr->track != NULL && (markerPtr->clipped ||
+                                             (markerPtr->track->right - markerPtr->track->left <= 1 ||
+                                              markerPtr->track->bottom - markerPtr->track->top <= 1) ||
+                                             x < markerPtr->track->left || x > markerPtr->track->right ||
+                                             y < markerPtr->track->top || y > markerPtr->track->bottom)) {
                 continue;
             }
             if ((*markerPtr->classPtr->pointProc)(markerPtr, &point)) {
@@ -7558,8 +7439,8 @@ void Rbc_MarkerFontsChanged(Graph *graphPtr) {
             int i;
 
             tmPtr->textPtr = Rbc_GetTextLayout(tmPtr->string, &tmPtr->style);
-            Rbc_GetBoundingBox(tmPtr->textPtr->width, tmPtr->textPtr->height, tmPtr->style.theta,
-                              &width, &height, tmPtr->outline);
+            Rbc_GetBoundingBox(tmPtr->textPtr->width, tmPtr->textPtr->height, tmPtr->style.theta, &width, &height,
+                               tmPtr->outline);
             tmPtr->width = ROUND(width);
             tmPtr->height = ROUND(height);
             for (i = 0; i < 4; i++) {

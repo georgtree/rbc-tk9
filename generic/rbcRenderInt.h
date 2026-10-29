@@ -32,6 +32,12 @@ typedef struct {
     void (*screenRectangle)(Rbc_RenderContext *, GC, Rbc_Tile, int, int, int, int);
     void (*focus)(Rbc_RenderContext *, GC, int);
     void (*copyArea)(Rbc_RenderContext *, Drawable, GC, int, int, unsigned int, unsigned int, int, int);
+    void (*textBackground)(Rbc_RenderContext *, GC, const Point2D *, const Point2D *);
+    void (*arrowHead)(Rbc_RenderContext *, GC, const Point2D *);
+    void (*legendLine)(Rbc_RenderContext *, GC, int, int, int);
+    void (*legendBar)(Rbc_RenderContext *, GC, int, int, int);
+    void (*run)(Rbc_RenderContext *, void *, Tcl_Size, Rbc_RenderRunProc *);
+    void (*bitmapRun)(Rbc_RenderContext *, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
 } Rbc_RenderOutputOps;
 
 /* Geometry dispatch is shared by screen and export contexts. */
