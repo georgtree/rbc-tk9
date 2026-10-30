@@ -377,6 +377,23 @@ title - the axis title;
 line - the axis line region\&.
 .PP
 If there is no current axis, these operations return an empty result\&.
+.SH "CALLBACK SAFETY"
+.PP
+Axis -scrollcommand notifications run at idle, outside graph drawing\&. Multiple redraws before a
+notification runs coalesce to the latest fractions\&. Deleting an axis or its graph cancels pending
+notifications\&. A callback may reconfigure or destroy its owner\&. Snapshot commands do not invoke the
+callback synchronously; process idle events to deliver any resulting notification\&.
+.PP
+Axis -command label formatters run synchronously because layout needs their returned text\&. They should
+normally only format the supplied value\&. If a formatter destroys the graph or changes its geometry,
+RBC cancels the current layout or rendering operation\&. Synchronous callers such as svg output receive
+an error with error code RBC GRAPH CALLBACK; idle drawing abandons that frame\&. A later operation can
+use the updated configuration\&. Recursive rendering of the same graph from a formatter is rejected before
+changing its export settings\&. Defer intentional repeated changes with an event-driven application design
+rather than reconfiguring the graph every time a label is formatted\&.
+.PP
+Callback errors are reported through Tcl's background-error mechanism\&. Label formatting errors use the
+ordinary numeric label as a fallback\&. Callback evaluation preserves the surrounding interpreter state\&.
 .SH "AXIS OPTIONS"
 .PP
 The following options apply to virtual axes and to axes displayed through the margin-axis commands\&.

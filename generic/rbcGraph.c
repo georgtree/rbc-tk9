@@ -1018,6 +1018,9 @@ static void EventuallyRedrawSettledGraph(Graph *graphPtr) {
 }
 
 void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
+    if (graphPtr->axisFormatActive) {
+        graphPtr->axisFormatInvalid = TRUE;
+    }
     if ((graphPtr->tkwin != NULL) && !(graphPtr->flags & REDRAW_PENDING)) {
         Tcl_DoWhenIdle(DisplayGraph, graphPtr);
         graphPtr->flags |= REDRAW_PENDING;
@@ -1078,6 +1081,10 @@ static const Tk_ClassProcs graphClassProcs = {
 static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
     Graph *graphPtr = clientData;
 
+    if (graphPtr->axisFormatActive &&
+        (eventPtr->type == ConfigureNotify || eventPtr->type == DestroyNotify)) {
+        graphPtr->axisFormatInvalid = TRUE;
+    }
     if (eventPtr->type == Expose) {
         if (eventPtr->xexpose.count == 0) {
             graphPtr->flags |= REDRAW_WORLD;
@@ -1364,7 +1371,9 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
         /*
          * Need to recalculate graph layout first.
          */
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return NULL;
+        }
     }
     /* Local legend rectangles are controls, not element/marker hit targets. */
     if (graphPtr->trackGraph && Rbc_PointInTrackLegend(graphPtr, x, y)) {
@@ -2930,7 +2939,9 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     /* Always re-compute the layout of the graph before snapping the photo. */
     graphPtr->width = data.width;
     graphPtr->height = data.height;
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     Tk_MakeWindowExist(graphPtr->tkwin);
     drawable = Tk_WindowId(graphPtr->tkwin);
     if (data.format == FORMAT_PHOTO) {
@@ -2941,6 +2952,10 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
 #endif
         graphPtr->flags |= RESET_WORLD;
         Rbc_DrawGraph(graphPtr, drawable, noBackingStore);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            Tk_FreePixmap(graphPtr->display, drawable);
+            return TCL_ERROR;
+        }
         result = Rbc_SnapPhoto(interp, graphPtr->tkwin, drawable, 0, 0, data.width, data.height, data.width,
                                data.height, data.name, 1.0);
         Tk_FreePixmap(graphPtr->display, drawable);
@@ -2971,9 +2986,22 @@ static int SnapOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
             return TCL_ERROR;
         }
         metaDrawable = Rbc_WinCreateDrawableFromDC(hDC);
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            Rbc_WinFreeDrawableFromDC(metaDrawable);
+            hMetaFile = CloseEnhMetaFile(hDC);
+            DeleteEnhMetaFile(hMetaFile);
+            ReleaseDC(hWnd, hRefDC);
+            return TCL_ERROR;
+        }
         graphPtr->flags |= RESET_WORLD;
         Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            Rbc_WinFreeDrawableFromDC(metaDrawable);
+            hMetaFile = CloseEnhMetaFile(hDC);
+            DeleteEnhMetaFile(hMetaFile);
+            ReleaseDC(hWnd, hRefDC);
+            return TCL_ERROR;
+        }
         Rbc_WinFreeDrawableFromDC(metaDrawable);
         hMetaFile = CloseEnhMetaFile(hDC);
         if (strcmp(data.name, "CLIPBOARD") == 0) {
@@ -3084,6 +3112,21 @@ int Rbc_GraphInstCmdProc(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     if (graphPtr->trackGraph && (proc == TransformOp || proc == InvtransformOp)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("use track transform or track invtransform to select a track", -1));
         return TCL_ERROR;
+    }
+    /* Export and snapshot setup changes dimensions before requesting layout.
+     * Reject recursion before that setup can disturb an outer formatter. */
+    if (graphPtr->axisFormatActive) {
+        int renders = proc == SnapOp;
+        if ((proc == Rbc_SvgOp || proc == Rbc_PdfOp || proc == Rbc_PostScriptOp) && objc > 2) {
+            Tcl_Size length;
+            const char *name = Tcl_GetStringFromObj(objv[2], &length);
+            renders = length > 0 && length <= 6 && strncmp(name, "output", (size_t)length) == 0;
+        }
+        if (renders) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("recursive graph rendering in axis label callback", -1));
+            Tcl_SetErrorCode(interp, "RBC", "GRAPH", "CALLBACK", NULL);
+            return TCL_ERROR;
+        }
     }
     Tcl_Preserve(graphPtr);
     result = proc(graphPtr, interp, objc, objv);
@@ -3357,6 +3400,9 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
             break;
         }
     }
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_UNDER);
     Rbc_DrawTrackLegends(graphPtr, drawable, FALSE);
     if ((Rbc_LegendSite(graphPtr->legend) & LEGEND_IN_PLOT) && (!Rbc_LegendIsRaised(graphPtr->legend))) {
@@ -3366,25 +3412,47 @@ static void DrawPlotRegion(Graph *graphPtr, Drawable drawable) {
     Rbc_DrawElements(graphPtr, drawable);
 }
 
+/* Layout callers must stop on cancellation before using component pointers. */
+int Rbc_GraphCallbackValid(Graph *graphPtr) {
+    if (graphPtr->tkwin == NULL || graphPtr->axisFormatInvalid) {
+        Tcl_SetObjResult(graphPtr->interp,
+                         Tcl_NewStringObj("graph changed during axis label callback", -1));
+        Tcl_SetErrorCode(graphPtr->interp, "RBC", "GRAPH", "CALLBACK", NULL);
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /*
  *----------------------------------------------------------------------
  *
  * Rbc_LayoutGraph --
  *
- *      TODO: Description
+ *      Maps the current graph, stopping if a label callback changes its
+ *      geometry or destroys the widget.
  *
  * Parameters:
  *      Graph *graphPtr
  *
  * Results:
- *      TODO: Results
+ *      TCL_OK on success, TCL_ERROR on callback cancellation or recursion.
  *
  * Side Effects:
  *      TODO: Side Effects
  *
  *----------------------------------------------------------------------
  */
-void Rbc_LayoutGraph(Graph *graphPtr) {
+
+int Rbc_LayoutGraph(Graph *graphPtr) {
+    if (graphPtr->axisFormatActive) {
+        Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("recursive graph layout in axis label callback", -1));
+        Tcl_SetErrorCode(graphPtr->interp, "RBC", "GRAPH", "CALLBACK", NULL);
+        return TCL_ERROR;
+    }
+    graphPtr->axisFormatInvalid = FALSE;
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return TCL_ERROR;
+    }
     /*
      * Record native view invalidation before mapping consumes the flags.
      * Layout may also be requested by a transform or picking operation,
@@ -3401,6 +3469,9 @@ void Rbc_LayoutGraph(Graph *graphPtr) {
     }
     if (graphPtr->flags & LAYOUT_NEEDED) {
         Rbc_LayoutMargins(graphPtr);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return TCL_ERROR;
+        }
         graphPtr->flags &= ~LAYOUT_NEEDED;
     }
     /* Compute coordinate transformations for graph components */
@@ -3414,6 +3485,7 @@ void Rbc_LayoutGraph(Graph *graphPtr) {
         Rbc_MapTrackLegends(graphPtr);
         graphPtr->flags &= ~(MAP_ALL);
     }
+    return TCL_OK;
 }
 
 /*
@@ -3456,6 +3528,9 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
         if (graphPtr->flags & REDRAW_BACKING_STORE) {
             /* The backing store is new or out-of-date. */
             DrawPlotRegion(graphPtr, graphPtr->backPixmap);
+            if (!Rbc_GraphCallbackValid(graphPtr)) {
+                return;
+            }
             graphPtr->flags &= ~REDRAW_BACKING_STORE;
         }
         /* Copy the pixmap to the one used for drawing the entire graph. */
@@ -3464,6 +3539,9 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
                   graphPtr->top);
     } else {
         DrawPlotRegion(graphPtr, drawable);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
     }
     /* Draw markers above elements */
     Rbc_DrawMarkers(graphPtr, drawable, MARKER_ABOVE);
@@ -3552,13 +3630,13 @@ static void UpdateMarginTraces(Graph *graphPtr) {
  *
  *----------------------------------------------------------------------
  */
-static void DisplayGraph(ClientData clientData) {
+static void DisplayGraphFrame(ClientData clientData) {
     Graph *graphPtr = clientData;
     Pixmap drawable;
 
     graphPtr->flags &= ~REDRAW_PENDING;
-    if (graphPtr->tkwin == NULL) {
-        return; /* Window destroyed (should not get here) */
+    if (graphPtr->tkwin == NULL || graphPtr->axisFormatActive) {
+        return; /* Destroyed, or a formatter entered a nested event loop. */
     }
     if (Rbc_GraphUpdateNeeded(graphPtr)) {
         /*
@@ -3582,7 +3660,9 @@ static void DisplayGraph(ClientData clientData) {
         graphPtr->width = width;
         graphPtr->height = height;
     }
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return;
+    }
     if (!Tk_IsMapped(graphPtr->tkwin)) {
         Rbc_UpdateCrosshairs(graphPtr);
         return;
@@ -3610,6 +3690,10 @@ static void DisplayGraph(ClientData clientData) {
          * graph content, never crosshairs.
          */
         Rbc_DrawGraph(graphPtr, drawable, graphPtr->backingStore);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            Tk_FreePixmap(graphPtr->display, drawable);
+            return;
+        }
         /*
          * Compose the hairs into the final pixmap and present once.
          * Do not erase or enable window crosshairs around this call.
@@ -3625,6 +3709,9 @@ static void DisplayGraph(ClientData clientData) {
         Rbc_UpdateCrosshairs(graphPtr);
         drawable = Tk_WindowId(graphPtr->tkwin);
         Rbc_DrawGraph(graphPtr, drawable, FALSE);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return;
+        }
         Rbc_EnableCrosshairs(graphPtr);
     }
     graphPtr->flags &= ~RESET_WORLD;
@@ -3645,6 +3732,20 @@ static void DisplayGraph(ClientData clientData) {
     }
     UpdateMarginTraces(graphPtr);
     Rbc_NotifyTrackView(graphPtr);
+}
+
+/* Idle drawing has no widget-command preserve scope of its own. */
+static void DisplayGraph(ClientData clientData) {
+    Graph *graphPtr = clientData;
+    Tcl_Interp *interp = graphPtr->interp;
+    Tcl_InterpState state;
+    Tcl_Preserve(graphPtr);
+    Tcl_Preserve(interp);
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    DisplayGraphFrame(clientData);
+    Tcl_RestoreInterpState(interp, state);
+    Tcl_Release(graphPtr);
+    Tcl_Release(interp);
 }
 
 /*

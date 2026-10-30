@@ -512,7 +512,9 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
     psPtr->right = PostScriptLayoutInt(x + hSize - 1);
     psPtr->top = PostScriptLayoutInt(y + vSize - 1);
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return -1;
+    }
     return (int)paperHeight;
 }
 
@@ -554,6 +556,10 @@ static void PreviewImage(Graph *graphPtr, PsToken psToken) {
     drawable = Tk_GetPixmap(graphPtr->display, Tk_WindowId(graphPtr->tkwin), graphPtr->width, graphPtr->height,
                             Tk_Depth(graphPtr->tkwin));
     Rbc_DrawGraph(graphPtr, drawable, noBackingStore);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        Tk_FreePixmap(graphPtr->display, drawable);
+        return;
+    }
     /* Get a color image from the pixmap */
     image = Rbc_DrawableToColorImage(graphPtr->tkwin, drawable, 0, 0, graphPtr->width, graphPtr->height, 1.0);
     Tk_FreePixmap(graphPtr->display, drawable);
@@ -644,6 +650,9 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
     int paperHeightPixels;
 
     paperHeightPixels = ComputeBoundingBox(graphPtr, psPtr);
+    if (paperHeightPixels < 0) {
+        return TCL_ERROR;
+    }
     if (fileName == NULL) {
         fileName = Tk_PathName(graphPtr->tkwin);
     }
@@ -706,6 +715,9 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
     Rbc_AppendToPostScript(psToken, "%%EndComments\n\n", (char *)NULL);
     if ((psPtr->addPreview) && (psPtr->previewFormat == PS_PREVIEW_EPSI)) {
         PreviewImage(graphPtr, psToken);
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            return TCL_ERROR;
+        }
     }
     if (Rbc_FileToPostScript(psToken, "rbcGraph.pro") != TCL_OK) {
         return TCL_ERROR;
@@ -887,7 +899,7 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
 static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     DWORD size;
     DOSEPSHEADER epsHeader;
-    HANDLE hMem;
+    HANDLE hMem = NULL;
     HDC hRefDC, hDC;
     HENHMETAFILE hMetaFile;
     Tcl_DString dString;
@@ -937,11 +949,15 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags |= RESET_WORLD;
-    Rbc_LayoutGraph(graphPtr);
-    Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
+    if (Rbc_LayoutGraph(graphPtr) == TCL_OK) {
+        Rbc_DrawGraph(graphPtr, metaDrawable, FALSE);
+    }
     GdiFlush();
     Rbc_WinFreeDrawableFromDC(metaDrawable);
     hMetaFile = CloseEnhMetaFile(hDC);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        goto error;
+    }
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {

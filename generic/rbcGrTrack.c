@@ -636,7 +636,9 @@ static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     if (objc > 3 && Rbc_ParseScrollRequest(interp, objc, objv, 3, FALSE, &request) != TCL_OK) {
         return TCL_ERROR;
     }
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     TrackViewFractions(graphPtr, &first, &last);
     if (objc == 3) {
         Tcl_Obj *values[2] = {Tcl_NewDoubleObj(first), Tcl_NewDoubleObj(last)};
@@ -894,7 +896,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         if (Tcl_GetIntFromObj(interp, objv[3], &x) != TCL_OK || Tcl_GetIntFromObj(interp, objv[4], &y) != TCL_OK) {
             return TCL_ERROR;
         }
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         if (graphPtr->inverted) {
             int tmp = x;
             x = y;
@@ -919,7 +923,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         if (Tk_GetPixelsFromObj(interp, graphPtr->tkwin, objv[3], &y) != TCL_OK) {
             return TCL_ERROR;
         }
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         for (track = graphPtr->tracks; track != NULL; track = track->next) {
             if (y >= (graphPtr->inverted ? graphPtr->left : graphPtr->top) &&
                 y <= (graphPtr->inverted ? graphPtr->right : graphPtr->bottom) && y >= TrackStart(graphPtr, track) &&
@@ -985,12 +991,16 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         if (objc == 5 && Tcl_GetIntFromObj(interp, objv[4], &y) != TCL_OK) {
             return TCL_ERROR;
         }
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         if (objc == 5) {
             if (SetTrackSash(graphPtr, track, y) != TCL_OK) {
                 return TCL_ERROR;
             }
-            Rbc_LayoutGraph(graphPtr);
+            if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+                return TCL_ERROR;
+            }
         }
         Tcl_SetObjResult(interp, Tcl_NewIntObj(TrackEnd(graphPtr, track) +
                                                (TrackStart(graphPtr, track->next) - TrackEnd(graphPtr, track)) / 2));
@@ -1041,7 +1051,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
                              Tcl_NewStringObj("expected finite coordinates and a Y axis belonging to the track", -1));
             goto transformDone;
         }
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            goto transformDone;
+        }
         point =
             (operation == TRACK_OP_TRANSFORM) ? Rbc_Map2D(graphPtr, x, y, &axes) : Rbc_InvMap2D(graphPtr, x, y, &axes);
         if (!FINITE(point.x) || !FINITE(point.y)) {
@@ -1088,7 +1100,9 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
     }
     if (operation == TRACK_OP_BBOX && objc == 4) {
         int bounds[4], i;
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         bounds[0] = track->left;
         bounds[1] = track->top;
         bounds[2] = track->right;

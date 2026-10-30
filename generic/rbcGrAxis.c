@@ -417,57 +417,52 @@ static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFract, double lastFract) {
-    Tcl_Interp *interp;
-    Tcl_Obj *cmdObj;
-    Tcl_Obj **objv;
-    Tcl_Size prefixObjc;
-    Tcl_Size objc;
-    int result;
+/* Deliver scrollbar commands outside drawing and layout. The command owns its
+ * arguments before evaluation: the callback may delete this axis or its graph. */
+static void NotifyAxisScrollbar(ClientData clientData) {
+    Axis *axisPtr = clientData;
+    Graph *graphPtr = axisPtr->graphPtr;
+    Tcl_Interp *interp = graphPtr->interp;
+    Tcl_InterpState state;
+    Tcl_Obj *command;
+    Tcl_Size length;
+    int code;
 
-    if (axisPtr->scrollCmdObjPtr == NULL) {
+    axisPtr->scrollNotifyPending = FALSE;
+    if (graphPtr->tkwin == NULL || axisPtr->deletePending || axisPtr->scrollCmdObjPtr == NULL) {
         return;
     }
-    interp = graphPtr->interp;
-    result = Tcl_ListObjLength(interp, axisPtr->scrollCmdObjPtr, &prefixObjc);
-    if (result != TCL_OK) {
-        Tcl_BackgroundException(interp, result);
-        Tcl_ResetResult(interp);
+    Tcl_ListObjLength(NULL, axisPtr->scrollCmdObjPtr, &length);
+    if (length == 0) {
         return;
     }
-    /*
-     * Treat an empty command prefix as no callback.
-     */
-    if (prefixObjc == 0) {
-        Tcl_ResetResult(interp);
+    command = Tcl_DuplicateObj(axisPtr->scrollCmdObjPtr);
+    Tcl_IncrRefCount(command);
+    Tcl_ListObjAppendElement(NULL, command, Tcl_NewDoubleObj(axisPtr->scrollNotifyFirst));
+    Tcl_ListObjAppendElement(NULL, command, Tcl_NewDoubleObj(axisPtr->scrollNotifyLast));
+    Tcl_Preserve(graphPtr);
+    Tcl_Preserve(interp);
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    code = Tcl_EvalObjEx(interp, command, TCL_EVAL_GLOBAL);
+    if (code != TCL_OK) {
+        Tcl_BackgroundException(interp, code);
+    }
+    Tcl_RestoreInterpState(interp, state);
+    Tcl_DecrRefCount(command);
+    Tcl_Release(graphPtr);
+    Tcl_Release(interp);
+}
+
+static void UpdateAxisScrollbar(Graph *graphPtr, Axis *axisPtr, double firstFract, double lastFract) {
+    if (graphPtr->flags & GRAPH_EXPORT) {
         return;
     }
-    /*
-     * Never modify the Tk-managed option object itself.
-     */
-    cmdObj = Tcl_DuplicateObj(axisPtr->scrollCmdObjPtr);
-    Tcl_IncrRefCount(cmdObj);
-    result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewDoubleObj(firstFract));
-    if (result == TCL_OK) {
-        result = Tcl_ListObjAppendElement(interp, cmdObj, Tcl_NewDoubleObj(lastFract));
+    axisPtr->scrollNotifyFirst = firstFract;
+    axisPtr->scrollNotifyLast = lastFract;
+    if (!axisPtr->scrollNotifyPending) {
+        axisPtr->scrollNotifyPending = TRUE;
+        Tcl_DoWhenIdle(NotifyAxisScrollbar, axisPtr);
     }
-    if (result == TCL_OK) {
-        result = Tcl_ListObjGetElements(interp, cmdObj, &objc, &objv);
-    }
-    if (result == TCL_OK) {
-        Tcl_ResetResult(interp);
-        /*
-         * Preserve the old Tcl_GlobalEval() global-scope behaviour,
-         * but invoke the command as an object vector rather than
-         * reparsing it as a script.
-         */
-        result = Tcl_EvalObjv(interp, objc, objv, TCL_EVAL_GLOBAL);
-    }
-    Tcl_DecrRefCount(cmdObj);
-    if (result != TCL_OK) {
-        Tcl_BackgroundException(interp, result);
-    }
-    Tcl_ResetResult(interp);
 }
 
 static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
@@ -1907,8 +1902,9 @@ static TickLabel *NewTickLabel(const char *string) {
  *      None.
  *
  * Side Effects:
- *      Returns a new label in the string character buffer.  The formatted
- *      tick label will be displayed on the graph.
+ *      Returns an allocated label, or NULL if a callback invalidates the
+ *      graph. Callers must stop without using their axis or layout pointers
+ *      after NULL; the callback may have destroyed those objects.
  *
  * ----------------------------------------------------------------------
  */
@@ -1924,15 +1920,18 @@ TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) 
     } else {
         snprintf(defaultLabel, sizeof(defaultLabel), "%.*g", NUMDIGITS, value);
     }
-    if (axisPtr->formatCmdObjPtr != NULL) {
+    if (!axisPtr->deletePending && axisPtr->formatCmdObjPtr != NULL) {
         Tcl_Interp *interp;
         Tcl_Obj *cmdObj;
         Tcl_Obj **objv;
         Tcl_Size prefixObjc;
         Tcl_Size objc;
         int result;
+        Tcl_InterpState state;
+        TickLabel *labelPtr;
 
         interp = graphPtr->interp;
+        state = Tcl_SaveInterpState(interp, TCL_OK);
         /*
          * An empty prefix means standard formatting.
          */
@@ -1944,10 +1943,11 @@ TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) 
              * occur during drawing.
              */
             Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
+            Tcl_RestoreInterpState(interp, state);
             return NewTickLabel(defaultLabel);
         }
         if (prefixObjc == 0) {
+            Tcl_RestoreInterpState(interp, state);
             return NewTickLabel(defaultLabel);
         }
         /*
@@ -1965,32 +1965,26 @@ TickLabel *Rbc_AllocAxisTickLabel(Graph *graphPtr, Axis *axisPtr, double value) 
         }
         if (result == TCL_OK) {
             Tcl_ResetResult(interp);
+            graphPtr->axisFormatActive = TRUE;
             result = Tcl_EvalObjv(interp, objc, objv, 0);
+            graphPtr->axisFormatActive = FALSE;
         }
         Tcl_DecrRefCount(cmdObj);
         if (result != TCL_OK) {
-            /*
-             * Axis formatting happens during redraw, so there is no
-             * synchronous Tcl command to return the error through.
-             */
             Tcl_BackgroundException(interp, result);
-            Tcl_ResetResult(interp);
-            return NewTickLabel(defaultLabel);
+            labelPtr = NewTickLabel(defaultLabel);
         } else {
-            TickLabel *labelPtr;
-            const char *string;
-
-            string = Tcl_GetString(Tcl_GetObjResult(interp));
-            /*
-             * Copy the complete callback result before resetting the
-             * interpreter result.  TickLabel storage is dynamically
-             * sized, so there is no need for the old 200-byte
-             * truncation.
-             */
-            labelPtr = NewTickLabel(string);
-            Tcl_ResetResult(interp);
-            return labelPtr;
+            labelPtr = NewTickLabel(Tcl_GetString(Tcl_GetObjResult(interp)));
         }
+        Tcl_RestoreInterpState(interp, state);
+        /* Do not dereference axisPtr after a callback: it may have been deleted,
+         * or its font, tick arrays and owning track may have been replaced. */
+        if (!Rbc_GraphCallbackValid(graphPtr)) {
+            Rbc_EventuallyRedrawGraph(graphPtr);
+            ckfree(labelPtr);
+            return NULL;
+        }
+        return labelPtr;
     }
     return NewTickLabel(defaultLabel);
 }
@@ -3695,6 +3689,9 @@ static void ResetTextStyles(Graph *graphPtr, Axis *axisPtr) {
  * ----------------------------------------------------------------------
  */
 static void DestroyAxis(Graph *graphPtr, Axis *axisPtr) {
+    if (axisPtr->scrollNotifyPending) {
+        Tcl_CancelIdleCall(NotifyAxisScrollbar, axisPtr);
+    }
     ReleaseAxisOptionResources(graphPtr, axisPtr);
     if (graphPtr->bindTable != NULL) {
         Rbc_DeleteBindings(graphPtr->bindTable, axisPtr);
@@ -4646,6 +4643,9 @@ static void GetAxisGeometry(Graph *graphPtr, Axis *axisPtr) {
                 continue;
             }
             labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, x);
+            if (labelPtr == NULL) {
+                return;
+            }
             Rbc_ChainAppend(axisPtr->tickLabels, labelPtr);
             /*
              * Get the dimensions of each tick label.
@@ -4751,6 +4751,9 @@ static int GetMarginGeometry(Graph *graphPtr, Margin *marginPtr) {
             count++;
             if (graphPtr->flags & GET_AXIS_GEOMETRY) {
                 GetAxisGeometry(graphPtr, axisPtr);
+                if (!Rbc_GraphCallbackValid(graphPtr)) {
+                    return 0;
+                }
             }
             if ((axisPtr->titleAlternate) && (length < axisPtr->titleWidth)) {
                 length = axisPtr->titleWidth;
@@ -4888,9 +4891,21 @@ static void ComputeMargins(Graph *graphPtr) {
      *        margin.
      */
     top = GetMarginGeometry(graphPtr, &graphPtr->topMargin);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     bottom = GetMarginGeometry(graphPtr, &graphPtr->bottomMargin);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     left = GetMarginGeometry(graphPtr, &graphPtr->leftMargin);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     right = GetMarginGeometry(graphPtr, &graphPtr->rightMargin);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     /*
      * Step 2:  Add the graph title height to the top margin.
      */
@@ -5149,6 +5164,9 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
     Tcl_WideInt value;
 
     ComputeMargins(graphPtr);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     left =
         (Tcl_WideInt)graphPtr->leftMargin.width + (Tcl_WideInt)graphPtr->inset + (Tcl_WideInt)graphPtr->plotBorderWidth;
     right = (Tcl_WideInt)graphPtr->rightMargin.width + (Tcl_WideInt)graphPtr->inset +
@@ -5460,6 +5478,7 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
     } else {
         axisPtr = RbcCalloc(1, sizeof(Axis));
         assert(axisPtr);
+        axisPtr->graphPtr = graphPtr;
         axisPtr->optionTable = NULL;
         axisPtr->optionMask = 0;
         axisPtr->optionObjc = 0;
@@ -6367,6 +6386,9 @@ static int DeleteVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]
                              Tcl_NewStringObj("detach the axis from its track before deleting it", -1));
             return TCL_ERROR;
         }
+        if (graphPtr->axisFormatActive) {
+            graphPtr->axisFormatInvalid = TRUE;
+        }
         axisPtr->deletePending = TRUE;
         if (axisPtr->refCount == 0) {
             DestroyAxis(graphPtr, axisPtr);
@@ -6709,7 +6731,9 @@ int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_S
             return TCL_ERROR;
         }
     }
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (objc == start) {
         n = 1;
     }

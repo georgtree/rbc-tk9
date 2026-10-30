@@ -2300,7 +2300,9 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
     Legend *legendPtr = track->legend;
     if (objc == 5 && strcmp(Tcl_GetString(objv[4]), "bbox") == 0) {
         int left, top, right, bottom;
-        Rbc_LayoutGraph(graphPtr);
+        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+            return TCL_ERROR;
+        }
         if (legendPtr->hidden || legendPtr->nEntries == 0) {
             return TCL_OK;
         }
@@ -2318,7 +2320,9 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
         Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
         return TCL_ERROR;
     }
-    Rbc_LayoutGraph(graphPtr);
+    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     args = ckalloc(sizeof(Tcl_Obj *) * (size_t)count);
     prefix = Tcl_NewListObj(3, objv + 1);
     Tcl_IncrRefCount(prefix);

@@ -131,7 +131,10 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
         graphPtr->height = graphPtr->pdfHeight;
     }
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
-    Rbc_LayoutGraph(graphPtr);
+    result = Rbc_LayoutGraph(graphPtr);
+    if (result != TCL_OK) {
+        goto restore;
+    }
     /* Tk screen distances become physical PDF points (1/72 inch). */
     Rbc_PdfBegin(
         token, 72.0 * WidthMMOfScreen(Tk_Screen(graphPtr->tkwin)) / (25.4 * WidthOfScreen(Tk_Screen(graphPtr->tkwin))),
@@ -146,12 +149,22 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             Tcl_IncrRefCount(document);
         }
     }
+restore:
     Rbc_ExportEndGraph(graphPtr);
     /* Restore margins as well as axis mapping before returning, including errors. */
     graphPtr->width = screenWidth;
     graphPtr->height = screenHeight;
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
-    Rbc_LayoutGraph(graphPtr);
+    if (graphPtr->tkwin != NULL && !graphPtr->axisFormatInvalid) {
+        Tcl_InterpState saved = Tcl_SaveInterpState(interp, result);
+        int restored = Rbc_LayoutGraph(graphPtr);
+        if (result == TCL_OK) {
+            Tcl_DiscardInterpState(saved);
+            result = restored;
+        } else {
+            Tcl_RestoreInterpState(interp, saved);
+        }
+    }
     if (result == TCL_OK && fileName == NULL) {
         Tcl_SetObjResult(interp, document);
     } else if (result == TCL_OK) {

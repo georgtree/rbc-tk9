@@ -75,6 +75,9 @@ void Rbc_ExportBeginGraph(Graph *graphPtr) {
 
 void Rbc_ExportEndGraph(Graph *graphPtr) {
     graphPtr->flags &= ~GRAPH_EXPORT;
+    if (graphPtr->tkwin == NULL) {
+        return;
+    }
     graphPtr->width = Tk_Width(graphPtr->tkwin);
     graphPtr->height = Tk_Height(graphPtr->tkwin);
     graphPtr->flags = MAP_WORLD;
@@ -154,6 +157,11 @@ int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
             Rbc_SmithLabelsExport(graphPtr, exportPtr);
             break;
         }
+    }
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        Rbc_RenderPlotEnd(output);
+        Rbc_RenderEnd(output);
+        return TCL_ERROR;
     }
     Rbc_MarkersExport(graphPtr, exportPtr, TRUE);
     Rbc_ExportTrackLegends(graphPtr, exportPtr, FALSE);

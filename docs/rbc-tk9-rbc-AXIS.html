@@ -318,6 +318,22 @@ supplied with <code class="docutils literal notranslate"><span class="pre">-bind
 </ul>
 <p>If there is no current axis, these operations return an empty result.</p>
 </section>
+<section id="callback-safety">
+<span id="r-rbc-axis-callback-safety"></span><span id="r-3a3arbc3a3aaxisqzcallback20safety"></span><h2>Callback safety<a class="headerlink" href="#callback-safety" title="Link to this heading">¶</a></h2>
+<p>Axis <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> notifications run at idle, outside graph drawing. Multiple redraws before a
+notification runs coalesce to the latest fractions. Deleting an axis or its graph cancels pending
+notifications. A callback may reconfigure or destroy its owner. Snapshot commands do not invoke the
+callback synchronously; process idle events to deliver any resulting notification.</p>
+<p>Axis <code class="docutils literal notranslate"><span class="pre">-command</span></code> label formatters run synchronously because layout needs their returned text. They should
+normally only format the supplied value. If a formatter destroys the graph or changes its geometry,
+RBC cancels the current layout or rendering operation. Synchronous callers such as <code class="docutils literal notranslate"><span class="pre">svg</span> <span class="pre">output</span></code> receive
+an error with error code <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">GRAPH</span> <span class="pre">CALLBACK</span></code>; idle drawing abandons that frame. A later operation can
+use the updated configuration. Recursive rendering of the same graph from a formatter is rejected before
+changing its export settings. Defer intentional repeated changes with an event-driven application design
+rather than reconfiguring the graph every time a label is formatted.</p>
+<p>Callback errors are reported through Tcl’s background-error mechanism. Label formatting errors use the
+ordinary numeric label as a fallback. Callback evaluation preserves the surrounding interpreter state.</p>
+</section>
 <section id="axis-options">
 <span id="r-rbc-axis-axis-options"></span><span id="r-3a3arbc3a3aaxisqzaxis20options"></span><h2>Axis options<a class="headerlink" href="#axis-options" title="Link to this heading">¶</a></h2>
 <p>The following options apply to virtual axes and to axes displayed through the margin-axis commands.</p>
@@ -568,6 +584,7 @@ supplied with <code class="docutils literal notranslate"><span class="pre">-bind
 <li><a class="reference internal" href="#axis-limits-display">Axis limits display</a></li>
 <li><a class="reference internal" href="#axis-scrolling">Axis scrolling</a></li>
 <li><a class="reference internal" href="#axis-bindings">Axis bindings</a></li>
+<li><a class="reference internal" href="#callback-safety">Callback safety</a></li>
 <li><a class="reference internal" href="#axis-options">Axis options</a></li>
 </ul>
 </li>

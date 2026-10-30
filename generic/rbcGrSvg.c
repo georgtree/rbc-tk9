@@ -128,7 +128,10 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
         graphPtr->height = graphPtr->svgHeight;
     }
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
-    Rbc_LayoutGraph(graphPtr);
+    result = Rbc_LayoutGraph(graphPtr);
+    if (result != TCL_OK) {
+        goto restore;
+    }
     Rbc_ExportFormat(token,
                      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                      "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">\n",
@@ -139,11 +142,21 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
         result = TCL_ERROR;
     }
     Rbc_ExportAppend(token, "</svg>\n", (char *)NULL);
+restore:
     Rbc_ExportEndGraph(graphPtr);
     graphPtr->width = screenWidth;
     graphPtr->height = screenHeight;
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
-    Rbc_LayoutGraph(graphPtr);
+    if (graphPtr->tkwin != NULL && !graphPtr->axisFormatInvalid) {
+        Tcl_InterpState saved = Tcl_SaveInterpState(interp, result);
+        int restored = Rbc_LayoutGraph(graphPtr);
+        if (result == TCL_OK) {
+            Tcl_DiscardInterpState(saved);
+            result = restored;
+        } else {
+            Tcl_RestoreInterpState(interp, saved);
+        }
+    }
     if (result == TCL_OK && fileName == NULL) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(token->buffer), Tcl_DStringLength(token->buffer)));
     } else if (result == TCL_OK) {

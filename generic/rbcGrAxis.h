@@ -104,6 +104,8 @@ typedef struct {
     Tcl_Obj *bindTagsObjPtr;
     Tcl_Obj *formatCmdObjPtr;
     Tcl_Obj *scrollCmdObjPtr;
+    int scrollNotifyPending;
+    double scrollNotifyFirst, scrollNotifyLast;
     Tcl_Obj *limitsFormatObjPtr;
     Tcl_Obj *limitsShadowObjPtr;
     Tcl_Obj *looseObjPtr;

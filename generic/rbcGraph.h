@@ -363,6 +363,8 @@ typedef struct {
  * -------------------------------------------------------------------
  */
 struct GraphStruct {
+    int axisFormatActive;          /* Synchronous label callback is running. */
+    int axisFormatInvalid;         /* Callback invalidated the current geometry. */
     struct GraphRedrawSettle *redrawSettle; /* Pending exposure/resize geometry samples. */
     unsigned int flags;   /* Flags;  see below for definitions. */
     Tcl_Interp *interp;   /* Interpreter associated with graph */
@@ -677,7 +679,8 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
 void Rbc_InitFreqTable(Graph *graphPtr);
-void Rbc_LayoutGraph(Graph *graphPtr);
+int Rbc_LayoutGraph(Graph *graphPtr);
+int Rbc_GraphCallbackValid(Graph *graphPtr);
 void Rbc_LayoutMargins(Graph *graphPtr);
 void Rbc_EventuallyRedrawGraph(Graph *graphPtr);
 void Rbc_ResetAxes(Graph *graphPtr);

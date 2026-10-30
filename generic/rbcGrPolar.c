@@ -555,7 +555,7 @@ static void DrawPolarRadialLabels(Graph *graphPtr, Drawable drawable, Grid *grid
         }
         labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
         if (labelPtr == NULL) {
-            continue;
+            break;
         }
         Rbc_RenderText(text, labelPtr->string, &style, ROUND(point.x) - POLAR_RADIAL_LABEL_OFFSET,
                      ROUND(point.y) - POLAR_RADIAL_LABEL_OFFSET);
@@ -704,6 +704,9 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable) {
      * on the positive zero-degree ray lies in the current viewport.
      */
     DrawPolarRadialLabels(graphPtr, drawable, gridPtr);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     /*
      * Angular labels still use the complete-circle radius to decide
      * between circular placement and clipped-spoke-end placement.
@@ -958,7 +961,7 @@ static void PolarRadialLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPt
         }
         labelPtr = Rbc_AllocAxisTickLabel(graphPtr, axisPtr, radius);
         if (labelPtr == NULL) {
-            continue;
+            break;
         }
         Rbc_RenderText(output, labelPtr->string, &style, point.x - POLAR_RADIAL_LABEL_OFFSET,
                              point.y - POLAR_RADIAL_LABEL_OFFSET);
@@ -1011,6 +1014,9 @@ void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
         return;
     }
     PolarRadialLabelsExport(graphPtr, exportPtr, gridPtr);
+    if (!Rbc_GraphCallbackValid(graphPtr)) {
+        return;
+    }
     completeRadius = PolarCompleteCircleRadius(gridPtr);
     PolarAngularLabelsExport(graphPtr, exportPtr, gridPtr, completeRadius);
 }

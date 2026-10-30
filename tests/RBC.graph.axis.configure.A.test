@@ -21,7 +21,7 @@ package require tcltest
 namespace import tcltest::*
 namespace eval graph.axis {
     # Numeric case IDs for loop-generated tests.
-    array set testCase {41 0}
+    array set testCase {41 0 42 0 44 0 45 0 47 0}
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the axis configure -bindtags command works correctly when given a 
 	# single tag name.
@@ -2047,6 +2047,238 @@ namespace eval graph.axis {
             } -result {1 1 1 1 1 1}
         }
     }
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Scroll callbacks run outside rendering and may destroy their owner.
+    # ------------------------------------------------------------------------------------
+    foreach widget {graph barchart stripchart polar trackgraph} {
+        test RBC.graph.axis.configure.A.42.[incr testCase(42)] {
+            scrollbar callback can destroy its graph
+        } -setup {
+            $widget .graph1
+            if {$widget eq "trackgraph"} {.graph1 track create main -yaxes y}
+            pack .graph1
+            .graph1 axis configure x -min 0 -max 10 -scrollmin 0 -scrollmax 20 -hide no
+            .graph1 axis configure y -min 0 -max 10
+            update idletasks
+            set ::rbcCallbackCount 0
+            proc ::RbcDestroyScrolledGraph {first last} {
+                incr ::rbcCallbackCount
+                destroy .graph1
+            }
+        } -body {
+            .graph1 axis configure x -scrollcommand ::RbcDestroyScrolledGraph
+            update idletasks
+            list $::rbcCallbackCount [winfo exists .graph1]
+        } -cleanup {
+            catch {destroy .graph1}
+            rename ::RbcDestroyScrolledGraph {}
+            unset ::rbcCallbackCount
+        } -result {1 0}
+    }
+
+    test RBC.graph.axis.configure.A.43.1 {
+        pending scrollbar notification is cancelled with its axis
+    } -setup {
+        graph .graph1
+        .graph1 axis create callbackAxis -min 0 -max 10 -scrollmin 0 -scrollmax 20
+        .graph1 xaxis use callbackAxis
+        set ::rbcCallbackCount 0
+        proc ::RbcCountScroll {args} {incr ::rbcCallbackCount}
+        .graph1 axis configure callbackAxis -scrollcommand ::RbcCountScroll
+        set photo [image create photo]
+    } -body {
+        .graph1 snap $photo
+        set before $::rbcCallbackCount
+        .graph1 xaxis use x
+        .graph1 axis delete callbackAxis
+        update idletasks
+        list $before $::rbcCallbackCount
+    } -cleanup {
+        destroy .graph1
+        image delete $photo
+        rename ::RbcCountScroll {}
+        unset ::rbcCallbackCount
+    } -result {0 0}
+
+    test RBC.graph.axis.configure.A.43.2 {
+        scrollbar callback can reconfigure itself and enter the event loop
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10 -scrollmin 0 -scrollmax 20
+        set ::rbcCallbackCount 0
+        proc ::RbcReconfigureScroll {first last} {
+            incr ::rbcCallbackCount
+            .graph1 axis configure x -scrollcommand {} -min 2 -max 8
+            update idletasks
+        }
+    } -body {
+        .graph1 axis configure x -scrollcommand ::RbcReconfigureScroll
+        update idletasks
+        list $::rbcCallbackCount [.graph1 axis cget x -min] [.graph1 axis cget x -max]
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcReconfigureScroll {}
+        unset ::rbcCallbackCount
+    } -result {1 2 8}
+
+    foreach widget {graph barchart stripchart polar trackgraph} {
+        test RBC.graph.axis.configure.A.44.[incr testCase(44)] {
+            tick formatter can destroy the graph during idle layout
+        } -setup {
+            $widget .graph1
+            if {$widget eq "trackgraph"} {.graph1 track create main -yaxes y}
+            pack .graph1
+            .graph1 axis configure x -min 0 -max 10 -majorticks {0 5 10}
+            update idletasks
+            proc ::RbcDestroyFormattedGraph {w label} {destroy $w; return $label}
+        } -body {
+            .graph1 axis configure x -command ::RbcDestroyFormattedGraph
+            update idletasks
+            winfo exists .graph1
+        } -cleanup {
+            catch {destroy .graph1}
+            rename ::RbcDestroyFormattedGraph {}
+        } -result 0
+    }
+
+    foreach widget {graph polar} {
+        foreach format {svg pdf postscript} {
+            test RBC.graph.axis.configure.A.45.[incr testCase(45)] {
+                destroyed graph cancels export from Cartesian or radial formatting
+            } -setup {
+                $widget .graph1
+                .graph1 axis configure x -min 0 -max 2 -majorticks {0 1 2}
+                .graph1 axis configure y -min -2 -max 2
+                .graph1 pdf configure -embedfonts no
+                if {$widget eq "polar"} {
+                    # Skip margin formatting: exercise the radial draw/export path.
+                    .graph1 axis configure x y -hide yes
+                    .graph1 grid configure -hide no
+                }
+                proc ::RbcDestroyFormattedGraph {w label} {destroy $w; return $label}
+            } -body {
+                .graph1 axis configure x -command ::RbcDestroyFormattedGraph
+                set code [catch {.graph1 $format output} message options]
+                list $code [dict get $options -errorcode] [winfo exists .graph1]
+            } -cleanup {
+                catch {destroy .graph1}
+                rename ::RbcDestroyFormattedGraph {}
+            } -result {1 {RBC GRAPH CALLBACK} 0}
+        }
+    }
+
+    test RBC.graph.axis.configure.A.46.1 {
+        formatter reconfiguration cancels stale layout and the next export succeeds
+    } -setup {
+        graph .graph1
+        .graph1 axis configure x -min 0 -max 10 -majorticks {0 5 10}
+        proc ::RbcReconfigureFormat {w label} {
+            $w axis configure x -command {} -title CallbackTitle
+            return $label
+        }
+    } -body {
+        .graph1 axis configure x -command ::RbcReconfigureFormat
+        set code [catch {.graph1 svg output} message options]
+        set document [.graph1 svg output]
+        list $code [dict get $options -errorcode] \
+            [expr {[string first CallbackTitle $document] >= 0}]
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcReconfigureFormat {}
+    } -result {1 {RBC GRAPH CALLBACK} 1}
+
+    test RBC.graph.axis.configure.A.46.2 {
+        formatter can delete its own unreferenced axis
+    } -setup {
+        graph .graph1
+        .graph1 axis create callbackAxis -min 0 -max 10 -majorticks {0 5 10}
+        .graph1 xaxis use callbackAxis
+        proc ::RbcDeleteFormattedAxis {w label} {$w axis delete callbackAxis; return $label}
+    } -body {
+        .graph1 axis configure callbackAxis -command ::RbcDeleteFormattedAxis
+        set code [catch {.graph1 svg output} message options]
+        list $code [dict get $options -errorcode] [.graph1 axis names callbackAxis]
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcDeleteFormattedAxis {}
+    } -result {1 {RBC GRAPH CALLBACK} {}}
+
+    test RBC.graph.axis.configure.A.46.3 {
+        recursive export is rejected before changing outer export settings
+    } -setup {
+        graph .graph1
+        .graph1 axis configure x -min 0 -max 10 -majorticks {0 5 10}
+        set ::rbcNestedResult {}
+        proc ::RbcNestedFormat {w label} {
+            update idletasks
+            set code [catch {$w svg output -width 987} message options]
+            set ::rbcNestedResult [list $code [dict get $options -errorcode] [$w svg cget -width]]
+            return $label
+        }
+    } -body {
+        .graph1 axis configure x -command ::RbcNestedFormat
+        set document [.graph1 svg output -width 600]
+        list $::rbcNestedResult [expr {[string first {width="600"} $document] >= 0}]
+    } -cleanup {
+        destroy .graph1
+        rename ::RbcNestedFormat {}
+        unset ::rbcNestedResult
+    } -result {{1 {RBC GRAPH CALLBACK} 600} 1}
+
+    foreach renderer {native cairo} {
+        graph .callbackProbe
+        testConstraint axisCallback$renderer [expr {![catch {.callbackProbe configure -renderer $renderer}]}]
+        destroy .callbackProbe
+        test RBC.graph.axis.configure.A.47.[incr testCase(47)] {
+            radial formatter destruction cancels snapshot drawing
+        } -constraints axisCallback$renderer -setup {
+            polar .graph1 -renderer $renderer
+            .graph1 axis configure x -min 0 -max 2 -majorticks {0 1 2} -hide yes
+            .graph1 axis configure y -min -2 -max 2 -hide yes
+            .graph1 grid configure -hide no
+            set photo [image create photo]
+            proc ::RbcDestroyFormattedGraph {w label} {destroy $w; return $label}
+        } -body {
+            .graph1 axis configure x -command ::RbcDestroyFormattedGraph
+            set code [catch {.graph1 snap $photo} message options]
+            list $code [dict get $options -errorcode] [winfo exists .graph1]
+        } -cleanup {
+            catch {destroy .graph1}
+            image delete $photo
+            rename ::RbcDestroyFormattedGraph {}
+        } -result {1 {RBC GRAPH CALLBACK} 0}
+    }
+
+    test RBC.graph.axis.configure.A.48.1 {
+        callback errors retain their error code and formatting falls back to numeric labels
+    } -setup {
+        set previousBgerror [interp bgerror {}]
+        set ::rbcCallbackErrors {}
+        proc ::RbcCallbackError {args} {return -code error -errorcode {RBC TEST CALLBACK} callbackFailure}
+        proc ::RbcRecordCallbackError {message options} {
+            lappend ::rbcCallbackErrors [list $message [dict get $options -errorcode]]
+        }
+        interp bgerror {} ::RbcRecordCallbackError
+        graph .graph1
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10 -majorticks {0 5 10} -scrollmin 0 -scrollmax 20
+        update idletasks
+    } -body {
+        .graph1 axis configure x -command ::RbcCallbackError -scrollcommand ::RbcCallbackError
+        set document [.graph1 svg output]
+        update
+        list [expr {[llength $::rbcCallbackErrors] > 0}] \
+            [expr {[lsort -unique $::rbcCallbackErrors] eq {{callbackFailure {RBC TEST CALLBACK}}}}] \
+            [expr {[string first {>5</text>} $document] >= 0}]
+    } -cleanup {
+        destroy .graph1
+        interp bgerror {} $previousBgerror
+        rename ::RbcCallbackError {}
+        rename ::RbcRecordCallbackError {}
+        unset ::rbcCallbackErrors
+    } -result {1 1 1}
 
 	cleanupTests
 }
