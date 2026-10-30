@@ -196,7 +196,10 @@ shared X axes include bar widths and placement offsets across their tracks.</p>
 </section>
 <section id="track-option-database">
 <span id="r-rbc-trackgraph-track-option-database"></span><span id="r-3a3arbc3a3atrackgraphqztrack20option20database"></span><h3>Track option database<a class="headerlink" href="#track-option-database" title="Link to this heading">¶</a></h3>
-<p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. The resource name is the track name.
+<p>Tracks are named option-database components with class <code class="docutils literal notranslate"><span class="pre">Track</span></code>. As with axes and elements, the resource
+name is the track name with only its first character converted to lowercase. For example, <code class="docutils literal notranslate"><span class="pre">Voltage</span></code>
+uses <code class="docutils literal notranslate"><span class="pre">voltage</span></code>, while <code class="docutils literal notranslate"><span class="pre">VOLTAGE</span></code> uses <code class="docutils literal notranslate"><span class="pre">vOLTAGE</span></code>. Track names in commands remain unchanged and case-sensitive;
+<code class="docutils literal notranslate"><span class="pre">Voltage</span></code> and <code class="docutils literal notranslate"><span class="pre">voltage</span></code> may coexist, but use the same option-database resource name.
 Creation reads these defaults once; explicit <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">create</span></code> options take precedence. Later database
 changes do not modify existing tracks, including during <code class="docutils literal notranslate"><span class="pre">track</span> <span class="pre">configure</span></code>, resizing or scrolling.</p>
 <table class="docutils align-default">

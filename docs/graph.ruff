@@ -634,7 +634,7 @@ namespace eval ::rbc::GRAPHINST {
         The graph widget class in these examples is `Graph`. For `barchart` and `stripchart` widgets, use their
         corresponding `Barchart` and `Stripchart` resource classes.
 
-        Named elements, pens, and markers are represented internally as component resource names. For these components,
+        Named axes, elements, pens, markers, and tracks are represented internally as component resource names. For these components,
         RBC converts the first character of the object name to lowercase for option-database lookup. For example, an
         element named `Signal` uses the component resource name `signal`.
 
@@ -1375,7 +1375,10 @@ namespace eval ::rbc::TRACKGRAPH {
 
         ### Track option database
 
-        Tracks are named option-database components with class `Track`. The resource name is the track name.
+        Tracks are named option-database components with class `Track`. As with axes and elements, the resource
+        name is the track name with only its first character converted to lowercase. For example, `Voltage`
+        uses `voltage`, while `VOLTAGE` uses `vOLTAGE`. Track names in commands remain unchanged and case-sensitive;
+        `Voltage` and `voltage` may coexist, but use the same option-database resource name.
         Creation reads these defaults once; explicit `track create` options take precedence. Later database
         changes do not modify existing tracks, including during `track configure`, resizing or scrolling.
 

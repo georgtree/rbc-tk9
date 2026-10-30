@@ -723,7 +723,7 @@ option add *Graph\&.annotation\&.foreground purple
 The graph widget class in these examples is Graph\&. For barchart and stripchart widgets, use their
 corresponding Barchart and Stripchart resource classes\&.
 .PP
-Named elements, pens, and markers are represented internally as component resource names\&. For these components,
+Named axes, elements, pens, markers, and tracks are represented internally as component resource names\&. For these components,
 RBC converts the first character of the object name to lowercase for option-database lookup\&. For example, an
 element named Signal uses the component resource name signal\&.
 .SS "WHEN OPTION DATABASE VALUES ARE APPLIED"

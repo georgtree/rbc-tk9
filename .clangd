@@ -2,7 +2,7 @@ CompileFlags:
   Add:
     - -DRBC_HAVE_CAIRO=1
     - -IC:/msys64/ucrt64/include/cairo
-    - -IC:/msys64/home/georg/tcl9.0.3/generic
-    - -IC:/msys64/home/georg/tk9.0.3/generic
-    - -IC:/msys64/home/georg/tk9.0.3/win
-    - -IC:/msys64/home/georg/tk9.0.3/xlib
+    - -IC:/tcltk_src/tcl9.1.0/generic
+    - -IC:/tcltk_src/tk9.1.0/generic
+    - -IC:/tcltk_src/tk9.1.0/win
+    - -IC:/tcltk_src/tk9.1.0/xlib

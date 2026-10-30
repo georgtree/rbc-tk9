@@ -421,6 +421,7 @@ static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl
     Tcl_Obj *options = Tcl_NewListObj(0, NULL);
     Tcl_Obj **values;
     Tcl_Size count, i, j;
+    char *componentName;
     int result;
 
     Tcl_IncrRefCount(options);
@@ -436,8 +437,15 @@ static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl
             goto done;
         }
     }
-    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, track->name, "Track",
+    /* Match the first-character resource-name conversion used by axes and
+     * elements, without changing the case-sensitive track name. */
+    componentName = RbcStrdup(track->name);
+    if (componentName[0] != '\0') {
+        componentName[0] = (char)tolower((unsigned char)componentName[0]);
+    }
+    result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Track",
                                       (char *)&defaults, table);
+    ckfree(componentName);
     if (result == TCL_OK) {
         for (i = 0; trackOptionSpecs[i].type != TK_OPTION_END; i++) {
             for (j = 0; j + 1 < objc; j += 2) {

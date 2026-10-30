@@ -196,6 +196,56 @@ namespace eval trackgraph.configure {
     } -cleanup {destroy .tg} -result {{210 320 430 210 320 430 210 320 430} {-barmode barMode BarMode inherit inherit}}
 
 
+    test RBC.trackgraph.configure.A.11.1 {track resources lowercase only the first character and preserve track identity} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *Track.height 180
+            option add *voltage.height 230
+            option add *Voltage.height 390
+            option add *vOLTAGE.height 310
+            option add *voltage.weight 2.5
+            set created {}
+            foreach name {Voltage voltage VOLTAGE Current} {
+                lappend created [.tg track create $name]
+            }
+            .tg track configure Voltage -weight 4
+            .tg track delete voltage
+            list $created [.tg track names] \
+                [.tg track cget Voltage -height] [.tg track cget VOLTAGE -height] \
+                [.tg track cget Current -height] [.tg track cget Voltage -weight] \
+                [.tg track exists Voltage] [.tg track exists voltage] [winfo children .tg]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {{Voltage voltage VOLTAGE Current} {Voltage VOLTAGE Current} 230 310 180 4.0 1 0 {}}
+
+    test RBC.trackgraph.configure.A.11.2 {uppercase tracks retain resource validation and explicit override precedence} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            option add *voltage.weight -1
+            set failed [catch {.tg track create Voltage}]
+            set empty [.tg track names]
+            .tg track create Voltage -weight 3
+            option add *voltage.weight 5
+            .tg track create voltage
+            .tg track configure Voltage -height 240
+            list $failed $empty [.tg track cget Voltage -weight] \
+                [.tg track cget voltage -weight] [.tg track names]
+        }
+    } -cleanup {interp delete trackOptionChild} -result {1 {} 3.0 5.0 {Voltage voltage}}
+
     cleanupTests
 }
 namespace delete ::trackgraph.configure

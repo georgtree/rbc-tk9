@@ -166,7 +166,10 @@ shared X axes include bar widths and placement offsets across their tracks\&.
 .RE
 .SS "TRACK OPTION DATABASE"
 .PP
-Tracks are named option-database components with class Track\&. The resource name is the track name\&.
+Tracks are named option-database components with class Track\&. As with axes and elements, the resource
+name is the track name with only its first character converted to lowercase\&. For example, Voltage
+uses voltage, while VOLTAGE uses vOLTAGE\&. Track names in commands remain unchanged and case-sensitive;
+Voltage and voltage may coexist, but use the same option-database resource name\&.
 Creation reads these defaults once; explicit track create options take precedence\&. Later database
 changes do not modify existing tracks, including during track configure, resizing or scrolling\&.
 .PP
