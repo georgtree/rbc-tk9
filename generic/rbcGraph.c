@@ -23,6 +23,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcRender.h"
 #include "rbcBind.h"
 #include "rbcGrElem.h"

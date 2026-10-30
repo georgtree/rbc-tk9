@@ -20,8 +20,27 @@ in `rbcRender.h`. These interfaces are not part of the installed RBC C API.
 | `rbcWinDraw.c`          | Shared Windows/Tk compatibility, Xlib emulation, and XOR presentation.                |
 
 The `rbcGrSvg.c`, `rbcGrPdf.c`, and `rbcGrPs.c` modules retain widget commands, options, and document
-orchestration. Font discovery and PDF font resources remain in the existing font modules. `rbcWinDraw.c` supplies
+orchestration. `rbcPdf.c` owns PDF resource allocation, streams, object offsets and document serialization.
+Font discovery and PDF font resources remain in the existing font modules. `rbcWinDraw.c` supplies
 lower-level Windows/Tk compatibility used by renderers and by other image, tile, and export code.
+
+## Supporting module boundaries
+
+| File | Responsibility |
+|------|----------------|
+| `rbcGeometry.c` | Segment distances, polygon hit testing, rectangle clipping and line simplification; no graph state or drawing. |
+| `rbcScroll.c` | Scroll request parsing and viewport arithmetic; callers own widget state and redraw decisions. |
+| `rbcDraw.c` | Shared Tk/Xlib GC, dash, segment batching and relief helpers, including their existing Windows paths. |
+| `rbcGrMisc.c` | Graph coordinate parsing, color-pair options and plot extents, including the active track's clipping bounds. |
+| `rbcGrTrack.h` | Private track records, viewport snapshots and track-specific component services. |
+
+Geometry and scrolling declarations remain in the private `rbcInt.h`. The general graph header forward-declares
+`RbcTrack` for borrowed pointers; implementation files that inspect track fields or call track services explicitly
+include `rbcGrTrack.h`. That header includes the graph definitions required by its embedded grid segments.
+
+`rbcDraw.c` is a shared drawing utility layer, not another renderer backend. It retains integer conversions,
+request-size batching and platform branches unchanged. Renderer dispatch remains in `rbcRender*.c`, and private
+Windows/Tk compatibility remains in `rbcWinDraw.c`.
 
 ## Context ownership
 

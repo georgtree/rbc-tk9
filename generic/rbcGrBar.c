@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include <X11/Xutil.h>
 #include <tcl.h>
 

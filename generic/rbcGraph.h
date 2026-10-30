@@ -28,18 +28,11 @@ typedef enum {
     RBC_ANTIALIAS_FAST, RBC_ANTIALIAS_GOOD, RBC_ANTIALIAS_BEST
 } Rbc_Antialias;
 
-
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1, GRAPH_BIND_CONTEXT_ELEMENT, GRAPH_BIND_CONTEXT_MARKER, GRAPH_BIND_CONTEXT_TRACK
 } GraphBindContext;
 
 typedef struct RbcTrack RbcTrack;
-typedef struct {
-    RbcTrack *activeTrack;
-    int top, bottom, range, offset, pad1, pad2;
-    int left, right, hRange, hOffset, hPad1, hPad2;
-    double scale, hScale;
-} RbcTrackViewport;
 
 typedef struct GraphStruct Graph;
 typedef struct ElementStruct Element;
@@ -652,48 +645,12 @@ int Rbc_CreateCrosshairs(Graph *graphPtr);
 int Rbc_CreateGrid(Graph *graphPtr);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
-struct RbcTrack {
-    int barMode; /* -1 inherits the graph bar mode. */
-    Grid *grid; /* NULL inherits the graph grid. */
-    struct GridSegments gridX, gridY;
-    Legend *legend;
-    char *name;
-    double weight;
-    int minHeight;
-    int height; /* Requested plot size along the track stacking direction. */
-    int worldLeft, worldRight, worldTop, worldBottom;
-    int left, right, top, bottom; /* Visible intersection with the plot viewport. */
-    int axisOffset;
-    Axis **axes;
-    Tcl_Size nAxes;
-    RbcTrack *next;
-};
-int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
-void Rbc_DestroyTracks(Graph *graphPtr);
-void Rbc_NotifyTrackView(Graph *graphPtr);
-int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
-int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
-void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
-int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y);
+
 int Rbc_PointInLegend(Graph *graphPtr, int x, int y);
-void Rbc_MapTrackLegends(Graph *graphPtr);
-void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
-void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);
-RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
-void Rbc_LayoutTracks(Graph *graphPtr);
-void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved);
-void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved);
 
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
-int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr);
-Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl_Size nInputPts, Point2D *outputPts,
-                          Tcl_Size outputCapacity);
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
 void Rbc_RedrawExternalLegend(Graph *graphPtr);
 void Rbc_ComputeStacks(Graph *graphPtr);
@@ -716,7 +673,6 @@ void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
-void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
@@ -757,15 +713,11 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
 int Rbc_CrosshairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_PenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
-int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size nPoints);
-int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, int enclosed);
-int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl_Size nSegments, double halo);
 int Rbc_PostScriptOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_GraphUpdateNeeded(Graph *graphPtr);
 int Rbc_DefaultAxes(Graph *graphPtr);
 Axis *Rbc_GetFirstAxis(Rbc_Chain *chainPtr);
 void Rbc_GetAxisSegments(Graph *graphPtr, Axis *axisPtr, int minorGrid, Segment2D **segPtrPtr, Tcl_Size *nSegmentsPtr);
-double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr);
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under);
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y);
 
@@ -800,7 +752,6 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
 void Rbc_ExportBeginGraph(Graph *graphPtr);
 void Rbc_ExportEndGraph(Graph *graphPtr);
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);
-int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis);
 void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under);
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);

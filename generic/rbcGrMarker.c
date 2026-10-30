@@ -11,6 +11,7 @@
 
 #include <float.h>
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcChain.h"
 #include "rbcGrAxis.h"
 #include "rbcGrElem.h"

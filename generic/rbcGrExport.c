@@ -1,5 +1,6 @@
 /* Shared graph export traversal. See license.terms for details. */
 #include "rbcFont.h"
+#include "rbcGrTrack.h"
 #include <stdarg.h>
 
 void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,

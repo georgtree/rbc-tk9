@@ -609,6 +609,10 @@ namespace eval TclTk9Upgrade {
         live-value reporting are preserved. Export rendering, font loading and document writing share first-error
         recording so later failures cannot replace the original diagnostic.
 
+        Internal source modules now separate geometry/clipping, scroll arithmetic and native drawing utilities.
+        PDF document serialization is independent of the graph PDF command module, and track-specific records and
+        services have their own private header. These organizational changes preserve the Tcl and public C interfaces.
+
         ### Axis and coordinate-system modernization
         The axis implementation received extensive numerical and behavioral cleanup.
 

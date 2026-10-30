@@ -10,6 +10,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcRender.h"
 #include "rbcGrElem.h"
 #include <X11/Xutil.h>

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcChain.h"
 #include <X11/Xutil.h>
 

@@ -9,6 +9,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcRender.h"
 #include "rbcGrElem.h"
 #include <limits.h>

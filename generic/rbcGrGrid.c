@@ -10,6 +10,7 @@
  */
 
 #include "rbcGraph.h"
+#include "rbcGrTrack.h"
 #include "rbcRender.h"
 
 #define DEF_GRID_DASHES "dot"
