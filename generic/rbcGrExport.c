@@ -13,6 +13,15 @@ void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl
     exportPtr->buffer = &exportPtr->storage;
 }
 
+/* Error messages are borrowed static strings. Preserve the original failure
+ * even when a later drawing or document-finalization step also fails. */
+int Rbc_ExportError(Rbc_ExportContext *exportPtr, const char *message) {
+    if (exportPtr->error == NULL) {
+        exportPtr->error = message;
+    }
+    return TCL_ERROR;
+}
+
 void Rbc_ExportFree(Rbc_ExportContext *exportPtr) {
     Rbc_ExportFontsFree(exportPtr);
     Tcl_DStringFree(&exportPtr->storage);
@@ -44,9 +53,7 @@ void Rbc_ExportFormat(Rbc_ExportContext *exportPtr, const char *format, ...) {
     }
     va_end(copy);
     if (length < 0) {
-        if (exportPtr->error == NULL) {
-            exportPtr->error = "cannot format export document";
-        }
+        Rbc_ExportError(exportPtr, "cannot format export document");
     } else {
         Tcl_DStringAppend(exportPtr->buffer, buffer, length);
     }

@@ -24,12 +24,6 @@ static void SvgClipEnd(Rbc_RenderContext *ctx) {
 
 static unsigned int SvgFillPattern(Rbc_RenderContext *, const XColor *);
 
-static void SvgError(Rbc_ExportContext *token, const char *message) {
-    if (token->error == NULL) {
-        token->error = message;
-    }
-}
-
 static void SvgString(Rbc_ExportContext *token, const char *string, Tcl_Size length) {
     Tcl_Size i;
 
@@ -60,7 +54,7 @@ static void SvgString(Rbc_ExportContext *token, const char *string, Tcl_Size len
             int bytes = Tcl_UtfToUniChar(string + i, &codepoint);
             if (bytes > length - i || (codepoint < 32 && codepoint != '\n' && codepoint != '\r' && codepoint != '\t') ||
                 (codepoint >= 0xd800 && codepoint <= 0xdfff) || codepoint == 0xfffe || codepoint == 0xffff) {
-                SvgError(token, "text contains a character that XML cannot represent");
+                Rbc_ExportError(token, "text contains a character that XML cannot represent");
             } else {
                 Tcl_DStringAppend(token->buffer, string + i, bytes);
             }
@@ -316,7 +310,7 @@ static int SvgDefineBitmapSymbol(Rbc_RenderContext *ctx) {
     }
     bits = XGetImage(display, style->bitmap, 0, 0, width, height, 1, XYPixmap);
     if (bits == NULL) {
-        SvgError(token, "cannot read bitmap symbol for SVG");
+        Rbc_ExportError(token, "cannot read bitmap symbol for SVG");
         return FALSE;
     }
     /* A transparent symbol uses its own bits as the native clipping mask. */
@@ -325,13 +319,13 @@ static int SvgDefineBitmapSymbol(Rbc_RenderContext *ctx) {
 
         Tk_SizeOfBitmap(display, style->mask, &maskWidth, &maskHeight);
         if (maskWidth != width || maskHeight != height) {
-            SvgError(token, "SVG bitmap symbol and mask dimensions differ");
+            Rbc_ExportError(token, "SVG bitmap symbol and mask dimensions differ");
             XDestroyImage(bits);
             return FALSE;
         }
         mask = XGetImage(display, style->mask, 0, 0, width, height, 1, XYPixmap);
         if (mask == NULL) {
-            SvgError(token, "cannot read bitmap symbol mask for SVG");
+            Rbc_ExportError(token, "cannot read bitmap symbol mask for SVG");
             XDestroyImage(bits);
             return FALSE;
         }
@@ -415,7 +409,7 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
     }
     if (block->pixelSize <= 0 || block->pixelPtr == NULL || (Tcl_WideInt)block->width * 4 + 1 > INT_MAX ||
         ((Tcl_WideInt)block->width * 4 + 1) * block->height > INT_MAX) {
-        SvgError(token, "photo is too large or invalid for SVG PNG encoding");
+        Rbc_ExportError(token, "photo is too large or invalid for SVG PNG encoding");
         return;
     }
     rowSize = (Tcl_Size)block->width * 4 + 1;
@@ -441,7 +435,7 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
     result = Tcl_ZlibDeflate(token->interp, TCL_ZLIB_FORMAT_ZLIB, raw, -1, NULL);
     Tcl_DecrRefCount(raw);
     if (result != TCL_OK) {
-        SvgError(token, "cannot compress photo for SVG PNG encoding");
+        Rbc_ExportError(token, "cannot compress photo for SVG PNG encoding");
         Tcl_RestoreInterpState(token->interp, saved);
         return;
     }
@@ -450,7 +444,7 @@ static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *bl
     Tcl_RestoreInterpState(token->interp, saved);
     data = Tcl_GetByteArrayFromObj(compressed, &length);
     if (length > INT_MAX) {
-        SvgError(token, "compressed photo is too large for SVG PNG encoding");
+        Rbc_ExportError(token, "compressed photo is too large for SVG PNG encoding");
         Tcl_DecrRefCount(compressed);
         return;
     }
@@ -481,7 +475,7 @@ static void SvgColorImage(Rbc_ExportContext *token, Rbc_ColorImage image, double
     Tk_PhotoImageBlock block;
 
     if ((size_t)Rbc_ColorImageWidth(image) > (size_t)INT_MAX / sizeof(Pix32)) {
-        SvgError(token, "captured image is too large for SVG");
+        Rbc_ExportError(token, "captured image is too large for SVG");
         return;
     }
     block.width = Rbc_ColorImageWidth(image);
@@ -523,7 +517,7 @@ static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foregro
         Tk_Window tkwin;
 
         if (RENDER_EXPORT(ctx)->vectorTile == NULL) {
-            SvgError(token, "missing tile image for SVG");
+            Rbc_ExportError(token, "missing tile image for SVG");
             return 0;
         }
         if (Rbc_GetTilePhoto(RENDER_EXPORT(ctx)->vectorTile, &block)) {
@@ -546,7 +540,7 @@ static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foregro
         if (width > 0 && height > 0) {
             bits = XGetImage(ctx->graphPtr->display, style->stipple, 0, 0, width, height, 1, XYPixmap);
             if (bits == NULL) {
-                SvgError(token, "cannot read stipple for SVG pattern");
+                Rbc_ExportError(token, "cannot read stipple for SVG pattern");
                 return 0;
             }
         }
@@ -756,7 +750,7 @@ static void SvgEmbeddedText(Rbc_RenderContext *ctx, char *string, TextStyle *sty
             if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
                 double extra = ceil(advance);
                 if (extra > INT_MAX - fragment->width - (double)style->padLeft - style->padRight) {
-                    SvgError(token, "SVG fallback text is too wide");
+                    Rbc_ExportError(token, "SVG fallback text is too wide");
                     ckfree(layout);
                     return;
                 }
@@ -854,7 +848,7 @@ static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
         Tcl_IncrRefCount(args[i]);
     }
     if (Tcl_EvalObjv(token->interp, 5, args, TCL_EVAL_GLOBAL) != TCL_OK) {
-        SvgError(token, "cannot resolve Tk font attributes for SVG");
+        Rbc_ExportError(token, "cannot resolve Tk font attributes for SVG");
         for (i = 0; i < 5; i++) {
             Tcl_DecrRefCount(args[i]);
         }
@@ -868,7 +862,7 @@ static void SvgText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
     }
     Tcl_RestoreInterpState(token->interp, saved);
     if (Tcl_ListObjGetElements(NULL, attributes, &n, &values) != TCL_OK) {
-        SvgError(token, "invalid Tk font attributes for SVG");
+        Rbc_ExportError(token, "invalid Tk font attributes for SVG");
         Tcl_DecrRefCount(attributes);
         return;
     }
@@ -932,11 +926,11 @@ static void SvgPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
     Tk_PhotoImageBlock block;
 
     if (photo == NULL) {
-        SvgError(RENDER_EXPORT(ctx)->exportPtr, "missing photo image for SVG");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "missing photo image for SVG");
         return;
     }
     if (!Tk_PhotoGetImage(photo, &block)) {
-        SvgError(RENDER_EXPORT(ctx)->exportPtr, "cannot read photo image for SVG");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot read photo image for SVG");
         return;
     }
     SvgPhotoBlock(RENDER_EXPORT(ctx)->exportPtr, &block, x, y);
@@ -950,7 +944,7 @@ static void SvgWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
     }
     captured = Rbc_DrawableToColorImage(window, Tk_WindowId(window), 0, 0, Tk_Width(window), Tk_Height(window), GAMMA);
     if (captured == NULL) {
-        SvgError(RENDER_EXPORT(ctx)->exportPtr, "cannot capture window marker for SVG");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot capture window marker for SVG");
         return;
     }
     SvgColorImage(RENDER_EXPORT(ctx)->exportPtr, captured, x, y);
@@ -967,7 +961,7 @@ static void SvgBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
     }
     bits = XGetImage(display, bitmap, 0, 0, width, height, 1, XYPixmap);
     if (bits == NULL) {
-        SvgError(RENDER_EXPORT(ctx)->exportPtr, "cannot read bitmap marker mask for SVG");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot read bitmap marker mask for SVG");
         return;
     }
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "<g transform=\"translate(%g %g)\">\n", x, y);

@@ -181,6 +181,21 @@ namespace eval trackgraph.configure {
             expr {0 ni $result}
         }
     } -cleanup {interp delete trackOptionChild} -result 1
+    test RBC.trackgraph.configure.A.10.1 {cached option prefixes can be reused across tracks and export components} -setup {
+        Create
+        .tg track configure voltage -height 210
+        .tg svg configure -height 320
+        .tg pdf configure -height 430
+    } -body {
+        set option -h
+        set result {}
+        for {set i 0} {$i < 3} {incr i} {
+            lappend result [.tg track cget voltage $option] [.tg svg cget $option] [.tg pdf cget $option]
+        }
+        list $result [.tg track configure voltage -bar]
+    } -cleanup {destroy .tg} -result {{210 320 430 210 320 430 210 320 430} {-barmode barMode BarMode inherit inherit}}
+
+
     cleanupTests
 }
 namespace delete ::trackgraph.configure

@@ -335,5 +335,38 @@ namespace eval graph.pdf {
         expr {$native eq [.pdf pdf output]}
     } -cleanup {destroy .pdf} -result 1
 
+    test RBC.graph.pdf.A.12.1 {complete metadata uses stable defaults and current configured values} -setup {
+        Setup
+        .pdf pdf configure -w 321 -h 234 -d no -e yes
+    } -body {
+        set result {}
+        foreach info [.pdf pdf configure] {
+            set name [lindex $info 0]
+            lappend result [expr {$info eq [.pdf pdf configure $name]}] \
+                [expr {[lindex $info 4] eq [.pdf pdf cget $name]}]
+        }
+        list [expr {0 ni $result}] [.pdf pdf configure]
+    } -cleanup {destroy .pdf} -result {1 {{-width width Width 0 321} {-height height Height 0 234} {-decorations decorations Decorations 1 0} {-embedfonts embedFonts EmbedFonts 1 1}}}
+
+    test RBC.graph.pdf.A.12.2 {ambiguous options preserve state and report the component's option list} -setup {
+        Setup
+    } -body {
+        set before [.pdf pdf configure]
+        set failed [catch {.pdf pdf configure -w 700 - 1} message]
+        list $failed $message [expr {$before eq [.pdf pdf configure]}]
+    } -cleanup {destroy .pdf} -result {1 {ambiguous PDF option "-": must be -width, -height, -decorations, or -embedfonts} 1}
+
+
+    test RBC.graph.pdf.A.13.1 {unembedded text errors do not poison subsequent PDF and SVG exports} -setup {
+        Setup
+        .pdf configure -title "unsupported\u0100"
+    } -body {
+        set failed [catch {.pdf pdf output -embedfonts no} message]
+        .pdf configure -title recovered
+        list $failed $message [CheckDocument [.pdf pdf output]] \
+            [string match {<?xml*} [.pdf svg output -embedfonts no]]
+    } -cleanup {destroy .pdf} -result {1 {PDF text contains a character outside Windows-1252; enable -embedfonts} 1 1}
+
+
     cleanupTests
 }

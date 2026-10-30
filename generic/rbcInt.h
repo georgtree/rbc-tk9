@@ -501,6 +501,8 @@ int Rbc_ParseScrollRequest(Tcl_Interp *, Tcl_Size, Tcl_Obj *const [], Tcl_Size, 
 
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
+int Rbc_GetComponentOptionIndex(Tcl_Interp *, Tcl_Obj *, const Tk_OptionSpec *, const char *, int *);
+Tcl_Obj *Rbc_GetComponentOptionInfo(const Tk_OptionSpec *, Tcl_Obj *);
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);
 
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)

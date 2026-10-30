@@ -28,7 +28,6 @@ Rbc_RenderContext *Rbc_RenderCreatePdf(Rbc_ExportContext *);
 void Rbc_RenderPostscriptStroke(Rbc_RenderContext *, const XColor *, int, const Rbc_Dashes *, int, int);
 void Rbc_RenderPostscriptSymbol(Rbc_RenderContext *, const Rbc_RenderSymbolStyle *);
 void Rbc_RenderPostscriptBarSymbol(Rbc_RenderContext *, const Rbc_RenderFillStyle *, int);
-void Rbc_RenderExportError(Rbc_ExportContext *, const char *);
 void Rbc_RenderExportEnd(Rbc_RenderContext *);
 void Rbc_RenderExportLineStyle(Rbc_RenderContext *, int, int);
 void Rbc_RenderExportDashBackground(Rbc_RenderContext *, const XColor *);

@@ -2,24 +2,23 @@
 #include "rbcRender.h"
 
 /* PDF options intentionally exclude printer/page-specific PostScript settings. */
-static const char *const pdfOptions[] = {"-width", "-height", "-decorations", "-embedfonts", NULL};
+static const Tk_OptionSpec pdfOptionSpecs[] = {
+    {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1,
+     offsetof(Graph, pdfWidth), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1,
+     offsetof(Graph, pdfHeight), 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1,
+     offsetof(Graph, pdfDecorations), 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "1", -1,
+     offsetof(Graph, pdfEmbedFonts), 0, NULL, 0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
+};
 
 /* Initialize the named export component once during widget creation. These
  * options contain only native integers, so no Tk-owned resources survive the
  * temporary option table. Runtime configuration keeps its existing transaction. */
 int Rbc_InitPdfOptions(Graph *graphPtr) {
-    static const Tk_OptionSpec specs[] = {
-        {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1,
-         offsetof(Graph, pdfWidth), 0, NULL, 0},
-        {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1,
-         offsetof(Graph, pdfHeight), 0, NULL, 0},
-        {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1,
-         offsetof(Graph, pdfDecorations), 0, NULL, 0},
-        {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "1", -1,
-         offsetof(Graph, pdfEmbedFonts), 0, NULL, 0},
-        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
-    };
-    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
+    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, pdfOptionSpecs);
     int result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy,
                                           "pdf", "Pdf", (char *)graphPtr, table);
     if (result == TCL_OK && (graphPtr->pdfWidth < 0 || graphPtr->pdfHeight < 0)) {
@@ -31,19 +30,14 @@ int Rbc_InitPdfOptions(Graph *graphPtr) {
     return result;
 }
 
-static Tcl_Obj *PdfOptionInfo(Graph *graphPtr, int index) {
-    static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
-    static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};
-    int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight :
-                (index == 2 ? graphPtr->pdfDecorations : graphPtr->pdfEmbedFonts));
-    Tcl_Obj *items[5];
+/* These specifications store native integers directly in the Graph record. */
+static Tcl_Obj *PdfOptionValue(Graph *graphPtr, int index) {
+    const Tk_OptionSpec *spec = pdfOptionSpecs + index;
+    return Tcl_NewIntObj(*(int *)((char *)graphPtr + spec->internalOffset));
+}
 
-    items[0] = Tcl_NewStringObj(pdfOptions[index], -1);
-    items[1] = Tcl_NewStringObj(names[index], -1);
-    items[2] = Tcl_NewStringObj(classes[index], -1);
-    items[3] = Tcl_NewIntObj(index >= 2 ? 1 : 0);
-    items[4] = Tcl_NewIntObj(value);
-    return Tcl_NewListObj(5, items);
+static Tcl_Obj *PdfOptionInfo(Graph *graphPtr, int index) {
+    return Rbc_GetComponentOptionInfo(pdfOptionSpecs + index, PdfOptionValue(graphPtr, index));
 }
 
 static int SetPdfOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
@@ -56,7 +50,7 @@ static int SetPdfOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     }
     for (i = 0; i < objc; i += 2) {
         int index, value;
-        if (Tcl_GetIndexFromObj(interp, objv[i], pdfOptions, "PDF option", 0, &index) != TCL_OK) {
+        if (Rbc_GetComponentOptionIndex(interp, objv[i], pdfOptionSpecs, "PDF option", &index) != TCL_OK) {
             return TCL_ERROR;
         }
         if (index >= 2) {
@@ -96,13 +90,11 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             Tcl_WrongNumArgs(interp, 3, objv, "option");
             return TCL_ERROR;
         }
-        if (Tcl_GetIndexFromObj(interp, objv[3], pdfOptions, "PDF option", 0, &index) != TCL_OK) {
+        if (Rbc_GetComponentOptionIndex(interp, objv[3], pdfOptionSpecs, "PDF option", &index) != TCL_OK) {
             return TCL_ERROR;
         }
         if (command == 0) {
-            int value = index == 0 ? graphPtr->pdfWidth : (index == 1 ? graphPtr->pdfHeight :
-                (index == 2 ? graphPtr->pdfDecorations : graphPtr->pdfEmbedFonts));
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
+            Tcl_SetObjResult(interp, PdfOptionValue(graphPtr, index));
         } else {
             Tcl_SetObjResult(interp, PdfOptionInfo(graphPtr, index));
         }
@@ -111,7 +103,7 @@ int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     if (command == 1) {
         if (objc == 3) {
             Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-            for (index = 0; index < 4; index++) {
+            for (index = 0; pdfOptionSpecs[index].type != TK_OPTION_END; index++) {
                 Tcl_ListObjAppendElement(interp, list, PdfOptionInfo(graphPtr, index));
             }
             Tcl_SetObjResult(interp, list);
@@ -355,7 +347,7 @@ Tcl_Obj *Rbc_PdfDocument(Rbc_ExportContext *token, int width, int height) {
     }
     xref = Tcl_DStringLength(&document);
     if (xref > 9999999999LL) {
-        token->error = "PDF exceeds classic cross-reference size limit";
+        Rbc_ExportError(token, "PDF exceeds classic cross-reference size limit");
     } else {
         Rbc_ExportFormat(token, "xref\n0 %d\n0000000000 65535 f \n", total);
         for (id = 1; id < total; id++) {

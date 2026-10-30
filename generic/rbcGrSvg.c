@@ -2,21 +2,20 @@
 #include "rbcRender.h"
 
 /* SVG options intentionally exclude printer/page-specific PostScript settings. */
-static const char *const svgOptions[] = {"-width", "-height", "-decorations", "-embedfonts", NULL};
+static const Tk_OptionSpec svgOptionSpecs[] = {
+    {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1, offsetof(Graph, svgWidth), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1, offsetof(Graph, svgHeight), 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1, offsetof(Graph, svgDecorations), 0,
+     NULL, 0},
+    {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "0", -1, offsetof(Graph, svgEmbedFonts), 0, NULL,
+     0},
+    {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Initialize the named export component once during widget creation. These
  * options contain only native integers, so no Tk-owned resources survive the
  * temporary option table. Runtime configuration keeps its existing transaction. */
 int Rbc_InitSvgOptions(Graph *graphPtr) {
-    static const Tk_OptionSpec specs[] = {
-        {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1, offsetof(Graph, svgWidth), 0, NULL, 0},
-        {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1, offsetof(Graph, svgHeight), 0, NULL, 0},
-        {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "1", -1, offsetof(Graph, svgDecorations), 0,
-         NULL, 0},
-        {TK_OPTION_BOOLEAN, "-embedfonts", "embedFonts", "EmbedFonts", "0", -1, offsetof(Graph, svgEmbedFonts), 0, NULL,
-         0},
-        {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
-    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, specs);
+    Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, svgOptionSpecs);
     int result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, "svg", "Svg",
                                           (char *)graphPtr, table);
     if (result == TCL_OK && (graphPtr->svgWidth < 0 || graphPtr->svgHeight < 0)) {
@@ -28,20 +27,14 @@ int Rbc_InitSvgOptions(Graph *graphPtr) {
     return result;
 }
 
-static Tcl_Obj *SvgOptionInfo(Graph *graphPtr, int index) {
-    static const char *const names[] = {"width", "height", "decorations", "embedFonts"};
-    static const char *const classes[] = {"Width", "Height", "Decorations", "EmbedFonts"};
-    int value = index == 0 ? graphPtr->svgWidth
-                           : (index == 1 ? graphPtr->svgHeight
-                                         : (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
-    Tcl_Obj *items[5];
+/* These specifications store native integers directly in the Graph record. */
+static Tcl_Obj *SvgOptionValue(Graph *graphPtr, int index) {
+    const Tk_OptionSpec *spec = svgOptionSpecs + index;
+    return Tcl_NewIntObj(*(int *)((char *)graphPtr + spec->internalOffset));
+}
 
-    items[0] = Tcl_NewStringObj(svgOptions[index], -1);
-    items[1] = Tcl_NewStringObj(names[index], -1);
-    items[2] = Tcl_NewStringObj(classes[index], -1);
-    items[3] = Tcl_NewIntObj(index == 2 ? 1 : 0);
-    items[4] = Tcl_NewIntObj(value);
-    return Tcl_NewListObj(5, items);
+static Tcl_Obj *SvgOptionInfo(Graph *graphPtr, int index) {
+    return Rbc_GetComponentOptionInfo(svgOptionSpecs + index, SvgOptionValue(graphPtr, index));
 }
 
 static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
@@ -54,7 +47,7 @@ static int SetSvgOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     }
     for (i = 0; i < objc; i += 2) {
         int index, value;
-        if (Tcl_GetIndexFromObj(interp, objv[i], svgOptions, "SVG option", 0, &index) != TCL_OK) {
+        if (Rbc_GetComponentOptionIndex(interp, objv[i], svgOptionSpecs, "SVG option", &index) != TCL_OK) {
             return TCL_ERROR;
         }
         if (index >= 2) {
@@ -94,14 +87,11 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
             Tcl_WrongNumArgs(interp, 3, objv, "option");
             return TCL_ERROR;
         }
-        if (Tcl_GetIndexFromObj(interp, objv[3], svgOptions, "SVG option", 0, &index) != TCL_OK) {
+        if (Rbc_GetComponentOptionIndex(interp, objv[3], svgOptionSpecs, "SVG option", &index) != TCL_OK) {
             return TCL_ERROR;
         }
         if (command == 0) {
-            int value = index == 0 ? graphPtr->svgWidth
-                                   : (index == 1 ? graphPtr->svgHeight
-                                                 : (index == 2 ? graphPtr->svgDecorations : graphPtr->svgEmbedFonts));
-            Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
+            Tcl_SetObjResult(interp, SvgOptionValue(graphPtr, index));
         } else {
             Tcl_SetObjResult(interp, SvgOptionInfo(graphPtr, index));
         }
@@ -110,7 +100,7 @@ int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const
     if (command == 1) {
         if (objc == 3) {
             Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-            for (index = 0; index < 4; index++) {
+            for (index = 0; svgOptionSpecs[index].type != TK_OPTION_END; index++) {
                 Tcl_ListObjAppendElement(interp, list, SvgOptionInfo(graphPtr, index));
             }
             Tcl_SetObjResult(interp, list);

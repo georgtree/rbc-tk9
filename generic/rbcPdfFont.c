@@ -25,7 +25,7 @@ static int PdfStandardCharacter(Rbc_ExportContext *token, Tk_Font font, Tcl_UniC
         }
     }
     if (code < 0) {
-        token->error = "PDF text contains a character outside Windows-1252; enable -embedfonts";
+        Rbc_ExportError(token, "PDF text contains a character outside Windows-1252; enable -embedfonts");
         return TCL_ERROR;
     }
     Tcl_DStringInit(&name);

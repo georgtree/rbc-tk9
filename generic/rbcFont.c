@@ -61,13 +61,6 @@ static void FontPut32(unsigned char *p, uint32_t n) {
     p[3] = (unsigned char)n;
 }
 
-static int FontError(Rbc_ExportContext *token, const char *message) {
-    if (token->error == NULL) {
-        token->error = message;
-    }
-    return TCL_ERROR;
-}
-
 static void FontSourceFree(FontSource *source) {
     if (source->bytes != NULL) {
         ckfree(source->bytes);
@@ -104,20 +97,20 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
     source->font = CreateFontIndirectW(&lf);
     source->dc = CreateCompatibleDC(NULL);
     if (source->font == NULL || source->dc == NULL) {
-        return FontError(token, "cannot open native font for font export");
+        return Rbc_ExportError(token, "cannot open native font for font export");
     }
     source->oldFont = (HFONT)SelectObject(source->dc, source->font);
     /* Only the sfnt directory is read here; table data is obtained by tag. */
     source->bytes = (unsigned char *)ckalloc(12);
     source->length = 12;
     if (GetFontData(source->dc, 0, 0, source->bytes, 12) != 12) {
-        return FontError(token, "font export requires an embeddable TrueType outline font");
+        return Rbc_ExportError(token, "font export requires an embeddable TrueType outline font");
     }
     length = 12 + 16 * Rbc_FontU16(source->bytes + 4);
     source->bytes = (unsigned char *)ckrealloc(source->bytes, length);
     source->length = length;
     if (GetFontData(source->dc, 0, 0, source->bytes, length) != length) {
-        return FontError(token, "cannot read native font directory for font export");
+        return Rbc_ExportError(token, "cannot read native font directory for font export");
     }
 #else
     FcPattern *pattern, *match = NULL;
@@ -142,7 +135,7 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
         if (charset != NULL) {
             FcCharSetDestroy(charset);
         }
-        return FontError(token, "cannot initialize font matching for font export");
+        return Rbc_ExportError(token, "cannot initialize font matching for font export");
     }
     FcCharSetAddChar(charset, (FcChar32)ch);
     FcPatternAddString(pattern, FC_FAMILY, (const FcChar8 *)family);
@@ -175,11 +168,11 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
         FcFontSetDestroy(matches);
     }
     if (match == NULL) {
-        return FontError(token, "no font export outline font contains a text character");
+        return Rbc_ExportError(token, "no font export outline font contains a text character");
     }
     if (FcPatternGetString(match, FC_FILE, 0, &path) != FcResultMatch) {
         FcPatternDestroy(match);
-        return FontError(token, "cannot locate native font file for font export");
+        return Rbc_ExportError(token, "cannot locate native font file for font export");
     }
     FcPatternGetInteger(match, FC_INDEX, 0, &index);
     pathObj = Tcl_NewStringObj((const char *)path, -1);
@@ -188,7 +181,7 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
     Tcl_DecrRefCount(pathObj);
     FcPatternDestroy(match);
     if (channel == NULL) {
-        return FontError(token, "cannot open native font file for font export");
+        return Rbc_ExportError(token, "cannot open native font file for font export");
     }
     Tcl_DStringInit(&contents);
     if (Tcl_SetChannelOption(token->interp, channel, "-translation", "binary") == TCL_OK &&
@@ -211,16 +204,16 @@ static int FontSourceOpen(Rbc_ExportContext *token, const char *family, int bold
     }
     Tcl_DStringFree(&contents);
     if (status != TCL_OK) {
-        return FontError(token, "cannot read native font file for font export (maximum 64 MiB)");
+        return Rbc_ExportError(token, "cannot read native font file for font export (maximum 64 MiB)");
     }
     if (source->length >= 12 && memcmp(source->bytes, "ttcf", 4) == 0) {
         uint32_t faces = Rbc_FontU32(source->bytes + 8);
         if (index < 0 || (uint32_t)index >= faces || faces > (source->length - 12) / 4) {
-            return FontError(token, "invalid TrueType collection face for font export");
+            return Rbc_ExportError(token, "invalid TrueType collection face for font export");
         }
         source->offset = Rbc_FontU32(source->bytes + 12 + 4 * index);
     } else if (index != 0) {
-        return FontError(token, "font export variable font instances are not supported");
+        return Rbc_ExportError(token, "font export variable font instances are not supported");
     }
 #endif
     return TCL_OK;
@@ -236,15 +229,15 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
     uint32_t sum = 0;
 
     if (source->offset > source->length || source->length - source->offset < 12) {
-        return FontError(token, "invalid TrueType font directory for font export");
+        return Rbc_ExportError(token, "invalid TrueType font directory for font export");
     }
     directory = source->bytes + source->offset;
     if (Rbc_FontU32(directory) != 0x00010000 && memcmp(directory, "true", 4) != 0 && memcmp(directory, "OTTO", 4) != 0) {
-        return FontError(token, "font export requires TrueType or CFF outline fonts");
+        return Rbc_ExportError(token, "font export requires TrueType or CFF outline fonts");
     }
     count = Rbc_FontU16(directory + 4);
     if (count == 0 || count > 4095 || (size_t)count > (source->length - source->offset - 12) / 16) {
-        return FontError(token, "invalid TrueType font directory for font export");
+        return Rbc_ExportError(token, "invalid TrueType font directory for font export");
     }
     length = 12;
     for (i = 0; i < count; i++) {
@@ -254,10 +247,10 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
             continue;
         }
         if (memcmp(entry, "fvar", 4) == 0) {
-            return FontError(token, "font export variable fonts are not supported");
+            return Rbc_ExportError(token, "font export variable fonts are not supported");
         }
         if (n > EXPORT_FONT_LIMIT - 19 || length > EXPORT_FONT_LIMIT - 19 - n) {
-            return FontError(token, "TrueType font is too large for embedding");
+            return Rbc_ExportError(token, "TrueType font is too large for embedding");
         }
         length += 16 + ((n + 3u) & ~3u);
         kept++;
@@ -288,14 +281,14 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
         if (source->dc != NULL) {
             DWORD tag = (DWORD)entry[0] | ((DWORD)entry[1] << 8) | ((DWORD)entry[2] << 16) | ((DWORD)entry[3] << 24);
             if (GetFontData(source->dc, tag, 0, out + offset, n) != n) {
-                return FontError(token, "cannot read native font table for font export");
+                return Rbc_ExportError(token, "cannot read native font table for font export");
             }
         } else
 #endif
         {
             uint32_t start = Rbc_FontU32(entry + 8);
             if (start > source->length || n > source->length - start) {
-                return FontError(token, "invalid TrueType table bounds for font export");
+                return Rbc_ExportError(token, "invalid TrueType table bounds for font export");
             }
             memcpy(out + offset, source->bytes + start, n);
         }
@@ -314,7 +307,7 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
         kept++;
     }
     if (head == NULL) {
-        return FontError(token, "TrueType font lacks a head table for font export");
+        return Rbc_ExportError(token, "TrueType font lacks a head table for font export");
     }
     for (offset = 0; offset < length; offset += 4) {
         sum += Rbc_FontU32(out + offset);
@@ -857,7 +850,7 @@ static int FontCffInit(Rbc_ExportContext *token, Rbc_ExportFont *font) {
                 op = 1200 + top.bytes[at++];
             }
             if (op == 1230) {
-                return FontError(token, "font export CID-keyed CFF fonts are not supported");
+                return Rbc_ExportError(token, "font export CID-keyed CFF fonts are not supported");
             }
             if (op == 15 || op == 17) {
                 if (count != 1 || operands[0] < 0 || operands[0] > UINT32_MAX) {
@@ -974,7 +967,7 @@ static int FontCffInit(Rbc_ExportContext *token, Rbc_ExportFont *font) {
     }
     return TCL_OK;
 invalid:
-    return FontError(token, "invalid OpenType/CFF font data for font export");
+    return Rbc_ExportError(token, "invalid OpenType/CFF font data for font export");
 }
 
 /* Validate the tables needed for metrics and Unicode lookup before using them. */
@@ -991,14 +984,14 @@ static int FontTables(Rbc_ExportContext *token, Rbc_ExportFont *font) {
     font->maxp = Rbc_FontGetTable(font, "maxp");
     if (font->head.length < 54 || font->hhea.length < 36 || font->maxp.length < 6 || font->cmap.length < 4 ||
         (glyf.bytes == NULL && font->cff.bytes == NULL) || os2.length < 10) {
-        return FontError(token, "export font lacks required TrueType tables");
+        return Rbc_ExportError(token, "export font lacks required TrueType tables");
     }
     if (Rbc_FontGetTable(font, "COLR").bytes != NULL || Rbc_FontGetTable(font, "CBDT").bytes != NULL ||
         Rbc_FontGetTable(font, "sbix").bytes != NULL || Rbc_FontGetTable(font, "SVG ").bytes != NULL) {
-        return FontError(token, "font export color fonts are not supported");
+        return Rbc_ExportError(token, "font export color fonts are not supported");
     }
     if (Rbc_FontU16(os2.bytes + 8) & 0x0202) {
-        return FontError(token, "font embedding permissions prohibit font export outline embedding");
+        return Rbc_ExportError(token, "font embedding permissions prohibit font export outline embedding");
     }
     font->units = Rbc_FontU16(font->head.bytes + 18);
     font->glyphCount = Rbc_FontU16(font->maxp.bytes + 4);
@@ -1006,7 +999,7 @@ static int FontTables(Rbc_ExportContext *token, Rbc_ExportFont *font) {
     if (font->units < 16 || font->units > 16384 || font->metricsCount == 0 || font->metricsCount > font->glyphCount ||
         font->hmtx.length < (size_t)font->metricsCount * 4 ||
         Rbc_FontU16(font->cmap.bytes + 2) > (font->cmap.length - 4) / 8) {
-        return FontError(token, "invalid TrueType font metrics for font export");
+        return Rbc_ExportError(token, "invalid TrueType font metrics for font export");
     }
     snprintf(font->name, sizeof(font->name), "RBCFont%d", font->id);
     /* Prefer the Unicode/Windows PostScript name, retaining only font export name bytes. */
@@ -1195,7 +1188,7 @@ static Tcl_Obj *FontActual(Rbc_ExportContext *token, Tk_Font font, Tcl_UniChar c
         result = Tcl_GetObjResult(token->interp);
         Tcl_IncrRefCount(result);
     } else {
-        FontError(token, "cannot query Tk font attributes for font export");
+        Rbc_ExportError(token, "cannot query Tk font attributes for font export");
     }
     for (i = 0; i < 7; i++) {
         Tcl_DecrRefCount(args[i]);
@@ -1231,7 +1224,7 @@ int Rbc_ExportFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniCha
         return TCL_ERROR;
     }
     if ((uint32_t)ch > 0x10ffff || (ch >= 0xd800 && ch <= 0xdfff) || ch == 0) {
-        return FontError(token, "font export text contains an invalid Unicode character");
+        return Rbc_ExportError(token, "font export text contains an invalid Unicode character");
     }
     if (cache == NULL) {
         cache = (ExportFontCache *)ckalloc(sizeof(*cache));
@@ -1263,7 +1256,7 @@ int Rbc_ExportFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniCha
     if (familyObj == NULL || sizeObj == NULL || weightObj == NULL || slantObj == NULL ||
         Tcl_GetDoubleFromObj(NULL, sizeObj, &size) != TCL_OK || !isfinite(size) || size == 0) {
         Tcl_DecrRefCount(actual);
-        return FontError(token, "invalid Tk font attributes for font export");
+        return Rbc_ExportError(token, "invalid Tk font attributes for font export");
     }
     family = Tcl_GetString(familyObj);
     bold = strcmp(Tcl_GetString(weightObj), "bold") == 0;
@@ -1272,7 +1265,7 @@ int Rbc_ExportFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniCha
                                WidthMMOfScreen(Tk_Screen(token->tkwin));
     if (size > INT_MAX) {
         Tcl_DecrRefCount(actual);
-        return FontError(token, "export font size is too large");
+        return Rbc_ExportError(token, "export font size is too large");
     }
     /* Family and physical style identify the program; sizes share resources. */
     key = Tcl_ObjPrintf("%d:%d:%s", bold, italic, family);
@@ -1323,12 +1316,12 @@ int Rbc_ExportFontCharacter(Rbc_ExportContext *token, Tk_Font tkfont, Tcl_UniCha
     Tcl_DecrRefCount(actual);
     glyph = FontGlyph(font, ch);
     if (glyph == 0) {
-        return FontError(token, "selected export font has no glyph for a text character");
+        return Rbc_ExportError(token, "selected export font has no glyph for a text character");
     }
     entry = Tcl_CreateHashEntry(&font->codes, (char *)(uintptr_t)ch, &isNew);
     if (isNew) {
         if (font->count == 65535) {
-            return FontError(token, "too many distinct characters in one export font");
+            return Rbc_ExportError(token, "too many distinct characters in one export font");
         }
         if (font->count == font->capacity) {
             font->capacity += 128;

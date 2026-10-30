@@ -224,8 +224,7 @@ static void FreeTrack(Graph *graphPtr, RbcTrack *track) {
 
 /* Share option names and metadata with creation defaults. */
 static int TrackOptionIndex(Tcl_Interp *interp, Tcl_Obj *obj, int *indexPtr) {
-    static const char *const names[] = {"-weight", "-minheight", "-height", "-yaxes", "-barmode", NULL};
-    return Tcl_GetIndexFromObj(interp, obj, names, "track option", 0, indexPtr);
+    return Rbc_GetComponentOptionIndex(interp, obj, trackOptionSpecs, "track option", indexPtr);
 }
 
 static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
@@ -258,13 +257,7 @@ static Tcl_Obj *TrackOption(RbcTrack *track, const char *option) {
  * state, including heights/weights changed by separator dragging. */
 static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
     const Tk_OptionSpec *spec = trackOptionSpecs + index;
-    Tcl_Obj *items[5];
-    items[0] = Tcl_NewStringObj(spec->optionName, -1);
-    items[1] = Tcl_NewStringObj(spec->dbName, -1);
-    items[2] = Tcl_NewStringObj(spec->dbClass, -1);
-    items[3] = Tcl_NewStringObj(spec->defValue, -1);
-    items[4] = TrackOption(track, spec->optionName);
-    return Tcl_NewListObj(5, items);
+    return Rbc_GetComponentOptionInfo(spec, TrackOption(track, spec->optionName));
 }
 
 /* Stage all options and axis references before committing a track change. */

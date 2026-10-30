@@ -11,12 +11,6 @@ static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(
  * matrix converts pixels to points and reverses the PDF Y axis. Every
  * primitive saves/restores graphics state, independently of Cairo.
  * ---------------------------------------------------------------------- */
-static void PdfError(Rbc_ExportContext *token, const char *message) {
-    if (token->error == NULL) {
-        token->error = message;
-    }
-}
-
 static void PdfColor(Rbc_ExportContext *token, const XColor *color, int stroke) {
     if (color != NULL) {
         Rbc_ExportFormat(token, "%.8f %.8f %.8f %s\n", color->red / 65535.0, color->green / 65535.0,
@@ -155,7 +149,7 @@ static int PdfPhotoResource(Rbc_ExportContext *token, const Tk_PhotoImageBlock *
         return 0;
     }
     if (block->pixelSize <= 0 || block->pixelPtr == NULL || (Tcl_WideInt)block->width * block->height > INT_MAX / 4) {
-        PdfError(token, "photo is too large or invalid for PDF");
+        Rbc_ExportError(token, "photo is too large or invalid for PDF");
         return 0;
     }
     Tcl_DStringInit(&rgb);
@@ -202,7 +196,7 @@ static void PdfImageUse(Rbc_ExportContext *token, int id, double x, double y, in
 static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image) {
     Tk_PhotoImageBlock block;
     if ((size_t)Rbc_ColorImageWidth(image) > (size_t)INT_MAX / sizeof(Pix32)) {
-        PdfError(token, "captured image is too large for PDF");
+        Rbc_ExportError(token, "captured image is too large for PDF");
         return 0;
     }
     block.width = Rbc_ColorImageWidth(image);
@@ -233,7 +227,7 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
         Tk_PhotoImageBlock block;
         Tk_Window window;
         if (RENDER_EXPORT(ctx)->vectorTile == NULL) {
-            PdfError(token, "missing tile image for PDF");
+            Rbc_ExportError(token, "missing tile image for PDF");
             return 0;
         }
         if (Rbc_GetTilePhoto(RENDER_EXPORT(ctx)->vectorTile, &block)) {
@@ -260,7 +254,7 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
             bits = XGetImage(ctx->graphPtr->display, RENDER_EXPORT(ctx)->fillStyle.stipple, 0, 0, width, height, 1,
                              XYPixmap);
             if (bits == NULL) {
-                PdfError(token, "cannot read PDF stipple");
+                Rbc_ExportError(token, "cannot read PDF stipple");
                 return 0;
             }
         }
@@ -383,7 +377,7 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
             if (Tk_TextWidth(style->font, fragment->text + n, consumed) == 0 && advance > 0) {
                 double extra = ceil(advance);
                 if (extra > INT_MAX - fragment->width - (double)style->padLeft - style->padRight) {
-                    PdfError(token, "PDF fallback text is too wide");
+                    Rbc_ExportError(token, "PDF fallback text is too wide");
                     ckfree(layout);
                     return;
                 }
@@ -449,7 +443,7 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
 static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     Tk_PhotoImageBlock block;
     if (photo == NULL || !Tk_PhotoGetImage(photo, &block)) {
-        PdfError(RENDER_EXPORT(ctx)->exportPtr, "cannot read photo image for PDF");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot read photo image for PDF");
         return;
     }
     PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfPhotoResource(RENDER_EXPORT(ctx)->exportPtr, &block), x, y,
@@ -472,7 +466,7 @@ static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
     }
     captured = Rbc_DrawableToColorImage(window, Tk_WindowId(window), 0, 0, Tk_Width(window), Tk_Height(window), GAMMA);
     if (captured == NULL) {
-        PdfError(RENDER_EXPORT(ctx)->exportPtr, "cannot capture window marker for PDF");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot capture window marker for PDF");
         return;
     }
     PdfImageUse(RENDER_EXPORT(ctx)->exportPtr, PdfColorImageResource(RENDER_EXPORT(ctx)->exportPtr, captured), x, y,
@@ -489,7 +483,7 @@ static void PdfBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
     }
     bits = XGetImage(display, bitmap, 0, 0, width, height, 1, XYPixmap);
     if (bits == NULL) {
-        PdfError(RENDER_EXPORT(ctx)->exportPtr, "cannot read bitmap for PDF");
+        Rbc_ExportError(RENDER_EXPORT(ctx)->exportPtr, "cannot read bitmap for PDF");
         return;
     }
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "q 1 0 0 1 %.8f %.8f cm\n", x, y);
@@ -613,20 +607,20 @@ static void PdfSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_
         }
         bits = XGetImage(ctx->graphPtr->display, style->bitmap, 0, 0, bitmapWidth, bitmapHeight, 1, XYPixmap);
         if (bits == NULL) {
-            PdfError(token, "cannot read PDF bitmap symbol");
+            Rbc_ExportError(token, "cannot read PDF bitmap symbol");
             return;
         }
         if (style->mask != None && style->fillColor != NULL) {
             int width, height;
             Tk_SizeOfBitmap(ctx->graphPtr->display, style->mask, &width, &height);
             if (width != bitmapWidth || height != bitmapHeight) {
-                PdfError(token, "PDF bitmap symbol and mask dimensions differ");
+                Rbc_ExportError(token, "PDF bitmap symbol and mask dimensions differ");
                 XDestroyImage(bits);
                 return;
             }
             mask = XGetImage(ctx->graphPtr->display, style->mask, 0, 0, width, height, 1, XYPixmap);
             if (mask == NULL) {
-                PdfError(token, "cannot read PDF bitmap symbol mask");
+                Rbc_ExportError(token, "cannot read PDF bitmap symbol mask");
                 XDestroyImage(bits);
                 return;
             }

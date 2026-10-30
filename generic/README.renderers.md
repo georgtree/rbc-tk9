@@ -59,6 +59,10 @@ Use the renderer, export, and track tests for backend changes. Compare rendered 
 moving code; preserve batching boundaries, coordinate rounding, painter order, and the lifetimes of native DCs and
 surfaces.
 
+Export failures are recorded through `Rbc_ExportError` in `rbcGrExport.c`, declared with the document context in
+`rbcExport.h`. Renderers, font loaders and document writers retain the first static error message; the helper returns
+`TCL_ERROR` for callers that propagate status. The context borrows the message and never frees it.
+
 ## Native platform boundary
 
 Configure selects exactly one of `rbcRenderNativeWin.c` and `rbcRenderNativeX11.c`; the MSVC build selects the Windows

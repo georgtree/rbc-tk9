@@ -19,6 +19,8 @@ typedef struct {
 
 void Rbc_ExportInit(Rbc_ExportContext *exportPtr, Rbc_ExportBackend backend, Tcl_Interp *interp, Tk_Window tkwin,
                     int decorations);
+/* Records the first static error message and returns TCL_ERROR. */
+int Rbc_ExportError(Rbc_ExportContext *exportPtr, const char *message);
 void Rbc_ExportFree(Rbc_ExportContext *exportPtr);
 void Rbc_ExportAppend(Rbc_ExportContext *exportPtr, ...);
 void Rbc_ExportFormat(Rbc_ExportContext *exportPtr, const char *format, ...) TCL_FORMAT_PRINTF(2, 3);

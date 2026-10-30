@@ -113,7 +113,7 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
     Tk_MakeWindowExist(tkwin);
     pixmap = Tk_GetPixmap(display, Tk_WindowId(tkwin), width, height, Tk_Depth(tkwin));
     if (pixmap == None) {
-        Rbc_RenderExportError(token, "cannot allocate export image capture pixmap");
+        Rbc_ExportError(token, "cannot allocate export image capture pixmap");
         return NULL;
     }
     values.foreground = BlackPixelOfScreen(Tk_Screen(tkwin));
@@ -130,7 +130,7 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
         Tk_RedrawImage(image, 0, 0, width, height, pixmap, 0, 0);
         captured = Rbc_DrawableToColorImage(tkwin, pixmap, 0, 0, width, height, GAMMA);
         if (captured == NULL) {
-            Rbc_RenderExportError(token, "cannot capture Tk image for export");
+            Rbc_ExportError(token, "cannot capture Tk image for export");
             break;
         }
         if (pass == 0) {
@@ -161,12 +161,6 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
     }
     Rbc_FreeColorImage(white);
     return black;
-}
-
-void Rbc_RenderExportError(Rbc_ExportContext *token, const char *message) {
-    if (token->error == NULL) {
-        token->error = message;
-    }
 }
 
 int Rbc_RenderExportSymbolRound(double value) { return (int)(value + ((value < 0.0) ? -0.5 : 0.5)); }

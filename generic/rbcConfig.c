@@ -797,3 +797,27 @@ int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window pro
      */
     return Tk_InitOptions(interp, recordPtr, optionTable, parent);
 }
+
+/*
+ * Custom component commands use the same Tk_OptionSpec table for initialization,
+ * option lookup and configure metadata. These tables contain concrete options
+ * (no synonyms), end with TK_OPTION_END, and outlive cached option-name objects.
+ */
+int Rbc_GetComponentOptionIndex(Tcl_Interp *interp, Tcl_Obj *objPtr, const Tk_OptionSpec *specs,
+                                const char *message, int *indexPtr) {
+    return Tcl_GetIndexFromObjStruct(interp, objPtr, &specs[0].optionName, sizeof(Tk_OptionSpec),
+                                     message, 0, indexPtr);
+}
+
+/* Return a standard five-field description using a caller-supplied live value.
+ * The resulting list retains valueObj; the caller keeps any existing reference.
+ * No option table or synthetic component record is needed for this query. */
+Tcl_Obj *Rbc_GetComponentOptionInfo(const Tk_OptionSpec *spec, Tcl_Obj *valueObj) {
+    Tcl_Obj *items[5];
+    items[0] = Tcl_NewStringObj(spec->optionName, -1);
+    items[1] = Tcl_NewStringObj(spec->dbName, -1);
+    items[2] = Tcl_NewStringObj(spec->dbClass, -1);
+    items[3] = Tcl_NewStringObj(spec->defValue, -1);
+    items[4] = valueObj;
+    return Tcl_NewListObj(5, items);
+}

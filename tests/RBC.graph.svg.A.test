@@ -264,5 +264,27 @@ namespace eval graph.svg {
     } -result {1 1 1}
 
 
+    test RBC.graph.svg.A.18.1 {complete metadata uses stable defaults and current configured values} -setup {
+        Create
+        .svg svg configure -w 321 -h 234 -d no -e yes
+    } -body {
+        set result {}
+        foreach info [.svg svg configure] {
+            set name [lindex $info 0]
+            lappend result [expr {$info eq [.svg svg configure $name]}] \
+                [expr {[lindex $info 4] eq [.svg svg cget $name]}]
+        }
+        list [expr {0 ni $result}] [.svg svg configure]
+    } -cleanup {destroy .svg} -result {1 {{-width width Width 0 321} {-height height Height 0 234} {-decorations decorations Decorations 1 0} {-embedfonts embedFonts EmbedFonts 0 1}}}
+
+    test RBC.graph.svg.A.18.2 {ambiguous options preserve state and report the component's option list} -setup {
+        Create
+    } -body {
+        set before [.svg svg configure]
+        set failed [catch {.svg svg configure -w 700 - 1} message]
+        list $failed $message [expr {$before eq [.svg svg configure]}]
+    } -cleanup {destroy .svg} -result {1 {ambiguous SVG option "-": must be -width, -height, -decorations, or -embedfonts} 1}
+
+
 cleanupTests
 }
