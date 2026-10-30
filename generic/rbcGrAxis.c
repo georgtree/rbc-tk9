@@ -299,6 +299,7 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
 static double titleRotate[4] = {0.0, 90.0, 0.0, 270.0};
 
 /* Forward declarations */
+static ClientData MakeAxisTag(Graph *graphPtr, char *tagName);
 static void SetAxisRange(AxisRange *rangePtr, double min, double max);
 static double NormalizeAxisValue(const AxisRange *rangePtr, double value);
 static double InterpolateAxisValue(const AxisRange *rangePtr, double norm);
@@ -2546,7 +2547,7 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
 /*
  * ----------------------------------------------------------------------
  *
- * Rbc_InvHMap --
+ * InvHMap --
  *
  *      Maps the given screen coordinate back to a graph coordinate.
  *      Called by the graph locater routine.
@@ -2565,7 +2566,7 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
  *
  * ----------------------------------------------------------------------
  */
-double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
+static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double value;
 
     if (axisPtr->track != NULL) {
@@ -2586,7 +2587,7 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
 /*
  * ----------------------------------------------------------------------
  *
- * Rbc_InvVMap --
+ * InvVMap --
  *
  *      Maps the given window y-coordinate back to a graph coordinate
  *      value. Called by the graph locater routine.
@@ -2605,7 +2606,7 @@ double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
  *
  * ----------------------------------------------------------------------
  */
-double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
+static double InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double value;
 
     if (axisPtr->track != NULL) {
@@ -2760,11 +2761,11 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
     Point2D point;
 
     if (graphPtr->inverted) {
-        point.x = Rbc_InvVMap(graphPtr, axesPtr->x, y);
-        point.y = Rbc_InvHMap(graphPtr, axesPtr->y, x);
+        point.x = InvVMap(graphPtr, axesPtr->x, y);
+        point.y = InvHMap(graphPtr, axesPtr->y, x);
     } else {
-        point.x = Rbc_InvHMap(graphPtr, axesPtr->x, x);
-        point.y = Rbc_InvVMap(graphPtr, axesPtr->y, y);
+        point.x = InvHMap(graphPtr, axesPtr->x, x);
+        point.y = InvVMap(graphPtr, axesPtr->y, y);
     }
     return point;
 }
@@ -5746,7 +5747,7 @@ int Rbc_DefaultAxes(Graph *graphPtr) {
  */
 static int BindOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Interp *interp = graphPtr->interp;
-    return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, Rbc_MakeAxisTag(graphPtr, axisPtr->name), objc,
+    return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, MakeAxisTag(graphPtr, axisPtr->name), objc,
                                         objv);
 }
 
@@ -5989,9 +5990,9 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
      * element (using either -mapx or -mapy options).
      */
     if (AxisIsHorizontal(graphPtr, axisPtr)) {
-        y = Rbc_InvHMap(graphPtr, axisPtr, (double)x);
+        y = InvHMap(graphPtr, axisPtr, (double)x);
     } else {
-        y = Rbc_InvVMap(graphPtr, axisPtr, (double)x);
+        y = InvVMap(graphPtr, axisPtr, (double)x);
     }
     if (!FINITE(y)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("inverse axis transform is outside the representable range", -1));
@@ -6199,7 +6200,7 @@ static int BindVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) 
         Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
     }
-    return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, Rbc_MakeAxisTag(graphPtr, Tcl_GetString(objv[3])),
+    return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable, MakeAxisTag(graphPtr, Tcl_GetString(objv[3])),
                                         objc - 4, objv + 4);
 }
 
@@ -7347,23 +7348,23 @@ Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_MakeAxisTag --
+ * MakeAxisTag --
  *
- *      TODO: Description
+ *      Interns a binding tag in the graph's axis tag table.
  *
  * Parameters:
- *      Graph *graphPtr
- *      char *tagName
+ *      Graph *graphPtr - Owning graph.
+ *      char *tagName   - Binding tag to intern.
  *
  * Results:
- *      TODO: Results
+ *      A stable identifier owned by the graph's axis tag table.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Creates a table entry if the tag has not been seen before.
  *
  *----------------------------------------------------------------------
  */
-ClientData Rbc_MakeAxisTag(Graph *graphPtr, char *tagName) {
+static ClientData MakeAxisTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
     int isNew;
 
@@ -7375,13 +7376,13 @@ ClientData Rbc_MakeAxisTag(Graph *graphPtr, char *tagName) {
 void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list) {
     char **p;
 
-    Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, axisPtr->name), 0);
-    Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, axisPtr->classUid), 0);
+    Rbc_ListAppend(list, MakeAxisTag(graphPtr, axisPtr->name), 0);
+    Rbc_ListAppend(list, MakeAxisTag(graphPtr, axisPtr->classUid), 0);
     if (axisPtr->tags == NULL) {
         return;
     }
     for (p = axisPtr->tags; *p != NULL; p++) {
-        Rbc_ListAppend(list, Rbc_MakeAxisTag(graphPtr, *p), 0);
+        Rbc_ListAppend(list, MakeAxisTag(graphPtr, *p), 0);
     }
 }
 

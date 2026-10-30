@@ -23,6 +23,11 @@
 
 static Rbc_VectorChangedProc VectorChangedProc;
 
+static void FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y);
+static void DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
+static int ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize,
+                          Rbc_Chain **palettePtrPtr);
+
 static int GetPenStyleFromObj(Graph *graphPtr, Tcl_Obj *objPtr, Rbc_Uid type, PenStyle *stylePtr);
 static void SyncElemVector(ElemVector *vPtr);
 static void FindRange(ElemVector *vPtr);
@@ -248,7 +253,7 @@ Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, cons
     char fallback[RBC_VALUE_LABEL_SIZE];
 
     /* Copy fallback text before evaluating any application code. */
-    Rbc_FormatValueLabel(fallback, sizeof(fallback), format, show, x, y);
+    FormatValueLabel(fallback, sizeof(fallback), format, show, x, y);
     labelObjPtr = Tcl_NewStringObj(fallback, -1);
     Tcl_IncrRefCount(labelObjPtr);
     if ((commandObjPtr == NULL) || (show == SHOW_NONE)) {
@@ -412,7 +417,7 @@ int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_FormatValueLabel --
+ * FormatValueLabel --
  *
  *      Formats one graph element value label into a bounded buffer.
  *
@@ -421,7 +426,7 @@ int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y) {
+static void FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y) {
     const char *fmt;
     int n;
     size_t used;
@@ -859,7 +864,7 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_ParseElemVectorPairsObj --
+ * ParseElemVectorPairsObj --
  *
  *      Parses a flat Tcl list of X/Y coordinate pairs into two
  *      temporary element vectors without modifying the live element.
@@ -881,7 +886,7 @@ int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr
  *
  *----------------------------------------------------------------------
  */
-int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
+static int ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
                                 ElemVector *yCandidatePtr) {
     double *pairArr;
     Tcl_Size nElem;
@@ -941,7 +946,7 @@ int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *o
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_CommitElemVector --
+ * CommitElemVector --
  *
  *      Replaces a live element vector with a previously parsed
  *      candidate.
@@ -961,7 +966,7 @@ int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *o
  *
  *----------------------------------------------------------------------
  */
-void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr) {
+static void CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr) {
     Rbc_FreeElemVector(destPtr);
 
     *destPtr = *candidatePtr;
@@ -1932,7 +1937,7 @@ static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *obj
 
     memset(&newX, 0, sizeof(newX));
     memset(&newY, 0, sizeof(newY));
-    if (Rbc_ParseElemVectorPairsObj(interp, elemPtr, objPtr, &newX, &newY) != TCL_OK) {
+    if (ParseElemVectorPairsObj(interp, elemPtr, objPtr, &newX, &newY) != TCL_OK) {
         Rbc_FreeElemVector(&newX);
         Rbc_FreeElemVector(&newY);
         return TCL_ERROR;
@@ -2173,31 +2178,31 @@ error:
  */
 void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
+        CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->y, &transactionPtr->y);
+        CommitElemVector(elemPtr, &elemPtr->y, &transactionPtr->y);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_WEIGHTS)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->w, &transactionPtr->w);
+        CommitElemVector(elemPtr, &elemPtr->w, &transactionPtr->w);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_ERROR)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->xError, &transactionPtr->xError);
+        CommitElemVector(elemPtr, &elemPtr->xError, &transactionPtr->xError);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_HIGH)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->xHigh, &transactionPtr->xHigh);
+        CommitElemVector(elemPtr, &elemPtr->xHigh, &transactionPtr->xHigh);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X_LOW)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->xLow, &transactionPtr->xLow);
+        CommitElemVector(elemPtr, &elemPtr->xLow, &transactionPtr->xLow);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_ERROR)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->yError, &transactionPtr->yError);
+        CommitElemVector(elemPtr, &elemPtr->yError, &transactionPtr->yError);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_HIGH)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->yHigh, &transactionPtr->yHigh);
+        CommitElemVector(elemPtr, &elemPtr->yHigh, &transactionPtr->yHigh);
     }
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_Y_LOW)) {
-        Rbc_CommitElemVector(elemPtr, &elemPtr->yLow, &transactionPtr->yLow);
+        CommitElemVector(elemPtr, &elemPtr->yLow, &transactionPtr->yLow);
     }
     transactionPtr->stagedMask = 0;
 }
@@ -2462,11 +2467,11 @@ static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, R
     Rbc_Chain *newPalette;
 
     newPalette = NULL;
-    if (Rbc_ParseStylesObj(graphPtr, elemPtr, objPtr, styleSize, &newPalette) != TCL_OK) {
+    if (ParseStylesObj(graphPtr, elemPtr, objPtr, styleSize, &newPalette) != TCL_OK) {
         return TCL_ERROR;
     }
     if (transactionPtr->palette != NULL) {
-        Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+        DestroyPalette(graphPtr, transactionPtr->palette);
     }
     transactionPtr->palette = newPalette;
     transactionPtr->staged = TRUE;
@@ -2483,7 +2488,7 @@ static int StageElemStyles(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, R
  *----------------------------------------------------------------------
  */
 void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr) {
-    Rbc_DestroyPalette(graphPtr, transactionPtr->palette);
+    DestroyPalette(graphPtr, transactionPtr->palette);
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
@@ -2561,7 +2566,7 @@ void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStyl
     elemPtr->palette = transactionPtr->palette;
     transactionPtr->palette = NULL;
     transactionPtr->staged = FALSE;
-    Rbc_DestroyPalette(graphPtr, oldPalette);
+    DestroyPalette(graphPtr, oldPalette);
 }
 
 static int GetAlongFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *alongPtr) {
@@ -2688,7 +2693,7 @@ void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_DestroyPalette --
+ * DestroyPalette --
  *
  *      Releases all pen references owned by a palette and destroys
  *      the palette chain itself.
@@ -2706,7 +2711,7 @@ void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
+static void DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
     if (palette == NULL) {
         return;
     }
@@ -2717,7 +2722,7 @@ void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_ParseStylesObj --
+ * ParseStylesObj --
  *
  *      Parses an element palette into a newly allocated candidate
  *      chain without modifying the live element palette.
@@ -2742,7 +2747,7 @@ void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette) {
  *
  *----------------------------------------------------------------------
  */
-int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize,
+static int ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize,
                        Rbc_Chain **palettePtrPtr) {
     Tcl_Obj **objv;
     Tcl_Size objc;
@@ -2787,7 +2792,7 @@ int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_
              * This link has not yet been attached to the chain.
              */
             ckfree((char *)linkPtr);
-            Rbc_DestroyPalette(graphPtr, palette);
+            DestroyPalette(graphPtr, palette);
             return TCL_ERROR;
         }
         Rbc_ChainLinkBefore(palette, linkPtr, NULL);

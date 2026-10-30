@@ -598,6 +598,9 @@ namespace eval TclTk9Upgrade {
         - Fixed temporary Tk image creation and destruction.
         - Corrected resource cleanup for legends, markers, pens and elements.
         - Hardened vector mathematical operations against ownership and aliasing problems.
+        - Made single-module binding, axis mapping, element transaction and font-writing helpers private. Internal
+          headers now expose only their shared entry points; obsolete graph-type masks and duplicate declarations
+          were removed. Installed C headers, vector stubs and Tcl commands are unchanged.
         - Removed dead initialization and cleanup paths inherited from the old configuration system.
         - Removed substantial amounts of obsolete and unreachable compatibility code.
 

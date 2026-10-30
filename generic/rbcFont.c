@@ -53,7 +53,8 @@ void Rbc_FontPut16(unsigned char *p, unsigned int n) {
     p[1] = (unsigned char)n;
 }
 
-void Rbc_FontPut32(unsigned char *p, uint32_t n) {
+/* Only this module writes 32-bit fields when rebuilding font tables. */
+static void FontPut32(unsigned char *p, uint32_t n) {
     p[0] = (unsigned char)(n >> 24);
     p[1] = (unsigned char)(n >> 16);
     p[2] = (unsigned char)(n >> 8);
@@ -265,7 +266,7 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
     memset(out, 0, length);
     font->bytes = out;
     font->length = length;
-    Rbc_FontPut32(out, memcmp(directory, "OTTO", 4) == 0 ? 0x4f54544f : 0x00010000);
+    FontPut32(out, memcmp(directory, "OTTO", 4) == 0 ? 0x4f54544f : 0x00010000);
     Rbc_FontPut16(out + 4, kept);
     for (power = 1, selector = 0; power * 2 <= kept; power *= 2) {
         selector++;
@@ -306,9 +307,9 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
             checksum += Rbc_FontU32(out + offset + j);
         }
         memcpy(dest, entry, 4);
-        Rbc_FontPut32(dest + 4, checksum);
-        Rbc_FontPut32(dest + 8, (uint32_t)offset);
-        Rbc_FontPut32(dest + 12, n);
+        FontPut32(dest + 4, checksum);
+        FontPut32(dest + 8, (uint32_t)offset);
+        FontPut32(dest + 12, n);
         offset += (n + 3u) & ~3u;
         kept++;
     }
@@ -318,7 +319,7 @@ static int FontProgram(Rbc_ExportContext *token, FontSource *source, Rbc_ExportF
     for (offset = 0; offset < length; offset += 4) {
         sum += Rbc_FontU32(out + offset);
     }
-    Rbc_FontPut32(head + 8, 0xb1b0afbaU - sum);
+    FontPut32(head + 8, 0xb1b0afbaU - sum);
     return TCL_OK;
 }
 
@@ -1420,10 +1421,10 @@ int Rbc_FontUnicodeProgram(Rbc_ExportContext *token, Rbc_ExportFont *font, Tcl_D
     Rbc_FontPut16(cmap + 2, 2);
     Rbc_FontPut16(cmap + 4, 3);
     Rbc_FontPut16(cmap + 6, 1);
-    Rbc_FontPut32(cmap + 8, 20);
+    FontPut32(cmap + 8, 20);
     Rbc_FontPut16(cmap + 12, 3);
     Rbc_FontPut16(cmap + 14, 10);
-    Rbc_FontPut32(cmap + 16, 20 + format4Length);
+    FontPut32(cmap + 16, 20 + format4Length);
     format4 = cmap + 20;
     Rbc_FontPut16(format4, 4);
     Rbc_FontPut16(format4 + 2, format4Length);
@@ -1443,19 +1444,19 @@ int Rbc_FontUnicodeProgram(Rbc_ExportContext *token, Rbc_ExportFont *font, Tcl_D
     }
     format12 = format4 + format4Length;
     Rbc_FontPut16(format12, 12);
-    Rbc_FontPut32(format12 + 4, 16 + 12 * font->count);
-    Rbc_FontPut32(format12 + 12, font->count);
+    FontPut32(format12 + 4, 16 + 12 * font->count);
+    FontPut32(format12 + 12, font->count);
     for (i = 0; i < font->count; i++) {
-        Rbc_FontPut32(format12 + 16 + 12 * i, pairs[i].character);
-        Rbc_FontPut32(format12 + 20 + 12 * i, pairs[i].character);
-        Rbc_FontPut32(format12 + 24 + 12 * i, pairs[i].glyph);
+        FontPut32(format12 + 16 + 12 * i, pairs[i].character);
+        FontPut32(format12 + 20 + 12 * i, pairs[i].character);
+        FontPut32(format12 + 24 + 12 * i, pairs[i].glyph);
     }
     ckfree(pairs);
     for (i = 0; i < Rbc_FontU16(source.bytes + 4); i++) {
         unsigned char *entry = source.bytes + 12 + 16 * i;
         if (memcmp(entry, "cmap", 4) == 0) {
-            Rbc_FontPut32(entry + 8, font->length);
-            Rbc_FontPut32(entry + 12, cmapLength);
+            FontPut32(entry + 8, font->length);
+            FontPut32(entry + 12, cmapLength);
             break;
         }
     }

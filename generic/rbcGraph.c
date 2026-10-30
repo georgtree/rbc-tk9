@@ -1278,7 +1278,7 @@ static int InitPens(Graph *graphPtr) {
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_GraphTags --
+ * GraphTags --
  *
  *      Appends the binding identifiers for the picked graph object.
  *      The object type is supplied explicitly by PickEntry through the
@@ -1298,7 +1298,7 @@ static int InitPens(Graph *graphPtr) {
  *
  *----------------------------------------------------------------------
  */
-void Rbc_GraphTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
+static void GraphTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
     Graph *graphPtr;
 
     graphPtr = (Graph *)Rbc_GetBindingData(table);
@@ -2209,7 +2209,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     if (ConfigureNewGraph(graphPtr, objc - 2, objv + 2) != TCL_OK) {
         goto error;
     }
-    graphPtr->bindTable = Rbc_CreateBindingTable(interp, tkwin, graphPtr, PickEntry, Rbc_GraphTags);
+    graphPtr->bindTable = Rbc_CreateBindingTable(interp, tkwin, graphPtr, PickEntry, GraphTags);
     return graphPtr;
 
 error:
@@ -3721,35 +3721,4 @@ Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin) {
         tkwin = Tk_Parent(tkwin);
     }
     return NULL;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GraphType --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-int Rbc_GraphType(Graph *graphPtr) {
-    if (graphPtr->classUid == rbcLineElementUid) {
-        return GRAPH;
-    } else if (graphPtr->classUid == rbcBarElementUid) {
-        return BARCHART;
-    } else if (graphPtr->classUid == rbcStripElementUid) {
-        return STRIPCHART;
-    } else if (graphPtr->classUid == rbcPolarElementUid) {
-        return POLAR;
-    }
-    return 0;
 }

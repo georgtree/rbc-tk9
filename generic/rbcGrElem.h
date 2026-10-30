@@ -330,18 +330,14 @@ struct ElementStruct {
                                                                                  : NumberOfXYPoints((e)))              \
          : NumberOfXYPoints((e)))
 
+/* Shared element services. Candidate parsing and commit helpers used only by
+ * rbcGrElem.c remain private to that implementation. */
 Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 int Rbc_GetBarRectangle(Element *, Tcl_Size, Extents2D *);
 void Rbc_FreeElemVector(ElemVector *vPtr);
 int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr);
-int Rbc_ParseElemVectorPairsObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *xCandidatePtr,
-                                ElemVector *yCandidatePtr);
-void Rbc_CommitElemVector(Element *elemPtr, ElemVector *destPtr, ElemVector *candidatePtr);
 double Rbc_FindElemVectorMinimum(ElemVector *vecPtr, double minLimit);
-int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr);
-void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
-void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
 void Rbc_SyncElemDataOptionObjects(Element *elemPtr);
 int Rbc_PrepareElemPenTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid penType,
                                   ElemPenTransaction *transactionPtr);
@@ -365,8 +361,6 @@ Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTrans
 void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
 void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
-void Rbc_DestroyPalette(Graph *graphPtr, Rbc_Chain *palette);
-int Rbc_ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, size_t styleSize, Rbc_Chain **palettePtrPtr);
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);
@@ -381,6 +375,5 @@ int Rbc_ValidateValueCommand(Tcl_Interp *interp, Tcl_Obj *commandObjPtr);
 Tcl_Obj *Rbc_GetElementValueLabel(Element *elemPtr, Tcl_Obj *commandObjPtr, const char *format,
                                  int show, Tcl_Size index, double x, double y);
 int Rbc_ValidateValueFormat(Tcl_Interp *interp, const char *format);
-void Rbc_FormatValueLabel(char *buffer, size_t bufferSize, const char *format, int show, double x, double y);
 
 #endif /* _RBCGRELEM */

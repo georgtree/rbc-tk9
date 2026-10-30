@@ -5628,23 +5628,23 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
 /*
  *----------------------------------------------------------------------
  *
- * Rbc_MakeMarkerTag --
+ * MakeMarkerTag --
  *
- *      TODO: Description
+ *      Interns a binding tag in the graph's marker tag table.
  *
  * Parameters:
- *      Graph *graphPtr
- *      char *tagName
+ *      Graph *graphPtr - Owning graph.
+ *      char *tagName   - Binding tag to intern.
  *
  * Results:
- *      TODO: Results
+ *      A stable identifier owned by the graph's marker tag table.
  *
  * Side Effects:
- *      TODO: Side Effects
+ *      Creates a table entry if the tag has not been seen before.
  *
  *----------------------------------------------------------------------
  */
-ClientData Rbc_MakeMarkerTag(Graph *graphPtr, char *tagName) {
+static ClientData MakeMarkerTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
     int isNew;
 
@@ -5656,13 +5656,13 @@ ClientData Rbc_MakeMarkerTag(Graph *graphPtr, char *tagName) {
 void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list) {
     char **p;
 
-    Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, markerPtr->name), 0);
-    Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, markerPtr->classUid), 0);
+    Rbc_ListAppend(list, MakeMarkerTag(graphPtr, markerPtr->name), 0);
+    Rbc_ListAppend(list, MakeMarkerTag(graphPtr, markerPtr->classUid), 0);
     if (markerPtr->tags == NULL) {
         return;
     }
     for (p = markerPtr->tags; *p != NULL; p++) {
-        Rbc_ListAppend(list, Rbc_MakeMarkerTag(graphPtr, *p), 0);
+        Rbc_ListAppend(list, MakeMarkerTag(graphPtr, *p), 0);
     }
 }
 
@@ -5703,7 +5703,7 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
         return TCL_OK;
     }
     return Rbc_ConfigureBindingsFromObj(interp, graphPtr->bindTable,
-                                        Rbc_MakeMarkerTag(graphPtr, Tcl_GetString(objv[3])), objc - 4, objv + 4);
+                                        MakeMarkerTag(graphPtr, Tcl_GetString(objv[3])), objc - 4, objv + 4);
 }
 
 /*

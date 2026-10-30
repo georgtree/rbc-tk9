@@ -30,7 +30,6 @@ unsigned int Rbc_FontU16(const unsigned char *p);
 uint32_t Rbc_FontU32(const unsigned char *p);
 int Rbc_FontS16(const unsigned char *p);
 void Rbc_FontPut16(unsigned char *p, unsigned int n);
-void Rbc_FontPut32(unsigned char *p, uint32_t n);
 Rbc_FontTable Rbc_FontGetTable(Rbc_ExportFont *font, const char *tag);
 Rbc_FontTable Rbc_FontGlyphName(Rbc_ExportFont *font, int glyph);
 Rbc_ExportFont *Rbc_FirstExportFont(Rbc_ExportContext *token);

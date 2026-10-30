@@ -95,16 +95,6 @@ typedef enum {
 
 } ClassType;
 
-/*
- * Mask values used to selectively enable GRAPH or BARCHART entries in
- * the various configuration specs.
- */
-#define GRAPH (TK_CONFIG_USER_BIT << 1)
-#define STRIPCHART (TK_CONFIG_USER_BIT << 2)
-#define BARCHART (TK_CONFIG_USER_BIT << 3)
-#define POLAR (TK_CONFIG_USER_BIT << 4)
-#define LINE_GRAPHS (GRAPH | STRIPCHART | POLAR)
-#define ALL_GRAPHS (GRAPH | BARCHART | STRIPCHART | POLAR)
 #define PEN_DELETE_PENDING (1 << 0)
 #define ACTIVE_PEN (TK_CONFIG_USER_BIT << 6)
 #define NORMAL_PEN (TK_CONFIG_USER_BIT << 7)
@@ -660,8 +650,6 @@ Tcl_ObjCmdProc2 Rbc_GraphInstCmdProc;
 int Rbc_CreatePostScript(Graph *graphPtr);
 int Rbc_CreateCrosshairs(Graph *graphPtr);
 int Rbc_CreateGrid(Graph *graphPtr);
-double Rbc_InvHMap(Graph *graphPtr, Axis *axisPtr, double x);
-double Rbc_InvVMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x);
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y);
 struct RbcTrack {
@@ -781,17 +769,13 @@ double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, 
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under);
 Axis *Rbc_NearestAxis(Graph *graphPtr, int x, int y);
 
-typedef ClientData(MakeTagProc)(Graph *graphPtr, char *tagName);
-MakeTagProc Rbc_MakeElementTag;
-MakeTagProc Rbc_MakeMarkerTag;
-MakeTagProc Rbc_MakeAxisTag;
+/* Legends share element binding identifiers; axis and marker tag interning
+ * is private to the corresponding component implementation. */
+ClientData Rbc_MakeElementTag(Graph *graphPtr, char *tagName);
 
 void Rbc_AppendAxisBindingTags(Graph *graphPtr, Axis *axisPtr, Rbc_List list);
 void Rbc_AppendElementBindingTags(Graph *graphPtr, Element *elemPtr, Rbc_List list);
 void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list);
-Rbc_BindTagProc Rbc_GraphTags;
-
-int Rbc_GraphType(Graph *graphPtr);
 
 /* ---------------------- Global declarations ------------------------ */
 extern Rbc_Uid rbcBarElementUid;
