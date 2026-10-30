@@ -568,6 +568,8 @@ void Rbc_DestroyCrosshairs(Graph *graphPtr) {
     }
     graphPtr->crosshairs = NULL;
     Tk_FreeConfigOptions((char *)chPtr, chPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(chPtr->optionTable);
+    chPtr->optionTable = NULL;
     if (chPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, chPtr->gc);
     }

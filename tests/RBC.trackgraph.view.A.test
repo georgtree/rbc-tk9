@@ -156,6 +156,21 @@ namespace eval trackgraph.view {
         update
         list [.tg track names] [.tg track view] [.tg element cget v -track]
     } -cleanup {destroy .tg} -result {voltage {0.0 1.0} voltage}
+    test RBC.trackgraph.view.A.5.1 {invalid requests preserve the view and require full command words} -setup {
+        ScrollSetup 0
+        .tg axis configure volts -scrollmin -10 -scrollmax 10
+        update
+    } -body {
+        set before [.tg track view]
+        set result {}
+        foreach request {{moveto} {scroll} {scroll 1} {moveto 0.5 extra}
+            {m 0.5} {s 1 units} {scroll 1 u} {0.5} {moveto Inf}} {
+            lappend result [catch {.tg track view {*}$request}]
+        }
+        list [expr {$result eq [lrepeat 9 1]}] [expr {$before eq [.tg track view]}]
+    } -cleanup {destroy .tg} -result {1 1}
+
+
     cleanupTests
 }
 namespace delete ::trackgraph.view

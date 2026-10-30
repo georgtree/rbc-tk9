@@ -279,6 +279,8 @@ void Rbc_DestroyPostScript(Graph *graphPtr) {
     }
     graphPtr->postscript = NULL;
     Tk_FreeConfigOptions((char *)psPtr, psPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(psPtr->optionTable);
+    psPtr->optionTable = NULL;
     ckfree((char *)psPtr);
 }
 

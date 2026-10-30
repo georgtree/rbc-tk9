@@ -64,6 +64,21 @@ namespace eval trackgraph.yview {
             } -cleanup {destroy .tg} -result {1 1 1}
         }
     }
+    test RBC.trackgraph.yview.A.3.1 {invalid requests preserve the view and require full command words} -setup {
+        ScrollSetup 0
+        .tg axis configure volts -scrollmin -10 -scrollmax 10
+        update
+    } -body {
+        set before [.tg axis view volts]
+        set result {}
+        foreach request {{moveto} {scroll} {scroll 1} {moveto 0.5 extra}
+            {m 0.5} {s 1 units} {scroll 1 u} {0.5} {moveto Inf}} {
+            lappend result [catch {.tg track yview voltage {*}$request}]
+        }
+        list [expr {$result eq [lrepeat 9 1]}] [expr {$before eq [.tg axis view volts]}]
+    } -cleanup {destroy .tg} -result {1 1}
+
+
     cleanupTests
 }
 namespace delete ::trackgraph.yview

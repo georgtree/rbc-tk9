@@ -844,9 +844,10 @@ static int InitMarkerOptions(Marker *markerPtr) {
                                       markerPtr->classUid, (char *)markerPtr, markerPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
-        if (markerPtr->name != NULL) {
-            ckfree(markerPtr->name);
-        }
+        /* The partial record owns any -name default as well as its other
+         * Tk options. Restore the command's original name only after cleanup. */
+        Tk_FreeConfigOptions((char *)markerPtr, markerPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(markerPtr->optionTable);
         markerPtr->name = initialName;
         markerPtr->optionTable = NULL;
         return TCL_ERROR;
@@ -966,6 +967,8 @@ static void ReleaseMarkerTkResources(Marker *markerPtr) {
         markerPtr->axes.y = NULL;
     }
     Tk_FreeConfigOptions((char *)markerPtr, markerPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(markerPtr->optionTable);
+    markerPtr->optionTable = NULL;
     markerPtr->tkResourcesReleased = TRUE;
 }
 

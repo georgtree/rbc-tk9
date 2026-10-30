@@ -222,6 +222,20 @@ namespace eval trackgraph.grid {
             } -cleanup {image delete $photo; destroy .tg} -result {1 1}
         }
     }
+    test RBC.trackgraph.grid.A.10.1 {option-name objects survive repeated inherited and local grid lifetimes} -body {
+        set colorOption -color
+        set result {}
+        for {set i 0} {$i < 20} {incr i} {
+            Create
+            .tg grid configure -color blue
+            lappend result [.tg track grid voltage cget $colorOption]
+            .tg track grid voltage configure -color red
+            lappend result [.tg track grid voltage cget $colorOption]
+            destroy .tg
+        }
+        expr {$result eq [lrepeat 20 blue red]}
+    } -cleanup {catch {destroy .tg}} -result 1
+
     cleanupTests
 }
 namespace delete ::trackgraph.grid

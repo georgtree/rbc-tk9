@@ -269,6 +269,30 @@ namespace eval trackgraph.legend {
                 [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
         }
     } -cleanup {interp delete trackOptionChild} -result {purple sw 1 n}
+    test RBC.trackgraph.legend.A.17.1 {failed local legend initialization permits recreating the track} -setup {
+        interp create trackOptionChild
+        interp eval trackOptionChild [list set auto_path $::auto_path]
+        interp eval trackOptionChild {
+            package require rbc
+            wm withdraw .
+            rbc::trackgraph .tg
+        }
+    } -body {
+        interp eval trackOptionChild {
+            set result {}
+            for {set i 0} {$i < 20} {incr i} {
+                option add *TrackLegend.hide invalidBoolean interactive
+                lappend result [catch {.tg track create voltage}]
+                option clear
+                .tg track create voltage
+                .tg track legend voltage configure -hide no
+                lappend result [.tg track legend voltage cget -hide]
+                .tg track delete voltage
+            }
+            expr {$result eq [lrepeat 20 1 0]}
+        }
+    } -cleanup {interp delete trackOptionChild} -result 1
+
     cleanupTests
 }
 namespace delete ::trackgraph.legend

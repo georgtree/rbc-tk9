@@ -490,7 +490,7 @@ static void SetLegendPositionObject(Legend *legendPtr, const char *value) {
 }
 
 static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
-    if ((legendPtr == NULL) || (!legendPtr->optionsInitialized) || (legendPtr->tkResourcesReleased)) {
+    if ((legendPtr == NULL) || (legendPtr->optionTable == NULL) || (legendPtr->tkResourcesReleased)) {
         return;
     }
     if (legendPtr->flags & REDRAW_PENDING) {
@@ -512,6 +512,8 @@ static void ReleaseLegendTkResources(Graph *graphPtr, Legend *legendPtr) {
         legendPtr->style.shadow.color = NULL;
     }
     Tk_FreeConfigOptions((char *)legendPtr, legendPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(legendPtr->optionTable);
+    legendPtr->optionTable = NULL;
     legendPtr->tkResourcesReleased = TRUE;
     /*
      * Do not retain the graph's Tk_Window after it is destroyed.

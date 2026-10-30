@@ -1493,7 +1493,11 @@ static int InitGraphOptions(Graph *graphPtr) {
          * an invalid default or option-database value. All option-owned
          * pointer fields were initially NULL, so partial cleanup is safe.
          */
+        /* The cursor option also updates the window attributes. Do not leave
+         * an unrealized window referring to a cursor freed by partial cleanup. */
+        Tk_UndefineCursor(graphPtr->tkwin);
         Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(graphPtr->optionTable);
         graphPtr->optionTable = NULL;
         return TCL_ERROR;
     }
@@ -1730,6 +1734,8 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
      */
     ResetGraphOptionContext(graphPtr);
     Tk_FreeConfigOptions((char *)graphPtr, graphPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(graphPtr->optionTable);
+    graphPtr->optionTable = NULL;
     graphPtr->optionsInitialized = FALSE;
     graphPtr->tkResourcesReleased = TRUE;
 }

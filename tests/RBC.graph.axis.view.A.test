@@ -219,6 +219,40 @@ namespace eval graph.axis {
         unset -nocomplain ::rbcWheelResult
     } -result {0 1}
 
+    test RBC.graph.axis.view.A.6.1 {invalid scroll requests leave axis limits unchanged} -setup {
+        graph .graph1
+        .graph1 axis configure x -min 40 -max 60 -scrollmin 0 -scrollmax 100
+        .graph1 axis create unused
+        update
+    } -body {
+        set before [.graph1 axis view x]
+        set result {}
+        foreach axis {x unused} {
+            foreach request {{moveto} {scroll} {scroll 1} {moveto 0.5 extra}
+                {1 extra} {scroll 1 units extra} {moveto Inf} {scroll Inf units}} {
+                lappend result [catch {.graph1 axis view $axis {*}$request}]
+            }
+        }
+        list [expr {$result eq [lrepeat 16 1]}] [expr {$before eq [.graph1 axis view x]}]
+    } -cleanup {destroy .graph1} -result {1 1}
+
+    test RBC.graph.axis.view.A.6.2 {axis abbreviations and fractional numeric scrolling remain supported} -setup {
+        graph .graph1
+        .graph1 axis configure x -min 40 -max 60 -scrollmin 0 -scrollmax 100
+        update
+    } -body {
+        .graph1 axis view x moveto 0.4
+        .graph1 axis view x scroll 0.5 units
+        set expected [.graph1 axis view x]
+        .graph1 axis view x m 0.4
+        .graph1 axis view x s 0.5 u
+        set abbreviated [.graph1 axis view x]
+        .graph1 axis view x moveto 0.4
+        .graph1 axis view x 0.5
+        list [expr {$expected eq $abbreviated}] [expr {$expected eq [.graph1 axis view x]}]
+    } -cleanup {destroy .graph1} -result {1 1}
+
+
 	cleanupTests
 	
 }

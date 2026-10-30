@@ -966,6 +966,64 @@ int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnit
     return (int)newOffset;
 }
 
+/* Validate the complete request before inspecting optional arguments. Queries
+ * are handled by callers. Axis commands retain abbreviations and their legacy
+ * numeric form; track commands use the exact Tk-style words. */
+int Rbc_ParseScrollRequest(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Tcl_Size first,
+    int legacy, Rbc_ScrollRequest *request) {
+    Tcl_Size count = objc - first, valueIndex;
+    const char *word;
+    size_t length;
+    Rbc_ScrollRequest parsed;
+    if (count <= 0) {
+        goto usage;
+    }
+    word = Tcl_GetString(objv[first]);
+    length = strlen(word);
+    if (length > 0 && (legacy ? strncmp(word, "moveto", length) == 0 : strcmp(word, "moveto") == 0)) {
+        if (count != 2) {
+            goto usage;
+        }
+        parsed.kind = RBC_SCROLL_MOVETO;
+        valueIndex = first + 1;
+    } else if (length > 0 && (legacy ? strncmp(word, "scroll", length) == 0 : strcmp(word, "scroll") == 0)) {
+        const char *units;
+        size_t unitLength;
+        if (count != 3) {
+            goto usage;
+        }
+        units = Tcl_GetString(objv[first + 2]);
+        unitLength = strlen(units);
+        if (unitLength > 0 && (legacy ? strncmp(units, "units", unitLength) == 0 : strcmp(units, "units") == 0)) {
+            parsed.kind = RBC_SCROLL_UNITS;
+        } else if (unitLength > 0 && (legacy ? strncmp(units, "pages", unitLength) == 0 : strcmp(units, "pages") == 0)) {
+            parsed.kind = RBC_SCROLL_PAGES;
+        } else {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("unknown \"scroll\" units \"%s\"", units));
+            return TCL_ERROR;
+        }
+        valueIndex = first + 1;
+    } else {
+        if (!legacy || count != 1) {
+            goto usage;
+        }
+        parsed.kind = RBC_SCROLL_UNITS;
+        valueIndex = first;
+    }
+    if (Tcl_GetDoubleFromObj(interp, objv[valueIndex], &parsed.value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (!FINITE(parsed.value)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll request must be finite", -1));
+        return TCL_ERROR;
+    }
+    *request = parsed;
+    return TCL_OK;
+usage:
+    Tcl_WrongNumArgs(interp, first, objv, "?moveto fraction|scroll number units|pages?");
+    return TCL_ERROR;
+}
+
 /*
  *----------------------------------------------------------------------
  *

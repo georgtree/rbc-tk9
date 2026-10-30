@@ -630,6 +630,10 @@ static void TrackViewFractions(Graph *graphPtr, double *first, double *last) {
 static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double first, last, value, offset;
     double range;
+    Rbc_ScrollRequest request;
+    if (objc > 3 && Rbc_ParseScrollRequest(interp, objc, objv, 3, FALSE, &request) != TCL_OK) {
+        return TCL_ERROR;
+    }
     Rbc_LayoutGraph(graphPtr);
     TrackViewFractions(graphPtr, &first, &last);
     if (objc == 3) {
@@ -639,27 +643,13 @@ static int TrackViewOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     }
     offset = graphPtr->trackOffset;
     range = MAX(1, graphPtr->inverted ? graphPtr->hRange : graphPtr->vRange);
-    if (objc == 5 && strcmp(Tcl_GetString(objv[3]), "moveto") == 0) {
-        if (Tcl_GetDoubleFromObj(interp, objv[4], &value) != TCL_OK) {
-            return TCL_ERROR;
-        }
+    value = request.value;
+    if (request.kind == RBC_SCROLL_MOVETO) {
         offset = value * MAX(range, graphPtr->trackExtent);
-    } else if (objc == 6 && strcmp(Tcl_GetString(objv[3]), "scroll") == 0) {
-        const char *units = Tcl_GetString(objv[5]);
-        if (Tcl_GetDoubleFromObj(interp, objv[4], &value) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (strcmp(units, "units") == 0) {
-            offset += value * 20.0;
-        } else if (strcmp(units, "pages") == 0) {
-            offset += value * range * 0.9;
-        } else {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("expected units or pages", -1));
-            return TCL_ERROR;
-        }
+    } else if (request.kind == RBC_SCROLL_PAGES) {
+        offset += value * range * 0.9;
     } else {
-        Tcl_WrongNumArgs(interp, 3, objv, "?moveto fraction|scroll number units|pages?");
-        return TCL_ERROR;
+        offset += value * 20.0;
     }
     if (!FINITE(value) || !FINITE(offset)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("track scroll request must be finite", -1));

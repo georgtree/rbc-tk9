@@ -3486,6 +3486,9 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
                                       "Element", (char *)elemPtr, elemPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
+        /* Tk_InitOptions leaves earlier options initialized on failure. */
+        Tk_FreeConfigOptions((char *)elemPtr, elemPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(elemPtr->optionTable);
         elemPtr->optionTable = NULL;
         return TCL_ERROR;
     }
@@ -3593,6 +3596,8 @@ static void ReleaseElementResources(Graph *graphPtr, Element *elemPtr) {
     (*elemPtr->procsPtr->destroyProc)(graphPtr, elemPtr);
     if (elemPtr->optionsInitialized) {
         Tk_FreeConfigOptions((char *)elemPtr, elemPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(elemPtr->optionTable);
+        elemPtr->optionTable = NULL;
         elemPtr->optionsInitialized = FALSE;
     }
     elemPtr->tkResourcesReleased = TRUE;

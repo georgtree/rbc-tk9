@@ -323,8 +323,6 @@ static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double
 static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value);
 static void MakeLogRange(double value, double *minPtr, double *maxPtr);
 static double AdjustViewport(double offset, double windowSize);
-static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
-                             double windowSize, double scrollUnits);
 static void DrawAxis(Graph *graphPtr, Drawable drawable, Axis *axisPtr);
 static void AxisExport(Rbc_ExportContext *exportPtr, Axis *axisPtr);
 static void MakeGridLine(Graph *graphPtr, Axis *axisPtr, double value, Segment2D *segPtr);
@@ -1265,6 +1263,9 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
                                       (char *)axisPtr, axisPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
+        /* Tk_InitOptions leaves earlier options initialized on failure. */
+        Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(axisPtr->optionTable);
         axisPtr->optionTable = NULL;
         return TCL_ERROR;
     }
@@ -1387,6 +1388,8 @@ static void ReleaseAxisOptionResources(Graph *graphPtr, Axis *axisPtr) {
     ResetAxisOptionContext(axisPtr);
     if (axisPtr->optionsInitialized) {
         Tk_FreeConfigOptions((char *)axisPtr, axisPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(axisPtr->optionTable);
+        axisPtr->optionTable = NULL;
         axisPtr->optionsInitialized = FALSE;
     }
     axisPtr->tkResourcesReleased = TRUE;
@@ -4287,89 +4290,6 @@ static int GetAxisScrollState(Axis *axisPtr, AxisRange *rangePtr, double *viewMi
 }
 
 /*
- *----------------------------------------------------------------------
- *
- * GetAxisScrollInfo --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *      double *offsetPtr
- *      double windowSize
- *      double scrollUnits
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
-static int GetAxisScrollInfo(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], double *offsetPtr,
-                             double windowSize, double scrollUnits) {
-    char c;
-    const char *s;
-    unsigned int length;
-    double offset;
-    double count;
-    double fract;
-
-    offset = *offsetPtr;
-    s = Tcl_GetString(objv[0]);
-    c = s[0];
-    length = strlen(s);
-    if ((c == 's') && (strncmp(s, "scroll", length) == 0)) {
-        assert(objc == 3);
-        /* scroll number unit/page */
-        if (Tcl_GetDoubleFromObj(interp, objv[1], &count) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (!FINITE(count)) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll count must be finite", -1));
-            return TCL_ERROR;
-        }
-        s = Tcl_GetString(objv[2]);
-        c = s[0];
-        length = strlen(s);
-        if ((c == 'u') && (strncmp(s, "units", length) == 0)) {
-            fract = count * scrollUnits;
-        } else if ((c == 'p') && (strncmp(s, "pages", length) == 0)) {
-            /* A page is 90% of the view-able window. */
-            fract = count * windowSize * 0.9;
-        } else {
-            Rbc_AppendResultStrings(interp, "unknown \"scroll\" units \"", s, "\"", (char *)NULL);
-            return TCL_ERROR;
-        }
-        offset += fract;
-    } else if ((c == 'm') && (strncmp(s, "moveto", length) == 0)) {
-        assert(objc == 2);
-        /* moveto fraction */
-        if (Tcl_GetDoubleFromObj(interp, objv[1], &fract) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        offset = fract;
-    } else {
-        /* Treat like "scroll units" */
-        if (Tcl_GetDoubleFromObj(interp, objv[0], &count) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (!FINITE(count)) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll count must be finite", -1));
-            return TCL_ERROR;
-        }
-        fract = count * scrollUnits;
-        offset += fract;
-        /* CHECK THIS: return TCL_OK; */
-    }
-    *offsetPtr = AdjustViewport(offset, windowSize);
-    return TCL_OK;
-}
-
-/*
  * -----------------------------------------------------------------
  *
  * DrawAxis --
@@ -6672,8 +6592,12 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     double newMin;
     double newMax;
     int forward;
+    Rbc_ScrollRequest request;
 
     interp = graphPtr->interp;
+    if (objc > 4 && Rbc_ParseScrollRequest(interp, objc, objv, 4, TRUE, &request) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (NameToAxis(graphPtr, Tcl_GetString(objv[3]), &axisPtr) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -6712,9 +6636,14 @@ static int ViewOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
          */
         return TCL_OK;
     }
-    if (GetAxisScrollInfo(interp, objc - 4, objv + 4, &fract, windowSize, scrollUnits) != TCL_OK) {
-        return TCL_ERROR;
+    if (request.kind == RBC_SCROLL_MOVETO) {
+        fract = request.value;
+    } else if (request.kind == RBC_SCROLL_PAGES) {
+        fract += request.value * windowSize * 0.9;
+    } else {
+        fract += request.value * scrollUnits;
     }
+    fract = AdjustViewport(fract, windowSize);
     if (forward) {
         first = fract;
         last = fract + windowSize;
@@ -6773,21 +6702,9 @@ int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_S
         return TCL_ERROR;
     }
     if (objc != start) {
-        double value;
-        if (!((objc == start + 2 && strcmp(Tcl_GetString(objv[start]), "moveto") == 0) ||
-              (objc == start + 3 && strcmp(Tcl_GetString(objv[start]), "scroll") == 0))) {
-            goto usage;
-        }
-        if (Tcl_GetDoubleFromObj(interp, objv[start + 1], &value) != TCL_OK) {
+        Rbc_ScrollRequest request;
+        if (Rbc_ParseScrollRequest(interp, objc, objv, start, FALSE, &request) != TCL_OK) {
             return TCL_ERROR;
-        }
-        if (!FINITE(value)) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("scroll request must be finite", -1));
-            return TCL_ERROR;
-        }
-        if (objc == start + 3 && strcmp(Tcl_GetString(objv[start + 2]), "units") != 0 &&
-            strcmp(Tcl_GetString(objv[start + 2]), "pages") != 0) {
-            goto usage;
         }
     }
     Rbc_LayoutGraph(graphPtr);

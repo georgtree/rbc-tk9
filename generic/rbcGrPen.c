@@ -50,6 +50,9 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
                                       (char *)penPtr, penPtr->optionTable);
     ckfree(componentName);
     if (result != TCL_OK) {
+        /* Tk_InitOptions leaves earlier options initialized on failure. */
+        Tk_FreeConfigOptions((char *)penPtr, penPtr->optionTable, graphPtr->tkwin);
+        Tk_DeleteOptionTable(penPtr->optionTable);
         penPtr->optionTable = NULL;
         return TCL_ERROR;
     }
@@ -97,6 +100,8 @@ static void ReleasePenResources(Graph *graphPtr, Pen *penPtr) {
      */
     (*penPtr->destroyProc)(graphPtr, penPtr);
     Tk_FreeConfigOptions((char *)penPtr, penPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(penPtr->optionTable);
+    penPtr->optionTable = NULL;
     penPtr->tkResourcesReleased = TRUE;
 }
 

@@ -491,6 +491,14 @@ ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
+typedef enum {RBC_SCROLL_MOVETO, RBC_SCROLL_UNITS, RBC_SCROLL_PAGES} Rbc_ScrollKind;
+typedef struct {
+    Rbc_ScrollKind kind;
+    double value;
+} Rbc_ScrollRequest;
+/* legacy permits axis abbreviations and a single numeric unit count. */
+int Rbc_ParseScrollRequest(Tcl_Interp *, Tcl_Size, Tcl_Obj *const [], Tcl_Size, int, Rbc_ScrollRequest *);
+
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);

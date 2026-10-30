@@ -589,6 +589,11 @@ namespace eval TclTk9Upgrade {
 
         - Reworked creation, configuration and destruction paths for graph components.
         - Improved rollback after failed configurations.
+        - Release partially initialized Tk option values after component creation fails, and balance option-table
+          references for graph components and temporary track-grid queries. Failed graph initialization also clears
+          the window cursor before releasing it, avoiding an invalid cursor during teardown of an unrealized window.
+        - Validate axis and track scrolling requests before reading arguments or changing a view. Axis scrolling
+          retains its abbreviated commands and fractional numeric form; track scrolling requires full command words.
         - Corrected ownership of dynamically allocated option values.
         - Fixed temporary Tk image creation and destruction.
         - Corrected resource cleanup for legends, markers, pens and elements.

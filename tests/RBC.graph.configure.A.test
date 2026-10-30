@@ -3244,5 +3244,39 @@ namespace eval graph.configure {
 	} -result {0}
 	
 	
+    test RBC.graph.configure.A.40.1 {failed component initialization can be followed by successful recreation} -body {
+        set child [interp create]
+        $child eval [list set auto_path $::auto_path]
+        $child eval {
+            package require rbc
+            set result {}
+            foreach pattern {*Graph.invertXY *Axis.hide *Element.hide *TextMarker.hide
+                *BitmapMarker.hide *Pen.valueRotate *Legend.hide *Grid.hide
+                *Crosshairs.hide *Postscript.landscape} {
+                for {set i 0} {$i < 10} {incr i} {
+                    option add $pattern invalidBoolean interactive
+                    set code [catch {
+                        rbc::graph .g
+                        .g element create e -xdata {0 1} -ydata {0 1}
+                        .g marker create text -name m -coords {0 0} -text sample
+                        .g marker create bitmap -name b -coords {0 0} -bitmap questhead
+                        .g pen create p
+                    }]
+                    catch {destroy .g}
+                    option clear
+                    rbc::graph .g
+                    .g element create e -xdata {0 1} -ydata {0 1}
+                    .g marker create text -name m -coords {0 0} -text sample
+                    destroy .g
+                    lappend result [expr {$code == 1}]
+                }
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {
+        interp delete $child
+    } -result 1
+
+
 	cleanupTests
 }

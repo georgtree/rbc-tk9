@@ -1100,6 +1100,8 @@ static void DestroyGrid(Graph *graphPtr, Grid *gridPtr) {
      * This must run while graphPtr->tkwin is still valid.
      */
     Tk_FreeConfigOptions((char *)gridPtr, gridPtr->optionTable, graphPtr->tkwin);
+    Tk_DeleteOptionTable(gridPtr->optionTable);
+    gridPtr->optionTable = NULL;
     if (gridPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, gridPtr->gc);
     }
@@ -1468,6 +1470,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
     Tcl_Obj **args, *prefix, *mapY;
     Tcl_Size count = objc - 2, i;
     int index, code, query;
+    Tk_OptionTable viewTable = NULL;
     if (objc < 5) {
         Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
         return TCL_ERROR;
@@ -1487,7 +1490,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
     query = gridOps[index].proc == CgetOp || (gridOps[index].proc == ConfigureOp && count <= 4);
     /* Queries must not materialize a local grid or freeze inherited defaults. */
     view = *global;
-    view.optionTable = Tk_CreateOptionTable(interp, trackGridOptionSpecs);
+    viewTable = view.optionTable = Tk_CreateOptionTable(interp, trackGridOptionSpecs);
     view.axes.y = global->axes.y != NULL && track->nAxes > 0 ? track->axes[0] : NULL;
     mapY = Tcl_NewStringObj(view.axes.y != NULL ? view.axes.y->name : "", -1);
     Tcl_IncrRefCount(mapY);
@@ -1499,7 +1502,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
         local = RbcCalloc(1, sizeof(*local));
         local->graphPtr = graphPtr;
         local->track = track;
-        local->optionTable = view.optionTable;
+        local->optionTable = Tk_CreateOptionTable(interp, trackGridOptionSpecs);
         code = Tk_InitOptions(interp, (char *)local, local->optionTable, graphPtr->tkwin);
         if (code == TCL_OK) {
             for (i = 0; i < 7; i++) {
@@ -1540,6 +1543,9 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
     }
     Tcl_DecrRefCount(mapY);
 done:
+    if (viewTable != NULL) {
+        Tk_DeleteOptionTable(viewTable);
+    }
     Tcl_DecrRefCount(prefix);
     ckfree(args);
     return code;

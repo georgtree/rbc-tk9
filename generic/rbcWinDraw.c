@@ -1078,7 +1078,9 @@ static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
     int i, result;
     int left, top, right, bottom, margin;
 
-    if (GetClipBox(dc, &clip) == ERROR) {return FALSE;}
+    if (GetClipBox(dc, &clip) == ERROR) {
+        return FALSE;
+    }
     left = right = segments[0].x1;
     top = bottom = segments[0].y1;
     for (i = 0; i < count; i++) {
@@ -1092,11 +1094,18 @@ static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
     top = MAX(clip.top, top - margin);
     right = MIN(clip.right, right + margin);
     bottom = MIN(clip.bottom, bottom + margin);
-    if (right <= left || bottom <= top) {return TRUE;}
+    if (right <= left || bottom <= top) {
+        return TRUE;
+    }
     maskDC = CreateCompatibleDC(dc);
-    if (maskDC == NULL) {return FALSE;}
+    if (maskDC == NULL) {
+        return FALSE;
+    }
     bitmap = CreateCompatibleBitmap(dc, right - left, bottom - top);
-    if (bitmap == NULL) {DeleteDC(maskDC); return FALSE;}
+    if (bitmap == NULL) {
+        DeleteDC(maskDC);
+        return FALSE;
+    }
     oldBitmap = SelectBitmap(maskDC, bitmap);
     if (!PatBlt(maskDC, 0, 0, right - left, bottom - top, BLACKNESS)) {
         SelectBitmap(maskDC, oldBitmap);
@@ -1115,7 +1124,10 @@ static int DrawXorSegments(HDC dc, GC gc, const XSegment *segments, int count) {
         points[0].y = segments[i].y1;
         points[1].x = segments[i].x2;
         points[1].y = segments[i].y2;
-        if (!Polyline(maskDC, points, 2)) {result = FALSE; break;}
+        if (!Polyline(maskDC, points, 2)) {
+            result = FALSE;
+            break;
+        }
     }
     if (result) {
         result = BitBlt(dc, left, top, right - left, bottom - top, maskDC, left, top, SRCINVERT);
