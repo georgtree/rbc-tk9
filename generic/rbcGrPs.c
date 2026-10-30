@@ -96,7 +96,7 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
 static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken);
 
 #ifdef WIN32
-static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f);
+static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, Tcl_DString *document);
 #endif
 
 static int IsOptionPrefix(const char *string, Tcl_Size length, const char *fullName) {
@@ -875,9 +875,9 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
 /*
  * --------------------------------------------------------------------------
  *
- * CreateWindowEPS --
+ * CreateWindowsEPS --
  *
- *      Generates an EPS file with a Window metafile preview.
+ *      Builds an EPS document with a Windows metafile preview.
  *
  *      Windows metafiles aren't very robust.  Including exactly the
  *      same metafile (one embedded in a DOS EPS, the other as .wmf
@@ -886,17 +886,17 @@ static int GraphToPostScript(Graph *graphPtr, const char *ident, PsToken psToken
  * Parameters:
  *      Graph *graphPtr
  *      PsToken psToken
- *      FILE *f
+ *      Tcl_DString *document - Receives the complete binary EPS document.
  *
  * Results:
- *      None.
+ *      Standard Tcl result.
  *
  * Side effects:
- *      TODO: Side Effects
+ *      Appends the header, PostScript and metafile bytes to document.
  *
  * --------------------------------------------------------------------------
  */
-static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
+static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, Tcl_DString *document) {
     DWORD size;
     DOSEPSHEADER epsHeader;
     HANDLE hMem = NULL;
@@ -941,6 +941,7 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     Tcl_DStringFree(&dString);
     if (hDC == NULL) {
         Rbc_AppendResultStrings(graphPtr->interp, "can't create metafile: ", Rbc_LastError(), (char *)NULL);
+        ReleaseDC(hWnd, hRefDC);
         return TCL_ERROR;
     }
     /* Assemble a Tk drawable that points to the metafile and let the
@@ -958,14 +959,22 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
     if (!Rbc_GraphCallbackValid(graphPtr)) {
         goto error;
     }
+    if (hMetaFile == NULL) {
+        Rbc_AppendResultStrings(graphPtr->interp, "can't close metafile: ", Rbc_LastError(), (char *)NULL);
+        goto error;
+    }
     size = GetWinMetaFileBits(hMetaFile, 0, NULL, MM_ANISOTROPIC, hRefDC);
+    if (size == 0) {
+        Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile size: ", Rbc_LastError(), (char *)NULL);
+        goto error;
+    }
     hMem = GlobalAlloc(GHND, size);
     if (hMem == NULL) {
         Rbc_AppendResultStrings(graphPtr->interp, "can't allocate global memory:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
     buffer = (LPVOID)GlobalLock(hMem);
-    if (!GetWinMetaFileBits(hMetaFile, size, buffer, MM_ANISOTROPIC, hRefDC)) {
+    if (buffer == NULL || !GetWinMetaFileBits(hMetaFile, size, buffer, MM_ANISOTROPIC, hRefDC)) {
         Rbc_AppendResultStrings(graphPtr->interp, "can't get metafile data:", Rbc_LastError(), (char *)NULL);
         goto error;
     }
@@ -975,25 +984,16 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, FILE *f) {
      */
     epsHeader.wmfLength = size;
     epsHeader.wmfStart = epsHeader.psStart + epsHeader.psLength;
-    /* Write out the eps header, */
-    if (fwrite(&epsHeader, 1, sizeof(epsHeader), f) != sizeof(epsHeader)) {
-        Rbc_AppendResultStrings(graphPtr->interp, "error writing eps header:", Rbc_LastError(), (char *)NULL);
-        goto error;
-    }
-    /* the PostScript, */
-    if (fwrite(psBuffer, 1, epsHeader.psLength, f) != epsHeader.psLength) {
-        Rbc_AppendResultStrings(graphPtr->interp, "error writing PostScript data:", Rbc_LastError(), (char *)NULL);
-        goto error;
-    }
-    /* and finally the metadata itself. */
-    if (fwrite(buffer, 1, size, f) != size) {
-        Rbc_AppendResultStrings(graphPtr->interp, "error writing metafile data:", Rbc_LastError(), (char *)NULL);
-        goto error;
-    }
+    /* Preserve the DOS EPS header, including the terminating PostScript NUL. */
+    Tcl_DStringAppend(document, (const char *)&epsHeader, sizeof(epsHeader));
+    Tcl_DStringAppend(document, psBuffer, epsHeader.psLength);
+    Tcl_DStringAppend(document, (const char *)buffer, size);
     result = TCL_OK;
 
 error:
-    DeleteEnhMetaFile(hMetaFile);
+    if (hMetaFile != NULL) {
+        DeleteEnhMetaFile(hMetaFile);
+    }
     ReleaseDC(hWnd, hRefDC);
     if (hMem != NULL) {
         GlobalUnlock(hMem);
@@ -1030,14 +1030,14 @@ error:
  */
 static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     PostScript *psPtr;
-    FILE *f;
     PsToken psToken;
-    const char *fileName;
+    Tcl_Obj *fileName;
+    Tcl_Channel channel;
+    Tcl_DString document;
     Tcl_Size optionIndex;
+    int result;
 
     psPtr = graphPtr->postscript;
-    f = NULL;
-    psToken = NULL;
     fileName = NULL;
     optionIndex = 3;
     if (objc > 3) {
@@ -1045,7 +1045,7 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
 
         arg = Tcl_GetString(objv[3]);
         if (arg[0] != '-') {
-            fileName = arg;
+            fileName = objv[3];
             optionIndex = 4;
         }
     }
@@ -1063,61 +1063,64 @@ static int OutputOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
          */
         Tk_FreeSavedOptions(&savedOptions);
     }
-    if (fileName != NULL) {
-#ifdef WIN32
-        f = fopen(fileName, "wb");
-#else
-        f = fopen(fileName, "w");
-#endif
-        if (f == NULL) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't create \"%s\": %s", fileName, Tcl_PosixError(interp)));
-            return TCL_ERROR;
-        }
-    }
     psToken = Rbc_GetPsToken(graphPtr->interp, graphPtr->tkwin);
     psToken->fontVarName = psPtr->fontVarName;
     psToken->colorVarName = psPtr->colorVarName;
     psToken->colorMode = psPtr->colorMode;
-    if (GraphToPostScript(graphPtr, fileName, psToken) != TCL_OK) {
-        goto error;
+    Tcl_DStringInit(&document);
+    result = GraphToPostScript(graphPtr, fileName == NULL ? NULL : Tcl_GetString(fileName), psToken);
+    if (result != TCL_OK) {
+        goto done;
+    }
+    if (fileName == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(psToken), -1));
+        goto done;
+    }
+#ifdef WIN32
+    if (psPtr->addPreview && psPtr->previewFormat != PS_PREVIEW_EPSI) {
+        result = CreateWindowsEPS(graphPtr, psToken, &document);
+        if (result != TCL_OK) {
+            goto done;
+        }
+    } else
+#endif
+    {
+        Tcl_DStringAppend(&document, Rbc_PostScriptFromToken(psToken), -1);
     }
     /*
-     * If a file name was given, write the results to that file
+     * Finish rendering (including the Windows preview) before opening the
+     * destination.  Binary translation preserves both ordinary PostScript
+     * bytes and the DOS EPS header/metafile, on every Tcl filesystem.
      */
-    if (f != NULL) {
-#ifdef WIN32
-        if ((psPtr->addPreview) && (psPtr->previewFormat != PS_PREVIEW_EPSI)) {
-            if (CreateWindowsEPS(graphPtr, psToken, f) != TCL_OK) {
-                goto error;
-            }
-        } else {
-            fputs(Rbc_PostScriptFromToken(psToken), f);
-            if (ferror(f)) {
-                Tcl_SetObjResult(interp,
-                                 Tcl_ObjPrintf("error writing file \"%s\": %s", fileName, Tcl_PosixError(interp)));
-                goto error;
-            }
-        }
-#else
-        fputs(Rbc_PostScriptFromToken(psToken), f);
-        if (ferror(f)) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("error writing file \"%s\": %s", fileName, Tcl_PosixError(interp)));
-            goto error;
-        }
-#endif /* WIN32 */
-        fclose(f);
-    } else {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(psToken), -1));
+    channel = Tcl_FSOpenFileChannel(interp, fileName, "w", 0666);
+    if (channel == NULL) {
+        result = TCL_ERROR;
+        goto done;
     }
-    Rbc_ReleasePsToken(psToken);
-    return TCL_OK;
+    result = Tcl_SetChannelOption(interp, channel, "-translation", "binary");
+    if (result == TCL_OK &&
+        Tcl_Write(channel, Tcl_DStringValue(&document), Tcl_DStringLength(&document)) !=
+            Tcl_DStringLength(&document)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("error writing PostScript: %s", Tcl_PosixError(interp)));
+        result = TCL_ERROR;
+    }
+    if (result != TCL_OK) {
+        Tcl_InterpState saved = Tcl_SaveInterpState(interp, result);
 
-error:
-    if (f != NULL) {
-        fclose(f);
+        Tcl_Close(NULL, channel);
+        Tcl_RestoreInterpState(interp, saved);
+    } else {
+        /* Closing may flush buffered output and report a late write failure. */
+        result = Tcl_Close(interp, channel);
+        if (result == TCL_OK) {
+            Tcl_ResetResult(interp);
+        }
     }
+
+done:
+    Tcl_DStringFree(&document);
     Rbc_ReleasePsToken(psToken);
-    return TCL_ERROR;
+    return result;
 }
 
 /*

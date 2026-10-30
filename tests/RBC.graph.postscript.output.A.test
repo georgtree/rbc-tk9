@@ -271,5 +271,197 @@ namespace eval graph.postscript {
         unset -nocomplain block points left top width height leftPixel rightPixel topPixel bottomPixel x1 y1 x2 y2
     } -result {1 1 1 1}
 	
+    # ------------------------------------------------------------------------------------
+    # Purpose: File output must finish rendering before touching the destination.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.postscript.output.A.2.1 {
+        render failure preserves an existing file
+    } -setup {
+        graph .graph1
+        pack .graph1
+        update idletasks
+        set FileName [makeFile {keep this file} RBC.postscript-preserve.ps]
+        set library $::rbc::library
+    } -body {
+        set ::rbc::library [file join $::tcltest::temporaryDirectory missing-rbc-prologue]
+        set code [catch {.graph1 postscript output $FileName} message]
+        list $code [string match {*prologue*} $message] [string trim [viewFile $FileName]]
+    } -cleanup {
+        set ::rbc::library $library
+        removeFile $FileName
+        destroy .graph1
+    } -result {1 1 {keep this file}}
+
+    test RBC.graph.postscript.output.A.2.2 {
+        render failure does not create a new file
+    } -setup {
+        graph .graph1
+        pack .graph1
+        update idletasks
+        set FileName [file join $::tcltest::temporaryDirectory RBC.postscript-new.ps]
+        set library $::rbc::library
+    } -body {
+        set ::rbc::library [file join $::tcltest::temporaryDirectory missing-rbc-prologue]
+        list [catch {.graph1 postscript output $FileName}] [file exists $FileName]
+    } -cleanup {
+        set ::rbc::library $library
+        removeFile $FileName
+        destroy .graph1
+    } -result {1 0}
+
+    test RBC.graph.postscript.output.A.2.3 {
+        formatter destruction preserves the destination and original error
+    } -setup {
+        graph .graph1
+        pack .graph1
+        update idletasks
+        set FileName [makeFile {keep this file} RBC.postscript-callback.ps]
+        .graph1 axis configure x -command {apply {{w value} {destroy $w}}}
+    } -body {
+        set code [catch {.graph1 postscript output $FileName} message options]
+        list $code [dict get $options -errorcode] [winfo exists .graph1] \
+                [string trim [viewFile $FileName]]
+    } -cleanup {
+        catch {destroy .graph1}
+        removeFile $FileName
+    } -result {1 {RBC GRAPH CALLBACK} 0 {keep this file}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Check Tcl path handling, byte output and I/O errors.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.postscript.output.A.3.1 {
+        Unicode filename and ordinary EPS byte format
+    } -setup {
+        graph .graph1
+        pack .graph1
+        set FileName [file join $::tcltest::temporaryDirectory "RBC-\u03b1-\u6e2c.ps"]
+    } -body {
+        set result [.graph1 postscript output $FileName]
+        set channel [open $FileName rb]
+        set ps [read $channel]
+        close $channel
+        list $result [string match {%!PS-Adobe*} $ps] \
+                [string match {*%EOF*} $ps] [expr {[string first \r $ps] < 0}]
+    } -cleanup {
+        catch {close $channel}
+        removeFile $FileName
+        destroy .graph1
+    } -result {{} 1 1 1}
+
+    test RBC.graph.postscript.output.A.3.2 {
+        open errors are reported and the graph remains usable
+    } -setup {
+        graph .graph1
+        pack .graph1
+        set FileName [file join $::tcltest::temporaryDirectory missing-rbc-directory output.ps]
+    } -body {
+        set code [catch {.graph1 postscript output $FileName} message options]
+        list $code [lindex [dict get $options -errorcode] 0] \
+                [string match {%!PS-Adobe*} [.graph1 postscript output]]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 POSIX 1}
+
+    testConstraint postscriptFullDevice [expr {$::tcl_platform(platform) eq "unix" && [file exists /dev/full]}]
+    test RBC.graph.postscript.output.A.3.3 {
+        output failure reports the original channel error
+    } -constraints postscriptFullDevice -setup {
+        graph .graph1
+        pack .graph1
+    } -body {
+        set code [catch {.graph1 postscript output /dev/full} message options]
+        list $code [lrange [dict get $options -errorcode] 0 1] \
+                [string match {%!PS-Adobe*} [.graph1 postscript output]]
+    } -cleanup {
+        destroy .graph1
+    } -result {1 {POSIX ENOSPC} 1}
+
+    test RBC.graph.postscript.output.A.3.4 {
+        buffered output failure at close is reported
+    } -constraints postscriptFullDevice -setup {
+        graph .graph1 -title {} -plotborderwidth 0 -borderwidth 0
+        pack .graph1
+        .graph1 axis configure x y x2 y2 -hide yes
+        update idletasks
+        set library $::rbc::library
+        set prologDir [makeDirectory RBC.postscript-prolog]
+        set channel [open [file join $prologDir rbcGraph.pro] w]
+        close $channel
+        set ::rbc::library $prologDir
+    } -body {
+        # A minimal prologue keeps the document below Tcl's default 4K
+        # output buffer, so the device failure is deferred until close.
+        set ps [.graph1 postscript output -decorations no]
+        set code [catch {.graph1 postscript output /dev/full} message options]
+        list [expr {[string length $ps] < 4000}] $code \
+                [lrange [dict get $options -errorcode] 0 1] \
+                [expr {![string match {error writing PostScript:*} $message]}]
+    } -cleanup {
+        set ::rbc::library $library
+        removeDirectory $prologDir
+        destroy .graph1
+    } -result {1 1 {POSIX ENOSPC} 1}
+
+    testConstraint postscriptZipfs [expr {[llength [info commands ::zipfs]] != 0 &&
+            [info exists ::tcl::zipfs::wrmax]}]
+    test RBC.graph.postscript.output.A.3.5 {
+        output uses Tcl filesystem channels for a mounted file
+    } -constraints postscriptZipfs -setup {
+        graph .graph1
+        pack .graph1
+        set zipDir [makeDirectory RBC.postscript-zip]
+        set channel [open [file join $zipDir output.ps] w]
+        close $channel
+        set zipFile [file join $::tcltest::temporaryDirectory RBC.postscript.zip]
+        zipfs mkzip $zipFile $zipDir $zipDir
+        set mountPoint [file join [zipfs root] RBC-postscript-test]
+        zipfs mount $zipFile $mountPoint
+        set writeLimit $::tcl::zipfs::wrmax
+        set ::tcl::zipfs::wrmax 1000000
+    } -body {
+        set FileName [file join $mountPoint output.ps]
+        set result [.graph1 postscript output $FileName]
+        set channel [open $FileName rb]
+        set ps [read $channel]
+        close $channel
+        list $result [string match {%!PS-Adobe*} $ps] [string match {*%EOF*} $ps]
+    } -cleanup {
+        catch {close $channel}
+        set ::tcl::zipfs::wrmax $writeLimit
+        zipfs unmount $mountPoint
+        removeFile $zipFile
+        removeDirectory $zipDir
+        destroy .graph1
+    } -result {{} 1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Preserve the binary DOS EPS preview layout on Windows.
+    # ------------------------------------------------------------------------------------
+    test RBC.graph.postscript.output.A.4.1 {
+        Windows metafile preview offsets and binary payload
+    } -constraints win -setup {
+        graph .graph1
+        pack .graph1
+        update idletasks
+        set FileName [file join $::tcltest::temporaryDirectory "RBC-preview-\u03b1.eps"]
+    } -body {
+        set result [.graph1 postscript output $FileName -preview yes -previewformat wmf]
+        set channel [open $FileName rb]
+        set eps [read $channel]
+        close $channel
+        binary scan $eps H8iu6su magic fields checksum
+        lassign $fields psStart psLength wmfStart wmfLength tiffStart tiffLength
+        list $result $magic [expr {$psStart == 30}] \
+                [expr {$wmfStart == $psStart + $psLength}] \
+                [expr {$wmfLength > 0 && [string length $eps] == $wmfStart + $wmfLength}] \
+                [string match {%!PS-Adobe*} [string range $eps $psStart [expr {$wmfStart-2}]]] \
+                [expr {[string index $eps [expr {$wmfStart-1}]] eq "\0"}] \
+                [expr {$tiffStart == 0 && $tiffLength == 0 && $checksum == 65535}]
+    } -cleanup {
+        catch {close $channel}
+        removeFile $FileName
+        destroy .graph1
+    } -result {{} c5d0d3c6 1 1 1 1 1 1}
+
 	cleanupTests
 }
