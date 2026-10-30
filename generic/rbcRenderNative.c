@@ -8,6 +8,170 @@
 #include <stdint.h>
 #include <X11/Xutil.h>
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * DrawSegments --
+ *
+ *      TODO: Description
+ *
+ * Parameters:
+ *      Display *display
+ *      Drawable drawable
+ *      GC gc
+ *      register Segment2D *segPtr
+ *      int nSegments
+ *
+ * Results:
+ *      TODO: Results
+ *
+ * Side Effects:
+ *      TODO: Side Effects
+ *
+ *----------------------------------------------------------------------
+ */
+static void DrawSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
+    XSegment *xSegments;
+    Extents2D protocolExtents;
+    int maxSegments;
+
+    if ((display == NULL) || (segments == NULL) || (nSegments <= 0)) {
+        return;
+    }
+    maxSegments = Rbc_MaxRequestSize(display, sizeof(XSegment));
+    if (maxSegments < 1) {
+        return;
+    }
+    xSegments = Tcl_AttemptAlloc((size_t)maxSegments * sizeof(*xSegments));
+    if (xSegments == NULL) {
+        return;
+    }
+    /*
+     * X11 PolySegment coordinates are signed 16-bit values.
+     * Clip geometry to that representable region before converting
+     * Point2D coordinates to XSegment coordinates.
+     */
+    protocolExtents.left = (double)SHRT_MIN;
+    protocolExtents.right = (double)SHRT_MAX;
+    protocolExtents.top = (double)SHRT_MIN;
+    protocolExtents.bottom = (double)SHRT_MAX;
+    while (nSegments > 0) {
+        Tcl_Size remaining;
+        int chunk;
+        int nDrawn;
+        int i;
+
+        remaining = nSegments;
+        chunk = (remaining > (Tcl_Size)maxSegments) ? maxSegments : (int)remaining;
+        nDrawn = 0;
+        for (i = 0; i < chunk; i++) {
+            const Segment2D *segPtr;
+
+            segPtr = segments + i;
+            /*
+             * Most graph geometry is already clipped to the graph extents
+             * before it reaches this routine.  Avoid running the general
+             * line-rectangle clipper again when both endpoints are already
+             * representable by the signed 16-bit XSegment protocol type.
+             */
+            if ((segPtr->p.x >= protocolExtents.left) && (segPtr->p.x <= protocolExtents.right) &&
+                (segPtr->p.y >= protocolExtents.top) && (segPtr->p.y <= protocolExtents.bottom) &&
+                (segPtr->q.x >= protocolExtents.left) && (segPtr->q.x <= protocolExtents.right) &&
+                (segPtr->q.y >= protocolExtents.top) && (segPtr->q.y <= protocolExtents.bottom)) {
+                xSegments[nDrawn].x1 = (short)segPtr->p.x;
+                xSegments[nDrawn].y1 = (short)segPtr->p.y;
+                xSegments[nDrawn].x2 = (short)segPtr->q.x;
+                xSegments[nDrawn].y2 = (short)segPtr->q.y;
+                nDrawn++;
+            } else {
+                Segment2D clipped;
+
+                /*
+                 * Retain the existing clipping behavior for geometry outside
+                 * the X11 signed-16-bit protocol coordinate range.
+                 */
+                if (!Rbc_LineRectClip(&protocolExtents, &segPtr->p, &segPtr->q, &clipped)) {
+                    continue;
+                }
+                xSegments[nDrawn].x1 = (short)clipped.p.x;
+                xSegments[nDrawn].y1 = (short)clipped.p.y;
+                xSegments[nDrawn].x2 = (short)clipped.q.x;
+                xSegments[nDrawn].y2 = (short)clipped.q.y;
+                nDrawn++;
+            }
+        }
+        if (nDrawn > 0) {
+            XDrawSegments(display, drawable, gc, xSegments, nDrawn);
+        }
+        segments += chunk;
+        nSegments -= chunk;
+    }
+    ckfree(xSegments);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Fill3DRectangle --
+ *
+ *      TODO: Description
+ *
+ * Parameters:
+ *      Tk_Window tkwin - Window for which border was allocated.
+ *      Drawable drawable - X window or pixmap in which to draw.
+ *      Tk_3DBorder border - Token for border to draw.
+ *      int x - -
+ *      int y - -
+ *      int width - -
+ *      int height - Outside area of rectangular region.
+ *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
+ *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
+ *
+ * Results:
+ *      TODO: Results
+ *
+ * Side Effects:
+ *      TODO: Side Effects
+ *
+ *----------------------------------------------------------------------
+ */
+static void Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
+                         int borderWidth, int relief) {
+    if ((borderWidth > 1) && (width > 2) && (height > 2) &&
+        ((relief == TK_RELIEF_SUNKEN) || (relief == TK_RELIEF_RAISED))) {
+        GC lightGC, darkGC;
+        int x2, y2;
+
+        x2 = x + width - 1;
+        y2 = y + height - 1;
+        if (relief == TK_RELIEF_RAISED) {
+            lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+#ifdef WIN32
+            darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_DARK_GC);
+#else
+            darkGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+#endif
+        } else {
+#ifdef WIN32
+            lightGC = Tk_3DBorderGC(tkwin, border, TK_3D_LIGHT_GC);
+#else
+            lightGC = DefaultGC(Tk_Display(tkwin), Tk_ScreenNumber(tkwin));
+#endif
+            darkGC = Tk_3DBorderGC(tkwin, border, TK_3D_FLAT_GC);
+        }
+        XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x2, y);
+        XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x2, y);
+        XDrawLine(Tk_Display(tkwin), drawable, darkGC, x2, y2, x, y2);
+        XDrawLine(Tk_Display(tkwin), drawable, lightGC, x, y, x, y2);
+        x++;
+        y++;
+        width -= 2;
+        height -= 2;
+        borderWidth--;
+    }
+    Tk_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
+}
+
 /* Keep Tk font selection, multiline layout, rotation, padding, anchors and
  * disabled/active text styling in the existing text helpers. Cached marker
  * layouts must not be rebuilt, and axis limits need the original rotated
@@ -75,7 +239,7 @@ void Rbc_NativePixmap(Graph *graphPtr, Drawable drawable, Pixmap pixmap, GC gc, 
 void Rbc_NativeBorder(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                       int borderWidth, int relief, int fill) {
     if (fill) {
-        Rbc_Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
+        Fill3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
     } else {
         Rbc_Draw3DRectangle(tkwin, drawable, border, x, y, width, height, borderWidth, relief);
     }
@@ -95,7 +259,7 @@ void Rbc_NativeFocus(Tk_Window tkwin, Drawable drawable, GC gc, int width) {
 }
 
 void Rbc_NativeSegments(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, count);
+    DrawSegments(graphPtr->display, drawable, gc, segments, count);
 }
 
 INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
@@ -768,7 +932,7 @@ void Rbc_NativeDestroyClip(Rbc_NativeClip *clip) {
 }
 
 void Rbc_NativeScreenSegments(Tk_Window tkwin, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size count) {
-    Rbc_Draw2DSegments(Tk_Display(tkwin), drawable, gc, segments, count);
+    DrawSegments(Tk_Display(tkwin), drawable, gc, segments, count);
 }
 
 /*

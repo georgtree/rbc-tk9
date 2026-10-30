@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <X11/Xutil.h>
 
+/* GDI polygon drawing does not impose the X11 request-size bound. */
+Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
+    (void)graphPtr;
+    return TCL_SIZE_MAX;
+}
+
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;

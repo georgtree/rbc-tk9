@@ -613,6 +613,10 @@ namespace eval TclTk9Upgrade {
         PDF document serialization is independent of the graph PDF command module, and track-specific records and
         services have their own private header. These organizational changes preserve the Tcl and public C interfaces.
 
+        Native segment batching and filled relief drawing are private to the native renderer. Shared Tk resource
+        helpers remain available to text, tile and canvas code. Error-band mapping queries the renderer for polygon
+        capacity while retaining its existing clipping allowance and shared-sample splitting.
+
         ### Axis and coordinate-system modernization
         The axis implementation received extensive numerical and behavioral cleanup.
 

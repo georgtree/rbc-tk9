@@ -159,8 +159,6 @@ int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size spec
                           Tcl_Obj *const objv[], int *indexPtr);
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);
-void Rbc_Fill3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
-                         int borderWidth, int relief);
 
 
 /* ---------------------------------------------------------------- */

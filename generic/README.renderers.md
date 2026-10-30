@@ -30,7 +30,7 @@ lower-level Windows/Tk compatibility used by renderers and by other image, tile,
 |------|----------------|
 | `rbcGeometry.c` | Segment distances, polygon hit testing, rectangle clipping and line simplification; no graph state or drawing. |
 | `rbcScroll.c` | Scroll request parsing and viewport arithmetic; callers own widget state and redraw decisions. |
-| `rbcDraw.c` | Shared Tk/Xlib GC, dash, segment batching and relief helpers, including their existing Windows paths. |
+| `rbcDraw.c` | Shared Tk/Xlib GC ownership, dash setup, request-size queries and outlined relief used by native rendering and canvas EPS items. |
 | `rbcGrMisc.c` | Graph coordinate parsing, color-pair options and plot extents, including the active track's clipping bounds. |
 | `rbcGrTrack.h` | Private track records, viewport snapshots and track-specific component services. |
 
@@ -38,9 +38,20 @@ Geometry and scrolling declarations remain in the private `rbcInt.h`. The genera
 `RbcTrack` for borrowed pointers; implementation files that inspect track fields or call track services explicitly
 include `rbcGrTrack.h`. That header includes the graph definitions required by its embedded grid segments.
 
-`rbcDraw.c` is a shared drawing utility layer, not another renderer backend. It retains integer conversions,
-request-size batching and platform branches unchanged. Renderer dispatch remains in `rbcRender*.c`, and private
-Windows/Tk compatibility remains in `rbcWinDraw.c`.
+`rbcDraw.c` is shared Tk infrastructure, not a backend used by every renderer. Component configuration retains GC
+ownership and dash setup; text and tile utilities also use these services. Request-size queries serve both the native
+backend and tile drawing. Outlined relief remains shared because canvas EPS items use it without a graph renderer.
+
+Segment conversion/batching and filled relief are private helpers in `rbcRenderNative.c`. X11 strip drawing delegates
+to the common native segment entry point; Windows screen segments retain the same common implementation. Integer
+conversion, clipping, request splitting and relief shading are unchanged. Private Windows/Tk compatibility remains in
+`rbcWinDraw.c`.
+
+Error-band mapping asks `Rbc_RenderPolygonPointLimit` for the selected output's limit before creating a drawing
+context. Native X11 reports its request capacity; native Windows, Cairo and exports report `TCL_SIZE_MAX` (no request
+bound). The component reserves one closure point and six clipping vertices per boundary sample, and splits at shared
+samples. Backend selection and platform limits belong to the renderer; geometry-specific splitting belongs to the
+component. This query does not change native fallback policy for Cairo drawing.
 
 ## Context ownership
 

@@ -2,6 +2,13 @@
 #include "rbcRenderInt.h"
 #include "rbcRenderNative.h"
 
+Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr) {
+    if (graphPtr->renderer == RBC_RENDERER_CAIRO || (graphPtr->flags & GRAPH_EXPORT)) {
+        return TCL_SIZE_MAX;
+    }
+    return Rbc_NativePolygonPointLimit(graphPtr);
+}
+
 typedef struct {
     Rbc_RenderContext core;
     double symbolSize;

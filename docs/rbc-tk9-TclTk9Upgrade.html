@@ -593,13 +593,26 @@ time.</p>
 <ul class="simple">
 <li><p>Reworked creation, configuration and destruction paths for graph components.</p></li>
 <li><p>Improved rollback after failed configurations.</p></li>
+<li><p>Release partially initialized Tk option values after component creation fails, and balance option-table references for graph components and temporary track-grid queries. Failed graph initialization also clears the window cursor before releasing it, avoiding an invalid cursor during teardown of an unrealized window.</p></li>
+<li><p>Validate axis and track scrolling requests before reading arguments or changing a view. Axis scrolling retains its abbreviated commands and fractional numeric form; track scrolling requires full command words.</p></li>
 <li><p>Corrected ownership of dynamically allocated option values.</p></li>
 <li><p>Fixed temporary Tk image creation and destruction.</p></li>
 <li><p>Corrected resource cleanup for legends, markers, pens and elements.</p></li>
 <li><p>Hardened vector mathematical operations against ownership and aliasing problems.</p></li>
+<li><p>Made single-module binding, axis mapping, element transaction and font-writing helpers private. Internal headers now expose only their shared entry points; obsolete graph-type masks and duplicate declarations were removed. Installed C headers, vector stubs and Tcl commands are unchanged.</p></li>
 <li><p>Removed dead initialization and cleanup paths inherited from the old configuration system.</p></li>
 <li><p>Removed substantial amounts of obsolete and unreachable compatibility code.</p></li>
 </ul>
+<p>SVG, PDF and track configuration queries now derive their option names, resource classes and defaults from
+the same specifications used during initialization. Their existing option abbreviations, transactions and
+live-value reporting are preserved. Export rendering, font loading and document writing share first-error
+recording so later failures cannot replace the original diagnostic.</p>
+<p>Internal source modules now separate geometry/clipping, scroll arithmetic and native drawing utilities.
+PDF document serialization is independent of the graph PDF command module, and track-specific records and
+services have their own private header. These organizational changes preserve the Tcl and public C interfaces.</p>
+<p>Native segment batching and filled relief drawing are private to the native renderer. Shared Tk resource
+helpers remain available to text, tile and canvas code. Error-band mapping queries the renderer for polygon
+capacity while retaining its existing clipping allowance and shared-sample splitting.</p>
 </section>
 <section id="axis-and-coordinate-system-modernization">
 <span id="r-tcltk9upgrade-axis-and-coordinate-system-modernization"></span><span id="r-3a3atcltk9upgradeqzaxis20and20coordinate2dsystem20modernization"></span><h3>Axis and coordinate-system modernization<a class="headerlink" href="#axis-and-coordinate-system-modernization" title="Link to this heading">¶</a></h3>

@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <X11/Xutil.h>
 
+/* Maximum vertices in an X11 polygon request, before component clipping allowances. */
+Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
+    return Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
+}
+
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;
@@ -75,7 +80,7 @@ void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size
 }
 
 void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
-    Rbc_Draw2DSegments(graphPtr->display, drawable, gc, segments, nSegments);
+    Rbc_NativeSegments(graphPtr, drawable, gc, segments, nSegments);
 }
 
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc) {

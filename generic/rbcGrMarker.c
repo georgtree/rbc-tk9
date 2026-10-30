@@ -4949,7 +4949,7 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
 
     /*
      * Outline segments can be safely chunked by
-     * Rbc_Draw2DSegments().
+     * the native segment renderer.
      */
     if ((pmPtr->nOutlinePts > 0) && (pmPtr->lineWidth > 0) && (pmPtr->outline.fgColor != NULL)) {
         if (!DrawRenderedMarkerSegments(graphPtr, drawable, pmPtr->outlinePts, pmPtr->nOutlinePts,

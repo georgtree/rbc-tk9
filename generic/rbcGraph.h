@@ -676,7 +676,6 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
-void Rbc_Draw2DSegments(Display *display, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments);
 void Rbc_InitFreqTable(Graph *graphPtr);
 void Rbc_LayoutGraph(Graph *graphPtr);
 void Rbc_LayoutMargins(Graph *graphPtr);

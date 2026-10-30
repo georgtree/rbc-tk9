@@ -11,7 +11,7 @@ namespace import tcltest::*
 
 namespace eval line.errorband {
     # Numeric case IDs for loop-generated tests.
-    array set testCase {1 0 2 0 3 0 4 0 5 0 6 0 7 0 8 0 9 0 10 0 11 0 12 0 13 0 14 0 15 0 16 0 17 0 18 0 22 0 23 0 24 0}
+    array set testCase {1 0 2 0 3 0 4 0 5 0 6 0 7 0 8 0 9 0 10 0 11 0 12 0 13 0 14 0 15 0 16 0 17 0 18 0 22 0 23 0 24 0 26 0}
     ::rbc::graph .bandProbe
     set code [catch {.bandProbe configure -renderer cairo} message]
     destroy .bandProbe
@@ -411,6 +411,31 @@ namespace eval line.errorband {
     } -body {
         catch {.band element configure e -errorband y}
     } -cleanup {Clean} -result 1
+
+    foreach kind {graph stripchart} {
+        test RBC.line.errorband.A.26.[incr testCase(26)] {renderer switching and exports preserve a dense mapped band} -constraints bandCairo -setup {
+            Create $kind
+            set x {}; set y {}; set bounds {}
+            for {set i 0} {$i <= 2000} {incr i} {
+                lappend x [expr {$i * 0.005}]
+                lappend y 4
+                lappend bounds 1
+            }
+            .band element configure e -xdata $x -ydata $y -yerror $bounds \
+                -errorband y -errorbandforeground #123456
+            set photo [image create photo]
+        } -body {
+            set original [Polygons]
+            set result {}
+            foreach renderer {native cairo native} {
+                .band configure -renderer $renderer
+                lappend result [expr {[Pixel $photo 5 4] eq {18 52 86}}] \
+                    [expr {$original eq [Polygons]}] \
+                    [expr {[Pixel $photo 5 6] eq {255 255 255}}]
+            }
+            expr {0 ni $result}
+        } -cleanup {Clean} -result 1
+    }
 
     cleanupTests
 }

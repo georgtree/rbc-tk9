@@ -7438,7 +7438,7 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
     ElemVector *lowPtr = xBand ? &elemPtr->xLow : &elemPtr->yLow;
     ElemVector *highPtr = xBand ? &elemPtr->xHigh : &elemPtr->yHigh;
     Point2D *upper, *lower;
-    Tcl_Size n, i, count, capacity;
+    Tcl_Size n, i, count, capacity, pointLimit;
     size_t bytes;
     double previousX = 0.0;
     int step = (linePtr->reqSmooth == PEN_SMOOTH_STEP);
@@ -7456,17 +7456,16 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
         return;
     }
     capacity = step ? n * 2 : n;
-#ifndef WIN32
-    if ((graphPtr->renderer != RBC_RENDERER_CAIRO) && !(graphPtr->flags & GRAPH_EXPORT)) {
-        /* Clipping may emit six vertices per boundary sample. Split large
-         * native bands at shared samples to stay within X request limits. */
-        Tcl_Size limit = (Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint)) - 1) / 6;
+    pointLimit = Rbc_RenderPolygonPointLimit(graphPtr);
+    if (pointLimit != TCL_SIZE_MAX) {
+        /* Clipping may emit six vertices per boundary sample. Split at shared
+         * samples, reserving one point for closure, within the output limit. */
+        Tcl_Size limit = (pointLimit - 1) / 6;
         if (limit < 3) {
             return;
         }
         capacity = MIN(capacity, limit);
     }
-#endif
     if (GetLineArrayByteCount(capacity, sizeof(*upper), &bytes) != TCL_OK) {
         return;
     }

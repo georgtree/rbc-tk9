@@ -3,6 +3,8 @@
 #define RBC_RENDER_NATIVE_H
 #include "rbcRender.h"
 
+Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr);
+
 void Rbc_NativeText(Tk_Window, Drawable, const char *, TextStyle *, int, int);
 void Rbc_NativeTextLayout(Tk_Window, Drawable, TextLayout *, TextStyle *, int, int);
 void Rbc_NativeTextSize(Tk_Window, Drawable, const char *, TextStyle *, int, int, Dim2D *);

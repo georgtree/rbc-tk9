@@ -8,6 +8,12 @@
 typedef struct Rbc_RenderContext Rbc_RenderContext;
 typedef struct Rbc_RenderTarget Rbc_RenderTarget;
 
+/* Mapping-time polygon capacity for the selected output. TCL_SIZE_MAX means
+ * no request-size bound; zero means no polygon can be submitted. Components
+ * reserve space for closure/clipping and preserve shared samples when splitting.
+ * This query needs no drawing context and allocates no resources. */
+Tcl_Size Rbc_RenderPolygonPointLimit(Graph *graphPtr);
+
 /* Native-only screen details borrow the exact GC, preserving XOR and dash
  * semantics. Arrow points include the repeated closing vertex. Text backgrounds
  * consume four outline points and add the anchor before integer conversion. */
