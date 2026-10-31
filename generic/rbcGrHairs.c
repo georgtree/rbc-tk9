@@ -395,72 +395,18 @@ void Rbc_ConfigureCrosshairs(Graph *graphPtr) {
     (void)ConfigureCrosshairs(graphPtr, chPtr, HAIRS_GC_CHANGED);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_EnableCrosshairs --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_EnableCrosshairs(Graph *graphPtr) {
     if (!graphPtr->crosshairs->hidden) {
         TurnOnHairs(graphPtr, graphPtr->crosshairs);
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DisableCrosshairs --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DisableCrosshairs(Graph *graphPtr) {
     if (!graphPtr->crosshairs->hidden) {
         TurnOffHairs(graphPtr->tkwin, graphPtr->crosshairs);
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_UpdateCrosshairs --
- *
- *      Update the length of the hairs (not the hot spot).
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_UpdateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
@@ -471,11 +417,6 @@ void Rbc_UpdateCrosshairs(Graph *graphPtr) {
     chPtr->segArr[1].q.x = (double)graphPtr->right;
 }
 
-/*
- * A plot-only copy must cover every pixel belonging to the old and
- * new crosshairs. Use a full frame for wide strokes or old segments
- * extending beyond the current plot rectangle.
- */
 int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr) {
     Crosshairs *chPtr = graphPtr->crosshairs;
     int i;
@@ -500,14 +441,6 @@ int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr) {
     return FALSE;
 }
 
-/*
- * Present a completed on-screen frame from a temporary pixmap.
- * The pixmap initially contains no crosshairs. Do not pass the
- * reusable element backing store or an export drawable here.
- *
- * No Tcl callbacks or event processing may occur between updating
- * segment geometry and committing the visible state below.
- */
 void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
     Crosshairs *chPtr = graphPtr->crosshairs;
     int visible = FALSE;

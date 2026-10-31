@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Crosshair state and presentation &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Crosshair C reference" href="crosshair-reference.html" />
+    <link rel="prev" title="Marker C reference" href="marker-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="crosshair-reference.html" title="Crosshair C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Crosshair state and presentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="crosshair-state-and-presentation">
+<h1>Crosshair state and presentation<a class="headerlink" href="#crosshair-state-and-presentation" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrHairs.c</span></code> owns one crosshair record per graph. Its two segments are a
+screen-space overlay, not an element, marker or per-track object. The hotspot
+is in widget coordinates and the segment lengths follow the graph plot bounds.
+See <a class="reference internal" href="crosshair-reference.html"><span class="doc">Crosshair C reference</span></a> for the graph-facing services.</p>
+<section id="requested-and-actual-visibility">
+<h2>Requested and actual visibility<a class="headerlink" href="#requested-and-actual-visibility" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">hidden</span></code> records the requested option state. <code class="docutils literal notranslate"><span class="pre">visible</span></code> tracks whether XOR
+hairs have actually been drawn. They need not be logical opposites: requested
+hairs can remain absent when the hotspot is outside the plot or the window is
+unmapped. Never infer actual pixels solely from the <code class="docutils literal notranslate"><span class="pre">-hide</span></code> option.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TurnOnHairs</span></code> draws only on a mapped window when the hairs are not already
+visible and the hotspot is inside the plot. <code class="docutils literal notranslate"><span class="pre">TurnOffHairs</span></code> erases visible
+hairs on a mapped window by submitting the same segments with the same XOR GC.
+The public enable/disable helpers additionally honor <code class="docutils literal notranslate"><span class="pre">hidden</span></code> without changing
+it. Tcl on/off operations update the requested state separately.</p>
+<p>The private GC uses <code class="docutils literal notranslate"><span class="pre">GXxor</span></code> with a foreground derived from the requested color
+and plot background. A background change therefore needs the GC rebuilt.
+Configuration validates replacement values and prepares a replacement GC before
+erasing old geometry. Erasing after replacing either the GC or endpoints would
+not reliably restore the pixels that were changed originally.</p>
+</section>
+<section id="motion-and-geometry-changes">
+<h2>Motion and geometry changes<a class="headerlink" href="#motion-and-geometry-changes" title="Link to this heading">¶</a></h2>
+<p>On Windows, a position-only configuration uses <code class="docutils literal notranslate"><span class="pre">MoveCrosshairs</span></code>. It computes
+old and new visibility, compares segment geometry, and submits old erase and new
+draw segments together. Unchanged geometry avoids unnecessary work. This keeps
+ordinary pointer motion from acquiring a separate drawing context between the
+erase and draw submissions. Changes to style or visibility use the general
+configuration path.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_UpdateCrosshairs</span></code> only changes segment lengths to match current graph
+bounds. It leaves the hotspot and visible state unchanged and performs no
+drawing. Old endpoints must remain available until their pixels have either
+been erased or replaced by a completed frame.</p>
+<p>Trackgraphs still have a graph-wide crosshair record. Track-local transforms
+and viewport scopes used by element drawing do not create independent hairs.
+Update and presentation belong to the graph’s display path after those temporary
+scopes have been restored. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for track geometry.</p>
+</section>
+<section id="double-buffered-presentation">
+<h2>Double-buffered presentation<a class="headerlink" href="#double-buffered-presentation" title="Link to this heading">¶</a></h2>
+<p>The double-buffered display path leaves the visible window untouched while
+preparing a complete temporary pixmap. The reusable element backing store
+contains graph content without crosshairs.</p>
+<p>Before updating segment geometry, <code class="docutils literal notranslate"><span class="pre">Rbc_CrosshairsNeedFullRedraw</span></code> examines the
+old state. Wide strokes, or old visible segments outside the new plot bounds,
+can require a full-frame copy. The caller also requests margin drawing so every
+pixel of that larger source rectangle has been initialized.</p>
+<p>After graph drawing and callback-validity checks,
+<code class="docutils literal notranslate"><span class="pre">Rbc_PresentGraphWithCrosshairs</span></code> updates endpoints, draws requested hairs into
+the temporary frame and copies the completed frame to the window. It then
+records the new actual visibility. The copy replaces the old XOR pixels; there
+is no separate window erase followed by a later window draw. This presentation
+path is shared across platforms, while the position-only batching optimization
+is Windows-specific.</p>
+<p>Do not call the ordinary enable helper after presentation: the hairs are already
+part of the copied frame. Likewise, do not pass the reusable backing store or an
+export drawable as the temporary frame. This function mutates its source pixmap
+and assumes a live mapped destination window.</p>
+<p>No Tcl callbacks or event processing may occur between updating the crosshair
+geometry and committing visible state. Otherwise subsequent direct movement
+could attempt to erase different pixels from those last presented.</p>
+</section>
+<section id="direct-drawing-and-teardown">
+<h2>Direct drawing and teardown<a class="headerlink" href="#direct-drawing-and-teardown" title="Link to this heading">¶</a></h2>
+<p>Without double buffering, display uses the traditional sequence: disable hairs
+using old geometry, update segment lengths, draw graph content directly, check
+callback validity, then enable hairs. This sequence must not be substituted for
+the completed-frame presentation protocol during buffered drawing.</p>
+<p>Crosshairs are not part of the document-export content. Their pixel state
+belongs to on-screen presentation and should not contaminate cached plot data
+or document rendering. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the
+surrounding drawing and callback boundaries.</p>
+<p>Destruction clears the graph’s crosshair pointer and releases Tk option state,
+the option table, private GC and record. It requires the window context used by
+option cleanup. The destructor does not itself implement an erase-and-restore
+operation on a continuing graph; visibility transitions belong to the drawing
+and configuration paths.</p>
+<p>Regression checks should cover repeated stationary motion, rapid movement,
+wide and dashed hairs, hotspot transitions across plot edges, plot shrinkage,
+background changes and both buffered/direct rendering. Windows motion tests
+and visual checks for flicker complement pixel checks: correct final pixels do
+not prove that an intermediate erased frame was never displayed.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Crosshair state and presentation</a><ul>
+<li><a class="reference internal" href="#requested-and-actual-visibility">Requested and actual visibility</a></li>
+<li><a class="reference internal" href="#motion-and-geometry-changes">Motion and geometry changes</a></li>
+<li><a class="reference internal" href="#double-buffered-presentation">Double-buffered presentation</a></li>
+<li><a class="reference internal" href="#direct-drawing-and-teardown">Direct drawing and teardown</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="marker-reference.html"
+                          title="previous chapter">Marker C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="crosshair-reference.html"
+                          title="next chapter">Crosshair C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="crosshair-reference.html" title="Crosshair C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Crosshair state and presentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

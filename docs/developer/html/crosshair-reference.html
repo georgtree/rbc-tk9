@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Crosshair C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Legend ownership and layout" href="legends.html" />
+    <link rel="prev" title="Crosshair state and presentation" href="crosshairs.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="legends.html" title="Legend ownership and layout"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="crosshairs.html" title="Crosshair state and presentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Crosshair C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="crosshair-c-reference">
+<h1>Crosshair C reference<a class="headerlink" href="#crosshair-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private helpers borrow graph state. See <a class="reference internal" href="crosshairs.html"><span class="doc">Crosshair state and presentation</span></a> before changing
+erase/update/present ordering.</p>
+<section id="direct-overlay-control">
+<h2>Direct overlay control<a class="headerlink" href="#direct-overlay-control" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_EnableCrosshairs">
+<span class="target" id="rbc_graph_8h_1a2e77d703d516c9149f10ac27147ec4ef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EnableCrosshairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_EnableCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore XOR crosshairs when requested and drawable on screen. </p>
+<p>
+Honors hidden state and draws only when the window is mapped, hairs are not already visible, and the hotspot is inside the plot. Does not change -hide. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph with initialized crosshairs and current segments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DisableCrosshairs">
+<span class="target" id="rbc_graph_8h_1a7ae3968502b4b1ef875de3fea9c69b45"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DisableCrosshairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DisableCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporarily erase currently visible XOR crosshairs. </p>
+<p>
+When not hidden, erases on a mapped window using the current GC and segments. Does not change -hide. Call before overwriting geometry in direct redraws. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live graph with initialized crosshairs and their old geometry.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_UpdateCrosshairs">
+<span class="target" id="rbc_graph_8h_1a9a5d44fe8555c91fcd0b1680f8774aa6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_UpdateCrosshairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_UpdateCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Update segment lengths from current graph plot bounds. </p>
+<p>
+Leaves hotspot coordinates unchanged. Does not erase, draw or change visible state. Call only when old geometry is no longer needed to erase old pixels. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Graph with initialized crosshairs and prepared plot geometry.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="buffered-presentation">
+<h2>Buffered presentation<a class="headerlink" href="#buffered-presentation" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CrosshairsNeedFullRedraw">
+<span class="target" id="rbc_graph_8h_1a2586a474a042479cf2478345fb2d1e19"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CrosshairsNeedFullRedraw</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CrosshairsNeedFullRedraw" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether a plot-only frame copy could leave crosshair pixels behind. </p>
+<p>
+Call before updating segments. The caller must request margin drawing as well as a full copy so the entire source frame contains initialized pixels. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with old crosshair geometry still intact. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero for relevant wide strokes or visible old endpoints outside the current plot; zero when no full-frame copy is needed by this test.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PresentGraphWithCrosshairs">
+<span class="target" id="rbc_graph_8h_1aae12ef94639e87b9bde1d6ca11791b38"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PresentGraphWithCrosshairs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PresentGraphWithCrosshairs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compose crosshairs into a completed temporary frame and present once. </p>
+<p>
+Updates segments, adds requested visible hairs, copies the frame to the window, then commits visible state. DRAW_MARGINS selects full-frame copying; otherwise only the plot is copied. No Tcl callbacks or event processing may intervene between geometry update and state commit. Do not separately erase or enable window hairs around this call. Does not free the pixmap. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Live mapped graph with current layout and copy GC. </p></li>
+<li><p><strong>drawable</strong> – Temporary compatible pixmap containing a completed frame without crosshairs; never the window, reusable backing store or export target.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Crosshair C reference</a><ul>
+<li><a class="reference internal" href="#direct-overlay-control">Direct overlay control</a><ul>
+<li><a class="reference internal" href="#c.Rbc_EnableCrosshairs"><code class="docutils literal notranslate"><span class="pre">Rbc_EnableCrosshairs()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DisableCrosshairs"><code class="docutils literal notranslate"><span class="pre">Rbc_DisableCrosshairs()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_UpdateCrosshairs"><code class="docutils literal notranslate"><span class="pre">Rbc_UpdateCrosshairs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#buffered-presentation">Buffered presentation</a><ul>
+<li><a class="reference internal" href="#c.Rbc_CrosshairsNeedFullRedraw"><code class="docutils literal notranslate"><span class="pre">Rbc_CrosshairsNeedFullRedraw()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PresentGraphWithCrosshairs"><code class="docutils literal notranslate"><span class="pre">Rbc_PresentGraphWithCrosshairs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="crosshairs.html"
+                          title="previous chapter">Crosshair state and presentation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="legends.html"
+                          title="next chapter">Legend ownership and layout</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="legends.html" title="Legend ownership and layout"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="crosshairs.html" title="Crosshair state and presentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Crosshair C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

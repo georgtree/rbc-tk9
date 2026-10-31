@@ -850,9 +850,44 @@ void Rbc_ResetAxes(Graph *graphPtr);
 void Rbc_NotifyAxisChanges(Graph *graphPtr);
 void Rbc_ResetStacks(Graph *graphPtr);
 void Rbc_GraphExtents(Graph *graphPtr, Extents2D *extsPtr);
+/**
+ * @brief Temporarily erase currently visible XOR crosshairs.
+ * @param graphPtr Live graph with initialized crosshairs and their old geometry.
+ *
+ * When not hidden, erases on a mapped window using the current GC and segments.
+ * Does not change -hide. Call before overwriting geometry in direct redraws.
+ */
 void Rbc_DisableCrosshairs(Graph *graphPtr);
+/**
+ * @brief Restore XOR crosshairs when requested and drawable on screen.
+ * @param graphPtr Live graph with initialized crosshairs and current segments.
+ *
+ * Honors hidden state and draws only when the window is mapped, hairs are not
+ * already visible, and the hotspot is inside the plot. Does not change -hide.
+ */
 void Rbc_EnableCrosshairs(Graph *graphPtr);
+/**
+ * @brief Test whether a plot-only frame copy could leave crosshair pixels behind.
+ * @param graphPtr Borrowed graph with old crosshair geometry still intact.
+ * @return Nonzero for relevant wide strokes or visible old endpoints outside
+ * the current plot; zero when no full-frame copy is needed by this test.
+ *
+ * Call before updating segments. The caller must request margin drawing as
+ * well as a full copy so the entire source frame contains initialized pixels.
+ */
 int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr);
+/**
+ * @brief Compose crosshairs into a completed temporary frame and present once.
+ * @param graphPtr Live mapped graph with current layout and copy GC.
+ * @param drawable Temporary compatible pixmap containing a completed frame
+ * without crosshairs; never the window, reusable backing store or export target.
+ *
+ * Updates segments, adds requested visible hairs, copies the frame to the
+ * window, then commits visible state. DRAW_MARGINS selects full-frame copying;
+ * otherwise only the plot is copied. No Tcl callbacks or event processing may
+ * intervene between geometry update and state commit. Do not separately erase
+ * or enable window hairs around this call. Does not free the pixmap.
+ */
 void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable);
 void Rbc_MapAxes(Graph *graphPtr);
 void Rbc_MapElements(Graph *graphPtr);
@@ -880,6 +915,13 @@ void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr);
 void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+/**
+ * @brief Update segment lengths from current graph plot bounds.
+ * @param graphPtr Graph with initialized crosshairs and prepared plot geometry.
+ *
+ * Leaves hotspot coordinates unchanged. Does not erase, draw or change visible
+ * state. Call only when old geometry is no longer needed to erase old pixels.
+ */
 void Rbc_UpdateCrosshairs(Graph *graphPtr);
 /**
  * @brief Destroy the graph's remaining registered pens and pen hash table.

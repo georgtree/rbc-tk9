@@ -23,6 +23,8 @@ chapters.
    vector-reference
    markers
    marker-reference
+   crosshairs
+   crosshair-reference
    legends
    legend-reference
    grids
