@@ -62,6 +62,8 @@ chapters.
    exports
    export-reference
    rendering
+   native-rendering
+   native-reference
    reference
    scrolling
    scroll-reference

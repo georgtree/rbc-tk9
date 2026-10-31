@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Native renderer internals &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Native backend C reference" href="native-reference.html" />
+    <link rel="prev" title="Rendering architecture and contracts" href="rendering.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Native renderer internals</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="native-renderer-internals">
+<h1>Native renderer internals<a class="headerlink" href="#native-renderer-internals" title="Link to this heading">¶</a></h1>
+<p>The native backend implements the renderer interface without changing component
+mapping, painter order or picking. <code class="docutils literal notranslate"><span class="pre">rbcRenderNative.h</span></code> is an internal boundary;
+components should call <code class="docutils literal notranslate"><span class="pre">rbcRender.h</span></code>. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for dispatch and
+<a class="reference internal" href="native-reference.html"><span class="doc">Native backend C reference</span></a> for selected batch and clip lifetime contracts.</p>
+<section id="platform-responsibilities">
+<h2>Platform responsibilities<a class="headerlink" href="#platform-responsibilities" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rbcRenderNative.c</span></code> contains shared native geometry and Tk-based text, image,
+bitmap, relief and copy operations. Configure selects either
+<code class="docutils literal notranslate"><span class="pre">rbcRenderNativeX11.c</span></code> or <code class="docutils literal notranslate"><span class="pre">rbcRenderNativeWin.c</span></code> for platform batches and
+platform clipping. Xlib-shaped calls in shared code are not necessarily Unix
+only: Tk implements that API on Windows as well.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> is the Windows compatibility layer beneath these services. It
+confines private Tk Windows interfaces, wraps drawable/DC acquisition, translates
+GC state to GDI operations and supplies specialized raster/XOR helpers. It is
+not another renderer context or an alternative graph mapper. New component code
+should not bypass the renderer to call it directly.</p>
+</section>
+<section id="batch-lifetime-and-coordinate-conversion">
+<h2>Batch lifetime and coordinate conversion<a class="headerlink" href="#batch-lifetime-and-coordinate-conversion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBeginTrace</span></code> allocates context and point workspace together. X11
+capacity follows the request-size limit. Windows uses a smaller 100-point base
+capacity for wide polylines, otherwise the request-derived size. Continuation
+chunks repeat the preceding endpoint to preserve connectivity; they do not
+restart at an unrelated sample.</p>
+<p>The borrowed GC carries the configured raster operation and drawing style.
+X11 converts trace coordinates to <code class="docutils literal notranslate"><span class="pre">short</span></code> and emits <code class="docutils literal notranslate"><span class="pre">XDrawLines</span></code>. Windows
+converts to <code class="docutils literal notranslate"><span class="pre">int</span></code> and emits <code class="docutils literal notranslate"><span class="pre">Polyline</span></code> while retaining one acquired DC and
+selected pen/brush across the trace batch. <code class="docutils literal notranslate"><span class="pre">Rbc_NativeEndTrace</span></code> restores the
+previously selected objects, deletes the objects created by the batch, releases
+DC state and frees the allocation. It does not free the GC or graph.</p>
+<p>Independent strips have their own path. X11 delegates to native segments;
+Windows batches two-point polylines with capacities of 8192 segments for narrow
+lines and 680 for wide lines. These are implementation choices balancing device
+limits and GDI costs. They should not be replaced by per-point dispatch.</p>
+<p>The shared segment helper clips to the signed 16-bit protocol region before
+converting out-of-range coordinates to <code class="docutils literal notranslate"><span class="pre">XSegment</span></code>. This protection is specific
+to that helper: it does not make every native primitive an arbitrary-coordinate
+API. Trace and polygon paths retain their own historical conversion rules.
+Callers supply mapped geometry with appropriate clipping.</p>
+</section>
+<section id="polygon-and-symbol-batches">
+<h2>Polygon and symbol batches<a class="headerlink" href="#polygon-and-symbol-batches" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativePolygonPointCount</span></code> rejects undersized or unrepresentable requests;
+X11 additionally checks its polygon request limit. A rejected polygon is not
+automatically split, since splitting arbitrary filled polygons changes their
+interior. Components that can safely partition their geometry do so before
+drawing, as described for error bands in <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a>.</p>
+<p>The Windows fill-only polygon batch owns point workspace, a solid brush and DC
+state. It selects a null pen, installs the GC fill rule, and restores the old
+fill mode and objects on completion. Its point conversion deliberately retains
+the short-coordinate conversion used by the original path. X11 returns NULL
+from this optional batch constructor, leaving the caller’s ordinary fill path
+in charge. A missing optimization is different from a valid empty clip target.</p>
+<p>Symbol backends batch circles, squares and polygons while preserving symbol
+selection counters, fill/outline order and resource style. Bar batches preserve
+relief and border handling. These paths have platform-specific fallback rules;
+sharing a renderer interface does not require replacing them with one generic
+polygon loop. See <a class="reference internal" href="bars.html"><span class="doc">Bar grouping and placement</span></a> for the component’s mapped rectangles.</p>
+</section>
+<section id="rectangular-clip-frames">
+<h2>Rectangular clip frames<a class="headerlink" href="#rectangular-clip-frames" title="Link to this heading">¶</a></h2>
+<p>A native clip stack borrows its graph and base drawable. Each nesting depth
+owns a reusable frame and, if needed, a graph-sized scratch pixmap. Dimensions
+must remain stable for that stack lifetime. Frames intersect requested bounds
+with the parent’s rectangle and drawable bounds; endpoint arithmetic uses a
+wide integer before clamping. Coordinates remain absolute widget coordinates.</p>
+<p>After every push, obtain <code class="docutils literal notranslate"><span class="pre">Rbc_NativeClipDrawable</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> means no drawing
+is permitted, whether the intersection was empty or setup failed. The frame
+still exists and must be popped. Reusing the previous drawable would bypass the
+clip and can paint into adjacent tracks.</p>
+<p>With scratch clipping, only the intersected rectangle is copied from parent to
+scratch before drawing. Pop copies that same rectangle back. This preserves
+existing background pixels and painter order, including operations involving
+XOR or bitmap masks, without changing shared component GCs. The scratch may
+receive drawing outside the rectangle, but those pixels are never committed.
+An internally acquired copy GC is owned by the stack; a caller-supplied copy GC
+must be suitable for these copies and remains borrowed.</p>
+<p>Frames and scratch targets survive pops for reuse. Destruction first pops all
+active frames, then releases cached pixmaps, frames and only the internally
+owned copy GC. Destruction therefore commits outstanding drawing; it is not a
+transaction-abort operation.</p>
+</section>
+<section id="windows-dc-clips">
+<h2>Windows DC clips<a class="headerlink" href="#windows-dc-clips" title="Link to this heading">¶</a></h2>
+<p>When DC clipping is permitted, Windows acquires the parent DC, saves its state,
+intersects the rectangle and promotes that clip to a meta region. The meta
+region survives bitmap drawing that installs a separate clip mask. A temporary
+Tk-compatible drawable wraps the DC so existing native operations use it.
+Pop frees the wrapper, restores the saved DC state and releases the acquisition.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativePlatformClip</span></code> returning true means the platform has handled the
+request, not necessarily that it produced a drawable. Failed Windows setup can
+return true with <code class="docutils literal notranslate"><span class="pre">None</span></code>; callers must skip drawing and still unwind the frame.
+X11 returns false, selecting scratch clipping. Do not turn a Windows setup
+failure into an unclipped retry.</p>
+<p>The drawable wrapper borrows its HDC: freeing the wrapper does not release the
+DC. Conversely, <code class="docutils literal notranslate"><span class="pre">Rbc_WinAcquireDrawableDC</span></code> allocates a release-state record
+even if acquisition produces no HDC. The record must always be passed to
+<code class="docutils literal notranslate"><span class="pre">Rbc_WinReleaseDrawableDC</span></code>. That helper releases Tk’s drawable state and its
+own record; backend code remains responsible for restoring selected objects
+and any additional GDI state it changed.</p>
+</section>
+<section id="runs-and-fallback-boundaries">
+<h2>Runs and fallback boundaries<a class="headerlink" href="#runs-and-fallback-boundaries" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeRun</span></code> calls its run callback synchronously. Windows acquires and
+wraps one destination DC for the whole run. If acquisition or wrapping fails,
+it calls the run on the original drawable instead. X11 invokes the callback on
+the original drawable directly. Callback data and temporary targets must not
+escape the call, and the callback must not invalidate borrowed graph resources.
+This is an internal drawing callback, not a Tcl evaluation boundary.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_NativeBitmapRun</span></code> is restricted to opaque, unmasked, GXcopy-compatible
+bitmaps. Windows first tries the optimized opaque-bitmap batch; X11 declines it.
+Fallback clears the supplied GC’s clip mask/origin and replays <code class="docutils literal notranslate"><span class="pre">XCopyPlane</span></code>
+for all positions. Replaying after a partial optimized failure is safe because
+this path has copy semantics. It must not be generalized to XOR or masked runs,
+or passed a GC whose mask must remain installed.</p>
+<p>Cairo graphs still use native text, some raster fallbacks, decorations and XOR
+presentation. Ordinary Cairo painting cannot substitute for XOR composition.
+Keep platform resource acquisition at batch boundaries, and preserve fallback
+order, rounding, stipple origins and complete-stroke clipping when changing
+these implementations. Validation must cover both native platforms; a working
+X11 path alone does not exercise GDI state restoration or Windows presentation.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Native renderer internals</a><ul>
+<li><a class="reference internal" href="#platform-responsibilities">Platform responsibilities</a></li>
+<li><a class="reference internal" href="#batch-lifetime-and-coordinate-conversion">Batch lifetime and coordinate conversion</a></li>
+<li><a class="reference internal" href="#polygon-and-symbol-batches">Polygon and symbol batches</a></li>
+<li><a class="reference internal" href="#rectangular-clip-frames">Rectangular clip frames</a></li>
+<li><a class="reference internal" href="#windows-dc-clips">Windows DC clips</a></li>
+<li><a class="reference internal" href="#runs-and-fallback-boundaries">Runs and fallback boundaries</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="previous chapter">Rendering architecture and contracts</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="native-reference.html"
+                          title="next chapter">Native backend C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Native renderer internals</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

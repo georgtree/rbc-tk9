@@ -170,3 +170,5 @@ Changes to renderer code need native and Cairo checks on Windows and Linux,
 including exports and tracks. Preserve painter order, pixel rounding, clipping
 and batching. Documentation-only changes should still pass the strict manual
 build and preserve all C declarations.
+
+See :doc:`native-rendering` for platform batching, clip frames and Windows DC ownership.

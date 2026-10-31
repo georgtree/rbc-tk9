@@ -92,6 +92,7 @@ proc ::rbcDocBuild::main {arguments} {
         @OUTPUT@ [doxyQuote [file join $output doxygen]] \
         @WARNINGS@ [doxyQuote $log] \
         @PUBLIC_HEADER@ [doxyQuote [file join $root generic rbc.h]] \
+        @NATIVE_HEADER@ [doxyQuote [file join $root generic rbcRenderNative.h]] \
         @RENDER_HEADER@ [doxyQuote [file join $root generic rbcRender.h]] \
         @DISPATCH_HEADER@ [doxyQuote [file join $root generic rbcRenderInt.h]] \
         @CHAIN_HEADER@ [doxyQuote [file join $root generic rbcChain.h]] \
