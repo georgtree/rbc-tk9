@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Spline interpolation and graph smoothing &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spline C reference" href="spline-reference.html" />
+    <link rel="prev" title="FFT and generator C reference" href="fft-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="spline-reference.html" title="Spline C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fft-reference.html" title="FFT and generator C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline interpolation and graph smoothing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="spline-interpolation-and-graph-smoothing">
+<h1>Spline interpolation and graph smoothing<a class="headerlink" href="#spline-interpolation-and-graph-smoothing" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcSpline.c</span></code> contains array-based interpolation kernels and the Tcl spline
+command. <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> uses those kernels for mapped trace smoothing. The
+kernels never notify vectors or invoke Tcl code; the command layer owns vector
+lookup, creation, resizing and notification. See <a class="reference internal" href="spline-reference.html"><span class="doc">Spline C reference</span></a>.</p>
+<section id="coordinate-and-parameter-interfaces">
+<h2>Coordinate and parameter interfaces<a class="headerlink" href="#coordinate-and-parameter-interfaces" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Routine family</p></th>
+<th class="head"><p>Input/output convention</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Natural/quadratic Cartesian</p></td>
+<td><p>Finite source points with strictly increasing X. Query X values may be
+unsorted; only query Y is replaced. At least three source points.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Natural/quadratic parametric Eval</p></td>
+<td><p>Finite path points with no monotonic-X requirement. Each query is an
+interval number in X and a fraction in Y; both become output coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p>Natural parametric sampler</p></td>
+<td><p>Generates a requested number of points, using extents to scale the chord
+metric. Supports open and closed curves; returns a count rather than boolean.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Catmull-Rom parametric</p></td>
+<td><p>Uses interval/fraction queries and repeated endpoint control points.
+Requires at least one source point; does not use a chord-length metric.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For interval/fraction queries, the interval must be integral and within the
+source range, and the fraction must be between zero and one. The final knot is
+represented specially by the last source index with fraction zero. Invalid
+parameters are rejected before writing output.</p>
+</section>
+<section id="cartesian-kernels">
+<h2>Cartesian kernels<a class="headerlink" href="#cartesian-kernels" title="Link to this heading">¶</a></h2>
+<p>The natural cubic kernel builds a tridiagonal system with natural endpoint
+conditions, then back-substitutes interval coefficients. It checks interval
+widths, divisions and intermediate coefficients for finite arithmetic. The
+quadratic kernel estimates knot slopes, selects a shape-preserving case for
+each interval and reuses that case while successive queries remain in the
+same interval. Both use binary search for in-domain queries, preserve source
+knots exactly and extrapolate using the first or final interval outside the
+domain. Neither requires query abscissas to be sorted.</p>
+<p>Both kernels accept zero queries but still require a non-NULL query pointer
+and valid source data. They allocate checked private workspace and release it
+before returning. Their boolean failure result can follow writes to some query
+Y values; callers needing an unchanged destination must evaluate into scratch
+storage and discard that storage on failure.</p>
+</section>
+<section id="parametric-paths">
+<h2>Parametric paths<a class="headerlink" href="#parametric-paths" title="Link to this heading">¶</a></h2>
+<p>The natural and quadratic Eval routines use Euclidean chord distances in the
+supplied coordinate system. For graph smoothing these are already screen
+coordinates, so the metric is isotropic in pixels. Consecutive degenerate
+segments and non-finite or non-increasing accumulated lengths are rejected.
+The quadratic path constructs independent coordinate splines on the same
+parameter; the natural path uses cubic coefficients. Exact source-knot queries
+are copied from the source. Both Eval routines stage complete coordinates and
+copy back only on success, preserving input parameters on failure.</p>
+<p>The uniform natural sampler is a different entry point. Its public wrapper
+uses absolute extent spans as metric scales and clamps tiny or non-finite spans
+to FLT_EPSILON. Closed curves append the first point privately when necessary.
+The underlying sampler slightly undershoots the total parameter length to avoid
+losing the final sample to rounding, then restores the endpoint exactly when
+the requested count is generated. Callers must check that count. Sampling in
+chord parameter is not exact equal-distance sampling along the curved result.</p>
+<p>The Tcl complex-vector command uses the natural core with unit scales and an
+open curve, or the quadratic core sampled uniformly over its common chord
+parameter. It requires at least three source points and at least two output
+samples. It rejects consecutive duplicate points before computation; numerical
+checks inside the kernels can reject additional nearly degenerate cases.</p>
+<p>Catmull-Rom copies the source and repeats endpoints for its local cubic control
+points. It validates all query parameters before evaluation, but arithmetic can
+still become non-finite after some outputs have been written. Its failure
+contract therefore differs from the two staged parametric Eval routines.</p>
+</section>
+<section id="tcl-vector-ownership">
+<h2>Tcl vector ownership<a class="headerlink" href="#tcl-vector-ownership" title="Link to this heading">¶</a></h2>
+<p>The Cartesian command reads real X, Y and query-X vectors. The parametric
+command reads one complex vector and writes a complex result. Both copy all
+inputs into private Point2D arrays and generate the complete result before
+looking up, creating or resizing the output. Output aliasing an input is safe
+for numerical computation because source storage is no longer needed then.</p>
+<p>An existing output must have the required type and be writable. A missing output
+is created without an array mapping initially. <code class="docutils literal notranslate"><span class="pre">SplineStoreResult</span></code> allocates
+and fills the final numeric buffer before changing the destination, then installs
+its pointer, length and capacity together. No resize notification exposes an
+intermediate output. Source data, output generation and allocation failures
+leave an existing destination unchanged.</p>
+<p>The commit preserves the destination record and interpreter across old-storage
+release, mapped-array traces and notification. It checks destruction after each
+callback boundary and never resolves the output name again. A callback-created
+replacement therefore remains untouched. Callbacks may rename or destroy the
+original, or change its values; their side effects are not rolled back.</p>
+<p>New real vectors retain automatic array mapping unless their names contain
+parentheses. Mapping happens after the final values are installed. Mapping
+preserves the record, owns a copy of the requested name and checks for deletion
+or reentrant remapping after traces. Mapping failure reports an error and removes
+the newly created vector if it still exists, without removing a replacement.
+Existing mappings are flushed when enabled. Surviving destinations receive one
+completed-value update rather than a resize update followed by a value update.
+See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for immediate versus deferred notification policies.</p>
+</section>
+<section id="graph-smoothing">
+<h2>Graph smoothing<a class="headerlink" href="#graph-smoothing" title="Link to this heading">¶</a></h2>
+<p>Graph smoothing consumes mapped points and builds replacement point/index arrays.
+For Cartesian natural/quadratic smoothing it chooses the screen coordinate
+corresponding to data X: screen X normally, screen Y when inverted. Decreasing
+screen abscissas are reflected without reversing source order. Generated
+coordinates are converted back after successful interpolation.</p>
+<p>Parametric smoothing builds interval/fraction queries and dispatches to natural,
+quadratic or Catmull-Rom evaluation. Natural/quadratic polar smoothing uses the
+parametric path. Trace-run handling keeps separate runs from being joined by a
+spline. Generated samples retain source-index information for later graph work.</p>
+<p>Replacement geometry is committed only when interpolation succeeds. Failure
+retains the original mapped points and falls back to ordinary line segments.
+Smoothing does not edit the attached source vectors. Mapping, clipping and
+rendering remain separate responsibilities; see <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Spline interpolation and graph smoothing</a><ul>
+<li><a class="reference internal" href="#coordinate-and-parameter-interfaces">Coordinate and parameter interfaces</a></li>
+<li><a class="reference internal" href="#cartesian-kernels">Cartesian kernels</a></li>
+<li><a class="reference internal" href="#parametric-paths">Parametric paths</a></li>
+<li><a class="reference internal" href="#tcl-vector-ownership">Tcl vector ownership</a></li>
+<li><a class="reference internal" href="#graph-smoothing">Graph smoothing</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="fft-reference.html"
+                          title="previous chapter">FFT and generator C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="spline-reference.html"
+                          title="next chapter">Spline C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="spline-reference.html" title="Spline C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fft-reference.html" title="FFT and generator C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline interpolation and graph smoothing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -27,6 +27,8 @@ chapters.
    expression-reference
    fft
    fft-reference
+   splines
+   spline-reference
    markers
    marker-reference
    crosshairs

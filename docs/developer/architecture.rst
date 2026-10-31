@@ -47,6 +47,8 @@ and the distinction between mapping and clipping.
 
 See :doc:`initialization` for package loading, command registration and client stubs.
 
+See :doc:`splines` for interpolation kernels, vector outputs and trace smoothing.
+
 Supporting modules
 ------------------
 

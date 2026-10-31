@@ -82,5 +82,62 @@ namespace eval vector.notify {
         }
     }
 
+    foreach {group operation} {7 natural 8 quadratic} {
+        foreach {case phase action updates} {
+            1 notify self 1
+            2 notify recreate 1
+            3 notify interp 1
+            4 release self 0
+            5 release recreate 0
+            6 release interp 0
+            7 trace self 0
+            8 trace recreate 0
+            9 trace interp 0
+            10 notify rename 1
+        } {
+            test RBC.vector.notify.A.$group.$case "spline commit: $operation $phase $action" \
+                -constraints notifyHarness -body [list ::rbcsplinetest $operation $phase $action] \
+                -result [list 0 1 $updates 1]
+        }
+    }
+    foreach {group operation} {9 pnatural 10 pquadratic} {
+        foreach {case action} {1 self 2 recreate 3 interp 4 rename} {
+            test RBC.vector.notify.A.$group.$case "complex spline commit: $operation $action" \
+                -constraints notifyHarness -body [list ::rbcsplinetest $operation notify $action] \
+                -result {0 1 1 0}
+        }
+    }
+    proc CreationTrace {action args} {
+        set ::splineSeen [::splineResult range 0 end]
+        if {$action eq "destroy"} {rbc::vector destroy ::splineResult}
+        if {$action eq "replace"} {
+            rbc::vector destroy ::splineResult
+            rbc::vector create ::splineResult
+            ::splineResult set {99}
+        }
+    }
+    foreach {case action expected} {
+        1 keep {0 {0.0 0.5 1.0 1.5 2.0} 1}
+        2 destroy {1 {0.0 0.5 1.0 1.5 2.0} 0}
+        3 replace {1 {0.0 0.5 1.0 1.5 2.0} 1}
+    } {
+        test RBC.vector.notify.A.11.$case "new spline mapping trace: $action" \
+            -constraints notifyHarness -setup {
+                rbc::vector create ::splineX ::splineY ::splineQ
+                ::splineX set {0 1 2}; ::splineY set {0 1 2}; ::splineQ set {0 .5 1 1.5 2}
+                set ::splineResult placeholder
+                trace add variable ::splineResult unset [list ::vector.notify::CreationTrace $action]
+            } -body {
+                set code [catch {rbc::spline natural ::splineX ::splineY ::splineQ ::splineResult}]
+                list $code $::splineSeen [expr {[llength [info commands ::splineResult]] != 0}]
+            } -cleanup {
+                foreach name {::splineX ::splineY ::splineQ ::splineResult} {
+                    catch {rbc::vector destroy $name}
+                    catch {unset $name}
+                }
+                unset -nocomplain ::splineSeen
+            } -result $expected
+    }
+
 }
 cleanupTests

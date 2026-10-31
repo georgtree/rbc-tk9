@@ -10,7 +10,7 @@
  */
 
 #include <stdint.h>
-#include "rbcInt.h"
+#include "rbcVectorInt.h"
 
 typedef int (*Rbc_SplineOp)(const Point2D *, Tcl_Size, Point2D *, Tcl_Size);
 
@@ -800,44 +800,7 @@ static int QuadEval(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[
  * -----------------------------------------------------------------------
  */
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_QuadraticSpline --
- *
- *      Driver routine for quadratic spline package
- *
- *      On input--
- *
- *        X,Y    Contain n-long arrays of data (x is
- *               increasing)
- *        XM     XM Contains m-long array of finite x values. Values may be
- *                 in any order and may lie outside the source domain.
- *        eps    Relative error tolerance
- *        n      Number of input data points
- *        m      Number of output data points
- *
- *      On output--
- *
- *        work   Contains the value of the first derivative
- *               at each data point
- *        ym     Contains the interpolated spline value at
- *               each data point
- *
- * Parameters:
- *      Point2D origPts[]
- *      int nOrigPts
- *      Point2D intpPts[]
- *      int nIntpPts
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
+/* Contract and caller ownership are documented in rbcInt.h. */
 int Rbc_QuadraticSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     double epsilon;
     double *work;
@@ -875,37 +838,8 @@ int Rbc_QuadraticSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intp
     return SplinePointsAreFinite(intpPts, nIntpPts);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_NaturalSpline --
- *
- *      Reference:
- *
- *        Numerical Analysis, R. Burden, J. Faires
- *          and A. Reynolds.
- *        Prindle, Weber & Schmidt 1981 pp 112
- *
- *      Parameters:
- *
- *        origPts - vector of points, assumed to be
- *                  sorted along x.
- *        intpPts - vector of new points.
- *
- * Parameters:
- *      Point2D origPts[]
- *      int nOrigPts
- *      Point2D intpPts[]
- *      int nIntpPts
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
+/* Numerical reference: Burden, Faires and Reynolds, Numerical Analysis (1981), p. 112. */
+/* Contract and caller ownership are documented in rbcInt.h. */
 int Rbc_NaturalSpline(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[], Tcl_Size nIntpPts) {
     Cubic2D *eq;
     TriDiagonalMatrix *A;
@@ -1087,11 +1021,108 @@ static int GetComplexSplineVector(Tcl_Interp *interp, const char *name, Rbc_Vect
     return TCL_OK;
 }
 
+/*
+ * SplineStoreResult -- Install completed data before traces or observers run.
+ * New real vectors keep their traditional array mapping, but the mapping is
+ * established only after all values are installed. Preserve identity across
+ * callbacks: a replacement with the same name is never written by this call.
+ */
+static int SplineStoreResult(Tcl_Interp *interp, const char *name, Rbc_VectorType type,
+                             const Point2D *points, Tcl_Size length) {
+    VectorObject *vPtr;
+    Rbc_Vector *vector;
+    void *data, *oldData;
+    Tcl_FreeProc *oldFree;
+    Tcl_InterpState state;
+    size_t bytes;
+    Tcl_Size i;
+    int isNew = FALSE, result = TCL_OK;
+    char *mapName = NULL;
+
+    if (GetSplineArrayByteCount(length, type == RBC_VECTOR_REAL ? sizeof(double) : sizeof(Rbc_Complex),
+                                &bytes) != TCL_OK) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("spline result is too large", -1));
+        return TCL_ERROR;
+    }
+    data = Tcl_AttemptAlloc(bytes > 0 ? bytes : 1);
+    if (data == NULL) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate spline result", -1));
+        return TCL_ERROR;
+    }
+    for (i = 0; i < length; i++) {
+        if (type == RBC_VECTOR_REAL) {
+            ((double *)data)[i] = points[i].y;
+        } else {
+            ((Rbc_Complex *)data)[i].real = points[i].x;
+            ((Rbc_Complex *)data)[i].imag = points[i].y;
+        }
+    }
+    if (Rbc_GetVector(interp, name, &vector) == TCL_OK) {
+        vPtr = (VectorObject *)vector;
+        if (Rbc_VectorCheckWritable(interp, vector) != TCL_OK) {
+            ckfree(data);
+            return TCL_ERROR;
+        }
+        if (vPtr->type != type) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be %s", name,
+                                                  type == RBC_VECTOR_REAL ? "real" : "complex"));
+            ckfree(data);
+            return TCL_ERROR;
+        }
+    } else {
+        Tcl_ResetResult(interp);
+        vPtr = Rbc_VectorCreate(Rbc_VectorGetInterpData(interp), name, name, NULL, type, &isNew);
+        if (vPtr == NULL) {
+            ckfree(data);
+            return TCL_ERROR;
+        }
+    }
+    Tcl_Preserve(interp);
+    Tcl_Preserve(vPtr);
+    if (isNew && type == RBC_VECTOR_REAL && strchr(vPtr->name, '(') == NULL) {
+        mapName = RbcStrdup(vPtr->name);
+    }
+    oldData = vPtr->data.raw;
+    oldFree = vPtr->freeProc;
+    vPtr->data.raw = data;
+    vPtr->freeProc = TCL_DYNAMIC;
+    vPtr->length = vPtr->size = length;
+    vPtr->first = 0;
+    vPtr->last = length - 1;
+    vPtr->min = vPtr->max = rbcNaN;
+    vPtr->minIndex = vPtr->maxIndex = -1;
+    vPtr->notifyFlags |= UPDATE_RANGE;
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    if (oldData != NULL && oldFree != TCL_STATIC) {
+        if (oldFree == TCL_DYNAMIC) ckfree(oldData);
+        else oldFree(oldData);
+    }
+    if (!Tcl_InterpDeleted(interp) && !vPtr->destroying) {
+        if (mapName != NULL) {
+            result = Rbc_VectorMapVariable(interp, vPtr, mapName);
+        } else if (vPtr->flush) {
+            Rbc_VectorFlushCache(vPtr);
+        }
+        if (result == TCL_OK && !Tcl_InterpDeleted(interp) && !vPtr->destroying) {
+            Rbc_VectorUpdateClients(vPtr);
+        }
+    }
+    if (result == TCL_OK) {
+        Tcl_RestoreInterpState(interp, state);
+        Tcl_ResetResult(interp);
+    } else {
+        Tcl_DiscardInterpState(state);
+        if (isNew && !vPtr->destroying) Rbc_VectorFree(vPtr);
+    }
+    if (mapName != NULL) ckfree(mapName);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+    return result;
+}
+
 static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_Vector *source;
-    Rbc_Vector *resultVec;
     const Rbc_Complex *sourceArr;
-    Rbc_Complex *resultArr;
     Point2D *origPts;
     Point2D *intpPts;
     const char *operation;
@@ -1192,36 +1223,7 @@ static int ParametricSplineObjCmd(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating parametric spline for \"%s\"", resultName));
         goto cleanup;
     }
-    /*
-     * Resolve/create/resize the output only after successful spline
-     * generation.
-     */
-    if (Rbc_GetVector(interp, resultName, &resultVec) != TCL_OK) {
-        Tcl_ResetResult(interp);
-        if (Rbc_CreateVectorWithType(interp, resultName, nIntpPts, RBC_VECTOR_COMPLEX, &resultVec) != TCL_OK) {
-            goto cleanup;
-        }
-    } else {
-        if (Rbc_VectorCheckWritable(interp, resultVec) != TCL_OK) {
-            goto cleanup;
-        }
-        if (Rbc_VectorGetType(resultVec) != RBC_VECTOR_COMPLEX) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be complex", resultName));
-            goto cleanup;
-        }
-        if (Rbc_VectorLength(resultVec) != nIntpPts) {
-            if (Rbc_ResizeVector(resultVec, nIntpPts) != TCL_OK) {
-                goto cleanup;
-            }
-        }
-    }
-    resultArr = Rbc_VectorComplexData(resultVec);
-    for (i = 0; i < nIntpPts; i++) {
-        resultArr[i].real = intpPts[i].x;
-        resultArr[i].imag = intpPts[i].y;
-    }
-    Rbc_VectorChanged(resultVec);
-    result = TCL_OK;
+    result = SplineStoreResult(interp, resultName, RBC_VECTOR_COMPLEX, intpPts, nIntpPts);
 
 cleanup:
     if (intpPts != NULL) {
@@ -1258,7 +1260,6 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     Rbc_Vector *x;
     Rbc_Vector *y;
     Rbc_Vector *splX;
-    Rbc_Vector *splY;
     Rbc_SplineOp proc;
     const char *xName;
     const char *yName;
@@ -1266,7 +1267,6 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
     const char *splYName;
     const double *xArr;
     const double *yArr;
-    double *resultArr;
     Point2D *origPts;
     Point2D *intpPts;
     Tcl_Size nOrigPts;
@@ -1386,34 +1386,7 @@ static int SplineObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("error generating spline for \"%s\"", splYName));
         goto cleanup;
     }
-    /*
-     * Only now resolve/create/resize the result vector.
-     */
-    if (Rbc_GetVector(interp, splYName, &splY) != TCL_OK) {
-        Tcl_ResetResult(interp);
-        if (Rbc_CreateVector(interp, splYName, nIntpPts, &splY) != TCL_OK) {
-            goto cleanup;
-        }
-    } else {
-        if (Rbc_VectorCheckWritable(interp, splY) != TCL_OK) {
-            goto cleanup;
-        }
-        if (Rbc_VectorGetType(splY) != RBC_VECTOR_REAL) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("spline vector \"%s\" must be real", splYName));
-            goto cleanup;
-        }
-        if (nIntpPts != Rbc_VectorLength(splY)) {
-            if (Rbc_ResizeVector(splY, nIntpPts) != TCL_OK) {
-                goto cleanup;
-            }
-        }
-    }
-    resultArr = Rbc_VectorData(splY);
-    for (i = 0; i < nIntpPts; i++) {
-        resultArr[i] = intpPts[i].y;
-    }
-    Rbc_VectorChanged(splY);
-    result = TCL_OK;
+    result = SplineStoreResult(interp, splYName, RBC_VECTOR_REAL, intpPts, nIntpPts);
 
 cleanup:
     if (intpPts != NULL) {
@@ -2150,36 +2123,7 @@ cleanup:
     return result;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_NaturalParametricSpline --
- *
- *      Generate a cubic spline curve through the points
- *      (x_i,y_i) which are stored in the linked list
- *      p_cntr.
- *
- *      The spline is defined as a 2d-function
- *      s(t) = (x(t),y(t)), where the parameter t is the
- *      length of the linear stroke.
- *
- * Parameters:
- *      Point2D origPts[]
- *      int nOrigPts
- *      Extents2D *extsPtr
- *      int isClosed
- *      Point2D *intpPts
- *      int nIntpPts
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-
+/* Sample coordinate-wise quadratic splines on a common Euclidean chord parameter. */
 static Tcl_Size QuadraticParametricSplineCore(const Point2D origPts[], Tcl_Size nOrigPts, Point2D intpPts[],
                                               Tcl_Size nIntpPts) {
     Point2D *realPts;
@@ -2448,28 +2392,7 @@ static void CatromCoeffs(const Point2D *p, Point2D *a, Point2D *b, Point2D *c, P
     d->y = 2.0 * p[1].y;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CatromParametricSpline --
- *
- *      Computes a spline based upon the data points, returning a new
- *      (larger) coordinate array or points.
- *
- * Parameters:
- *      Point2D *points
- *      int nPoints
- *      Point2D *intpPts
- *      int nIntpPts
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and caller ownership are documented in rbcInt.h. */
 int Rbc_CatromParametricSpline(const Point2D *points, Tcl_Size nPoints, Point2D *intpPts, Tcl_Size nIntpPts) {
     Point2D *origPts;
     Point2D a;
@@ -2522,9 +2445,9 @@ int Rbc_CatromParametricSpline(const Point2D *points, Tcl_Size nPoints, Point2D 
     origPts[nPoints + 1] = origPts[nPoints];
     origPts[nPoints + 2] = origPts[nPoints];
     /*
-     * All operations that can fail are complete.  It is now safe
-     * to replace the interpolation parameters with generated
-     * coordinates.
+     * Validation and allocation are complete. Evaluation below can still
+     * fail on non-finite arithmetic after replacing some parameters; callers
+     * must discard output when this routine returns FALSE.
      */
     for (i = 0; i < nIntpPts; i++) {
         Tcl_Size interval;

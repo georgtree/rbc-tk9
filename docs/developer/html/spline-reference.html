@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Spline C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Marker lifecycle and drawing" href="markers.html" />
+    <link rel="prev" title="Spline interpolation and graph smoothing" href="splines.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="splines.html" title="Spline interpolation and graph smoothing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="spline-c-reference">
+<h1>Spline C reference<a class="headerlink" href="#spline-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private geometry services use caller-owned arrays, not vector handles.
+See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for parameter formats, failure behavior and graph integration.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NaturalSpline">
+<span class="target" id="rbc_int_8h_1a2467b3c7d7b23ace0f5d01100066269b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a natural cubic spline at caller-supplied abscissas. </p>
+<p>
+Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed, separate source array with finite coordinates and strictly increasing X; at least three points are required. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>intpPts</strong> – Caller-owned non-NULL array; X supplies finite query positions in any order and is retained, Y receives interpolated values. </p></li>
+<li><p><strong>nIntpPts</strong> – Number of queries, nonnegative; zero succeeds after validation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE on success, FALSE on invalid input, allocation or arithmetic failure. Output may be partially modified on failure; no Tcl diagnostic.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_QuadraticSpline">
+<span class="target" id="rbc_int_8h_1aa6872be178672598200304fa5a03407d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_QuadraticSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_QuadraticSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a shape-preserving quadratic spline at caller-supplied abscissas. </p>
+<p>
+Preserves exact source-knot values and extrapolates with the first/last interval outside the source domain. Allocates and frees private workspace; does not own either caller array or invoke Tcl callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed, separate source array with finite coordinates and strictly increasing X; at least three points are required. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>intpPts</strong> – Caller-owned non-NULL array; X supplies finite query positions in any order and is retained, Y receives interpolated values. </p></li>
+<li><p><strong>nIntpPts</strong> – Number of queries, nonnegative; zero succeeds after validation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE on success, FALSE on invalid input, allocation or arithmetic failure. Output may be partially modified on failure; no Tcl diagnostic.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NaturalParametricSplineEval">
+<span class="target" id="rbc_int_8h_1a888b5410cf45265a00e0cd4716e2bf76"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalParametricSplineEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalParametricSplineEval" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate an open natural cubic path at interval/fraction parameters. </p>
+<p>
+Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed finite source points, at least three; X need not increase. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>intpPts</strong> – Caller-owned non-NULL array. On entry X is an integral source interval and Y is a fraction in [0,1]; on success both become coordinates. The final knot is represented by interval nOrigPts-1 and fraction zero. </p></li>
+<li><p><strong>nIntpPts</strong> – Nonnegative number of parameters; zero succeeds after validation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE on success, FALSE on invalid input, allocation or arithmetic failure. Output parameters are unchanged on failure; no Tcl diagnostic.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_QuadraticParametricSplineEval">
+<span class="target" id="rbc_int_8h_1aa4b2233e09d6d24f7ca7d9ac70933a9d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_QuadraticParametricSplineEval</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_QuadraticParametricSplineEval" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate an open quadratic path at interval/fraction parameters. </p>
+<p>
+Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or unusable accumulated lengths. Source knots are copied exactly. Stages output separately before copying it back; releases all private workspace and invokes no Tcl callbacks. Caller retains ownership of both arrays. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed finite source points, at least three; X need not increase. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>intpPts</strong> – Caller-owned non-NULL array. On entry X is an integral source interval and Y is a fraction in [0,1]; on success both become coordinates. The final knot is represented by interval nOrigPts-1 and fraction zero. </p></li>
+<li><p><strong>nIntpPts</strong> – Nonnegative number of parameters; zero succeeds after validation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE on success, FALSE on invalid input, allocation or arithmetic failure. Output parameters are unchanged on failure; no Tcl diagnostic.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NaturalParametricSpline">
+<span class="target" id="rbc_int_8h_1a78ffd410e2dc4077cd4a5197f2d66450"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalParametricSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">isClosed</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalParametricSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sample a natural parametric path using an extent-scaled chord metric. </p>
+<p>
+Samples approximately uniformly in chord parameter, not exact curve arc length. Copies the first point and makes the last exact when the full count is produced. Frees internal coefficients and any closure copy. No Tcl callbacks or diagnostic. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed finite source array, separate from output; at least three points. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>extsPtr</strong> – Required extents defining X/Y metric scales. Absolute spans smaller than FLT_EPSILON or non-finite spans are replaced by FLT_EPSILON. </p></li>
+<li><p><strong>isClosed</strong> – Nonzero requests a closed curve; a missing final copy of the first point is appended in private storage. </p></li>
+<li><p><strong>intpPts</strong> – Caller-owned output array with room for nIntpPts coordinates. </p></li>
+<li><p><strong>nIntpPts</strong> – Requested sample count, at least two. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated count, or zero on failure. Require the full requested count before accepting output; partial output may remain on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CatromParametricSpline">
+<span class="target" id="rbc_int_8h_1ad82d1d70808a9e900f13487c4d73f4f8"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CatromParametricSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CatromParametricSpline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a Catmull-Rom path at interval/fraction parameters. </p>
+<p>
+Validates parameters before writing, copies and extends source endpoints privately, then evaluates cubic coefficients. Does not use chord-length parameterization. Caller retains both arrays; no Tcl callbacks or diagnostic. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origPts</strong> – Borrowed finite source points; at least one is required. </p></li>
+<li><p><strong>nOrigPts</strong> – Number of source points. </p></li>
+<li><p><strong>intpPts</strong> – Non-NULL caller-owned parameters, replaced by coordinates. X is an integral interval and Y is in [0,1]; the final knot uses interval nOrigPts-1 with fraction zero. </p></li>
+<li><p><strong>nIntpPts</strong> – Nonnegative number of evaluations. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE on success, FALSE on validation, allocation or arithmetic failure. Arithmetic failure may leave partially replaced output.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Spline C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_NaturalSpline"><code class="docutils literal notranslate"><span class="pre">Rbc_NaturalSpline()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_QuadraticSpline"><code class="docutils literal notranslate"><span class="pre">Rbc_QuadraticSpline()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_NaturalParametricSplineEval"><code class="docutils literal notranslate"><span class="pre">Rbc_NaturalParametricSplineEval()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_QuadraticParametricSplineEval"><code class="docutils literal notranslate"><span class="pre">Rbc_QuadraticParametricSplineEval()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_NaturalParametricSpline"><code class="docutils literal notranslate"><span class="pre">Rbc_NaturalParametricSpline()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CatromParametricSpline"><code class="docutils literal notranslate"><span class="pre">Rbc_CatromParametricSpline()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="splines.html"
+                          title="previous chapter">Spline interpolation and graph smoothing</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="markers.html"
+                          title="next chapter">Marker lifecycle and drawing</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="splines.html" title="Spline interpolation and graph smoothing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Spline C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

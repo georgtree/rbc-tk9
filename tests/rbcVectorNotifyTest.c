@@ -168,6 +168,16 @@ static void FftTestAction(FftTest *test) {
     int k;
     if (test->acted) return;
     test->acted = 1;
+    if (strstr(test->operation, "natural") != NULL || strstr(test->operation, "quadratic") != NULL) {
+        VectorObject *v = test->dest[0];
+        if (v == NULL || v->length != 5) test->valid = 0;
+        else for (k = 0; k < 5; k++) {
+            if (v->type == RBC_VECTOR_REAL) {
+                if (fabs(v->data.real[k] - 0.5 * k) > 1e-12) test->valid = 0;
+            } else if (fabs(v->data.complex[k].real - 0.5 * k) > 1e-6 ||
+                       fabs(v->data.complex[k].imag - k) > 1e-6) test->valid = 0;
+        }
+    } else {
     /* All destination values must be installed before the first callback. */
     for (k = 0; k < test->count; k++) {
         double a = 1.0, b = 1.0;
@@ -176,6 +186,7 @@ static void FftTestAction(FftTest *test) {
         if (strcmp(test->operation, "fftfreq") == 0) { a = 0.0; b = -0.5; }
         if (test->dest[k] == NULL || test->dest[k]->length != 2 ||
             test->dest[k]->data.real[0] != a || test->dest[k]->data.real[1] != b) test->valid = 0;
+    }
     }
     if (strcmp(test->action, "self") == 0) {
         Rbc_VectorFree(test->dest[0]);
@@ -311,6 +322,73 @@ static int FftTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     return TCL_OK;
 }
 
+/* Spline outputs change length from two to five, so resize notifications
+ * would expose incomplete data in the old implementation. */
+static int SplineTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    FftTest test;
+    Tcl_Interp *target;
+    Rbc_Vector *vector;
+    Tcl_Obj *command, *answer;
+    int code, complex;
+    (void)data;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "operation phase action");
+        return TCL_ERROR;
+    }
+    memset(&test, 0, sizeof(test));
+    test.operation = Tcl_GetString(objv[1]);
+    test.phase = Tcl_GetString(objv[2]);
+    test.action = Tcl_GetString(objv[3]);
+    test.count = test.valid = 1;
+    complex = test.operation[0] == 'p';
+    target = test.interp = Tcl_CreateInterp();
+    Tcl_Preserve(target);
+    Tcl_CreateNamespace(target, "::rbc", NULL, NULL);
+    Rbc_VectorInit(target);
+    Rbc_SplineInit(target);
+    if (Tcl_EvalEx(target, "rbc::vector create sx sy sq; sx set {0 1 2}; sy set {0 1 2}; "
+                   "sq set {0 .5 1 1.5 2}; rbc::vector create sz -type complex; sz set {{0 0} {1 2} {2 4}}",
+                   -1, TCL_EVAL_GLOBAL) != TCL_OK) Tcl_Panic("spline test init failed");
+    if (Rbc_CreateVectorWithType(target, "::fftTestReal", 2,
+                                 complex ? RBC_VECTOR_COMPLEX : RBC_VECTOR_REAL, &vector) != TCL_OK)
+        Tcl_Panic("spline destination create failed");
+    test.dest[0] = (VectorObject *)vector;
+    test.dest[0]->notifyFlags = NOTIFY_NEVER;
+    test.dest[0]->flush = strcmp(test.phase, "trace") == 0;
+    if (!complex) {
+        FftStorage *storage = ckalloc(sizeof(*storage));
+        storage->values[0] = 3; storage->values[1] = 4;
+        storage->test = &test; storage->index = 0;
+        Rbc_ResetVector(vector, storage->values, 2, 2, FftTestRelease);
+    }
+    test.dest[0]->notifyFlags = NOTIFY_ALWAYS;
+    test.clients[0].test = &test;
+    test.ids[0] = Rbc_AllocVectorId(target, "::fftTestReal");
+    Rbc_SetVectorChangedProc(test.ids[0], FftTestNotify, &test.clients[0]);
+    if (strcmp(test.phase, "trace") == 0)
+        Tcl_TraceVar2(target, "::fftTestReal", NULL, TCL_GLOBAL_ONLY | TCL_TRACE_UNSETS, FftTestTrace, &test);
+    command = complex ? Tcl_ObjPrintf("rbc::spline parametric %s sz ::fftTestReal 5", test.operation + 1) :
+                        Tcl_ObjPrintf("rbc::spline %s sx sy sq ::fftTestReal", test.operation);
+    Tcl_IncrRefCount(command);
+    code = Tcl_EvalObjEx(target, command, TCL_EVAL_GLOBAL);
+    Tcl_DecrRefCount(command);
+    if (strcmp(test.action, "recreate") == 0) {
+        if (Rbc_GetVector(target, "::fftTestReal", &vector) != TCL_OK ||
+            Rbc_VectorLength(vector) != 1 || Rbc_VectorData(vector)[0] != 99.0) test.valid = 0;
+    }
+    answer = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(code));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.acted && test.valid));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[0]));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.releases));
+    Tcl_IncrRefCount(answer);
+    if (!Tcl_InterpDeleted(target)) Tcl_DeleteInterp(target);
+    Tcl_Release(target);
+    Tcl_SetObjResult(interp, answer);
+    Tcl_DecrRefCount(answer);
+    return TCL_OK;
+}
+
 DLLEXPORT int Rbcnotifytest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL) return TCL_ERROR;
     if (Tcl_PkgPresent(interp, "rbc::vector", NULL, 0) != NULL) {
@@ -323,5 +401,7 @@ DLLEXPORT int Rbcnotifytest_Init(Tcl_Interp *interp) {
     if (Rbc_VectorInit(interp) != TCL_OK) return TCL_ERROR;
     Tcl_CreateObjCommand2(interp, "::rbcnotifytest", NotifyTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcffttest", FftTestCmd, NULL, NULL);
+    Rbc_SplineInit(interp);
+    Tcl_CreateObjCommand2(interp, "::rbcsplinetest", SplineTestCmd, NULL, NULL);
     return Tcl_PkgProvide(interp, "rbcnotifytest", "1.0");
 }

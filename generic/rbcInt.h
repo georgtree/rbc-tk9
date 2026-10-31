@@ -274,12 +274,106 @@ char *Rbc_Utoa(unsigned int value);
 char *Rbc_Dtoa(Tcl_Interp *interp, double value);
 double Rbc_RandomDouble(void);
 
+/**
+ * Evaluate a natural cubic spline at caller-supplied abscissas.
+ * @param origPts Borrowed, separate source array with finite coordinates and
+ * strictly increasing X; at least three points are required.
+ * @param nOrigPts Number of source points.
+ * @param intpPts Caller-owned non-NULL array; X supplies finite query positions
+ * in any order and is retained, Y receives interpolated values.
+ * @param nIntpPts Number of queries, nonnegative; zero succeeds after validation.
+ * @return TRUE on success, FALSE on invalid input, allocation or arithmetic
+ * failure. Output may be partially modified on failure; no Tcl diagnostic.
+ *
+ * Preserves exact source-knot values and extrapolates with the first/last
+ * interval outside the source domain. Allocates and frees private workspace;
+ * does not own either caller array or invoke Tcl callbacks.
+ */
 int Rbc_NaturalSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * Evaluate a shape-preserving quadratic spline at caller-supplied abscissas.
+ * @param origPts Borrowed, separate source array with finite coordinates and
+ * strictly increasing X; at least three points are required.
+ * @param nOrigPts Number of source points.
+ * @param intpPts Caller-owned non-NULL array; X supplies finite query positions
+ * in any order and is retained, Y receives interpolated values.
+ * @param nIntpPts Number of queries, nonnegative; zero succeeds after validation.
+ * @return TRUE on success, FALSE on invalid input, allocation or arithmetic
+ * failure. Output may be partially modified on failure; no Tcl diagnostic.
+ *
+ * Preserves exact source-knot values and extrapolates with the first/last
+ * interval outside the source domain. Allocates and frees private workspace;
+ * does not own either caller array or invoke Tcl callbacks.
+ */
 int Rbc_QuadraticSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * Evaluate an open natural cubic path at interval/fraction parameters.
+ * @param origPts Borrowed finite source points, at least three; X need not increase.
+ * @param nOrigPts Number of source points.
+ * @param intpPts Caller-owned non-NULL array. On entry X is an integral source
+ * interval and Y is a fraction in [0,1]; on success both become coordinates.
+ * The final knot is represented by interval nOrigPts-1 and fraction zero.
+ * @param nIntpPts Nonnegative number of parameters; zero succeeds after validation.
+ * @return TRUE on success, FALSE on invalid input, allocation or arithmetic
+ * failure. Output parameters are unchanged on failure; no Tcl diagnostic.
+ *
+ * Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or
+ * unusable accumulated lengths. Source knots are copied exactly. Stages output
+ * separately before copying it back; releases all private workspace and invokes
+ * no Tcl callbacks. Caller retains ownership of both arrays.
+ */
 int Rbc_NaturalParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * Evaluate an open quadratic path at interval/fraction parameters.
+ * @param origPts Borrowed finite source points, at least three; X need not increase.
+ * @param nOrigPts Number of source points.
+ * @param intpPts Caller-owned non-NULL array. On entry X is an integral source
+ * interval and Y is a fraction in [0,1]; on success both become coordinates.
+ * The final knot is represented by interval nOrigPts-1 and fraction zero.
+ * @param nIntpPts Nonnegative number of parameters; zero succeeds after validation.
+ * @return TRUE on success, FALSE on invalid input, allocation or arithmetic
+ * failure. Output parameters are unchanged on failure; no Tcl diagnostic.
+ *
+ * Uses isotropic Euclidean chord lengths, rejecting degenerate intervals or
+ * unusable accumulated lengths. Source knots are copied exactly. Stages output
+ * separately before copying it back; releases all private workspace and invokes
+ * no Tcl callbacks. Caller retains ownership of both arrays.
+ */
 int Rbc_QuadraticParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * Sample a natural parametric path using an extent-scaled chord metric.
+ * @param origPts Borrowed finite source array, separate from output; at least three points.
+ * @param nOrigPts Number of source points.
+ * @param extsPtr Required extents defining X/Y metric scales. Absolute spans
+ * smaller than FLT_EPSILON or non-finite spans are replaced by FLT_EPSILON.
+ * @param isClosed Nonzero requests a closed curve; a missing final copy of the
+ * first point is appended in private storage.
+ * @param intpPts Caller-owned output array with room for nIntpPts coordinates.
+ * @param nIntpPts Requested sample count, at least two.
+ * @return Generated count, or zero on failure. Require the full requested count
+ * before accepting output; partial output may remain on failure.
+ *
+ * Samples approximately uniformly in chord parameter, not exact curve arc length.
+ * Copies the first point and makes the last exact when the full count is produced.
+ * Frees internal coefficients and any closure copy. No Tcl callbacks or diagnostic.
+ */
 Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * Evaluate a Catmull-Rom path at interval/fraction parameters.
+ * @param origPts Borrowed finite source points; at least one is required.
+ * @param nOrigPts Number of source points.
+ * @param intpPts Non-NULL caller-owned parameters, replaced by coordinates.
+ * X is an integral interval and Y is in [0,1]; the final knot uses interval
+ * nOrigPts-1 with fraction zero.
+ * @param nIntpPts Nonnegative number of evaluations.
+ * @return TRUE on success, FALSE on validation, allocation or arithmetic
+ * failure. Arithmetic failure may leave partially replaced output.
+ *
+ * Validates parameters before writing, copies and extends source endpoints
+ * privately, then evaluates cubic coefficients. Does not use chord-length
+ * parameterization. Caller retains both arrays; no Tcl callbacks or diagnostic.
+ */
 int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
 /**
  * @brief Find the clamped nearest point on a finite segment and return distance.

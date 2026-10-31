@@ -1757,6 +1757,8 @@ void Rbc_VectorFlushCache(VectorObject *vPtr) {
  */
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name) {
     const char *result;
+    char *savedName;
+    int code = TCL_ERROR;
     Tcl_Namespace *varNsPtr;
 
     if (name != NULL && (strchr(name, '(') != NULL || strchr(name, ')') != NULL)) {
@@ -1766,12 +1768,19 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
                 "mapped array name must not contain parentheses; use a separate array name or an empty name", -1));
         return TCL_ERROR;
     }
+    Tcl_Preserve(vPtr);
+    Tcl_Preserve(interp);
+    savedName = RbcStrdup(name != NULL ? name : "");
+    name = savedName;
     if (vPtr->arrayName != NULL) {
         UnmapVariable(vPtr);
+        if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
+        if (vPtr->arrayName != NULL) goto remapped;
     }
     if ((name == NULL) || (name[0] == '\0')) {
         /* If the variable name is the empty string, simply return after removing any existing variable. */
-        return TCL_OK;
+        code = TCL_OK;
+        goto done;
     }
     /*
      * To play it safe, delete the variable first.  This has
@@ -1779,11 +1788,15 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
      * be currently using it.
      */
     Tcl_UnsetVar2(interp, name, NULL, 0);
+    if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
+    if (vPtr->arrayName != NULL) goto remapped;
     /* Set the index "end" in the array.  This will create the
      * variable immediately so that we can check its namespace
      * context.
      */
     result = Tcl_SetVar2(interp, name, "end", "", TCL_LEAVE_ERR_MSG);
+    if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
+    if (vPtr->arrayName != NULL) goto remapped;
     /* Determine if the variable is global or not.  If there wasn't a
      * namespace qualifier, it still may be global.  We need to look
      * inside the Var structure to see what it's namespace field says.
@@ -1797,7 +1810,19 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
         Tcl_TraceVar2(interp, name, NULL, (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
     }
     vPtr->arrayName = RbcStrdup(name);
-    return (result == NULL) ? TCL_ERROR : TCL_OK;
+    code = (result == NULL) ? TCL_ERROR : TCL_OK;
+    goto done;
+
+remapped:
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("vector mapping changed during variable trace", -1));
+    goto done;
+destroyed:
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("vector was destroyed during variable mapping", -1));
+done:
+    ckfree(savedName);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+    return code;
 }
 
 /*
@@ -3408,16 +3433,15 @@ static void DeleteCommand(VectorObject *vPtr) {
  */
 static void UnmapVariable(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
-    if (vPtr->arrayName == NULL) {
-        return;
-    }
-    /* Unset the entire array */
-    Tcl_UntraceVar2(interp, vPtr->arrayName, NULL, (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *)VectorVarTrace,
-                    vPtr);
-    Tcl_UnsetVar2(interp, vPtr->arrayName, (char *)NULL, vPtr->varFlags);
-    /* free the space */
-    ckfree((char *)vPtr->arrayName);
+    char *name = vPtr->arrayName;
+    int flags = vPtr->varFlags;
+
+    if (name == NULL) return;
+    /* Detach before user unset traces can recursively destroy or remap it. */
     vPtr->arrayName = NULL;
+    Tcl_UntraceVar2(interp, name, NULL, TRACE_ALL | flags, (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
+    Tcl_UnsetVar2(interp, name, NULL, flags);
+    ckfree(name);
 }
 
 /*
