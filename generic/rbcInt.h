@@ -406,15 +406,38 @@ Window Rbc_GetRealWindowId(Tk_Window tkwin);
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
+/**
+ * @brief Clamp an integer offset according to the selected legacy scroll mode.
+ * Caller supplies meaningful nonnegative world/window sizes and positive unit
+ * size. Canvas mode permits negative offsets when the world is smaller than
+ * the window; listbox permits trailing blank space; hierbox clamps to zero
+ * when the world fits. Unknown modes leave the offset unchanged. Arithmetic
+ * uses wide intermediates and saturates the returned int; no state is mutated.
+ */
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
 typedef enum {RBC_SCROLL_MOVETO, RBC_SCROLL_UNITS, RBC_SCROLL_PAGES} Rbc_ScrollKind;
 typedef struct {
     Rbc_ScrollKind kind;
     double value;
 } Rbc_ScrollRequest;
-/* legacy permits axis abbreviations and a single numeric unit count. */
+/**
+ * @brief Parse a finite double-valued scroll request without moving a viewport.
+ * Requires a valid argument array, 0 <= first <= objc, and a non-NULL output.
+ * Queries are handled by callers. Legacy mode allows nonempty abbreviations
+ * and one numeric unit count; strict mode requires exact Tk-style words.
+ * Returns TCL_OK and assigns the complete request, or TCL_ERROR with a Tcl
+ * diagnostic and the output unchanged. Fractions and counts are not clamped.
+ */
 int Rbc_ParseScrollRequest(Tcl_Interp *, Tcl_Size, Tcl_Obj *const [], Tcl_Size, int, Rbc_ScrollRequest *);
 
+/**
+ * @brief Parse legacy integer scrolling and update a caller-owned pixel offset.
+ * Unit/page counts are integers; moveto accepts a finite double fraction.
+ * A page is 90 percent of windowSize. Delta truncation precedes addition, with
+ * saturation before AdjustViewport applies mode bounds. On TCL_ERROR the offset
+ * is unchanged; some malformed-arity paths do not set a diagnostic. This is
+ * separate from the double-valued axis/track request parser.
+ */
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
 /**

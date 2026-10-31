@@ -47,6 +47,8 @@ chapters.
    export-reference
    rendering
    reference
+   scrolling
+   scroll-reference
    geometry
    geometry-reference
    containers

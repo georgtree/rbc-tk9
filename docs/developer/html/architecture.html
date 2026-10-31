@@ -101,7 +101,8 @@ and the distinction between mapping and clipping.</p>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGeometry.c</span></code> contains geometry algorithms without graph state or drawing.
 See <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a> for clipping boundaries, hit testing and simplification.
 <code class="docutils literal notranslate"><span class="pre">rbcScroll.c</span></code> parses scroll requests and computes viewports; callers retain
-widget mutation and redraw responsibilities. <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> owns common option
+widget mutation and redraw responsibilities. See <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for request
+parsing, axis/track viewport policy and scrollbar notification. <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> owns common option
 conversion and rollback helpers. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for resource lookup,
 transaction boundaries and the distinction between option and derived resources. <code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> contains shared Tk/Xlib services
 used outside graph rendering too, rather than a universal renderer backend.</p>

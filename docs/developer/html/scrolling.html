@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Scrolling and viewport policy &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scrolling C reference" href="scroll-reference.html" />
+    <link rel="prev" title="Renderer C reference" href="reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="scroll-reference.html" title="Scrolling C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scrolling and viewport policy</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="scrolling-and-viewport-policy">
+<h1>Scrolling and viewport policy<a class="headerlink" href="#scrolling-and-viewport-policy" title="Link to this heading">¶</a></h1>
+<p>Scrolling separates request parsing from the owner’s coordinate system and
+redraw policy. <code class="docutils literal notranslate"><span class="pre">rbcScroll.c</span></code> provides shared request and integer-offset helpers.
+Axis data scrolling lives in <code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>; track-stack scrolling and its
+scrollbar notification live in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for the
+resulting screen transforms and full versus visible track rectangles.</p>
+<section id="two-parsing-interfaces">
+<h2>Two parsing interfaces<a class="headerlink" href="#two-parsing-interfaces" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest</span></code> parses a request into <code class="docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code> without
+modifying graph state. It accepts finite double values for moveto, units and
+pages, including fractional unit counts. It validates the complete argument
+shape before reading optional values and assigns its output only on success.
+It does not clamp fractions to [0,1] or apply viewport bounds. A query with no
+request arguments is handled by the owning command, not this parser.</p>
+<p>Axis commands enable legacy mode: nonempty abbreviations and a single numeric
+unit count are accepted. Track commands use exact <code class="docutils literal notranslate"><span class="pre">moveto</span></code>, <code class="docutils literal notranslate"><span class="pre">scroll</span></code>,
+<code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">pages</span></code> words. The caller supplies a valid starting argument
+index and array; the helper does not validate arbitrary C pointer/index misuse.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetScrollInfoFromObj</span></code> is an older integer-offset interface. It parses
+integer counts for units/pages, a finite double for moveto and legacy numeric
+unit requests. It truncates the computed delta before adding it, saturates
+integer conversions and applies <code class="docutils literal notranslate"><span class="pre">Rbc_AdjustViewport</span></code>. Errors leave the input
+offset unchanged, but malformed arity does not always produce a diagnostic.
+It is not interchangeable with the double-valued axis/track parser.</p>
+</section>
+<section id="integer-viewport-modes">
+<h2>Integer viewport modes<a class="headerlink" href="#integer-viewport-modes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_AdjustViewport</span></code> assumes meaningful nonnegative world/window sizes and
+positive scroll units. It uses wide intermediate arithmetic and returns an
+integer offset. Mode policy is intentionally distinct:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Offset policy</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Canvas</p></td>
+<td><p>Keep a full viewport inside a larger world. If the world is smaller,
+allow offsets from worldSize-windowSize through zero, moving the small
+world within the viewport.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Listbox</p></td>
+<td><p>Permit trailing blank space. When the offset reaches/exceeds worldSize,
+replace it by worldSize-scrollUnits, then clamp negative values to zero.</p></td>
+</tr>
+<tr class="row-even"><td><p>Hierbox</p></td>
+<td><p>Keep the viewport inside the world and clamp to zero when the world fits.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The integer parser defines a page as 90 percent of the visible window. Unknown
+mode values leave the supplied offset unchanged; this is not an enum-validation
+interface.</p>
+</section>
+<section id="axis-data-scrolling">
+<h2>Axis data scrolling<a class="headerlink" href="#axis-data-scrolling" title="Link to this heading">¶</a></h2>
+<p>Axis scrolling derives an effective world range from data bounds, overridden by
+configured scroll limits. Uninitialized data bounds fall back to current axis
+limits. It rejects invalid world ranges, but allows a zero-width view for an
+unused axis. The current view is intersected with the scroll region before
+normalization; an entirely outside view collapses onto the nearest boundary.</p>
+<p>Logarithmic axes perform viewport arithmetic in log10 coordinates and convert
+requested limits back afterwards. Screen orientation and the descending flag
+determine which end corresponds to fraction zero. Units use axis scroll units
+and the relevant screen scale; a track-owned axis uses its full world track
+extent rather than the clipped visible intersection.</p>
+<p>A query returns clamped scrollbar fractions. Movement preserves a zero-width
+unused view as a no-op, otherwise applies the request, clamps the normalized
+viewport and validates the resulting finite increasing limits. Only then are
+<code class="docutils literal notranslate"><span class="pre">reqMin</span></code> and <code class="docutils literal notranslate"><span class="pre">reqMax</span></code> committed and axis layout/redraw flags scheduled.
+This changes data limits, not the track-stack offset.</p>
+</section>
+<section id="track-stack-versus-track-local-data">
+<h2>Track stack versus track-local data<a class="headerlink" href="#track-stack-versus-track-local-data" title="Link to this heading">¶</a></h2>
+<p>Track-stack view fractions describe the plot viewport within the total stacked
+track extent. The stacking direction uses vertical range normally and horizontal
+range when inverted. Movement uses 20 display units per unit request and 90
+percent of the visible range per page; moveto is relative to the total extent.
+The offset is clamped to the available extent, or forced to zero when track
+scrolling is disabled. It requests world reset/redraw without changing data-axis
+limits.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_TrackYViewOp</span></code> instead reuses axis data scrolling. <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one axis
+that must belong to the track. Without it, a query reports the first axis and a
+movement applies to all track Y axes. Parsing precedes layout. The operation
+saves all selected requested limits and graph flags before applying updates;
+if any axis rejects the move, it restores the limits and flags while retaining
+<code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code> because an idle callback may already be scheduled. This is
+rollback of requested axis state, not rollback of arbitrary layout callbacks.</p>
+</section>
+<section id="scrollbar-callbacks-and-lifetime">
+<h2>Scrollbar callbacks and lifetime<a class="headerlink" href="#scrollbar-callbacks-and-lifetime" title="Link to this heading">¶</a></h2>
+<p>Axis scrollbar updates are queued through an idle callback, using the latest
+stored fractions. Track-stack notification happens after native drawing through
+<code class="docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView</span></code>. That helper first repicks a stationary pointer so track
+Enter/Leave bindings reflect changed layout, then checks the surviving window
+before reporting fractions. Neither notification path emits export-driven
+scrollbar updates.</p>
+<p>The track scrollbar compares fractions with its cache and updates that cache
+before evaluating the command prefix, preventing an unchanged callback-triggered
+redraw from notifying forever. Reconfiguring the command invalidates the cache.
+Callbacks receive two appended fraction arguments and execute globally. Their
+command objects and required lifetimes are retained across evaluation;
+interpreter state is saved/restored and failures are background exceptions.</p>
+<p>Callbacks can destroy or reconfigure the widget. Preserving the allocation does
+not guarantee a live Tk window or unchanged axes/tracks. Callers must respect
+the post-callback checks and avoid using graph state after its final release.
+See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for the surrounding lifetime and
+repicking rules, and <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a> for the shared contracts.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Scrolling and viewport policy</a><ul>
+<li><a class="reference internal" href="#two-parsing-interfaces">Two parsing interfaces</a></li>
+<li><a class="reference internal" href="#integer-viewport-modes">Integer viewport modes</a></li>
+<li><a class="reference internal" href="#axis-data-scrolling">Axis data scrolling</a></li>
+<li><a class="reference internal" href="#track-stack-versus-track-local-data">Track stack versus track-local data</a></li>
+<li><a class="reference internal" href="#scrollbar-callbacks-and-lifetime">Scrollbar callbacks and lifetime</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="reference.html"
+                          title="previous chapter">Renderer C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="scroll-reference.html"
+                          title="next chapter">Scrolling C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="scroll-reference.html" title="Scrolling C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scrolling and viewport policy</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

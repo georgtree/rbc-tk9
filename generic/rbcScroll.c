@@ -20,42 +20,6 @@ static int ClampScrollValue(long double value) {
     return (int)value;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_AdjustViewport --
- *
- *      Adjusts the offsets of the viewport according to the scroll mode.
- *      This is to accommodate both "listbox" and "canvas" style scrolling.
- *
- *      "canvas"    The viewport scrolls within the range of world
- *              coordinates.  This way the viewport always displays
- *              a full page of the world.  If the world is smaller
- *              than the viewport, then (bizarrely) the world and
- *              viewport are inverted so that the world moves up
- *              and down within the viewport.
- *
- *      "listbox"    The viewport can scroll beyond the range of world
- *              coordinates.  Every entry can be displayed at the
- *              top of the viewport.  This also means that the
- *              scrollbar thumb weirdly shrinks as the last entry
- *              is scrolled upward.
- *
- * Parameters:
- *      int offset
- *      int worldSize
- *      int windowSize
- *      int scrollUnits
- *      int scrollMode
- *
- * Results:
- *      The corrected offset is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode) {
     Tcl_WideInt newOffset;
     Tcl_WideInt world;
@@ -176,31 +140,6 @@ usage:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetScrollInfoFromObj --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const *objv
- *      int *offsetPtr
- *      int worldSize
- *      int windowSize
- *      int scrollUnits
- *      int scrollMode
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode) {
     const char *string;

@@ -46,6 +46,13 @@ struct RbcTrack {
 
 int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
 void Rbc_DestroyTracks(Graph *graphPtr);
+/**
+ * @brief Repick the stationary pointer and report track scrollbar fractions.
+ * Called after native display/layout work; does nothing for non-track graphs
+ * or during export. Preserves the graph across binding callbacks, rechecks the
+ * live window, then notifies the scrollbar. Callbacks may destroy the widget;
+ * the caller must not assume the graph survives this function.
+ */
 void Rbc_NotifyTrackView(Graph *graphPtr);
 int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 /**
@@ -57,6 +64,15 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
  */
 void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * @brief Query or move the data viewport of a track-owned Y axis or axes.
+ * Borrow graph, track and arguments; the enclosing widget command protects
+ * lifetime across layout callbacks. An optional -mapy selects one owned axis.
+ * Queries use the first selected axis; movement applies to all selected axes.
+ * Strict request parsing precedes layout. A later axis failure restores saved
+ * requested limits and flags, retaining any already scheduled redraw. Returns
+ * TCL_OK or TCL_ERROR with an interpreter result.
+ */
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
 /**

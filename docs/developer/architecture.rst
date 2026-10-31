@@ -53,7 +53,8 @@ See :doc:`containers` for chain/list payload ownership and mutation rules.
 ``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.
 See :doc:`geometry` for clipping boundaries, hit testing and simplification.
 ``rbcScroll.c`` parses scroll requests and computes viewports; callers retain
-widget mutation and redraw responsibilities. ``rbcConfig.c`` owns common option
+widget mutation and redraw responsibilities. See :doc:`scrolling` for request
+parsing, axis/track viewport policy and scrollbar notification. ``rbcConfig.c`` owns common option
 conversion and rollback helpers. See :doc:`configuration` for resource lookup,
 transaction boundaries and the distinction between option and derived resources. ``rbcDraw.c`` contains shared Tk/Xlib services
 used outside graph rendering too, rather than a universal renderer backend.
