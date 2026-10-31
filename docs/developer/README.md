@@ -2,7 +2,8 @@
 
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
 Coverage includes architecture, header dependencies, renderer contracts, graph
-widget lifecycle and redisplay, and source-comment conventions.
+widget lifecycle and redisplay, vector ownership and notifications, and
+source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
 
@@ -32,7 +33,8 @@ The MSVC makefile also provides `doc-dev` and `check-doc-dev`.
 
 Commit `docs/developer/html/` with your other generated documentation to
 publish it at `developer/html/` on GitHub Pages. XML, logs and caches remain
-under `_build/developer/`. Generated HTML is retained by `make clean`.
+under `_build/developer/`. Generated HTML is retained by `make clean`. Sphinx does not copy RST sources
+or add source links to the published pages.
 Use `--html-dir PATH` to override the published HTML destination.
 Developer HTML is not yet included in installation or binary archives.
 Source documentation is incremental: strict checks validate included comments and links, not documentation coverage of the entire codebase.

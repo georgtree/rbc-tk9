@@ -21,4 +21,6 @@ if _output_relative is not None and _output_relative != os.pardir and not _outpu
     exclude_patterns.append(_output_relative.replace(os.sep, "/"))
 html_theme = "classic"
 html_title = f"RBC {release} Developer Manual"
-html_show_sourcelink = True
+# Published sources remain in the repository, not in the generated site.
+html_copy_source = False
+html_show_sourcelink = False

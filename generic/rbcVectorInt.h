@@ -1,3 +1,11 @@
+/**
+ * @file rbcVectorInt.h
+ * @brief Private vector storage, interpreter registry and update machinery.
+ *
+ * Never include this header in an external vector consumer. The representation
+ * and selected-range scratch fields are private to RBC; installed clients use
+ * opaque types and the generated stubs interface.
+ */
 
 #ifndef _RBCVECTORINT
 #define _RBCVECTORINT
@@ -63,20 +71,13 @@ typedef union {
 } VectorData;
 
 /*
- *    A vector is an array of real or complex numeric values. It can be
- *    accessed through a Tcl command, a Tcl array variable, or C
- *    API. The storage for the array points initially to a
- *    statically allocated buffer, but to malloc-ed memory if more
- *    is necessary.
+ * Vector storage starts empty (NULL, length and capacity zero); growth allocates
+ * an array, not an inline/static buffer. freeProc controls ownership of the
+ * current array. Data pointers can change on growth or reset.
  *
- *    Vectors can be shared by several clients (for example, two
- *    different graph widgets).  The data is shared. When a client
- *    wants to use a vector, it allocates a vector identifier, which
- *    identifies the client.  Clients use this ID to specify a
- *    callback routine to be invoked whenever the vector is modified
- *    or destroyed.  Whenever the vector is updated or destroyed,
- *    each client is notified of the change by their callback
- *    routine.
+ * The interpreter registry owns named vectors. The client chain observes the
+ * same record without copying data or preserving its lifetime. On destruction,
+ * callbacks run before storage and remaining client IDs are freed.
  */
 struct Rbc_Vector_s {
     Rbc_VectorType type;
@@ -144,20 +145,15 @@ struct Rbc_Vector_s {
 typedef Rbc_Vector VectorObject;
 
 /*
- *    A vector can be shared by several clients.  Each client
- *    allocates this structure that acts as its key for using the
- *    vector.  Clients can also designate a callback routine that is
- *    executed whenever the vector is updated or destroyed.
- *
+ * One observer of a vector. This is not a lifetime-preserving reference.
+ * update* fields are a notification-local snapshot, restored after nested
+ * delivery. Detaching invalidates the token immediately; active snapshots defer
+ * reclamation. Rbc_VectorFree detaches remaining IDs after DESTROY delivery.
  */
 struct Rbc_VectorIdStruct {
     unsigned int magic;          /* Magic value designating whether this
                                   * really is a vector token or not */
-    VectorObject *serverPtr;     /* Pointer to the master record of the
-                                  * vector.  If NULL, indicates that the
-                                  * vector has been destroyed but as of
-                                  * yet, this client hasn't recognized
-                                  * it. */
+    VectorObject *serverPtr;     /* Borrowed vector; cleared when the ID is detached. */
     Rbc_VectorChangedProc *proc; /* Routine to call when the contents
                                   * of the vector change or the vector
                                   * is deleted. */
@@ -253,8 +249,41 @@ void Rbc_VectorFlushCache(VectorObject *vPtr);
 VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,
                                      const char **endPtr, int flags);
 int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
+
+/**
+ * @brief Invalidate extrema and report a full/unknown data change internally.
+ * @param[in,out] vPtr Live vector, already modified by the caller.
+ *
+ * Increments the dirty counter and follows the vector's notification policy.
+ * Immediate policy invokes callbacks before return. Does not flush the mapped
+ * Tcl array cache or check read-only state; mutation code owns those steps.
+ */
 void Rbc_VectorUpdateClients(VectorObject *vPtr);
+
+/**
+ * @brief Report changed existing storage using inclusive zero-based indices.
+ * @param[in,out] vPtr Live vector, already modified in place.
+ * @param[in] first First changed storage index, independent of Tcl index offset.
+ * @param[in] last Last changed storage index, inclusive.
+ *
+ * Invalid intervals become full updates. Valid intervals coalesce until
+ * delivery; real extrema are maintained incrementally when possible. Does not
+ * change length/ownership, flush array caches or enforce read-only state.
+ */
 void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
+
+/**
+ * @brief Read the interval snapshot during this client's UPDATE callback.
+ * @param[in] clientId Live observer token, or NULL.
+ * @param[out] firstPtr Optional first inclusive zero-based index.
+ * @param[out] lastPtr Optional last inclusive zero-based index.
+ * @return TRUE if a range is available; FALSE for a full/unknown update,
+ * DESTROY, outside delivery, or a NULL/disconnected token. Outputs are left
+ * unchanged on FALSE. Never pass a token freed by vector destruction.
+ *
+ * Coalescing may include unchanged values between separate modified intervals.
+ * This helper is private and has no public stub entry.
+ */
 int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Size *lastPtr);
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,

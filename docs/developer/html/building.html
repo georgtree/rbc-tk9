@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
     
-    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     
@@ -95,7 +95,7 @@ manual with GitHub Pages. It is retained by <code class="docutils literal notran
 <code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is regenerated
 and all pages rebuilt on each invocation.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers and the common graph
-header/source pair. Extraction does not follow includes into Tk or SDK headers.
+header/source pair, plus the public/private vector headers. Extraction does not follow includes into Tk or SDK headers.
 Reference pages select maintained contracts; undocumented functions are not a
 coverage target yet. Platform and Cairo backend implementations are not combined
 into misleading duplicate entries. Future chapters must select inputs deliberately.</p>
@@ -142,13 +142,6 @@ Existing user documentation installation is unchanged.</p>
     <p class="topless"><a href="architecture.html"
                           title="next chapter">Implementation overview</a></p>
   </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/building.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">

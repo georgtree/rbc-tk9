@@ -1988,24 +1988,6 @@ done:
     Tcl_Release(interp);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_VectorNotifyPending --
- *
- *      Returns the name of the vector (and array variable).
- *
- * Parameters:
- *      Rbc_VectorId clientId - Client token identifying the vector
- *
- * Results:
- *      The name of the array variable is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 int Rbc_VectorNotifyPending(Rbc_VectorId clientId) {
     VectorClient *clientPtr = (VectorClient *)clientId;
     if ((clientPtr == NULL) || (clientPtr->magic != VECTOR_MAGIC) || (clientPtr->serverPtr == NULL)) {
@@ -2732,25 +2714,6 @@ static void InvalidateVectorRange(VectorObject *vPtr) {
     vPtr->notifyFlags |= UPDATE_RANGE;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorUpdateClients --
- *
- *      Notifies each client of the vector that the vector has changed
- *      (updated or destroyed) by calling the provided function back.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to update clients for
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The individual client callbacks are eventually invoked.
- *
- * ----------------------------------------------------------------------
- */
 void Rbc_VectorUpdateClients(VectorObject *vPtr) {
     InvalidateVectorRange(vPtr);
     ScheduleVectorUpdate(vPtr, TRUE, 0, 0);
@@ -2846,21 +2809,6 @@ static int UpdateVectorRangeForChangedRange(VectorObject *vPtr, Tcl_Size first, 
     return TRUE;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VectorUpdateClientsRange --
- *
- *      Notifies vector clients that a known inclusive source range was
- *      modified.
- *
- *      Multiple ranged updates occurring before notification are
- *      coalesced into one inclusive range.
- *
- *      Invalid ranges conservatively become full/unknown updates.
- *
- * ----------------------------------------------------------------------
- */
 void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size last) {
     if ((first < 0) || (last < first) || (last >= vPtr->length)) {
         Rbc_VectorUpdateClients(vPtr);
@@ -3628,29 +3576,6 @@ Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index) {
     return Rbc_ComplexFromReal(0.0);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_FreeVectorId --
- *
- *      Releases the token for an existing vector.  This
- *      indicates that the client is no longer interested
- *      the vector.  Any previously specified callback
- *      routine will no longer be invoked when (and if) the
- *      vector changes.
- *
- * Parameters:
- *      Rbc_VectorId clientId - Client token identifying the vector
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Any previously specified callback routine will no
- *      longer be invoked when (and if) the vector changes.
- *
- *--------------------------------------------------------------
- */
 void Rbc_FreeVectorId(Rbc_VectorId clientId) {
     VectorClient *clientPtr = (VectorClient *)clientId;
     if (clientPtr == NULL || clientPtr->magic != VECTOR_MAGIC) {
@@ -3666,29 +3591,6 @@ void Rbc_FreeVectorId(Rbc_VectorId clientId) {
     Tcl_EventuallyFree(clientPtr, FreeVectorRecord);
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_GetVectorById --
- *
- *      Returns a pointer to the vector associated with the client
- *      token.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Rbc_VectorId clientId - Client token identifying the vector
- *      Rbc_Vector **vecPtrPtr
- *
- * Results:
- *      A standard Tcl result.  If the client token is not associated
- *      with a vector any longer, TCL_ERROR is returned. Otherwise,
- *      TCL_OK is returned and vecPtrPtr will point to vector.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
- */
 int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **vecPtrPtr) {
     VectorClient *clientPtr = (VectorClient *)clientId;
     if (clientPtr->magic != VECTOR_MAGIC) {
@@ -3741,29 +3643,6 @@ int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName) {
     return FALSE;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_AllocVectorId --
- *
- *      Creates an identifier token for an existing vector.
- *      The identifier is used by the client routines to get
- *      call backs when (and if) the vector changes.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *name
- *
- * Results:
- *      A standard Tcl result.  If "vecName" is not associated
- *      with a vector, TCL_ERROR is returned and the interpreter
- *   c  result is filled with an error message.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *name) {
     VectorInterpData *dataPtr; /* Interpreter-specific data. */
     VectorObject *vPtr;
@@ -3800,30 +3679,6 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *name) {
     return clientId;
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_SetVectorChangedProc --
- *
- *      Sets the routine to be called back when the vector is changed
- *      or deleted.  *clientData* will be provided as an argument. If
- *      *proc* is NULL, no callback will be made.
- *
- * Parameters:
- *      Rbc_VectorId clientId - Client token identifying the vector
- *      Rbc_VectorChangedProc *proc - Address of routine to call when the contents of the vector change. If NULL, no 
- *                                    routine will be called
- *      ClientData clientData - One word of information to pass along when the above routine is called
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The designated routine will be called when the vector is changed
- *      or deleted.
- *
- * -----------------------------------------------------------------------
- */
 void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc, ClientData clientData) {
     VectorClient *clientPtr = (VectorClient *)clientId;
     if (clientPtr->magic != VECTOR_MAGIC) {
@@ -3833,22 +3688,6 @@ void Rbc_SetVectorChangedProc(Rbc_VectorId clientId, Rbc_VectorChangedProc *proc
     clientPtr->proc = proc;
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_VectorGetChangedRange --
- *
- *      Returns the inclusive source range associated with the vector
- *      update currently being delivered to a client.
- *
- * Results:
- *      TRUE when an exact changed range is available.
- *
- *      FALSE when the update must be treated as affecting the complete
- *      vector, or when the client token is invalid.
- *
- * -----------------------------------------------------------------------
- */
 int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Size *lastPtr) {
     VectorClient *clientPtr;
 
@@ -3866,24 +3705,6 @@ int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Siz
     return TRUE;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_NameOfVectorId --
- *
- *      Returns the current registered vector name, independent of its array mapping.
- *
- * Parameters:
- *      Rbc_VectorId clientId - Client token identifying the vector
- *
- * Results:
- *      A borrowed name, valid until rename or destruction, or NULL for a disconnected client.
- *
- * Side effects:
- *      None
- *
- *--------------------------------------------------------------
- */
 char *Rbc_NameOfVectorId(Rbc_VectorId clientId) {
     VectorClient *clientPtr = (VectorClient *)clientId;
     if ((clientPtr->magic != VECTOR_MAGIC) || (clientPtr->serverPtr == NULL)) {

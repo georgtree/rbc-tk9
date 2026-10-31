@@ -59,5 +59,5 @@ not provide worker-thread drawing or context synchronization. An internal
 renderer run callback does not authorize arbitrary Tcl reentry.
 
 See :doc:`graph-lifecycle` for widget scheduling, callback cancellation and
-the two phases of destruction. Detailed component destruction and vector
-notification contracts will be documented with their owning modules.
+the two phases of destruction. See :doc:`vectors` for borrowed numeric storage and observer lifetime.
+Detailed component destruction contracts remain with their owning modules.

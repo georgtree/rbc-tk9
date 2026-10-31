@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector client C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="Vector ownership and notifications" href="vectors.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vectors.html" title="Vector ownership and notifications"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector client C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-client-c-reference">
+<h1>Vector client C reference<a class="headerlink" href="#vector-client-c-reference" title="Link to this heading">¶</a></h1>
+<p>The opaque types and observer declarations below come from the installed
+<code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>. Observer functions are not entries in the public stubs table;
+external stub users must not assume they are available through that table.
+The final section contains private RBC helpers. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for storage,
+read-only state and notification reentry and client-data lifetime.</p>
+<section id="types">
+<h2>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_Vector">
+<span class="target" id="rbc_vector_8h_1aa3f41ecc0708e8e217888ca6759b5d48"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Vector_s</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Vector</span></span></span><a class="headerlink" href="#c.Rbc_Vector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Opaque vector record; access values and metadata through the API. </p>
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_VectorType">
+<span class="target" id="rbc_vector_8h_1aa30a6f83533fed91fbd0dfa93c75b0d8"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorType</span></span></span><a class="headerlink" href="#c.Rbc_VectorType" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Storage element type; real and complex buffers are distinct. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_VectorType.RBC_VECTOR_REAL">
+<span class="target" id="rbc_vector_8h_1aa30a6f83533fed91fbd0dfa93c75b0d8a50642fee0a65bba29ddd669e8b6c77ff"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_VECTOR_REAL</span></span></span><a class="headerlink" href="#c.Rbc_VectorType.RBC_VECTOR_REAL" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_VectorType.RBC_VECTOR_COMPLEX">
+<span class="target" id="rbc_vector_8h_1aa30a6f83533fed91fbd0dfa93c75b0d8aabea8e9dc3788e50bd05b4babec9a42d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_VECTOR_COMPLEX</span></span></span><a class="headerlink" href="#c.Rbc_VectorType.RBC_VECTOR_COMPLEX" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_Complex">
+<span class="target" id="struct_rbc___complex"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Complex</span></span></span><a class="headerlink" href="#c.Rbc_Complex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Portable complex value, independent of native C complex support. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Complex.real">
+<span class="target" id="struct_rbc___complex_1ae5c3db6f8038c84cc9c5011b8add7af6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">real</span></span></span><a class="headerlink" href="#c.Rbc_Complex.real" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Real component. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_Complex.imag">
+<span class="target" id="struct_rbc___complex_1ae9c17542e4f6b37e9d4beb671dbf2ecf"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">imag</span></span></span><a class="headerlink" href="#c.Rbc_Complex.imag" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Imaginary component. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_VectorId">
+<span class="target" id="rbc_vector_8h_1af00ee250213139f9049fda52db682fcf"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_VectorIdStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorId</span></span></span><a class="headerlink" href="#c.Rbc_VectorId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Observer token attached to one vector, not a vector reference count. </p>
+<p>Survives vector rename. Free it when detaching, including from a callback. Vector destruction frees remaining tokens after delivering DESTROY; clients must discard their saved token at that point. </p>
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_VectorNotify">
+<span class="target" id="rbc_vector_8h_1a5cd9f92570ded365078d86fd77f793e4"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></span><a class="headerlink" href="#c.Rbc_VectorNotify" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Client notification reason: changed data or imminent destruction. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_UPDATE">
+<span class="target" id="rbc_vector_8h_1a5cd9f92570ded365078d86fd77f793e4afc69ab8c5ee16c1a839f5aed9ece916a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_VECTOR_NOTIFY_UPDATE</span></span></span><a class="headerlink" href="#c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_UPDATE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_DESTROY">
+<span class="target" id="rbc_vector_8h_1a5cd9f92570ded365078d86fd77f793e4ad9f33f931b9611cd66533612ec23b58e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_VECTOR_NOTIFY_DESTROY</span></span></span><a class="headerlink" href="#c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_DESTROY" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<p>Callback signature (included verbatim to retain Tcl’s function-typedef syntax):</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">Rbc_VectorChangedProc</span><span class="p">)(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="n">clientData</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_VectorNotify</span><span class="w"> </span><span class="n">notify</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Callbacks borrow their data and must obey the lifetime and reentry restrictions
+in <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>.</p>
+</section>
+<section id="observers-and-range-access">
+<h2>Observers and range access<a class="headerlink" href="#observers-and-range-access" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_AllocVectorId">
+<span class="target" id="rbc_vector_8h_1accd6daf955dfb5e625e6154e953cc3a0"></span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AllocVectorId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AllocVectorId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Register an observer of an existing vector without copying its values. </p>
+<p><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_vector_8h_1a978a0729bdc738eccc7eab3ee3f0d9b1"><span class="std std-ref">Rbc_SetVectorChangedProc</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_vector_8h_1ac351a8a045043525d3b86397e7b9ad87"><span class="std std-ref">Rbc_FreeVectorId</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter containing the vector registry. </p></li>
+<li><p><strong>vecName</strong> – <strong>[in]</strong> Borrowed name resolved by the vector name lookup rules. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>New token, initially without a callback, or NULL with a diagnostic. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeVectorId">
+<span class="target" id="rbc_vector_8h_1ac351a8a045043525d3b86397e7b9ad87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeVectorId</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeVectorId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Detach an observer, deferring reclamation while delivery retains it. </p>
+<p>
+Does not destroy the vector. May be called from UPDATE or DESTROY callbacks. Destruction itself frees remaining IDs. A magic-field check is not permission to pass freed or arbitrary pointers. NULL is accepted. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Allocated token, or NULL; invalid after this call.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetVectorById">
+<span class="target" id="rbc_vector_8h_1ac6247b14d0bccc017f500800e5263e5a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetVectorById</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span>, <a class="reference internal" href="#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetVectorById" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow the vector associated with a client ID and refresh its range. </p>
+<p>
+Neither the returned pointer nor the ID extends vector lifetime. Never call this with a token left over after vector destruction. Cached extrema are recomputed when invalidated; this is not always a constant-time lookup. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter used for error reporting. </p></li>
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Non-NULL live token. </p></li>
+<li><p><strong>vecPtrPtr</strong> – <strong>[out]</strong> Receives the borrowed vector on success only. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK, or TCL_ERROR with a diagnostic for a bad/disconnected token.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SetVectorChangedProc">
+<span class="target" id="rbc_vector_8h_1a978a0729bdc738eccc7eab3ee3f0d9b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetVectorChangedProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span>, <span class="n"><span class="pre">Rbc_VectorChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetVectorChangedProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace an observer’s callback and borrowed callback data. </p>
+<p>
+Does not invoke the callback immediately or transfer ownership of clientData. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Non-NULL live token. </p></li>
+<li><p><strong>proc</strong> – <strong>[in]</strong> Callback, or NULL to disable calls without detaching the ID. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed data passed to proc; never freed by RBC.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NameOfVectorId">
+<span class="target" id="rbc_vector_8h_1a775fd83a2136d08696a4ab9864cee8d3"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NameOfVectorId</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NameOfVectorId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the vector’s current registered name, not its array mapping. </p>
+<p>
+Do not modify or free the returned string. Copy it if it must survive rename. A token already freed by destruction cannot be queried. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Non-NULL live token. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed name until rename/destruction, or NULL if disconnected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorNotifyPending">
+<span class="target" id="rbc_vector_8h_1a5e2e5a7d50475e56fc2930d79af23e3a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNotifyPending</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNotifyPending" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether an idle update notification is queued. </p>
+<p>
+The nonzero result is a flag mask, not necessarily 1. It is not a test for all possible data changes, and cannot validate a freed token. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Live token, or NULL. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nonzero for a pending notification; zero for NULL/disconnected IDs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorGetRange">
+<span class="target" id="rbc_vector_8h_1ab8492906ecb646ae4db48e4081ed3854"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetRange</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Get cached finite extrema of a real vector, recomputing if necessary. </p>
+<p>
+Empty vectors and vectors without finite values return NaN extrema. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecPtr</strong> – <strong>[inout]</strong> Live borrowed vector; its extrema cache may be updated. </p></li>
+<li><p><strong>minPtr</strong> – <strong>[out]</strong> Receives minimum on success; must not be NULL. </p></li>
+<li><p><strong>maxPtr</strong> – <strong>[out]</strong> Receives maximum on success; must not be NULL. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK for a real vector; TCL_ERROR for complex storage, without an interpreter diagnostic or changes to the output parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="private-update-helpers">
+<h2>Private update helpers<a class="headerlink" href="#private-update-helpers" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorUpdateClients">
+<span class="target" id="rbc_vector_int_8h_1ac01b2957267c836b1ed5ac22f43c8c6c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorUpdateClients</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorUpdateClients" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invalidate extrema and report a full/unknown data change internally. </p>
+<p>
+Increments the dirty counter and follows the vector’s notification policy. Immediate policy invokes callbacks before return. Does not flush the mapped Tcl array cache or check read-only state; mutation code owns those steps. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Live vector, already modified by the caller.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorUpdateClientsRange">
+<span class="target" id="rbc_vector_int_8h_1a4b606a3c76a3b7758eb9ebafaff11c87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorUpdateClientsRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorUpdateClientsRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report changed existing storage using inclusive zero-based indices. </p>
+<p>
+Invalid intervals become full updates. Valid intervals coalesce until delivery; real extrema are maintained incrementally when possible. Does not change length/ownership, flush array caches or enforce read-only state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Live vector, already modified in place. </p></li>
+<li><p><strong>first</strong> – <strong>[in]</strong> First changed storage index, independent of Tcl index offset. </p></li>
+<li><p><strong>last</strong> – <strong>[in]</strong> Last changed storage index, inclusive.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorGetChangedRange">
+<span class="target" id="rbc_vector_int_8h_1a702be9e2d80933cd87a8db6f422e8837"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetChangedRange</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_VectorId" title="Rbc_VectorId"><span class="n"><span class="pre">Rbc_VectorId</span></span></a><span class="w"> </span><span class="n"><span class="pre">clientId</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lastPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetChangedRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read the interval snapshot during this client’s UPDATE callback. </p>
+<p>
+Coalescing may include unchanged values between separate modified intervals. This helper is private and has no public stub entry. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientId</strong> – <strong>[in]</strong> Live observer token, or NULL. </p></li>
+<li><p><strong>firstPtr</strong> – <strong>[out]</strong> Optional first inclusive zero-based index. </p></li>
+<li><p><strong>lastPtr</strong> – <strong>[out]</strong> Optional last inclusive zero-based index. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE if a range is available; FALSE for a full/unknown update, DESTROY, outside delivery, or a NULL/disconnected token. Outputs are left unchanged on FALSE. Never pass a token freed by vector destruction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector client C reference</a><ul>
+<li><a class="reference internal" href="#types">Types</a><ul>
+<li><a class="reference internal" href="#c.Rbc_Vector"><code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorType"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorType</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorType.RBC_VECTOR_REAL"><code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_REAL</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorType.RBC_VECTOR_COMPLEX"><code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_COMPLEX</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_Complex"><code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_Complex.real"><code class="docutils literal notranslate"><span class="pre">real</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Complex.imag"><code class="docutils literal notranslate"><span class="pre">imag</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_VectorId"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorId</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorNotify"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorNotify</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_UPDATE"><code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_NOTIFY_UPDATE</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorNotify.RBC_VECTOR_NOTIFY_DESTROY"><code class="docutils literal notranslate"><span class="pre">RBC_VECTOR_NOTIFY_DESTROY</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#observers-and-range-access">Observers and range access</a><ul>
+<li><a class="reference internal" href="#c.Rbc_AllocVectorId"><code class="docutils literal notranslate"><span class="pre">Rbc_AllocVectorId()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeVectorId"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeVectorId()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetVectorById"><code class="docutils literal notranslate"><span class="pre">Rbc_GetVectorById()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SetVectorChangedProc"><code class="docutils literal notranslate"><span class="pre">Rbc_SetVectorChangedProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_NameOfVectorId"><code class="docutils literal notranslate"><span class="pre">Rbc_NameOfVectorId()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorNotifyPending"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorNotifyPending()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorGetRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#private-update-helpers">Private update helpers</a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorUpdateClients"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClients()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorUpdateClientsRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorUpdateClientsRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorGetChangedRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetChangedRange()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vectors.html"
+                          title="previous chapter">Vector ownership and notifications</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vectors.html" title="Vector ownership and notifications"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector client C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
