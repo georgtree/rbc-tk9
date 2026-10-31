@@ -1,8 +1,8 @@
-# Deliberately scoped to the first documented interface, not the whole tree.
+# Deliberately scoped to maintained modules, not the whole tree.
 PROJECT_NAME           = "RBC developer reference"
 PROJECT_NUMBER         = @VERSION@
 OUTPUT_DIRECTORY       = @OUTPUT@
-INPUT                  = @RENDER_HEADER@ @DISPATCH_HEADER@
+INPUT                  = @RENDER_HEADER@ @DISPATCH_HEADER@ @GRAPH_HEADER@ @GRAPH_SOURCE@
 STRIP_FROM_PATH        = @ROOT@
 FULL_PATH_NAMES        = YES
 RECURSIVE              = NO
@@ -13,7 +13,11 @@ EXTRACT_PRIVATE        = YES
 HIDE_UNDOC_MEMBERS     = YES
 HIDE_UNDOC_CLASSES     = YES
 ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = NO
+# Sphinx's C signature parser does not accept the legacy register qualifier.
+# Remove it only in documentation input; leave compiled declarations unchanged.
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED            = register=
 SEARCH_INCLUDES        = NO
 GENERATE_HTML          = NO
 GENERATE_LATEX         = NO

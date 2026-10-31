@@ -50,7 +50,7 @@
 <span class="w">    </span>mingw-w64-ucrt-x86_64-python-breathe
 </pre></div>
 </div>
-<p>Graphviz is optional and is not used by this first manual. No compiler, Tk
+<p>Graphviz is optional and is not used by this manual. No compiler, Tk
 display, installed RBC package, or Cairo library is needed for extraction.</p>
 </section>
 <section id="targets">
@@ -94,10 +94,16 @@ separately under <code class="docutils literal notranslate"><span class="pre">do
 manual with GitHub Pages. It is retained by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code>. Use
 <code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is regenerated
 and all pages rebuilt on each invocation.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers. Extraction does not
-traverse Tk, SDK headers or undocumented parts of RBC. The extracted declarations
-are platform-neutral; platform and Cairo implementation variants are not combined
+<p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers and the common graph
+header/source pair. Extraction does not follow includes into Tk or SDK headers.
+Reference pages select maintained contracts; undocumented functions are not a
+coverage target yet. Platform and Cairo backend implementations are not combined
 into misleading duplicate entries. Future chapters must select inputs deliberately.</p>
+<p>Static graph callbacks belong to a Doxygen group, so Breathe can render them
+without globally enabling implementation-file lookup (which can duplicate
+header declarations on older Breathe versions). The Doxygen preprocessor removes
+only the legacy <code class="docutils literal notranslate"><span class="pre">register</span></code> qualifier for Sphinx’s C signature parser; the C
+source and compiler input are unchanged.</p>
 <p>Strict checking validates included comments and references, not whole-project
 coverage. Undocumented-member warnings are disabled during this incremental
 migration; <code class="docutils literal notranslate"><span class="pre">EXTRACT_ALL</span></code> remains disabled. Extend the input list and reference

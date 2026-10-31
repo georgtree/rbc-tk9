@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph lifecycle and redisplay &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph lifecycle C reference" href="graph-reference.html" />
+    <link rel="prev" title="Header structure" href="headers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="graph-reference.html" title="Graph lifecycle C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph lifecycle and redisplay</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-lifecycle-and-redisplay">
+<h1>Graph lifecycle and redisplay<a class="headerlink" href="#graph-lifecycle-and-redisplay" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGraph.c</span></code> owns the common widget lifecycle for graph, barchart, stripchart,
+polar and trackgraph. Components own their data and mapped geometry; renderers
+consume that geometry. All of this work runs on the owning Tk thread.
+The <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a> records the contracts for the entry points below.</p>
+<section id="creation-and-ownership">
+<h2>Creation and ownership<a class="headerlink" href="#creation-and-ownership" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">NewGraph</span></code> validates the command arguments and delegates to <code class="docutils literal notranslate"><span class="pre">CreateGraph</span></code>.
+Creation allocates a zeroed <code class="docutils literal notranslate"><span class="pre">Graph</span></code>, creates the Tk window, initializes tables
+and display lists, selects the widget class and installs instance data. A
+trackgraph uses line-element class behavior with its separate <code class="docutils literal notranslate"><span class="pre">trackGraph</span></code>
+flag. Its public Tk class remains <code class="docutils literal notranslate"><span class="pre">Trackgraph</span></code>.</p>
+<p>The widget command and event handler are installed before component creation
+and initial configuration. Thus geometry requests and queued redisplay from
+configuration participate in the normal destruction path if later setup fails.
+Pens, axes, export options, crosshairs, legend and grid precede graph
+configuration, since configuration uses their resources. The binding table is
+created after successful configuration.</p>
+<p>The graph record owns its component registries, drawing resources and backing
+pixmap. <code class="docutils literal notranslate"><span class="pre">tkwin</span></code> and <code class="docutils literal notranslate"><span class="pre">interp</span></code> identify the associated Tk/Tcl objects; holding
+those pointers is not a lifetime guarantee. Components can be deleted while
+the graph record remains alive.</p>
+</section>
+<section id="redraw-requests-and-dirty-state">
+<h2>Redraw requests and dirty state<a class="headerlink" href="#redraw-requests-and-dirty-state" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="graph-reference.html#c.Rbc_EventuallyRedrawGraph" title="Rbc_EventuallyRedrawGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EventuallyRedrawGraph()</span></code></a> coalesces requests with <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>.
+It schedules work, but does not itself invalidate mapped geometry or the
+backing store. A component mutator must set the appropriate dirty flags first.
+Scheduling does not require a mapped window; presentation checks mapping later.
+An active axis formatter also makes a redraw request a cancellation signal
+for the current layout.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Common graph flags</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 68.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RESET_AXES</span></code></p></td>
+<td><p>Recompute axis ranges before layout/mapping.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LAYOUT_NEEDED</span></code></p></td>
+<td><p>Recompute margins; formatting may evaluate Tcl.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code></p></td>
+<td><p>Request remapping of components rather than only dirty items.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MAP_WORLD</span></code></p></td>
+<td><p>Combination of MAP_ALL, RESET_AXES and GET_AXIS_GEOMETRY.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">REDRAW_BACKING_STORE</span></code></p></td>
+<td><p>Invalidate cached plot pixels independently of geometry.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">REDRAW_WORLD</span></code></p></td>
+<td><p>Combination of DRAW_MARGINS and DRAW_LEGEND.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RESET_WORLD</span></code></p></td>
+<td><p>Combination of REDRAW_WORLD and MAP_WORLD; it does not include
+REDRAW_BACKING_STORE or LAYOUT_NEEDED.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code></p></td>
+<td><p>An ordinary or geometry-settled display request is outstanding.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GRAPH_CHANGED</span></code></p></td>
+<td><p>Retain a native view/element change until a completed screen display
+can queue <code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code>. Marker-only updates must not set it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code></p></td>
+<td><p>Distinguish temporary export layout from an on-screen view change.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Expose and configure events use <code class="docutils literal notranslate"><span class="pre">EventuallyRedrawSettledGraph</span></code>. It replaces
+an ordinary pending display with <code class="docutils literal notranslate"><span class="pre">SettleGraphRedraw</span></code>, which samples the widget
+and its Tk ancestors through the toplevel. Presentation waits for two successive
+unchanged geometry samples. This coalesces nested geometry-manager work without
+entering a recursive event loop; it does not wait for arbitrary application
+timers or future geometry changes. Focus changes use ordinary redraw scheduling.</p>
+</section>
+<section id="layout-and-cancellation">
+<h2>Layout and cancellation<a class="headerlink" href="#layout-and-cancellation" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="graph-reference.html#c.Rbc_LayoutGraph" title="Rbc_LayoutGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LayoutGraph()</span></code></a> rejects recursive layout from an axis formatter,
+resets the cancellation flag, checks the window, and processes pending work:</p>
+<ol class="arabic simple">
+<li><p>Retain a screen view-change indication, except during export.</p></li>
+<li><p>Reset axis ranges when requested.</p></li>
+<li><p>Compute margins when needed, then validate callback state.</p></li>
+<li><p>If both plot ranges exceed one pixel, map axes as required, then elements,
+markers, grid and local legends; consume the remapping flags.</p></li>
+</ol>
+<p>A successful return with an unusably small plot does not imply that all mapping
+flags were consumed. An error does not roll back partial layout. Callers must
+stop before using cached component pointers after cancellation.</p>
+<p><a class="reference internal" href="graph-reference.html#c.Rbc_GraphCallbackValid" title="Rbc_GraphCallbackValid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GraphCallbackValid()</span></code></a> checks that <code class="docutils literal notranslate"><span class="pre">tkwin</span></code> still exists and that
+<code class="docutils literal notranslate"><span class="pre">axisFormatInvalid</span></code> is false. It reports <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">GRAPH</span> <span class="pre">CALLBACK</span></code> on failure.
+It is a specific axis-format/window guard, not a general validation of every
+component pointer. Preservation and validation serve different purposes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Tcl_Preserve</span></code> delays final freeing of the graph record.</p></li>
+<li><p>Revalidation prevents use of window resources or layout invalidated by Tcl.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphInstCmdProc</span></code> preserves the graph around operation dispatch. It also
+rejects snapshot/export rendering from an active formatter before temporary
+output dimensions can disturb the outer layout. Idle drawing has no such
+command scope: <code class="docutils literal notranslate"><span class="pre">DisplayGraph</span></code> separately preserves the graph and interpreter
+and saves/restores interpreter state around <code class="docutils literal notranslate"><span class="pre">DisplayGraphFrame</span></code>.</p>
+</section>
+<section id="frame-drawing-and-presentation">
+<h2>Frame drawing and presentation<a class="headerlink" href="#frame-drawing-and-presentation" title="Link to this heading">¶</a></h2>
+<p>The frame callback consumes <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code> first. It returns if the window
+is gone, an axis formatter is active, or an element has a pending vector
+notification. Waiting for vector notification avoids drawing from vector data
+whose corresponding geometry has not yet caught up.</p>
+<p>It samples the actual Tk dimensions, requests world reset on a size change,
+and lays out. An unmapped widget updates crosshair geometry without presenting.
+For a mapped widget, <a class="reference internal" href="graph-reference.html#c.Rbc_DrawGraph" title="Rbc_DrawGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawGraph()</span></code></a> draws already-mapped content.</p>
+<p>The plot backing store and full-frame double buffer have different roles:</p>
+<ul class="simple">
+<li><p>The backing store caches the plot background, separators, grids, polar labels,
+under-markers, lowered legends, axis limits and ordinary elements.</p></li>
+<li><p>The frame adds above-markers, active elements, requested margins, raised
+legends, widget border and focus highlight.</p></li>
+<li><p>Crosshairs are not part of the backing store. Double-buffered presentation
+composes them into the final pixmap and presents once. Direct drawing erases
+old crosshairs, updates their geometry, draws the graph and enables them again.</p></li>
+</ul>
+<p>The drawing path checks cancellation after callback-capable plot drawing.
+A cancelled frame is not presented as a completed buffered frame. Direct drawing
+can already have changed window pixels; it is not transactional.</p>
+<p>After a completed frame, usable screen geometry can trigger the queued
+<code class="docutils literal notranslate"><span class="pre">&lt;&lt;RbcGraphChanged&gt;&gt;</span></code> event and axis-change notifications. Margin-variable
+updates and track-view notification follow. The virtual event is queued, not
+executed synchronously at the point it is sent. Tcl variable traces and other
+notification callbacks remain reentry boundaries in their own right.</p>
+</section>
+<section id="destruction">
+<h2>Destruction<a class="headerlink" href="#destruction" title="Link to this heading">¶</a></h2>
+<p>Deleting the Tcl widget command and destroying the Tk window converge on the
+same lifecycle, with two distinct cleanup phases:</p>
+<ol class="arabic simple">
+<li><p>While the Tk window is valid, release option-owned Tk resources. The command
+deletion path first undefines the borrowed cursor: destroying a not-yet-created
+window may realize it, so a freed cursor must not remain installed. Clear
+<code class="docutils literal notranslate"><span class="pre">tkwin</span></code> before a recursive command/window deletion can repeat this work.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DestroyNotify</span></code> cancels both ordinary and settled display idle callbacks,
+frees geometry-settle state, and uses <code class="docutils literal notranslate"><span class="pre">Tcl_EventuallyFree</span></code> to request final
+graph disposal. Outstanding preserves defer that final disposal.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">DestroyGraph</span></code> then destroys markers and elements before tracks, axes and
+pens; releases remaining components, bindings and drawing resources; and frees
+the record. Keeping that order matters because components refer to other
+components. Do not move Tk-dependent resource release into the final free
+callback: the Tk window can already be gone when it runs.</p>
+</section>
+<section id="contributor-checks">
+<h2>Contributor checks<a class="headerlink" href="#contributor-checks" title="Link to this heading">¶</a></h2>
+<p>When changing this code, exercise destruction from format callbacks, creation
+failure, nested resize, vector updates, snapshots and resized exports. Check
+both direct and buffered drawing, track reorder/scroll, and stationary-pointer
+repicking. Windows crosshairs additionally depend on preserving the single
+presentation step; separating erase and redraw can reintroduce flicker.
+These are behavioral checks for future code changes; this documentation change
+only adds contracts and prose.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph lifecycle and redisplay</a><ul>
+<li><a class="reference internal" href="#creation-and-ownership">Creation and ownership</a></li>
+<li><a class="reference internal" href="#redraw-requests-and-dirty-state">Redraw requests and dirty state</a></li>
+<li><a class="reference internal" href="#layout-and-cancellation">Layout and cancellation</a></li>
+<li><a class="reference internal" href="#frame-drawing-and-presentation">Frame drawing and presentation</a></li>
+<li><a class="reference internal" href="#destruction">Destruction</a></li>
+<li><a class="reference internal" href="#contributor-checks">Contributor checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="headers.html"
+                          title="previous chapter">Header structure</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="graph-reference.html"
+                          title="next chapter">Graph lifecycle C reference</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/graph-lifecycle.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="graph-reference.html" title="Graph lifecycle C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph lifecycle and redisplay</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

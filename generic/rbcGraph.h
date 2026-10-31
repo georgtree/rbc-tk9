@@ -1,12 +1,21 @@
 /*
  * rbcGraph.h --
  *
- *      TODO: Description
+ *      Shared graph widget records and component interfaces.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/**
+ * @file rbcGraph.h
+ * @brief Private graph widget state and component interfaces.
+ *
+ * Graph, barchart, stripchart, polar and trackgraph share this infrastructure.
+ * These declarations are not part of the installed vector API. Calls belong
+ * on the owning Tk thread; borrowed records do not keep widgets alive.
  */
 
 #ifndef _RBCGRAPH
@@ -674,14 +683,58 @@ void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawAxisLimits(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
+/**
+ * @brief Paint mapped graph content and decorations into a borrowed drawable.
+ * @param[in,out] graphPtr Live graph with current layout and drawing resources.
+ * @param[in] drawable Compatible window or pixmap in widget coordinates.
+ * @param[in] backingStore Nonzero to reuse/update the graph-owned plot pixmap.
+ *
+ * Does not perform layout or present the frame with crosshairs. May allocate
+ * or replace the backing pixmap and consume REDRAW_BACKING_STORE. Polar label
+ * formatting can cancel drawing; callers must check Rbc_GraphCallbackValid()
+ * before presenting the drawable. The caller retains graph lifetime across
+ * callbacks. Partial drawing on cancellation is not rolled back.
+ */
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
 void Rbc_InitFreqTable(Graph *graphPtr);
+/**
+ * @brief Update pending axis ranges, margins and mapped component geometry.
+ * @param[in,out] graphPtr Borrowed graph, kept alive by the caller.
+ * @return TCL_OK on completion; TCL_ERROR on recursive layout or callback
+ * cancellation, with an interpreter diagnostic and RBC GRAPH CALLBACK code.
+ *
+ * Axis label callbacks may execute Tcl and destroy or reconfigure the widget.
+ * Stop immediately on error before using cached component pointers. This is
+ * not a transaction: some layout work may already have occurred. Small plot
+ * ranges can leave mapping pending even when TCL_OK is returned. Does not
+ * draw, schedule a redraw, or acquire a Tcl_Preserve scope for the caller.
+ */
 int Rbc_LayoutGraph(Graph *graphPtr);
+/**
+ * @brief Test window existence and axis-format cancellation state.
+ * @param[in] graphPtr Non-NULL graph whose storage is still alive.
+ * @return TRUE if the window exists and axisFormatInvalid is false; otherwise
+ * FALSE with an interpreter diagnostic and RBC GRAPH CALLBACK error code.
+ *
+ * This is not a general pointer-validity or component-lifetime test. A
+ * Tcl_Preserve scope can retain the graph record after its Tk resources have
+ * been released; it cannot make a destroyed widget usable again.
+ */
 int Rbc_GraphCallbackValid(Graph *graphPtr);
 void Rbc_LayoutMargins(Graph *graphPtr);
+/**
+ * @brief Coalesce a graph redraw request into the Tcl idle queue.
+ * @param[in,out] graphPtr Non-NULL graph record, valid throughout the call.
+ *
+ * If its window exists and REDRAW_PENDING is clear, queue DisplayGraph, set
+ * REDRAW_PENDING and request external-legend redraw. An unmapped window can
+ * still be queued. During axis formatting, mark the current layout invalid.
+ * Does not set geometry or backing-store dirty flags: callers set those
+ * separately. Window destruction cancels pending graph display callbacks.
+ */
 void Rbc_EventuallyRedrawGraph(Graph *graphPtr);
 void Rbc_ResetAxes(Graph *graphPtr);
 void Rbc_NotifyAxisChanges(Graph *graphPtr);

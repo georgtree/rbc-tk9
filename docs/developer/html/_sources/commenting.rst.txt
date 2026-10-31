@@ -50,6 +50,6 @@ Migration and review
 Document one coherent module at a time, run ``make check-doc-dev``, and review
 the rendered pages. Check references, table readability and retained caveats.
 
-The initial reference includes renderer contracts and expanded lifecycle
-documentation. Some parameters and record members still need more detail.
+The reference includes renderer contracts and selected graph lifecycle
+functions. Some parameters and record members still need more detail.
 Strict checking validates included documentation, not coverage of all C sources.

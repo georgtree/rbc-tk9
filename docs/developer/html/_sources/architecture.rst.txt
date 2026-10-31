@@ -58,5 +58,6 @@ Rendering is synchronous and used on the owning Tk thread. The interface does
 not provide worker-thread drawing or context synchronization. An internal
 renderer run callback does not authorize arbitrary Tcl reentry.
 
-Detailed component destruction and vector notification contracts will be
-documented with those modules, rather than inferred from renderer behavior.
+See :doc:`graph-lifecycle` for widget scheduling, callback cancellation and
+the two phases of destruction. Detailed component destruction and vector
+notification contracts will be documented with their owning modules.

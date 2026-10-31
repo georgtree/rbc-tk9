@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Graph lifecycle C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="Graph lifecycle and redisplay" href="graph-lifecycle.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="graph-lifecycle.html" title="Graph lifecycle and redisplay"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph lifecycle C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="graph-lifecycle-c-reference">
+<h1>Graph lifecycle C reference<a class="headerlink" href="#graph-lifecycle-c-reference" title="Link to this heading">¶</a></h1>
+<p>These are private interfaces. Shared contracts live at their header declarations;
+static lifecycle helpers are documented next to their definitions. This section
+intentionally includes selected lifecycle functions, not every graph operation.</p>
+<section id="shared-entry-points">
+<h2>Shared entry points<a class="headerlink" href="#shared-entry-points" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_EventuallyRedrawGraph">
+<span class="target" id="rbc_graph_8h_1af5e71b2a106501b74d6160e39be1bd6f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EventuallyRedrawGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_EventuallyRedrawGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coalesce a graph redraw request into the Tcl idle queue. </p>
+<p>
+If its window exists and REDRAW_PENDING is clear, queue DisplayGraph, set REDRAW_PENDING and request external-legend redraw. An unmapped window can still be queued. During axis formatting, mark the current layout invalid. Does not set geometry or backing-store dirty flags: callers set those separately. Window destruction cancels pending graph display callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Non-NULL graph record, valid throughout the call.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_LayoutGraph">
+<span class="target" id="rbc_graph_8h_1a274e4af09f51a3276f11f04d55f308a6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LayoutGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LayoutGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Update pending axis ranges, margins and mapped component geometry. </p>
+<p>
+Axis label callbacks may execute Tcl and destroy or reconfigure the widget. Stop immediately on error before using cached component pointers. This is not a transaction: some layout work may already have occurred. Small plot ranges can leave mapping pending even when TCL_OK is returned. Does not draw, schedule a redraw, or acquire a Tcl_Preserve scope for the caller. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Borrowed graph, kept alive by the caller. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on completion; TCL_ERROR on recursive layout or callback cancellation, with an interpreter diagnostic and RBC GRAPH CALLBACK code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GraphCallbackValid">
+<span class="target" id="rbc_graph_8h_1ab73700a884b6563101c517514e2ca18a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphCallbackValid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GraphCallbackValid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test window existence and axis-format cancellation state. </p>
+<p>
+This is not a general pointer-validity or component-lifetime test. A Tcl_Preserve scope can retain the graph record after its Tk resources have been released; it cannot make a destroyed widget usable again. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Non-NULL graph whose storage is still alive. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE if the window exists and axisFormatInvalid is false; otherwise FALSE with an interpreter diagnostic and RBC GRAPH CALLBACK error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawGraph">
+<span class="target" id="rbc_graph_8h_1ab58b0fdff6df6b6a4209f55f18496c22"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">backingStore</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Paint mapped graph content and decorations into a borrowed drawable. </p>
+<p>
+Does not perform layout or present the frame with crosshairs. May allocate or replace the backing pixmap and consume REDRAW_BACKING_STORE. Polar label formatting can cancel drawing; callers must check <a class="reference internal" href="#rbc_graph_8h_1ab73700a884b6563101c517514e2ca18a"><span class="std std-ref">Rbc_GraphCallbackValid()</span></a> before presenting the drawable. The caller retains graph lifetime across callbacks. Partial drawing on cancellation is not rolled back. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[inout]</strong> Live graph with current layout and drawing resources. </p></li>
+<li><p><strong>drawable</strong> – <strong>[in]</strong> Compatible window or pixmap in widget coordinates. </p></li>
+<li><p><strong>backingStore</strong> – <strong>[in]</strong> Nonzero to reuse/update the graph-owned plot pixmap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="internal-lifecycle-callbacks">
+<h2>Internal lifecycle callbacks<a class="headerlink" href="#internal-lifecycle-callbacks" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GraphEventProc">
+<span class="target" id="group__graph__lifecycle__callbacks_1gad10401bb4ad7aebe21b7d91fc34d66d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphEventProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GraphEventProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translate Tk events into redraw requests and deferred destruction. </p>
+<p>
+Expose/resize use ancestry-settled idle drawing; focus uses ordinary idle drawing. DestroyNotify releases window-dependent resources before clearing tkwin, deletes the widget command, cancels both display idle callbacks and schedules DestroyGraph through Tcl_EventuallyFree. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Graph record registered with Tk_CreateEventHandler. </p></li>
+<li><p><strong>eventPtr</strong> – <strong>[in]</strong> Borrowed event; never retained.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GraphInstCmdDeleteProc">
+<span class="target" id="group__graph__lifecycle__callbacks_1gae659daab6358ee8590d56b6b6a1fe6f5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphInstCmdDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GraphInstCmdDeleteProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release Tk-dependent resources and destroy a command’s live window. </p>
+<p>
+No-op once tkwin is NULL. Clear the borrowed window cursor before releasing option resources, then clear tkwin before Tk_DestroyWindow can reenter the destruction path. DestroyNotify schedules final record disposal. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Graph record owned by the widget lifecycle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DestroyGraph">
+<span class="target" id="group__graph__lifecycle__callbacks_1ga9b37ed4f84f1d2481c180890c8acef61"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">DestroyData</span></span><span class="w"> </span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DestroyGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispose of the graph record after outstanding preserves are released. </p>
+<p>
+Destroy components in dependency order (markers/elements before tracks, axes and pens), then bindings, legend, drawing resources and the record. Normal window destruction has already released Tk-dependent options and cancelled idle work. The option cleanup fallback requires a valid tkwin. Does not accept NULL and must not be called on an actively used graph. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataPtr</strong> – <strong>[in]</strong> Graph record transferred to this Tcl_FreeProc.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DisplayGraphFrame">
+<span class="target" id="group__graph__lifecycle__callbacks_1gae7b94265e1e799d768dd30aec1500ff0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DisplayGraphFrame</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DisplayGraphFrame" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build one screen frame after the idle request is consumed. </p>
+<p>
+Clear REDRAW_PENDING even when drawing is deferred for vector notifications or skipped during axis formatting. Sample Tk dimensions and lay out before testing whether the window is mapped. Buffered drawing composes crosshairs before presentation; direct drawing uses their erase/update/enable cycle. Successful frames queue view-change events and update margin/view callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Graph retained by the DisplayGraph wrapper.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DisplayGraph">
+<span class="target" id="group__graph__lifecycle__callbacks_1ga504e7eff94f7be08b1b075809cab8c34"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DisplayGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DisplayGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Run idle drawing with graph/interpreter lifetime and result protection. </p>
+<p>
+Preserve both records and save the interpreter state around DisplayGraphFrame. Restore the interpreter state before releasing the records; do not use them after release. Preservation protects storage, not Tk resources or components that callbacks may destroy. Frame code must still validate callback state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Graph record belonging to the pending idle request.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Graph lifecycle C reference</a><ul>
+<li><a class="reference internal" href="#shared-entry-points">Shared entry points</a><ul>
+<li><a class="reference internal" href="#c.Rbc_EventuallyRedrawGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_EventuallyRedrawGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_LayoutGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GraphCallbackValid"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphCallbackValid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawGraph()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#internal-lifecycle-callbacks">Internal lifecycle callbacks</a><ul>
+<li><a class="reference internal" href="#c.GraphEventProc"><code class="docutils literal notranslate"><span class="pre">GraphEventProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.GraphInstCmdDeleteProc"><code class="docutils literal notranslate"><span class="pre">GraphInstCmdDeleteProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.DestroyGraph"><code class="docutils literal notranslate"><span class="pre">DestroyGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.DisplayGraphFrame"><code class="docutils literal notranslate"><span class="pre">DisplayGraphFrame()</span></code></a></li>
+<li><a class="reference internal" href="#c.DisplayGraph"><code class="docutils literal notranslate"><span class="pre">DisplayGraph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="graph-lifecycle.html"
+                          title="previous chapter">Graph lifecycle and redisplay</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/graph-reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="graph-lifecycle.html" title="Graph lifecycle and redisplay"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Graph lifecycle C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

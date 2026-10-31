@@ -22,6 +22,20 @@
  *
  */
 
+/**
+ * @file rbcGraph.c
+ * @brief Common graph widget creation, configuration, layout and redisplay.
+ *
+ * Owns the Tk window/command lifecycle and screen frame orchestration.
+ * Components retain their mapping and rendering responsibilities; export
+ * commands manage their temporary layouts separately.
+ */
+
+/**
+ * @defgroup graph_lifecycle_callbacks Graph lifecycle callbacks
+ * @brief Private Tk/Tcl callbacks implementing widget lifetime and redisplay.
+ */
+
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
 #include "rbcRender.h"
@@ -898,26 +912,6 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
 
 
 /*
- *--------------------------------------------------------------
- *
- * Rbc_EventuallyRedrawGraph --
- *
- *      Tells the Tk dispatcher to call the graph display routine at
- *      the next idle point.  This request is made only if the window
- *      is displayed and no other redraw request is pending.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The window is eventually redisplayed.
- *
- *--------------------------------------------------------------
- */
-/*
  * Expose may arrive while pack/grid is still propagating an ancestor resize.
  * A single idle callback can overtake the next level's geometry callback.
  * Sample the complete Tk ancestry in one idle pass, and present only after an
@@ -1018,28 +1012,6 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     }
 }
 
-/*
- *--------------------------------------------------------------
- *
- * GraphEventProc --
- *
- *      This procedure is invoked by the Tk dispatcher for various
- *      events on graphs.
- *
- * Parameters:
- *      ClientData clientData - Graph widget record
- *      register XEvent *eventPtr - Event which triggered call to routine
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      When the window gets deleted, internal structures get
- *      cleaned up.  When it gets exposed, the graph is eventually
- *      redisplayed.
- *
- *--------------------------------------------------------------
- */
 /* Tk invokes this after changing a named font. Refresh derived resources
  * without reparsing options or evaluating application callbacks. */
 static void GraphWorldChanged(ClientData clientData) {
@@ -1068,6 +1040,17 @@ static const Tk_ClassProcs graphClassProcs = {
     sizeof(Tk_ClassProcs), GraphWorldChanged, NULL, NULL
 };
 
+/**
+ * @ingroup graph_lifecycle_callbacks
+ * @brief Translate Tk events into redraw requests and deferred destruction.
+ * @param[in] clientData Graph record registered with Tk_CreateEventHandler.
+ * @param[in] eventPtr Borrowed event; never retained.
+ *
+ * Expose/resize use ancestry-settled idle drawing; focus uses ordinary idle
+ * drawing. DestroyNotify releases window-dependent resources before clearing
+ * tkwin, deletes the widget command, cancels both display idle callbacks and
+ * schedules DestroyGraph through Tcl_EventuallyFree.
+ */
 static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
     Graph *graphPtr = clientData;
 
@@ -1128,25 +1111,15 @@ static void GraphEventProc(ClientData clientData, register XEvent *eventPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_callbacks
+ * @brief Release Tk-dependent resources and destroy a command's live window.
+ * @param[in] clientData Graph record owned by the widget lifecycle.
  *
- * GraphInstCmdDeleteProc --
- *
- *      This procedure is invoked when a widget command is deleted.  If
- *      the widget isn't already in the process of being destroyed,
- *      this command destroys it.
- *
- * Parameters:
- *      ClientData clientData - Pointer to widget record.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The widget is destroyed.
- *
- *---------------------------------------------------------------------- */
+ * No-op once tkwin is NULL. Clear the borrowed window cursor before releasing
+ * option resources, then clear tkwin before Tk_DestroyWindow can reenter the
+ * destruction path. DestroyNotify schedules final record disposal.
+ */
 static void GraphInstCmdDeleteProc(ClientData clientData) {
     Graph *graphPtr = clientData;
     if (graphPtr->tkwin != NULL) {
@@ -1974,25 +1947,16 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_callbacks
+ * @brief Dispose of the graph record after outstanding preserves are released.
+ * @param[in] dataPtr Graph record transferred to this Tcl_FreeProc.
  *
- * DestroyGraph --
- *
- *      This procedure is invoked by Tcl_EventuallyFree or Tcl_Release
- *      to clean up the internal structure of a graph at a safe time
- *      (when no-one is using it anymore).
- *
- * Parameters:
- *      DestroyData dataPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the widget is freed up.
- *
- *----------------------------------------------------------------------
+ * Destroy components in dependency order (markers/elements before tracks,
+ * axes and pens), then bindings, legend, drawing resources and the record.
+ * Normal window destruction has already released Tk-dependent options and
+ * cancelled idle work. The option cleanup fallback requires a valid tkwin.
+ * Does not accept NULL and must not be called on an actively used graph.
  */
 static void DestroyGraph(DestroyData dataPtr) {
     Graph *graphPtr = (Graph *)dataPtr;
@@ -3403,25 +3367,6 @@ int Rbc_GraphCallbackValid(Graph *graphPtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_LayoutGraph --
- *
- *      Maps the current graph, stopping if a label callback changes its
- *      geometry or destroys the widget.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TCL_OK on success, TCL_ERROR on callback cancellation or recursion.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 
 int Rbc_LayoutGraph(Graph *graphPtr) {
     if (graphPtr->axisFormatActive) {
@@ -3468,26 +3413,6 @@ int Rbc_LayoutGraph(Graph *graphPtr) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DrawGraph --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      int backingStore - If non-zero, use backing store for plotting area.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
     if (backingStore) {
         /*
@@ -3591,24 +3516,16 @@ static void UpdateMarginTraces(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_callbacks
+ * @brief Build one screen frame after the idle request is consumed.
+ * @param[in] clientData Graph retained by the DisplayGraph wrapper.
  *
- * DisplayGraph --
- *
- *      This procedure is invoked to display a graph widget.
- *
- * Parameters:
- *      ClientData clientData
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Commands are output to X to display the graph in its
- *      current mode.
- *
- *----------------------------------------------------------------------
+ * Clear REDRAW_PENDING even when drawing is deferred for vector notifications
+ * or skipped during axis formatting. Sample Tk dimensions and lay out before
+ * testing whether the window is mapped. Buffered drawing composes crosshairs
+ * before presentation; direct drawing uses their erase/update/enable cycle.
+ * Successful frames queue view-change events and update margin/view callbacks.
  */
 static void DisplayGraphFrame(ClientData clientData) {
     Graph *graphPtr = clientData;
@@ -3714,7 +3631,16 @@ static void DisplayGraphFrame(ClientData clientData) {
     Rbc_NotifyTrackView(graphPtr);
 }
 
-/* Idle drawing has no widget-command preserve scope of its own. */
+/**
+ * @ingroup graph_lifecycle_callbacks
+ * @brief Run idle drawing with graph/interpreter lifetime and result protection.
+ * @param[in] clientData Graph record belonging to the pending idle request.
+ *
+ * Preserve both records and save the interpreter state around DisplayGraphFrame.
+ * Restore the interpreter state before releasing the records; do not use them
+ * after release. Preservation protects storage, not Tk resources or components
+ * that callbacks may destroy. Frame code must still validate callback state.
+ */
 static void DisplayGraph(ClientData clientData) {
     Graph *graphPtr = clientData;
     Tcl_Interp *interp = graphPtr->interp;

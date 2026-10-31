@@ -1,8 +1,8 @@
 # C developer manual
 
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
-The first installment covers architecture, header dependencies, renderer
-contracts, and source-comment conventions.
+Coverage includes architecture, header dependencies, renderer contracts, graph
+widget lifecycle and redisplay, and source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
 

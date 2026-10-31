@@ -12,7 +12,7 @@ Use Python 3 with Sphinx and Breathe, and Doxygen. In an MSYS2 UCRT64 shell:
        mingw-w64-ucrt-x86_64-python-sphinx \
        mingw-w64-ucrt-x86_64-python-breathe
 
-Graphviz is optional and is not used by this first manual. No compiler, Tk
+Graphviz is optional and is not used by this manual. No compiler, Tk
 display, installed RBC package, or Cairo library is needed for extraction.
 
 Targets
@@ -67,10 +67,17 @@ manual with GitHub Pages. It is retained by ``make clean``. Use
 ``--html-dir PATH`` for a different HTML destination. XML is regenerated
 and all pages rebuilt on each invocation.
 
-``Doxyfile.in`` explicitly lists the two renderer headers. Extraction does not
-traverse Tk, SDK headers or undocumented parts of RBC. The extracted declarations
-are platform-neutral; platform and Cairo implementation variants are not combined
+``Doxyfile.in`` explicitly lists the two renderer headers and the common graph
+header/source pair. Extraction does not follow includes into Tk or SDK headers.
+Reference pages select maintained contracts; undocumented functions are not a
+coverage target yet. Platform and Cairo backend implementations are not combined
 into misleading duplicate entries. Future chapters must select inputs deliberately.
+
+Static graph callbacks belong to a Doxygen group, so Breathe can render them
+without globally enabling implementation-file lookup (which can duplicate
+header declarations on older Breathe versions). The Doxygen preprocessor removes
+only the legacy ``register`` qualifier for Sphinx's C signature parser; the C
+source and compiler input are unchanged.
 
 Strict checking validates included comments and references, not whole-project
 coverage. Undocumented-member warnings are disabled during this incremental
