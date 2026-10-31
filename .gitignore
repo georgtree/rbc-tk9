@@ -18,6 +18,7 @@ configure~
 /rbcGraph.pro
 /pointer.xbm
 /pointer_mask.xbm
+/trackgraph.tcl
 /autom4te.cache
 /*.svg
 /*.ps
@@ -28,3 +29,7 @@ configure~
 /argparse.tcl
 /argparse-LICENSE.txt
 /argparse-README.txt
+
+# Generated developer manual (source is docs/developer).
+/_build/
+/docs/developer/__pycache__/

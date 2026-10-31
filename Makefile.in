@@ -242,6 +242,18 @@ demos:
 doc: binaries libraries
 	$(TCLSH) $(srcdir)/docs/doc_gen.tcl
 
+# Private C manual; independent of package loading, Ruff and the display.
+DOC_DEV_PYTHON = python
+DOXYGEN = doxygen
+DOC_DEV_BUILD = $(top_builddir)/_build/developer
+DOC_DEV_HTML = $(srcdir)/docs/developer/html
+
+doc-dev:
+	$(TCLSH) "$(srcdir)/docs/developer/build.tcl" --python "$(DOC_DEV_PYTHON)" --doxygen "$(DOXYGEN)" --build-dir "$(DOC_DEV_BUILD)" --html-dir "$(DOC_DEV_HTML)"
+
+check-doc-dev:
+	$(TCLSH) "$(srcdir)/docs/developer/build.tcl" --python "$(DOC_DEV_PYTHON)" --strict --doxygen "$(DOXYGEN)" --build-dir "$(DOC_DEV_BUILD)" --html-dir "$(DOC_DEV_HTML)"
+
 #  We don't have any docs to install, yet
 #install: all install-binaries install-libraries install-doc
 install: all install-binaries install-libraries install-demos install-doc
@@ -489,6 +501,7 @@ dist-zip: dist
 #========================================================================
 
 clean:  
+	-rm -rf _build/developer
 	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
 	-rm -f *.$(OBJEXT) core *.core
@@ -605,7 +618,7 @@ uninstall-doc:
 
 uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector test-headers \
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-headers \
 	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

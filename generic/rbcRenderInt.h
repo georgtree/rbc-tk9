@@ -1,4 +1,10 @@
-/* Private renderer dispatch. Not installed. See license.terms. */
+/**
+ * @file rbcRenderInt.h
+ * @brief Private backend operation tables and common context prefix.
+ *
+ * A NULL operation denotes an unsupported capability, not a fallback request.
+ * Component-facing contracts belong to rbcRender.h. See license.terms.
+ */
 #ifndef RBC_RENDER_INT_H
 #define RBC_RENDER_INT_H
 #include "rbcRender.h"
@@ -6,7 +12,7 @@
 /* Backend contexts embed this common prefix as their first member. Each
  * constructor owns its complete context; End releases it after unwinding clips.
  * NULL operations denote unsupported capabilities, not implicit fallbacks. */
-/* Presentation capabilities shared by screen and export contexts. */
+/** @brief Presentation callbacks selected by each constructor. */
 typedef struct {
     void (*text)(Rbc_RenderContext *, char *string, TextStyle *style, double x, double y);
     void (*photo)(Rbc_RenderContext *, Tk_PhotoHandle photo, double x, double y);
@@ -40,7 +46,13 @@ typedef struct {
     void (*bitmapRun)(Rbc_RenderContext *, Pixmap, GC, int, int, const Rbc_RenderPosition *, Tcl_Size);
 } Rbc_RenderOutputOps;
 
-/* Geometry dispatch is shared by screen and export contexts. */
+/**
+ * @brief Geometry dispatch and lifetime operations for one context family.
+ *
+ * Populate only supported operations. Dispatch generally calls them directly;
+ * a caller using the wrong context family can dereference a NULL callback.
+ * Clip callbacks implement backend state; the common layer owns clipDepth.
+ */
 typedef struct {
     void (*polyline)(Rbc_RenderContext *, const Point2D *, Tcl_Size);
     void (*segments)(Rbc_RenderContext *, const Segment2D *, Tcl_Size);
@@ -57,10 +69,17 @@ typedef struct {
     void (*clipEnd)(Rbc_RenderContext *);
 } Rbc_RenderOps;
 
+/**
+ * @brief Prefix embedded first in every allocated backend context.
+ *
+ * Constructors initialize the entire allocation. Rbc_RenderEnd() unwinds
+ * clips and calls ops->end, which releases backend state and the allocation.
+ * Borrowed graph/document resources must remain alive until that completes.
+ */
 struct Rbc_RenderContext {
-    const Rbc_RenderOps *ops;
-    Graph *graphPtr;
-    unsigned int clipDepth;
+    const Rbc_RenderOps *ops; /**< Borrowed immutable dispatch table. */
+    Graph *graphPtr; /**< Borrowed graph, or NULL for contexts that do not need it. */
+    unsigned int clipDepth; /**< Outstanding rectangular clip scopes. */
 };
 
 #endif

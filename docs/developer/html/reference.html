@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Renderer C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="C documentation conventions" href="commenting.html" />
+    <link rel="prev" title="Rendering architecture and contracts" href="rendering.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Renderer C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="renderer-c-reference">
+<h1>Renderer C reference<a class="headerlink" href="#renderer-c-reference" title="Link to this heading">¶</a></h1>
+<p>These declarations are private implementation interfaces, not installed APIs.
+Callers must obey the capabilities of the constructor they selected; generic
+operation names do not imply that every context implements them.</p>
+<section id="component-facing-interface">
+<h2>Component-facing interface<a class="headerlink" href="#component-facing-interface" title="Link to this heading">¶</a></h2>
+<p>Private graph rendering interface used by mapped components. </p>
+<p>Geometry is in mapped widget/display coordinates, not axis data coordinates. Contexts and their borrowed resources must stay on the owning Tk thread. A constructor defines the supported operations; unsupported callbacks are not automatic fallbacks. Check nullable constructor results before drawing. End each allocated context exactly once with <a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd()</span></a>. Document tokens, drawables, GCs and component-owned resources remain borrowed.</p>
+<p>This header is not installed and does not define the public vector ABI. See license.terms for redistribution terms. </p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangle">
+<span class="target" id="struct_rbc___render_rectangle"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></span><a class="headerlink" href="#c.Rbc_RenderRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcRender.h&gt;</em></div>
+<p>Keep bar geometry in full-width widget coordinates. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapStyle">
+<span class="target" id="struct_rbc___render_bitmap_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBitmapStyle" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillStyle">
+<span class="target" id="struct_rbc___render_fill_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderFillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcRender.h&gt;</em></div>
+<p>Fill policy shared by screen and export. </p>
+<p>backgroundOnly preserves the legacy PostScript fallback for image-tiled areas. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcGeometry">
+<span class="target" id="struct_rbc___render_arc_geometry"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcGeometry" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolStyle">
+<span class="target" id="struct_rbc___render_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolStyle" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderNativeSymbolStyle">
+<span class="target" id="struct_rbc___render_native_symbol_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderNativeSymbolStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;rbcRender.h&gt;</em></div>
+<p>Borrowed native symbol resources. </p>
+<p>Sampling state is returned through counter; preserve it across batches belonging to the same element. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderBarStyle">
+<span class="target" id="struct_rbc___render_bar_style"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderBarStyle" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderShape">
+<span class="target" id="struct_rbc___render_shape"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderShape</span></span></span><a class="headerlink" href="#c.Rbc_RenderShape" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-defines">Defines</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.RBC_RENDER_ARROW_POINTS">
+<span class="target" id="rbc_render_8h_1ab88a16ac646bc5f8d24b560c3b8d4645"></span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_ARROW_POINTS</span></span></span><a class="headerlink" href="#c.RBC_RENDER_ARROW_POINTS" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native-only screen details borrow the exact GC, preserving XOR and dash semantics. </p>
+<p>Arrow points include the repeated closing vertex. Text backgrounds consume four outline points and add the anchor before integer conversion. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.RBC_RENDER_BITMAP_OUTLINE_POINTS">
+<span class="target" id="rbc_render_8h_1a0c11f6d812f322b0f69a5888dda42fe2"></span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_BITMAP_OUTLINE_POINTS</span></span></span><a class="headerlink" href="#c.RBC_RENDER_BITMAP_OUTLINE_POINTS" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapped bitmap presentation borrows the marker’s private GCs and resources. </p>
+<p>A rotated opaque background is already clipped/mapped by the component; mask then refers to the bitmap itself, as in the legacy drawing path. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcStyle">
+<span class="target" id="rbc_render_8h_1aa9dfff8af5198def437aa98d263f0262"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArcStyle</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Ellipse in mapped display coordinates. </p>
+<p>Zero degrees points right; positive sweeps turn counterclockwise. |extent| &gt;= 360 is one closed ellipse, without a radial seam. The renderer constructs the complete path under the context’s clip; callers must not clip/flatten it first. Geometry transforms do not scale stroke width, dashes, or fill patterns. This is a private C interface. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcStyle.RBC_RENDER_ARC_OPEN">
+<span class="target" id="rbc_render_8h_1aa9dfff8af5198def437aa98d263f0262af2ce6cfc8603a7bf5f37da227fe44317"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_ARC_OPEN</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_OPEN" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcStyle.RBC_RENDER_ARC_CHORD">
+<span class="target" id="rbc_render_8h_1aa9dfff8af5198def437aa98d263f0262a31b40b14e99216e4a9f61dd27c640e34"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_ARC_CHORD</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_CHORD" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderArcStyle.RBC_RENDER_ARC_PIESLICE">
+<span class="target" id="rbc_render_8h_1aa9dfff8af5198def437aa98d263f0262a6ee128af976140041c5e2f2da79bfe3c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_ARC_PIESLICE</span></span></span><a class="headerlink" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_PIESLICE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbolType</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Semantic symbol descriptions for export; colors are resolved by the caller. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SQUARE">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a261a1cde128d451a2015b25d8c27400a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_SQUARE</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SQUARE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CIRCLE">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a84a612ab295e15ce52b2e0379c1f33cc"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_CIRCLE</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CIRCLE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_DIAMOND">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512ae4863badf9e579c97a4e2fac0cfbf810"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_DIAMOND</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_DIAMOND" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_PLUS">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a9c765102e189a63464aeb0186bd63f4f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_PLUS</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_PLUS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CROSS">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a5bdc9f6fa24e2df8e77f05be256cc9f2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_CROSS</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CROSS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SPLUS">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512ac5a9e8bee61b487e1d28671a0ef116c7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_SPLUS</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SPLUS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SCROSS">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a72ca5043da228242e4887dd6331909a7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_SCROSS</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SCROSS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_TRIANGLE">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a365b9a7dd63ffa728ffe94270ad9948a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_TRIANGLE</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_TRIANGLE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_ARROW">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a77d972a4832ab816f4ff91bc3ee1c497"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_ARROW</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_ARROW" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_BITMAP">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a398a0bdfb8bd2dbc6bdd471a52863892"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_BITMAP</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_BITMAP" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_NONE">
+<span class="target" id="rbc_render_8h_1a643b8fcc466e94309a7f0abda37d5512a5e038a104ddc11df784931b4f43174a6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SYMBOL_NONE</span></span></span><a class="headerlink" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_NONE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_RenderShapeType">
+<span class="target" id="rbc_render_8h_1a9aea78bf3f9d201015e1426b92b40f82"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderShapeType</span></span></span><a class="headerlink" href="#c.Rbc_RenderShapeType" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen-space symbol template; segment vertices are endpoint pairs. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderShapeType.RBC_RENDER_CIRCLE">
+<span class="target" id="rbc_render_8h_1a9aea78bf3f9d201015e1426b92b40f82abde6c6ac2e960909bd67780b04df6098"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_CIRCLE</span></span></span><a class="headerlink" href="#c.Rbc_RenderShapeType.RBC_RENDER_CIRCLE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderShapeType.RBC_RENDER_POLYGON">
+<span class="target" id="rbc_render_8h_1a9aea78bf3f9d201015e1426b92b40f82aacb9cd693ea8c6e46b4971cedb67a166"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_POLYGON</span></span></span><a class="headerlink" href="#c.Rbc_RenderShapeType.RBC_RENDER_POLYGON" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderShapeType.RBC_RENDER_SEGMENTS">
+<span class="target" id="rbc_render_8h_1a9aea78bf3f9d201015e1426b92b40f82aa995985343a1db2c35c574d533c6c5ae"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_SEGMENTS</span></span></span><a class="headerlink" href="#c.Rbc_RenderShapeType.RBC_RENDER_SEGMENTS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_RenderStrokeKind">
+<span class="target" id="rbc_render_8h_1a740f104022ece38a5445d43dcb24011d"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderStrokeKind</span></span></span><a class="headerlink" href="#c.Rbc_RenderStrokeKind" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native/Cairo element strokes. </p>
+<p>The GC is borrowed, including its existing clip, dashes and raster operation. TRACES supports Polyline; STRIPS and SEGMENTS support Segments, retaining their respective native batching. Only these operations and End are valid on the returned context. Other screen capabilities continue to use Begin/BeginFill and native fallbacks. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_TRACES">
+<span class="target" id="rbc_render_8h_1a740f104022ece38a5445d43dcb24011da0ab4de6b11cf1787226f2d84b48f5ed2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_STROKE_TRACES</span></span></span><a class="headerlink" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_TRACES" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_STRIPS">
+<span class="target" id="rbc_render_8h_1a740f104022ece38a5445d43dcb24011dab559a44a8d12cff301f4688124440a55"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_STROKE_STRIPS</span></span></span><a class="headerlink" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_STRIPS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_SEGMENTS">
+<span class="target" id="rbc_render_8h_1a740f104022ece38a5445d43dcb24011da46d38b12f84d2ce68299b6bc1444a240"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDER_STROKE_SEGMENTS</span></span></span><a class="headerlink" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_SEGMENTS" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPolygonPointLimit">
+<span class="target" id="rbc_render_8h_1a0e5f3d10d471c4708cc0fe2ed184bb9e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPolygonPointLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPolygonPointLimit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mapping-time polygon capacity for the selected output. </p>
+<p>TCL_SIZE_MAX means no request-size bound; zero means no polygon can be submitted. Components reserve space for closure/clipping and preserve shared samples when splitting. This query needs no drawing context and allocates no resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenTextBackground">
+<span class="target" id="rbc_render_8h_1af129294b948fc6e715e00f6222277e36"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenTextBackground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenTextBackground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw four native text-background vertices, adding the anchor before integer conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenArrowHead">
+<span class="target" id="rbc_render_8h_1aa276eb14b97fe5e35f33617fb0d97a38"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenArrowHead" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a native arrowhead from the mapped, closed point array. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenLegendLine">
+<span class="target" id="rbc_render_8h_1a8e7d773570b82e2581009c0a4acccd89"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a native line legend sample using the borrowed GC. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenLegendBar">
+<span class="target" id="rbc_render_8h_1ae9672e047efa4d03b2dca2b3b93ac592"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenLegendBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a native bar legend sample and restore its stipple origin. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenRun">
+<span class="target" id="rbc_render_8h_1acb4dbb77cb10598793d656b3b22d8945"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <a class="reference internal" href="#c.Rbc_RenderRunProc" title="Rbc_RenderRunProc"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Runs are synchronous: callback/data/positions are borrowed only until return. </p>
+<p>Run owns a shared platform target when available, otherwise uses the original drawable. BitmapRun requires an opaque, unmasked GXcopy-compatible bitmap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenBitmapRun">
+<span class="target" id="rbc_render_8h_1aad247f5bf186119dda0ec5998bdd08b5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBitmapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBitmapRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present a synchronous batch of opaque, unmasked bitmap copies. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginMarkerPass">
+<span class="target" id="rbc_render_8h_1a9f220d9ab0401bfd5b6f7cb9dd942a3a"></span><a class="reference internal" href="#c.Rbc_RenderTarget" title="Rbc_RenderTarget"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginMarkerPass</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">drawablePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginMarkerPass" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to acquire a shared Cairo marker-pass target; NULL leaves the original drawable usable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderEndMarkerPass">
+<span class="target" id="rbc_render_8h_1a6feb404d102cc93136f848a84c1dab2f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderEndMarkerPass</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderTarget" title="Rbc_RenderTarget"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">target</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderEndMarkerPass" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present and release a marker-pass target; NULL is accepted. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginScreenText">
+<span class="target" id="rbc_render_8h_1a470d572b5a265130e39bfac7c399511d"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginScreenText</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginScreenText" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen text uses Tk for native and Cairo graphs alike. </p>
+<p>Supports Text, TextLayout, TextSize and End only. The window, drawable and cached layout are borrowed; existing integer positions and clipping are retained. Reuse a context for a label batch. TextSize returns the rotated layout extent. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderTextLayout">
+<span class="target" id="rbc_render_8h_1a9376e9040f9a4add514af7703d38ee89"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTextLayout</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">layout</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderTextLayout" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a borrowed cached text layout through a screen text context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderTextSize">
+<span class="target" id="rbc_render_8h_1a3686fd8b3a86d249bc79691f1b4a941c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTextSize</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Dim2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderTextSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw screen text and return its rotated layout extent. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginScreenRaster">
+<span class="target" id="rbc_render_8h_1a3e87ca5e4461b100a2e898958cc7f8c0"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginScreenRaster</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginScreenRaster" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen raster contexts support TkImage, MappedBitmap, Pixmap and End only. </p>
+<p>Cairo is attempted for photos/bitmaps; native fallback preserves Tk image types and GC masks. The context borrows its drawable and all input resources. Scaling/rotation remain in component mapping, outside presentation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderMappedBitmap">
+<span class="target" id="rbc_render_8h_1a9905f91b383e8b7fb52c58d2c9bcbd74"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderMappedBitmap</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderBitmapStyle" title="Rbc_RenderBitmapStyle"><span class="n"><span class="pre">Rbc_RenderBitmapStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderMappedBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present a mapped bitmap through a screen raster context, retaining native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPixmap">
+<span class="target" id="rbc_render_8h_1a8feb3b418d1909d91990c629181380bb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPixmap</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">pixmap</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPixmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a mapped pixmap through a screen raster context using the borrowed GC. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenBorder">
+<span class="target" id="rbc_render_8h_1a2bb31cc589aeb500b9f78585819580c0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenBorder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenBorder" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native widget decorations retain Tk relief shading, GC state and tile origins for both screen renderers. </p>
+<p>These one-shot operations borrow all resources and do not change backing-store ownership or painter order. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenRectangle">
+<span class="target" id="rbc_render_8h_1aa7ac5b91a2b48d59c7bf6594c98a548b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Paint a native solid or tiled decoration rectangle. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenSegments">
+<span class="target" id="rbc_render_8h_1af27a792ee126fd0b6e9f4033683d537a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native-only, even on Cairo graphs. </p>
+<p>Borrows the GC without changing its raster operation, clipping or style. Does not allocate a context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenCopyArea">
+<span class="target" id="rbc_render_8h_1a9971ea54e6e78d6c855b8b6fbdaeda49"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenCopyArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenCopyArea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen-only pixel copy, including backing-store restoration and final frame presentation. </p>
+<p>Borrows the GC and both drawables; never changes ownership. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderScreenFocus">
+<span class="target" id="rbc_render_8h_1a22438d2eea2286eac4625daa33d33965"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderScreenFocus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderScreenFocus" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the native focus highlight using the borrowed GC. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginFill">
+<span class="target" id="rbc_render_8h_1a3a20785bad536f24a808fe701ff0cc9a"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginFill" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill contexts support FillPolygon/FillRectangles/FillArc and End. </p>
+<p>Screen creation may return NULL for native fallback; export does not require Cairo. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginExportFill">
+<span class="target" id="rbc_render_8h_1a99195e681510ade233fcaf599a020439"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginExportFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginExportFill" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a document fill context borrowing export state and style resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderSetFillTile">
+<span class="target" id="rbc_render_8h_1a2af66f70c1f0c9b4459e5a01ba90036d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSetFillTile</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderSetFillTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Supply a tile after BeginExportFill; PostScript keeps its background fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillPolygon">
+<span class="target" id="rbc_render_8h_1a3059b8bc06ab199b6dceacc0bd05255d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderFillPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a mapped polygon; fewer than three points draw nothing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillRectangles">
+<span class="target" id="rbc_render_8h_1aba971b88cbd6a23fa1d2f40da08f0878"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderFillRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill mapped rectangles; nonpositive counts draw nothing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderArc">
+<span class="target" id="rbc_render_8h_1a3e48eb0debed5fc140069280c7ddae0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Use a stroke context for Arc and a fill context for FillArc. </p>
+<p>FillArc ignores OPEN. Non-finite/degenerate geometry draws nothing. Screen contexts may be unavailable (native renderer); callers retain their native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderFillArc">
+<span class="target" id="rbc_render_8h_1a90729c999a5fc7ef738df34fb5be5bf1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderFillArc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderArcGeometry" title="Rbc_RenderArcGeometry"><span class="n"><span class="pre">Rbc_RenderArcGeometry</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderFillArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a normalized mapped ellipse segment; open arcs draw nothing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeSymbols">
+<span class="target" id="rbc_render_8h_1a9b34592b82db390910e87c1d0e88ba49"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle" title="Rbc_RenderNativeSymbolStyle"><span class="n"><span class="pre">Rbc_RenderNativeSymbolStyle</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen-only adapters. </p>
+<p>Native symbol contexts support SymbolPoints/End; bar contexts support FillRectangles/End (including the existing bevel). Fill contexts support FillPolygon/End. Native arc contexts retain mapped, clipped fallback geometry and support Arc/FillArc/End. All input resources and geometry are borrowed until End; no public Tcl or vector ABI changes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginBars">
+<span class="target" id="rbc_render_8h_1af1bff317a1fb76a5fa106ae3961495e1"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginBars</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderBarStyle" title="Rbc_RenderBarStyle"><span class="n"><span class="pre">Rbc_RenderBarStyle</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginBars" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native bar context supporting FillRectangles and End. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeFill">
+<span class="target" id="rbc_render_8h_1a82bd8f77a3c221e6e3a3f8d9673422b3"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeFill" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native polygon-fill context borrowing its GC, tile and stipple. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeSegments">
+<span class="target" id="rbc_render_8h_1a20f0215adcb47f830cf5894bc0aa271a"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Native-only Segments/End; also preserves XOR and preinstalled GC clips. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginNativeArc">
+<span class="target" id="rbc_render_8h_1a88983ecf05335f260550edb96e509dcb"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativeArc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativeArc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native arc context borrowing pre-mapped fill points and outline segments until End. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginNativePolygonBatch">
+<span class="target" id="rbc_render_8h_1aec7061f247dd0abcd98f406568b4af11"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginNativePolygonBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">maxPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginNativePolygonBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a native polygon batch with the supplied maximum point capacity. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginExportSymbol">
+<span class="target" id="rbc_render_8h_1aa36fbcca78962fe986bfc81b89dc296b"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginExportSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderSymbolStyle" title="Rbc_RenderSymbolStyle"><span class="n"><span class="pre">Rbc_RenderSymbolStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginExportSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export symbol contexts support SymbolPoints and End. </p>
+<p>Screen shape batching retains its existing interface. Contexts borrow bitmap/color resources. Finish each symbol batch before starting another (the prolog is shared). </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginExportBarSymbol">
+<span class="target" id="rbc_render_8h_1a8b4c2da8eeed78d36e6dbda9ab35be2d"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginExportBarSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderFillStyle" title="Rbc_RenderFillStyle"><span class="n"><span class="pre">Rbc_RenderFillStyle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginExportBarSymbol" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a document bar-symbol context; finish this batch before another symbol batch. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbolPoints">
+<span class="target" id="rbc_render_8h_1add9a1abd07165470b25e90ef72cf3e87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbolPoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderSymbolPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw symbols at mapped centers; native sampling may update the borrowed style counter. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginExportOutput">
+<span class="target" id="rbc_render_8h_1aed193d3187168b9416cee5e47011d593"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginExportOutput</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginExportOutput" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export presentation primitives. </p>
+<p>Output contexts borrow the export state and Tk resources. PlotBegin/PlotEnd must be paired; End releases only the context. Document setup, trailers and I/O remain with each backend command. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderText">
+<span class="target" id="rbc_render_8h_1ad286411dbaa13e7b764bca72158cb84d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderText</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">style</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderText" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw text through an export-output or screen-text context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderTkImage">
+<span class="target" id="rbc_render_8h_1a7f44ff926f6903e59e18af3153d4e059"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTkImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderTkImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Non-photo image fallback; the legacy PostScript backend omits these images. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPhotoImage">
+<span class="target" id="rbc_render_8h_1ac4cb4875fdb31ac6ed99c857c3e32d47"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPhotoImage</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPhotoImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write a borrowed Tk photo through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderWindow">
+<span class="target" id="rbc_render_8h_1ad1fe19ccd9cd605e65f7c7f55e6b63c3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderWindow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Capture a borrowed Tk window through an export-output context, subject to backend policy. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBackgroundPolygon">
+<span class="target" id="rbc_render_8h_1a6801c2eae09eef575703f3e8d6cee9c3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBackgroundPolygon</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBackgroundPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Paint a mapped background polygon through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBorder">
+<span class="target" id="rbc_render_8h_1ab393ad7c49389d724b0fc2709eda7931"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBorder</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">fill</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBorder" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a border through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderClearRectangle">
+<span class="target" id="rbc_render_8h_1a4e51bd063737e3adbb8783ceae99c7c0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClearRectangle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClearRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clear a mapped rectangle through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBackgroundRectangles">
+<span class="target" id="rbc_render_8h_1abf693f401d3c23db481cda8150cb85c5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBackgroundRectangles</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBackgroundRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Paint mapped background rectangles through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPlotBegin">
+<span class="target" id="rbc_render_8h_1ab08a78a63a331465673c51836e24d89b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPlotBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPlotBegin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Open an export plot scope; pair with PlotEnd before releasing the context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPlotEnd">
+<span class="target" id="rbc_render_8h_1a5f1dbd2ef0bf1d8e93b3c0b7c08ffbb0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPlotEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPlotEnd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Close the export plot scope opened by PlotBegin. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginScreenClip">
+<span class="target" id="rbc_render_8h_1ac63dbc62b9fe66eb0980a453fae78e53"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginScreenClip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">copyGC</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">useDC</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginScreenClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Screen clip scopes preserve absolute coordinates, shared GCs and bitmap masks. </p>
+<p>copyGC is borrowed, or NULL to create a private copy GC. useDC keeps the existing Windows symbol path; other scopes use reusable scratch pixmaps. Only ClipBegin/ClipEnd/ClipDrawable/End are supported by this context. Fetch ClipDrawable after each push; None means the clip is empty or failed. End balances any outstanding pushes. Native/Cairo drawing into the returned drawable is committed to its parent on ClipEnd. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderClipDrawable">
+<span class="target" id="rbc_render_8h_1a85effa546b5d3e58e12647c2f9dc4df0"></span><span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClipDrawable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClipDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the current drawable for a screen clip context; None means empty or failed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderClipBegin">
+<span class="target" id="rbc_render_8h_1a3a6629bdcd68fdf5a0244622953532c6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClipBegin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Nest a rectangular clip without painting a background. </p>
+<p>Supported by screen clip scopes, Cairo geometry contexts and export contexts. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderClipEnd">
+<span class="target" id="rbc_render_8h_1a934658eee0b1b51f8d1184961aebb907"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderClipEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderClipEnd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pop one rectangular clip; an empty stack is a no-op. </p>
+<p>
+Screen clip contexts commit their drawing to the parent target on pop. The common dispatcher decrements nesting before calling the backend. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a3a6629bdcd68fdf5a0244622953532c6"><span class="std std-ref">Rbc_RenderClipBegin</span></a></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Live context with clip support.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapMask">
+<span class="target" id="rbc_render_8h_1a4f721467f945a5530fdb18a437932b6f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapMask</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">background</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBitmapMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit a bitmap mask through an export-output context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginStroke">
+<span class="target" id="rbc_render_8h_1a892633c69420c42b057ac59c956c391b"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginStroke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <a class="reference internal" href="#c.Rbc_RenderStrokeKind" title="Rbc_RenderStrokeKind"><span class="n"><span class="pre">Rbc_RenderStrokeKind</span></span></a><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginStroke" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a batch for element traces, strips or independent segments. </p>
+<p>Attempts Cairo first, then the native path. Returns NULL when the target or native trace setup cannot be used. The caller handles that failure. For native drawing, the supplied GC retains its raster operation and clip. TRACES permits Polyline; STRIPS and SEGMENTS permit Segments. End the successful context once with <a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd()</span></a>. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBegin">
+<span class="target" id="rbc_render_8h_1a3617a4a387014e581bb37a0cb89f3a96"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBegin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBegin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to create a Cairo geometry context; NULL requests caller-selected native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginExport">
+<span class="target" id="rbc_render_8h_1a2dcea20d66177caa3168fd1742136c27"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export stroke context: Polyline, Segments, Arc, LineStyle, DashBackground and End only. </p>
+<p>Available without Cairo; borrows export state and dispatches to its backend. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderGCForeground">
+<span class="target" id="rbc_render_8h_1af9e3ff38a3ece08f8b43b8015df9006e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderGCForeground</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderGCForeground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query a GC foreground color for Cairo setup; return false if unavailable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPoints">
+<span class="target" id="rbc_render_8h_1a924a6e9d8b23a838db93897ba05ce069"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw mapped points using a Cairo geometry context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPolyline">
+<span class="target" id="rbc_render_8h_1aa88fc03cfb89fdf69790ed0fa4682c9c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPolyline</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPolyline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit a mapped trace to a context supporting polyline operations. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderSegments">
+<span class="target" id="rbc_render_8h_1a78e6e1f583fe5b732f28ef05a3721965"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSegments</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit independent mapped segments to a supporting context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderLineStyle">
+<span class="target" id="rbc_render_8h_1ae915470c3f355f1c9bb6f43a6645f594"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderLineStyle</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">capStyle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">joinStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderLineStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set cap and join style on a supporting Cairo or export stroke context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderDashBackground">
+<span class="target" id="rbc_render_8h_1a338c0558c40155fa1d857b3dad4076f4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderDashBackground</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderDashBackground" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set the off-dash color on a supporting Cairo or export stroke context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderSymbols">
+<span class="target" id="rbc_render_8h_1af32d27137089ec949a1c45ec3a0ff21e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderSymbols</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderShape" title="Rbc_RenderShape"><span class="n"><span class="pre">Rbc_RenderShape</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shape</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fillColor</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">outline</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw shape-template symbols using a Cairo geometry context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderEnd">
+<span class="target" id="rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderEnd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderEnd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unwind remaining clip scopes and destroy an allocated context. </p>
+<p>
+The context is invalid after this call. Backend-owned temporary resources are released; borrowed graph, document, GC and image resources are not. PlotBegin/PlotEnd scopes must already be balanced. Stack-based one-shot screen adapters manage their own lifetime and must not be passed here. <div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#rbc_render_8h_1a934658eee0b1b51f8d1184961aebb907"><span class="std std-ref">Rbc_RenderClipEnd</span></a></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – <strong>[in]</strong> Live, non-NULL context returned by a renderer constructor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderArea">
+<span class="target" id="rbc_render_8h_1aba772bc291fa381b9151b903b3090dad"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderArea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>None means a solid fill; FALSE requests native drawing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderAreaOpacity">
+<span class="target" id="rbc_render_8h_1a1da85d8ef6f92e01fb09d5fc56351546"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderAreaOpacity</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderAreaOpacity" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Opacity applies only to solid fills (stipple == None). </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderTileArea">
+<span class="target" id="rbc_render_8h_1aabebfd86ad7423a490e8b05cf6b41cb6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTileArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderTileArea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to paint a photo-tiled polygon with Cairo; false requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderPhoto">
+<span class="target" id="rbc_render_8h_1a9541f7108b1f7e107b2e154e4b364090"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderPhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to paint a photo block with Cairo; false requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderRectangles">
+<span class="target" id="rbc_render_8h_1a5b810f8bc3bdd5b1fab3dc66d212ac0f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectangles</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to fill rectangles with Cairo; false requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginDrawable">
+<span class="target" id="rbc_render_8h_1a3ce0f43b8f6fd00271de74e9f1f7e569"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginDrawable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to create a Cairo context for a drawable with explicit dimensions. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderLegendBar">
+<span class="target" id="rbc_render_8h_1aa0e70c39e34db7ff7f65cb1f84b46b37"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderLegendBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderLegendBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to paint a Cairo bar legend sample; false requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmap">
+<span class="target" id="rbc_render_8h_1acc4da9a6764ab9f828f6cd2da1c566ad"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><span class="n"><span class="pre">Rbc_RenderRectangle</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">polygon</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to paint a mapped bitmap with Cairo; false requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBeginBitmapSymbols">
+<span class="target" id="rbc_render_8h_1ad75be58a3f182131b19ab8f7281de8ec"></span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBeginBitmapSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBeginBitmapSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Try to create a Cairo bitmap-symbol batch; NULL requests native fallback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RenderBitmapSymbols">
+<span class="target" id="rbc_render_8h_1a453dc765419c8914fef8d1d4d562d2d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderBitmapSymbols</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">centers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderBitmapSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw mapped centers using a Cairo bitmap-symbol context. </p>
+</dd></dl>
+
+</div>
+</section>
+<section id="auxiliary-types">
+<h2>Auxiliary types<a class="headerlink" href="#auxiliary-types" title="Link to this heading">¶</a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_RenderPosition">
+<span class="target" id="rbc_render_8h_1ab452782025c927017b4dcb6d6ef61e5a"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#c.Rbc_RenderPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Full-width integer x/y, never XPoint shorts. </p>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_RenderRunProc">
+<span class="target" id="rbc_render_8h_1a6e96671d2a7ea7115e7fca785c2a3000"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderRunProc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Drawable</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RenderRunProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Synchronous callback receiving borrowed data, target and run count. </p>
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_RenderTarget">
+<span class="target" id="rbc_render_8h_1a3c493c24ce4366e11ebbc1f93b14b933"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderTarget" title="Rbc_RenderTarget"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></span><a class="headerlink" href="#c.Rbc_RenderTarget" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<p>The context typedef names the backend record documented below. It is rendered
+there once, rather than indexing both the typedef and struct under the same
+C identifier.</p>
+</section>
+<section id="backend-dispatch">
+<h2>Backend dispatch<a class="headerlink" href="#backend-dispatch" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderContext">
+<span class="target" id="struct_rbc___render_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderContext</span></span></span><a class="headerlink" href="#c.Rbc_RenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prefix embedded first in every allocated backend context. </p>
+<p>Constructors initialize the entire allocation. <a class="reference internal" href="#rbc_render_8h_1a3132ac7662b342ff0ff4f71e0c1a03d1"><span class="std std-ref">Rbc_RenderEnd()</span></a> unwinds clips and calls ops-&gt;end, which releases backend state and the allocation. Borrowed graph/document resources must remain alive until that completes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderContext.ops">
+<span class="target" id="struct_rbc___render_context_1a3573d7e96dc66aeeb08dc8daff9d6b6d"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderOps" title="Rbc_RenderOps"><span class="n"><span class="pre">Rbc_RenderOps</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">ops</span></span></span><a class="headerlink" href="#c.Rbc_RenderContext.ops" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed immutable dispatch table. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderContext.graphPtr">
+<span class="target" id="struct_rbc___render_context_1a6f1122624a34cf5f8c2ff0981383df6d"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">graphPtr</span></span></span><a class="headerlink" href="#c.Rbc_RenderContext.graphPtr" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed graph, or NULL for contexts that do not need it. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_RenderContext.clipDepth">
+<span class="target" id="struct_rbc___render_context_1adc2fe364a3437469081cf38131894582"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clipDepth</span></span></span><a class="headerlink" href="#c.Rbc_RenderContext.clipDepth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Outstanding rectangular clip scopes. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderOutputOps">
+<span class="target" id="struct_rbc___render_output_ops"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderOutputOps</span></span></span><a class="headerlink" href="#c.Rbc_RenderOutputOps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Presentation callbacks selected by each constructor. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_RenderOps">
+<span class="target" id="struct_rbc___render_ops"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderOps</span></span></span><a class="headerlink" href="#c.Rbc_RenderOps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Geometry dispatch and lifetime operations for one context family. </p>
+<p>Populate only supported operations. Dispatch generally calls them directly; a caller using the wrong context family can dereference a NULL callback. Clip callbacks implement backend state; the common layer owns clipDepth. </p>
+</dd></dl>
+
+<p>The callback declarations below are included directly from the header. This
+preserves their exact C syntax across Doxygen/Breathe versions that otherwise
+place function-pointer member names after the pointer declarator.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">text</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">TextStyle</span><span class="w"> </span><span class="o">*</span><span class="n">style</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">photo</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tk_PhotoHandle</span><span class="w"> </span><span class="n">photo</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">window</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tk_Window</span><span class="w"> </span><span class="n">tkwin</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">backgroundPolygon</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">XColor</span><span class="w"> </span><span class="o">*</span><span class="n">color</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="n">points</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">border</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tk_3DBorder</span><span class="w"> </span><span class="n">border</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">borderWidth</span><span class="p">,</span>
+<span class="w">                   </span><span class="kt">int</span><span class="w"> </span><span class="n">relief</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fill</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">clearRectangle</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">backgroundRectangles</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">XColor</span><span class="w"> </span><span class="o">*</span><span class="n">color</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderRectangle</span><span class="w"> </span><span class="o">*</span><span class="n">rectangles</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">Tcl_Size</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">plotBegin</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tk_Font</span><span class="w"> </span><span class="n">font</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">,</span>
+<span class="w">                      </span><span class="k">const</span><span class="w"> </span><span class="n">XColor</span><span class="w"> </span><span class="o">*</span><span class="n">background</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">plotEnd</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">bitmapMask</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Display</span><span class="w"> </span><span class="o">*</span><span class="n">display</span><span class="p">,</span><span class="w"> </span><span class="n">Pixmap</span><span class="w"> </span><span class="n">bitmap</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">XColor</span><span class="w"> </span><span class="o">*</span><span class="n">color</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">background</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">image</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tk_Image</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">    </span><span class="cm">/* Screen-only text capabilities preserve cached layouts and measured size. */</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">textLayout</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">TextLayout</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">TextStyle</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">textSize</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">TextStyle</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">Dim2D</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="cm">/* Screen-only mapped raster presentation. */</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">mappedBitmap</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderRectangle</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderBitmapStyle</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">pixmap</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Pixmap</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderRectangle</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">screenRectangle</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_Tile</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">focus</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">copyArea</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Drawable</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">textBackground</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">arrowHead</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">legendLine</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">legendBar</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">run</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_RenderRunProc</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">bitmapRun</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Pixmap</span><span class="p">,</span><span class="w"> </span><span class="n">GC</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderPosition</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="n">Rbc_RenderOutputOps</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * @brief Geometry dispatch and lifetime operations for one context family.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Populate only supported operations. Dispatch generally calls them directly;</span>
+<span class="cm"> * a caller using the wrong context family can dereference a NULL callback.</span>
+<span class="cm"> * Clip callbacks implement backend state; the common layer owns clipDepth.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">polyline</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">segments</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Segment2D</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">lineStyle</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">dashBackground</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">XColor</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">fillPolygon</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">fillRectangles</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderRectangle</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">symbolPoints</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderOutputOps</span><span class="w"> </span><span class="o">*</span><span class="n">output</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">end</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">arc</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderArcGeometry</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">fillArc</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Rbc_RenderArcGeometry</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">clipBegin</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">clipEnd</span><span class="p">)(</span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="n">Rbc_RenderOps</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Renderer C reference</a><ul>
+<li><a class="reference internal" href="#component-facing-interface">Component-facing interface</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRectangle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmapStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcGeometry"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArcGeometry</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbolStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderNativeSymbolStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderNativeSymbolStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBarStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBarStyle</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShape"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderShape</span></code></a></li>
+<li><a class="reference internal" href="#c.RBC_RENDER_ARROW_POINTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_ARROW_POINTS</span></code></a></li>
+<li><a class="reference internal" href="#c.RBC_RENDER_BITMAP_OUTLINE_POINTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_BITMAP_OUTLINE_POINTS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArcStyle</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_OPEN"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_ARC_OPEN</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_CHORD"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_ARC_CHORD</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_PIESLICE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_ARC_PIESLICE</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbolType</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SQUARE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_SQUARE</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CIRCLE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_CIRCLE</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_DIAMOND"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_DIAMOND</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_PLUS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_PLUS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_CROSS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_CROSS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SPLUS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_SPLUS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_SCROSS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_SCROSS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_TRIANGLE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_TRIANGLE</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_ARROW"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_ARROW</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_BITMAP"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_BITMAP</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolType.RBC_RENDER_SYMBOL_NONE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SYMBOL_NONE</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderShapeType"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderShapeType</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderShapeType.RBC_RENDER_CIRCLE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_CIRCLE</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShapeType.RBC_RENDER_POLYGON"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_POLYGON</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderShapeType.RBC_RENDER_SEGMENTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_SEGMENTS</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderStrokeKind"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderStrokeKind</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_TRACES"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_STROKE_TRACES</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_STRIPS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_STROKE_STRIPS</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderStrokeKind.RBC_RENDER_STROKE_SEGMENTS"><code class="docutils literal notranslate"><span class="pre">RBC_RENDER_STROKE_SEGMENTS</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderPolygonPointLimit"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPolygonPointLimit()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenTextBackground"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenTextBackground()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenArrowHead"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenArrowHead()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenLegendLine"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenLegendLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenLegendBar"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenLegendBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenRun"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenBitmapRun"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenBitmapRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginMarkerPass"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderEndMarkerPass"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderEndMarkerPass()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginScreenText"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenText()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderTextLayout"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTextLayout()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderTextSize"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTextSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginScreenRaster"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenRaster()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderMappedBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderMappedBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPixmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPixmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenBorder"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenBorder()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenRectangle()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenCopyArea"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenCopyArea()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderScreenFocus"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderScreenFocus()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginFill"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginFill()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginExportFill"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportFill()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSetFillTile"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArc"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderFillArc"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillArc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginNativeSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginBars"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginNativeFill"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeFill()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginNativeSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginNativeArc"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeArc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginNativePolygonBatch"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativePolygonBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginExportSymbol"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportSymbol()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginExportBarSymbol"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportBarSymbol()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbolPoints"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbolPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginExportOutput"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportOutput()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderText"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderText()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderTkImage"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTkImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPhotoImage"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPhotoImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderWindow"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBackgroundPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBorder"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBorder()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderClearRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderClearRectangle()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBackgroundRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPlotBegin"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPlotBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPlotEnd"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPlotEnd()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginScreenClip"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenClip()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderClipDrawable"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderClipDrawable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderClipBegin"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderClipBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderClipEnd"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderClipEnd()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapMask"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmapMask()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginStroke"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginStroke()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBegin"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginExport"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderGCForeground"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderGCForeground()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPoints"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPolyline"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPolyline()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderLineStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderLineStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderDashBackground"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderDashBackground()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderEnd"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderArea"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderArea()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderAreaOpacity"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderAreaOpacity()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderTileArea"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTileArea()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderPhoto"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPhoto()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginDrawable"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginDrawable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderLegendBar"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderLegendBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBeginBitmapSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginBitmapSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderBitmapSymbols"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBitmapSymbols()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#auxiliary-types">Auxiliary types</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderPosition"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderPosition</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderRunProc"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderRunProc</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderTarget"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderTarget</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#backend-dispatch">Backend dispatch</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderContext"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_RenderContext.ops"><code class="docutils literal notranslate"><span class="pre">ops</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderContext.graphPtr"><code class="docutils literal notranslate"><span class="pre">graphPtr</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderContext.clipDepth"><code class="docutils literal notranslate"><span class="pre">clipDepth</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_RenderOutputOps"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderOutputOps</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RenderOps"><code class="docutils literal notranslate"><span class="pre">Rbc_RenderOps</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="previous chapter">Rendering architecture and contracts</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="commenting.html"
+                          title="next chapter">C documentation conventions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Renderer C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

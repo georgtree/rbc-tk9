@@ -1,5 +1,8 @@
 # Header dependencies
 
+The [developer manual](../docs/developer/README.md) now provides maintained
+architecture chapters and a source-generated renderer reference.
+
 Ordinary RBC headers include the prerequisites for their own declarations.
 Include them directly, without preparing an undocumented sequence of other
 RBC includes. Include guards allow repeated inclusion. Build configuration

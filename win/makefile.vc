@@ -165,3 +165,25 @@ test-vector: $(PROJECT) $(CAPI_DLL)
 
 shell: $(PROJECT)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""
+
+
+# Developer manual generation does not load the package or open a display.
+!ifndef DOC_DEV_PYTHON
+DOC_DEV_PYTHON = python
+!endif
+!ifndef DOXYGEN
+DOXYGEN = doxygen
+!endif
+!ifndef DOC_DEV_BUILD
+DOC_DEV_BUILD = $(ROOT)\_build\developer
+!endif
+
+!ifndef DOC_DEV_HTML
+DOC_DEV_HTML = $(ROOT)\docs\developer\html
+!endif
+
+doc-dev:
+	"$(TCLSH)" "$(ROOT)\docs\developer\build.tcl" --python "$(DOC_DEV_PYTHON)" --doxygen "$(DOXYGEN)" --build-dir "$(DOC_DEV_BUILD)" --html-dir "$(DOC_DEV_HTML)"
+
+check-doc-dev:
+	"$(TCLSH)" "$(ROOT)\docs\developer\build.tcl" --python "$(DOC_DEV_PYTHON)" --strict --doxygen "$(DOXYGEN)" --build-dir "$(DOC_DEV_BUILD)" --html-dir "$(DOC_DEV_HTML)"

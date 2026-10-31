@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Header structure &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="Implementation overview" href="architecture.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="Implementation overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Header structure</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="header-structure">
+<h1>Header structure<a class="headerlink" href="#header-structure" title="Link to this heading">¶</a></h1>
+<p>Ordinary headers include the prerequisites for their own declarations.
+Callers should not need an undocumented sequence of includes.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 68.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Header</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code></p></td>
+<td><p>Installed entry points with no Tk dependency.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code></p></td>
+<td><p>Generated companion included through <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcTypes.h</span></code></p></td>
+<td><p>Shared padding, geometry and dash records.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcDefaults.h</span></code></p></td>
+<td><p>Common and platform-specific resource defaults.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcText.h</span></code></p></td>
+<td><p>Text declarations using shared types, without including <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.h</span></code></p></td>
+<td><p>Common graph definitions; track records and services respectively.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRender.h</span></code></p></td>
+<td><p>Component-facing private rendering contracts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderInt.h</span></code></p></td>
+<td><p>Backend context prefix and operation tables.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderNative.h</span></code></p></td>
+<td><p>Native services with opaque platform resources.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Use forward declarations for pointer-only dependencies and the defining header
+for embedded records. Define each type once. Include guards make repeated
+inclusion safe; reciprocal includes do not solve dependency cycles.</p>
+<p>Only include the applicable platform configuration. <code class="docutils literal notranslate"><span class="pre">rbcWin.h</span></code> is
+Windows-only. Pixel channels use explicit members such as <code class="docutils literal notranslate"><span class="pre">pixel.rgba.red</span></code>;
+generic macros named <code class="docutils literal notranslate"><span class="pre">Red</span></code> or <code class="docutils literal notranslate"><span class="pre">Blue</span></code> would alter later SDK declarations.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after dependency changes. Its compile-only probes
+cover standalone, repeated, forward/reverse and graph-relative inclusion,
+public-header Tk isolation, and image/default-name regressions.
+Run them on both platforms and with both Cairo configurations.
+These checks complement runtime tests; they do not establish ABI compatibility.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="architecture.html"
+                          title="previous chapter">Implementation overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/headers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="Implementation overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Header structure</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

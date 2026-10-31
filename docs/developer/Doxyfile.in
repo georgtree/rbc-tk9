@@ -1,0 +1,30 @@
+# Deliberately scoped to the first documented interface, not the whole tree.
+PROJECT_NAME           = "RBC developer reference"
+PROJECT_NUMBER         = @VERSION@
+OUTPUT_DIRECTORY       = @OUTPUT@
+INPUT                  = @RENDER_HEADER@ @DISPATCH_HEADER@
+STRIP_FROM_PATH        = @ROOT@
+FULL_PATH_NAMES        = YES
+RECURSIVE              = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = YES
+EXTRACT_PRIVATE        = YES
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = NO
+SEARCH_INCLUDES        = NO
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+XML_PROGRAMLISTING     = NO
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_DOC_ERROR      = YES
+# Coverage is incremental. Strict builds validate existing contracts and links.
+WARN_IF_UNDOCUMENTED   = NO
+WARN_LOGFILE           = @WARNINGS@
+JAVADOC_AUTOBRIEF      = YES
+SORT_MEMBER_DOCS       = NO
+HAVE_DOT               = NO

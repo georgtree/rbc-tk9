@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Rendering architecture and contracts &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Renderer C reference" href="reference.html" />
+    <link rel="prev" title="Header structure" href="headers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rendering architecture and contracts</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rendering-architecture-and-contracts">
+<h1>Rendering architecture and contracts<a class="headerlink" href="#rendering-architecture-and-contracts" title="Link to this heading">¶</a></h1>
+<p>Components map data before drawing. Renderer calls receive display coordinates,
+resolved colors and borrowed resources. Axis transforms, track ownership,
+picking and painter order remain component responsibilities.</p>
+<section id="module-boundaries">
+<h2>Module boundaries<a class="headerlink" href="#module-boundaries" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 36.0%" />
+<col style="width: 64.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRender.c</span></code></p></td>
+<td><p>Common dispatch, arc validation and native screen adapters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code></p></td>
+<td><p>Cairo geometry, surfaces, marker targets and disabled-Cairo fallbacks.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderNative.c</span></code></p></td>
+<td><p>Shared native geometry, Tk text/images/relief, clip stacks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderNativeWin.c</span></code></p></td>
+<td><p>GDI batches, DC clipping and platform resources.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderNativeX11.c</span></code></p></td>
+<td><p>X11 batches, request limits and platform fallback decisions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderExport.c</span></code></p></td>
+<td><p>Export constructor selection, shared styles and image capture.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderPostscript.c</span></code></p></td>
+<td><p>PostScript primitives, prolog symbols and clip scopes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code></p></td>
+<td><p>SVG primitives, patterns, text, images and clipping.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcRenderPdf.c</span></code></p></td>
+<td><p>PDF drawing primitives and resource use.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Configure selects one native platform implementation. The common native layer
+uses Tk/Xlib-shaped calls on both platforms; Tk implements those calls on
+Windows too. Platform files hold algorithms that actually differ, not every
+function whose name starts with X.</p>
+<p>Cairo types remain in the Cairo implementation. Disabled-Cairo builds still
+compile that translation unit for its fallback entry points. SVG, PDF and
+PostScript output do not require Cairo.</p>
+</section>
+<section id="contexts-and-capabilities">
+<h2>Contexts and capabilities<a class="headerlink" href="#contexts-and-capabilities" title="Link to this heading">¶</a></h2>
+<p>Every allocated backend context embeds <a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code></a> first.
+Its operation table determines the legal operations. A missing callback is
+unsupported, not a request for automatic fallback; many dispatchers call the
+callback directly.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 45.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Constructor family</p></th>
+<th class="head"><p>Operations</p></th>
+<th class="head"><p>Important constraint</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>BeginStroke</p></td>
+<td><p>Polyline for traces; Segments for strips/segments; End</p></td>
+<td><p>Borrowed native GC preserves its raster operation and clip.</p></td>
+</tr>
+<tr class="row-odd"><td><p>BeginFill / BeginExportFill</p></td>
+<td><p>FillPolygon, FillRectangles, FillArc, End</p></td>
+<td><p>Screen creation can return NULL; export creation is Cairo-independent.</p></td>
+</tr>
+<tr class="row-even"><td><p>BeginNativeFill / BeginBars</p></td>
+<td><p>FillPolygon / FillRectangles respectively; End</p></td>
+<td><p>Native bar relief and tile behavior remain intact.</p></td>
+</tr>
+<tr class="row-odd"><td><p>BeginScreenText</p></td>
+<td><p>Text, TextLayout, TextSize, End</p></td>
+<td><p>Tk text on native and Cairo graphs.</p></td>
+</tr>
+<tr class="row-even"><td><p>BeginScreenRaster</p></td>
+<td><p>TkImage, MappedBitmap, Pixmap, End</p></td>
+<td><p>Mapped geometry; Cairo attempt with native raster fallback.</p></td>
+</tr>
+<tr class="row-odd"><td><p>BeginScreenClip</p></td>
+<td><p>ClipBegin, ClipDrawable, ClipEnd, End</p></td>
+<td><p>Drawing uses the returned drawable, not this context’s geometry table.</p></td>
+</tr>
+<tr class="row-even"><td><p>BeginExport</p></td>
+<td><p>Polyline, Segments, Arc, LineStyle, DashBackground, End</p></td>
+<td><p>Borrows the document state.</p></td>
+</tr>
+<tr class="row-odd"><td><p>BeginExportOutput</p></td>
+<td><p>Text, images, window capture, backgrounds, borders, plot scopes, End</p></td>
+<td><p>PlotBegin and PlotEnd must be paired.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Consult <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> for the native arc, symbol and specialized Cairo
+families. Do not use this table to infer extra capabilities.</p>
+<p>Finish each allocated context with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>. It requires a
+non-NULL live context, unwinds outstanding rectangular clips, and calls the
+backend destructor. It does not destroy borrowed graph, document or component
+resources. Stack-based one-shot screen adapters manage their own lifetime.</p>
+<p>For example, a mapped trace batch:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">Rbc_RenderContext</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_RenderBeginStroke</span><span class="p">(</span>
+<span class="w">    </span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">drawable</span><span class="p">,</span><span class="w"> </span><span class="n">gc</span><span class="p">,</span><span class="w"> </span><span class="n">RBC_RENDER_STROKE_TRACES</span><span class="p">,</span>
+<span class="w">    </span><span class="n">color</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">dashes</span><span class="p">,</span><span class="w"> </span><span class="n">offColor</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ctx</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Rbc_RenderPolyline</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">points</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Rbc_RenderEnd</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="cm">/* The caller handles unavailable drawing resources here. */</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Keep borrowed geometry and resources alive for the documented lifetime. Native
+arc contexts retain mapped arrays until End; symbol sampling can mutate the
+borrowed native style counter. Export symbol batches must finish before starting
+another because the PostScript symbol prolog is shared.</p>
+</section>
+<section id="clipping-and-coordinate-rules">
+<h2>Clipping and coordinate rules<a class="headerlink" href="#clipping-and-coordinate-rules" title="Link to this heading">¶</a></h2>
+<p>Rectangular clips are nested through <a class="reference internal" href="reference.html#c.Rbc_RenderClipBegin" title="Rbc_RenderClipBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipBegin()</span></code></a> and
+<a class="reference internal" href="reference.html#c.Rbc_RenderClipEnd" title="Rbc_RenderClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipEnd()</span></code></a> on clip-capable contexts only. The common layer
+owns depth; the backend owns Cairo saves, document graphics states or native
+clip frames.</p>
+<p>A screen clip preserves absolute widget coordinates, GC state and bitmap masks.
+Fetch <a class="reference internal" href="reference.html#c.Rbc_RenderClipDrawable" title="Rbc_RenderClipDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipDrawable()</span></code></a> after each push. None means the clip is
+empty or failed, so skip drawing. Pop commits the child target to its parent.
+Windows can use DC clipping where requested; other cases retain scratch pixmaps.</p>
+<p>Arcs use a mapped ellipse. Zero degrees points right and positive sweeps turn
+counterclockwise. Sweeps of magnitude at least 360 form one closed ellipse
+without a radial seam. Components supply geometry; the renderer builds the
+path under its clip. Geometry transforms do not scale stroke widths or dashes.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderPolygonPointLimit" title="Rbc_RenderPolygonPointLimit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPolygonPointLimit()</span></code></a> reports the selected backend’s request
+capacity before a context exists. The component reserves closure/clipping
+vertices and splits at shared samples. Native X11 has a request-size limit;
+the other selected outputs report TCL_SIZE_MAX.</p>
+</section>
+<section id="native-details-and-fallback-policy">
+<h2>Native details and fallback policy<a class="headerlink" href="#native-details-and-fallback-policy" title="Link to this heading">¶</a></h2>
+<p>Text, widget decorations, focus, pixel copies and XOR overlays keep native
+behavior where required on Cairo graphs too. Ordinary Cairo painting must not
+replace XOR drawing. The shared Windows compatibility layer retains offscreen
+XOR mask composition and one-step presentation.</p>
+<p>Preserve conversion order and batching when moving code: text backgrounds add
+the anchor before integer conversion; arrowheads keep doubles through scan
+conversion; legend samples retain stipple origins. Marker run callbacks are
+synchronous, and no callback data escapes the call.</p>
+<p>The Cairo-attempt helpers can return NULL or false. Their callers select the
+native fallback. This is distinct from invoking an unsupported operation on an
+already-created context, which is a caller error.</p>
+</section>
+<section id="document-ownership">
+<h2>Document ownership<a class="headerlink" href="#document-ownership" title="Link to this heading">¶</a></h2>
+<p>Renderer contexts emit primitives; graph export commands own the document
+lifecycle. <code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrPdf.c</span></code> retain options and builders.
+<code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code> shares command dispatch, option rollback, geometry restoration
+and channel delivery. PostScript retains its lifecycle in <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>.
+<code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code> owns PDF resources, streams, offsets and serialization.</p>
+<p>Export contexts borrow document tokens. Errors use the first static message
+recorded by <code class="docutils literal notranslate"><span class="pre">Rbc_ExportError</span></code>; context destruction does not finalize output.
+SVG remains UTF-8 text and PDF binary data. Font discovery and embedding remain
+in the font modules.</p>
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Link to this heading">¶</a></h2>
+<p>Changes to renderer code need native and Cairo checks on Windows and Linux,
+including exports and tracks. Preserve painter order, pixel rounding, clipping
+and batching. Documentation-only changes should still pass the strict manual
+build and preserve all C declarations.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Rendering architecture and contracts</a><ul>
+<li><a class="reference internal" href="#module-boundaries">Module boundaries</a></li>
+<li><a class="reference internal" href="#contexts-and-capabilities">Contexts and capabilities</a></li>
+<li><a class="reference internal" href="#clipping-and-coordinate-rules">Clipping and coordinate rules</a></li>
+<li><a class="reference internal" href="#native-details-and-fallback-policy">Native details and fallback policy</a></li>
+<li><a class="reference internal" href="#document-ownership">Document ownership</a></li>
+<li><a class="reference internal" href="#validation">Validation</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="headers.html"
+                          title="previous chapter">Header structure</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="reference.html"
+                          title="next chapter">Renderer C reference</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rendering.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Rendering architecture and contracts</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

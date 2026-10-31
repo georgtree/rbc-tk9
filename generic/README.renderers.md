@@ -1,5 +1,8 @@
 # Graph renderer implementation
 
+The [developer manual](../docs/developer/README.md) now provides maintained
+architecture chapters and a source-generated renderer reference.
+
 Graph components map data into display coordinates and call the private interface
 in `rbcRender.h`. These interfaces are not part of the installed RBC C API.
 
@@ -146,7 +149,7 @@ DC operations remain in `rbcWinDraw.c`; marker components no longer acquire nati
 helper accepts a failed acquisition and frees its bookkeeping without passing a NULL DC to Tk. The Windows XOR
 implementation is unchanged.
 
-This document describes renderer boundaries only. A future source manual should also cover widget/component lifecycles,
+This document describes renderer boundaries only. Future manual chapters should cover widget/component lifecycles,
 mapping and invalidation, binding and picking, vector notification, export orchestration, and platform resource
 ownership, with links from those topics to these renderer contracts.
 

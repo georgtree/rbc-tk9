@@ -10,6 +10,7 @@ This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package ve
 
 - [Source code](https://github.com/georgtree/rbc-tk9)
 - [Documentation](https://georgtree.github.io/rbc-tk9/)
+- [C developer manual sources and build instructions](docs/developer/README.md)
 - [Changes and modernization](https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html)
 - [Issue tracker](https://github.com/georgtree/rbc-tk9/issues)
 

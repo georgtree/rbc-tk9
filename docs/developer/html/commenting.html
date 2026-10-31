@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>C documentation conventions &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=1067c88a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Renderer C reference" href="reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">C documentation conventions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="c-documentation-conventions">
+<h1>C documentation conventions<a class="headerlink" href="#c-documentation-conventions" title="Link to this heading">¶</a></h1>
+<p>Use Doxygen comments for maintained contracts and ordinary C comments for
+local implementation explanations. Avoid mechanically converting every
+historical block into reference documentation.</p>
+<section id="where-comments-belong">
+<h2>Where comments belong<a class="headerlink" href="#where-comments-belong" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Document shared functions at declarations in their owning header.</p></li>
+<li><p>Document static helpers beside their definitions when their algorithm or
+invariants merit a reference entry.</p></li>
+<li><p>Give documented files an <code class="docutils literal notranslate"><span class="pre">&#64;file</span></code> description of their responsibilities.</p></li>
+<li><p>Describe record ownership and invariants beside the record definition.</p></li>
+<li><p>Keep algorithm rationale near the implementation, without duplicating
+the contract in both header and source.</p></li>
+<li><p>Do not hand-edit generated stub declarations.</p></li>
+</ul>
+</section>
+<section id="contract-contents">
+<h2>Contract contents<a class="headerlink" href="#contract-contents" title="Link to this heading">¶</a></h2>
+<p>Describe inputs, supported operations, ownership, borrowed-data lifetimes,
+failure reporting and mutation. Include coordinates, units, clipping, callbacks,
+reentry and threading requirements where relevant. State reference-count rules
+for Tcl objects and whether cleanup functions accept NULL. Do not assume these
+policies are uniform throughout RBC.</p>
+<p>An illustrative contract (not an existing function):</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm"> * @brief Create mapped geometry for one component.</span>
+<span class="cm"> * @param[in] graphPtr Borrowed graph, valid throughout the call.</span>
+<span class="cm"> * @param[out] result Receives caller-owned storage on success.</span>
+<span class="cm"> * @return TCL_OK on success; TCL_ERROR with an interpreter diagnostic.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Coordinates are widget pixels. On failure, result is unchanged.</span>
+<span class="cm"> * Release successful output with the matching destructor.</span>
+<span class="cm"> */</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;see</span></code> or Sphinx references to connect related operations. Use the C
+domain for C identifiers, for example <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.
+Prose chapters explain relationships; reference signatures come from headers.</p>
+</section>
+<section id="migration-and-review">
+<h2>Migration and review<a class="headerlink" href="#migration-and-review" title="Link to this heading">¶</a></h2>
+<p>Document one coherent module at a time, run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">check-doc-dev</span></code>, and review
+the rendered pages. Check references, table readability and retained caveats.</p>
+<p>The initial reference includes renderer contracts and expanded lifecycle
+documentation. Some parameters and record members still need more detail.
+Strict checking validates included documentation, not coverage of all C sources.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">C documentation conventions</a><ul>
+<li><a class="reference internal" href="#where-comments-belong">Where comments belong</a></li>
+<li><a class="reference internal" href="#contract-contents">Contract contents</a></li>
+<li><a class="reference internal" href="#migration-and-review">Migration and review</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="reference.html"
+                          title="previous chapter">Renderer C reference</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/commenting.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">C documentation conventions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
