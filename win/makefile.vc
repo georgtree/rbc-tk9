@@ -163,6 +163,17 @@ test-vector: $(PROJECT) $(CAPI_DLL)
 	@echo Running Tcl-only vector tests...
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\vectorAll.tcl" $(TESTFLAGS)"
 
+# Relink private notification APIs into a dedicated test DLL, never installed.
+NOTIFY_DLL = $(OUT_DIR)\rbcnotifytest.dll
+NOTIFY_OBJ = $(TMP_DIR)\rbcVectorNotifyTest.obj
+$(NOTIFY_OBJ): $(TESTDIR)\rbcVectorNotifyTest.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcVectorNotifyTest.c"
+$(NOTIFY_DLL): $(PRJ_OBJS) $(NOTIFY_OBJ)
+	$(DLLCMD) $(PRJ_OBJS) $(NOTIFY_OBJ)
+	$(_VC_MANIFEST_EMBED_DLL)
+test-vector-notify: $(PROJECT) $(NOTIFY_DLL)
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\RBC.vector.notify.A.test" $(TESTFLAGS)"
+
 shell: $(PROJECT)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""
 

@@ -495,6 +495,16 @@ make test-vector
 This runs `tests/vectorAll.tcl`. GUI upgrade/load-order tests run in the normal `make test` suite and are skipped
 by the headless runner. Regenerate your Makefile with `./config.status` after updating `Makefile.in`.
 
+Run the internal C notification callback tests separately, without a display:
+```sh
+make test-vector-notify
+```
+
+This relinks RBC objects into a test-only library and runs `RBC.vector.notify.A.test` in a fresh Tcl interpreter.
+It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
+These private APIs are not added to the public stubs table. The ordinary suite skips this file without the dedicated
+harness. The MSVC makefile provides the same target.
+
 The suite uses `tcltest`. Pass test selection options through `TESTFLAGS`.
 
 For example, run the line-decimation test file:

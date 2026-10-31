@@ -71,6 +71,8 @@ PKG_LIB_FILE9 = @PKG_LIB_FILE9@
 PKG_STUB_LIB_FILE = @PKG_STUB_LIB_FILE@
 
 # Public C/stubs API consumer used only by the test suite.
+TEST_NOTIFY_LIB = rbcnotifytest$(SHLIB_SUFFIX)
+
 TEST_CAPI_LIB = rbccapitest$(SHLIB_SUFFIX)
 TEST_CAPI_OBJECTS = \
 	rbcVectorApiTest.$(OBJEXT) \
@@ -357,6 +359,19 @@ test-vector: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/vectorAll.tcl` $(TESTFLAGS)
 
+# Private APIs are tested by relinking the implementation into a test-only DLL.
+# Run in a fresh Tcl process, separately from the installed/stubs consumer tests.
+test-vector-notify: $(TEST_NOTIFY_LIB)
+	RBC_NOTIFY_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_NOTIFY_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.vector.notify.A.test` $(TESTFLAGS)
+
+rbcVectorNotifyTest.$(OBJEXT): $(srcdir)/tests/rbcVectorNotifyTest.c $(PKG_HEADERS) $(srcdir)/generic/rbcVectorInt.h
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcVectorNotifyTest.c` -o $@
+
+$(TEST_NOTIFY_LIB): $(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT)
+	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
+		$(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT) $(SHLIB_LD_LIBS)
+
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
 
@@ -504,6 +519,7 @@ clean:
 	-rm -rf _build/developer
 	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
+	-rm -f $(TEST_NOTIFY_LIB)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 	-rm -f graph.tcl trackgraph.tcl graphtoolbar.tcl argparse.tcl argparse-LICENSE.txt argparse-README.txt rbcCanvEps.pro rbcGraph.pro circle.xbm circle_mask.xbm
@@ -618,7 +634,7 @@ uninstall-doc:
 
 uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-headers \
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-vector-notify test-headers \
 	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

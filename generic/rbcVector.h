@@ -50,6 +50,15 @@ typedef struct Rbc_VectorIdStruct *Rbc_VectorId;
 
 typedef enum { RBC_VECTOR_NOTIFY_UPDATE = 1, RBC_VECTOR_NOTIFY_DESTROY } Rbc_VectorNotify;
 
+/*
+ * Delivery snapshots the client IDs. Callbacks may detach clients (including
+ * themselves), add clients for a subsequent delivery, or destroy the vector.
+ * Destruction interrupts the old UPDATE pass and delivers DESTROY. Remaining
+ * IDs are freed by RBC afterward: discard saved IDs and data pointers on DESTROY.
+ * Nested updates retain the outer callback's changed-range snapshot.
+ * Client data remains caller-owned; do not use it after a nested callback has
+ * released its owner. This interface does not provide cross-thread access.
+ */
 typedef void(Rbc_VectorChangedProc)(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify);
 
 /*

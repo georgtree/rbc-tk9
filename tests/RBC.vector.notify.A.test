@@ -1,0 +1,41 @@
+# RBC.vector.notify.A.test -- Reentrant internal vector client notifications.
+package provide vector.notify
+package require tcltest
+namespace import tcltest::*
+
+# The harness links the implementation privately and must run in its own process.
+# Ordinary suite runs skip these cases; make test-vector-notify supplies the path.
+set notifyAvailable 0
+if {[info exists ::env(RBC_NOTIFY_TEST_LIB)]} {
+    load $::env(RBC_NOTIFY_TEST_LIB) Rbcnotifytest
+    set notifyAvailable 1
+}
+testConstraint notifyHarness $notifyAvailable
+
+namespace eval vector.notify {
+    foreach {case scenario immediate expected} {
+        1 self 1 {{0 update 0 0} {1 update 0 0}}
+        2 other 1 {{0 update 0 0}}
+        3 destroy 1 {{0 update 0 0} {0 destroy -1 -1} {1 destroy -1 -1}}
+        4 nested 1 {{0 update 0 0} {0 update 1 1} {1 update 1 1} {restored 0 0} {1 update 0 0}}
+        5 add 1 {{0 update 0 0} {1 update 0 0} {0 update 1 1} {1 update 1 1} {2 update 1 1}}
+        6 destroy-self 1 {{0 destroy -1 -1} {1 destroy -1 -1}}
+        7 destroy-other 1 {{0 destroy -1 -1}}
+        8 recursive-destroy 1 {{0 destroy -1 -1} {1 destroy -1 -1}}
+        9 recreate 1 {{0 destroy -1 -1} {1 destroy -1 -1}}
+        10 self 0 {{0 update 0 0} {1 update 0 0}}
+        11 other 0 {{0 update 0 0}}
+        12 destroy 0 {{0 update 0 0} {0 destroy -1 -1} {1 destroy -1 -1}}
+        13 add 0 {{0 update 0 0} {1 update 0 0} {0 update 1 1} {1 update 1 1} {2 update 1 1}}
+        14 destroy-self 0 {{0 destroy -1 -1} {1 destroy -1 -1}}
+        15 destroy-other 0 {{0 destroy -1 -1}}
+        16 recreate 0 {{0 destroy -1 -1} {1 destroy -1 -1}}
+        17 nested 0 {{0 update 0 0} {restored 0 0} {1 update 0 0} {0 update 1 1} {1 update 1 1}}
+        18 delete-interp 1 {{0 update 0 0} {1 update 0 0} {0 destroy -1 -1} {1 destroy -1 -1}}
+        19 delete-interp 0 {{0 update 0 0} {1 update 0 0} {0 destroy -1 -1} {1 destroy -1 -1}}
+    } {
+        test RBC.vector.notify.A.1.$case "notification callback: $scenario, immediate=$immediate" \
+            -constraints notifyHarness -body [list ::rbcnotifytest $scenario $immediate] -result $expected
+    }
+}
+cleanupTests

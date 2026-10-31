@@ -97,7 +97,8 @@ struct Rbc_Vector_s {
     /* The following fields are local to this module  */
     char *name; /* The namespace-qualified name of the vector command.
                  * It points to the hash key allocated for the
-                 * entry in the vector hash table. */
+                 * entry in the vector hash table; destruction keeps a temporary
+                 * copy while callbacks run after removing the registration. */
     VectorInterpData *dataPtr;
     Tcl_Interp *interp;     /* Interpreter associated with the vector */
     Tcl_HashEntry *hashPtr; /* If non-NULL, pointer in a hash table to
@@ -116,6 +117,7 @@ struct Rbc_Vector_s {
                              * starting index */
     Tcl_Command cmdToken;   /* Token for vector's Tcl command. */
     Rbc_Chain *chainPtr;    /* List of clients using this vector */
+    int destroying;        /* Destruction started; reject recursive deletion and new clients. */
     int notifyFlags;        /* Notification flags. See definitions
                              * below */
     int varFlags;           /* Indicate if the variable is global,

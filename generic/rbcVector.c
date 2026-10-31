@@ -1270,9 +1270,8 @@ static void VectorInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
     Tcl_HashSearch cursor;
     VectorObject *vPtr;
 
-    for (hPtr = Tcl_FirstHashEntry(&(dataPtr->vectorTable), &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
+    while ((hPtr = Tcl_FirstHashEntry(&dataPtr->vectorTable, &cursor)) != NULL) {
         vPtr = (VectorObject *)Tcl_GetHashValue(hPtr);
-        vPtr->hashPtr = NULL;
         Rbc_VectorFree(vPtr);
     }
     Tcl_DeleteHashTable(&(dataPtr->vectorTable));
@@ -1528,6 +1527,11 @@ static void VectorInstDeleteProc(ClientData clientData) {
     Rbc_VectorFree(vPtr);
 }
 
+/* Final release for records retained by notification snapshots. */
+static void FreeVectorRecord(DestroyData data) {
+    ckfree((char *)data);
+}
+
 /*
  * ----------------------------------------------------------------------
  *
@@ -1559,12 +1563,28 @@ static void VectorInstDeleteProc(ClientData clientData) {
 void Rbc_VectorFree(VectorObject *vPtr) {
     Rbc_ChainLink *linkPtr;
     VectorClient *clientPtr;
+    Tcl_Interp *interp = vPtr->interp;
+    char *savedName = NULL;
 
+    if (vPtr->destroying) {
+        return;
+    }
+    vPtr->destroying = TRUE;
+    /* Keep the record and interpreter alive across destruction callbacks. */
+    Tcl_Preserve(vPtr);
+    Tcl_Preserve(interp);
     if (vPtr->cmdToken != 0) {
         DeleteCommand(vPtr);
     }
     if (vPtr->arrayName != NULL) {
         UnmapVariable(vPtr);
+    }
+    /* Remove the old registration before callbacks can recreate this name. */
+    if (vPtr->hashPtr != NULL) {
+        savedName = RbcStrdup(vPtr->name);
+        Tcl_DeleteHashEntry(vPtr->hashPtr);
+        vPtr->hashPtr = NULL;
+        vPtr->name = savedName;
     }
     vPtr->length = 0;
     /* Immediately notify clients that vector is going away */
@@ -1574,9 +1594,9 @@ void Rbc_VectorFree(VectorObject *vPtr) {
     }
     vPtr->notifyFlags |= NOTIFY_DESTROYED;
     VectorNotifyClients(vPtr);
-    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    while ((linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr)) != NULL) {
         clientPtr = Rbc_ChainGetValue(linkPtr);
-        ckfree((char *)clientPtr);
+        Rbc_FreeVectorId((Rbc_VectorId)clientPtr);
     }
     Rbc_ChainDestroy(vPtr->chainPtr);
     if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
@@ -1586,8 +1606,8 @@ void Rbc_VectorFree(VectorObject *vPtr) {
             (*vPtr->freeProc)(vPtr->data.raw);
         }
     }
-    if (vPtr->hashPtr != NULL) {
-        Tcl_DeleteHashEntry(vPtr->hashPtr);
+    if (savedName != NULL) {
+        ckfree(savedName);
     }
 #ifdef NAMESPACE_DELETE_NOTIFY
     if (vPtr->nsPtr != NULL) {
@@ -1595,7 +1615,9 @@ void Rbc_VectorFree(VectorObject *vPtr) {
         /*** Rbc_DestroyNsDeleteNotify(vPtr->interp, vPtr->nsPtr, vPtr); */
     }
 #endif /* NAMESPACE_DELETE_NOTIFY */
-    ckfree((char *)vPtr);
+    Tcl_EventuallyFree(vPtr, FreeVectorRecord);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
 }
 
 /*
@@ -1897,68 +1919,73 @@ int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_S
  */
 static void VectorNotifyClients(ClientData clientData) {
     VectorObject *vPtr = clientData;
+    Tcl_Interp *interp = vPtr->interp;
     Rbc_ChainLink *linkPtr;
-    VectorClient *clientPtr;
+    VectorClient **clients;
+    Tcl_Size count = 0, i;
     Rbc_VectorNotify notify;
-    int updateAll;
-    int updateRangeValid;
-    Tcl_Size updateFirst;
-    Tcl_Size updateLast;
+    int updateAll, updateRangeValid;
+    Tcl_Size updateFirst, updateLast;
 
+    Tcl_Preserve(vPtr);
+    Tcl_Preserve(interp);
     notify = (vPtr->notifyFlags & NOTIFY_DESTROYED) ? RBC_VECTOR_NOTIFY_DESTROY : RBC_VECTOR_NOTIFY_UPDATE;
-    /*
-     * Snapshot the coalesced update before invoking clients.
-     *
-     * Clear the server-side pending range now so that an update caused
-     * from inside a callback starts a new notification range rather
-     * than modifying the range currently being delivered.
-     */
-    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
-        updateAll = TRUE;
-        updateRangeValid = FALSE;
-        updateFirst = 0;
-        updateLast = 0;
-    } else {
-        updateAll = vPtr->updateAll;
-        updateRangeValid = vPtr->updateRangeValid && !updateAll;
-        updateFirst = vPtr->updateFirst;
-        updateLast = vPtr->updateLast;
+    if (vPtr->destroying && notify != RBC_VECTOR_NOTIFY_DESTROY) {
+        goto done;
     }
+    updateAll = (notify == RBC_VECTOR_NOTIFY_DESTROY) || vPtr->updateAll;
+    updateRangeValid = !updateAll && vPtr->updateRangeValid;
+    updateFirst = vPtr->updateFirst;
+    updateLast = vPtr->updateLast;
     vPtr->updateAll = FALSE;
     vPtr->updateRangeValid = FALSE;
-    vPtr->updateFirst = 0;
-    vPtr->updateLast = 0;
+    vPtr->updateFirst = vPtr->updateLast = 0;
     vPtr->notifyFlags &= ~(NOTIFY_UPDATED | NOTIFY_DESTROYED | NOTIFY_PENDING);
-    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        clientPtr = Rbc_ChainGetValue(linkPtr);
-        /*
-         * Give each client its own snapshot.  This avoids making the
-         * callback inspect mutable server-side notification state.
-         */
-        clientPtr->updateAll = updateAll;
-        clientPtr->updateRangeValid = updateRangeValid;
-        clientPtr->updateFirst = updateFirst;
-        clientPtr->updateLast = updateLast;
-        if (clientPtr->proc != NULL) {
-            (*clientPtr->proc)(vPtr->interp, clientPtr->clientData, notify);
-        }
-        clientPtr->updateAll = FALSE;
-        clientPtr->updateRangeValid = FALSE;
-        clientPtr->updateFirst = 0;
-        clientPtr->updateLast = 0;
+
+    /* Snapshot and preserve IDs, not chain links. Callbacks may unlink any
+     * client, add new clients, or destroy the complete vector. New clients
+     * join the next notification; detached clients are skipped. */
+    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        count++;
     }
-    /*
-     * Some clients may not handle the "destroy" callback properly
-     * (they should call Rbc_FreeVectorId to release the client
-     * identifier), so mark any remaining clients to indicate that
-     * vector's server has gone away.
-     */
-    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
-        for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-            clientPtr = Rbc_ChainGetValue(linkPtr);
-            clientPtr->serverPtr = NULL;
+    clients = (VectorClient **)Tcl_Alloc(count * sizeof(VectorClient *));
+    i = 0;
+    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
+         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+        clients[i] = Rbc_ChainGetValue(linkPtr);
+        Tcl_Preserve(clients[i]);
+        i++;
+    }
+    for (i = 0; i < count; i++) {
+        VectorClient *clientPtr = clients[i];
+        if (vPtr->destroying && notify == RBC_VECTOR_NOTIFY_UPDATE) {
+            break;
+        }
+        if (clientPtr->magic == VECTOR_MAGIC && clientPtr->serverPtr == vPtr && clientPtr->proc != NULL) {
+            int savedAll = clientPtr->updateAll;
+            int savedValid = clientPtr->updateRangeValid;
+            Tcl_Size savedFirst = clientPtr->updateFirst, savedLast = clientPtr->updateLast;
+            clientPtr->updateAll = updateAll;
+            clientPtr->updateRangeValid = updateRangeValid;
+            clientPtr->updateFirst = updateFirst;
+            clientPtr->updateLast = updateLast;
+            (*clientPtr->proc)(interp, clientPtr->clientData, notify);
+            /* Nested immediate notifications must not overwrite the outer
+             * callback's interval. The preserved ID can already be detached. */
+            clientPtr->updateAll = savedAll;
+            clientPtr->updateRangeValid = savedValid;
+            clientPtr->updateFirst = savedFirst;
+            clientPtr->updateLast = savedLast;
         }
     }
+    for (i = 0; i < count; i++) {
+        Tcl_Release(clients[i]);
+    }
+    Tcl_Free((char *)clients);
+done:
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
 }
 
 /*
@@ -2664,6 +2691,9 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
  * ----------------------------------------------------------------------
  */
 static void ScheduleVectorUpdate(VectorObject *vPtr, int all, Tcl_Size first, Tcl_Size last) {
+    if (vPtr->destroying) {
+        return;
+    }
     vPtr->dirty++;
     if (vPtr->notifyFlags & NOTIFY_NEVER) {
         return;
@@ -3623,14 +3653,17 @@ Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index) {
  */
 void Rbc_FreeVectorId(Rbc_VectorId clientId) {
     VectorClient *clientPtr = (VectorClient *)clientId;
-    if (clientPtr->magic != VECTOR_MAGIC) {
-        return; /* Not a valid token */
+    if (clientPtr == NULL || clientPtr->magic != VECTOR_MAGIC) {
+        return;
     }
     if (clientPtr->serverPtr != NULL) {
-        /* Remove the client from the server's list */
         Rbc_ChainDeleteLink(clientPtr->serverPtr->chainPtr, clientPtr->linkPtr);
     }
-    ckfree((char *)clientPtr);
+    clientPtr->serverPtr = NULL;
+    clientPtr->linkPtr = NULL;
+    clientPtr->proc = NULL;
+    clientPtr->magic = 0;
+    Tcl_EventuallyFree(clientPtr, FreeVectorRecord);
 }
 
 /*
@@ -3751,6 +3784,10 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *name) {
     ckfree((char *)nameCopy);
     if (result != TCL_OK) {
         return (Rbc_VectorId)0;
+    }
+    if (vPtr->destroying) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("vector is being destroyed", -1));
+        return NULL;
     }
     /* Allocate a new client structure */
     clientPtr = RbcCalloc(1, sizeof(VectorClient));
