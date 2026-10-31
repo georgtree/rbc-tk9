@@ -132,3 +132,5 @@ source vectors or double-freeing Tk-owned values.
 See :doc:`decimation` for dense line mapping, cache maintenance and source picking.
 
 See :doc:`bars` for bar grouping, placement, error translations and mapped ownership.
+
+See :doc:`fills` for area closure, uncertainty-band runs and fill resource ownership.

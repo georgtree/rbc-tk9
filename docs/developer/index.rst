@@ -45,6 +45,8 @@ chapters.
    decimation-reference
    bars
    bar-reference
+   fills
+   fill-reference
    mapping
    mapping-reference
    configuration

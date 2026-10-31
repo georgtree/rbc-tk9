@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Line fill C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Area fills and error bands" href="fills.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fills.html" title="Area fills and error bands"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line fill C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="line-fill-c-reference">
+<h1>Line fill C reference<a class="headerlink" href="#line-fill-c-reference" title="Link to this heading">¶</a></h1>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>. They are not cross-module APIs.
+See <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a> for geometry, ownership and renderer fallback rules.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__line__fills"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">fill</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private area and uncertainty-band geometry and screen drawing services. </p>
+<p>Source data is borrowed; mapped polygons belong to the line element. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapFillArea">
+<span class="target" id="group__line__fills_1ga7fd63d67bd4398fe2628c12268956ed9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapFillArea</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapFillArea" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build one clipped polygon from the mapped center line. </p>
+<p>
+Discontinuous input is not filled. Baseline closure adds two screen vertices, origin closure adds mapped (0,0), and chord closure adds none. On success transfers the clipped array to fillPts/nFillPts. Insufficient points, invalid origin, size overflow, allocation failure or an empty clip leave those fields unchanged. Temporary unclipped storage is always freed. This routine does not free a previous fill: ResetLine must run first. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph in the element’s mapping viewport. </p></li>
+<li><p><strong>linePtr</strong> – Borrowed line with old fill storage already cleared. </p></li>
+<li><p><strong>mapPtr</strong> – Borrowed smoothed/reduced screen points, never modified here.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AppendErrorBandPolygon">
+<span class="target" id="group__line__fills_1ga6bc0ef8110f8fc5681d4c16b405ff95c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendErrorBandPolygon</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">upper</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lower</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">LineBandPolygon</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tailPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendErrorBandPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a clipped uncertainty polygon to an owned list. </p>
+<p>
+Copies upper forward and lower backward, clips the resulting polygon, and appends an owned node and point array. Updates the insertion link only on success. Fewer than two samples, size overflow, allocation failure or fewer than three clipped vertices leave the list unchanged. Neither input array is retained or modified. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph providing current plot extents. </p></li>
+<li><p><strong>upper</strong> – Borrowed upper boundary in source traversal order. </p></li>
+<li><p><strong>lower</strong> – Borrowed lower boundary in source traversal order. </p></li>
+<li><p><strong>count</strong> – Number of samples present in both arrays. </p></li>
+<li><p><strong>tailPtr</strong> – In/out pointer to the list’s next insertion link.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapErrorBand">
+<span class="target" id="group__line__fills_1ga882439f784a709a83964e6f33e1ed222"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapErrorBand</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapErrorBand" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map source error bounds into independently clipped run polygons. </p>
+<p>
+Uses original paired samples and the selected X or Y error inputs, not reduced center-line points. Symmetric errors take precedence over paired low/high bounds. Invalid values, log-domain violations and trace-direction breaks terminate runs. Step mode inserts X-first boundary corners. Renderer point limits split long runs at shared samples. Temporary boundary arrays are freed; successful polygons remain owned by errorBand.polygons. Disabled/unpainted bands, short input and workspace failure produce no list. Individual polygon failures omit that piece rather than rolling back earlier pieces. Configuration must already have restricted bands to Cartesian axes and linear or step smoothing. No Tcl callbacks are invoked. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph in the element’s mapping viewport. </p></li>
+<li><p><strong>linePtr</strong> – Borrowed line whose old band list has been cleared.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DrawLineFill">
+<span class="target" id="group__line__fills_1ga8be5d305e66b3781e88cdcde670089f5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawLineFill</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">opacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DrawLineFill" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw borrowed fill geometry with Cairo-first/native fallback policy. </p>
+<p>
+A tile without a pixmap suppresses drawing rather than exposing the pattern beneath it. A successful Cairo fill ends dispatch; otherwise a native fill context is begun and ended here. Input geometry and resources remain owned by the element. Tile drawing uses the tile’s own image transparency. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with the desired renderer and active clip. </p></li>
+<li><p><strong>drawable</strong> – Target window or pixmap. </p></li>
+<li><p><strong>points</strong> – Borrowed clipped polygon, or NULL to skip drawing. </p></li>
+<li><p><strong>count</strong> – Number of polygon vertices. </p></li>
+<li><p><strong>foreground</strong> – Borrowed foreground color; Cairo can recover it from gc. </p></li>
+<li><p><strong>background</strong> – Borrowed optional stipple background color. </p></li>
+<li><p><strong>gc</strong> – Borrowed native fill GC. </p></li>
+<li><p><strong>tile</strong> – Borrowed optional tile, which takes precedence over stipple. </p></li>
+<li><p><strong>stipple</strong> – Bitmap, PATTERN_SOLID sentinel, or None. </p></li>
+<li><p><strong>opacity</strong> – Validated pattern opacity; native fallback does not blend it.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Line fill C reference</a><ul>
+<li><a class="reference internal" href="#c.MapFillArea"><code class="docutils literal notranslate"><span class="pre">MapFillArea()</span></code></a></li>
+<li><a class="reference internal" href="#c.AppendErrorBandPolygon"><code class="docutils literal notranslate"><span class="pre">AppendErrorBandPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapErrorBand"><code class="docutils literal notranslate"><span class="pre">MapErrorBand()</span></code></a></li>
+<li><a class="reference internal" href="#c.DrawLineFill"><code class="docutils literal notranslate"><span class="pre">DrawLineFill()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="fills.html"
+                          title="previous chapter">Area fills and error bands</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fills.html" title="Area fills and error bands"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line fill C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

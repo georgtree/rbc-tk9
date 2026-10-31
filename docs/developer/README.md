@@ -2,7 +2,7 @@
 
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
 Coverage includes package initialization and client stubs, architecture, header dependencies, renderer contracts, graph
-widget lifecycle and redisplay, vector ownership and notifications, expression evaluation and callback boundaries, FFT workspace and output ownership, spline interpolation and smoothing, line decimation and cache maintenance, bar grouping and error positioning, binding
+widget lifecycle and redisplay, vector ownership and notifications, expression evaluation and callback boundaries, FFT workspace and output ownership, spline interpolation and smoothing, line decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty bands, binding
 dispatch and picking, component option transactions and resource ownership,
 scrolling and viewport contracts, geometry and clipping contracts, chain/list ownership, image and tile ownership, text layout and document font ownership, export orchestration and document ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, and source-comment conventions.
 

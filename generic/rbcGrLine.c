@@ -17,6 +17,11 @@
  * the owning graph; these routines neither mutate source vectors nor invoke Tcl.
  */
 
+/** @defgroup line_fills Line fill internals
+ * Private area and uncertainty-band geometry and screen drawing services.
+ * Source data is borrowed; mapped polygons belong to the line element.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -7176,26 +7181,18 @@ static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * MapFillArea --
- *
- *      Creates an array of points that represent a polygon that fills
- *      the area under the element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is  allocated for the polygon point array.
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_fills
+ * @brief Build one clipped polygon from the mapped center line.
+ * @param graphPtr Borrowed graph in the element's mapping viewport.
+ * @param linePtr Borrowed line with old fill storage already cleared.
+ * @param mapPtr Borrowed smoothed/reduced screen points, never modified here.
+ * @details Discontinuous input is not filled. Baseline closure adds two screen
+ * vertices, origin closure adds mapped (0,0), and chord closure adds none.
+ * On success transfers the clipped array to fillPts/nFillPts. Insufficient
+ * points, invalid origin, size overflow, allocation failure or an empty clip
+ * leave those fields unchanged. Temporary unclipped storage is always freed.
+ * This routine does not free a previous fill: ResetLine must run first.
  */
 static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *origPts;
@@ -7290,7 +7287,20 @@ static void MapFillArea(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     linePtr->nFillPts = n;
 }
 
-/* Build one closed band from upper points forward and lower points backward. */
+/**
+ * @ingroup line_fills
+ * @brief Append a clipped uncertainty polygon to an owned list.
+ * @param graphPtr Borrowed graph providing current plot extents.
+ * @param upper Borrowed upper boundary in source traversal order.
+ * @param lower Borrowed lower boundary in source traversal order.
+ * @param count Number of samples present in both arrays.
+ * @param tailPtr In/out pointer to the list's next insertion link.
+ * @details Copies upper forward and lower backward, clips the resulting
+ * polygon, and appends an owned node and point array. Updates the insertion
+ * link only on success. Fewer than two samples, size overflow, allocation
+ * failure or fewer than three clipped vertices leave the list unchanged.
+ * Neither input array is retained or modified.
+ */
 static void AppendErrorBandPolygon(Graph *graphPtr, Point2D *upper, Point2D *lower, Tcl_Size count,
                                    LineBandPolygon ***tailPtr) {
     Point2D *points;
@@ -7343,8 +7353,22 @@ static void AppendErrorBandPolygon(Graph *graphPtr, Point2D *upper, Point2D *low
     *tailPtr = &polygonPtr->nextPtr;
 }
 
-/* Always use source samples: symbol thinning and center-line decimation must
- * not discard the extrema of independently varying error bounds. */
+/**
+ * @ingroup line_fills
+ * @brief Map source error bounds into independently clipped run polygons.
+ * @param graphPtr Borrowed graph in the element's mapping viewport.
+ * @param linePtr Borrowed line whose old band list has been cleared.
+ * @details Uses original paired samples and the selected X or Y error inputs,
+ * not reduced center-line points. Symmetric errors take precedence over paired
+ * low/high bounds. Invalid values, log-domain violations and trace-direction
+ * breaks terminate runs. Step mode inserts X-first boundary corners. Renderer
+ * point limits split long runs at shared samples. Temporary boundary arrays
+ * are freed; successful polygons remain owned by errorBand.polygons.
+ * Disabled/unpainted bands, short input and workspace failure produce no list.
+ * Individual polygon failures omit that piece rather than rolling back earlier
+ * pieces. Configuration must already have restricted bands to Cartesian axes
+ * and linear or step smoothing. No Tcl callbacks are invoked.
+ */
 static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
     Element *elemPtr = &linePtr->core;
     LineErrorBand *bandPtr = &linePtr->errorBand;
@@ -9563,6 +9587,24 @@ static int DrawRenderedFill(Graph *graphPtr, Drawable drawable, const Point2D *p
                                  opacity);
 }
 
+/**
+ * @ingroup line_fills
+ * @brief Draw borrowed fill geometry with Cairo-first/native fallback policy.
+ * @param graphPtr Borrowed graph with the desired renderer and active clip.
+ * @param drawable Target window or pixmap.
+ * @param points Borrowed clipped polygon, or NULL to skip drawing.
+ * @param count Number of polygon vertices.
+ * @param foreground Borrowed foreground color; Cairo can recover it from gc.
+ * @param background Borrowed optional stipple background color.
+ * @param gc Borrowed native fill GC.
+ * @param tile Borrowed optional tile, which takes precedence over stipple.
+ * @param stipple Bitmap, PATTERN_SOLID sentinel, or None.
+ * @param opacity Validated pattern opacity; native fallback does not blend it.
+ * @details A tile without a pixmap suppresses drawing rather than exposing the
+ * pattern beneath it. A successful Cairo fill ends dispatch; otherwise a native
+ * fill context is begun and ended here. Input geometry and resources remain
+ * owned by the element. Tile drawing uses the tile's own image transparency.
+ */
 static void DrawLineFill(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                           XColor *foreground, XColor *background, GC gc, Rbc_Tile tile,
                           Pixmap stipple, double opacity) {
