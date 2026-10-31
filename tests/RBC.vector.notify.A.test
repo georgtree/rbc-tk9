@@ -37,5 +37,50 @@ namespace eval vector.notify {
         test RBC.vector.notify.A.1.$case "notification callback: $scenario, immediate=$immediate" \
             -constraints notifyHarness -body [list ::rbcnotifytest $scenario $immediate] -result $expected
     }
+    foreach {group operation} {2 fft 3 ifft} {
+        foreach {case phase action updates} {
+            1 notify self {1 1}
+            2 notify other {1 0}
+            3 notify both {1 0}
+            4 notify recreate {1 0}
+            5 notify interp {1 0}
+            6 release self {0 1}
+            7 release other {1 0}
+            8 release both {0 0}
+            9 release recreate {0 0}
+            10 release interp {0 0}
+            11 trace self {0 1}
+            12 trace other {1 0}
+            13 trace both {0 0}
+            14 trace interp {0 0}
+            15 notify rename {1 1}
+            16 release rename {1 1}
+        } {
+            test RBC.vector.notify.A.$group.$case "FFT commit: $operation $phase $action" \
+                -constraints notifyHarness -body [list ::rbcffttest $operation $phase $action] \
+                -result [concat {0 1 2} $updates]
+        }
+    }
+    foreach {case phase updates} {1 release {2 2} 2 notify {2 2}} {
+        test RBC.vector.notify.A.4.$case "FFT nested commit during $phase" \
+            -constraints notifyHarness -body [list ::rbcffttest fft $phase nested] \
+            -result [concat {0 1 2} $updates]
+    }
+    foreach {group operation} {5 window 6 fftfreq} {
+        foreach {case phase action updates} {
+            1 release self {0 0}
+            2 notify self {1 0}
+            3 trace self {0 0}
+            4 release interp {0 0}
+            5 notify interp {1 0}
+            6 trace interp {0 0}
+            7 release recreate {0 0}
+        } {
+            test RBC.vector.notify.A.$group.$case "generator commit: $operation $phase $action" \
+                -constraints notifyHarness -body [list ::rbcffttest $operation $phase $action] \
+                -result [concat {0 1 1} $updates]
+        }
+    }
+
 }
 cleanupTests

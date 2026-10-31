@@ -242,8 +242,64 @@ typedef struct {
  * Internal vector functions.
  */
 
+/**
+ * Transform a real/complex source into existing complex or split-real outputs.
+ *
+ * @param vPtr Live source vector in interp; its full length is transformed.
+ * @param interp Owning interpreter, kept alive for the operation.
+ * @param objc Argument count already checked by the instance dispatcher.
+ * @param objv Instance command arguments, including fft or ifft at index 1.
+ * @return TCL_OK with a qualified destination name or a two-name list;
+ * TCL_ERROR for validation, allocation or non-finite arithmetic errors before
+ * commit, with destination data unchanged.
+ *
+ * Checks all output types and writability. Copies inputs to owned temporary
+ * storage, permitting input/output aliasing. Length must be a nonzero power
+ * of two unless explicit padding selects a larger power of two. Forward output
+ * is unscaled; inverse input is scaled by 1/N before the butterflies.
+ * Installs every output before releasing old storage, flushing caches or
+ * notifying clients. Preserves vector identity, type, offset and observers.
+ *
+ * Preserves destination records and the interpreter across post-install
+ * callbacks. Destroyed destinations are skipped; replacement vectors with the
+ * same name are not updated. Returned names are snapshots taken before callbacks.
+ */
 int Rbc_VectorFftOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * Fill an existing real vector with FFT bin frequencies.
+ *
+ * @param vPtr Live, writable real destination, validated by the dispatcher.
+ * @param interp Owning interpreter, kept alive for the operation.
+ * @param objc Argument count already checked by the instance dispatcher.
+ * @param objv Instance command arguments, with positive transform length at index 2.
+ * @return TCL_OK with the destination name; TCL_ERROR before commit leaves
+ * destination data unchanged.
+ *
+ * Supports any positive length, not only powers of two. Delta must be finite
+ * and positive. Full output uses negative Nyquist for even lengths; one-sided
+ * output contains floor(N/2)+1 nonnegative bins. Allocates and validates all
+ * values before replacing storage and notifying clients. Does not repeat the
+ * dispatcher's real-type or writable checks. The shared commit helper preserves
+ * records across callbacks and skips updates after destruction.
+ */
 int Rbc_VectorFftfreqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * Generate unscaled window coefficients in an existing real vector.
+ *
+ * @param vPtr Live, writable real destination, validated by the dispatcher.
+ * @param interp Owning interpreter, kept alive for the operation.
+ * @param objc Argument count already checked by the instance dispatcher.
+ * @param objv Instance arguments, with window kind and length at indices 2 and 3.
+ * @return TCL_OK with the destination name; TCL_ERROR before commit leaves
+ * destination data unchanged.
+ *
+ * Accepts rectangular, Hann, Hamming, Blackman and Bartlett windows of any
+ * positive length. Periodic is the default; symmetric uses N-1 instead of N.
+ * A length-one window is always one. Stages all coefficients before installing
+ * them and notifying clients. Does not repeat the dispatcher's real-type or
+ * writable checks. The shared commit helper preserves records across callbacks
+ * and skips updates after destruction.
+ */
 int Rbc_VectorWindowOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 void Rbc_VectorFlushCache(VectorObject *vPtr);
 VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,

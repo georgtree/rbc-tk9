@@ -155,25 +155,66 @@ static void FftInstall(VectorObject *vPtr, void *data, Tcl_Size length,
 }
 
 /*
- * -----------------------------------------------------------------------
- *
- * Rbc_VectorFftOp --
- *
- *      Implements fft and ifft on a vector. Input can be real, complex, or
- *      two real vectors. Output is one existing complex vector or two
- *      distinct existing real vectors. Length is unchanged by default;
- *      -length auto or a positive power of two explicitly enables padding.
- *
- * Results:
- *      TCL_OK and the qualified destination name (or a pair of names).
- *      TCL_ERROR leaves all destination data unchanged.
- *
- * Side effects:
- *      Successful computation replaces destination storage and updates
- *      mapped arrays and clients. Input/output overlap is permitted.
- *
- * -----------------------------------------------------------------------
+ * FftCommit -- Install all outputs before crossing any callback boundary.
+ * Preserve records until the last callback has returned, and test destruction
+ * after releasing old storage and flushing mapped arrays. Names describe the
+ * committed objects, even if callbacks rename, replace or destroy them.
  */
+static int FftCommit(Tcl_Interp *interp, VectorObject **dest, void **data, int count, Tcl_Size length) {
+    void *oldData[2];
+    Tcl_FreeProc *oldFree[2];
+    Tcl_Obj *result = Tcl_NewListObj(0, NULL);
+    Tcl_InterpState state;
+    int k;
+
+    Tcl_Preserve(interp);
+    Tcl_IncrRefCount(result);
+    for (k = 0; k < count; k++) {
+        Tcl_Preserve(dest[k]);
+        Tcl_ListObjAppendElement(NULL, result, Tcl_NewStringObj(dest[k]->name, -1));
+        FftInstall(dest[k], data[k], length, &oldData[k], &oldFree[k]);
+    }
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    for (k = 0; k < count; k++) {
+        if ((oldData[k] != NULL) && (oldFree[k] != TCL_STATIC)) {
+            if (oldFree[k] == TCL_DYNAMIC) {
+                ckfree(oldData[k]);
+            } else {
+                oldFree[k](oldData[k]);
+            }
+        }
+    }
+    for (k = 0; k < count; k++) {
+        if (Tcl_InterpDeleted(interp)) {
+            break;
+        }
+        if (dest[k]->destroying) {
+            continue;
+        }
+        if (dest[k]->flush) {
+            Rbc_VectorFlushCache(dest[k]);
+        }
+        if (!Tcl_InterpDeleted(interp) && !dest[k]->destroying) {
+            Rbc_VectorUpdateClients(dest[k]);
+        }
+    }
+    Tcl_RestoreInterpState(interp, state);
+    if (count == 1) {
+        Tcl_Obj *name;
+        Tcl_ListObjIndex(NULL, result, 0, &name);
+        Tcl_SetObjResult(interp, name);
+    } else {
+        Tcl_SetObjResult(interp, result);
+    }
+    Tcl_DecrRefCount(result);
+    for (k = 0; k < count; k++) {
+        Tcl_Release(dest[k]);
+    }
+    Tcl_Release(interp);
+    return TCL_OK;
+}
+
+/* Operation contract and dispatcher preconditions are in rbcVectorInt.h. */
 int Rbc_VectorFftOp(VectorObject *srcPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const options[] = {"-real", "-imag", "-imaginput", "-length", NULL};
     Tcl_Obj *optionValues[4] = {NULL, NULL, NULL, NULL};
@@ -182,9 +223,7 @@ int Rbc_VectorFftOp(VectorObject *srcPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     VectorObject *imagPtr = NULL;
     Rbc_Complex *data = NULL, *roots = NULL;
     double *realData = NULL, *imagData = NULL;
-    void *oldData[2];
-    Tcl_FreeProc *oldFree[2];
-    Tcl_Obj *result;
+    void *output[2];
     Tcl_Size length, i;
     int inverse, count, k, endOptions = FALSE;
 
@@ -349,42 +388,14 @@ int Rbc_VectorFftOp(VectorObject *srcPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
             imagData[i] = data[i].imag;
         }
     }
-    result = Tcl_NewListObj(0, NULL);
-    Tcl_IncrRefCount(result);
-    for (k = 0; k < count; k++) {
-        Tcl_ListObjAppendElement(interp, result, Tcl_NewStringObj(dest[k]->name, -1));
-    }
     if (count == 1) {
-        FftInstall(dest[0], data, length, &oldData[0], &oldFree[0]);
+        output[0] = data;
     } else {
-        FftInstall(dest[0], realData, length, &oldData[0], &oldFree[0]);
-        FftInstall(dest[1], imagData, length, &oldData[1], &oldFree[1]);
+        output[0] = realData;
+        output[1] = imagData;
         ckfree(data);
     }
-    for (k = 0; k < count; k++) {
-        if ((oldData[k] != NULL) && (oldFree[k] != TCL_STATIC)) {
-            if (oldFree[k] == TCL_DYNAMIC) {
-                ckfree(oldData[k]);
-            } else {
-                oldFree[k](oldData[k]);
-            }
-        }
-    }
-    for (k = 0; k < count; k++) {
-        if (dest[k]->flush) {
-            Rbc_VectorFlushCache(dest[k]);
-        }
-        Rbc_VectorUpdateClients(dest[k]);
-    }
-    if (count == 1) {
-        Tcl_Obj *name;
-        Tcl_ListObjIndex(interp, result, 0, &name);
-        Tcl_SetObjResult(interp, name);
-    } else {
-        Tcl_SetObjResult(interp, result);
-    }
-    Tcl_DecrRefCount(result);
-    return TCL_OK;
+    return FftCommit(interp, dest, output, count, length);
 
 error:
     if (data != NULL) {
@@ -420,47 +431,12 @@ error:
  * -----------------------------------------------------------------------
  */
 static int FftStoreReal(VectorObject *vPtr, Tcl_Interp *interp, double *data, Tcl_Size length) {
-    void *oldData;
-    Tcl_FreeProc *oldFree;
-    Tcl_Obj *nameObj = Tcl_NewStringObj(vPtr->name, -1);
+    void *output = data;
 
-    Tcl_IncrRefCount(nameObj);
-    FftInstall(vPtr, data, length, &oldData, &oldFree);
-    if ((oldData != NULL) && (oldFree != TCL_STATIC)) {
-        if (oldFree == TCL_DYNAMIC) {
-            ckfree(oldData);
-        } else {
-            oldFree(oldData);
-        }
-    }
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
-    Tcl_SetObjResult(interp, nameObj);
-    Tcl_DecrRefCount(nameObj);
-    return TCL_OK;
+    return FftCommit(interp, &vPtr, &output, 1, length);
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_VectorFftfreqOp --
- *
- *      Fills an existing real vector with bin frequencies for a positive
- *      transform length. Full order includes a negative Nyquist bin for
- *      even lengths. One-sided order contains floor(N/2)+1 nonnegative
- *      bins, including positive Nyquist when N is even.
- *
- * Results:
- *      TCL_OK and the destination name, or TCL_ERROR without mutation.
- *
- * Side effects:
- *      On success, resizes and updates this vector without changing its
- *      identity, type, offset or bindings. Does not compute an FFT.
- *
- * -----------------------------------------------------------------------
- */
+/* Operation contract and dispatcher preconditions are in rbcVectorInt.h. */
 int Rbc_VectorFftfreqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const options[] = {"-delta", "-onesided", NULL};
     Tcl_Size length, count, i, positive;
@@ -523,25 +499,7 @@ int Rbc_VectorFftfreqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, T
     return FftStoreReal(vPtr, interp, data, count);
 }
 
-/*
- * -----------------------------------------------------------------------
- *
- * Rbc_VectorWindowOp --
- *
- *      Generates unscaled rectangular, Hann, Hamming, Blackman or Bartlett
- *      coefficients in an existing real vector. Periodic windows use N in
- *      the denominator; symmetric windows use N-1. A length-one window is
- *      always {1}. Any positive length is permitted, independently of the
- *      radix-2 restriction on the FFT itself.
- *
- * Results:
- *      TCL_OK and the destination name, or TCL_ERROR without mutation.
- *
- * Side effects:
- *      Commits all coefficients at once and notifies vector clients.
- *
- * -----------------------------------------------------------------------
- */
+/* Operation contract and dispatcher preconditions are in rbcVectorInt.h. */
 int Rbc_VectorWindowOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     static const char *const windows[] = {"rectangular", "hann", "hamming", "blackman", "bartlett", NULL};
     static const char *const options[] = {"-periodic", NULL};

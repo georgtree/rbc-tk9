@@ -1697,19 +1697,32 @@ int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
  */
 void Rbc_VectorFlushCache(VectorObject *vPtr) {
     Tcl_Interp *interp = vPtr->interp;
-    if (vPtr->arrayName == NULL) {
-        return; /* Doesn't use the variable API */
+    char *arrayName;
+    int varFlags;
+
+    if (vPtr->arrayName == NULL || vPtr->destroying || Tcl_InterpDeleted(interp)) {
+        return; /* Doesn't use the variable API, or is being destroyed. */
     }
-    /* Turn off the trace temporarily so that we can unset all the
-     * elements in the array.  */
-    Tcl_UntraceVar2(interp, vPtr->arrayName, (char *)NULL, TRACE_ALL | vPtr->varFlags,
+    Tcl_Preserve(vPtr);
+    Tcl_Preserve(interp);
+    arrayName = RbcStrdup(vPtr->arrayName);
+    varFlags = vPtr->varFlags;
+    /* User unset/write traces may delete the vector or remap its variable. */
+    Tcl_UntraceVar2(interp, arrayName, NULL, TRACE_ALL | varFlags,
                     (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
-    /* Clear all the element entries from the entire array */
-    Tcl_UnsetVar2(interp, vPtr->arrayName, (char *)NULL, vPtr->varFlags);
-    /* Restore the "end" index by default and the trace on the entire array */
-    Tcl_SetVar2(interp, vPtr->arrayName, "end", "", vPtr->varFlags);
-    Tcl_TraceVar2(interp, vPtr->arrayName, (char *)NULL, TRACE_ALL | vPtr->varFlags, (Tcl_VarTraceProc *)VectorVarTrace,
-                  vPtr);
+    Tcl_UnsetVar2(interp, arrayName, NULL, varFlags);
+    if (!Tcl_InterpDeleted(interp) && !vPtr->destroying &&
+        vPtr->arrayName != NULL && strcmp(vPtr->arrayName, arrayName) == 0 && vPtr->varFlags == varFlags) {
+        Tcl_SetVar2(interp, arrayName, "end", "", varFlags);
+        if (!Tcl_InterpDeleted(interp) && !vPtr->destroying &&
+            vPtr->arrayName != NULL && strcmp(vPtr->arrayName, arrayName) == 0 && vPtr->varFlags == varFlags) {
+            Tcl_TraceVar2(interp, arrayName, NULL, TRACE_ALL | varFlags,
+                          (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
+        }
+    }
+    ckfree(arrayName);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
 }
 
 /*

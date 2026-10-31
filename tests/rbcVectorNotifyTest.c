@@ -138,6 +138,179 @@ static int NotifyTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
+/* FFT callbacks use this fixture only while the test command is active. */
+typedef struct FftTest FftTest;
+typedef struct {
+    FftTest *test;
+    int index;
+} FftClient;
+typedef struct {
+    double values[2];
+    FftTest *test;
+    int index;
+} FftStorage;
+struct FftTest {
+    Tcl_Interp *interp;
+    VectorObject *dest[2];
+    Rbc_VectorId ids[2];
+    FftClient clients[2];
+    const char *phase;
+    const char *action;
+    const char *operation;
+    int acted;
+    int valid;
+    int releases;
+    int updates[2];
+    int count;
+};
+
+static void FftTestAction(FftTest *test) {
+    int k;
+    if (test->acted) return;
+    test->acted = 1;
+    /* All destination values must be installed before the first callback. */
+    for (k = 0; k < test->count; k++) {
+        double a = 1.0, b = 1.0;
+        if (strcmp(test->operation, "ifft") == 0) a = b = 0.5;
+        if (test->count == 2 && k == 1) a = b = 0.0;
+        if (strcmp(test->operation, "fftfreq") == 0) { a = 0.0; b = -0.5; }
+        if (test->dest[k] == NULL || test->dest[k]->length != 2 ||
+            test->dest[k]->data.real[0] != a || test->dest[k]->data.real[1] != b) test->valid = 0;
+    }
+    if (strcmp(test->action, "self") == 0) {
+        Rbc_VectorFree(test->dest[0]);
+    } else if (strcmp(test->action, "other") == 0) {
+        Rbc_VectorFree(test->dest[1]);
+    } else if (strcmp(test->action, "both") == 0 || strcmp(test->action, "recreate") == 0) {
+        for (k = 0; k < test->count; k++) Rbc_VectorFree(test->dest[k]);
+        if (strcmp(test->action, "recreate") == 0) {
+            Rbc_Vector *replacement;
+            if (Rbc_CreateVector(test->interp, "::fftTestReal", 1, &replacement) != TCL_OK) test->valid = 0;
+            else Rbc_VectorData(replacement)[0] = 99.0;
+        }
+    } else if (strcmp(test->action, "interp") == 0) {
+        Tcl_DeleteInterp(test->interp);
+    } else if (strcmp(test->action, "nested") == 0) {
+        if (Tcl_EvalEx(test->interp, "::fftTestSource fft -real ::fftTestReal -imag ::fftTestImag", -1,
+                       TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
+    } else if (strcmp(test->action, "rename") == 0) {
+        if (Tcl_EvalEx(test->interp, "rbc::vector rename ::fftTestReal ::fftTestRenamed", -1,
+                       TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
+    }
+}
+
+static void FftTestNotify(Tcl_Interp *interp, ClientData data, Rbc_VectorNotify notify) {
+    FftClient *client = data;
+    FftTest *test = client->test;
+    int k = client->index;
+    (void)interp;
+    if (notify == RBC_VECTOR_NOTIFY_DESTROY) {
+        test->dest[k] = NULL;
+        test->ids[k] = NULL;
+    } else {
+        test->updates[k]++;
+        if (k == 0 && strcmp(test->phase, "notify") == 0) FftTestAction(test);
+    }
+}
+
+static void FftTestRelease(void *data) {
+    FftStorage *storage = (FftStorage *)data;
+    FftTest *test = storage->test;
+    test->releases++;
+    if (storage->index == 0 && strcmp(test->phase, "release") == 0) FftTestAction(test);
+    ckfree(storage);
+}
+
+static char *FftTestTrace(ClientData data, Tcl_Interp *interp, const char *part1,
+                          const char *part2, int flags) {
+    (void)interp;
+    (void)part1;
+    (void)part2;
+    (void)flags;
+    FftTestAction(data);
+    return NULL;
+}
+
+static int FftTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    FftTest test;
+    Tcl_Interp *target;
+    Rbc_Vector *source;
+    Tcl_Obj *command, *answer;
+    const char *names[] = {"::fftTestReal", "::fftTestImag"};
+    int k, code, validName;
+    (void)data;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "operation phase action");
+        return TCL_ERROR;
+    }
+    memset(&test, 0, sizeof(test));
+    test.operation = Tcl_GetString(objv[1]);
+    test.phase = Tcl_GetString(objv[2]);
+    test.action = Tcl_GetString(objv[3]);
+    test.count = (strcmp(test.operation, "fft") == 0 || strcmp(test.operation, "ifft") == 0) ? 2 : 1;
+    test.valid = 1;
+    target = test.interp = Tcl_CreateInterp();
+    /* Keep the test interpreter available for checking its result after deletion. */
+    Tcl_Preserve(target);
+    Tcl_CreateNamespace(target, "::rbc", NULL, NULL);
+    if (Rbc_VectorInit(target) != TCL_OK ||
+        Rbc_CreateVector(target, "::fftTestSource", 2, &source) != TCL_OK) Tcl_Panic("FFT test init failed");
+    Rbc_VectorData(source)[0] = 1.0;
+    Rbc_VectorData(source)[1] = 0.0;
+    for (k = 0; k < test.count; k++) {
+        Rbc_Vector *vector;
+        FftStorage *storage = ckalloc(sizeof(*storage));
+        if (Rbc_CreateVector(target, names[k], 2, &vector) != TCL_OK) Tcl_Panic("FFT test create failed");
+        test.dest[k] = (VectorObject *)vector;
+        test.dest[k]->notifyFlags = NOTIFY_NEVER;
+        test.dest[k]->flush = strcmp(test.phase, "trace") == 0;
+        storage->values[0] = 3.0;
+        storage->values[1] = 4.0;
+        storage->test = &test;
+        storage->index = k;
+        if (Rbc_ResetVector(vector, storage->values, 2, 2, FftTestRelease) != TCL_OK)
+            Tcl_Panic("FFT test reset failed");
+        test.dest[k]->notifyFlags = NOTIFY_ALWAYS;
+        test.clients[k].test = &test;
+        test.clients[k].index = k;
+        test.ids[k] = Rbc_AllocVectorId(target, names[k]);
+        Rbc_SetVectorChangedProc(test.ids[k], FftTestNotify, &test.clients[k]);
+    }
+    if (strcmp(test.phase, "trace") == 0) {
+        Tcl_TraceVar2(target, names[0], NULL, TCL_GLOBAL_ONLY | TCL_TRACE_UNSETS, FftTestTrace, &test);
+    }
+    if (test.count == 2) {
+        command = Tcl_ObjPrintf("::fftTestSource %s -real ::fftTestReal -imag ::fftTestImag", test.operation);
+    } else if (strcmp(test.operation, "window") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal window rectangular 2", -1);
+    } else {
+        command = Tcl_NewStringObj("::fftTestReal fftfreq 2", -1);
+    }
+    Tcl_IncrRefCount(command);
+    code = Tcl_EvalObjEx(target, command, TCL_EVAL_GLOBAL);
+    Tcl_DecrRefCount(command);
+    validName = strcmp(Tcl_GetStringResult(target), test.count == 2 ?
+                       "::fftTestReal ::fftTestImag" : "::fftTestReal") == 0;
+    if (strcmp(test.action, "recreate") == 0) {
+        Rbc_Vector *replacement;
+        if (Rbc_GetVector(target, "::fftTestReal", &replacement) != TCL_OK ||
+            Rbc_VectorLength(replacement) != 1 || Rbc_VectorData(replacement)[0] != 99.0) test.valid = 0;
+    }
+    answer = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(code));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.acted && test.valid && validName));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.releases));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[0]));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[1]));
+    Tcl_IncrRefCount(answer);
+    /* Observers clear their IDs during interpreter cleanup. */
+    if (!Tcl_InterpDeleted(target)) Tcl_DeleteInterp(target);
+    Tcl_Release(target);
+    Tcl_SetObjResult(interp, answer);
+    Tcl_DecrRefCount(answer);
+    return TCL_OK;
+}
+
 DLLEXPORT int Rbcnotifytest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL) return TCL_ERROR;
     if (Tcl_PkgPresent(interp, "rbc::vector", NULL, 0) != NULL) {
@@ -149,5 +322,6 @@ DLLEXPORT int Rbcnotifytest_Init(Tcl_Interp *interp) {
         Tcl_CreateNamespace(interp, "::rbc", NULL, NULL) == NULL) return TCL_ERROR;
     if (Rbc_VectorInit(interp) != TCL_OK) return TCL_ERROR;
     Tcl_CreateObjCommand2(interp, "::rbcnotifytest", NotifyTestCmd, NULL, NULL);
+    Tcl_CreateObjCommand2(interp, "::rbcffttest", FftTestCmd, NULL, NULL);
     return Tcl_PkgProvide(interp, "rbcnotifytest", "1.0");
 }

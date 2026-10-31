@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FFT and generator C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Marker lifecycle and drawing" href="markers.html" />
+    <link rel="prev" title="FFT workspace and output ownership" href="fft.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fft.html" title="FFT workspace and output ownership"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FFT and generator C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="fft-and-generator-c-reference">
+<h1>FFT and generator C reference<a class="headerlink" href="#fft-and-generator-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private instance-operation handlers are not public stubs entries.
+See <a class="reference internal" href="fft.html"><span class="doc">FFT workspace and output ownership</span></a> for dispatch preconditions and commit/callback boundaries.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorFftOp">
+<span class="target" id="rbc_vector_int_8h_1abd7492f3bce3d5a12d343884fee630f4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFftOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFftOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transform a real/complex source into existing complex or split-real outputs. </p>
+<p>
+Checks all output types and writability. Copies inputs to owned temporary storage, permitting input/output aliasing. Length must be a nonzero power of two unless explicit padding selects a larger power of two. Forward output is unscaled; inverse input is scaled by 1/N before the butterflies. Installs every output before releasing old storage, flushing caches or notifying clients. Preserves vector identity, type, offset and observers.</p>
+<p>Preserves destination records and the interpreter across post-install callbacks. Destroyed destinations are skipped; replacement vectors with the same name are not updated. Returned names are snapshots taken before callbacks. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Live source vector in interp; its full length is transformed. </p></li>
+<li><p><strong>interp</strong> – Owning interpreter, kept alive for the operation. </p></li>
+<li><p><strong>objc</strong> – Argument count already checked by the instance dispatcher. </p></li>
+<li><p><strong>objv</strong> – Instance command arguments, including fft or ifft at index 1. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with a qualified destination name or a two-name list; TCL_ERROR for validation, allocation or non-finite arithmetic errors before commit, with destination data unchanged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorFftfreqOp">
+<span class="target" id="rbc_vector_int_8h_1aeeabf89fe4ef34b76b9d0ef0e8532b36"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFftfreqOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFftfreqOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill an existing real vector with FFT bin frequencies. </p>
+<p>
+Supports any positive length, not only powers of two. Delta must be finite and positive. Full output uses negative Nyquist for even lengths; one-sided output contains floor(N/2)+1 nonnegative bins. Allocates and validates all values before replacing storage and notifying clients. Does not repeat the dispatcher’s real-type or writable checks. The shared commit helper preserves records across callbacks and skips updates after destruction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Live, writable real destination, validated by the dispatcher. </p></li>
+<li><p><strong>interp</strong> – Owning interpreter, kept alive for the operation. </p></li>
+<li><p><strong>objc</strong> – Argument count already checked by the instance dispatcher. </p></li>
+<li><p><strong>objv</strong> – Instance command arguments, with positive transform length at index 2. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the destination name; TCL_ERROR before commit leaves destination data unchanged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorWindowOp">
+<span class="target" id="rbc_vector_int_8h_1aae4904c17f5b3a3fd96bdae45bd314bd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorWindowOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorWindowOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Generate unscaled window coefficients in an existing real vector. </p>
+<p>
+Accepts rectangular, Hann, Hamming, Blackman and Bartlett windows of any positive length. Periodic is the default; symmetric uses N-1 instead of N. A length-one window is always one. Stages all coefficients before installing them and notifying clients. Does not repeat the dispatcher’s real-type or writable checks. The shared commit helper preserves records across callbacks and skips updates after destruction. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Live, writable real destination, validated by the dispatcher. </p></li>
+<li><p><strong>interp</strong> – Owning interpreter, kept alive for the operation. </p></li>
+<li><p><strong>objc</strong> – Argument count already checked by the instance dispatcher. </p></li>
+<li><p><strong>objv</strong> – Instance arguments, with window kind and length at indices 2 and 3. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with the destination name; TCL_ERROR before commit leaves destination data unchanged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">FFT and generator C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorFftOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorFftfreqOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftfreqOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorWindowOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorWindowOp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="fft.html"
+                          title="previous chapter">FFT workspace and output ownership</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="markers.html"
+                          title="next chapter">Marker lifecycle and drawing</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fft.html" title="FFT workspace and output ownership"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FFT and generator C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -8,7 +8,7 @@ are private unless explicitly identified as part of the installed vector API.
 The manual covers graph rendering, the common widget lifecycle and vector
 ownership, binding dispatch and picking, component configuration, coordinate mapping, element data ownership, and marker lifecycle. Architecture and header chapters provide context; C references are
 extracted from maintained source comments by Doxygen and included by Breathe.
-Detailed numerical algorithms and individual backend algorithms remain future
+Additional numerical operations and individual backend algorithms remain future
 chapters.
 
 .. toctree::
@@ -25,6 +25,8 @@ chapters.
    vector-reference
    expressions
    expression-reference
+   fft
+   fft-reference
    markers
    marker-reference
    crosshairs

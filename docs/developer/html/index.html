@@ -44,7 +44,7 @@ are private unless explicitly identified as part of the installed vector API.</p
 <p>The manual covers graph rendering, the common widget lifecycle and vector
 ownership, binding dispatch and picking, component configuration, coordinate mapping, element data ownership, and marker lifecycle. Architecture and header chapters provide context; C references are
 extracted from maintained source comments by Doxygen and included by Breathe.
-Detailed numerical algorithms and individual backend algorithms remain future
+Additional numerical operations and individual backend algorithms remain future
 chapters.</p>
 <div class="toctree-wrapper compound">
 <ul>
@@ -115,6 +115,20 @@ chapters.</p>
 <li class="toctree-l1"><a class="reference internal" href="expression-reference.html">Vector expression C reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fft.html">FFT workspace and output ownership</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fft.html#dispatch-and-validation">Dispatch and validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft.html#transform-length-and-normalization">Transform length and normalization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft.html#workspace-and-commit-sequence">Workspace and commit sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft.html#callback-lifetime-and-reentry">Callback lifetime and reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft.html#frequency-and-window-generators">Frequency and window generators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fft-reference.html">FFT and generator C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fft-reference.html#c.Rbc_VectorFftOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft-reference.html#c.Rbc_VectorFftfreqOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFftfreqOp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft-reference.html#c.Rbc_VectorWindowOp"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorWindowOp()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="markers.html">Marker lifecycle and drawing</a><ul>
