@@ -167,30 +167,6 @@ Rbc_List Rbc_ListCreate(int type) {
     return listPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListCreateNode --
- *
- *      Creates a list node holder.  This routine does not insert
- *      the node into the list, nor does it no attempt to maintain
- *      consistency of the keys.  For example, more than one node
- *      may use the same key.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      const char *key - Unique key to reference object
- *
- * Results:
- *      The return value is the pointer to the newly created node.
- *
- * Side Effects:
- *      String and integer-array keys are copied into the node.
- *      One-word keys are retained as pointer values. It is assumed
- *      this key will not change in the life of the node.
- *
- *----------------------------------------------------------------------
- */
 Rbc_ListNode Rbc_ListCreateNode(struct Rbc_ListStruct *listPtr, const char *key) {
     struct Rbc_ListNodeStruct *nodePtr;
     size_t baseSize;
@@ -240,26 +216,6 @@ Rbc_ListNode Rbc_ListCreateNode(struct Rbc_ListStruct *listPtr, const char *key)
     return nodePtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListReset --
- *
- *      Removes all the entries from a list, removing pointers to the
- *      objects and keys (not the objects or keys themselves).  The
- *      node counter is reset to zero.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to clear
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ListReset(struct Rbc_ListStruct *listPtr) {
     if (listPtr != NULL) {
         struct Rbc_ListNodeStruct *oldPtr;
@@ -421,22 +377,6 @@ void Rbc_ListLinkBefore(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruc
     listPtr->nNodes++;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListUnlinkNode --
- *
- *      Unlinks an node from the given list. The node itself is
- *      not deallocated, but only removed from the list.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to contain new node
- *
- * Results:
- *      None.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ListUnlinkNode(struct Rbc_ListNodeStruct *nodePtr) {
     struct Rbc_ListStruct *listPtr;
 
@@ -462,26 +402,6 @@ void Rbc_ListUnlinkNode(struct Rbc_ListNodeStruct *nodePtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListGetNode --
- *
- *      Find the first node matching the key given.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to search
- *      const char *key - Key to match
- *
- * Results:
- *      Returns the pointer to the node.  If no node matching
- *      the key given is found, then NULL is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_ListNode Rbc_ListGetNode(struct Rbc_ListStruct *listPtr, const char *key) {
     if (listPtr != NULL) {
         switch (listPtr->type) {
@@ -496,24 +416,6 @@ Rbc_ListNode Rbc_ListGetNode(struct Rbc_ListStruct *listPtr, const char *key) {
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListDeleteNode --
- *
- *      Unlinks and deletes the given node.
- *
- * Parameters:
- *      struct Rbc_ListNodeStruct *nodePtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ListDeleteNode(struct Rbc_ListNodeStruct *nodePtr) {
     Rbc_ListUnlinkNode(nodePtr);
     FreeNode(nodePtr);
@@ -650,26 +552,6 @@ Rbc_ListNode Rbc_ListGetNthNode(struct Rbc_ListStruct *listPtr, Tcl_Size positio
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListSort --
- *
- *      Find the node based upon a given position in list.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to traverse
- *      Rbc_ListCompareProc *proc
- *
- * Results:
- *      Returns the pointer to the node, if that numbered element
- *      exists. Otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ListSort(struct Rbc_ListStruct *listPtr, Rbc_ListCompareProc *proc) {
     struct Rbc_ListNodeStruct **nodeArr;
     struct Rbc_ListNodeStruct *nodePtr;

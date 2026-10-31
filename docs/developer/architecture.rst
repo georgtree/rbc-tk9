@@ -48,6 +48,8 @@ and the distinction between mapping and clipping.
 Supporting modules
 ------------------
 
+See :doc:`containers` for chain/list payload ownership and mutation rules.
+
 ``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.
 ``rbcScroll.c`` parses scroll requests and computes viewports; callers retain
 widget mutation and redraw responsibilities. ``rbcConfig.c`` owns common option

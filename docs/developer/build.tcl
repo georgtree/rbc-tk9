@@ -93,6 +93,8 @@ proc ::rbcDocBuild::main {arguments} {
         @WARNINGS@ [doxyQuote $log] \
         @RENDER_HEADER@ [doxyQuote [file join $root generic rbcRender.h]] \
         @DISPATCH_HEADER@ [doxyQuote [file join $root generic rbcRenderInt.h]] \
+        @CHAIN_HEADER@ [doxyQuote [file join $root generic rbcChain.h]] \
+        @LIST_HEADER@ [doxyQuote [file join $root generic rbcList.h]] \
         @IMAGE_HEADER@ [doxyQuote [file join $root generic rbcImage.h]] \
         @TILE_HEADER@ [doxyQuote [file join $root generic rbcTile.h]] \
         @TEXT_HEADER@ [doxyQuote [file join $root generic rbcText.h]] \

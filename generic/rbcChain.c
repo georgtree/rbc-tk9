@@ -45,24 +45,6 @@ Rbc_Chain *Rbc_ChainCreate() {
     return chainPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainInit --
- *
- *      Initializes a linked list.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr - The chain to initialize
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ChainInit(Rbc_Chain *chainPtr) {
     chainPtr->nLinks = 0;
     chainPtr->headPtr = chainPtr->tailPtr = NULL;
@@ -189,26 +171,6 @@ Rbc_ChainLink *Rbc_ChainNewLink() {
     return linkPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainReset --
- *
- *      Removes all the links from the chain, freeing the memory for
- *      each link.  Memory pointed to by the link (clientData) is not
- *      freed.  It's the caller's responsibility to deallocate it.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr - Chain to clear
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ChainReset(Rbc_Chain *chainPtr) {
     if (chainPtr != NULL) {
         Rbc_ChainLink *oldPtr;
@@ -223,26 +185,6 @@ void Rbc_ChainReset(Rbc_Chain *chainPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainDestroy
- *
- *      Frees all the nodes from the chain and deallocates the memory
- *      allocated for the chain structure itself.  It's assumed that
- *      the chain was previous allocated by Rbc_ChainCreate.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr - The chain to destroy.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ChainDestroy(Rbc_Chain *chainPtr) {
     if (chainPtr != NULL) {
         Rbc_ChainReset(chainPtr);
@@ -250,26 +192,6 @@ void Rbc_ChainDestroy(Rbc_Chain *chainPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainUnlinkLink --
- *
- *      Unlinks a link from the chain. The link is not deallocated,
- *      but only removed from the chain.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *      Rbc_ChainLink *linkPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     /* Indicates if the link is actually removed from the chain. */
     int unlinked;
@@ -298,25 +220,6 @@ void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     linkPtr->prevPtr = linkPtr->nextPtr = NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainDeleteLink --
- *
- *      Unlinks and also frees the given link.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *      Rbc_ChainLink *linkPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     Rbc_ChainUnlinkLink(chainPtr, linkPtr);
     ckfree((char *)linkPtr);
@@ -378,25 +281,6 @@ Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData) {
     return linkPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainAllocLink --
- *
- *      Creates a new chain link.  Unlink Rbc_ChainNewLink, this
- *      routine also allocates extra memory in the node for data.
- *
- * Parameters:
- *      size_t extraSize - Number of embedded client-data bytes.
- *
- * Results:
- *      The return value is the pointer to the newly created entry.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_ChainLink *Rbc_ChainAllocLink(size_t extraSize) {
     Rbc_ChainLink *linkPtr;
     size_t linkSize;

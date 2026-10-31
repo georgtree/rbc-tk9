@@ -1,5 +1,6 @@
-/*
- * rbcChain.h --
+/**
+ * @file rbcChain.h
+ * @brief Private linked-container ownership and traversal.
  *
  *      Adds descriptions for the chains used in rbc.
  *
@@ -48,17 +49,48 @@ typedef struct {
     Tcl_Size nLinks;             /* Number of elements in chain */
 } Rbc_Chain;
 
+/**
+ * @brief Initialize caller-owned storage as an empty chain.
+ * Does not free existing links. Use Reset to clear an initialized chain.
+ */
 void Rbc_ChainInit(Rbc_Chain *chainPtr);
 Rbc_Chain *Rbc_ChainCreate();
+/**
+ * @brief Reset and free a heap-allocated chain, accepting NULL.
+ * Do not use on stack or embedded storage. External payload ownership remains
+ * with the caller.
+ */
 void Rbc_ChainDestroy(Rbc_Chain *chainPtr);
 Rbc_ChainLink *Rbc_ChainNewLink(void);
+/**
+ * @brief Allocate a detached zeroed link with aligned trailing storage.
+ * With nonzero size, clientData points into the same allocation; do not free
+ * it separately. With zero size clientData is NULL. Size overflow panics.
+ * Link it into a chain or release the detached allocation with ckfree.
+ */
 Rbc_ChainLink *Rbc_ChainAllocLink(size_t size);
 Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData);
 Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData);
+/**
+ * @brief Free all linked records and leave an empty initialized chain.
+ * NULL is harmless. External clientData is not freed. Inline storage created
+ * by ChainAllocLink is part of each freed record; run any payload cleanup first.
+ */
 void Rbc_ChainReset(Rbc_Chain *chainPtr);
 void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *afterLinkPtr);
 void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforeLinkPtr);
+/**
+ * @brief Detach a link without freeing its record or payload.
+ * Supply its actual chain; links do not store owner identity and this helper
+ * cannot validate membership. Clears next/previous pointers. The detached link
+ * may be reinserted or freed by the caller.
+ */
 void Rbc_ChainUnlinkLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
+/**
+ * @brief Unlink and free a link record, including any inline trailing storage.
+ * Requires a valid link and its actual chain. Does not free external clientData.
+ * All borrowed pointers into the link become invalid.
+ */
 void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr);
 
 #endif /* _RBCCHAIN */

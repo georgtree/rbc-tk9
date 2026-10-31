@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Container C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="C documentation conventions" href="commenting.html" />
+    <link rel="prev" title="Chains and keyed lists" href="containers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Chains and keyed lists"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Container C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="container-c-reference">
+<h1>Container C reference<a class="headerlink" href="#container-c-reference" title="Link to this heading">¶</a></h1>
+<p>These interfaces are private. See <a class="reference internal" href="containers.html"><span class="doc">Chains and keyed lists</span></a> for ownership and traversal.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainInit">
+<span class="target" id="rbc_chain_8h_1a7ff7d64f38bbc50d0b50859343eb4b98"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainInit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize caller-owned storage as an empty chain. </p>
+<p>Does not free existing links. Use Reset to clear an initialized chain. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainReset">
+<span class="target" id="rbc_chain_8h_1aa4bedb7314555dc6b8b5a3139114f9ab"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainReset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainReset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Free all linked records and leave an empty initialized chain. </p>
+<p>NULL is harmless. External clientData is not freed. Inline storage created by ChainAllocLink is part of each freed record; run any payload cleanup first. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainDestroy">
+<span class="target" id="rbc_chain_8h_1ab3155590a4627616ef2317ef4ffd669d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDestroy</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDestroy" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reset and free a heap-allocated chain, accepting NULL. </p>
+<p>Do not use on stack or embedded storage. External payload ownership remains with the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainAllocLink">
+<span class="target" id="rbc_chain_8h_1a35e5de297ab30b223e5f1bcf2fbe8e3e"></span><span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainAllocLink</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainAllocLink" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a detached zeroed link with aligned trailing storage. </p>
+<p>With nonzero size, clientData points into the same allocation; do not free it separately. With zero size clientData is NULL. Size overflow panics. Link it into a chain or release the detached allocation with ckfree. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainUnlinkLink">
+<span class="target" id="rbc_chain_8h_1a94ea4b2c87964346965ffee90ec2b2ca"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainUnlinkLink</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainUnlinkLink" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Detach a link without freeing its record or payload. </p>
+<p>Supply its actual chain; links do not store owner identity and this helper cannot validate membership. Clears next/previous pointers. The detached link may be reinserted or freed by the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ChainDeleteLink">
+<span class="target" id="rbc_chain_8h_1a2c211092fd64fb65f3156a352b634ecc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ChainDeleteLink</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chainPtr</span></span>, <span class="n"><span class="pre">Rbc_ChainLink</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linkPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ChainDeleteLink" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unlink and free a link record, including any inline trailing storage. </p>
+<p>Requires a valid link and its actual chain. Does not free external clientData. All borrowed pointers into the link become invalid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListCreateNode">
+<span class="target" id="rbc_list_8h_1a785a91bfbef446d2752a577d31c7e409"></span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListCreateNode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListCreateNode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a keyed node for a list without inserting it. </p>
+<p>String and integer-array keys are copied into the allocation; one-word keys retain only the pointer value. Duplicate keys are permitted. The node already records the intended list: insert it before using ListUnlinkNode/DeleteNode, or free this never-inserted allocation directly with ckfree. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListReset">
+<span class="target" id="rbc_list_8h_1aa982501918e5c47e5d8406b91515aece"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListReset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListReset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Free linked nodes and copied keys while retaining the list key type. </p>
+<p>Accepts NULL. Does not free clientData or objects denoted by one-word keys. Nodes allocated but never inserted are not visited. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListUnlinkNode">
+<span class="target" id="rbc_list_8h_1a07c44cc6f9c41ef6517f4c1fc16e7be8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListUnlinkNode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListUnlinkNode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Detach an inserted node without freeing it or its payload. </p>
+<p>Clears owner, next and previous pointers. A previously unlinked node is a no-op, but a newly created, never-inserted node is not valid input: its owner field is already set although the list count does not include it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListDeleteNode">
+<span class="target" id="rbc_list_8h_1ae22a6a1c659bf637aec601ea8c704dff"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListDeleteNode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListDeleteNode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unlink and free an inserted or previously unlinked node. </p>
+<p>Copied key storage is freed with the record; external clientData and one-word key targets are not freed. Never pass a newly created, never-inserted node. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListGetNode">
+<span class="target" id="rbc_list_8h_1a8167f8fda48ee04fd50c734cc45b3ae5"></span><span class="n"><span class="pre">Rbc_ListNode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListGetNode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListGetNode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the borrowed first node matching a key, or NULL. </p>
+<p>Searches linearly in list order; duplicate keys are not rejected. A NULL list returns NULL. The node remains owned by its container/caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ListSort">
+<span class="target" id="rbc_list_8h_1aad3f10870999d1631f4e6254d65204bf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListSort</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span>, <span class="n"><span class="pre">Rbc_ListCompareProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListSort" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reorder existing nodes with qsort without moving their allocations. </p>
+<p>The comparator receives pointers to node pointers. It must not mutate the list, delete nodes or reenter code that does so. Equal-key ordering is not stable. NULL/short lists are unchanged; scratch-allocation failure silently leaves the list unchanged. Payload ownership is unaffected. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Container C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ChainInit"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainInit()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainReset"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainReset()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainDestroy"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainDestroy()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainAllocLink"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainAllocLink()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainUnlinkLink"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainUnlinkLink()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ChainDeleteLink"><code class="docutils literal notranslate"><span class="pre">Rbc_ChainDeleteLink()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListCreateNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListCreateNode()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListReset"><code class="docutils literal notranslate"><span class="pre">Rbc_ListReset()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListUnlinkNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListUnlinkNode()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListDeleteNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListDeleteNode()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListGetNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListGetNode()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ListSort"><code class="docutils literal notranslate"><span class="pre">Rbc_ListSort()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="containers.html"
+                          title="previous chapter">Chains and keyed lists</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="commenting.html"
+                          title="next chapter">C documentation conventions</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="containers.html" title="Chains and keyed lists"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Container C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
