@@ -293,6 +293,76 @@ namespace eval trackgraph.legend {
         }
     } -cleanup {interp delete trackOptionChild} -result 1
 
+    test RBC.trackgraph.legend.A.18.1 {bbox accepts unambiguous abbreviations} -setup {
+        LocalLegendSetup
+    } -body {
+        set bounds [.tg track legend voltage bbox]
+        list [expr {[llength $bounds] == 4}] \
+                [expr {$bounds eq [.tg track legend voltage bb]}] \
+                [expr {$bounds eq [.tg track legend voltage bbo]}]
+    } -cleanup {destroy .tg} -result {1 1 1}
+
+    test RBC.trackgraph.legend.A.18.2 {abbreviated bbox returns empty for a hidden legend} -setup {
+        Create
+    } -body {
+        list [.tg track legend voltage bb] [.tg track legend voltage bbo]
+    } -cleanup {destroy .tg} -result {{} {}}
+
+    test RBC.trackgraph.legend.A.18.3 {bbox rejects extra arguments through normal arity validation} -setup {
+        LocalLegendSetup
+    } -body {
+        set result {}
+        foreach operation {bbox bb bbo} {
+            set code [catch {.tg track legend voltage $operation extra} message options]
+            lappend result $code [dict get $options -errorcode] \
+                    [string match {wrong # args:*} $message]
+        }
+        set result
+    } -cleanup {destroy .tg} -result {1 {TCL WRONGARGS} 1 1 {TCL WRONGARGS} 1 1 {TCL WRONGARGS} 1}
+
+    test RBC.trackgraph.legend.A.18.4 {local b is ambiguous and reports both candidates} -setup {
+        LocalLegendSetup
+    } -body {
+        set code [catch {.tg track legend voltage b} message]
+        list $code $message
+    } -cleanup {destroy .tg} -result {1 {ambiguous subcommand "b": must be activate, bbox, bind, cget, configure, deactivate, or get}}
+
+    test RBC.trackgraph.legend.A.18.5 {unknown local operations list bbox with the shared operations} -setup {
+        LocalLegendSetup
+    } -body {
+        set code [catch {.tg track legend voltage unknown} message]
+        list $code $message
+    } -cleanup {destroy .tg} -result {1 {bad subcommand "unknown": must be activate, bbox, bind, cget, configure, deactivate, or get}}
+
+    test RBC.trackgraph.legend.A.18.6 {local bind and shared query abbreviations still dispatch correctly} -setup {
+        LocalLegendSetup
+    } -body {
+        .tg track legend voltage bi all <ButtonPress-1> {set ::localLegendHit 1}
+        list [.tg track legend voltage bi all <ButtonPress-1>] \
+                [.tg track legend voltage cg -hide] \
+                [expr {[.tg track legend voltage conf -hide] eq [.tg track legend voltage configure -hide]}] \
+                [.tg track legend voltage a *] [.tg track legend voltage d *]
+    } -cleanup {destroy .tg} -result {{set ::localLegendHit 1} 0 1 v {}}
+
+    test RBC.trackgraph.legend.A.18.7 {global legend keeps b as bind and does not expose bbox} -setup {
+        LocalLegendSetup
+    } -body {
+        .tg legend b all <ButtonPress-1> {set ::globalLegendHit 1}
+        set code [catch {.tg legend bbox} message]
+        list [.tg legend b all <ButtonPress-1>] $code $message
+    } -cleanup {destroy .tg} -result {{set ::globalLegendHit 1} 1 {bad subcommand "bbox": must be activate, bind, cget, configure, deactivate, or get}}
+
+    test RBC.trackgraph.legend.A.18.8 {invalid operations do not run layout callbacks} -setup {
+        LocalLegendSetup
+        set ::legendFormatCalls 0
+        .tg axis configure x -command {apply {{w value} {incr ::legendFormatCalls; return $value}}}
+    } -body {
+        set unknown [catch {.tg track legend voltage unknown}]
+        set extra [catch {.tg track legend voltage bbox extra}]
+        set ambiguous [catch {.tg track legend voltage b}]
+        list $unknown $extra $ambiguous $::legendFormatCalls
+    } -cleanup {destroy .tg; unset ::legendFormatCalls} -result {1 1 1 0}
+
     cleanupTests
 }
 namespace delete ::trackgraph.legend

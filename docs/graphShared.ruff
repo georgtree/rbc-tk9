@@ -4643,6 +4643,10 @@ namespace eval ::rbc::LEGEND {
         dimensions, not opposite corners. `get @x,y` uses the same graph-window coordinates and never selects an
         entry outside the row. `get current` refers only to the entry currently picked in that particular legend.
 
+        Local legend operations accept unambiguous abbreviations, including `bb` or `bbo` for `bbox`.
+        `b` is ambiguous between `bbox` and `bind`; use `bi` or `bind` for bindings. `bbox` accepts no
+        additional arguments. It is available only on local legends, not the global legend.
+
         Local binding tables are scoped: binding `all`, an element name, its class, or one of its tags in one local
         legend does not install that binding in another legend. Local `activate`/`deactivate` patterns select only
         that track's elements. Label activation and element `-labelrelief` are shared element state, so a label's

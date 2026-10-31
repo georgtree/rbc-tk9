@@ -2291,36 +2291,49 @@ void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int r
     }
 }
 
-/* Normalize the nested command prefix for the shared legend operation table. */
+/*
+ * TrackLegendBboxOp --
+ *
+ *      Return the visible local legend rectangle in graph-window pixels.
+ *      The caller has updated the graph layout before dispatching here.
+ */
+static int TrackLegendBboxOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    RbcTrack *track = legendPtr->track;
+    int left, top, right, bottom;
+
+    if (legendPtr->hidden || legendPtr->nEntries == 0) {
+        return TCL_OK;
+    }
+    SetLegendOrigin(legendPtr);
+    left = MAX(track->left, legendPtr->x);
+    top = MAX(track->top, legendPtr->y);
+    right = MIN(track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
+    bottom = MIN(track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
+    if (right > left && bottom > top) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right - left, bottom - top));
+    }
+    return TCL_OK;
+}
+
+/* Local legends share handlers with the global legend, but also expose bbox. */
+static const LegendOpSpec trackLegendOps[] = {{{"activate", 3, 0, "?pattern?..."}, ActivateOp},
+                                              {{"bbox", 3, 3, ""}, TrackLegendBboxOp},
+                                              {{"bind", 3, 6, "elemName sequence command"}, BindOp},
+                                              {{"cget", 4, 4, "option"}, CgetOp},
+                                              {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
+                                              {{"deactivate", 3, 0, "?pattern?..."}, ActivateOp},
+                                              {{"get", 4, 4, "index"}, GetOp},
+                                              {{NULL, 0, 0, NULL}, NULL}};
+
+/* Normalize the nested prefix, validate the operation, then update layout. */
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **args;
     Tcl_Obj *prefix;
     Tcl_Size i, count = objc - 2;
     int index, code;
     Legend *legendPtr = track->legend;
-    if (objc == 5 && strcmp(Tcl_GetString(objv[4]), "bbox") == 0) {
-        int left, top, right, bottom;
-        if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (legendPtr->hidden || legendPtr->nEntries == 0) {
-            return TCL_OK;
-        }
-        SetLegendOrigin(legendPtr);
-        left = MAX(legendPtr->track->left, legendPtr->x);
-        top = MAX(track->top, legendPtr->y);
-        right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
-        bottom = MIN(track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
-        if (right > left && bottom > top) {
-            Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right - left, bottom - top));
-        }
-        return TCL_OK;
-    }
     if (objc < 5) {
         Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
-        return TCL_ERROR;
-    }
-    if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
         return TCL_ERROR;
     }
     args = ckalloc(sizeof(Tcl_Obj *) * (size_t)count);
@@ -2331,9 +2344,13 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
     for (i = 2; i < count; i++) {
         args[i] = objv[i + 2];
     }
-    code = Rbc_GetOpIndexFromObj(interp, legendOps, (Tcl_Size)sizeof(legendOps[0]), RBC_OP_ARG2, count, args, &index);
+    code = Rbc_GetOpIndexFromObj(interp, trackLegendOps, (Tcl_Size)sizeof(trackLegendOps[0]), RBC_OP_ARG2, count,
+                                 args, &index);
     if (code == TCL_OK) {
-        code = legendOps[index].proc(legendPtr, interp, count, args);
+        code = Rbc_LayoutGraph(graphPtr);
+        if (code == TCL_OK) {
+            code = trackLegendOps[index].proc(legendPtr, interp, count, args);
+        }
     }
     Tcl_DecrRefCount(prefix);
     ckfree(args);
