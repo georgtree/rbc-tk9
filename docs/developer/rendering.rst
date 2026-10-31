@@ -172,3 +172,5 @@ and batching. Documentation-only changes should still pass the strict manual
 build and preserve all C declarations.
 
 See :doc:`native-rendering` for platform batching, clip frames and Windows DC ownership.
+
+See :doc:`cairo-rendering` for Cairo target setup, image conversion and mixed native drawing.

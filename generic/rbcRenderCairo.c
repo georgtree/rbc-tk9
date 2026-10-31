@@ -1,4 +1,10 @@
 /* Cairo screen renderer and disabled-build fallbacks. See license.terms. */
+/** @file rbcRenderCairo.c
+ * Cairo screen output, surface ownership and disabled-build fallbacks.
+ */
+/** @defgroup cairo_backend Cairo backend internals
+ * Private context and image-conversion services, compiled with Cairo enabled.
+ */
 #include "rbcRenderInt.h"
 #include <stdint.h>
 #ifdef RBC_HAVE_CAIRO
@@ -153,6 +159,15 @@ Rbc_RenderTarget *Rbc_RenderBeginMarkerPass(Graph *graphPtr, Drawable *drawableP
 void Rbc_RenderEndMarkerPass(Rbc_RenderTarget *target) { (void)target; }
 #endif
 
+/**
+ * @ingroup cairo_backend
+ * @brief Release a fully or partially initialized Cairo context.
+ * @param ctx Non-NULL owned context whose optional fields were zero-initialized.
+ * @details Destroys owned pattern, cairo_t and surface reference, then restores
+ * saved Windows DC state and releases its acquisition record. Finally frees
+ * the context. Does not flush/report drawing errors; CairoEnd provides that
+ * normal-completion behavior. Borrowed graph and component resources survive.
+ */
 static void FreeRenderContext(Rbc_RenderContext *ctx) {
     if (CAIRO(ctx)->bitmapPattern != NULL) {
         cairo_pattern_destroy(CAIRO(ctx)->bitmapPattern);
@@ -194,6 +209,14 @@ static void SetStrokeColor(cairo_t *cr, const XColor *colorPtr) {
 }
 
 /* Match the existing PostScript offdash-underlay convention. */
+/**
+ * @ingroup cairo_backend
+ * @brief Stroke and consume the current path using the context's dash policy.
+ * @param ctx Live Cairo context with initialized stroke colors and dashes.
+ * @details Double-dash mode first paints a solid off-color stroke while
+ * preserving the path, then applies foreground dashes and consumes the path.
+ * Owns no additional resources. This is not an XOR/raster-operation adapter.
+ */
 static void StrokeRenderPath(Rbc_RenderContext *ctx) {
     if (CAIRO(ctx)->doubleDash) {
         cairo_set_dash(CAIRO(ctx)->cr, NULL, 0, 0.0);
@@ -229,6 +252,19 @@ int Rbc_RenderGCForeground(Graph *graphPtr, GC gc, XColor *color) {
 }
 
 /* Open one uninterrupted Cairo drawing batch; NULL requests native drawing. */
+/**
+ * @ingroup cairo_backend
+ * @brief Create a Cairo context for an explicitly sized native target and clip.
+ * @return Owned context, or NULL after cleanup if input or setup is unsupported.
+ * @details Borrows graph/drawable, copies stroke colors and dash values, and
+ * owns the resulting surface reference and cairo_t. The four final integers
+ * are inclusive clip edges; target dimensions describe the underlying drawable.
+ * Establishes the clip before the half-pixel translation. Windows can reference
+ * the current marker-pass image, otherwise it acquires/saves a display DC;
+ * X11 creates an Xlib surface wrapper. Printing/metafile Windows targets decline
+ * Cairo. Finish successful contexts with Rbc_RenderEnd while borrowed resources
+ * and any enclosing marker pass remain alive. No native retry occurs here.
+ */
 static Rbc_RenderContext *BeginRenderTarget(Graph *graphPtr, Drawable drawable, const XColor *colorPtr, double width,
                                             const Rbc_Dashes *dashesPtr, const XColor *offColorPtr, int targetWidth,
                                             int targetHeight, int left, int top, int right, int bottom) {
@@ -866,7 +902,17 @@ int Rbc_RenderAreaOpacity(Graph *graphPtr, Drawable drawable, const Point2D *poi
     return TRUE;
 }
 
-/* Copy straight-alpha Tk pixels into an owned, premultiplied Cairo tile. */
+/**
+ * @ingroup cairo_backend
+ * @brief Copy a Tk photo block into an owned repeating Cairo pattern.
+ * @param block Borrowed readable block with valid dimensions, pitch and storage.
+ * @return Owned nearest-filtered ARGB32 pattern, or NULL on invalid channel
+ * layout or failed surface/pattern creation. Caller destroys a returned pattern.
+ * @details Validates RGB offsets. A distinct valid alpha offset selects alpha;
+ * otherwise pixels are opaque. Premultiplies RGB with rounded division by 255.
+ * The pattern retains its copied surface; no source pixel pointer escapes.
+ * Does not validate the caller's allocation size or retain the Tk photo itself.
+ */
 static cairo_pattern_t *CreateRenderPhoto(const Tk_PhotoImageBlock *block) {
     cairo_surface_t *surface;
     cairo_pattern_t *pattern;

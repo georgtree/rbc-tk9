@@ -1,0 +1,134 @@
+Cairo surfaces and drawing contexts
+===================================
+
+``rbcRenderCairo.c`` implements screen rendering and the disabled-Cairo entry
+points. SVG, PDF and PostScript do not use this backend. Components still own
+mapped geometry, clipping scopes and painter order; see :doc:`rendering`.
+Selected private contracts are in :doc:`cairo-reference`.
+
+Construction and ownership
+--------------------------
+
+``CairoRenderContext`` embeds ``Rbc_RenderContext`` first and owns a Cairo
+surface reference, ``cairo_t`` and optional bitmap/stipple pattern. It copies
+stroke colors, dash values and offset. Its fill style is a shallow copy, so
+referenced component colors remain borrowed until drawing completes.
+
+``BeginRenderTarget`` rejects non-Cairo selection, absent drawable/color,
+nonfinite or nonpositive line width, and nonpositive target dimensions. Setup
+failure frees partial resources and returns NULL. On X11 it wraps the drawable
+using the Tk visual and explicit target dimensions. On Windows it either
+references the current marker-pass image or acquires a drawable DC, verifies a
+raster-display target, saves the DC state and wraps it in a Win32 surface.
+Printing/metafile targets retain the caller's native path.
+
+The initial clip uses inclusive plot edges. It is established before translating
+by half a pixel, matching RBC's integer pixel-center convention. The constructor
+sets line width, butt caps, round joins, graph antialias mode and dash state.
+``Rbc_RenderBegin`` supplies graph/plot dimensions; ``Rbc_RenderBeginDrawable``
+uses the entire explicitly sized target, for output such as legend samples.
+The latter is not implicitly constrained to the plot rectangle.
+
+Contexts must end while their graph, drawable, component resources and enclosing
+marker target are alive. ``CairoEnd`` flushes the surface before native drawing
+can resume, captures context/surface status and frees resources. A drawing
+failure is reported as a background Tcl exception while preserving interpreter
+state. This occurs after drawing; it does not request a native replay.
+``FreeRenderContext`` alone is the partial-construction cleanup helper and does
+not perform that completion/reporting sequence.
+
+Paths and clip scopes
+---------------------
+
+Each polyline call creates a separate trace. Independent segments remain
+separate subpaths. Stroke state belongs to the context. For two-color dashes,
+``StrokeRenderPath`` paints a solid off-color stroke with the path preserved,
+then foreground dashes. Equal foreground/off colors are reduced to one solid
+stroke at construction to avoid duplicate coverage.
+
+Nested rectangular clips use Cairo save/rectangle/clip and restore operations.
+The common renderer tracks nesting and unwinds outstanding clips on End. These
+are Cairo graphics-state scopes, not the scratch-pixmap frames used by native
+clipping. Pair operations through the common renderer API rather than mixing
+private restores with its depth bookkeeping.
+
+Arc geometry is already mapped before entering Cairo. The backend constructs
+an ellipse path using a temporary translate/scale and restores the transform
+before stroking, preserving screen-space line width. Arc orientation and closure
+remain the shared renderer convention; no data-axis mapping happens here.
+
+Patterns and pixel conversion
+-----------------------------
+
+``Rbc_RenderBeginFill`` can decline unsupported styles, including a missing
+foreground or background-only policy. Stipple bits are read before acquiring
+the destination context. A successful context owns the resulting pattern and
+borrows the colors in its copied style.
+
+``CreateRenderStipple`` reads monochrome data with ``XYPixmap``; this avoids the
+Tk/Windows monochrome inversion associated with the other image format. It
+creates ARGB32 pixels from foreground/background colors, destroys the XImage,
+and returns a repeating nearest-filtered pattern. A missing background can
+leave transparent pattern pixels. Solid-fill opacity is applied separately;
+pattern pixels retain their constructed alpha rather than automatically being
+multiplied by the solid-fill opacity argument.
+
+``CreateRenderPhoto`` copies a borrowed Tk photo block into a new ARGB32 image.
+RGB offsets must be within the pixel size. Alpha is used only if its offset is
+valid and distinct from all RGB offsets; otherwise pixels are opaque. Each RGB
+channel is premultiplied using ``(channel * alpha + 127) / 255``. Source rows
+follow the Tk pitch; destination rows follow Cairo's stride.
+
+The new surface is marked dirty after direct pixel writes. Creating a pattern
+retains the surface, allowing the helper's local reference to be destroyed.
+The returned pattern owns the copy independently of future Tk photo changes.
+Callers must still provide a readable source block: channel checks do not
+validate the size of its backing allocation.
+
+Photo tiles repeat from the toplevel-relative origin to match native tiling.
+A one-shot photo instead disables repetition, positions the pattern at integer
+coordinates and cancels the context's half-pixel translation. Already rasterized
+pixels must not be shifted and resampled as though they were vector geometry.
+Empty images are handled without drawing, preserving tile precedence rather
+than exposing another fill behind a deleted/empty tile.
+
+Windows marker-pass target
+--------------------------
+
+Windows can create one RGB24 DIB for a marker pass, avoiding per-marker bitmap
+readback. ``Rbc_RenderBeginMarkerPass`` rejects nested targets and invalid graph
+sizes. It acquires the destination DC, creates the DIB surface, obtains its DC
+and image view, copies the existing destination into it and marks the image
+dirty. Only after successful setup does it install ``graphPtr->renderTarget``
+and replace the caller's drawable with a temporary Tk-compatible wrapper.
+
+The pass owns the surface, drawable wrapper and destination acquisition. Its
+image view and DIB DC are borrowed from the surface. A context drawing on the
+exact shared target drawable takes its own reference to the image view.
+Before that reference is used, GDI is flushed and the image is marked dirty,
+because native text or fallback operations may have changed the DIB.
+
+Every child context must finish before the pass ends. End flushes the image,
+copies the composed DIB back, clears the graph target, frees the wrapper and
+surface, and releases the destination DC state. Copy failure produces a
+background exception with interpreter state preserved. It does not replay the
+marker pass. Non-Windows builds decline this optional optimization.
+
+Fallback and validation boundaries
+----------------------------------
+
+Disabled-Cairo builds compile fallback entry points returning NULL/false or
+performing no operation as appropriate. Successful geometry dispatch still
+requires a valid context; no-op stubs are not a replacement for caller checks.
+The documentation enables the Cairo preprocessor branch solely for extraction.
+
+Callers decide whether a declined constructor/helper should use native output.
+A successful context does not acquire missing operations automatically: Cairo
+screen text remains native, and XOR presentation retains native semantics.
+See :doc:`native-rendering` for those services and :doc:`fills` for fill-specific
+precedence and fallback rules.
+
+Renderer changes should check alternating native/Cairo operations on one target,
+marker passes containing text and photos, nested clipping, transparent pixels,
+stipple backgrounds, dash backgrounds and resized targets. Windows DIB/DC
+synchronization and X11 surface wrapping exercise different lifetime paths.

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Cairo backend C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Renderer C reference" href="reference.html" />
+    <link rel="prev" title="Cairo surfaces and drawing contexts" href="cairo-rendering.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cairo-rendering.html" title="Cairo surfaces and drawing contexts"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cairo backend C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cairo-backend-c-reference">
+<h1>Cairo backend C reference<a class="headerlink" href="#cairo-backend-c-reference" title="Link to this heading">¶</a></h1>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code>. They are not component APIs.
+The documentation preprocessor enables <code class="docutils literal notranslate"><span class="pre">RBC_HAVE_CAIRO</span></code> to extract this group;
+it does not change the configured library build or require Cairo to build docs.
+See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for platform-specific target lifetime.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__cairo__backend"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Cairo</span> <span class="pre">backend</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private context and image-conversion services, compiled with Cairo enabled. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreeRenderContext">
+<span class="target" id="group__cairo__backend_1gacd8da8729dc618c3e1de14fca627ca88"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeRenderContext</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeRenderContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a fully or partially initialized Cairo context. </p>
+<p>
+Destroys owned pattern, cairo_t and surface reference, then restores saved Windows DC state and releases its acquisition record. Finally frees the context. Does not flush/report drawing errors; CairoEnd provides that normal-completion behavior. Borrowed graph and component resources survive. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Non-NULL owned context whose optional fields were zero-initialized.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StrokeRenderPath">
+<span class="target" id="group__cairo__backend_1ga2350590d8111526efde3f67af2029acc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StrokeRenderPath</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StrokeRenderPath" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stroke and consume the current path using the context’s dash policy. </p>
+<p>
+Double-dash mode first paints a solid off-color stroke while preserving the path, then applies foreground dashes and consumes the path. Owns no additional resources. This is not an XOR/raster-operation adapter. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Live Cairo context with initialized stroke colors and dashes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.BeginRenderTarget">
+<span class="target" id="group__cairo__backend_1ga6d5e625a3d502e9c5061f9df30404b25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">BeginRenderTarget</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">offColorPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">targetHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">left</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">top</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">right</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">bottom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BeginRenderTarget" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a Cairo context for an explicitly sized native target and clip. </p>
+<p>
+Borrows graph/drawable, copies stroke colors and dash values, and owns the resulting surface reference and cairo_t. The four final integers are inclusive clip edges; target dimensions describe the underlying drawable. Establishes the clip before the half-pixel translation. Windows can reference the current marker-pass image, otherwise it acquires/saves a display DC; X11 creates an Xlib surface wrapper. Printing/metafile Windows targets decline Cairo. Finish successful contexts with Rbc_RenderEnd while borrowed resources and any enclosing marker pass remain alive. No native retry occurs here. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Owned context, or NULL after cleanup if input or setup is unsupported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CreateRenderPhoto">
+<span class="target" id="group__cairo__backend_1gac0e6a5b0f9aebe0d7c254c9b76cdd465"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">cairo_pattern_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateRenderPhoto</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CreateRenderPhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a Tk photo block into an owned repeating Cairo pattern. </p>
+<p>
+Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pixels are opaque. Premultiplies RGB with rounded division by 255. The pattern retains its copied surface; no source pixel pointer escapes. Does not validate the caller’s allocation size or retain the Tk photo itself. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>block</strong> – Borrowed readable block with valid dimensions, pitch and storage. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owned nearest-filtered ARGB32 pattern, or NULL on invalid channel layout or failed surface/pattern creation. Caller destroys a returned pattern.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Cairo backend C reference</a><ul>
+<li><a class="reference internal" href="#c.FreeRenderContext"><code class="docutils literal notranslate"><span class="pre">FreeRenderContext()</span></code></a></li>
+<li><a class="reference internal" href="#c.StrokeRenderPath"><code class="docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a></li>
+<li><a class="reference internal" href="#c.BeginRenderTarget"><code class="docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a></li>
+<li><a class="reference internal" href="#c.CreateRenderPhoto"><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="cairo-rendering.html"
+                          title="previous chapter">Cairo surfaces and drawing contexts</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="reference.html"
+                          title="next chapter">Renderer C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cairo-rendering.html" title="Cairo surfaces and drawing contexts"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cairo backend C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

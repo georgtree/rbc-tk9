@@ -103,6 +103,7 @@ proc ::rbcDocBuild::main {arguments} {
         @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
         @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
         @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
+        @CAIRO_SOURCE@ [doxyQuote [file join $root generic rbcRenderCairo.c]] \
         @POLAR_SOURCE@ [doxyQuote [file join $root generic rbcGrPolar.c]] \
         @BAR_SOURCE@ [doxyQuote [file join $root generic rbcGrBar.c]] \
         @LINE_SOURCE@ [doxyQuote [file join $root generic rbcGrLine.c]] \

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Cairo surfaces and drawing contexts &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Cairo backend C reference" href="cairo-reference.html" />
+    <link rel="prev" title="Native backend C reference" href="native-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cairo-reference.html" title="Cairo backend C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cairo surfaces and drawing contexts</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cairo-surfaces-and-drawing-contexts">
+<h1>Cairo surfaces and drawing contexts<a class="headerlink" href="#cairo-surfaces-and-drawing-contexts" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code> implements screen rendering and the disabled-Cairo entry
+points. SVG, PDF and PostScript do not use this backend. Components still own
+mapped geometry, clipping scopes and painter order; see <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.
+Selected private contracts are in <a class="reference internal" href="cairo-reference.html"><span class="doc">Cairo backend C reference</span></a>.</p>
+<section id="construction-and-ownership">
+<h2>Construction and ownership<a class="headerlink" href="#construction-and-ownership" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CairoRenderContext</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code> first and owns a Cairo
+surface reference, <code class="docutils literal notranslate"><span class="pre">cairo_t</span></code> and optional bitmap/stipple pattern. It copies
+stroke colors, dash values and offset. Its fill style is a shallow copy, so
+referenced component colors remain borrowed until drawing completes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BeginRenderTarget</span></code> rejects non-Cairo selection, absent drawable/color,
+nonfinite or nonpositive line width, and nonpositive target dimensions. Setup
+failure frees partial resources and returns NULL. On X11 it wraps the drawable
+using the Tk visual and explicit target dimensions. On Windows it either
+references the current marker-pass image or acquires a drawable DC, verifies a
+raster-display target, saves the DC state and wraps it in a Win32 surface.
+Printing/metafile targets retain the caller’s native path.</p>
+<p>The initial clip uses inclusive plot edges. It is established before translating
+by half a pixel, matching RBC’s integer pixel-center convention. The constructor
+sets line width, butt caps, round joins, graph antialias mode and dash state.
+<code class="docutils literal notranslate"><span class="pre">Rbc_RenderBegin</span></code> supplies graph/plot dimensions; <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginDrawable</span></code>
+uses the entire explicitly sized target, for output such as legend samples.
+The latter is not implicitly constrained to the plot rectangle.</p>
+<p>Contexts must end while their graph, drawable, component resources and enclosing
+marker target are alive. <code class="docutils literal notranslate"><span class="pre">CairoEnd</span></code> flushes the surface before native drawing
+can resume, captures context/surface status and frees resources. A drawing
+failure is reported as a background Tcl exception while preserving interpreter
+state. This occurs after drawing; it does not request a native replay.
+<code class="docutils literal notranslate"><span class="pre">FreeRenderContext</span></code> alone is the partial-construction cleanup helper and does
+not perform that completion/reporting sequence.</p>
+</section>
+<section id="paths-and-clip-scopes">
+<h2>Paths and clip scopes<a class="headerlink" href="#paths-and-clip-scopes" title="Link to this heading">¶</a></h2>
+<p>Each polyline call creates a separate trace. Independent segments remain
+separate subpaths. Stroke state belongs to the context. For two-color dashes,
+<code class="docutils literal notranslate"><span class="pre">StrokeRenderPath</span></code> paints a solid off-color stroke with the path preserved,
+then foreground dashes. Equal foreground/off colors are reduced to one solid
+stroke at construction to avoid duplicate coverage.</p>
+<p>Nested rectangular clips use Cairo save/rectangle/clip and restore operations.
+The common renderer tracks nesting and unwinds outstanding clips on End. These
+are Cairo graphics-state scopes, not the scratch-pixmap frames used by native
+clipping. Pair operations through the common renderer API rather than mixing
+private restores with its depth bookkeeping.</p>
+<p>Arc geometry is already mapped before entering Cairo. The backend constructs
+an ellipse path using a temporary translate/scale and restores the transform
+before stroking, preserving screen-space line width. Arc orientation and closure
+remain the shared renderer convention; no data-axis mapping happens here.</p>
+</section>
+<section id="patterns-and-pixel-conversion">
+<h2>Patterns and pixel conversion<a class="headerlink" href="#patterns-and-pixel-conversion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginFill</span></code> can decline unsupported styles, including a missing
+foreground or background-only policy. Stipple bits are read before acquiring
+the destination context. A successful context owns the resulting pattern and
+borrows the colors in its copied style.</p>
+<p><code class="docutils literal notranslate"><span class="pre">CreateRenderStipple</span></code> reads monochrome data with <code class="docutils literal notranslate"><span class="pre">XYPixmap</span></code>; this avoids the
+Tk/Windows monochrome inversion associated with the other image format. It
+creates ARGB32 pixels from foreground/background colors, destroys the XImage,
+and returns a repeating nearest-filtered pattern. A missing background can
+leave transparent pattern pixels. Solid-fill opacity is applied separately;
+pattern pixels retain their constructed alpha rather than automatically being
+multiplied by the solid-fill opacity argument.</p>
+<p><code class="docutils literal notranslate"><span class="pre">CreateRenderPhoto</span></code> copies a borrowed Tk photo block into a new ARGB32 image.
+RGB offsets must be within the pixel size. Alpha is used only if its offset is
+valid and distinct from all RGB offsets; otherwise pixels are opaque. Each RGB
+channel is premultiplied using <code class="docutils literal notranslate"><span class="pre">(channel</span> <span class="pre">*</span> <span class="pre">alpha</span> <span class="pre">+</span> <span class="pre">127)</span> <span class="pre">/</span> <span class="pre">255</span></code>. Source rows
+follow the Tk pitch; destination rows follow Cairo’s stride.</p>
+<p>The new surface is marked dirty after direct pixel writes. Creating a pattern
+retains the surface, allowing the helper’s local reference to be destroyed.
+The returned pattern owns the copy independently of future Tk photo changes.
+Callers must still provide a readable source block: channel checks do not
+validate the size of its backing allocation.</p>
+<p>Photo tiles repeat from the toplevel-relative origin to match native tiling.
+A one-shot photo instead disables repetition, positions the pattern at integer
+coordinates and cancels the context’s half-pixel translation. Already rasterized
+pixels must not be shifted and resampled as though they were vector geometry.
+Empty images are handled without drawing, preserving tile precedence rather
+than exposing another fill behind a deleted/empty tile.</p>
+</section>
+<section id="windows-marker-pass-target">
+<h2>Windows marker-pass target<a class="headerlink" href="#windows-marker-pass-target" title="Link to this heading">¶</a></h2>
+<p>Windows can create one RGB24 DIB for a marker pass, avoiding per-marker bitmap
+readback. <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass</span></code> rejects nested targets and invalid graph
+sizes. It acquires the destination DC, creates the DIB surface, obtains its DC
+and image view, copies the existing destination into it and marks the image
+dirty. Only after successful setup does it install <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;renderTarget</span></code>
+and replace the caller’s drawable with a temporary Tk-compatible wrapper.</p>
+<p>The pass owns the surface, drawable wrapper and destination acquisition. Its
+image view and DIB DC are borrowed from the surface. A context drawing on the
+exact shared target drawable takes its own reference to the image view.
+Before that reference is used, GDI is flushed and the image is marked dirty,
+because native text or fallback operations may have changed the DIB.</p>
+<p>Every child context must finish before the pass ends. End flushes the image,
+copies the composed DIB back, clears the graph target, frees the wrapper and
+surface, and releases the destination DC state. Copy failure produces a
+background exception with interpreter state preserved. It does not replay the
+marker pass. Non-Windows builds decline this optional optimization.</p>
+</section>
+<section id="fallback-and-validation-boundaries">
+<h2>Fallback and validation boundaries<a class="headerlink" href="#fallback-and-validation-boundaries" title="Link to this heading">¶</a></h2>
+<p>Disabled-Cairo builds compile fallback entry points returning NULL/false or
+performing no operation as appropriate. Successful geometry dispatch still
+requires a valid context; no-op stubs are not a replacement for caller checks.
+The documentation enables the Cairo preprocessor branch solely for extraction.</p>
+<p>Callers decide whether a declined constructor/helper should use native output.
+A successful context does not acquire missing operations automatically: Cairo
+screen text remains native, and XOR presentation retains native semantics.
+See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for those services and <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a> for fill-specific
+precedence and fallback rules.</p>
+<p>Renderer changes should check alternating native/Cairo operations on one target,
+marker passes containing text and photos, nested clipping, transparent pixels,
+stipple backgrounds, dash backgrounds and resized targets. Windows DIB/DC
+synchronization and X11 surface wrapping exercise different lifetime paths.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Cairo surfaces and drawing contexts</a><ul>
+<li><a class="reference internal" href="#construction-and-ownership">Construction and ownership</a></li>
+<li><a class="reference internal" href="#paths-and-clip-scopes">Paths and clip scopes</a></li>
+<li><a class="reference internal" href="#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>
+<li><a class="reference internal" href="#windows-marker-pass-target">Windows marker-pass target</a></li>
+<li><a class="reference internal" href="#fallback-and-validation-boundaries">Fallback and validation boundaries</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="native-reference.html"
+                          title="previous chapter">Native backend C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="cairo-reference.html"
+                          title="next chapter">Cairo backend C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cairo-reference.html" title="Cairo backend C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="native-reference.html" title="Native backend C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cairo surfaces and drawing contexts</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -64,6 +64,8 @@ chapters.
    rendering
    native-rendering
    native-reference
+   cairo-rendering
+   cairo-reference
    reference
    scrolling
    scroll-reference
