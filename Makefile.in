@@ -71,6 +71,7 @@ PKG_LIB_FILE9 = @PKG_LIB_FILE9@
 PKG_STUB_LIB_FILE = @PKG_STUB_LIB_FILE@
 
 # Public C/stubs API consumer used only by the test suite.
+TEST_TILE_LIB = rbctiletest$(SHLIB_SUFFIX)
 TEST_NOTIFY_LIB = rbcnotifytest$(SHLIB_SUFFIX)
 
 TEST_CAPI_LIB = rbccapitest$(SHLIB_SUFFIX)
@@ -372,6 +373,18 @@ $(TEST_NOTIFY_LIB): $(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
 		$(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT) $(SHLIB_LD_LIBS)
 
+# Include rbcTile.c in the harness to inspect private resource ownership.
+test-tile: $(TEST_TILE_LIB)
+	RBC_TILE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_TILE_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.tile.notify.A.test` $(TESTFLAGS)
+
+rbcTileTest.$(OBJEXT): $(srcdir)/tests/rbcTileTest.c $(srcdir)/generic/rbcTile.c $(PKG_HEADERS)
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcTileTest.c` -o $@
+
+$(TEST_TILE_LIB): $(PKG_OBJECTS) rbcTileTest.$(OBJEXT)
+	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
+		$(filter-out rbcTile.$(OBJEXT),$(PKG_OBJECTS)) rbcTileTest.$(OBJEXT) $(SHLIB_LD_LIBS)
+
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
 
@@ -519,7 +532,7 @@ clean:
 	-rm -rf _build/developer
 	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
-	-rm -f $(TEST_NOTIFY_LIB)
+	-rm -f $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 	-rm -f graph.tcl trackgraph.tcl graphtoolbar.tcl argparse.tcl argparse-LICENSE.txt argparse-README.txt rbcCanvEps.pro rbcGraph.pro circle.xbm circle_mask.xbm
@@ -634,7 +647,7 @@ uninstall-doc:
 
 uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-vector-notify test-headers \
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-vector-notify test-tile test-headers \
 	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

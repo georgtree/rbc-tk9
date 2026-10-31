@@ -29,6 +29,7 @@ typedef struct {
     char *name;       /* Name of image used to generate the pixmap.*/
     Display *display; /* Display where pixmap was created. */
     int flags;        /* See definitions below. */
+    int destroying;   /* Resources released; record may be preserved by notification. */
     Tcl_Interp *interp;
     Tcl_HashEntry *hashPtr; /* Pointer to hash table location */
     Tcl_HashTable *tablePtr;
@@ -177,11 +178,20 @@ static void RedrawTile(Tk_Window tkwin, Tile *tilePtr) {
  *
  *----------------------------------------------------------------------
  */
+/* Records are detached immediately but survive active notification snapshots. */
+static void FreeTileRecord(DestroyData memory) {
+    ckfree(memory);
+}
+
 static void UpdateTile(ClientData clientData) {
     Tile *tilePtr = (Tile *)clientData;
-    TileClient *clientPtr;
+    Tcl_Interp *interp = tilePtr->interp;
+    TileClient **clients;
     Rbc_ChainLink *linkPtr;
+    Tcl_Size count, i;
 
+    Tcl_Preserve(tilePtr);
+    Tcl_Preserve(interp);
     tilePtr->flags &= ~TILE_NOTIFY_PENDING;
     if (Tk_ImageIsDeleted(tilePtr->tkImage)) {
         if (tilePtr->pixmap != None) {
@@ -189,18 +199,37 @@ static void UpdateTile(ClientData clientData) {
         }
         tilePtr->pixmap = None;
     } else {
+        TileClient *clientPtr;
         /* Pick any client window to generate the new pixmap. */
         linkPtr = Rbc_ChainFirstLink(tilePtr->clients);
         clientPtr = Rbc_ChainGetValue(linkPtr);
         RedrawTile(clientPtr->tkwin, tilePtr);
     }
-    /* Notify each of the tile's clients that the pixmap has changed. */
+    /* Snapshot membership, not callbacks: removed clients are skipped, added
+     * clients wait for a later update, and callback replacement takes effect. */
+    count = Rbc_ChainGetLength(tilePtr->clients);
+    clients = ckalloc(sizeof(*clients) * (size_t)count);
+    i = 0;
     for (linkPtr = Rbc_ChainFirstLink(tilePtr->clients); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
-        clientPtr = Rbc_ChainGetValue(linkPtr);
-        if (clientPtr->notifyProc != NULL) {
+        clients[i] = Rbc_ChainGetValue(linkPtr);
+        Tcl_Preserve(clients[i]);
+        i++;
+    }
+    for (i = 0; i < count; i++) {
+        TileClient *clientPtr = clients[i];
+        if (tilePtr->destroying || Tcl_InterpDeleted(interp)) {
+            break;
+        }
+        if (clientPtr->tilePtr == tilePtr && clientPtr->notifyProc != NULL) {
             (*clientPtr->notifyProc)(clientPtr->clientData, clientPtr);
         }
     }
+    for (i = 0; i < count; i++) {
+        Tcl_Release(clients[i]);
+    }
+    ckfree(clients);
+    Tcl_Release(tilePtr);
+    Tcl_Release(interp);
 }
 
 /*
@@ -266,12 +295,17 @@ static void DestroyTile(Tile *tilePtr) {
     Rbc_ChainLink *linkPtr;
     TileClient *clientPtr;
 
+    tilePtr->destroying = TRUE;
     if (tilePtr->flags & TILE_NOTIFY_PENDING) {
         Tcl_CancelIdleCall(UpdateTile, tilePtr);
     }
     for (linkPtr = Rbc_ChainFirstLink(tilePtr->clients); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         clientPtr = Rbc_ChainGetValue(linkPtr);
-        ckfree((char *)clientPtr);
+        clientPtr->magic = 0;
+        clientPtr->tilePtr = NULL;
+        clientPtr->linkPtr = NULL;
+        clientPtr->notifyProc = NULL;
+        Tcl_EventuallyFree(clientPtr, FreeTileRecord);
     }
     Rbc_ChainDestroy(tilePtr->clients);
     if (tilePtr->hashPtr != NULL) {
@@ -279,6 +313,13 @@ static void DestroyTile(Tile *tilePtr) {
     }
     if (tilePtr->pixmap != None) {
         Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
+    }
+    if (tilePtr->mask != None) {
+#ifdef WIN32
+        Tk_FreePixmap(tilePtr->display, tilePtr->mask);
+#else
+        XFreePixmap(tilePtr->display, tilePtr->mask);
+#endif
     }
     Tk_FreeImage(tilePtr->tkImage);
 
@@ -288,7 +329,7 @@ static void DestroyTile(Tile *tilePtr) {
     if (tilePtr->name != NULL) {
         ckfree((char *)tilePtr->name);
     }
-    ckfree((char *)tilePtr);
+    Tcl_EventuallyFree(tilePtr, FreeTileRecord);
 }
 
 /*
@@ -379,7 +420,11 @@ static void DestroyClient(TileClient *clientPtr) {
          */
         DestroyTile(tilePtr);
     }
-    ckfree((char *)clientPtr);
+    clientPtr->magic = 0;
+    clientPtr->tilePtr = NULL;
+    clientPtr->linkPtr = NULL;
+    clientPtr->notifyProc = NULL;
+    Tcl_EventuallyFree(clientPtr, FreeTileRecord);
 }
 
 /*
@@ -516,29 +561,6 @@ static TileInterpData *GetTileInterpData(Tcl_Interp *interp) {
 
 /* Public API for tiles. */
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetTile
- *
- *      Convert the named image into a tile.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to report results back to
- *      Tk_Window tkwin - Window on the same display as tile
- *      const char *imageName - Name of image
- *      Rbc_Tile *tokenPtr - (out) Returns the allocated tile token.
- *
- * Results:
- *      If the image is valid, a new tile is returned.  If the name
- *      does not represent a proper image, an error message is left in
- *      the interpreter result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageName, Rbc_Tile *tokenPtr) {
     TileClient *clientPtr;
 
@@ -550,25 +572,6 @@ int Rbc_GetTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageName, Rbc_
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeTile
- *
- *      Release the resources associated with the tile.
- *
- * Parameters:
- *      TileClient *clientPtr - Tile to be deleted
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Memory and X resources are freed.  Bookkeeping information
- *      about the tile (i.e. width, height, and name) is discarded.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreeTile(TileClient *clientPtr) {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
         return; /* No tile */
@@ -606,24 +609,6 @@ char *Rbc_NameOfTile(TileClient *clientPtr) {
     return clientPtr->tilePtr->name;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PixmapOfTile
- *
- *      Returns the pixmap of the tile.
- *
- * Parameters:
- *      TileClient *clientPtr - Tile to query
- *
- * Results:
- *      The X pixmap used as the tile is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Pixmap Rbc_PixmapOfTile(TileClient *clientPtr) {
     if ((clientPtr == NULL) || (clientPtr->magic != TILE_MAGIC)) {
         return None;
@@ -686,27 +671,6 @@ void Rbc_SizeOfTile(TileClient *clientPtr, int *widthPtr, int *heightPtr) {
     *heightPtr = clientPtr->tilePtr->height;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SetTileChangedProc
- *
- *      Sets the routine to called when an image changes.
- *
- * Parameters:
- *      TileClient *clientPtr - Tile to query
- *      int *widthPtr
- *      int *heightPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The designated routine will be called the next time the
- *      image associated with the tile changes.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_SetTileChangedProc(TileClient *clientPtr, Rbc_TileChangedProc *notifyProc, ClientData clientData) {
     if ((clientPtr != NULL) && (clientPtr->magic == TILE_MAGIC)) {
         clientPtr->notifyProc = notifyProc;

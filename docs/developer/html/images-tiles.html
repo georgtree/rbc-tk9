@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image storage and tile clients &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Image and tile C reference" href="image-tile-reference.html" />
+    <link rel="prev" title="Binding and picking C reference" href="binding-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="image-tile-reference.html" title="Image and tile C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image storage and tile clients</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-storage-and-tile-clients">
+<h1>Image storage and tile clients<a class="headerlink" href="#image-storage-and-tile-clients" title="Link to this heading">¶</a></h1>
+<p>Images cross several ownership boundaries. <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> supplies owned pixel
+buffers and conversion helpers; <code class="docutils literal notranslate"><span class="pre">rbcTile.c</span></code> caches a Tk image’s native drawing
+resources for multiple clients. Components retain their own option and redraw
+responsibilities. These are private services, not the installed vector API.</p>
+<section id="pixel-storage-and-tk-images">
+<h2>Pixel storage and Tk images<a class="headerlink" href="#pixel-storage-and-tk-images" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 74.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Representation</p></th>
+<th class="head"><p>Lifetime</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tk_Image</span></code></p></td>
+<td><p>A Tk image instance acquired by its owner. A borrowed instance, such as
+one returned by a tile, must not be freed by the borrower.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Tk_PhotoImageBlock</span></code></p></td>
+<td><p>A descriptor whose pixel pointer normally borrows Tk photo storage.
+Copying the descriptor does not copy pixels or retain the image.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImage</span></code></p></td>
+<td><p>An owned record plus a separate contiguous <code class="docutils literal notranslate"><span class="pre">Pix32</span></code> array, released with
+<code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>. It has no Tk name or notification mechanism.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tile pixmap</p></td>
+<td><p>A server-owned native cache. Clients borrow it only until update/release.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">Pix32</span></code> provides explicit red, green, blue and alpha byte fields. Use these
+fields and the image access macros; do not infer a portable packed integer
+channel order from the union’s <code class="docutils literal notranslate"><span class="pre">value</span></code> member. New color images are zeroed,
+including alpha, so newly allocated pixels are transparent until populated.
+Dimensions are nonnegative and allocation arithmetic is checked; invalid or
+unrepresentable sizes panic rather than return a Tcl error. Even an empty image
+has an owning record. The free helper requires a valid non-NULL image.</p>
+<p>Photo conversion copies rows using Tk’s pitch, pixel size and channel offsets.
+<code class="docutils literal notranslate"><span class="pre">Rbc_PhotoToColorImage</span></code> returns an independent snapshot.
+<code class="docutils literal notranslate"><span class="pre">Rbc_PhotoRegionToColorImage</span></code> clips its requested region to the photo and
+returns an empty image for an empty intersection. Later photo changes do not
+update either snapshot.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToPhoto</span></code> resizes the destination and writes using
+<code class="docutils literal notranslate"><span class="pre">TK_PHOTO_COMPOSITE_SET</span></code>. Tk copies the supplied block; the caller keeps and
+can subsequently free the RBC image. This legacy void wrapper ignores the
+return statuses of the Tk resize/write operations. Callers requiring reliable
+error propagation must not treat its return as evidence of success.</p>
+</section>
+<section id="shared-tile-servers-individual-clients">
+<h2>Shared tile servers, individual clients<a class="headerlink" href="#shared-tile-servers-individual-clients" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetTile</span></code> returns a fresh client token on every successful acquisition.
+Servers are cached in interpreter associated data, keyed by display, depth and
+interned image name. The key structure is zero-initialized because the hash
+includes its padding bytes. Identical names in different interpreters do not
+share a server.</p>
+<p>The server owns the Tk image instance, cached pixmap, tiling GC, transparency
+mask and client chain. Each client stores its borrowed window, callback/data,
+origin and chain link. The caller must release its client before destroying the
+window or callback data it uses. The last client release destroys the server;
+interpreter teardown destroys remaining servers and clients. Pending tile idle
+updates are cancelled during server destruction.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_FreeTile(NULL)</span></code> is harmless, but the magic field is only a sanity check;
+it cannot make use-after-free or a repeated free safe. No client token remains
+valid after interpreter teardown.</p>
+</section>
+<section id="idle-refresh-and-notification">
+<h2>Idle refresh and notification<a class="headerlink" href="#idle-refresh-and-notification" title="Link to this heading">¶</a></h2>
+<p>Tk image changes are coalesced into one <code class="docutils literal notranslate"><span class="pre">UpdateTile</span></code> idle callback using
+<code class="docutils literal notranslate"><span class="pre">TILE_NOTIFY_PENDING</span></code>. The update clears the pending flag, redraws the cache
+using a client window, then walks the client chain and calls installed callbacks.
+Resizing allocates the replacement pixmap before releasing the old one; redraw
+also refreshes the GC and photo transparency mask.</p>
+<p>If the Tk image has been deleted, the update releases the cached pixmap and
+sets it to <code class="docutils literal notranslate"><span class="pre">None</span></code>. It does not reset every cached field: size queries can still
+report the last dimensions. Query helpers do not force pending idle work.
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetTilePhoto</span></code> distinguishes a deleted image (true with an empty block)
+from a non-photo image (false). For a live photo its returned pixels are borrowed
+until the next image change, not until the next idle notification.</p>
+<p>Notification snapshots preserve the server and each current client record.
+Callbacks may release themselves, remove other clients, add clients or process
+nested updates. Removed clients are skipped; added clients join a later update.
+Callback replacement takes effect when that client’s turn is reached. Removing
+the last client tears down resources immediately, while record reclamation waits
+until active snapshots release them. Each nested pass owns its own snapshot.
+Interpreter deletion stops the current pass; interpreter preservation delays its
+final teardown until active calls unwind. Callback data is still caller-owned.
+Existing graph/line callbacks simply schedule redraw work.</p>
+</section>
+<section id="origin-and-renderer-boundaries">
+<h2>Origin and renderer boundaries<a class="headerlink" href="#origin-and-renderer-boundaries" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_SetTileOrigin</span></code> translates through the Tk window hierarchy to align the
+pattern with the toplevel; <code class="docutils literal notranslate"><span class="pre">Rbc_SetTSOrigin</span></code> installs the supplied origin
+directly. Both store client coordinates and update the server GC. Since the GC
+is shared, consumers must establish the intended origin for drawing rather than
+assume it is permanent per-client state.</p>
+<p>Native tile drawing remains platform-specific: Windows uses DC/pattern/mask
+operations, while X11 uses tiled GCs and temporary clipping masks. Renderer
+consumers choose the appropriate drawing/export route. Export code borrowing a
+photo block must honor pitch, channel offsets and alpha rather than assuming a
+packed native pixmap has equivalent storage. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and
+<a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for those boundaries.</p>
+</section>
+<section id="cleanup-and-regression-coverage">
+<h2>Cleanup and regression coverage<a class="headerlink" href="#cleanup-and-regression-coverage" title="Link to this heading">¶</a></h2>
+<p>Server destruction releases the retained transparency mask with the same
+platform-specific allocator pairing used during redraw. The last client release
+also cancels pending idle updates. Clients must never free server-owned resources
+themselves.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-tile</span></code> (with a Tk display) for the private C harness. It covers
+self/other/final-client deletion, callback replacement, client addition, nested
+idle notification, interpreter deletion, mask release and pending-idle teardown.
+The normal suite skips this harness unless <code class="docutils literal notranslate"><span class="pre">RBC_TILE_TEST_LIB</span></code> is supplied;
+it runs in a separate process and adds no production Tcl command or public stub.
+The void photo-write wrapper described above still lacks status propagation.</p>
+<p>See <a class="reference internal" href="image-tile-reference.html"><span class="doc">Image and tile C reference</span></a> for the maintained C contracts. Resampling,
+quantization, bitmap transforms and temporary-image compatibility helpers are
+separate algorithm/implementation topics.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image storage and tile clients</a><ul>
+<li><a class="reference internal" href="#pixel-storage-and-tk-images">Pixel storage and Tk images</a></li>
+<li><a class="reference internal" href="#shared-tile-servers-individual-clients">Shared tile servers, individual clients</a></li>
+<li><a class="reference internal" href="#idle-refresh-and-notification">Idle refresh and notification</a></li>
+<li><a class="reference internal" href="#origin-and-renderer-boundaries">Origin and renderer boundaries</a></li>
+<li><a class="reference internal" href="#cleanup-and-regression-coverage">Cleanup and regression coverage</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="binding-reference.html"
+                          title="previous chapter">Binding and picking C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="image-tile-reference.html"
+                          title="next chapter">Image and tile C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="image-tile-reference.html" title="Image and tile C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image storage and tile clients</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

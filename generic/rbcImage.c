@@ -167,28 +167,6 @@ static int MapVirtualCoordinate(int srcSize, double virtualPosition, int virtual
     return (int)value;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CreateColorImage --
- *
- *      Allocates a color image of a designated height and width.
- *
- *      This routine will be augmented with other types of information
- *      such as a color table, etc.
- *
- * Parameters:
- *      int width - Dimension of new image
- *      int height - Dimension of new image
- *
- * Results:
- *      Returns the new color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     struct ColorImage *imagePtr;
     size_t nPixels;
@@ -201,24 +179,6 @@ Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     return imagePtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeColorImage --
- *
- *      Deallocates the given color image.
- *
- * Parameters:
- *      struct ColorImage *imagePtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreeColorImage(struct ColorImage *imagePtr) {
     ckfree((char *)imagePtr->bits);
     ckfree((char *)imagePtr);
@@ -310,26 +270,6 @@ void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ColorImageToPhoto --
- *
- *      Translates a color image into a Tk photo.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Rbc_ColorImage src - Image to use as source
- *      Tk_PhotoHandle photo - Photo to write color image into
- *
- * Results:
- *      The photo is re-written with the new color image.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandle photo) {
     Tk_PhotoImageBlock dest;
     int width, height;
@@ -354,28 +294,6 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
     Tk_PhotoPutBlock(interp, photo, &dest, 0, 0, width, height, TK_PHOTO_COMPOSITE_SET);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PhotoRegionToColorImage --
- *
- *      Create a photo to a color image.
- *
- * Parameters:
- *      Tk_PhotoHandle photo - Source photo image to scale
- *      int x
- *      int y
- *      int width
- *      int height
- *
- * Results:
- *      The new color image is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height) {
     Tk_PhotoImageBlock src;
     Rbc_ColorImage image;
@@ -438,24 +356,6 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
     return image;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PhotoToColorImage --
- *
- *      Create a photo to a color image.
- *
- * Parameters:
- *      Tk_PhotoHandle photo - Source photo image to scale
- *
- * Results:
- *      The new color image is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
     Rbc_ColorImage image;
     Tk_PhotoImageBlock src;

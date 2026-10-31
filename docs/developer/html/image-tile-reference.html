@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image and tile C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Text layout and document fonts" href="text-fonts.html" />
+    <link rel="prev" title="Image storage and tile clients" href="images-tiles.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="images-tiles.html" title="Image storage and tile clients"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image and tile C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-and-tile-c-reference">
+<h1>Image and tile C reference<a class="headerlink" href="#image-and-tile-c-reference" title="Link to this heading">¶</a></h1>
+<p>These interfaces are private. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for resource lifetimes.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetTile">
+<span class="target" id="rbc_tile_8h_1ae128955de0a4c8ff84cdf5ddb6d94bea"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">imageName</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tilePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a new client token for a named Tk image. </p>
+<p>Requires a live window. The interpreter-local server is shared by display, depth and image name, but each successful call returns its own client. On TCL_OK, the caller owns the token and must call Rbc_FreeTile before its window/client data disappear. On TCL_ERROR, the output is not assigned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeTile">
+<span class="target" id="rbc_tile_8h_1a25c8f369a43a499588e243ea6b2df491"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one client token and destroy the server if it was the last. </p>
+<p>NULL is harmless. A released token is invalid; the magic check does not make stale pointers or repeated frees safe. Server teardown cancels pending idle notification. Active notification snapshots defer record reclamation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SetTileChangedProc">
+<span class="target" id="rbc_tile_8h_1a6ff46a208b35b5deb56d1c7f32491bfd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetTileChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Rbc_TileChangedProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">changeProc</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetTileChangedProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Install or replace one client’s borrowed notification callback and data. </p>
+<p>A NULL callback disables notification. No immediate callback is made. Notifications run after an idle pixmap update over preserved client records. Callbacks may release clients or process nested updates. Removed clients are skipped; newly added clients wait for a later update. Interpreter deletion stops the current pass. Callback data remains owned by the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PixmapOfTile">
+<span class="target" id="rbc_tile_8h_1a2212b7a11f3b043d36ce28a332e70664"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PixmapOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PixmapOfTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a borrowed cached pixmap, or None for no tile. </p>
+<p>Do not free it or retain it across a tile update/release. Image changes are processed at idle, so this is a cache query, not a forced refresh. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ImageOfTile">
+<span class="target" id="rbc_tile_8h_1abb1816dd7ad6aa3a059ae5bd4b9a6a1d"></span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageOfTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageOfTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow the tile’s Tk image without acquiring another image reference. </p>
+<p>Returns NULL for no tile or a deleted image. Do not call Tk_FreeImage on the result; use it only while the tile and current image state remain valid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetTilePhoto">
+<span class="target" id="rbc_tile_8h_1ab3fdaca5e1be8032303c4da05a1cc287"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetTilePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">blockPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetTilePhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow photo pixel storage into a caller-owned block record. </p>
+<p>Clears the record first. Returns false for no tile or a non-photo image; a deleted image returns true with an empty block. The pixel pointer remains Tk-owned and is invalidated by image changes or deletion. No copy is made. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CreateColorImage">
+<span class="target" id="rbc_image_8h_1a515532abcb5883cb9ff5b9e9bfa8913a"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateColorImage</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an owned row-major RGBA pixel buffer and image record. </p>
+<p>Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned image has no Tk image identity, reference count or change notification. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeColorImage">
+<span class="target" id="rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release both the pixel array and its owning image record. </p>
+<p>Requires a valid non-NULL owned image. All borrowed pixel pointers become invalid. This does not delete or modify any Tk photo used to create it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PhotoToColorImage">
+<span class="target" id="rbc_image_8h_1a1b04bab05231671e1f4ef3202f3f3870"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PhotoToColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a valid Tk photo into a newly owned RBC color image. </p>
+<p>Copies pixels using the photo block’s pitch and channel offsets. The result is independent of later photo changes; release it with Rbc_FreeColorImage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PhotoRegionToColorImage">
+<span class="target" id="rbc_image_8h_1a78d03aec4ed3b08f5106af271da1006e"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PhotoRegionToColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PhotoRegionToColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy the clipped intersection of a photo region into an owned image. </p>
+<p>Requires a valid photo handle. An empty intersection returns an empty image, not NULL. The result owns its pixels and must be freed with Rbc_FreeColorImage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ColorImageToPhoto">
+<span class="target" id="rbc_image_8h_1acc947ce3e5cba689362c5f22b5151389"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToPhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">photo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ColorImageToPhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a borrowed Tk photo’s size and pixels from an RBC image. </p>
+<p>Source ownership stays with the caller; Tk copies the block synchronously. Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a reliable success/failure status to its caller. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image and tile C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetTile"><code class="docutils literal notranslate"><span class="pre">Rbc_GetTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeTile"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SetTileChangedProc"><code class="docutils literal notranslate"><span class="pre">Rbc_SetTileChangedProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PixmapOfTile"><code class="docutils literal notranslate"><span class="pre">Rbc_PixmapOfTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ImageOfTile"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageOfTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetTilePhoto"><code class="docutils literal notranslate"><span class="pre">Rbc_GetTilePhoto()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CreateColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PhotoToColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoToColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PhotoRegionToColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoRegionToColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ColorImageToPhoto"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToPhoto()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="images-tiles.html"
+                          title="previous chapter">Image storage and tile clients</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="text-fonts.html"
+                          title="next chapter">Text layout and document fonts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="images-tiles.html" title="Image storage and tile clients"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image and tile C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

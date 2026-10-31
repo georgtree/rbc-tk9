@@ -1,0 +1,29 @@
+# Private lifecycle harness; ordinary suite runs skip it.
+package provide tile.notify
+package require tcltest
+namespace import tcltest::*
+set tileAvailable 0
+if {[info exists ::env(RBC_TILE_TEST_LIB)]} {
+    package require Tk
+    load $::env(RBC_TILE_TEST_LIB) Rbctiletest
+    set tileAvailable 1
+}
+testConstraint tileHarness $tileAvailable
+namespace eval tile.notify {
+    foreach {case scenario expected} {
+        1 self {0 1}
+        2 other 0
+        3 all 0
+        4 add {0 1 0 1 2}
+        5 disable 0
+        6 nested {0 0 1 1}
+        7 delete-interp 0
+        8 mask {0 1 1}
+        9 pending {0 1 1}
+    } {
+        test RBC.tile.notify.A.1.$case "tile lifetime: $scenario" \
+            -constraints tileHarness -body [list ::rbctiletest $scenario] -result $expected
+    }
+}
+cleanupTests
+if {$tileAvailable} {destroy .}

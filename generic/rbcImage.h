@@ -1,7 +1,6 @@
-/*
- * rbcImage.h --
- *
- *      TODO: Description
+/**
+ * @file rbcImage.h
+ * @brief Private image storage and tile resource services.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -131,17 +130,45 @@ typedef struct {
 /* Prototypes of image routines */
 
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
+/**
+ * @brief Replace a borrowed Tk photo's size and pixels from an RBC image.
+ * Source ownership stays with the caller; Tk copies the block synchronously.
+ * Uses TK_PHOTO_COMPOSITE_SET, including alpha. This legacy void helper ignores
+ * return codes from Tk_PhotoSetSize and Tk_PhotoPutBlock; it does not provide a
+ * reliable success/failure status to its caller.
+ */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
+/**
+ * @brief Allocate an owned row-major RGBA pixel buffer and image record.
+ * Dimensions must be nonnegative; invalid or overflowing sizes panic. Pixels
+ * start zeroed, including alpha. Release with Rbc_FreeColorImage. The returned
+ * image has no Tk image identity, reference count or change notification.
+ */
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr);
+/**
+ * @brief Release both the pixel array and its owning image record.
+ * Requires a valid non-NULL owned image. All borrowed pixel pointers become
+ * invalid. This does not delete or modify any Tk photo used to create it.
+ */
 void Rbc_FreeColorImage(Rbc_ColorImage image);
 #if HAVE_JPEG
 Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName);
 #endif
+/**
+ * @brief Copy a valid Tk photo into a newly owned RBC color image.
+ * Copies pixels using the photo block's pitch and channel offsets. The result
+ * is independent of later photo changes; release it with Rbc_FreeColorImage.
+ */
 Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
+/**
+ * @brief Copy the clipped intersection of a photo region into an owned image.
+ * Requires a valid photo handle. An empty intersection returns an empty image,
+ * not NULL. The result owns its pixels and must be freed with Rbc_FreeColorImage.
+ */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,

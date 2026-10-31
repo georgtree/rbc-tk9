@@ -39,6 +39,8 @@ chapters.
    configuration-reference
    bindings
    binding-reference
+   images-tiles
+   image-tile-reference
    text-fonts
    text-font-reference
    exports
