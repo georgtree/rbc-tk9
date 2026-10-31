@@ -61,3 +61,10 @@ renderer run callback does not authorize arbitrary Tcl reentry.
 See :doc:`graph-lifecycle` for widget scheduling, callback cancellation and
 the two phases of destruction. See :doc:`vectors` for borrowed numeric storage and observer lifetime.
 Detailed component destruction contracts remain with their owning modules.
+
+Object interaction
+------------------
+
+See :doc:`bindings` for component hit priority, per-family tag identities,
+legend entry contexts and callback lifetime. Generic event dispatch does not
+interpret component layouts; graph and legend pickers supply those decisions.

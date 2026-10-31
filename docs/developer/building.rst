@@ -68,7 +68,8 @@ manual with GitHub Pages. It is retained by ``make clean``. Use
 and all pages rebuilt on each invocation.
 
 ``Doxyfile.in`` explicitly lists the two renderer headers and the common graph
-header/source pair, plus the public/private vector headers. Extraction does not follow includes into Tk or SDK headers.
+header/source pair, the public/private vector headers, and the binding
+header/source pair. Extraction does not follow includes into Tk or SDK headers.
 Reference pages select maintained contracts; undocumented functions are not a
 coverage target yet. Platform and Cairo backend implementations are not combined
 into misleading duplicate entries. Future chapters must select inputs deliberately.

@@ -1246,28 +1246,22 @@ static int InitPens(Graph *graphPtr) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @defgroup graph_picking Graph picking callbacks
+ * @brief Graph-specific hit priority and binding-key collection.
+ */
+
+/**
+ * @ingroup graph_picking
+ * @brief Append graph binding keys according to the explicit object context.
+ * @param[in] table Graph-owned binding table.
+ * @param[in] object Borrowed axis, element, marker or track.
+ * @param[in] context Encoded GraphBindContext; no shared record prefix is assumed.
+ * @param[in,out] list Temporary one-word-key list owned by event dispatch.
  *
- * GraphTags --
- *
- *      Appends the binding identifiers for the picked graph object.
- *      The object type is supplied explicitly by PickEntry through the
- *      binding context; no common structure layout is assumed.
- *
- * Parameters:
- *      Rbc_BindTable table - Graph binding table.
- *      ClientData object   - Picked Axis, Element, or Marker pointer.
- *      ClientData context  - GraphBindContext value.
- *      Rbc_List list       - Destination binding identifier list.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Appends the object's name, class, and configured bind tags.
- *
- *----------------------------------------------------------------------
+ * Axes/elements/markers append name, class and configured tags using separate
+ * component token tables. Tracks append the track pointer and private all-track
+ * token. Does not evaluate Tcl or take ownership of the appended keys.
  */
 static void GraphTags(Rbc_BindTable table, ClientData object, ClientData context, Rbc_List list) {
     Graph *graphPtr;
@@ -1296,29 +1290,20 @@ static void GraphTags(Rbc_BindTable table, ClientData object, ClientData context
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_picking
+ * @brief Hit-test graph components and return a borrowed object/context pair.
+ * @param[in] clientData Graph retained by the binding dispatcher or repick caller.
+ * @param[in] x Window-relative horizontal pixel coordinate.
+ * @param[in] y Window-relative vertical pixel coordinate.
+ * @param[out] contextPtr Encoded GraphBindContext on a hit, otherwise NULL.
+ * @return Borrowed component or NULL for no hit/layout cancellation.
  *
- * PickEntry --
- *
- *      Find the closest point from the set of displayed elements,
- *      searching the display list from back to front.  That way, if
- *      the points from two different elements overlay each other exactly,
- *      the one that's on top (visible) is picked.
- *
- * Parameters:
- *      ClientData clientData
- *      int x
- *      int y
- *      ClientData *contextPtr - Not used.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Pending full mapping can invoke axis format callbacks. Local legend rectangles
+ * exclude graph hits. Margins select axes; the plot tests above-markers, eligible
+ * elements, under-markers and finally track backgrounds. Elements use their own
+ * closestProc under the owning track viewport, skipping dirty/pending vector
+ * geometry. The caller must retain the graph across callback-capable layout.
  */
 static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *contextPtr) {
     Graph *graphPtr;

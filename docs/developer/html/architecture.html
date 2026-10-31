@@ -108,6 +108,12 @@ renderer run callback does not authorize arbitrary Tcl reentry.</p>
 the two phases of destruction. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for borrowed numeric storage and observer lifetime.
 Detailed component destruction contracts remain with their owning modules.</p>
 </section>
+<section id="object-interaction">
+<h2>Object interaction<a class="headerlink" href="#object-interaction" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for component hit priority, per-family tag identities,
+legend entry contexts and callback lifetime. Generic event dispatch does not
+interpret component layouts; graph and legend pickers supply those decisions.</p>
+</section>
 </section>
 
 
@@ -123,6 +129,7 @@ Detailed component destruction contracts remain with their owning modules.</p>
 <li><a class="reference internal" href="#">Implementation overview</a><ul>
 <li><a class="reference internal" href="#supporting-modules">Supporting modules</a></li>
 <li><a class="reference internal" href="#lifetime-and-callbacks">Lifetime and callbacks</a></li>
+<li><a class="reference internal" href="#object-interaction">Object interaction</a></li>
 </ul>
 </li>
 </ul>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Binding and picking C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="Binding dispatch and picking" href="bindings.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bindings.html" title="Binding dispatch and picking"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Binding and picking C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="binding-and-picking-c-reference">
+<h1>Binding and picking C reference<a class="headerlink" href="#binding-and-picking-c-reference" title="Link to this heading">¶</a></h1>
+<p>All interfaces here are private. Objects, contexts and tag tokens are borrowed;
+the owning component supplies their lifetime. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event
+order, picking priority, callback reentry and the distinction between objects
+and binding keys.</p>
+<section id="shared-interface">
+<h2>Shared interface<a class="headerlink" href="#shared-interface" title="Link to this heading">¶</a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.Rbc_BindTable">
+<span class="target" id="rbc_bind_8h_1a3aede8175ecbed07e2ecedd452cc5abd"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_BindTable</span></span></span><a class="headerlink" href="#c.Rbc_BindTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Owner-managed binding table; destroy with <a class="reference internal" href="#rbc_bind_8h_1a2049ba31c0b8a3ec0d00c8ab8c4ba3ef"><span class="std std-ref">Rbc_DestroyBindingTable()</span></a>. </p>
+</dd></dl>
+
+<p>Callback signatures are included verbatim from the header:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">ClientData</span><span class="p">(</span><span class="n">Rbc_BindPickProc</span><span class="p">)(</span><span class="n">ClientData</span><span class="w"> </span><span class="n">clientData</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="o">*</span><span class="n">contextPtr</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">Rbc_BindTagProc</span><span class="p">)(</span><span class="n">Rbc_BindTable</span><span class="w"> </span><span class="n">bindTable</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="n">object</span><span class="p">,</span><span class="w"> </span><span class="n">ClientData</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_List</span><span class="w"> </span><span class="n">list</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The picker writes an object context alongside its returned pointer. The tag
+collector appends stable keys to the temporary list supplied by dispatch;
+neither callback acquires ownership of its arguments.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CreateBindingTable">
+<span class="target" id="rbc_bind_8h_1a1f8347a0bf2c92a1de0ba4f76697e858"></span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateBindingTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Rbc_BindPickProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pickProc</span></span>, <span class="n"><span class="pre">Rbc_BindTagProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateBindingTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an empty binding table and register its Tk event handler. </p>
+<p>
+Owner destruction must cooperate with Tcl_Preserve/Tcl_Release and defer freeing this table while dispatch is active. Construction does not select an initial current item or retain the owner/window. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter used by Tk’s binding table. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live window for key, button, crossing and motion events. </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed owner; event dispatch preserves this address. </p></li>
+<li><p><strong>pickProc</strong> – <strong>[in]</strong> Required hit-test callback. </p></li>
+<li><p><strong>tagProc</strong> – <strong>[in]</strong> Optional tag collector; NULL uses the all UID then the item. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Owner-managed table; allocation failure is not a recoverable result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyBindingTable">
+<span class="target" id="rbc_bind_8h_1a2049ba31c0b8a3ec0d00c8ab8c4ba3ef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyBindingTable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyBindingTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Delete the Tk bindings, unregister the event handler and free a table. </p>
+<p>
+Does not free the owner, objects or tag-key storage. Frees immediately, so the owner must defer this call until active dispatch/repick calls finish. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <strong>[in]</strong> Non-NULL live table, with its registered window still valid for Tk_DeleteEventHandler.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ConfigureBindingsFromObj">
+<span class="target" id="rbc_bind_8h_1a1772f4e38aa1094a72ba3196d4165f99"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ConfigureBindingsFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ConfigureBindingsFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or change bindings for one pointer-identity binding key. </p>
+<p>
+Zero arguments lists sequences, one queries a sequence, two set it. An empty script deletes the binding; leading ‘+’ appends. Unsupported event masks remove the newly created binding and return an error, without rollback of an earlier binding replaced by that call. No binding script is evaluated here. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[in]</strong> Interpreter receiving the result or diagnostic. </p></li>
+<li><p><strong>table</strong> – <strong>[inout]</strong> Live binding table. </p></li>
+<li><p><strong>item</strong> – <strong>[in]</strong> Stable key, which can be a tag token rather than an object. </p></li>
+<li><p><strong>objc</strong> – <strong>[in]</strong> Number of arguments; caller validates the supported range 0..2. </p></li>
+<li><p><strong>objv</strong> – <strong>[in]</strong> Borrowed sequence and optional script objects. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK or TCL_ERROR with interpreter result from this operation/Tk.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PickCurrentItem">
+<span class="target" id="rbc_bind_8h_1a0b94e1a235979aaca7f9b52ecff0dd0a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PickCurrentItem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PickCurrentItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Repick using the last saved pointer event, if one exists. </p>
+<p>
+Can synchronously run Leave and Enter scripts. Does not query the pointer, schedule idle work, or acquire a preserve scope. The caller must retain the owner/table and revalidate component/window state after callback execution. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <strong>[inout]</strong> Live table retained by its owner throughout this call.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DeleteBindings">
+<span class="target" id="rbc_bind_8h_1a9f3f09574ae623556ee99dcf878b928c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DeleteBindings</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DeleteBindings" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Delete one key’s bindings and clear matching saved object pointers. </p>
+<p>
+Clears matching current, pending and focus objects together with their contexts. Does not free the object, evaluate scripts or immediately repick. Distinct name/class/tag keys are not removed merely because an object using those keys is deleted; the owning component manages that tag policy. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <strong>[inout]</strong> Live table. </p></li>
+<li><p><strong>object</strong> – <strong>[in]</strong> Binding key and/or object identity to remove.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MoveBindingTable">
+<span class="target" id="rbc_bind_8h_1a85de6ce3ca273bfc7f591966bf97b4a5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MoveBindingTable</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MoveBindingTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the event-handler registration to another live window. </p>
+<p>
+Preserves Tk bindings, owner, current/focus targets and the saved pick event. Does not remap coordinates or repick. The owner manages geometry and lifetime when moving between graph and external-legend windows. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <strong>[inout]</strong> Live table; any old registered window must still be valid. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed non-NULL destination window.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="internal-dispatch-callbacks">
+<h2>Internal dispatch callbacks<a class="headerlink" href="#internal-dispatch-callbacks" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DoEvent">
+<span class="target" id="group__binding__callbacks_1ga1587335ef70e22cfb85cbeeecb2c7432"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoEvent</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">item</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DoEvent" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Collect binding keys and synchronously dispatch one event through Tk. </p>
+<p>
+Key events prefer an explicit focus object. Skips absent/dead windows and absent objects. Calls tagProc (or supplies all/item keys), copies keys to a stack array of up to 32 entries or an allocated array, then calls Tk_BindEvent. Releases only temporary list/array storage. Scripts can delete components; this helper does not preserve the owner or binding table itself. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bindPtr</strong> – <strong>[inout]</strong> Table retained by its owner for the call. </p></li>
+<li><p><strong>eventPtr</strong> – <strong>[in]</strong> Borrowed real or synthesized event. </p></li>
+<li><p><strong>item</strong> – <strong>[in]</strong> Borrowed picked object, or NULL to skip delivery. </p></li>
+<li><p><strong>context</strong> – <strong>[in]</strong> Borrowed object type/owner discriminator.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PickCurrentItem">
+<span class="target" id="group__binding__callbacks_1ga47a78d6a7639bb27ad6946cde58ba50e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickCurrentItem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_BindTableStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bindPtr</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PickCurrentItem" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Update the current object/context and synthesize crossing events. </p>
+<p>
+Saves pointer state for later repicks. LeaveNotify clears the hit without calling pickProc. Both object and context participate in target comparison. Publishes the pending target before Leave so Rbc_DeleteBindings can cancel its subsequent Enter. Recursive repick during Leave saves the event but returns without another transition. Button state controls grab behavior. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bindPtr</strong> – <strong>[inout]</strong> Table retained by the caller across callback execution. </p></li>
+<li><p><strong>eventPtr</strong> – <strong>[in]</strong> Pointer-location event, or the table’s saved pickEvent.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.BindProc">
+<span class="target" id="group__binding__callbacks_1gad622e7c3af0d33f7d9adde28b921c54b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BindProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Handle Tk key, button, crossing and motion events for object bindings. </p>
+<p>
+Preserves the owner at bindPtr-&gt;clientData, not the binding table separately. Press repicks before dispatch; release dispatches before repicking with the post-release button state. Motion repicks then dispatches; key events use current/focus state. Owner cleanup must defer table destruction until return. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Binding table registered as the Tk event-handler data. </p></li>
+<li><p><strong>eventPtr</strong> – <strong>[inout]</strong> Borrowed event; release-state edits are restored.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="graph-specific-callbacks">
+<h2>Graph-specific callbacks<a class="headerlink" href="#graph-specific-callbacks" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GraphTags">
+<span class="target" id="group__graph__picking_1ga128737d3c6cd5564dfcee259e90b1828"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphTags</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GraphTags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append graph binding keys according to the explicit object context. </p>
+<p>
+Axes/elements/markers append name, class and configured tags using separate component token tables. Tracks append the track pointer and private all-track token. Does not evaluate Tcl or take ownership of the appended keys. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <strong>[in]</strong> Graph-owned binding table. </p></li>
+<li><p><strong>object</strong> – <strong>[in]</strong> Borrowed axis, element, marker or track. </p></li>
+<li><p><strong>context</strong> – <strong>[in]</strong> Encoded GraphBindContext; no shared record prefix is assumed. </p></li>
+<li><p><strong>list</strong> – <strong>[inout]</strong> Temporary one-word-key list owned by event dispatch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PickEntry">
+<span class="target" id="group__graph__picking_1gaeb6cabe30ce38f392a2e0b7f1d786f2d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickEntry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">contextPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PickEntry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hit-test graph components and return a borrowed object/context pair. </p>
+<p>
+Pending full mapping can invoke axis format callbacks. Local legend rectangles exclude graph hits. Margins select axes; the plot tests above-markers, eligible elements, under-markers and finally track backgrounds. Elements use their own closestProc under the owning track viewport, skipping dirty/pending vector geometry. The caller must retain the graph across callback-capable layout. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Graph retained by the binding dispatcher or repick caller. </p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> Window-relative horizontal pixel coordinate. </p></li>
+<li><p><strong>y</strong> – <strong>[in]</strong> Window-relative vertical pixel coordinate. </p></li>
+<li><p><strong>contextPtr</strong> – <strong>[out]</strong> Encoded GraphBindContext on a hit, otherwise NULL. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed component or NULL for no hit/layout cancellation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Binding and picking C reference</a><ul>
+<li><a class="reference internal" href="#shared-interface">Shared interface</a><ul>
+<li><a class="reference internal" href="#c.Rbc_BindTable"><code class="docutils literal notranslate"><span class="pre">Rbc_BindTable</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CreateBindingTable"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateBindingTable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyBindingTable"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyBindingTable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ConfigureBindingsFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_ConfigureBindingsFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PickCurrentItem"><code class="docutils literal notranslate"><span class="pre">Rbc_PickCurrentItem()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DeleteBindings"><code class="docutils literal notranslate"><span class="pre">Rbc_DeleteBindings()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MoveBindingTable"><code class="docutils literal notranslate"><span class="pre">Rbc_MoveBindingTable()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#internal-dispatch-callbacks">Internal dispatch callbacks</a><ul>
+<li><a class="reference internal" href="#c.DoEvent"><code class="docutils literal notranslate"><span class="pre">DoEvent()</span></code></a></li>
+<li><a class="reference internal" href="#c.PickCurrentItem"><code class="docutils literal notranslate"><span class="pre">PickCurrentItem()</span></code></a></li>
+<li><a class="reference internal" href="#c.BindProc"><code class="docutils literal notranslate"><span class="pre">BindProc()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graph-specific-callbacks">Graph-specific callbacks</a><ul>
+<li><a class="reference internal" href="#c.GraphTags"><code class="docutils literal notranslate"><span class="pre">GraphTags()</span></code></a></li>
+<li><a class="reference internal" href="#c.PickEntry"><code class="docutils literal notranslate"><span class="pre">PickEntry()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="bindings.html"
+                          title="previous chapter">Binding dispatch and picking</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bindings.html" title="Binding dispatch and picking"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Binding and picking C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -10,6 +10,16 @@
  * See "license.terms" for details.
  */
 
+/**
+ * @file rbcBind.c
+ * @brief Shared object event dispatch, current-item tracking and Tk bindings.
+ */
+
+/**
+ * @defgroup binding_callbacks Binding dispatch callbacks
+ * @brief Private event delivery and pointer transition machinery.
+ */
+
 #include "rbcInt.h"
 #include "rbcBind.h"
 
@@ -39,40 +49,24 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
 static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr);
 
 /*
- * How to make drag&drop work?
- *
- *  Right now we generate pseudo <Enter> <Leave> events within
- *  button grab on an object.  They're marked NotifyVirtual instead
- *  of NotifyAncestor.  A better solution: generate new-style
- *  virtual <<DragEnter>> <<DragMotion>> <<DragLeave>> events.
- *  These virtual events don't have to exist as "real" event
- *  sequences, like virtual events do now.
+ * The default path retains the current target during button grabs.
+ * FULLY_SIMULATE_GRAB enables the historical extra crossing-event path below;
+ * it does not introduce dedicated DragEnter/DragMotion/DragLeave virtual events.
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup binding_callbacks
+ * @brief Collect binding keys and synchronously dispatch one event through Tk.
+ * @param[in,out] bindPtr Table retained by its owner for the call.
+ * @param[in] eventPtr Borrowed real or synthesized event.
+ * @param[in] item Borrowed picked object, or NULL to skip delivery.
+ * @param[in] context Borrowed object type/owner discriminator.
  *
- * DoEvent --
- *
- *      This procedure is called to invoke binding processing
- *      for a new event that is associated with the current item
- *      for a legend.
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr - Binding information for widget in which event occurred.
- *      XEvent *eventPtr - Real or simulated X event that is to be processed.
- *      ClientData item - Item picked.
- *      ClientData context - Context of item.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Depends on the bindings for the legend.  A binding script
- *      could delete an entry, so callers should protect themselves
- *      with Tcl_Preserve and Tcl_Release.
- *
- *--------------------------------------------------------------
+ * Key events prefer an explicit focus object. Skips absent/dead windows and
+ * absent objects. Calls tagProc (or supplies all/item keys), copies keys to a
+ * stack array of up to 32 entries or an allocated array, then calls Tk_BindEvent.
+ * Releases only temporary list/array storage. Scripts can delete components;
+ * this helper does not preserve the owner or binding table itself.
  */
 static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData item, ClientData context) {
     Rbc_List bindIds;
@@ -129,33 +123,17 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
     Rbc_ListDestroy(bindIds);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup binding_callbacks
+ * @brief Update the current object/context and synthesize crossing events.
+ * @param[in,out] bindPtr Table retained by the caller across callback execution.
+ * @param[in] eventPtr Pointer-location event, or the table's saved pickEvent.
  *
- * PickCurrentItem --
- *
- *      Find the topmost item in a legend that contains a given
- *      location and mark the the current item.  If the current
- *      item has changed, generate a fake exit event on the old
- *      current item and a fake enter event on the new current
- *      item.
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr - Binding table information.
- *      XEvent *eventPtr - Event describing location of mouse cursor.  Must be EnterWindow, LeaveWindow, ButtonRelease,
- *          or MotionNotify
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The current item may change.  If it does, then the commands
- *      associated with item entry and exit could do just about
- *      anything.  A binding script could delete the legend, so
- *      callers should protect themselves with Tcl_Preserve and
- *      Tcl_Release.
- *
- *--------------------------------------------------------------
+ * Saves pointer state for later repicks. LeaveNotify clears the hit without
+ * calling pickProc. Both object and context participate in target comparison.
+ * Publishes the pending target before Leave so Rbc_DeleteBindings can cancel
+ * its subsequent Enter. Recursive repick during Leave saves the event but
+ * returns without another transition. Button state controls grab behavior.
  */
 static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     unsigned int buttonDown;
@@ -336,26 +314,16 @@ static void PickCurrentItem(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup binding_callbacks
+ * @brief Handle Tk key, button, crossing and motion events for object bindings.
+ * @param[in] clientData Binding table registered as the Tk event-handler data.
+ * @param[in,out] eventPtr Borrowed event; release-state edits are restored.
  *
- * BindProc --
- *
- *      This procedure is invoked by the Tk dispatcher to handle
- *      events associated with bindings on items.
- *
- * Parameters:
- *      ClientData clientData - Pointer to widget structure.
- *      XEvent *eventPtr - Pointer to X event that just happened.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Depends on the command invoked as part of the binding
- *      (if there was any).
- *
- *--------------------------------------------------------------
+ * Preserves the owner at bindPtr->clientData, not the binding table separately.
+ * Press repicks before dispatch; release dispatches before repicking with the
+ * post-release button state. Motion repicks then dispatches; key events use
+ * current/focus state. Owner cleanup must defer table destruction until return.
  */
 static void BindProc(ClientData clientData, XEvent *eventPtr) {
     Rbc_BindTableStruct *bindPtr = clientData;
@@ -421,28 +389,6 @@ static void BindProc(ClientData clientData, XEvent *eventPtr) {
     Tcl_Release(bindPtr->clientData);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_ConfigureBindingsFromObj --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Rbc_BindTableStruct *bindPtr
- *      ClientData item
- *      int argc
- *      Tcl_Obj *const *objv
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPtr, ClientData item, Tcl_Size objc,
                                  Tcl_Obj *const objv[]) {
     const char *command;
@@ -488,28 +434,6 @@ int Rbc_ConfigureBindingsFromObj(Tcl_Interp *interp, Rbc_BindTableStruct *bindPt
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_CreateBindingTable --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      ClientData clientData
- *      Rbc_BindPickProc *pickProc
- *      Rbc_BindTagProc *tagProc
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 Rbc_BindTable Rbc_CreateBindingTable(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData,
                                      Rbc_BindPickProc *pickProc, Rbc_BindTagProc *tagProc) {
     unsigned int mask;
@@ -528,24 +452,6 @@ Rbc_BindTable Rbc_CreateBindingTable(Tcl_Interp *interp, Tk_Window tkwin, Client
     return bindPtr;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_DestroyBindingTable --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_DestroyBindingTable(Rbc_BindTableStruct *bindPtr) {
     unsigned int mask;
 
@@ -556,53 +462,17 @@ void Rbc_DestroyBindingTable(Rbc_BindTableStruct *bindPtr) {
     ckfree((char *)bindPtr);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_PickCurrentItem --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_PickCurrentItem(Rbc_BindTableStruct *bindPtr) {
     if (bindPtr->activePick) {
         PickCurrentItem(bindPtr, &(bindPtr->pickEvent));
     }
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_DeleteBindings --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr
- *      ClientData object
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_DeleteBindings(Rbc_BindTableStruct *bindPtr, ClientData object) {
     Tk_DeleteAllBindings(bindPtr->bindingTable, object);
     /*
-     * If this is the object currently picked, we need to repick one.
+     * Invalidate saved targets now; the owner or a later pointer event
+     * performs any required repick after component removal is complete.
      */
     if (bindPtr->currentItem == object) {
         bindPtr->currentItem = NULL;
@@ -618,25 +488,6 @@ void Rbc_DeleteBindings(Rbc_BindTableStruct *bindPtr, ClientData object) {
     }
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_MoveBindingTable --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_BindTableStruct *bindPtr
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_MoveBindingTable(Rbc_BindTableStruct *bindPtr, Tk_Window tkwin) {
     unsigned int mask;
 

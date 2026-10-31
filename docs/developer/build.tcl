@@ -97,6 +97,8 @@ proc ::rbcDocBuild::main {arguments} {
         @GRAPH_SOURCE@ [doxyQuote [file join $root generic rbcGraph.c]] \
         @VECTOR_HEADER@ [doxyQuote [file join $root generic rbcVector.h]] \
         @VECTOR_INT_HEADER@ [doxyQuote [file join $root generic rbcVectorInt.h]] \
+        @BIND_HEADER@ [doxyQuote [file join $root generic rbcBind.h]] \
+        @BIND_SOURCE@ [doxyQuote [file join $root generic rbcBind.c]] \
         @VERSION@ $version]
     set config [file join $output Doxyfile]
     writeFile $config [string map $substitutions [readFile [file join $source Doxyfile.in]]]

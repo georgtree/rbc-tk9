@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Binding dispatch and picking &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Binding and picking C reference" href="binding-reference.html" />
+    <link rel="prev" title="Vector client C reference" href="vector-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Binding dispatch and picking</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="binding-dispatch-and-picking">
+<h1>Binding dispatch and picking<a class="headerlink" href="#binding-dispatch-and-picking" title="Link to this heading">¶</a></h1>
+<p>RBC’s component bindings use Tk’s binding engine, but RBC determines which
+object receives an event and which binding keys apply to it. These private
+interfaces are separate from ordinary widget/class bindings and are not part
+of the vector stubs API. All picking and script dispatch occurs on the Tk thread.</p>
+<section id="responsibilities">
+<h2>Responsibilities<a class="headerlink" href="#responsibilities" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcBind.c</span></code></p></td>
+<td><p>Register the window event handler, remember pointer/button/focus state,
+synthesize object crossing events, collect keys and call Tk_BindEvent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbcGraph.c</span></code></p></td>
+<td><p>Pick axes, elements, markers and track backgrounds; translate the explicit
+component context into the component’s binding keys.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcGrLegd.c</span></code></p></td>
+<td><p>Pick global/local legend entries, resolve overlapping legend rectangles,
+and supply keys from the selected legend’s own tag table.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Component modules</p></td>
+<td><p>Own hit geometry and tag tokens, expose bind commands, and invalidate
+saved binding targets before deleting their component records.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code></p></td>
+<td><p>Request stationary-pointer repicking after native track layout changes.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The common graph has a binding table for components. The global legend has a
+separate table, and track legends use a shared graph-owned local-legend table.
+These tables have their own current/focus state; there is no single universal
+current object for every kind of interaction.</p>
+</section>
+<section id="objects-contexts-and-binding-keys">
+<h2>Objects, contexts and binding keys<a class="headerlink" href="#objects-contexts-and-binding-keys" title="Link to this heading">¶</a></h2>
+<p>A picker returns a borrowed object pointer and a context value. The generic
+binding layer compares both values when deciding whether the pointer has
+entered a different target. It does not inspect component record layouts.</p>
+<p>For graph components, the context encodes <code class="docutils literal notranslate"><span class="pre">GraphBindContext</span></code> (axis, element,
+marker or track). For a legend entry, the object is an element and the context
+is the owning <code class="docutils literal notranslate"><span class="pre">Legend</span></code> pointer. The same element appearing in different
+legends therefore does not imply the same binding target.</p>
+<p>The tag callback turns the object/context into ordered pointer-identity keys.
+These are the keys used by Tk’s binding table, not necessarily the addresses of
+the picked objects:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Target</p></th>
+<th class="head"><p>Key order and storage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Axis, element or marker</p></td>
+<td><p>Name, class, then configured tags; keys are interned in that component
+family’s graph-owned tag table.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Track background</p></td>
+<td><p>Track pointer, then the private all-track token <code class="docutils literal notranslate"><span class="pre">&amp;graphPtr-&gt;tracks</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Legend entry</p></td>
+<td><p>Element name, class, then configured tags, interned in the selected
+legend’s tag table.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Generic table without a tag callback</p></td>
+<td><p>Tk UID for <code class="docutils literal notranslate"><span class="pre">all</span></code>, then the item pointer.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Do not replace these keys with arbitrary equal strings: pointer identity is
+what joins configuration and event dispatch. Separate token tables also prevent
+an element tag from accidentally matching an axis or marker tag with the same
+spelling. Deleting an object pointer does not implicitly delete every name/class
+binding that its tag callback may have supplied.</p>
+</section>
+<section id="graph-hit-priority">
+<h2>Graph hit priority<a class="headerlink" href="#graph-hit-priority" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PickEntry</span></code> first updates layout when <code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> is pending. Layout can invoke
+axis-format scripts, so a hit test is not necessarily free of Tcl callbacks.
+If layout is cancelled, picking returns no object.</p>
+<p>A local legend’s visible rectangle excludes ordinary graph hits. Outside the
+plot extents, the picker considers axes. Inside the plot, it tests:</p>
+<ol class="arabic simple">
+<li><p>Markers drawn above elements.</p></li>
+<li><p>Eligible elements, traversing the display list backward and using each
+element’s <code class="docutils literal notranslate"><span class="pre">closestProc</span></code> to update a common distance search.</p></li>
+<li><p>Markers drawn below elements.</p></li>
+<li><p>Track backgrounds, excluding legend rectangles and the gaps between tracks.</p></li>
+</ol>
+<p>An element must be visible, not plot-hidden, and in normal state. Dirty element
+mapping or pending X/Y vector notification excludes it from this search.
+Track-owned elements additionally require a usable viewport and a pointer
+inside it. <code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> bracket the element’s
+closest-point calculation. This preserves shared component algorithms while
+using the correct track transformation.</p>
+<p>The element search uses the graph halo, guarded against integer overflow, and
+<code class="docutils literal notranslate"><span class="pre">SEARCH_AUTO</span></code>. Component <code class="docutils literal notranslate"><span class="pre">closestProc</span></code> implementations decide geometric
+distance and point/segment details. This chapter does not replace those
+algorithms with a generic rectangular hit test.</p>
+</section>
+<section id="legend-picking-and-occlusion">
+<h2>Legend picking and occlusion<a class="headerlink" href="#legend-picking-and-occlusion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LegendAtPoint</span></code> resolves raised legends before lowered legends, testing the
+global legend then track legends within each pass. External global legends use
+their own window. <code class="docutils literal notranslate"><span class="pre">LegendContains</span></code> tests the full visible legend rectangle,
+including blank padding; <code class="docutils literal notranslate"><span class="pre">PickLegendIn</span></code> separately determines whether that
+location selects an entry. Thus blank legend padding can occlude a track
+background without becoming an element hit.</p>
+<p>Local legend hits must also lie inside their track’s viewport. Entry lookup
+uses reverse element display order and filters for the owning track. One-row
+legends use each entry’s actual width; multi-row legends use row/column cell
+geometry. Keep picking consistent with drawing when changing legend layout.</p>
+</section>
+<section id="pointer-transitions-and-button-state">
+<h2>Pointer transitions and button state<a class="headerlink" href="#pointer-transitions-and-button-state" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">BindProc</span></code> receives Tk events and updates the remembered modifier state:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Event</p></th>
+<th class="head"><p>Processing order</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Button press</p></td>
+<td><p>Repick with the pre-press state, update the logical button state, dispatch.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Button release</p></td>
+<td><p>Dispatch to the existing target, repick with the post-release state,
+restore the borrowed event’s original state field.</p></td>
+</tr>
+<tr class="row-even"><td><p>Motion</p></td>
+<td><p>Repick, then dispatch motion to the resulting current target.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Enter / Leave</p></td>
+<td><p>Repick; object crossing events are synthesized by that operation.</p></td>
+</tr>
+<tr class="row-even"><td><p>Key press / release</p></td>
+<td><p>Dispatch using current state; an explicit focus object takes precedence.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">PickCurrentItem</span></code> saves a crossing-shaped pointer event for later reuse.
+A window Leave means no target and bypasses hit testing. When the target changes
+without a button grab, it sends Leave to the old target and Enter to the new
+one, using <code class="docutils literal notranslate"><span class="pre">NotifyAncestor</span></code> detail.</p>
+<p>Before Leave is evaluated, the pending target is stored in <code class="docutils literal notranslate"><span class="pre">newItem</span></code> and
+<code class="docutils literal notranslate"><span class="pre">newContext</span></code>. If the Leave script deletes that destination, component cleanup
+can clear those fields through <a class="reference internal" href="binding-reference.html#c.Rbc_DeleteBindings" title="Rbc_DeleteBindings"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DeleteBindings()</span></code></a>; the picker then
+avoids Enter on the deleted object. <code class="docutils literal notranslate"><span class="pre">REPICK_IN_PROGRESS</span></code> prevents recursive
+Leave-transition processing, although a nested call can update the saved event.</p>
+<p>In the normal build, moving to another target while a button is held marks
+<code class="docutils literal notranslate"><span class="pre">LEFT_GRABBED_ITEM</span></code> and retains the current target until release. The source
+also contains a <code class="docutils literal notranslate"><span class="pre">FULLY_SIMULATE_GRAB</span></code> conditional path for additional crossing
+behavior; its presence is not a promise that ordinary builds deliver those
+extra transitions. Button-grab tracking here uses Button1 through Button5 masks.</p>
+<p>The focus/current setter macros in <code class="docutils literal notranslate"><span class="pre">rbcBind.h</span></code> only assign pointer/context
+pairs. They do not synthesize crossing events, query geometry or preserve the
+assigned objects. Use them only when the owning component also maintains the
+corresponding lifetime and state invariants.</p>
+</section>
+<section id="dispatch-and-configuration">
+<h2>Dispatch and configuration<a class="headerlink" href="#dispatch-and-configuration" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DoEvent</span></code> collects the keys and invokes <code class="docutils literal notranslate"><span class="pre">Tk_BindEvent</span></code> synchronously. Up to
+32 keys use stack storage; larger lists use a temporary allocated array. RBC
+owns these containers, while the owner supplies stable key storage. Tk handles
+binding matching and script evaluation. The tag callback itself should collect
+keys without evaluating Tcl or destroying the binding table.</p>
+<p><a class="reference internal" href="binding-reference.html#c.Rbc_ConfigureBindingsFromObj" title="Rbc_ConfigureBindingsFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureBindingsFromObj()</span></code></a> accepts an already validated argument
+count: no arguments list sequences, one queries a sequence, and two set a
+script. Empty scripts delete a binding; a leading <code class="docutils literal notranslate"><span class="pre">+</span></code> appends. Its event-mask
+validation allows key, button, motion, crossing and virtual sequences. A newly
+created binding with an unsupported mask is deleted, not rolled back to a prior
+script. The native handler’s switch has no direct VirtualEvent case; accepting
+a virtual sequence must not be confused with explicit dispatch of every
+synthetically generated virtual event by this module.</p>
+</section>
+<section id="lifetime-and-deletion">
+<h2>Lifetime and deletion<a class="headerlink" href="#lifetime-and-deletion" title="Link to this heading">¶</a></h2>
+<p>The table borrows its owner, window, objects and context values. Creation owns
+the Tk binding table and registers an event handler; destruction unregisters
+that handler and frees the table immediately. No generic reference count keeps
+individual components alive.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BindProc</span></code> preserves <code class="docutils literal notranslate"><span class="pre">bindPtr-&gt;clientData</span></code>, which graph and legend tables set
+to the graph record. Graph final disposal is deferred until that preserve is
+released. This keeps graph-owned binding tables alive through ordinary widget
+destruction from a binding script. It does not authorize directly destroying
+the binding table during active dispatch, nor does it preserve a component
+that a script deletes.</p>
+<p>Before freeing an object, its owning component calls
+<a class="reference internal" href="binding-reference.html#c.Rbc_DeleteBindings" title="Rbc_DeleteBindings"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DeleteBindings()</span></code></a> to clear matching current, pending and focus targets.
+The operation deletes bindings keyed by that exact pointer, but does not free
+objects, evaluate scripts, or immediately repick. The owner manages any separate
+tag-key cleanup and determines when geometry is ready for another pick.</p>
+<p><a class="reference internal" href="binding-reference.html#c.Rbc_PickCurrentItem" title="Rbc_PickCurrentItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PickCurrentItem()</span></code></a> is synchronous and adds no preserve scope of its
+own. Its caller must retain the owner/table and check state after callbacks.
+<code class="docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView</span></code> does so around stationary-pointer repicking, checks the
+window again before scrollbar notification, and skips this work during export.
+This prevents temporary export geometry from changing the screen’s current track.</p>
+<p><a class="reference internal" href="binding-reference.html#c.Rbc_MoveBindingTable" title="Rbc_MoveBindingTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MoveBindingTable()</span></code></a> moves only the handler registration and window
+pointer. It retains bindings and saved current/focus/pick state; it neither
+translates saved coordinates nor repicks. Legend/window management must account
+for that when moving between embedded and external presentation.</p>
+</section>
+<section id="validation-when-changing-behavior">
+<h2>Validation when changing behavior<a class="headerlink" href="#validation-when-changing-behavior" title="Link to this heading">¶</a></h2>
+<p>Existing regression coverage includes <code class="docutils literal notranslate"><span class="pre">RBC.trackgraph.bind.A.test</span></code> and
+<code class="docutils literal notranslate"><span class="pre">RBC.trackgraph.legend.A.test</span></code>, plus graph/barchart/stripchart axis, element,
+marker and legend binding files. Exercise overlapping objects, tag isolation,
+button grabs, deleted Enter destinations, widget destruction from scripts, and
+stationary-pointer reorder/scroll. Include local legend padding and external
+legend windows when changing hit priority or event-handler placement.</p>
+<p>This documentation update changes no dispatch or hit-test behavior. Future
+changes need behavioral tests in those existing component test files.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Binding dispatch and picking</a><ul>
+<li><a class="reference internal" href="#responsibilities">Responsibilities</a></li>
+<li><a class="reference internal" href="#objects-contexts-and-binding-keys">Objects, contexts and binding keys</a></li>
+<li><a class="reference internal" href="#graph-hit-priority">Graph hit priority</a></li>
+<li><a class="reference internal" href="#legend-picking-and-occlusion">Legend picking and occlusion</a></li>
+<li><a class="reference internal" href="#pointer-transitions-and-button-state">Pointer transitions and button state</a></li>
+<li><a class="reference internal" href="#dispatch-and-configuration">Dispatch and configuration</a></li>
+<li><a class="reference internal" href="#lifetime-and-deletion">Lifetime and deletion</a></li>
+<li><a class="reference internal" href="#validation-when-changing-behavior">Validation when changing behavior</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-reference.html"
+                          title="previous chapter">Vector client C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="binding-reference.html"
+                          title="next chapter">Binding and picking C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Binding dispatch and picking</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
