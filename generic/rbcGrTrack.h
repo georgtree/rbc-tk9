@@ -48,6 +48,13 @@ int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
 void Rbc_DestroyTracks(Graph *graphPtr);
 void Rbc_NotifyTrackView(Graph *graphPtr);
 int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * @brief Release a track's local grid and both mapped segment caches.
+ * @param graphPtr Owning graph with live Tk window for local option cleanup.
+ * @param track Track whose local grid pointer and caches are cleared.
+ *
+ * A NULL local grid is allowed. Does not destroy the track or global grid.
+ */
 void Rbc_DestroyTrackGrid(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);

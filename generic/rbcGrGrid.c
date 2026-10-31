@@ -854,25 +854,6 @@ static int ConfigureGrid(Graph *graphPtr, Grid *gridPtr, int mask) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_MapGrid --
- *
- *      Determines the coordinates of the line segments corresponding
- *      to the grid lines for each axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_MapGrid(Graph *graphPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Tcl_Size nSegments;
@@ -989,25 +970,6 @@ static void DrawTrackGrids(Graph *graphPtr, Drawable drawable, Rbc_ExportContext
     if (clip != NULL) Rbc_RenderEnd(clip);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DrawGrid --
- *
- *      Draws the grid lines associated with each axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Rbc_RenderContext *ctx;
@@ -1034,25 +996,6 @@ void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GridExport --
- *
- *      Prints the grid lines associated with each axis.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Grid *gridPtr = (Grid *)graphPtr->gridPtr;
     Rbc_RenderContext *ctx;
@@ -1071,24 +1014,6 @@ void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr) {
     Rbc_RenderEnd(ctx);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DestroyGrid --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Grid GC is released.
- *
- *----------------------------------------------------------------------
- */
 static void DestroyGrid(Graph *graphPtr, Grid *gridPtr) {
     if (gridPtr == NULL) {
         return;

@@ -722,6 +722,14 @@ void Rbc_BarFontsChanged(Graph *graphPtr);
 void Rbc_ConfigureCrosshairs(Graph *graphPtr);
 void Rbc_DestroyAxes(Graph *graphPtr);
 void Rbc_DestroyCrosshairs(Graph *graphPtr);
+/**
+ * @brief Destroy global and local grid resources while the Tk window is live.
+ * @param graphPtr Owning graph with valid track list and Tk window context.
+ *
+ * Clears graphPtr->gridPtr, destroys each track's local grid and cached
+ * segments, then destroys the global grid. Frees axis references, Tk options,
+ * private GC, segment/tick arrays and the grid records.
+ */
 void Rbc_DestroyGrid(Graph *graphPtr);
 void Rbc_DestroyElements(Graph *graphPtr);
 void Rbc_ReleaseElementTkResources(Graph *graphPtr);
@@ -763,6 +771,15 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
  * callbacks. Partial drawing on cancellation is not rolled back.
  */
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
+/**
+ * @brief Draw prepared grid segments into a borrowed screen drawable.
+ * @param graphPtr Borrowed graph with current grid mapping and resources.
+ * @param drawable Compatible window or pixmap.
+ *
+ * Trackgraphs dispatch before testing global visibility, so each effective
+ * track grid controls its own visibility. Uses renderer services and native
+ * fallback as needed. Does not remap geometry or own the drawable.
+ */
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 /**
@@ -833,6 +850,15 @@ void Rbc_MapElements(Graph *graphPtr);
  * scope and MAP_ITEM is cleared afterward. Does not draw or update axes.
  */
 void Rbc_MapMarkers(Graph *graphPtr);
+/**
+ * @brief Rebuild grid segment caches from prepared axes and plot geometry.
+ * @param graphPtr Borrowed graph with initialized grid and current layout.
+ *
+ * Releases old global segments. Polar and Smith representations delegate to
+ * their specialized mappers. Trackgraphs rebuild per-track caches using local
+ * settings or inherited defaults; ordinary graphs rebuild global X/Y segments.
+ * Does not draw, schedule layout or use hidden state to suppress mapping.
+ */
 void Rbc_MapGrid(Graph *graphPtr);
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr);
 void Rbc_MapSmithGrid(Graph *graphPtr, Grid *gridPtr);
@@ -962,6 +988,15 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr);
+/**
+ * @brief Emit prepared grid segments through an initialized export context.
+ * @param graphPtr Borrowed graph mapped for the export dimensions.
+ * @param exportPtr Borrowed export context owned by the caller.
+ *
+ * Track grids use their effective styles, visibility and per-track clips.
+ * Ordinary graphs skip a hidden global grid. Does not perform layout or
+ * finalize the document.
+ */
 void Rbc_GridExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_AxesExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_AxisLimitsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);

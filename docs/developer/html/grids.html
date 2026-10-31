@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grid mapping and inheritance &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Grid C reference" href="grid-reference.html" />
+    <link rel="prev" title="Marker C reference" href="marker-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="grid-reference.html" title="Grid C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Grid mapping and inheritance</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="grid-mapping-and-inheritance">
+<h1>Grid mapping and inheritance<a class="headerlink" href="#grid-mapping-and-inheritance" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrGrid.c</span></code> owns grid options, axis references, segment caches and dispatch
+to screen or document output. A global <code class="docutils literal notranslate"><span class="pre">Grid</span></code> belongs to the graph. A track
+can own a local <code class="docutils literal notranslate"><span class="pre">Grid</span></code> and always has separate X/Y segment caches for its
+plot rectangle. See <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a> for the shared interfaces.</p>
+<section id="configuration-and-axis-selection">
+<h2>Configuration and axis selection<a class="headerlink" href="#configuration-and-axis-selection" title="Link to this heading">¶</a></h2>
+<p>Grid configuration prepares replacement dash patterns, line width, axis
+references and representation-specific tick lists before committing active
+state. Axis lookup acquires references that must be released on failure or
+replacement. Local grids require a shared X axis and a Y axis owned by the
+same track; either mapping can be empty to disable that direction.</p>
+<p>The global grid uses the named <code class="docutils literal notranslate"><span class="pre">grid</span></code>/<code class="docutils literal notranslate"><span class="pre">Grid</span></code> option-database component.
+Local-grid initialization follows a different path: it initializes a local
+record and copies the effective inherited options into it. Do not infer a
+separate named option-database child merely from the nested Tcl command.
+See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the common option transaction rules.</p>
+</section>
+<section id="inherited-and-local-state">
+<h2>Inherited and local state<a class="headerlink" href="#inherited-and-local-state" title="Link to this heading">¶</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">track-&gt;grid</span></code> is NULL, the track uses global grid settings. Its X axis
+comes from the global grid. If the global Y mapping is enabled and the track
+has axes, the inherited Y mapping uses the track’s first axis; otherwise that
+direction is disabled. It does not blindly reuse another track’s Y axis.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_TrackGridOp</span></code> builds a temporary view for inherited queries. A <code class="docutils literal notranslate"><span class="pre">cget</span></code> or
+configuration query therefore does not materialize a local grid or freeze its
+defaults. The view borrows global resources and has a temporary option table
+and Y-axis name object; cleanup must not treat it as an independently owned
+live grid.</p>
+<p>The first modifying operation creates a candidate local grid from the effective
+settings. It is attached to the track only when the requested operation succeeds.
+Failure destroys the candidate. Once local state exists, subsequent operations
+use it rather than continuing to inherit changes to the global settings.</p>
+<p>Nested dispatch temporarily selects the local grid or query view through
+<code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;gridPtr</span></code> and restores the global pointer afterward. This is a
+synchronous adapter for existing grid operations, not a transfer of ownership
+or permission to retain the temporary view.</p>
+</section>
+<section id="segment-mapping">
+<h2>Segment mapping<a class="headerlink" href="#segment-mapping" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_MapGrid</span></code> frees previous global X/Y segments and resets their counts.
+For an ordinary Cartesian graph, <code class="docutils literal notranslate"><span class="pre">Rbc_GetAxisSegments</span></code> generates segments
+from each selected axis’s ticks, including minor ticks when requested.
+Mapping consumes prepared axes and plot geometry; it does not compute a new
+axis range or paint anything.</p>
+<p>For trackgraphs, the mapper clears and rebuilds <code class="docutils literal notranslate"><span class="pre">track-&gt;gridX</span></code> and
+<code class="docutils literal notranslate"><span class="pre">track-&gt;gridY</span></code> using the effective local or inherited configuration. Collapsed
+visible regions are skipped. Generation runs inside a paired track viewport
+scope so segments span the owning plot region. Style ownership and geometry
+ownership are therefore distinct: an inherited style can be shared while every
+track still owns its own mapped segment arrays.</p>
+<p>For polar widgets, mapping delegates according to representation to
+<code class="docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid</span></code> or <code class="docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid</span></code>. Their specialized geometry remains
+behind the same grid output interface. Tick-list and label-format settings for
+those representations should not be mistaken for Cartesian per-track options.</p>
+<p>Hidden state is evaluated at output, not used to avoid rebuilding these caches.
+Changing visibility alone must not leave an independently visible local grid
+using stale or missing geometry. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for layout ordering.</p>
+</section>
+<section id="screen-and-document-output">
+<h2>Screen and document output<a class="headerlink" href="#screen-and-document-output" title="Link to this heading">¶</a></h2>
+<p>Both <code class="docutils literal notranslate"><span class="pre">Rbc_DrawGrid</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_GridExport</span></code> dispatch trackgraphs before testing
+the global grid’s hidden flag. <code class="docutils literal notranslate"><span class="pre">DrawTrackGrids</span></code> checks each track’s effective
+grid independently. This allows a local grid to remain visible while the
+global grid is hidden and other tracks still inherit that hidden state.</p>
+<p>Screen output first attempts the renderer stroke path. The native fallback
+for track grids clips complete strokes through a reusable scratch drawable,
+rather than relying on a GC clip that Windows segment emulation does not honor.
+Clipping only segment centerlines would allow thick boundary strokes to escape
+into neighboring tracks. Dash coordinates must remain consistent through this
+fallback.</p>
+<p>Export uses renderer segment output with an explicit visible-track clip.
+Both paths enter and leave the track viewport around their work. Ordinary
+non-track output uses the global segment caches and skips a hidden global grid.
+The output functions do not remap geometry or finalize export documents.
+See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for renderer ownership and <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for temporary
+export layouts and screen restoration.</p>
+</section>
+<section id="cleanup-and-regression-checks">
+<h2>Cleanup and regression checks<a class="headerlink" href="#cleanup-and-regression-checks" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid</span></code> destroys local option resources, clears the local-grid
+pointer, releases both per-track segment arrays and zeros their cache records.
+It also handles tracks with inherited configuration and no local grid.
+<code class="docutils literal notranslate"><span class="pre">Rbc_DestroyGrid</span></code> clears the global pointer, releases every track grid, then
+releases the global record. The track list must still be valid during this pass.</p>
+<p>Grid destruction requires a live Tk window for option cleanup. Axis references,
+option tables, private graphics contexts, segment arrays and specialized tick
+arrays each have explicit cleanup. Do not free borrowed query-view resources
+using this owning destructor.</p>
+<p>Useful regression cases include querying before global reconfiguration, first
+local mutation, independent local visibility, alternate axis selection,
+inversion, thick boundary strokes and resized export followed by restored
+screen geometry. Check both screen renderers and document output: a correct
+centerline or unchanged transform alone does not prove complete stroke clipping.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Grid mapping and inheritance</a><ul>
+<li><a class="reference internal" href="#configuration-and-axis-selection">Configuration and axis selection</a></li>
+<li><a class="reference internal" href="#inherited-and-local-state">Inherited and local state</a></li>
+<li><a class="reference internal" href="#segment-mapping">Segment mapping</a></li>
+<li><a class="reference internal" href="#screen-and-document-output">Screen and document output</a></li>
+<li><a class="reference internal" href="#cleanup-and-regression-checks">Cleanup and regression checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="marker-reference.html"
+                          title="previous chapter">Marker C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="grid-reference.html"
+                          title="next chapter">Grid C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="grid-reference.html" title="Grid C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Grid mapping and inheritance</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

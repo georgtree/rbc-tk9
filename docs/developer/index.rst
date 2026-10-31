@@ -23,6 +23,8 @@ chapters.
    vector-reference
    markers
    marker-reference
+   grids
+   grid-reference
    pens
    pen-reference
    elements

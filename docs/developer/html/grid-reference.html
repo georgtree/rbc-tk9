@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grid C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pens and style palettes" href="pens.html" />
+    <link rel="prev" title="Grid mapping and inheritance" href="grids.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pens.html" title="Pens and style palettes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="grids.html" title="Grid mapping and inheritance"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Grid C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="grid-c-reference">
+<h1>Grid C reference<a class="headerlink" href="#grid-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private entry points borrow the graph and require the preparation or
+cleanup context described in <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>.</p>
+<section id="mapping-and-output">
+<h2>Mapping and output<a class="headerlink" href="#mapping-and-output" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapGrid">
+<span class="target" id="rbc_graph_8h_1ac74ef52e5fff4ea6728c7d587e2a4ae7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild grid segment caches from prepared axes and plot geometry. </p>
+<p>
+Releases old global segments. Polar and Smith representations delegate to their specialized mappers. Trackgraphs rebuild per-track caches using local settings or inherited defaults; ordinary graphs rebuild global X/Y segments. Does not draw, schedule layout or use hidden state to suppress mapping. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with initialized grid and current layout.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawGrid">
+<span class="target" id="rbc_graph_8h_1a88822c38a7408e586b30f7d149dccb90"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw prepared grid segments into a borrowed screen drawable. </p>
+<p>
+Trackgraphs dispatch before testing global visibility, so each effective track grid controls its own visibility. Uses renderer services and native fallback as needed. Does not remap geometry or own the drawable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current grid mapping and resources. </p></li>
+<li><p><strong>drawable</strong> – Compatible window or pixmap.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GridExport">
+<span class="target" id="rbc_graph_8h_1a2b02618db8919ce19372265a10dc8396"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GridExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GridExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit prepared grid segments through an initialized export context. </p>
+<p>
+Track grids use their effective styles, visibility and per-track clips. Ordinary graphs skip a hidden global grid. Does not perform layout or finalize the document. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph mapped for the export dimensions. </p></li>
+<li><p><strong>exportPtr</strong> – Borrowed export context owned by the caller.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="ownership-and-cleanup">
+<h2>Ownership and cleanup<a class="headerlink" href="#ownership-and-cleanup" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyTrackGrid">
+<span class="target" id="rbc_gr_track_8h_1a392edcd11f08ace11fad78bf01b087d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTrackGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a track’s local grid and both mapped segment caches. </p>
+<p>
+A NULL local grid is allowed. Does not destroy the track or global grid. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph with live Tk window for local option cleanup. </p></li>
+<li><p><strong>track</strong> – Track whose local grid pointer and caches are cleared.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyGrid">
+<span class="target" id="rbc_graph_8h_1a731f212efd83848658bbdad5abf0661d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyGrid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyGrid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy global and local grid resources while the Tk window is live. </p>
+<p>
+Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segments, then destroys the global grid. Frees axis references, Tk options, private GC, segment/tick arrays and the grid records. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph with valid track list and Tk window context.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Grid C reference</a><ul>
+<li><a class="reference internal" href="#mapping-and-output">Mapping and output</a><ul>
+<li><a class="reference internal" href="#c.Rbc_MapGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_MapGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GridExport"><code class="docutils literal notranslate"><span class="pre">Rbc_GridExport()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ownership-and-cleanup">Ownership and cleanup</a><ul>
+<li><a class="reference internal" href="#c.Rbc_DestroyTrackGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyGrid"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyGrid()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="grids.html"
+                          title="previous chapter">Grid mapping and inheritance</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pens.html"
+                          title="next chapter">Pens and style palettes</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pens.html" title="Pens and style palettes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="grids.html" title="Grid mapping and inheritance"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Grid C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
