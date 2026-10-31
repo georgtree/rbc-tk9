@@ -66,9 +66,6 @@ RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name) {
     return NULL;
 }
 
-/* Temporarily select a row for existing clipping, reduction and drawing code.
- * Always pair with Rbc_LeaveTrack, including when track is NULL. Axis mapping
- * itself uses the axis owner, so public transforms do not need this scope. */
 void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved) {
     saved->activeTrack = graphPtr->activeTrack;
     graphPtr->activeTrack = track;

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Coordinate mapping C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Component configuration and resources" href="configuration.html" />
+    <link rel="prev" title="Axes, mapping and track viewports" href="mapping.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Component configuration and resources"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Coordinate mapping C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="coordinate-mapping-c-reference">
+<h1>Coordinate mapping C reference<a class="headerlink" href="#coordinate-mapping-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private helpers borrow their graph, axes and track records. Callers
+prepare current layout and retain the records throughout the operation.
+See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for coordinate conventions and scoped viewport usage.</p>
+<section id="data-and-screen-coordinates">
+<h2>Data and screen coordinates<a class="headerlink" href="#data-and-screen-coordinates" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_HMap">
+<span class="target" id="rbc_graph_8h_1a8065b6b87dd14dea8df1a2709c0dc446"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_HMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_HMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a data value to a horizontal widget coordinate. </p>
+<p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>axisPtr</strong> – Borrowed axis selecting the range, log scale and direction. </p></li>
+<li><p><strong>x</strong> – Data value, before logarithmic conversion. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Double-precision pixel coordinate, or NAN for nonfinite input, invalid logarithmic input or failed normalization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VMap">
+<span class="target" id="rbc_graph_8h_1af2a90839ca45b465bee79c1a78972183"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a data value to a vertical widget coordinate. </p>
+<p>
+Uses the owning track’s full world extent when the axis has a track; otherwise uses the graph offset and range. Does not clip, round, update layout, or execute Tcl. Descending direction is applied after normalization. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>axisPtr</strong> – Borrowed axis selecting the range, log scale and direction. </p></li>
+<li><p><strong>y</strong> – Data value, before logarithmic conversion. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Double-precision pixel coordinate, or NAN for nonfinite input, invalid logarithmic input or failed normalization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Map2D">
+<span class="target" id="rbc_graph_8h_1a61a32fddd6eb3758265a637296b2ce80"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Map2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Map2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a data-coordinate pair to widget pixels without clipping. </p>
+<p>
+Inversion swaps which screen direction receives each logical axis. Axis ownership selects track geometry without entering a temporary track scope. Does not update layout, round coordinates, or execute Tcl. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>x</strong> – X data value. </p></li>
+<li><p><strong>y</strong> – Y data value. </p></li>
+<li><p><strong>pairPtr</strong> – Borrowed pair containing non-NULL X and Y axes. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Point2D in widget coordinates; invalid components may be NAN.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_InvMap2D">
+<span class="target" id="rbc_graph_8h_1a170f8ac33216c3bab39f182295c10766"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InvMap2D</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InvMap2D" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map widget pixels back to logical data coordinates. </p>
+<p>
+Coordinates outside the plot are extrapolated rather than clipped. Log conversion returns NAN outside the supported DBL_MIN to DBL_MAX interval. The caller must check results for finiteness. Does not update layout or execute Tcl, and does not acquire ownership of graph or axes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current ranges and layout. </p></li>
+<li><p><strong>x</strong> – Horizontal widget coordinate. </p></li>
+<li><p><strong>y</strong> – Vertical widget coordinate. </p></li>
+<li><p><strong>pairPtr</strong> – Borrowed pair containing non-NULL X and Y axes. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Point2D in data coordinates, undoing inversion and axis direction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="track-layout-and-viewport-scopes">
+<h2>Track layout and viewport scopes<a class="headerlink" href="#track-layout-and-viewport-scopes" title="Link to this heading">¶</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.RbcTrackViewport">
+<span class="target" id="struct_rbc_track_viewport"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RbcTrackViewport</span></span></span><a class="headerlink" href="#c.RbcTrackViewport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Saved graph viewport for one paired track-entry scope. </p>
+<p>Stack storage owned by the caller. Holds borrowed track identity and copies of graph extents, scales and padding; it neither retains nor frees resources. Restore in reverse entry order when nesting scopes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_LayoutTracks">
+<span class="target" id="rbc_gr_track_8h_1a6b74cfe7d01daa00c735b58b4bae309c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LayoutTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LayoutTracks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute full and visible track rectangles from the current plot. </p>
+<p>
+Updates track extents and resets axis offsets. Fitted tracks distribute the available stacking range by minima and weights; scrolling tracks use their requested sizes and minima. Export computes a clamped offset without writing it back to the screen’s trackOffset. Does not draw or execute Tcl. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current plot geometry and track settings.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_EnterTrack">
+<span class="target" id="rbc_gr_track_8h_1a65e512f04a042d6b47148e49895bfe87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_EnterTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <a class="reference internal" href="#c.RbcTrackViewport" title="RbcTrackViewport"><span class="n"><span class="pre">RbcTrackViewport</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">saved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_EnterTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Temporarily select a track viewport for clipping and component work. </p>
+<p>
+Uses visible bounds for clipping and full world bounds for the stacking direction’s offset and scale, clearing padding in that direction. Inversion changes the stacking direction from vertical to horizontal. NULL still saves state and changes activeTrack. Always pair with Rbc_LeaveTrack, including on early returns. Does not install a renderer clip or provide lifetime protection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph whose viewport fields are temporarily changed. </p></li>
+<li><p><strong>track</strong> – Borrowed track, or NULL to select no active track. </p></li>
+<li><p><strong>saved</strong> – Caller-owned storage receiving the previous viewport.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_LeaveTrack">
+<span class="target" id="rbc_gr_track_8h_1aadd25bc7ba7c8e4f403c2bc6b921c986"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LeaveTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.RbcTrackViewport" title="RbcTrackViewport"><span class="n"><span class="pre">RbcTrackViewport</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">saved</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LeaveTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore the graph fields saved by a matching Rbc_EnterTrack call. </p>
+<p>
+Restores active track, plot bounds, offsets, ranges, scales and padding. Does not undo other graph mutations, layout work or renderer clipping. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Same live graph used on entry. </p></li>
+<li><p><strong>saved</strong> – Intact saved viewport, restored in reverse order of nesting.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The graph layout entry point is documented in <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Coordinate mapping C reference</a><ul>
+<li><a class="reference internal" href="#data-and-screen-coordinates">Data and screen coordinates</a><ul>
+<li><a class="reference internal" href="#c.Rbc_HMap"><code class="docutils literal notranslate"><span class="pre">Rbc_HMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VMap"><code class="docutils literal notranslate"><span class="pre">Rbc_VMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Map2D"><code class="docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_InvMap2D"><code class="docutils literal notranslate"><span class="pre">Rbc_InvMap2D()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#track-layout-and-viewport-scopes">Track layout and viewport scopes</a><ul>
+<li><a class="reference internal" href="#c.RbcTrackViewport"><code class="docutils literal notranslate"><span class="pre">RbcTrackViewport</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_LayoutTracks"><code class="docutils literal notranslate"><span class="pre">Rbc_LayoutTracks()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_EnterTrack"><code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_LeaveTrack"><code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="previous chapter">Axes, mapping and track viewports</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="configuration.html"
+                          title="next chapter">Component configuration and resources</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Component configuration and resources"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Coordinate mapping C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

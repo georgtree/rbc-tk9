@@ -1,3 +1,6 @@
+/** @file rbcGrTrack.h
+ * @brief Private track state and scoped viewport services.
+ */
 /* Private track layout, state and component integration. Not installed.
  * Include this header when track fields or track-specific services are needed.
  * See license.terms for details. */
@@ -10,6 +13,13 @@
 Tcl_Obj **Rbc_CreateTrackComponentArgs(Tcl_Size objc, Tcl_Obj *const objv[]);
 void Rbc_FreeTrackComponentArgs(Tcl_Obj **args);
 
+/**
+ * @brief Saved graph viewport for one paired track-entry scope.
+ *
+ * Stack storage owned by the caller. Holds borrowed track identity and copies
+ * of graph extents, scales and padding; it neither retains nor frees resources.
+ * Restore in reverse entry order when nesting scopes.
+ */
 typedef struct {
     RbcTrack *activeTrack;
     int top, bottom, range, offset, pad1, pad2;
@@ -49,8 +59,37 @@ void Rbc_MapTrackLegends(Graph *graphPtr);
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);
 RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
+/**
+ * @brief Compute full and visible track rectangles from the current plot.
+ * @param graphPtr Borrowed graph with current plot geometry and track settings.
+ *
+ * Updates track extents and resets axis offsets. Fitted tracks distribute the
+ * available stacking range by minima and weights; scrolling tracks use their
+ * requested sizes and minima. Export computes a clamped offset without writing
+ * it back to the screen's trackOffset. Does not draw or execute Tcl.
+ */
 void Rbc_LayoutTracks(Graph *graphPtr);
+/**
+ * @brief Temporarily select a track viewport for clipping and component work.
+ * @param graphPtr Borrowed graph whose viewport fields are temporarily changed.
+ * @param track Borrowed track, or NULL to select no active track.
+ * @param saved Caller-owned storage receiving the previous viewport.
+ *
+ * Uses visible bounds for clipping and full world bounds for the stacking
+ * direction's offset and scale, clearing padding in that direction. Inversion
+ * changes the stacking direction from vertical to horizontal. NULL still saves
+ * state and changes activeTrack. Always pair with Rbc_LeaveTrack, including on
+ * early returns. Does not install a renderer clip or provide lifetime protection.
+ */
 void Rbc_EnterTrack(Graph *graphPtr, RbcTrack *track, RbcTrackViewport *saved);
+/**
+ * @brief Restore the graph fields saved by a matching Rbc_EnterTrack call.
+ * @param graphPtr Same live graph used on entry.
+ * @param saved Intact saved viewport, restored in reverse order of nesting.
+ *
+ * Restores active track, plot bounds, offsets, ranges, scales and padding.
+ * Does not undo other graph mutations, layout work or renderer clipping.
+ */
 void Rbc_LeaveTrack(Graph *graphPtr, const RbcTrackViewport *saved);
 void Rbc_DrawTrackSeparators(Graph *graphPtr, Drawable drawable, Rbc_ExportContext *exportPtr);
 int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis);

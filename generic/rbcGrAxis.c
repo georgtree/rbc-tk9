@@ -2510,28 +2510,7 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
     transactionPtr->stagedMask = 0;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * InvHMap --
- *
- *      Maps the given screen coordinate back to a graph coordinate.
- *      Called by the graph locater routine.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double x
- *
- * Results:
- *      Returns the graph coordinate value at the given window
- *      y-coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
+/* Undo horizontal normalization using the full owning-track extent. */
 static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double value;
 
@@ -2550,28 +2529,7 @@ static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     return value;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * InvVMap --
- *
- *      Maps the given window y-coordinate back to a graph coordinate
- *      value. Called by the graph locater routine.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double y
- *
- * Results:
- *      Returns the graph coordinate value at the given window
- *      y-coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
+/* Undo vertical normalization, including the downward screen direction. */
 static double InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double value;
 
@@ -2590,28 +2548,6 @@ static double InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     return value;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_HMap --
- *
- *      Map the given graph coordinate value to its axis, returning a window
- *      position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double x
- *
- * Results:
- *      Returns a double precision number representing the window coordinate
- *      position on the given axis.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
 double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     if (!FINITE(x)) {
         return NAN;
@@ -2628,28 +2564,6 @@ double Rbc_HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     return MapHorizontalAxisCoordinate(graphPtr, axisPtr, x);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_VMap --
- *
- *      Map the given graph coordinate value to its axis, returning a window
- *      position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double y
- *
- * Results:
- *      Returns a double precision number representing the window coordinate
- *      position on the given axis.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
 double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     if (!FINITE(y)) {
         return NAN;
@@ -2666,28 +2580,6 @@ double Rbc_VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     return MapVerticalAxisCoordinate(graphPtr, axisPtr, y);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_Map2D --
- *
- *      Maps the given graph x,y coordinate values to a window position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      double x - Graph x coordinate
- *      double y - Graph y coordinate
- *      Axis2D *axesPtr - Specifies which axes to use
- *
- * Results:
- *      Returns a XPoint structure containing the window coordinates of
- *      the given graph x,y coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
     Point2D point;
 
@@ -2701,28 +2593,6 @@ Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
     return point;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_InvMap2D --
- *
- *      Maps the given window x,y coordinates to graph values.
- *
- * Parameters:
- *      Graph *graphPtr
- *      double x - Window x coordinate
- *      double y - Window y coordinate
- *      Axis2D *axesPtr - Specifies which axes to use
- *
- * Results:
- *      Returns a structure containing the graph coordinates of
- *      the given window x,y coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
 Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
     Point2D point;
 
