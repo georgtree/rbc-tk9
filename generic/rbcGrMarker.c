@@ -1310,28 +1310,7 @@ static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr)
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * HMap --
- *
- *      Map the given graph coordinate value to its axis, returning a
- *      window position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double x
- *
- * Results:
- *      Returns a floating point number representing the window
- *      coordinate position on the given axis.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
+/* Map horizontal marker coordinates, including elastic endpoint sentinels. */
 static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double norm;
 
@@ -1360,28 +1339,7 @@ static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     return ((norm * graphPtr->hRange) + graphPtr->hOffset);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * VMap --
- *
- *      Map the given graph coordinate value to its axis, returning a
- *      window position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Axis *axisPtr
- *      double y
- *
- * Results:
- *      Returns a double precision number representing the window
- *      coordinate position on the given axis.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
+/* Map vertical marker coordinates against full track geometry. */
 static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double norm;
 
@@ -1411,27 +1369,7 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     return (((1.0 - norm) * graphPtr->vRange) + graphPtr->vOffset);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * MapPoint --
- *
- *      Maps the given graph x,y coordinate values to a window position.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Point2D *pointPtr - Graph X-Y coordinate.
- *      Axis2D *axesPtr - Specifies which axes to use
- *
- * Results:
- *      Returns a XPoint structure containing the window coordinates
- *      of the given graph x,y coordinate.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
- */
+/* Map logical marker coordinates to Point2D pixels, respecting inversion. */
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
     Point2D result;
 
@@ -6322,26 +6260,6 @@ int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
     return markerOps[index].proc(graphPtr, interp, objc, objv);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_MarkersExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      int under
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
@@ -6827,43 +6745,6 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     }        
 }
 
-/*
- * -------------------------------------------------------------------------
- *
- * Rbc_DrawMarkers --
- *
- *      Calls the individual drawing routines (based on marker type)
- *      for each marker in the display list.
- *
- *      A marker will not be drawn if
- *
- *      1) An element linked to the marker (indicated by elemName)
- *         is currently hidden.
- *
- *      2) No coordinates have been specified for the marker.
- *
- *      3) The marker is requesting to be drawn at a different level
- *         (above/below the elements) from the current mode.
- *
- *      4) The marker is configured as hidden (-hide option).
- *
- *      5) The marker isn't visible in the current viewport
- *         (i.e. clipped).
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable - Pixmap or window to draw into
- *      int under
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      Markers are drawn into the drawable (pixmap) which will eventually
- *      be displayed in the graph window.
- *
- * -------------------------------------------------------------------------
- */
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
@@ -7263,24 +7144,6 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
 #endif /* WIN32 */
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_MapMarkers --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_MapMarkers(Graph *graphPtr) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
@@ -7316,24 +7179,6 @@ int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis) {
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DestroyMarkers --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DestroyMarkers(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;

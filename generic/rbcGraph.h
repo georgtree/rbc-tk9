@@ -725,7 +725,25 @@ void Rbc_DestroyCrosshairs(Graph *graphPtr);
 void Rbc_DestroyGrid(Graph *graphPtr);
 void Rbc_DestroyElements(Graph *graphPtr);
 void Rbc_ReleaseElementTkResources(Graph *graphPtr);
+/**
+ * @brief Destroy all marker records and their registry infrastructure.
+ * @param graphPtr Owning graph being torn down.
+ *
+ * Removes bindings and display-list entries, cleans remaining resources through
+ * the class-specific path, then destroys marker and tag hash tables and the
+ * display list. Release Tk-dependent resources before the window disappears.
+ * This whole-registry destructor is not a repeatable resource-release pass.
+ */
 void Rbc_DestroyMarkers(Graph *graphPtr);
+/**
+ * @brief Release marker resources while the graph's Tk window is still live.
+ * @param graphPtr Borrowed graph with initialized marker registry.
+ *
+ * Releases derived resources, common coordinates, tags and axis references
+ * before Tk option resources. Already released or uninitialized
+ * option records are skipped. Marker records and registry entries remain for
+ * later destruction. Window-marker cleanup destroys its current child.
+ */
 void Rbc_ReleaseMarkerTkResources(Graph *graphPtr);
 void Rbc_DestroyPostScript(Graph *graphPtr);
 void Rbc_DrawAxes(Graph *graphPtr, Drawable drawable);
@@ -747,6 +765,17 @@ void Rbc_DrawActiveElements(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore);
 void Rbc_DrawGrid(Graph *graphPtr, Drawable drawable);
 void Rbc_SmithLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+/**
+ * @brief Draw one marker layer and synchronize embedded child visibility.
+ * @param graphPtr Borrowed live graph with current mapped marker geometry.
+ * @param drawable Borrowed compatible screen drawable.
+ * @param under Layer selector: 1 below elements, 0 above elements.
+ *
+ * Synchronizes windows from both layers even when drawing only one layer.
+ * Track drawing preserves painter order with per-track clipping; ordinary
+ * graphs may batch compatible adjacent primitives. Window markers manage
+ * real children rather than paint them into the supplied drawable.
+ */
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under);
 void Rbc_InitFreqTable(Graph *graphPtr);
 /**
@@ -795,6 +824,14 @@ int Rbc_CrosshairsNeedFullRedraw(Graph *graphPtr);
 void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable);
 void Rbc_MapAxes(Graph *graphPtr);
 void Rbc_MapElements(Graph *graphPtr);
+/**
+ * @brief Map pending marker geometry in display-list order.
+ * @param graphPtr Borrowed graph with prepared axes and plot geometry.
+ *
+ * Skips hidden markers and markers without coordinates. MAP_ALL or MAP_ITEM
+ * selects mapping; each class mapper runs in a paired owning-track viewport
+ * scope and MAP_ITEM is cleared afterward. Does not draw or update axes.
+ */
 void Rbc_MapMarkers(Graph *graphPtr);
 void Rbc_MapGrid(Graph *graphPtr);
 void Rbc_MapPolarGrid(Graph *graphPtr, Grid *gridPtr);
@@ -874,6 +911,17 @@ int Rbc_GraphExportOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 void Rbc_ExportBeginGraph(Graph *graphPtr);
 void Rbc_ExportEndGraph(Graph *graphPtr);
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);
+/**
+ * @brief Export eligible markers from one layer in display-list order.
+ * @param graphPtr Borrowed graph with export layout already mapped.
+ * @param exportPtr Borrowed initialized export context.
+ * @param under Layer selector: 1 below elements, 0 above elements.
+ *
+ * Skips missing exporters, absent coordinates, hidden markers and markers
+ * associated with an existing hidden element. Non-window track markers use
+ * a track viewport and renderer clip; window export follows its own capture
+ * path. Does not perform layout or own the export context.
+ */
 void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under);
 void Rbc_ElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_ActiveElementsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);

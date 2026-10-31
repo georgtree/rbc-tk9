@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Marker C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Element data and dispatch" href="elements.html" />
+    <link rel="prev" title="Marker lifecycle and drawing" href="markers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Marker C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="marker-c-reference">
+<h1>Marker C reference<a class="headerlink" href="#marker-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private entry points borrow the graph. Mapping and drawing assume the
+caller has prepared the appropriate layout and retained graph lifetime.
+See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for class dispatch, special window behavior and cleanup.</p>
+<section id="mapping-and-output">
+<h2>Mapping and output<a class="headerlink" href="#mapping-and-output" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapMarkers">
+<span class="target" id="rbc_graph_8h_1a251d4b5913cb851bd967dd06d284ec26"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapMarkers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map pending marker geometry in display-list order. </p>
+<p>
+Skips hidden markers and markers without coordinates. MAP_ALL or MAP_ITEM selects mapping; each class mapper runs in a paired owning-track viewport scope and MAP_ITEM is cleared afterward. Does not draw or update axes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with prepared axes and plot geometry.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DrawMarkers">
+<span class="target" id="rbc_graph_8h_1abdab80839b998dc7bb19282e53204861"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DrawMarkers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw one marker layer and synchronize embedded child visibility. </p>
+<p>
+Synchronizes windows from both layers even when drawing only one layer. Track drawing preserves painter order with per-track clipping; ordinary graphs may batch compatible adjacent primitives. Window markers manage real children rather than paint them into the supplied drawable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed live graph with current mapped marker geometry. </p></li>
+<li><p><strong>drawable</strong> – Borrowed compatible screen drawable. </p></li>
+<li><p><strong>under</strong> – Layer selector: 1 below elements, 0 above elements.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MarkersExport">
+<span class="target" id="rbc_graph_8h_1a729040c4fd69e56b45c712d986ba3938"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkersExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MarkersExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export eligible markers from one layer in display-list order. </p>
+<p>
+Skips missing exporters, absent coordinates, hidden markers and markers associated with an existing hidden element. Non-window track markers use a track viewport and renderer clip; window export follows its own capture path. Does not perform layout or own the export context. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with export layout already mapped. </p></li>
+<li><p><strong>exportPtr</strong> – Borrowed initialized export context. </p></li>
+<li><p><strong>under</strong> – Layer selector: 1 below elements, 0 above elements.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="resource-and-record-cleanup">
+<h2>Resource and record cleanup<a class="headerlink" href="#resource-and-record-cleanup" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ReleaseMarkerTkResources">
+<span class="target" id="rbc_graph_8h_1a4f816f80bf903d305be0d04e7624c371"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleaseMarkerTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleaseMarkerTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release marker resources while the graph’s Tk window is still live. </p>
+<p>
+Releases derived resources, common coordinates, tags and axis references before Tk option resources. Already released or uninitialized option records are skipped. Marker records and registry entries remain for later destruction. Window-marker cleanup destroys its current child. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with initialized marker registry.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyMarkers">
+<span class="target" id="rbc_graph_8h_1a3fc99c89beae39fc1006dcfcb96c8e7c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyMarkers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy all marker records and their registry infrastructure. </p>
+<p>
+Removes bindings and display-list entries, cleans remaining resources through the class-specific path, then destroys marker and tag hash tables and the display list. Release Tk-dependent resources before the window disappears. This whole-registry destructor is not a repeatable resource-release pass. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph being torn down.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="internal-class-interface">
+<h2>Internal class interface<a class="headerlink" href="#internal-class-interface" title="Link to this heading">¶</a></h2>
+<p>The class callbacks are local to <code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code>. Their exact signatures and
+option-table fields are included directly:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="n">MarkerCreateProc</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerDrawProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Drawable</span><span class="w"> </span><span class="n">drawable</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerFreeProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">MarkerConfigProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerMapProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerExportProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_ExportContext</span><span class="w"> </span><span class="o">*</span><span class="n">exportPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">MarkerPointProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Point2D</span><span class="w"> </span><span class="o">*</span><span class="n">samplePtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">MarkerRegionProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Extents2D</span><span class="w"> </span><span class="o">*</span><span class="n">extsPtr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">enclosed</span><span class="p">);</span>
+
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Tk_OptionSpec</span><span class="w"> </span><span class="o">*</span><span class="n">optionSpecs</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Tk_OptionSpec</span><span class="w"> </span><span class="o">*</span><span class="n">monoOptionSpecs</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerConfigProc</span><span class="w"> </span><span class="o">*</span><span class="n">configProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerDrawProc</span><span class="w"> </span><span class="o">*</span><span class="n">drawProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerFreeProc</span><span class="w"> </span><span class="o">*</span><span class="n">freeProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerMapProc</span><span class="w"> </span><span class="o">*</span><span class="n">mapProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerPointProc</span><span class="w"> </span><span class="o">*</span><span class="n">pointProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerRegionProc</span><span class="w"> </span><span class="o">*</span><span class="n">regionProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MarkerExportProc</span><span class="w"> </span><span class="o">*</span><span class="n">exportProc</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">MarkerClass</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Marker C reference</a><ul>
+<li><a class="reference internal" href="#mapping-and-output">Mapping and output</a><ul>
+<li><a class="reference internal" href="#c.Rbc_MapMarkers"><code class="docutils literal notranslate"><span class="pre">Rbc_MapMarkers()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DrawMarkers"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawMarkers()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MarkersExport"><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersExport()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#resource-and-record-cleanup">Resource and record cleanup</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ReleaseMarkerTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseMarkerTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyMarkers"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyMarkers()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#internal-class-interface">Internal class interface</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="markers.html"
+                          title="previous chapter">Marker lifecycle and drawing</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="elements.html"
+                          title="next chapter">Element data and dispatch</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Marker C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

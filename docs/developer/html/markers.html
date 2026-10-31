@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Marker lifecycle and drawing &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Marker C reference" href="marker-reference.html" />
+    <link rel="prev" title="Vector client C reference" href="vector-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Marker lifecycle and drawing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="marker-lifecycle-and-drawing">
+<h1>Marker lifecycle and drawing<a class="headerlink" href="#marker-lifecycle-and-drawing" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> owns the marker registry, display list, shared commands and
+concrete marker classes. <code class="docutils literal notranslate"><span class="pre">MarkerStruct</span></code> contains common coordinates, axes,
+track association, visibility, tags and option state. Each concrete record
+adds its own resources and cached geometry. <code class="docutils literal notranslate"><span class="pre">MarkerClass</span></code> supplies
+configuration, mapping, drawing, export, point/region tests and cleanup.
+See <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> for the shared graph-facing contracts.</p>
+<section id="coordinates-and-mapping">
+<h2>Coordinates and mapping<a class="headerlink" href="#coordinates-and-mapping" title="Link to this heading">¶</a></h2>
+<p>Marker world coordinates are owned by the marker. Class mapping builds display
+geometry using its selected axes, anchor, pixel offsets and other type-specific
+options. <code class="docutils literal notranslate"><span class="pre">Rbc_MapMarkers</span></code> visits the display list and maps items selected by
+<code class="docutils literal notranslate"><span class="pre">MAP_ALL</span></code> or <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden markers and markers with no coordinates are
+skipped; a successful dispatch clears the item’s mapping flag.</p>
+<p>The private marker <code class="docutils literal notranslate"><span class="pre">HMap</span></code>, <code class="docutils literal notranslate"><span class="pre">VMap</span></code> and <code class="docutils literal notranslate"><span class="pre">MapPoint</span></code> helpers are distinct from
+<code class="docutils literal notranslate"><span class="pre">Rbc_HMap</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_VMap</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code>. Marker parsing represents elastic
+<code class="docutils literal notranslate"><span class="pre">Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> endpoints using positive and negative <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code>.
+These sentinels select normalized endpoints before applying descending direction
+and screen orientation. They must not simply be sent through the ordinary
+element-coordinate path.</p>
+<p>The legacy marker logarithmic path also differs: positive values use <code class="docutils literal notranslate"><span class="pre">log10</span></code>,
+negative values are replaced with zero before normalization, and zero remains
+zero. It does not share the ordinary mapping helpers’ nonpositive-input
+rejection and overflow-safe normalization. This chapter describes existing
+behavior; consolidating those paths would require a separate compatibility
+change and tests.</p>
+<p>Track-owned axes map against full world bounds, including the displaced part
+of a scrolled track. Visible bounds are for clipping. Each marker mapper also
+runs within a paired track viewport scope. Region tests can map original
+coordinates outside that drawing scope, so axis ownership must remain enough
+to select the proper full track extent. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>.</p>
+</section>
+<section id="layers-order-and-visibility">
+<h2>Layers, order and visibility<a class="headerlink" href="#layers-order-and-visibility" title="Link to this heading">¶</a></h2>
+<p>The display list defines painter order. <code class="docutils literal notranslate"><span class="pre">drawUnder</span></code> selects the below-element
+or above-element pass. Drawing excludes hidden and wholly clipped markers,
+markers without coordinates, and markers associated with an existing hidden
+element. A missing associated element is not itself the same as a hidden one.
+The association check uses the element’s <code class="docutils literal notranslate"><span class="pre">hidden</span></code> state; do not assume it
+includes every element-specific visibility flag.</p>
+<p>Ordinary graphs can batch compatible adjacent marker primitives. The component
+chooses eligibility and order; renderer services own native drawing targets and
+backend details. A new batch must flush at incompatible styles or intervening
+content so it preserves the original painter order.</p>
+<p>Trackgraphs retain that order even when track-owned and graph-wide markers
+are interleaved. Track drawing uses renderer clipping for the visible owning
+rectangle, then enters the track viewport around class drawing. This clips
+complete native primitives without changing shared Tk graphics contexts.
+Graph-wide markers retain their graph-wide path. Window markers are handled
+separately rather than drawn into the clipping surface.</p>
+</section>
+<section id="window-markers">
+<h2>Window markers<a class="headerlink" href="#window-markers" title="Link to this heading">¶</a></h2>
+<p>A window marker manages a real Tk child. Mapping computes its size from the
+child’s requested dimensions and any positive explicit width/height, applies
+the anchor and pixel offsets, and tests its rectangle for overlap with the
+current plot viewport. Drawing moves/resizes and maps the child; the drawable
+argument is not used to paint that widget into a pixmap.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SyncWindowMarkers</span></code> runs independently of the selected drawing layer. It
+processes both under/over windows, unmapping hidden or wholly clipped children
+and children in collapsed track regions. This is necessary because skipping a
+paint operation cannot erase an already mapped child, and the below-element
+backing store may be reused without repainting its markers.</p>
+<p>Partial overlap deliberately retains existing graph behavior: the full child
+remains mapped and is clipped by its graph parent, not by the plotting area or
+track. There is no per-track clipping container. Do not describe this as the
+same clipping guarantee as a line, image or polygon marker.</p>
+<p>Window-marker cleanup destroys its currently embedded child through
+<code class="docutils literal notranslate"><span class="pre">ReleaseWindowMarkerChild</span></code>. This ownership differs from borrowing an image
+or numeric source. Code that changes geometry management or child association
+must preserve event-handler and geometry-manager cleanup as well as pointer
+state.</p>
+</section>
+<section id="xor-paths">
+<h2>XOR paths<a class="headerlink" href="#xor-paths" title="Link to this heading">¶</a></h2>
+<p>Line and polygon markers retain native XOR behavior. Their configuration paths
+track whether old immediate geometry is present so it can be erased before
+replacement. Eligible graph-wide markers can use immediate drawing; track-owned
+markers use scheduled redraw and the track drawing path instead. Polygon
+immediate drawing has additional outline-only and axis-reset conditions.</p>
+<p>XOR primitives bypass ordinary Cairo drawing where required. Old XOR geometry
+must be erased using its old geometry and compatible native state, not newly
+configured coordinates or an ordinary paint operation. Do not put XOR markers
+into the normal compatible-stroke batches or assume that redrawing them twice
+is harmless across changes of target or clipping. Document export is a separate
+class callback, not a capture of the screen’s XOR state.</p>
+</section>
+<section id="export-and-cleanup">
+<h2>Export and cleanup<a class="headerlink" href="#export-and-cleanup" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersExport</span></code> walks the same display list and selects the requested
+layer. It checks for an export callback, coordinates and visibility. Non-window
+track markers get an export clip around their class exporter and are skipped
+when wholly clipped or in collapsed regions. Window export follows its own
+path: it asks the renderer to export the child only when it is currently mapped.
+Backend capture support and export options determine the resulting content;
+the shared marker pass does not create an independently laid-out copy of the
+child widget.</p>
+<p>Resource release is separate from record destruction. While the Tk window is
+live, <code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseMarkerTkResources</span></code> invokes each initialized class’s cleanup,
+frees common coordinates and tags, releases axis references, and frees the
+Tk option record and table. Its release guard prevents repeating this work.
+<code class="docutils literal notranslate"><span class="pre">DestroyMarker</span></code> also handles failed initialization, removes bindings and
+registry/display-list membership, and frees the record. The whole-registry
+<code class="docutils literal notranslate"><span class="pre">Rbc_DestroyMarkers</span></code> then destroys marker tables and the display list.
+See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> and <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the broader ordering.</p>
+<p>Changes should be checked with both marker layers, overlapping display order,
+track scrolling and inversion, child hide/remap transitions, XOR replacement,
+and resized document export. Screen snapshots alone do not establish child
+window ownership or correct binding and region-test behavior.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Marker lifecycle and drawing</a><ul>
+<li><a class="reference internal" href="#coordinates-and-mapping">Coordinates and mapping</a></li>
+<li><a class="reference internal" href="#layers-order-and-visibility">Layers, order and visibility</a></li>
+<li><a class="reference internal" href="#window-markers">Window markers</a></li>
+<li><a class="reference internal" href="#xor-paths">XOR paths</a></li>
+<li><a class="reference internal" href="#export-and-cleanup">Export and cleanup</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-reference.html"
+                          title="previous chapter">Vector client C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="marker-reference.html"
+                          title="next chapter">Marker C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Marker lifecycle and drawing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
