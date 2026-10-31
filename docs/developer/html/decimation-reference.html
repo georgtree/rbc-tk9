@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Line decimation C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Line decimation and source identity" href="decimation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="decimation.html" title="Line decimation and source identity"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line decimation C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="line-decimation-c-reference">
+<h1>Line decimation C reference<a class="headerlink" href="#line-decimation-c-reference" title="Link to this heading">¶</a></h1>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>. They are not cross-module APIs.
+See <a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> for fallback order and source-index ownership.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__line__decimation"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">decimation</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private screen-density reduction services. </p>
+<p>All objects are borrowed from the owning graph; these routines neither mutate source vectors nor invoke Tcl. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CanPixelDecimateLine">
+<span class="target" id="group__line__decimation_1gab24b3ce166891d8998b64d4e66f29b36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanPixelDecimateLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CanPixelDecimateLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test semantic eligibility, independently of source density. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – Borrowed live line/strip element. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE for automatic, ordinary XY, unsmoothed, single-pen traces without area fill, outside export. Does not guarantee that reduction will be attempted. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.LineNeedsPixelDecimation">
+<span class="target" id="group__line__decimation_1ga789051cf01e360d1653890d74c2097b8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineNeedsPixelDecimation</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.LineNeedsPixelDecimation" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test source density against the physical data-X plot span. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current mapping/extents, including track scope. </p></li>
+<li><p><strong>linePtr</strong> – Borrowed element supplying the complete paired source count. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE at the renderer’s density threshold, FALSE for empty data or invalid/subpixel spans. Uses vertical extent when axes are inverted. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RefreshLineDecimateCache">
+<span class="target" id="group__line__decimation_1ga9313ea58d6b89629910c5a0723ae4550"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RefreshLineDecimateCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RefreshLineDecimateCache" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maintain a persistent source-domain cache after element invalidation. </p>
+<p>
+Exact Y changes rebuild affected summaries; X changes invalidate ordering. Growth delegates to checked prefix retention. Does not clear source change flags. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – Borrowed element with current source pointers and change metadata. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE when no cache exists or the existing cache can be retained or updated; FALSE asks the caller to invalidate it. Not a geometry-generation result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.BuildCachedPixelDecimatedScreenPoints">
+<span class="target" id="group__line__decimation_1gab40fc32ca92a9381e432bd60982fedbc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BuildCachedPixelDecimatedScreenPoints</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BuildCachedPixelDecimatedScreenPoints" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build reduced mapped geometry from source-domain summaries. </p>
+<p>
+Supports a finite continuous monotonic-X run. Binary searches locate pixel buckets; block extrema supply first/min/max/last representatives in source order. Successful output belongs to the mapping caller. breakBefore is NULL. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current axes and plot scope. </p></li>
+<li><p><strong>linePtr</strong> – Borrowed eligible trace-only element; may build its persistent cache. </p></li>
+<li><p><strong>mapPtr</strong> – Caller-owned mapping record receiving allocated points and source indices. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE if handled, FALSE asks the caller to use the source-scanning fallback.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DecimatePointsByPixels">
+<span class="target" id="group__line__decimation_1ga44e635028d1de680d3dd5aecaf8bb523"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DecimatePointsByPixels</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DecimatePointsByPixels" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reduce eligible mapped geometry without changing source values. </p>
+<p>
+Retains first/min/max/last representatives per pixel bucket and continuous run. Leaves geometry unchanged for short/nonmonotonic inputs, allocation failure or no useful reduction. Preserves source indices and run boundaries. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph defining the physical data-X direction. </p></li>
+<li><p><strong>mapPtr</strong> – Owned mapped arrays; replacements, when made, remain owned by caller.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Line decimation C reference</a><ul>
+<li><a class="reference internal" href="#c.CanPixelDecimateLine"><code class="docutils literal notranslate"><span class="pre">CanPixelDecimateLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.LineNeedsPixelDecimation"><code class="docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation()</span></code></a></li>
+<li><a class="reference internal" href="#c.RefreshLineDecimateCache"><code class="docutils literal notranslate"><span class="pre">RefreshLineDecimateCache()</span></code></a></li>
+<li><a class="reference internal" href="#c.BuildCachedPixelDecimatedScreenPoints"><code class="docutils literal notranslate"><span class="pre">BuildCachedPixelDecimatedScreenPoints()</span></code></a></li>
+<li><a class="reference internal" href="#c.DecimatePointsByPixels"><code class="docutils literal notranslate"><span class="pre">DecimatePointsByPixels()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="decimation.html"
+                          title="previous chapter">Line decimation and source identity</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="decimation.html" title="Line decimation and source identity"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line decimation C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

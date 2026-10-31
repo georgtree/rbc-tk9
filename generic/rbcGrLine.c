@@ -9,6 +9,14 @@
  *
  * See "license.terms" for details.
  */
+/** @file rbcGrLine.c
+ * Line/strip/polar implementation; selected decimation contracts are extracted.
+ */
+/** @defgroup line_decimation Line decimation internals
+ * Private screen-density reduction services. All objects are borrowed from
+ * the owning graph; these routines neither mutate source vectors nor invoke Tcl.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -3522,18 +3530,11 @@ INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
     return graphPtr->inverted ? pointPtr->x : pointPtr->y;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * CanPixelDecimateLine --
- *
- *      Tests the non-geometric conditions required by the initial
- *      display-density reduction implementation.
- *
- *      Keep this deliberately conservative.  More cases can be enabled
- *      after the basic implementation has been validated.
- *
- *----------------------------------------------------------------------
+/** @ingroup line_decimation
+ * Test semantic eligibility, independently of source density.
+ * @param linePtr Borrowed live line/strip element.
+ * @return TRUE for automatic, ordinary XY, unsmoothed, single-pen traces without
+ * area fill, outside export. Does not guarantee that reduction will be attempted.
  */
 static int CanPixelDecimateLine(Line *linePtr) {
     /*
@@ -3581,28 +3582,12 @@ static int CanPixelDecimateLine(Line *linePtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * LineNeedsPixelDecimation --
- *
- *      Determines whether the source line is dense enough relative to
- *      the physical data-X screen span for display decimation to be
- *      worthwhile.
- *
- *      This is deliberately separate from CanPixelDecimateLine():
- *
- *          CanPixelDecimateLine
- *              tests semantic eligibility.
- *
- *          LineNeedsPixelDecimation
- *              makes the runtime performance decision.
- *
- *      The point count is the complete source count.  This is
- *      intentional: the cost avoided by the pre-map path is primarily
- *      the cost of mapping the complete source array.
- *
- *----------------------------------------------------------------------
+/** @ingroup line_decimation
+ * Test source density against the physical data-X plot span.
+ * @param graphPtr Borrowed graph with current mapping/extents, including track scope.
+ * @param linePtr Borrowed element supplying the complete paired source count.
+ * @return TRUE at the renderer's density threshold, FALSE for empty data or
+ * invalid/subpixel spans. Uses vertical extent when axes are inverted.
  */
 static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr) {
     Extents2D exts;
@@ -3884,30 +3869,14 @@ static int EnsureLineDecimateCache(Line *linePtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/** @ingroup line_decimation
+ * Maintain a persistent source-domain cache after element invalidation.
+ * @param linePtr Borrowed element with current source pointers and change metadata.
+ * @return TRUE when no cache exists or the existing cache can be retained or
+ * updated; FALSE asks the caller to invalidate it. Not a geometry-generation result.
  *
- * RefreshLineDecimateCache --
- *
- *      Attempts to preserve an already-built Stage-3 cache across an
- *      element MAP_ITEM update.
- *
- *      Exact ranged Y-only changes rebuild only the affected 64-sample
- *      summaries.
- *
- *      Pure tail growth can extend the existing cache, including when
- *      vector growth relocates its backing storage.
- *
- *      Changes inside the cached X prefix, unknown Y changes, shrinkage,
- *      arbitrary storage replacement, and unsupported appended data
- *      require a complete cache rebuild.
- *
- * Results:
- *      TRUE if the existing cache remains valid.
- *
- *      FALSE if the caller must invalidate it.
- *
- *----------------------------------------------------------------------
+ * Exact Y changes rebuild affected summaries; X changes invalidate ordering.
+ * Growth delegates to checked prefix retention. Does not clear source change flags.
  */
 static int RefreshLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
@@ -4797,53 +4766,16 @@ static int GetCachedSourceRangeForAbscissa(Graph *graphPtr, Line *linePtr, doubl
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/** @ingroup line_decimation
+ * Build reduced mapped geometry from source-domain summaries.
+ * @param graphPtr Borrowed graph with current axes and plot scope.
+ * @param linePtr Borrowed eligible trace-only element; may build its persistent cache.
+ * @param mapPtr Caller-owned mapping record receiving allocated points and source indices.
+ * @return TRUE if handled, FALSE asks the caller to use the source-scanning fallback.
  *
- * BuildCachedPixelDecimatedScreenPoints --
- *
- *      Builds pixel-density line geometry from the persistent
- *      data-domain decimation cache.
- *
- *      Unlike BuildPixelDecimatedScreenPoints(), this routine does not
- *      scan every source sample during each remap.  Monotonic source X
- *      allows source ranges belonging to each physical data-X pixel to
- *      be located by binary search.  Minimum and maximum Y indices for
- *      each range are then obtained from the cached block summaries.
- *
- *      Each pixel bucket contributes, in original source order:
- *
- *          first
- *          minimum Y
- *          maximum Y
- *          last
- *
- *      Duplicate representatives are removed by
- *      AppendSourcePixelBucket().
- *
- *      This initial cached implementation supports only a single
- *      continuous run.  Non-finite values, non-monotonic X, and
- *      logarithmic-domain discontinuities cause EnsureLineDecimateCache()
- *      to reject the cache, allowing the caller to fall back to the
- *      Stage-2 source scanner.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      TRUE if the cached path was successfully handled.
- *
- *      FALSE if the caller should fall back to
- *      BuildPixelDecimatedScreenPoints().
- *
- * Side Effects:
- *      On success, mapPtr contains newly allocated mapped points and
- *      source indices.  breakBefore is always NULL because this cached
- *      path currently supports only continuous data.
- *
- *----------------------------------------------------------------------
+ * Supports a finite continuous monotonic-X run. Binary searches locate pixel
+ * buckets; block extrema supply first/min/max/last representatives in source
+ * order. Successful output belongs to the mapping caller. breakBefore is NULL.
  */
 static int BuildCachedPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     LineDecimateCache *cachePtr;
@@ -5282,30 +5214,14 @@ static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/** @ingroup line_decimation
+ * Reduce eligible mapped geometry without changing source values.
+ * @param graphPtr Borrowed graph defining the physical data-X direction.
+ * @param mapPtr Owned mapped arrays; replacements, when made, remain owned by caller.
  *
- * DecimatePointsByPixels --
- *
- *      Reduces a mapped, monotonic XY line according to screen density.
- *
- *      Consecutive points mapping to the same physical data-X pixel are
- *      represented by at most four points:
- *
- *          first
- *          minimum ordinate
- *          maximum ordinate
- *          last
- *
- *      The representatives are emitted in original data order.
- *
- *      This preserves narrow positive and negative excursions instead
- *      of averaging them away.
- *
- *      The original source indices and discontinuity information remain
- *      attached to the retained mapped points.
- *
- *----------------------------------------------------------------------
+ * Retains first/min/max/last representatives per pixel bucket and continuous
+ * run. Leaves geometry unchanged for short/nonmonotonic inputs, allocation
+ * failure or no useful reduction. Preserves source indices and run boundaries.
  */
 static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr) {
     Point2D *screenPts;

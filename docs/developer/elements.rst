@@ -128,3 +128,5 @@ release pass runs while the Tk window context is available; element record and
 registry cleanup follow their owning lifecycle. New element types must release
 vector clients, owned arrays and derived resources without destroying external
 source vectors or double-freeing Tk-owned values.
+
+See :doc:`decimation` for dense line mapping, cache maintenance and source picking.

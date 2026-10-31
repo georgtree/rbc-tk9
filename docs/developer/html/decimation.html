@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Line decimation and source identity &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Line decimation C reference" href="decimation-reference.html" />
+    <link rel="prev" title="Element data C reference" href="element-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="decimation-reference.html" title="Line decimation C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="element-reference.html" title="Element data C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line decimation and source identity</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="line-decimation-and-source-identity">
+<h1>Line decimation and source identity<a class="headerlink" href="#line-decimation-and-source-identity" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> reduces dense screen traces while retaining original source
+indices. It does not rewrite attached vectors. Pixel-density decimation,
+geometric reduction and symbol thinning are separate operations; changing one
+must not silently change the contracts of the others.
+See <a class="reference internal" href="decimation-reference.html"><span class="doc">Line decimation C reference</span></a> for selected static helper contracts.</p>
+<section id="eligibility-and-density">
+<h2>Eligibility and density<a class="headerlink" href="#eligibility-and-density" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CanPixelDecimateLine</span></code> enables the optimization only for automatic decimation
+on ordinary XY line or strip elements, with unsmoothed geometry, fewer than two
+palette pens and no tile/stipple area fill. Polar elements and document exports
+retain the full mapping path. These checks protect geometry and style semantics.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation</span></code> separately tests the complete paired source count
+against the current plot span in the physical data-X direction. This is screen
+X normally and screen Y for inverted axes. Current thresholds are eight samples
+per pixel for native rendering and four for Cairo. Invalid or subpixel spans
+skip reduction. These constants are performance policy, not numerical accuracy
+parameters or public API guarantees.</p>
+<p>The count is deliberately the full source count rather than only visible
+samples: the fast path avoids mapping the full array. Track mapping supplies
+the owning track’s axes and plot scope, so its extent and inverted orientation
+feed the same decisions. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a>.</p>
+</section>
+<section id="mapping-paths-and-fallback">
+<h2>Mapping paths and fallback<a class="headerlink" href="#mapping-paths-and-fallback" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Path</p></th>
+<th class="head"><p>Work and ownership</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cached pre-map reduction</p></td>
+<td><p>Locates visible source ranges using monotonic X and block summaries;
+maps selected representatives into new point/index arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scanning pre-map reduction</p></td>
+<td><p>Scans source data when the cached path is unsupported, retaining run
+boundaries and selecting representatives before full mapping.</p></td>
+</tr>
+<tr class="row-even"><td><p>Full mapping and pixel reduction</p></td>
+<td><p>Maps source points first, then reduces eligible monotonic mapped runs.
+Failure or no benefit retains the existing mapped arrays.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Pre-map reduction is more restrictive than general pixel reduction. Normal
+symbols, value labels and error-bar arrays require full point/style mapping.
+An all-active selection with symbols or labels also prevents the pre-map path;
+explicit active indices can be mapped separately. The single-pen fast path
+avoids allocating a source-sized style map, but still attaches strip segments
+to the pen through <code class="docutils literal notranslate"><span class="pre">MergePens</span></code>.</p>
+<p>Each pixel bucket retains first, minimum, maximum and last representatives in
+original source order, removing duplicate representatives. Inverted axes change
+the bucket direction, not source ordering. Run boundaries must survive reduction
+so invalid samples or separate traces are not bridged. Arbitrary nonmonotonic
+paths cannot be aggregated as if they were a monotonic waveform: returning to
+the same column can represent different geometry.</p>
+<p>The mapping record owns its temporary arrays, including source indices and any
+break-before flags. Trace/strip mapping consumes that geometry, and the temporary
+arrays are then freed. Persistent caches own summaries but borrow source arrays;
+they do not keep a vector’s old allocation alive.</p>
+</section>
+<section id="persistent-cache-maintenance">
+<h2>Persistent cache maintenance<a class="headerlink" href="#persistent-cache-maintenance" title="Link to this heading">¶</a></h2>
+<p>The cache summarizes blocks of 64 source samples. For a supported continuous
+monotonic-X run, binary searches locate source intervals for physical pixel
+buckets. Whole-block extrema and scans of boundary fragments find representatives
+without rescanning every source value on each axis remap.</p>
+<p>Exact changed Y ranges rebuild only affected blocks. A change wholly beyond
+the paired X/Y point count cannot affect the plotted trace. Unknown/full Y
+changes invalidate the cache. X changes invalidate ordering rather than trying
+to repair it incrementally. Pen or state changes can retain the data-domain
+cache even when geometry must be remapped.</p>
+<p>A tail append may retain the cached prefix even after vector storage moves,
+but only when change metadata proves that prefix unchanged. Shrinkage,
+replacement, edits within the prefix or unsupported new ordering cause
+invalidation. Cache refresh failure is a request to discard/rebuild the cache,
+not a Tcl command error. Non-finite values, unsupported ordering or logarithmic
+domain discontinuities fall back to scanning/full mapping.</p>
+<p>Changed-range notifications are therefore part of correctness, not merely a
+speed hint. C producers must report changes after modifying vector storage;
+otherwise consumers cannot know that cached summaries are stale.
+See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>.</p>
+</section>
+<section id="picking-symbols-and-exports">
+<h2>Picking, symbols and exports<a class="headerlink" href="#picking-symbols-and-exports" title="Link to this heading">¶</a></h2>
+<p>Closest-point searching uses the full mapped source-point array when available,
+or maps original samples on demand when the pre-map path omitted that array.
+A point omitted from the display trace therefore remains selectable with its
+original index and value. For searches
+considering X distance, a valid monotonic cache narrows the candidate interval;
+Y-only searches cannot use that X-distance bound. Candidate samples are mapped
+and checked against plot extents before distance comparison. This does not make
+interpolated segment picking identical to nearest-sample picking.</p>
+<p>Symbols and error geometry have their own source-based mapping requirements.
+Geometric reduction through <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> is applied separately after pixel
+reduction; reduced-symbol selection is another explicit policy. See
+<a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for smoothing, which disables automatic pixel decimation at the
+semantic eligibility check.</p>
+<p>Document output sets <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code> and remaps without pixel decimation.
+Thus SVG, PDF and PostScript do not inherit screen-density loss from the display
+cache. Other explicitly configured processing, such as geometric reduction,
+remains separate. Export restoration remaps the screen afterward; see
+<a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Line decimation and source identity</a><ul>
+<li><a class="reference internal" href="#eligibility-and-density">Eligibility and density</a></li>
+<li><a class="reference internal" href="#mapping-paths-and-fallback">Mapping paths and fallback</a></li>
+<li><a class="reference internal" href="#persistent-cache-maintenance">Persistent cache maintenance</a></li>
+<li><a class="reference internal" href="#picking-symbols-and-exports">Picking, symbols and exports</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="element-reference.html"
+                          title="previous chapter">Element data C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="decimation-reference.html"
+                          title="next chapter">Line decimation C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="decimation-reference.html" title="Line decimation C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="element-reference.html" title="Element data C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Line decimation and source identity</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

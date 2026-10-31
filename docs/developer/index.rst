@@ -41,6 +41,8 @@ chapters.
    pen-reference
    elements
    element-reference
+   decimation
+   decimation-reference
    mapping
    mapping-reference
    configuration
