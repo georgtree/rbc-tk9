@@ -336,7 +336,45 @@ Rbc_Complex Rbc_ComplexSub(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_ComplexMul(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_ComplexDiv(Rbc_Complex a, Rbc_Complex b);
 Rbc_Complex Rbc_VectorValueAsComplex(VectorObject *vPtr, Tcl_Size index);
+/**
+ * Evaluate an expression once into an owned, unregistered vector temporary.
+ *
+ * @param interp Owning interpreter, used for lookup, Tcl evaluation and errors.
+ * @param string NUL-terminated expression buffer, kept valid throughout the call.
+ * The parser temporarily edits delimiters and restores them; storage must be writable.
+ * @param resultPtr Required output pointer, set to NULL before evaluation.
+ * @return TCL_OK with an owned real or complex vector, or TCL_ERROR with no
+ * returned vector. Release a successful result with Rbc_VectorFree.
+ *
+ * The temporary has no registered command or mapped array. Final values must
+ * be finite. Tcl substitutions and map callbacks can have arbitrary side
+ * effects; failure cleans up the temporary but does not undo those effects.
+ * The caller keeps the interpreter and its vector subsystem alive throughout
+ * evaluation and until the returned temporary has been released.
+ */
 int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPtr);
+/**
+ * Evaluate an expression and copy it to an existing vector or return a Tcl list.
+ *
+ * @param interp Owning interpreter, kept alive by the caller during evaluation.
+ * @param string NUL-terminated writable expression buffer, valid for the call.
+ * @param vecPtr Existing destination in this interpreter, or NULL for list output.
+ * @return TCL_OK on success, otherwise TCL_ERROR with a diagnostic. With NULL
+ * destination the interpreter result is a list of numbers or complex pairs.
+ * Destination form does not promise a particular successful Tcl result.
+ *
+ * Evaluates into a detached temporary before writing the destination. Checks
+ * writability before evaluation and again before copying, and observes
+ * destination destruction during Tcl substitutions or map callbacks. Copies
+ * matching types or promotes real values into an existing complex destination;
+ * a complex result cannot be stored in a real destination. Named vector type
+ * is unchanged. Callback side effects are not rolled back on failure.
+ *
+ * Does not flush a mapped-array cache or notify destination clients. The
+ * instance expr operation performs those steps after successful return.
+ * The caller must keep the interpreter and vector subsystem alive; the
+ * destruction observer protects destination identity, not interpreter lifetime.
+ */
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr);
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);

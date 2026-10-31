@@ -2167,30 +2167,9 @@ static double Round(double value) {
 }
 
 /*
- *--------------------------------------------------------------
- *
- * Rbc_ExprVector --
- *
- *      Evaluates an vector expression and returns its value(s).
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      char *string
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      Each of the procedures below returns a standard Tcl result.
- *      If an error occurs then an error message is left in
- *      the interpreter result.  Otherwise the value of the expression,
- *      in the appropriate form, is stored at the interpreter result.
- *      If the expression had a result that was incompatible with the
- *      desired form then an error is returned.
- *
- * Side effects:
- *      Tcl substitutions and map callbacks may have arbitrary side effects.
- *      A deleted destination is detected before committing the result.
- *
- *--------------------------------------------------------------
+ * CopyExpressionResult -- Commit a temporary without changing the named target's type.
+ * Matching types copy the selected range; a real result can fill a complex target
+ * with zero imaginary parts. Cache flushing and notification belong to the caller.
  */
 static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, VectorObject *srcPtr) {
     Tcl_Size i;
@@ -2229,11 +2208,7 @@ static void ExpressionDestinationChanged(Tcl_Interp *interp, ClientData clientDa
     }
 }
 
-/*
- * Rbc_VectorEvaluate -- Evaluate once into an unregistered, typed vector.
- * On success the caller owns *resultPtr and must free it with Rbc_VectorFree.
- * On failure no result is returned. Tcl substitutions may have side effects.
- */
+/* Internal evaluation contracts are documented in rbcVectorInt.h. */
 int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPtr) {
     Value value;
 
@@ -2313,31 +2288,10 @@ done:
 }
 
 /*
- *--------------------------------------------------------------
- *
- * EvaluateExpression --
- *
- *      This procedure provides top-level functionality shared by
- *      procedures like Tcl_ExprInt, Tcl_ExprDouble, etc.
- *
- * Parameters:
- *      Tcl_Interp *interp - Context in which to evaluate the expression.
- *      char *string - Expression to evaluate.
- *      Value *valuePtr - Where to store result. Should not be initialized by caller.
- *
- * Results:
- *      The result is a standard Tcl return value.  If an error
- *      occurs then an error message is left in the interpreter result.
- *      The value of the expression is returned in *valuePtr, in
- *      whatever form it ends up in (could be string or integer
- *      or double).  Caller may need to convert result.  Caller
- *      is also responsible for freeing string memory in *valuePtr,
- *      if any was allocated.
- *
- * Side effects:
- *      None.
- *
- *--------------------------------------------------------------
+ * EvaluateExpression -- Parse into the caller's initialized expression temporary.
+ * Requires complete input consumption and finite real/imaginary result components.
+ * The caller owns the temporary on both success and failure. Substitutions and
+ * map callbacks execute Tcl code and their side effects are not rolled back.
  */
 static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr) {
     ParseInfo info;

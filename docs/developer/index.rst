@@ -23,6 +23,8 @@ chapters.
    graph-reference
    vectors
    vector-reference
+   expressions
+   expression-reference
    markers
    marker-reference
    crosshairs

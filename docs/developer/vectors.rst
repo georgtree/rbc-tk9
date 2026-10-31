@@ -36,7 +36,8 @@ RBC's stubs setup. Do not include ``rbcVectorInt.h`` or edit ``rbcDecls.h`` by
 hand. A declaration being present in ``rbcVector.h`` does not imply that it has
 a public stub slot: the observer-ID functions are not in ``rbc.decls``.
 The :doc:`vector-reference` distinguishes these client declarations from private
-update helpers. This installment does not document every numerical operation.
+update helpers. See :doc:`expressions` for evaluation temporaries, named results and map callbacks.
+Not every numerical operation is documented here.
 
 Records, names and storage
 --------------------------

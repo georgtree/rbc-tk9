@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector expression C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Marker lifecycle and drawing" href="markers.html" />
+    <link rel="prev" title="Vector expression evaluation" href="expressions.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector expression C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-expression-c-reference">
+<h1>Vector expression C reference<a class="headerlink" href="#vector-expression-c-reference" title="Link to this heading">¶</a></h1>
+<p>These are private interfaces in <code class="docutils literal notranslate"><span class="pre">rbcVectorInt.h</span></code>, not installed stubs entries.
+See <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a> for temporary ownership and Tcl callback boundaries.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorEvaluate">
+<span class="target" id="rbc_vector_int_8h_1a53db4be24d8e6c3446ceb80a0bb540bf"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorEvaluate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorEvaluate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate an expression once into an owned, unregistered vector temporary. </p>
+<p>
+The temporary has no registered command or mapped array. Final values must be finite. Tcl substitutions and map callbacks can have arbitrary side effects; failure cleans up the temporary but does not undo those effects. The caller keeps the interpreter and its vector subsystem alive throughout evaluation and until the returned temporary has been released. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Owning interpreter, used for lookup, Tcl evaluation and errors. </p></li>
+<li><p><strong>string</strong> – NUL-terminated expression buffer, kept valid throughout the call. The parser temporarily edits delimiters and restores them; storage must be writable. </p></li>
+<li><p><strong>resultPtr</strong> – Required output pointer, set to NULL before evaluation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with an owned real or complex vector, or TCL_ERROR with no returned vector. Release a successful result with Rbc_VectorFree.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExprVector">
+<span class="target" id="rbc_vector_int_8h_1a0ef4f8693845cd3e3fb37c4f933bc617"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExprVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExprVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate an expression and copy it to an existing vector or return a Tcl list. </p>
+<p>
+Evaluates into a detached temporary before writing the destination. Checks writability before evaluation and again before copying, and observes destination destruction during Tcl substitutions or map callbacks. Copies matching types or promotes real values into an existing complex destination; a complex result cannot be stored in a real destination. Named vector type is unchanged. Callback side effects are not rolled back on failure.</p>
+<p>Does not flush a mapped-array cache or notify destination clients. The instance expr operation performs those steps after successful return. The caller must keep the interpreter and vector subsystem alive; the destruction observer protects destination identity, not interpreter lifetime. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Owning interpreter, kept alive by the caller during evaluation. </p></li>
+<li><p><strong>string</strong> – NUL-terminated writable expression buffer, valid for the call. </p></li>
+<li><p><strong>vecPtr</strong> – Existing destination in this interpreter, or NULL for list output. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK on success, otherwise TCL_ERROR with a diagnostic. With NULL destination the interpreter result is a list of numbers or complex pairs. Destination form does not promise a particular successful Tcl result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector expression C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorEvaluate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExprVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="expressions.html"
+                          title="previous chapter">Vector expression evaluation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="markers.html"
+                          title="next chapter">Marker lifecycle and drawing</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="markers.html" title="Marker lifecycle and drawing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector expression C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
