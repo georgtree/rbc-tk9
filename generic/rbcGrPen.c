@@ -62,7 +62,6 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
 
 static int ConfigurePenOptions(Graph *graphPtr, Pen *penPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_SavedOptions savedOptions;
-    Tcl_Obj *errorObjPtr;
     int mask;
 
     assert(penPtr->optionsInitialized);
@@ -77,12 +76,7 @@ static int ConfigurePenOptions(Graph *graphPtr, Pen *penPtr, Tcl_Size objc, Tcl_
      * active derived state until every fallible conversion succeeds.
      */
     if ((*penPtr->configProc)(graphPtr, penPtr) != TCL_OK) {
-        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     Tk_FreeSavedOptions(&savedOptions);
     return TCL_OK;

@@ -241,13 +241,7 @@ static int SetPostScriptOptions(Graph *graphPtr, PostScript *psPtr, Tcl_Size obj
         return TCL_ERROR;
     }
     if (ConfigurePostScript(graphPtr, psPtr, *maskPtr) != TCL_OK) {
-        Tcl_Obj *errorObjPtr;
-        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        Tk_RestoreSavedOptions(savedOptionsPtr);
-        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, savedOptionsPtr);
     }
     return TCL_OK;
 }

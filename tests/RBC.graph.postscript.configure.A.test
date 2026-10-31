@@ -1555,5 +1555,21 @@ namespace eval graph.postscript {
         catch {destroy .graph1}
     } -result ok
 	
+    test RBC.graph.postscript.configure.A.19.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        set before [.graph1 postscript configure]
+    } -body {
+        set code [catch {.graph1 postscript configure -center no -padx invalid} message options]
+        set result [list $code [expr {[.graph1 postscript configure] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 postscript configure -center no
+        lappend result [.graph1 postscript cget -center]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 0}
+
 	cleanupTests
 }

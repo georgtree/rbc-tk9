@@ -1301,7 +1301,6 @@ static void ResetAxisOptionContext(Axis *axisPtr) {
  */
 static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
-    Tcl_Obj *errorObjPtr;
     int mask;
 
     assert(axisPtr->optionsInitialized);
@@ -1324,20 +1323,11 @@ static int ConfigureAxisOptions(Graph *graphPtr, Axis *axisPtr, Tcl_Size objc, T
     axisPtr->optionObjv = objv;
     if (ConfigureAxis(graphPtr, axisPtr) != TCL_OK) {
         /*
-         * Restoring Tk-managed options may alter the interpreter
-         * result. Preserve the error produced by ConfigureAxis.
-         */
-        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        /*
          * Never retain pointers to the caller-owned option vector
          * while restoring the configuration.
          */
         ResetAxisOptionContext(axisPtr);
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     ResetAxisOptionContext(axisPtr);
     axisPtr->optionsConfigured = TRUE;

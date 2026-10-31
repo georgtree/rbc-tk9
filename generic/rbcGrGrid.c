@@ -1297,17 +1297,7 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     gridPtr->optionObjc = 0;
     gridPtr->optionObjv = NULL;
     if (result != TCL_OK) {
-        Tcl_Obj *errorObjPtr;
-        /*
-         * Preserve the error from post-configuration validation while
-         * restoring the option values.
-         */
-        errorObjPtr = Tcl_GetObjResult(interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(interp, &savedOptions);
     }
     Tk_FreeSavedOptions(&savedOptions);
     if (mask & GRID_POLAR_CHANGED) {
@@ -1519,7 +1509,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
                 if (code == TCL_OK) {
                     Tk_FreeSavedOptions(&saved);
                 } else {
-                    Tk_RestoreSavedOptions(&saved);
+                    code = Rbc_RestoreOptionsOnError(interp, &saved);
                 }
             }
             for (i = 0; i < 14; i++) {

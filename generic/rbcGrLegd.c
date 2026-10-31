@@ -2019,13 +2019,7 @@ static int ConfigureOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
         return TCL_ERROR;
     }
     if (ConfigureLegend(graphPtr, legendPtr, mask) != TCL_OK) {
-        Tcl_Obj *errorObjPtr;
-        errorObjPtr = Tcl_GetObjResult(interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(interp, &savedOptions);
     }
     Tk_FreeSavedOptions(&savedOptions);
     return TCL_OK;

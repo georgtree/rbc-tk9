@@ -819,5 +819,22 @@ namespace eval graph.marker {
         destroy .graph1
     } -result {1 first {8 10 3}}	
 
+    test RBC.graph.marker.configure.line.A.13.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        .graph1 marker create line -name Marker1 -coords {0 0 1 1}
+        set before [.graph1 marker configure Marker1]
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -outline red -linewidth invalid} message options]
+        set result [list $code [expr {[.graph1 marker configure Marker1] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 marker configure Marker1 -outline red
+        lappend result [.graph1 marker cget Marker1 -outline]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 red}
+
 	cleanupTests
 }

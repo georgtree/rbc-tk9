@@ -3278,5 +3278,21 @@ namespace eval graph.configure {
     } -result 1
 
 
+    test RBC.graph.configure.A.41.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        set before [.graph1 configure]
+    } -body {
+        set code [catch {.graph1 configure -title changed -plotpadx invalid} message options]
+        set result [list $code [expr {[.graph1 configure] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 configure -title changed
+        lappend result [.graph1 cget -title]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 changed}
+
 	cleanupTests
 }

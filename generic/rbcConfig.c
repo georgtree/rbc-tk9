@@ -730,6 +730,38 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * Rbc_RestoreOptionsOnError --
+ *
+ *      Roll back a successful Tk_SetOptions transaction after subsequent
+ *      component validation fails. Preserve the original interpreter result
+ *      and return options, including errorCode and errorInfo, while Tk frees
+ *      the rejected values and restores the saved options.
+ *
+ *      Callers must clear borrowed argument vectors and transaction context
+ *      before calling. Derived resources remain the caller's responsibility:
+ *      validation must not commit them before every fallible step succeeds.
+ *      Do not call this after Tk_SetOptions itself fails (Tk has already
+ *      restored the options), or call Tk_FreeSavedOptions afterward.
+ *
+ * Results:
+ *      TCL_ERROR, with the original interpreter state restored.
+ *
+ * Side effects:
+ *      Consumes the saved option transaction and restores its option values.
+ *
+ *----------------------------------------------------------------------
+ */
+int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsPtr) {
+    Tcl_InterpState state;
+
+    state = Tcl_SaveInterpState(interp, TCL_ERROR);
+    Tk_RestoreSavedOptions(savedOptionsPtr);
+    return Tcl_RestoreInterpState(interp, state);
+}
+
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
                              const char *className, char *recordPtr, Tk_OptionTable optionTable) {
     Tk_Window tkwin;

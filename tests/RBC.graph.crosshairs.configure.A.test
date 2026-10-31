@@ -463,5 +463,21 @@ namespace eval graph.crosshairs {
         catch {destroy .graph1}
     } -result ok
 
+    test RBC.graph.crosshairs.configure.A.7.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        set before [.graph1 crosshairs configure]
+    } -body {
+        set code [catch {.graph1 crosshairs configure -color red -position invalid} message options]
+        set result [list $code [expr {[.graph1 crosshairs configure] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 crosshairs configure -color red
+        lappend result [.graph1 crosshairs cget -color]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 NONE 1 red}
+
 	cleanupTests
 }

@@ -3505,7 +3505,6 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
 static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size objc, Tcl_Obj *const objv[],
                                    int *maskPtr) {
     Tk_SavedOptions savedOptions;
-    Tcl_Obj *errorObjPtr;
     int mask;
     RbcTrack *newTrack = NULL;
     int trackValid = TRUE;
@@ -3553,8 +3552,6 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
         trackValid = FALSE;
     }
     if (!trackValid || (*elemPtr->procsPtr->configProc)(graphPtr, elemPtr) != TCL_OK) {
-        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-        Tcl_IncrRefCount(errorObjPtr);
         /*
          * The argument vector belongs to the caller and must not
          * remain stored while restoring or destroying the element.
@@ -3562,10 +3559,7 @@ static int ConfigureElementOptions(Graph *graphPtr, Element *elemPtr, Tcl_Size o
         elemPtr->optionMask = 0;
         elemPtr->optionObjc = 0;
         elemPtr->optionObjv = NULL;
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     elemPtr->optionMask = 0;
     elemPtr->optionObjc = 0;

@@ -1574,7 +1574,6 @@ static void ResetGraphOptionContext(Graph *graphPtr) {
  */
 static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
-    Tcl_Obj *errorObjPtr;
     Tcl_Size i;
     int aspectSpecified;
     int mask;
@@ -1615,20 +1614,11 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
     graphPtr->optionObjv = objv;
     if (ConfigureGraph(graphPtr) != TCL_OK) {
         /*
-         * Restoring Tk-managed options may alter the interpreter result.
-         * Preserve the error produced by ConfigureGraph.
-         */
-        errorObjPtr = Tcl_GetObjResult(graphPtr->interp);
-        Tcl_IncrRefCount(errorObjPtr);
-        /*
          * Never retain pointers to the caller-owned option vector while
          * restoring the configuration.
          */
         ResetGraphOptionContext(graphPtr);
-        Tk_RestoreSavedOptions(&savedOptions);
-        Tcl_SetObjResult(graphPtr->interp, errorObjPtr);
-        Tcl_DecrRefCount(errorObjPtr);
-        return TCL_ERROR;
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     if (graphPtr->renderer != oldRenderer) {
         /* Auto-decimation density depends on the selected renderer. */

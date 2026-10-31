@@ -1616,5 +1616,22 @@ namespace eval graph.pen {
         catch {destroy .graph1}
     } -result ok
 	
+    test RBC.graph.pen.configure.A.23.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        .graph1 pen create pen1
+        set before [.graph1 pen configure pen1]
+    } -body {
+        set code [catch {.graph1 pen configure pen1 -color red -linewidth invalid} message options]
+        set result [list $code [expr {[.graph1 pen configure pen1] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 pen configure pen1 -color red
+        lappend result [.graph1 pen cget pen1 -color]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 red}
+
 	cleanupTests
 }

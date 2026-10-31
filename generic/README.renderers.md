@@ -31,12 +31,18 @@ lower-level Windows/Tk compatibility used by renderers and by other image, tile,
 | `rbcGeometry.c` | Segment distances, polygon hit testing, rectangle clipping and line simplification; no graph state or drawing. |
 | `rbcScroll.c` | Scroll request parsing and viewport arithmetic; callers own widget state and redraw decisions. |
 | `rbcDraw.c` | Shared Tk/Xlib GC ownership, dash setup, request-size queries and outlined relief used by native rendering and canvas EPS items. |
+| `rbcConfig.c` | Shared option conversion, component initialization and error-preserving Tk option rollback. |
 | `rbcGrMisc.c` | Graph coordinate parsing, color-pair options and plot extents, including the active track's clipping bounds. |
 | `rbcGrTrack.h` | Private track records, viewport snapshots and track-specific component services. |
 
 Geometry and scrolling declarations remain in the private `rbcInt.h`. The general graph header forward-declares
 `RbcTrack` for borrowed pointers; implementation files that inspect track fields or call track services explicitly
 include `rbcGrTrack.h`. That header includes the graph definitions required by its embedded grid segments.
+
+Component validation uses `Rbc_RestoreOptionsOnError` after a successful `Tk_SetOptions` call when a later
+conversion fails. It consumes the saved transaction and preserves the complete Tcl error state. Callers clear
+borrowed option arguments before rollback and retain responsibility for derived resources and success commits.
+Tk handles rollback itself when `Tk_SetOptions` fails; that path must not restore the same transaction twice.
 
 `rbcDraw.c` is shared Tk infrastructure, not a backend used by every renderer. Component configuration retains GC
 ownership and dash setup; text and tile utilities also use these services. Request-size queries serve both the native

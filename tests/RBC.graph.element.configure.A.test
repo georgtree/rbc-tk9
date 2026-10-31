@@ -4383,5 +4383,22 @@ namespace eval graph.element {
         destroy .graph1
     } -result {1 0 {parameter vector has 2 values, but element has 3 data points}}
 
+    test RBC.graph.element.configure.A.63.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        .graph1 element create Element1 -data {0 0 1 1}
+        set before [.graph1 element configure Element1]
+    } -body {
+        set code [catch {.graph1 element configure Element1 -color red -linewidth invalid} message options]
+        set result [list $code [expr {[.graph1 element configure Element1] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 element configure Element1 -color red
+        lappend result [.graph1 element cget Element1 -color]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 red}
+
 	cleanupTests
 }

@@ -631,5 +631,21 @@ namespace eval graph.grid {
         destroy .graph1
     } -result {1+1 2*2 3}
 
+    test RBC.graph.grid.configure.A.13.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        set before [.graph1 grid configure]
+    } -body {
+        set code [catch {.graph1 grid configure -color red -mapx noSuchAxis} message options]
+        set result [list $code [expr {[.graph1 grid configure] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 grid configure -color red
+        lappend result [.graph1 grid cget -color]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 NONE 1 red}
+
 	cleanupTests
 }

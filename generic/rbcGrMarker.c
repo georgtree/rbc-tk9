@@ -861,17 +861,6 @@ static int InitMarkerOptions(Marker *markerPtr) {
     return TCL_OK;
 }
 
-static int RestoreMarkerOptions(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsPtr) {
-    Tcl_Obj *errorObjPtr;
-
-    errorObjPtr = Tcl_GetObjResult(interp);
-    Tcl_IncrRefCount(errorObjPtr);
-    Tk_RestoreSavedOptions(savedOptionsPtr);
-    Tcl_SetObjResult(interp, errorObjPtr);
-    Tcl_DecrRefCount(errorObjPtr);
-    return TCL_ERROR;
-}
-
 static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *const objv[], int creating) {
     Graph *graphPtr;
     Tk_SavedOptions savedOptions;
@@ -892,11 +881,11 @@ static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *con
     newName = markerPtr->name;
     if ((newName == NULL) || (newName[0] == '\0')) {
         Tcl_SetObjResult(graphPtr->interp, Tcl_NewStringObj("marker name may not be empty", -1));
-        return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     if (newName[0] == '-') {
         Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("name of marker \"%s\" can't start with a '-'", newName));
-        return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     nameChanged = (strcmp(oldName, newName) != 0);
     /*
@@ -910,13 +899,13 @@ static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *con
         hPtr = Tcl_FindHashEntry(&graphPtr->markers.table, newName);
         if ((hPtr != NULL) && (Tcl_GetHashValue(hPtr) != markerPtr)) {
             Tcl_SetObjResult(graphPtr->interp, Tcl_ObjPrintf("can't rename marker: \"%s\" already exists", newName));
-            return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
+            return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
         }
     }
     markerPtr->optionMask = mask;
     if ((*markerPtr->classPtr->configProc)(markerPtr) != TCL_OK) {
         markerPtr->optionMask = 0;
-        return RestoreMarkerOptions(graphPtr->interp, &savedOptions);
+        return Rbc_RestoreOptionsOnError(graphPtr->interp, &savedOptions);
     }
     markerPtr->optionMask = 0;
     /*
