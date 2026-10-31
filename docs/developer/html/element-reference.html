@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Element data C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Element data and dispatch" href="elements.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Element data C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="element-data-c-reference">
+<h1>Element data C reference<a class="headerlink" href="#element-data-c-reference" title="Link to this heading">¶</a></h1>
+<p>These interfaces are private. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for ownership and ordering.</p>
+<section id="data-slots">
+<h2>Data slots<a class="headerlink" href="#data-slots" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ParseElemVectorObj">
+<span class="target" id="rbc_gr_elem_8h_1a8bc03a53812b57313d130441ae1ace86"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ParseElemVectorObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ParseElemVectorObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage a real named vector or a list of numeric expressions. </p>
+<p>
+Never pass a populated slot: initialization would discard its resources. Complex vectors are rejected here. Named data borrows storage and owns a client ID; literal data owns an allocated double array. No notification callback is installed and the live element is unchanged. Release an unused successful candidate with Rbc_FreeElemVector. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter used for lookup, conversion and errors. </p></li>
+<li><p><strong>elemPtr</strong> – Borrowed element that will own the staged data. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed option value; vector-name lookup precedes list parsing. </p></li>
+<li><p><strong>candidatePtr</strong> – Empty caller-owned slot overwritten by initialization. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with owned candidate resources, or TCL_ERROR on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemVector">
+<span class="target" id="rbc_gr_elem_8h_1aecb30b15ed6d6daed83d36715480d283"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release an element data slot and zero its record. </p>
+<p>
+Releases a named-vector client ID when present; otherwise frees the owned literal array. Does not destroy the source vector or free borrowed storage. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – Initialized slot or zeroed candidate owned by the caller.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="common-data-transactions">
+<h2>Common data transactions<a class="headerlink" href="#common-data-transactions" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PrepareElemDataTransaction">
+<span class="target" id="rbc_gr_elem_8h_1a3b560ba79bb38dfc38a05956b5153a64"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PrepareElemDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PrepareElemDataTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage common element data options without replacing live data. </p>
+<p>
+Processes defaults during initial configuration and explicit options in their original argument order. Repeated options are each validated. Commit only after all other fallible component validation succeeds; otherwise free the transaction. The borrowed option argument vector must remain valid. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed owning graph and interpreter context. </p></li>
+<li><p><strong>elemPtr</strong> – Element with current configuration arguments and option state. </p></li>
+<li><p><strong>transactionPtr</strong> – Empty caller-owned transaction initialized by this call. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK with staged resources, or TCL_ERROR after freeing candidates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ElemDataTransactionPointCount">
+<span class="target" id="rbc_gr_elem_8h_1a973663917ac815e3087348589d9820a7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ElemDataTransactionPointCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ElemDataTransactionPointCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Count the ordinary X/Y pairs after a proposed data transaction. </p>
+<p>
+Does not commit data or invoke a type-specific polar point-count callback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Borrowed element supplying unchanged live dimensions. </p></li>
+<li><p><strong>transactionPtr</strong> – Staged transaction, or NULL to use only live data. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Minimum of the effective X and Y lengths.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CommitElemDataTransaction">
+<span class="target" id="rbc_gr_elem_8h_1a031b9d169c8139a79c5ffff5a5718557"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CommitElemDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CommitElemDataTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer staged common data into the element’s stable member slots. </p>
+<p>
+Replaced slots are released. Candidate ownership moves to the destination, named-vector callbacks are installed there, and stagedMask is cleared. No fallible validation or redraw scheduling is performed here. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Live destination element. </p></li>
+<li><p><strong>transactionPtr</strong> – Successfully prepared transaction to consume.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeElemDataTransaction">
+<span class="target" id="rbc_gr_elem_8h_1a8aee46cbadea76ed2a2c9313641974e9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeElemDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeElemDataTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release all remaining staged arrays and vector client IDs. </p>
+<p>
+Zeros its slots and staged mask. Safe after commit, which has transferred ownership out of the candidates. Does not modify the live element. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – Initialized or zeroed caller-owned transaction.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="type-dispatch-signatures">
+<h2>Type dispatch signatures<a class="headerlink" href="#type-dispatch-signatures" title="Link to this heading">¶</a></h2>
+<p>The callback declarations and table are included directly to retain their exact
+C signatures. They borrow the graph and element; the table does not provide
+lifetime protection or make arbitrary Tcl callback reentry safe.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementDrawProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Drawable</span><span class="w"> </span><span class="n">drawable</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementExportProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_ExportContext</span><span class="w"> </span><span class="o">*</span><span class="n">exportPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementDestroyProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">ElementConfigProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementMapProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementExtentsProc</span><span class="p">)(</span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Extents2D</span><span class="w"> </span><span class="o">*</span><span class="n">extsPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementClosestProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="n">ClosestSearch</span><span class="w"> </span><span class="o">*</span><span class="n">searchPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementDrawSymbolProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Drawable</span><span class="w"> </span><span class="n">drawable</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">symbolSize</span><span class="p">,</span>
+<span class="w">                                    </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">ElementSymbolExportProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Rbc_ExportContext</span><span class="w"> </span><span class="o">*</span><span class="n">exportPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">,</span>
+<span class="w">                                            </span><span class="kt">int</span><span class="w"> </span><span class="n">symSize</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="n">Tcl_Size</span><span class="p">(</span><span class="n">ElementPointCountProc</span><span class="p">)(</span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">ElementClosestInfoProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">*</span><span class="n">elemPtr</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">ClosestSearch</span><span class="w"> </span><span class="o">*</span><span class="n">searchPtr</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">Tcl_Obj</span><span class="w"> </span><span class="o">*</span><span class="n">varNameObjPtr</span><span class="p">);</span>
+
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">ElementClosestProc</span><span class="w"> </span><span class="o">*</span><span class="n">closestProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementConfigProc</span><span class="w"> </span><span class="o">*</span><span class="n">configProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementDestroyProc</span><span class="w"> </span><span class="o">*</span><span class="n">destroyProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementDrawProc</span><span class="w"> </span><span class="o">*</span><span class="n">drawActiveProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementDrawProc</span><span class="w"> </span><span class="o">*</span><span class="n">drawNormalProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementDrawSymbolProc</span><span class="w"> </span><span class="o">*</span><span class="n">drawSymbolProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementExtentsProc</span><span class="w"> </span><span class="o">*</span><span class="n">extentsProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementExportProc</span><span class="w"> </span><span class="o">*</span><span class="n">exportActiveProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementExportProc</span><span class="w"> </span><span class="o">*</span><span class="n">exportNormalProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementSymbolExportProc</span><span class="w"> </span><span class="o">*</span><span class="n">exportSymbolProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementMapProc</span><span class="w"> </span><span class="o">*</span><span class="n">mapProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementPointCountProc</span><span class="w"> </span><span class="o">*</span><span class="n">pointCountProc</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ElementClosestInfoProc</span><span class="w"> </span><span class="o">*</span><span class="n">closestInfoProc</span><span class="p">;</span><span class="w">    </span>
+<span class="p">}</span><span class="w"> </span><span class="n">ElementProcs</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Element data C reference</a><ul>
+<li><a class="reference internal" href="#data-slots">Data slots</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ParseElemVectorObj"><code class="docutils literal notranslate"><span class="pre">Rbc_ParseElemVectorObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemVector"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemVector()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#common-data-transactions">Common data transactions</a><ul>
+<li><a class="reference internal" href="#c.Rbc_PrepareElemDataTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemDataTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ElemDataTransactionPointCount"><code class="docutils literal notranslate"><span class="pre">Rbc_ElemDataTransactionPointCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CommitElemDataTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemDataTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeElemDataTransaction"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemDataTransaction()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#type-dispatch-signatures">Type dispatch signatures</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="elements.html"
+                          title="previous chapter">Element data and dispatch</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Element data C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

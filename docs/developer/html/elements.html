@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Element data and dispatch &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Element data C reference" href="element-reference.html" />
+    <link rel="prev" title="Vector client C reference" href="vector-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="element-reference.html" title="Element data C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Element data and dispatch</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="element-data-and-dispatch">
+<h1>Element data and dispatch<a class="headerlink" href="#element-data-and-dispatch" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> owns shared element commands, common data transactions and
+iteration over the graph’s element display list. Concrete element modules
+supply configuration, extents, mapping, drawing, export and closest-point
+operations through <code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code>. The private records and declarations live
+in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>; see <a class="reference internal" href="element-reference.html"><span class="doc">Element data C reference</span></a> for selected contracts.</p>
+<section id="data-slots">
+<h2>Data slots<a class="headerlink" href="#data-slots" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ElemVector</span></code> represents one common data input: X, Y, weights or an error-bar
+input. Its ownership depends on how it was populated:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Source</p></th>
+<th class="head"><p>Owned by the slot</p></th>
+<th class="head"><p>Borrowed by the slot</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tcl list of numeric expressions</p></td>
+<td><p>Converted double array</p></td>
+<td><p>Owning element pointer</p></td>
+</tr>
+<tr class="row-odd"><td><p>Named real RBC vector</p></td>
+<td><p>Vector client ID</p></td>
+<td><p>Vector record, numeric array and owning element pointer</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ParseElemVectorObj</span></code> first tries named-vector lookup. Otherwise it parses
+the option as a list of numeric expressions. This shared parser accepts real
+vectors only; polar complex input has a separate implementation and must not
+be inferred from this parser’s contract. Parsing initializes the candidate,
+so passing an already populated candidate would lose its owned resources.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_FreeElemVector</span></code> detaches a client ID or frees a literal array, then zeros
+the slot. It never destroys the named source vector. Borrowed vector data must
+not be freed or treated as stable across source updates. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>
+for vector storage and observer lifetime.</p>
+</section>
+<section id="staging-and-commit">
+<h2>Staging and commit<a class="headerlink" href="#staging-and-commit" title="Link to this heading">¶</a></h2>
+<p>The live element must not receive partially validated inputs.
+<code class="docutils literal notranslate"><span class="pre">Rbc_PrepareElemDataTransaction</span></code> collects common data into temporary slots.
+On initial configuration it handles relevant defaults; explicit arguments are
+processed in their original order. Looking only at the final retained Tcl
+option objects would hide an invalid earlier occurrence of a repeated option.</p>
+<p>The transaction also preserves the ordering relationship between paired
+<code class="docutils literal notranslate"><span class="pre">-data</span></code> input and separately supplied X/Y inputs. A replacement candidate is
+parsed before discarding an earlier candidate for the same destination.
+Failure frees staged resources and leaves the live slots unchanged.</p>
+<p>Concrete configuration procedures prepare other resource transactions as
+needed, including axes, pens, styles, tags and state. All fallible preparation
+must finish before committing these resources. This complements Tk option
+rollback; it is not replaced by it. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_CommitElemDataTransaction</span></code> releases replaced live slots and transfers
+the staged records into them. Only then does the private <code class="docutils literal notranslate"><span class="pre">CommitElemVector</span></code>
+install the named-vector callback: its client data must point to the stable
+member of the element, never a temporary stack candidate. Commit clears the
+staged mask and moved candidates. Freeing the transaction afterward is safe.
+An abandoned successful transaction must also be freed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ElemDataTransactionPointCount</span></code> returns the smaller effective X/Y length
+without committing. It is an ordinary paired-data helper, not the polymorphic
+point-count service used for polar elements.</p>
+</section>
+<section id="updates-and-invalidation">
+<h2>Updates and invalidation<a class="headerlink" href="#updates-and-invalidation" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">VectorChangedProc</span></code> receives the stable data slot as client data. On update
+it reads the changed interval while that notification is active, reacquires
+the vector record through its ID and refreshes the borrowed array, length,
+capacity and extrema. On destruction it clears the client ID, array and
+length, leaving no usable data in that slot.</p>
+<p>Pending intervals are accumulated until consumed by element mapping. Once an
+unknown or full change has been seen, later precise intervals cannot make the
+combined update precise again. This information allows concrete mapping code
+to choose an appropriate cache update; it is not a promise that every element
+performs partial remapping.</p>
+<p>The callback marks the graph’s axes and the element’s mapping dirty. It requests
+backing-store redraw when the element is neither hidden nor plot-hidden.
+It does not draw synchronously. Cached numeric pointers must be refreshed
+through this notification path, rather than retained independently by a new
+component implementation.</p>
+</section>
+<section id="type-dispatch-and-display-order">
+<h2>Type dispatch and display order<a class="headerlink" href="#type-dispatch-and-display-order" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code> separates shared command behavior from element-specific work.
+Extents describe data bounds for axis scaling; mapping prepares display
+geometry; normal and active drawing consume it. Export and legend-symbol
+operations have separate callbacks. Closest-point callbacks report through
+<code class="docutils literal notranslate"><span class="pre">ClosestSearch</span></code>, including data coordinates and an original data index.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_MapElements</span></code> walks the display list, skipping hidden and plot-hidden
+elements. It remaps when the graph requests all items or the element has
+<code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code> set. Each mapping call runs within a paired track viewport scope,
+and the item flag is cleared afterward. Native remapping also records a graph
+change for interaction updates; export mapping suppresses that screen event.</p>
+<p>Normal drawing follows display-list order with the same visibility checks.
+Track drawing enters the owning viewport and skips collapsed visible regions.
+Scrolled tracks and track bar elements additionally use a renderer clip around
+the complete drawing call, including raised bar borders. A viewport scope alone
+does not install that renderer clip. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> and <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.</p>
+<p>A concrete implementation must keep drawing reductions separate from source
+identity. Decimation or clipping can change the mapped arrays without changing
+which original sample a closest-point result identifies. Legend symbols also
+have their own geometry and must not be mistaken for plot pixels by image tests.</p>
+</section>
+<section id="destruction">
+<h2>Destruction<a class="headerlink" href="#destruction" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ReleaseElementResources</span></code> clears borrowed configuration arguments and invokes
+the concrete destructor before freeing Tk-managed option resources. Derived
+GCs may still refer to colors, fonts or bitmaps owned by the option table.
+The concrete destructor is called even after failed option initialization:
+constructors can already have allocated arrays, chains or embedded pens.</p>
+<p>Release flags prevent repeating resource cleanup. The graph’s element-resource
+release pass runs while the Tk window context is available; element record and
+registry cleanup follow their owning lifecycle. New element types must release
+vector clients, owned arrays and derived resources without destroying external
+source vectors or double-freeing Tk-owned values.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Element data and dispatch</a><ul>
+<li><a class="reference internal" href="#data-slots">Data slots</a></li>
+<li><a class="reference internal" href="#staging-and-commit">Staging and commit</a></li>
+<li><a class="reference internal" href="#updates-and-invalidation">Updates and invalidation</a></li>
+<li><a class="reference internal" href="#type-dispatch-and-display-order">Type dispatch and display order</a></li>
+<li><a class="reference internal" href="#destruction">Destruction</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-reference.html"
+                          title="previous chapter">Vector client C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="element-reference.html"
+                          title="next chapter">Element data C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="element-reference.html" title="Element data C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Element data and dispatch</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

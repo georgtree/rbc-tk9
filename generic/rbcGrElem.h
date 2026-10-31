@@ -1,7 +1,10 @@
+/** @file rbcGrElem.h
+ * @brief Private element data ownership and component dispatch.
+ */
 /*
  * rbcGrElem.h --
  *
- *      TODO: Description
+ *      Shared element state, dispatch and staged resource transactions.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -337,7 +340,28 @@ struct ElementStruct {
 Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 int Rbc_GetBarRectangle(Element *, Tcl_Size, Extents2D *);
+/**
+ * @brief Release an element data slot and zero its record.
+ * @param vPtr Initialized slot or zeroed candidate owned by the caller.
+ *
+ * Releases a named-vector client ID when present; otherwise frees the owned
+ * literal array. Does not destroy the source vector or free borrowed storage.
+ */
 void Rbc_FreeElemVector(ElemVector *vPtr);
+/**
+ * @brief Stage a real named vector or a list of numeric expressions.
+ * @param interp Interpreter used for lookup, conversion and errors.
+ * @param elemPtr Borrowed element that will own the staged data.
+ * @param objPtr Borrowed option value; vector-name lookup precedes list parsing.
+ * @param candidatePtr Empty caller-owned slot overwritten by initialization.
+ * @return TCL_OK with owned candidate resources, or TCL_ERROR on failure.
+ *
+ * Never pass a populated slot: initialization would discard its resources.
+ * Complex vectors are rejected here. Named data borrows storage and owns a
+ * client ID; literal data owns an allocated double array. No notification
+ * callback is installed and the live element is unchanged. Release an unused
+ * successful candidate with Rbc_FreeElemVector.
+ */
 int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr);
 double Rbc_FindElemVectorMinimum(ElemVector *vecPtr, double minLimit);
 void Rbc_SyncElemDataOptionObjects(Element *elemPtr);
@@ -358,9 +382,45 @@ int Rbc_PrepareElemStylesTransaction(Graph *graphPtr, Element *elemPtr, Rbc_Uid 
                                      ElemStylesTransaction *transactionPtr);
 void Rbc_CommitElemStylesTransaction(Graph *graphPtr, Element *elemPtr, ElemStylesTransaction *transactionPtr);
 void Rbc_FreeElemStylesTransaction(Graph *graphPtr, ElemStylesTransaction *transactionPtr);
+/**
+ * @brief Stage common element data options without replacing live data.
+ * @param graphPtr Borrowed owning graph and interpreter context.
+ * @param elemPtr Element with current configuration arguments and option state.
+ * @param transactionPtr Empty caller-owned transaction initialized by this call.
+ * @return TCL_OK with staged resources, or TCL_ERROR after freeing candidates.
+ *
+ * Processes defaults during initial configuration and explicit options in
+ * their original argument order. Repeated options are each validated. Commit
+ * only after all other fallible component validation succeeds; otherwise free
+ * the transaction. The borrowed option argument vector must remain valid.
+ */
 int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr);
+/**
+ * @brief Count the ordinary X/Y pairs after a proposed data transaction.
+ * @param elemPtr Borrowed element supplying unchanged live dimensions.
+ * @param transactionPtr Staged transaction, or NULL to use only live data.
+ * @return Minimum of the effective X and Y lengths.
+ *
+ * Does not commit data or invoke a type-specific polar point-count callback.
+ */
 Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr);
+/**
+ * @brief Transfer staged common data into the element's stable member slots.
+ * @param elemPtr Live destination element.
+ * @param transactionPtr Successfully prepared transaction to consume.
+ *
+ * Replaced slots are released. Candidate ownership moves to the destination,
+ * named-vector callbacks are installed there, and stagedMask is cleared.
+ * No fallible validation or redraw scheduling is performed here.
+ */
 void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr);
+/**
+ * @brief Release all remaining staged arrays and vector client IDs.
+ * @param transactionPtr Initialized or zeroed caller-owned transaction.
+ *
+ * Zeros its slots and staged mask. Safe after commit, which has transferred
+ * ownership out of the candidates. Does not modify the live element.
+ */
 void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
 PenStyle **Rbc_StyleMap(Element *elemPtr);

@@ -603,27 +603,6 @@ double Rbc_FindElemVectorMinimum(ElemVector *vPtr, double minLimit) {
     return min;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeElemVector --
- *
- *      Releases the storage or vector-client token owned by an
- *      element data vector.
- *
- * Parameters:
- *      ElemVector *vPtr - Vector to release and clear.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases an external vector client token or an internally
- *      allocated value array. The complete ElemVector structure is
- *      reset to zero.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreeElemVector(ElemVector *vPtr) {
     if (vPtr->clientId != NULL) {
         Rbc_FreeVectorId(vPtr->clientId);
@@ -668,26 +647,9 @@ static void RecordElemVectorChange(ElemVector *vPtr, int haveRange, Tcl_Size fir
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * VectorChangedProc --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      ClientData clientData
- *      Rbc_VectorNotify notify
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Graph is redrawn.
- *
- *----------------------------------------------------------------------
- */
+/* Observe changes through the stable ElemVector slot. Update notifications
+ * refresh borrowed storage and accumulate source ranges; destruction empties
+ * the slot. Mark axes and mapping dirty, scheduling redraw only when plotted. */
 static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemVector *vPtr = clientData;
     Element *elemPtr = vPtr->elemPtr;
@@ -792,33 +754,6 @@ static int EvalExprListObj(Tcl_Interp *interp, Tcl_Obj *listObjPtr, Tcl_Size *nE
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ParseElemVectorObj --
- *
- *      Parses an element-vector option into temporary storage without
- *      modifying the live element vector.
- *
- *      The value may be either the name of an existing RBC vector or
- *      a Tcl list of numeric expressions.
- *
- * Parameters:
- *      Tcl_Interp *interp         - Interpreter for error reporting.
- *      Element *elemPtr           - Element that will own the vector.
- *      Tcl_Obj *objPtr            - New option value.
- *      ElemVector *candidatePtr   - Receives the staged vector.
- *
- * Results:
- *      TCL_OK if the value was parsed successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      May allocate a literal value array or an RBC vector client ID.
- *      No callback is installed and the live element is not modified.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_ParseElemVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, ElemVector *candidatePtr) {
     const char *string;
 
@@ -1798,25 +1733,6 @@ void Rbc_CommitElemPenTransaction(Graph *graphPtr, Element *elemPtr, Pen *builti
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeElemDataTransaction --
- *
- *      Releases all staged vectors owned by a element-data transaction.
- *
- * Parameters:
- *      ElemDataTransaction *transactionPtr - Transaction to clear.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases staged arrays and RBC vector client IDs. The transaction
- *      is reset to zero.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
     Rbc_FreeElemVector(&transactionPtr->x);
     Rbc_FreeElemVector(&transactionPtr->y);
@@ -1830,18 +1746,6 @@ void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr) {
     transactionPtr->stagedMask = 0;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ElemDataTransactionPointCount --
- *
- *      Returns the number of X/Y data points that the element would
- *      contain if the supplied staged data transaction were committed.
- *
- *      A NULL transaction means the current live X/Y vectors.
- *
- *----------------------------------------------------------------------
- */
 Tcl_Size Rbc_ElemDataTransactionPointCount(Element *elemPtr, const ElemDataTransaction *transactionPtr) {
     Tcl_Size nX;
     Tcl_Size nY;
@@ -1957,33 +1861,6 @@ static int StageElemDataPairs(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *obj
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PrepareElemDataTransaction --
- *
- *      Builds a complete staged transaction for all bar data options
- *      involved in the current modern configuration.
- *
- *      Explicit option/value pairs are processed in caller order, so
- *      interactions between "-data", "-x", and "-y" retain their legacy
- *      last-option-wins behaviour.
- *
- * Parameters:
- *      Graph *graphPtr                      - Owning graph.
- *      Element *elemPtr                     - Bar element.
- *      ElemDataTransaction *transactionPtr   - Receives staged data.
- *
- * Results:
- *      TCL_OK when all relevant values parse successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates temporary data arrays or vector client IDs. The live
- *      element vectors remain unchanged.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_PrepareElemDataTransaction(Graph *graphPtr, Element *elemPtr, ElemDataTransaction *transactionPtr) {
     Tcl_Interp *interp;
     unsigned int explicitMask;
@@ -2157,26 +2034,6 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_CommitElemDataTransaction --
- *
- *      Commits all successfully staged bar vectors to the live element.
- *
- * Parameters:
- *      Element *elemPtr                     - Destination element.
- *      ElemDataTransaction *transactionPtr   - Completed transaction.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases replaced live vectors, transfers staged ownership, and
- *      installs named-vector change callbacks.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & ELEM_DATA_OPTION_MASK(ELEM_DATA_OPTION_X)) {
         CommitElemVector(elemPtr, &elemPtr->x, &transactionPtr->x);
