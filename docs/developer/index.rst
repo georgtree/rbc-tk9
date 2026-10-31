@@ -61,6 +61,8 @@ chapters.
    text-font-reference
    exports
    export-reference
+   pdf-builder
+   pdf-builder-reference
    rendering
    native-rendering
    native-reference

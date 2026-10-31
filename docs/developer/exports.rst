@@ -127,5 +127,5 @@ across cleanup; otherwise a close error is reported. Successful file output
 clears the interpreter result. PostScript metadata can vary between exports,
 so byte equality is not a universal test for geometry restoration.
 
-See :doc:`export-reference` for the shared C contracts. Font embedding and PDF
-object serialization internals are separate topics.
+See :doc:`export-reference` for the shared C contracts. See :doc:`pdf-builder` for PDF
+resource ownership and serialization, and :doc:`text-fonts` for font ownership.

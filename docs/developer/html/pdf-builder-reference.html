@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PDF builder C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="PDF resource builder and serialization" href="pdf-builder.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pdf-builder.html" title="PDF resource builder and serialization"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PDF builder C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pdf-builder-c-reference">
+<h1>PDF builder C reference<a class="headerlink" href="#pdf-builder-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> and implemented in
+<code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code>. See <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for the single-use lifecycle and resource
+numbering conventions. They are independent of Cairo.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfBegin">
+<span class="target" id="rbc_export_8h_1aeabc6d439064df0cf3e6df42a0981a55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfBegin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scale</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfBegin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Attach a fresh single-page PDF builder and begin its content transform. </p>
+<p>
+Allocates backendData and appends a graphics-state save and transform to the current buffer. Does not clear earlier content or free an earlier backend. The owner must call Rbc_PdfFree, including after rendering failure. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Initialized export context with no existing backendData. </p></li>
+<li><p><strong>scale</strong> – Caller-validated conversion from screen pixels to PDF points. </p></li>
+<li><p><strong>height</strong> – Target height in screen pixels, used for the Y-axis flip.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfResource">
+<span class="target" id="rbc_export_8h_1a740cc43bc1bfb6d5e8cb9a699ea6523f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfResource" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intern a copied PDF object body within the current document. </p>
+<p>
+Does not parse or validate PDF syntax. Binary bodies require explicit lengths. Resource numbers are meaningful only within this builder. Allocation uses Tcl’s non-recoverable allocation functions rather than an error return. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Live PDF builder. </p></li>
+<li><p><strong>kind</strong> – Resource category; part of the interning key. </p></li>
+<li><p><strong>body</strong> – Borrowed object-body bytes, copied for a new entry. </p></li>
+<li><p><strong>length</strong> – Explicit byte count, or negative for a NUL-terminated string. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Stable object number, starting at six; identical kind/bytes reuse it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfSetResource">
+<span class="target" id="rbc_export_8h_1a8dce3283019d243ffac84f4a072ab4a5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfSetResource</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">body</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfSetResource" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace a reserved object’s body without changing its ID or category. </p>
+<p>
+Used to resolve font placeholders after character collection. Copies the new body and discards the previous one; does not validate id or re-intern the result. An ID shared through earlier interning names the same object for every reference, so placeholders intended to differ must be distinct. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Live PDF builder. </p></li>
+<li><p><strong>id</strong> – Existing object number returned by this builder, at least six. </p></li>
+<li><p><strong>body</strong> – Borrowed replacement bytes, not aliased with the destination body. </p></li>
+<li><p><strong>length</strong> – Byte count, or negative for a NUL-terminated string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfStream">
+<span class="target" id="rbc_export_8h_1a3f7b011b5e5b2ad592827536d183a750"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfStream</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="n"><span class="pre">kind</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dictionary</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytes</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfStream" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Wrap binary payload bytes in a PDF stream and intern the object. </p>
+<p>
+Temporarily redirects buffer, emits Length, copies the payload, restores buffer and frees temporary storage. Adds no compression or encoding; supplied dictionary filters must match the supplied bytes. The returned ID does not imply that the context has no previously recorded export error. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Live PDF builder with a valid current buffer. </p></li>
+<li><p><strong>kind</strong> – Category passed to Rbc_PdfResource. </p></li>
+<li><p><strong>dictionary</strong> – Borrowed NUL-terminated dictionary entries without delimiters. </p></li>
+<li><p><strong>bytes</strong> – Borrowed readable payload; embedded NULs are allowed. </p></li>
+<li><p><strong>length</strong> – Nonnegative payload byte count supplied by the caller. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Resource object number for the constructed stream body.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfDocument">
+<span class="target" id="rbc_export_8h_1ae7a7b4aea69ed902d36151b6c0194394"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfDocument</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfDocument" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Finalize fonts and serialize one PDF document into a binary Tcl object. </p>
+<p>
+Appends the final graphics-state restore to content and serializes PDF 1.4 objects, classic xref and trailer. Restores the original buffer pointer and frees temporary serialization storage. Resources/content remain owned by the context. This is a single-use finalizer, not an idempotent query or retry API. No file is opened. The caller checks export diagnostics and owns result delivery/reference management. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Live PDF export context with completed drawing in its buffer. </p></li>
+<li><p><strong>width</strong> – Page width in screen pixels. </p></li>
+<li><p><strong>height</strong> – Page height in screen pixels. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>New byte-array object at reference count zero, or NULL on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PdfFree">
+<span class="target" id="rbc_export_8h_1a6f4e305866a01a231d2be023de6ee4d2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfFree" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release PDF resources and clear backendData; an absent builder is safe. </p>
+<p>
+Frees copied resource bodies, the resource array and builder. Does not free fontData, content storage, an alternate buffer or the token itself. Finish all renderer/font operations before releasing their builder. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Borrowed export context with PDF or NULL backendData.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">PDF builder C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_PdfBegin"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfResource"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfResource()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfSetResource"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfSetResource()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfStream"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfStream()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfDocument"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfDocument()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PdfFree"><code class="docutils literal notranslate"><span class="pre">Rbc_PdfFree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="pdf-builder.html"
+                          title="previous chapter">PDF resource builder and serialization</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pdf-builder.html" title="PDF resource builder and serialization"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">PDF builder C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
