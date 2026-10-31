@@ -751,6 +751,24 @@ int Rbc_InitPdfOptions(Graph *graphPtr);
 int Rbc_PdfOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_SvgOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
+/* Private SVG/PDF command policy. Option specifications contain concrete
+ * TK_OPTION_PIXELS or TK_OPTION_BOOLEAN values stored as native Graph integers.
+ * documentProc returns an unreferenced object on success; freeProc releases only
+ * backend-owned state and must accept a context with no backend allocation. */
+typedef struct {
+    const char *name, *className, *label, *optionLabel, *operationLabel;
+    const Tk_OptionSpec *options;
+    Rbc_ExportBackend backend;
+    int widthOffset, heightOffset, decorationsOffset, embedFontsOffset;
+    const char *encoding, *translation;
+    int (*documentProc)(Graph *, Rbc_ExportContext *, Tcl_Obj **);
+    void (*freeProc)(Rbc_ExportContext *);
+} Rbc_GraphExportFormat;
+
+int Rbc_InitGraphExportOptions(Graph *graphPtr, const Rbc_GraphExportFormat *format);
+int Rbc_GraphExportOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[],
+                      const Rbc_GraphExportFormat *format);
+
 void Rbc_ExportBeginGraph(Graph *graphPtr);
 void Rbc_ExportEndGraph(Graph *graphPtr);
 int Rbc_ExportGraph(Graph *graphPtr, Rbc_ExportContext *exportPtr);

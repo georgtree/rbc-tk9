@@ -286,5 +286,56 @@ namespace eval graph.svg {
     } -cleanup {destroy .svg} -result {1 {ambiguous SVG option "-": must be -width, -height, -decorations, or -embedfonts} 1}
 
 
+    test RBC.graph.svg.A.19.1 {option order, abbreviations and duplicate values retain transaction semantics} -setup {
+        Create
+    } -body {
+        .svg svg conf -e no -h 2c -d false -w 100 -width 240
+        list [.svg svg cg -width] \
+                [expr {[.svg svg cget -height] == [winfo pixels .svg 2c]}] \
+                [.svg svg cget -decorations] [.svg svg cget -embedfonts]
+    } -cleanup {destroy .svg} -result {240 1 0 0}
+
+    test RBC.graph.svg.A.19.2 {invalid output options preserve configuration and destination} -setup {
+        Create
+        set filename [makeFile sentinel svg-options-error.tmp]
+        set before [.svg svg configure]
+    } -body {
+        set result {}
+        foreach args {{-width 700 -embedfonts invalid} {-width 700 -height} {-width 700 -unknown 1}} {
+            lappend result [catch {.svg svg output $filename {*}$args}] \
+                    [expr {$before eq [.svg svg configure]}]
+        }
+        lappend result [string trim [viewFile $filename]]
+        set result
+    } -cleanup {
+        removeFile $filename
+        destroy .svg
+    } -result {1 1 1 1 1 1 sentinel}
+
+    test RBC.graph.svg.A.19.3 {open failure restores screen geometry but retains valid output options} -setup {
+        Create
+        set before [.svg transform 0 0]
+        set filename [file join $::tcltest::temporaryDirectory missing-svg-directory out.svg]
+    } -body {
+        set code [catch {.svg svg output $filename -w 700 -h 500 -embedfonts no} message options]
+        set restored [expr {$before eq [.svg transform 0 0]}]
+        set configured [list [.svg svg cget -width] [.svg svg cget -height]]
+        set document [.svg svg output]
+        list $code [lindex [dict get $options -errorcode] 0] $restored $configured \
+                [expr {[string length $document] > 0}]
+    } -cleanup {destroy .svg} -result {1 POSIX 1 {700 500} 1}
+
+    testConstraint svgFullDevice [expr {$::tcl_platform(platform) eq "unix" && [file exists /dev/full]}]
+    test RBC.graph.svg.A.19.4 {write failure preserves error details and allows another export} \
+            -constraints svgFullDevice -setup {
+        Create
+        set before [.svg transform 0 0]
+    } -body {
+        set code [catch {.svg svg output /dev/full -width 700 -embedfonts no} message options]
+        list $code [lrange [dict get $options -errorcode] 0 1] \
+                [expr {$before eq [.svg transform 0 0]}] \
+                [expr {[string length [.svg svg output]] > 0}]
+    } -cleanup {destroy .svg} -result {1 {POSIX ENOSPC} 1 1}
+
 cleanupTests
 }

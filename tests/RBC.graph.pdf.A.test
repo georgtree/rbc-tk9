@@ -368,5 +368,56 @@ namespace eval graph.pdf {
     } -cleanup {destroy .pdf} -result {1 {PDF text contains a character outside Windows-1252; enable -embedfonts} 1 1}
 
 
+    test RBC.graph.pdf.A.14.1 {option order, abbreviations and duplicate values retain transaction semantics} -setup {
+        Setup
+    } -body {
+        .pdf pdf conf -e no -h 2c -d false -w 100 -width 240
+        list [.pdf pdf cg -width] \
+                [expr {[.pdf pdf cget -height] == [winfo pixels .pdf 2c]}] \
+                [.pdf pdf cget -decorations] [.pdf pdf cget -embedfonts]
+    } -cleanup {destroy .pdf} -result {240 1 0 0}
+
+    test RBC.graph.pdf.A.14.2 {invalid output options preserve configuration and destination} -setup {
+        Setup
+        set filename [makeFile sentinel pdf-options-error.tmp]
+        set before [.pdf pdf configure]
+    } -body {
+        set result {}
+        foreach args {{-width 700 -embedfonts invalid} {-width 700 -height} {-width 700 -unknown 1}} {
+            lappend result [catch {.pdf pdf output $filename {*}$args}] \
+                    [expr {$before eq [.pdf pdf configure]}]
+        }
+        lappend result [string trim [viewFile $filename]]
+        set result
+    } -cleanup {
+        removeFile $filename
+        destroy .pdf
+    } -result {1 1 1 1 1 1 sentinel}
+
+    test RBC.graph.pdf.A.14.3 {open failure restores screen geometry but retains valid output options} -setup {
+        Setup
+        set before [.pdf transform 0 0]
+        set filename [file join $::tcltest::temporaryDirectory missing-pdf-directory out.pdf]
+    } -body {
+        set code [catch {.pdf pdf output $filename -w 700 -h 500 -embedfonts no} message options]
+        set restored [expr {$before eq [.pdf transform 0 0]}]
+        set configured [list [.pdf pdf cget -width] [.pdf pdf cget -height]]
+        set document [.pdf pdf output]
+        list $code [lindex [dict get $options -errorcode] 0] $restored $configured \
+                [expr {[string length $document] > 0}]
+    } -cleanup {destroy .pdf} -result {1 POSIX 1 {700 500} 1}
+
+    testConstraint pdfFullDevice [expr {$::tcl_platform(platform) eq "unix" && [file exists /dev/full]}]
+    test RBC.graph.pdf.A.14.4 {write failure preserves error details and allows another export} \
+            -constraints pdfFullDevice -setup {
+        Setup
+        set before [.pdf transform 0 0]
+    } -body {
+        set code [catch {.pdf pdf output /dev/full -width 700 -embedfonts no} message options]
+        list $code [lrange [dict get $options -errorcode] 0 1] \
+                [expr {$before eq [.pdf transform 0 0]}] \
+                [expr {[string length [.pdf pdf output]] > 0}]
+    } -cleanup {destroy .pdf} -result {1 {POSIX ENOSPC} 1 1}
+
     cleanupTests
 }

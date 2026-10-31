@@ -19,8 +19,13 @@ in `rbcRender.h`. These interfaces are not part of the installed RBC C API.
 | `rbcRenderNative.h`     | Private native services; platform contexts are opaque.                                |
 | `rbcWinDraw.c`          | Shared Windows/Tk compatibility, Xlib emulation, and XOR presentation.                |
 
-The `rbcGrSvg.c`, `rbcGrPdf.c`, and `rbcGrPs.c` modules retain widget commands, options, and document
-orchestration. `rbcPdf.c` owns PDF resource allocation, streams, object offsets and document serialization.
+The `rbcGrSvg.c` and `rbcGrPdf.c` modules retain their option tables, defaults, document builders and encoding
+policies. `rbcGrExport.c` shares their command dispatch, atomic native-integer option updates, export geometry
+restoration and channel delivery. It selects option conversions by `Tk_OptionSpec.type`, not table position.
+Format callbacks return an unreferenced document object; the shared lifecycle retains and releases it and invokes
+backend cleanup even on failure. SVG remains UTF-8 text; PDF remains binary. PostScript keeps its own command
+lifecycle in `rbcGrPs.c`, including page layout and Windows preview handling. `rbcPdf.c` owns PDF resource allocation,
+streams, object offsets and document serialization.
 Font discovery and PDF font resources remain in the existing font modules. `rbcWinDraw.c` supplies
 lower-level Windows/Tk compatibility used by renderers and by other image, tile, and export code.
 
