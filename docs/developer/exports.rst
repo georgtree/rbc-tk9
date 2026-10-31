@@ -129,3 +129,5 @@ so byte equality is not a universal test for geometry restoration.
 
 See :doc:`export-reference` for the shared C contracts. See :doc:`pdf-builder` for PDF
 resource ownership and serialization, and :doc:`text-fonts` for font ownership.
+
+See :doc:`svg-output` for SVG definitions, escaped text and inline image encoding.

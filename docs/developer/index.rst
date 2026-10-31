@@ -63,6 +63,8 @@ chapters.
    export-reference
    pdf-builder
    pdf-builder-reference
+   svg-output
+   svg-reference
    rendering
    native-rendering
    native-reference

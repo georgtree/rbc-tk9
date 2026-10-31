@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SVG definitions and image encoding &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SVG backend C reference" href="svg-reference.html" />
+    <link rel="prev" title="PDF builder C reference" href="pdf-builder-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="svg-reference.html" title="SVG backend C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pdf-builder-reference.html" title="PDF builder C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SVG definitions and image encoding</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svg-definitions-and-image-encoding">
+<h1>SVG definitions and image encoding<a class="headerlink" href="#svg-definitions-and-image-encoding" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code> frames the document; <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code> emits primitives through
+the renderer interface. Both borrow a shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. SVG requires
+no Cairo backend or PDF object builder. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for command-level
+layout, restoration and delivery, and <a class="reference internal" href="svg-reference.html"><span class="doc">SVG backend C reference</span></a> for helper contracts.</p>
+<section id="document-and-context-lifetime">
+<h2>Document and context lifetime<a class="headerlink" href="#document-and-context-lifetime" title="Link to this heading">¶</a></h2>
+<p>The SVG document callback appends an XML declaration and root element using the
+mapped graph width/height for both dimensions and viewBox. It traverses graph
+output, finishes embedded fonts after successful traversal, and appends the
+root close. On success it creates a Tcl string from the document buffer. The
+shared command checks export status and owns delivery with UTF-8/LF settings.
+An unsuccessful partially generated document must not be returned as valid SVG.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg</span></code> allocates a zeroed context containing shared export
+state and bitmap-symbol definition state. It borrows the token and its buffer;
+renderer completion frees the context without closing the document. All contexts
+must finish before shared export storage and font resources are released.
+Drawing appends XML immediately; it does not retain a DOM or a deferred scene.</p>
+</section>
+<section id="definitions-and-scopes">
+<h2>Definitions and scopes<a class="headerlink" href="#definitions-and-scopes" title="Link to this heading">¶</a></h2>
+<p>Rectangular clip pushes increment <code class="docutils literal notranslate"><span class="pre">nextResourceId</span></code>, emit a clipPath definition
+in user coordinates, and open a group referring to it. Pop closes the group.
+Common renderer depth tracking controls pairing and unwind. Plot output has a
+separate <code class="docutils literal notranslate"><span class="pre">rbcPlot</span></code> definition/group and paints its background before entering
+the plot clip. That fixed name belongs to the current single-graph document;
+it is not a namespace scheme for concatenating independent SVG documents.</p>
+<p>Patterns and bitmap-symbol definitions also use document-generated identifiers.
+A fill context caches its pattern ID, so repeated polygons with the same style
+reuse that definition. This is not PDF-style document-wide byte interning.
+Changing resource styles behind a context’s cached ID would reuse the wrong
+definition; configure a context before drawing and keep borrowed resources live.</p>
+<p>Tile patterns use photo blocks when available and otherwise capture generic Tk
+images. Their origin accounts for the widget’s offset from its toplevel, matching
+native tile alignment. Stipple patterns read monochrome bits with XYPixmap,
+emit an optional background rectangle and foreground runs, and release the
+readback image. Pattern dimensions and contents use userSpaceOnUse coordinates.
+Definitions are emitted inline as needed, rather than collected in one header.</p>
+</section>
+<section id="strings-and-error-propagation">
+<h2>Strings and error propagation<a class="headerlink" href="#strings-and-error-propagation" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">SvgString</span></code> escapes ampersands, angle brackets and both quote characters.
+Other bytes are decoded as Tcl UTF characters and checked for prohibited XML
+characters. Errors are recorded on the export context; already emitted bytes
+are not removed. The helper expects valid readable Tcl UTF input, not arbitrary
+binary data. Binary images and font payloads use separate encoding paths.</p>
+<p>A void drawing helper or nonzero resource ID does not establish overall success.
+The shared export error records the first failure, and the outer command must
+honor it. Do not implement a fallback by appending a second representation after
+an encoding helper has partially emitted XML and recorded an error.</p>
+</section>
+<section id="raster-encoding">
+<h2>Raster encoding<a class="headerlink" href="#raster-encoding" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">SvgPhotoBlock</span></code> emits an inline PNG data URI. It copies each source row using
+the Tk pitch and pixel layout, adds a zero PNG filter byte, and writes straight
+RGBA pixels. Unlike Cairo image surfaces, these channels are not premultiplied.
+A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255.
+The producer must supply valid RGB offsets and readable backing storage.</p>
+<p>The helper rejects invalid basic storage and raw buffers exceeding its INT_MAX
+size checks. Empty dimensions produce no image. Tcl zlib compresses the raw
+scanlines; interpreter state is saved/restored around compression and the
+compressed result is retained while its bytes are used. Temporary raw and
+compressed objects are released explicitly.</p>
+<p>PNG assembly writes signature, IHDR, IDAT and IEND chunks, including chunk
+checksums. Base64 encodes the binary PNG into an image href with explicit mapped
+position and dimensions. Temporary PNG storage is freed after emission. Encoding
+is in memory and does not create temporary image files or invoke a Tcl image
+format command.</p>
+<p>Generic Tk images expose drawing rather than a universal pixel layout. Their
+export path uses the shared raster-image capture service, including its
+source-over/two-matte assumptions, then releases captured color images after
+encoding. Window markers use a separate capture path: unmapped or zero-sized
+windows are skipped; mapped windows are read from their current native drawable.
+Export does not instantiate or lay out replacement child widgets. See
+<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> and <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for source lifetime and window behavior.</p>
+</section>
+<section id="text-and-integration-boundaries">
+<h2>Text and integration boundaries<a class="headerlink" href="#text-and-integration-boundaries" title="Link to this heading">¶</a></h2>
+<p>SVG text selects embedded-font output when requested; otherwise it resolves Tk
+font attributes and emits text using those attributes. The nonembedded path
+calls Tcl’s font command, so it is not a pure geometry operation. Font state
+belongs to the shared export token, and final embedded-font definitions are
+emitted before the closing root element. See <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font ownership.</p>
+<p>SVG paths, patterns and clip groups preserve renderer painter order. No native
+pixel rounding should be introduced simply to resemble a screen backend.
+Validation should parse the emitted XML and exercise escaped labels, transparent
+images, repeated patterns, nested track clips, font modes and export followed by
+screen-geometry restoration. A visually correct image alone does not validate
+XML quoting, resource references or encoded binary payloads.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">SVG definitions and image encoding</a><ul>
+<li><a class="reference internal" href="#document-and-context-lifetime">Document and context lifetime</a></li>
+<li><a class="reference internal" href="#definitions-and-scopes">Definitions and scopes</a></li>
+<li><a class="reference internal" href="#strings-and-error-propagation">Strings and error propagation</a></li>
+<li><a class="reference internal" href="#raster-encoding">Raster encoding</a></li>
+<li><a class="reference internal" href="#text-and-integration-boundaries">Text and integration boundaries</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="pdf-builder-reference.html"
+                          title="previous chapter">PDF builder C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="svg-reference.html"
+                          title="next chapter">SVG backend C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="svg-reference.html" title="SVG backend C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pdf-builder-reference.html" title="PDF builder C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SVG definitions and image encoding</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

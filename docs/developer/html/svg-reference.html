@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SVG backend C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="SVG definitions and image encoding" href="svg-output.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="svg-output.html" title="SVG definitions and image encoding"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SVG backend C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svg-backend-c-reference">
+<h1>SVG backend C reference<a class="headerlink" href="#svg-backend-c-reference" title="Link to this heading">¶</a></h1>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code>. They borrow the export token;
+component callers use the renderer interface. See <a class="reference internal" href="svg-output.html"><span class="doc">SVG definitions and image encoding</span></a>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__svg__backend"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">SVG</span> <span class="pre">backend</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private append-only output helpers borrowing the current export context. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SvgClipBegin">
+<span class="target" id="group__svg__backend_1gad748fb72cbbacb59f9d5a6eba0129c76"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgClipBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SvgClipBegin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit a rectangular clip definition and open its clipped group. </p>
+<p>
+Allocates an identifier from the document counter, not heap-owned clip geometry. SvgClipEnd emits the matching group close. Common renderer depth tracking owns pairing and unwind; this helper does not update depth. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Live SVG context borrowing the export token. </p></li>
+<li><p><strong>x</strong> – Mapped clip origin X. </p></li>
+<li><p><strong>y</strong> – Mapped clip origin Y. </p></li>
+<li><p><strong>width</strong> – Clip width supplied by the common clip dispatcher. </p></li>
+<li><p><strong>height</strong> – Clip height supplied by the common clip dispatcher.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SvgString">
+<span class="target" id="group__svg__backend_1ga24289a6de6b14d9e7a936cd83aec300f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SvgString" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append XML-escaped Tcl UTF text to the current export buffer. </p>
+<p>
+Escapes the five XML metacharacters and checks decoded characters for disallowed controls, surrogate values and selected XML noncharacters. Records an export error on invalid content; already appended output is not rolled back. This is not an arbitrary binary-data encoder. Retains no input. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Borrowed initialized export context. </p></li>
+<li><p><strong>string</strong> – Borrowed readable Tcl UTF string. </p></li>
+<li><p><strong>length</strong> – Byte length, or negative for a NUL-terminated string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SvgPhotoBlock">
+<span class="target" id="group__svg__backend_1gaa300786a6f3904b65110463093ababc4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgPhotoBlock</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_PhotoImageBlock</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">block</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SvgPhotoBlock" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Encode a borrowed Tk photo block as an inline PNG image. </p>
+<p>
+Empty dimensions emit nothing. Checks pixel storage and size limits; assumes RGB offsets/storage are supplied by a valid image producer. Copies straight-alpha RGBA scanlines, compresses with Tcl zlib and appends base64 PNG. A distinct valid alpha offset is used, otherwise alpha is opaque. Temporary Tcl objects and PNG storage are released; interpreter state is restored after compression. Failures record an export error, without rolling back output. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – Borrowed export context and interpreter. </p></li>
+<li><p><strong>block</strong> – Readable Tk photo block with valid RGB channel offsets. </p></li>
+<li><p><strong>x</strong> – Image origin in mapped SVG coordinates. </p></li>
+<li><p><strong>y</strong> – Image origin in mapped SVG coordinates.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SvgFillPattern">
+<span class="target" id="group__svg__backend_1gab3c46d6388f394f20758b56983d72fb6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SvgFillPattern</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><span class="n"><span class="pre">Rbc_RenderContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ctx</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SvgFillPattern" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Define or reuse this context’s SVG tile/stipple pattern. </p>
+<p>
+The cache is context-local and assumes an unchanged style. Tiles use photo pixels or captured image pixels; stipples use monochrome readback. Definitions append directly to the document and use its resource counter. A nonzero ID does not clear or exclude an encoding error recorded on token. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Live SVG context with configured fill style and graph. </p></li>
+<li><p><strong>foreground</strong> – Borrowed color used for stipple foreground runs. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cached/new pattern ID, or zero for unavailable/empty pattern data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">SVG backend C reference</a><ul>
+<li><a class="reference internal" href="#c.SvgClipBegin"><code class="docutils literal notranslate"><span class="pre">SvgClipBegin()</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgString"><code class="docutils literal notranslate"><span class="pre">SvgString()</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgPhotoBlock"><code class="docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a></li>
+<li><a class="reference internal" href="#c.SvgFillPattern"><code class="docutils literal notranslate"><span class="pre">SvgFillPattern()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="svg-output.html"
+                          title="previous chapter">SVG definitions and image encoding</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="svg-output.html" title="SVG definitions and image encoding"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SVG backend C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

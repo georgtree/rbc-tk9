@@ -1,4 +1,10 @@
 /* Svg renderer. See license.terms. */
+/** @file rbcRenderSvg.c
+ * SVG primitives, XML strings, definitions and embedded raster data.
+ */
+/** @defgroup svg_backend SVG backend internals
+ * Private append-only output helpers borrowing the current export context.
+ */
 #include "rbcRenderExportInt.h"
 
 typedef struct {
@@ -9,6 +15,18 @@ typedef struct {
 
 #define SVG(ctx) ((SvgRenderContext *)(ctx))
 
+/**
+ * @ingroup svg_backend
+ * @brief Emit a rectangular clip definition and open its clipped group.
+ * @param ctx Live SVG context borrowing the export token.
+ * @param x Mapped clip origin X.
+ * @param y Mapped clip origin Y.
+ * @param width Clip width supplied by the common clip dispatcher.
+ * @param height Clip height supplied by the common clip dispatcher.
+ * @details Allocates an identifier from the document counter, not heap-owned
+ * clip geometry. SvgClipEnd emits the matching group close. Common renderer
+ * depth tracking owns pairing and unwind; this helper does not update depth.
+ */
 static void SvgClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     unsigned int id = ++token->nextResourceId;
@@ -24,6 +42,17 @@ static void SvgClipEnd(Rbc_RenderContext *ctx) {
 
 static unsigned int SvgFillPattern(Rbc_RenderContext *, const XColor *);
 
+/**
+ * @ingroup svg_backend
+ * @brief Append XML-escaped Tcl UTF text to the current export buffer.
+ * @param token Borrowed initialized export context.
+ * @param string Borrowed readable Tcl UTF string.
+ * @param length Byte length, or negative for a NUL-terminated string.
+ * @details Escapes the five XML metacharacters and checks decoded characters
+ * for disallowed controls, surrogate values and selected XML noncharacters.
+ * Records an export error on invalid content; already appended output is not
+ * rolled back. This is not an arbitrary binary-data encoder. Retains no input.
+ */
 static void SvgString(Rbc_ExportContext *token, const char *string, Tcl_Size length) {
     Tcl_Size i;
 
@@ -396,6 +425,20 @@ static void SvgBase64(Rbc_ExportContext *token, const unsigned char *bytes, Tcl_
     }
 }
 
+/**
+ * @ingroup svg_backend
+ * @brief Encode a borrowed Tk photo block as an inline PNG image.
+ * @param token Borrowed export context and interpreter.
+ * @param block Readable Tk photo block with valid RGB channel offsets.
+ * @param x Image origin in mapped SVG coordinates.
+ * @param y Image origin in mapped SVG coordinates.
+ * @details Empty dimensions emit nothing. Checks pixel storage and size limits;
+ * assumes RGB offsets/storage are supplied by a valid image producer. Copies
+ * straight-alpha RGBA scanlines, compresses with Tcl zlib and appends base64 PNG.
+ * A distinct valid alpha offset is used, otherwise alpha is opaque. Temporary
+ * Tcl objects and PNG storage are released; interpreter state is restored after
+ * compression. Failures record an export error, without rolling back output.
+ */
 static void SvgPhotoBlock(Rbc_ExportContext *token, const Tk_PhotoImageBlock *block, double x, double y) {
     Tcl_Obj *raw, *compressed;
     Tcl_InterpState saved;
@@ -501,6 +544,17 @@ static void SvgTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double 
 
 /* Stipples use graph pixels; photo tiles retain their toplevel-relative
  * phase. A translated legend sample supplies its own local origin. */
+/**
+ * @ingroup svg_backend
+ * @brief Define or reuse this context's SVG tile/stipple pattern.
+ * @param ctx Live SVG context with configured fill style and graph.
+ * @param foreground Borrowed color used for stipple foreground runs.
+ * @return Cached/new pattern ID, or zero for unavailable/empty pattern data.
+ * @details The cache is context-local and assumes an unchanged style. Tiles
+ * use photo pixels or captured image pixels; stipples use monochrome readback.
+ * Definitions append directly to the document and use its resource counter.
+ * A nonzero ID does not clear or exclude an encoding error recorded on token.
+ */
 static unsigned int SvgFillPattern(Rbc_RenderContext *ctx, const XColor *foreground) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
