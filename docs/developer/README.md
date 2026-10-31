@@ -1,7 +1,7 @@
 # C developer manual
 
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
-Coverage includes architecture, header dependencies, renderer contracts, graph
+Coverage includes package initialization and client stubs, architecture, header dependencies, renderer contracts, graph
 widget lifecycle and redisplay, vector ownership and notifications, binding
 dispatch and picking, component option transactions and resource ownership,
 scrolling and viewport contracts, geometry and clipping contracts, chain/list ownership, image and tile ownership, text layout and document font ownership, export orchestration and document ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, and source-comment conventions.

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Package loading and stubs &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Package initialization C reference" href="initialization-reference.html" />
+    <link rel="prev" title="Header structure" href="headers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="initialization-reference.html" title="Package initialization C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Package loading and stubs</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="package-loading-and-stubs">
+<h1>Package loading and stubs<a class="headerlink" href="#package-loading-and-stubs" title="Link to this heading">¶</a></h1>
+<p>The package index, <code class="docutils literal notranslate"><span class="pre">generic/rbcInt.c</span></code> and <code class="docutils literal notranslate"><span class="pre">generic/rbcStubLib.c</span></code> divide
+loading into Tcl-only initialization, Tk command registration and client-side
+C API setup. See <a class="reference internal" href="initialization-reference.html"><span class="doc">Package initialization C reference</span></a> for the public contracts.</p>
+<section id="loader-sequence">
+<h2>Loader sequence<a class="headerlink" href="#loader-sequence" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pkgIndex.tcl.in</span></code> chooses the Tcl 9 or Tcl 8 library filename from the running
+Tcl version and registers three package scripts:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Package</p></th>
+<th class="head"><p>Loading work</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code></p></td>
+<td><p>Loads the shared library with entry-point prefix <code class="docutils literal notranslate"><span class="pre">Rbc</span></code>. <code class="docutils literal notranslate"><span class="pre">Rbc_Init</span></code>
+initializes Tcl stubs and vector commands without requiring Tk.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbc</span></code></p></td>
+<td><p>Requires the exact matching vector package and Tk, invokes
+<code class="docutils literal notranslate"><span class="pre">::rbc::_initTk</span></code>, sets <code class="docutils literal notranslate"><span class="pre">::rbc::library</span></code> and sources <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code>
+followed by <code class="docutils literal notranslate"><span class="pre">trackgraph.tcl</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::graphtoolbar</span></code></p></td>
+<td><p>Requires the exact matching full package, sources <code class="docutils literal notranslate"><span class="pre">graphtoolbar.tcl</span></code>
+and provides the toolbar package after the script completes.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The toolbar script prefers installed argparse and uses the bundled Tcl-only
+copy when argparse is missing. Full RBC loading does not source the toolbar.
+The legacy graph helpers remain part of full loading for compatibility.</p>
+<p>A direct <code class="docutils literal notranslate"><span class="pre">load</span></code> of the binary establishes the vector package only. Embedders
+needing widgets and their Tcl support scripts should require <code class="docutils literal notranslate"><span class="pre">rbc</span></code> rather
+than treating successful binary loading as full initialization. The private
+<code class="docutils literal notranslate"><span class="pre">_initTk</span></code> command is a loader step, not a replacement public loading API.</p>
+</section>
+<section id="interpreter-state-and-registration">
+<h2>Interpreter state and registration<a class="headerlink" href="#interpreter-state-and-registration" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RbcInitData</span></code> is associated with the interpreter under <code class="docutils literal notranslate"><span class="pre">rbc::init</span></code>. Its
+five flags record completed vector, graph, winop, spline and EPS initialization.
+<code class="docutils literal notranslate"><span class="pre">FreeInitData</span></code> frees this bookkeeping record at interpreter teardown; it does
+not own every object created by those subsystems.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_Init</span></code> creates <code class="docutils literal notranslate"><span class="pre">::rbc</span></code> if needed, initializes the vector subsystem once,
+creates <code class="docutils literal notranslate"><span class="pre">::rbc::_initTk</span></code> and exports <code class="docutils literal notranslate"><span class="pre">vector</span></code>. Vector initialization creates
+both <code class="docutils literal notranslate"><span class="pre">::rbc::vector</span></code> and <code class="docutils literal notranslate"><span class="pre">::rbc::vector::simplify</span></code>. Its registry, numerical
+function tables and vector cleanup belong to a separate interpreter-associated
+<code class="docutils literal notranslate"><span class="pre">VectorInterpData</span></code> record; see <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">_initTk</span></code> first initializes Tk stubs, then registers the graph constructors,
+winop and spline commands, followed by the EPS canvas item. It exports
+<code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">spline</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, <code class="docutils literal notranslate"><span class="pre">trackgraph</span></code> and
+<code class="docutils literal notranslate"><span class="pre">winop</span></code>. Graph registration installs component UIDs and constructor commands;
+it does not create a graph window. Each later constructor owns its widget
+instance; see <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
+<p>Flags are per interpreter, even though the shared library is loaded once in a
+process. They do not make vectors transferable between interpreters, and do not
+turn process-global stubs pointers or Tk services into thread-safe interfaces.
+Use vector and widget objects in their owning interpreter and thread.</p>
+</section>
+<section id="failure-boundaries">
+<h2>Failure boundaries<a class="headerlink" href="#failure-boundaries" title="Link to this heading">¶</a></h2>
+<p>Each successful phase sets its readiness flag before the next phase runs.
+A later error leaves earlier commands and flags in place. A retry skips those
+completed phases; initialization is not one rollback transaction. These flags
+also do not detect or recreate commands deliberately removed after loading.</p>
+<p>The C Tk initializer provides <code class="docutils literal notranslate"><span class="pre">rbc</span></code> before the package script sources its Tcl
+files. A sourcing error can therefore leave native commands and the provided
+package record installed even though the support script did not finish.
+Loading code must report that error; checking only <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">provide</span> <span class="pre">rbc</span></code> is
+not proof that every support script completed. This is an existing boundary,
+not a guarantee of automatic recovery on a subsequent require.</p>
+</section>
+<section id="client-stubs-and-abi-maintenance">
+<h2>Client stubs and ABI maintenance<a class="headerlink" href="#client-stubs-and-abi-maintenance" title="Link to this heading">¶</a></h2>
+<p>A consumer links the RBC stub library and calls <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> for
+Tcl-only vector access or <code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> when it needs the full package.
+Both use <code class="docutils literal notranslate"><span class="pre">Tcl_PkgRequireEx</span></code> and assign its client data to the consumer’s
+<code class="docutils literal notranslate"><span class="pre">rbcStubsPtr</span></code>. Both packages publish the same table from <code class="docutils literal notranslate"><span class="pre">rbcStubInit.c</span></code>.
+Successful initialization selects functions; it does not own vectors or retain
+the interpreter. See <a class="reference internal" href="vector-reference.html"><span class="doc">Vector client C reference</span></a> for storage ownership and
+read-only checks.</p>
+<p>The pointer belongs to the linked stub object, not to each interpreter. A
+failed initialization leaves its previous value unchanged. Consumers must check
+the return value rather than use a previously non-NULL pointer as evidence
+that loading succeeded in another interpreter. The helpers do not validate the
+table magic or individual slots; a NULL package client-data pointer returns
+NULL without adding its own diagnostic.</p>
+<p><code class="docutils literal notranslate"><span class="pre">generic/rbc.decls</span></code> defines numbered public slots. <code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code> supplies
+the table type, declarations and client dispatch macros; <code class="docutils literal notranslate"><span class="pre">rbcStubInit.c</span></code>
+supplies the implementation addresses. Preserve existing slot numbers and
+signatures when extending the ABI, and update generated sections through
+<code class="docutils literal notranslate"><span class="pre">tools/genStubs.tcl</span></code>. Require a package version containing every slot used by
+a consumer. Private renderer or graph declarations do not become public APIs
+merely by being documented; see <a class="reference internal" href="headers.html"><span class="doc">Header structure</span></a> and <a class="reference internal" href="architecture.html"><span class="doc">Implementation overview</span></a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Package loading and stubs</a><ul>
+<li><a class="reference internal" href="#loader-sequence">Loader sequence</a></li>
+<li><a class="reference internal" href="#interpreter-state-and-registration">Interpreter state and registration</a></li>
+<li><a class="reference internal" href="#failure-boundaries">Failure boundaries</a></li>
+<li><a class="reference internal" href="#client-stubs-and-abi-maintenance">Client stubs and ABI maintenance</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="headers.html"
+                          title="previous chapter">Header structure</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="initialization-reference.html"
+                          title="next chapter">Package initialization C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="initialization-reference.html" title="Package initialization C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="headers.html" title="Header structure"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Package loading and stubs</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

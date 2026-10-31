@@ -22,28 +22,7 @@
 
 const RbcStubs *rbcStubsPtr;
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_InitStubs --
- *
- *  Checks that the correct version of RBC is loaded and that it
- *  supports stubs. It then initialises the stub table pointers.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *version
- *      int exact
- *
- * Results:
- *  The actual version of RBC that satisfies the request, or
- *  NULL to indicate that an error occurred.
- *
- * Side effects:
- *  Sets the stub table pointers.
- *
- *----------------------------------------------------------------------
- */
+/* Public initialization contracts are documented in rbc.h. */
 
 static const char *InitPackageStubs(Tcl_Interp *interp, const char *package, const char *version, int exact) {
     const char *result;

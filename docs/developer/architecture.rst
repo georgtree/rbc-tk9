@@ -45,6 +45,8 @@ See :doc:`elements` for data-slot ownership, staged updates and type dispatch.
 See :doc:`mapping` for axis normalization, inverted coordinates, track viewports
 and the distinction between mapping and clipping.
 
+See :doc:`initialization` for package loading, command registration and client stubs.
+
 Supporting modules
 ------------------
 

@@ -17,6 +17,8 @@ chapters.
    building
    architecture
    headers
+   initialization
+   initialization-reference
    graph-lifecycle
    graph-reference
    vectors
