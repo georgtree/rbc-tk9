@@ -89,7 +89,8 @@ finalize and deliver output.</p></td>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGeometry.c</span></code> contains geometry algorithms without graph state or drawing.
 <code class="docutils literal notranslate"><span class="pre">rbcScroll.c</span></code> parses scroll requests and computes viewports; callers retain
 widget mutation and redraw responsibilities. <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> owns common option
-conversion and rollback helpers. <code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> contains shared Tk/Xlib services
+conversion and rollback helpers. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for resource lookup,
+transaction boundaries and the distinction between option and derived resources. <code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> contains shared Tk/Xlib services
 used outside graph rendering too, rather than a universal renderer backend.</p>
 <p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> is Windows/Tk compatibility infrastructure used by renderers,
 image and tile code. It owns private Tk drawable/DC integration and Xlib

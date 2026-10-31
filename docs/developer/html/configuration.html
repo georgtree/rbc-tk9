@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Component configuration and resources &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Component configuration C reference" href="configuration-reference.html" />
+    <link rel="prev" title="Vector client C reference" href="vector-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="configuration-reference.html" title="Component configuration C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Component configuration and resources</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="component-configuration-and-resources">
+<h1>Component configuration and resources<a class="headerlink" href="#component-configuration-and-resources" title="Link to this heading">¶</a></h1>
+<p>Configuration belongs to the component that owns the record. Shared helpers
+in <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> provide name lookup, option-database initialization and
+rollback; they do not own graph scheduling or component-derived resources.
+Their private declarations are in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. The similarly named
+<code class="docutils literal notranslate"><span class="pre">rbcConfig.h</span></code> contains legacy configuration macros, not this helper interface.
+See <a class="reference internal" href="configuration-reference.html"><span class="doc">Component configuration C reference</span></a> for the extracted contracts.</p>
+<section id="resource-identity">
+<h2>Resource identity<a class="headerlink" href="#resource-identity" title="Link to this heading">¶</a></h2>
+<p>A component’s command name and its option-database resource name serve different
+purposes. <code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentResourceName</span></code> creates an allocated resource-name
+copy with only the first byte lowercased. Callers release the copy with
+<code class="docutils literal notranslate"><span class="pre">ckfree</span></code>; the component retains its original command identity. This preserves
+legacy child-name matching rather than applying Unicode case folding.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions</span></code> receives the resource name and class separately.
+It first looks for an existing real child of the graph with that name. When
+found, initialization uses that child’s existing class. Otherwise the helper
+reuses the graph’s anonymous option proxy, setting its name and class for this
+lookup. A NULL proxy falls back to the parent window’s option hierarchy.
+Explicit command arguments are applied separately after initialization.</p>
+<p>The proxy is not a visible component widget and has no registered Tk pathname.
+A temporary pathname supplies meaningful initialization errors and is cleared
+before returning. The helper refreshes the parent’s option-database cache
+before changing the proxy identity, so an intervening option-database update
+is not lost when Tk rebuilds the lookup stack. These Tk window details stay
+inside the helper; callers own the proxy lifetime.</p>
+<p>Do not infer a separate option-database component from every Tcl subcommand.
+For example, a track has a named <code class="docutils literal notranslate"><span class="pre">Track</span></code> component, whereas a local grid
+materializes inherited grid settings through its own initialization path.
+Local-grid queries use a temporary view without creating a persistent local
+grid or freezing its inherited defaults.</p>
+</section>
+<section id="transactions">
+<h2>Transactions<a class="headerlink" href="#transactions" title="Link to this heading">¶</a></h2>
+<p>Tk-managed values and derived resources have separate commit points. A typical
+component configuration follows this sequence:</p>
+<ol class="arabic simple">
+<li><p>Clear stale option masks and borrowed argument pointers.</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code> with a <code class="docutils literal notranslate"><span class="pre">Tk_SavedOptions</span></code> record. On failure, return
+its error: Tk has already restored the option values.</p></li>
+<li><p>Validate relationships and prepare replacements for derived resources.
+Keep old active resources until all fallible work succeeds.</p></li>
+<li><p>On validation failure, clear borrowed transaction context and call
+<code class="docutils literal notranslate"><span class="pre">Rbc_RestoreOptionsOnError</span></code>. It consumes the saved transaction while
+preserving the original interpreter result, error code and error information.</p></li>
+<li><p>On success, commit prepared resources and component relationships, clear
+borrowed context and call <code class="docutils literal notranslate"><span class="pre">Tk_FreeSavedOptions</span></code> to discard old option values.
+Schedule mapping or redraw through the owning component’s normal path.</p></li>
+</ol>
+<p>The rollback helper does not undo arbitrary C mutations, restore graphics
+contexts or reverse callbacks. Calling it after committing a derived resource
+cannot make that resource transactional. Likewise, do not free saved options
+again after rollback. Initialization failure and destruction have their own
+cleanup paths; a saved configuration transaction is not a general destructor.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureElementOptions</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> is a concrete example. It exposes
+the changed-option mask and borrowed original argument vector to the concrete
+element configurator. For trackgraphs it first validates that the requested
+track exists and that the mapped Y axis belongs to it. Only successful
+configuration commits the element’s track pointer. Both success and failure
+clear the borrowed arguments before releasing or restoring saved options.
+Graph configuration additionally stages resources such as tiles and title
+shadows; consult its implementation rather than assuming that Tk rollback
+covers those resources.</p>
+</section>
+<section id="lookup-and-configure-metadata">
+<h2>Lookup and configure metadata<a class="headerlink" href="#lookup-and-configure-metadata" title="Link to this heading">¶</a></h2>
+<p>Ordinary Tk option records use Tk’s query machinery. Custom component commands
+can share a concrete <code class="docutils literal notranslate"><span class="pre">Tk_OptionSpec</span></code> array between initialization, lookup and
+metadata without constructing a temporary live record for each query.
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionIndex</span></code> accepts unique abbreviations through Tcl’s
+indexed-name lookup. Its array contains no synonyms and must outlive option-name
+objects that cache references to it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionInfo</span></code> combines one specification with a caller-supplied
+live value to produce the usual five fields: option name, resource name,
+resource class, default and current value. The returned list owns a reference
+to the value, without taking away any reference already held by the caller.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetCanonicalOptionName</span></code> serves configuration bookkeeping for full Tk
+specification tables, including chained tables and synonym entries. It returns
+a borrowed specification string, with no interpreter diagnostic on failure.
+It is not a value parser and does not replace <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code> validation.</p>
+</section>
+<section id="cleanup-boundaries">
+<h2>Cleanup boundaries<a class="headerlink" href="#cleanup-boundaries" title="Link to this heading">¶</a></h2>
+<p>Tk option resources must be released with the matching option table while the
+required Tk window context is still available. Derived resources, observers,
+bindings and record storage remain with the owning component. Avoid freeing
+the same resource both through Tk and through manual component cleanup.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">ReleaseGraphOptionResources</span></code> uses initialization and release
+flags to guard repeated cleanup. It clears configuration argument context,
+calls <code class="docutils literal notranslate"><span class="pre">Tk_FreeConfigOptions</span></code>, releases the option table, and clears the table
+pointer. Graphics contexts, the title shadow and tile are handled separately.
+See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for cleanup around window destruction and deferred
+record release.</p>
+<p>When changing a component, check failed initialization as well as failed
+reconfiguration. Review custom option set, restore and free procedures together:
+they form one ownership protocol. Existing tests should cover rejected values
+without losing the previous live configuration, resource-database defaults,
+metadata consistency and destruction after partial setup.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Component configuration and resources</a><ul>
+<li><a class="reference internal" href="#resource-identity">Resource identity</a></li>
+<li><a class="reference internal" href="#transactions">Transactions</a></li>
+<li><a class="reference internal" href="#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
+<li><a class="reference internal" href="#cleanup-boundaries">Cleanup boundaries</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-reference.html"
+                          title="previous chapter">Vector client C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="configuration-reference.html"
+                          title="next chapter">Component configuration C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="configuration-reference.html" title="Component configuration C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Component configuration and resources</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

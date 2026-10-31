@@ -79,31 +79,6 @@ static int DoCheck(Tcl_Interp *interp, int length, int check) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetCanonicalOptionName --
- *
- *      Resolves an option name using the same matching rules as
- *      Tk_SetOptions: exact names take precedence over abbreviations,
- *      and an abbreviation must identify one unique option name.
- *
- *      Synonyms are resolved to their canonical option names.
- *
- * Parameters:
- *      Tcl_Obj *objPtr               - Option-name object.
- *      const Tk_OptionSpec *specs    - Complete option specification
- *                                      table used by Tk_SetOptions.
- *
- * Results:
- *      Returns the canonical option name, or NULL when no unique match
- *      exists.
- *
- * Side Effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs) {
     const Tk_OptionSpec *bestPtr;
     const Tk_OptionSpec *tablePtr;
@@ -731,30 +706,6 @@ Tk_Window Rbc_FindChild(Tk_Window parent, const char *name) {
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_RestoreOptionsOnError --
- *
- *      Roll back a successful Tk_SetOptions transaction after subsequent
- *      component validation fails. Preserve the original interpreter result
- *      and return options, including errorCode and errorInfo, while Tk frees
- *      the rejected values and restores the saved options.
- *
- *      Callers must clear borrowed argument vectors and transaction context
- *      before calling. Derived resources remain the caller's responsibility:
- *      validation must not commit them before every fallible step succeeds.
- *      Do not call this after Tk_SetOptions itself fails (Tk has already
- *      restored the options), or call Tk_FreeSavedOptions afterward.
- *
- * Results:
- *      TCL_ERROR, with the original interpreter state restored.
- *
- * Side effects:
- *      Consumes the saved option transaction and restores its option values.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsPtr) {
     Tcl_InterpState state;
 
@@ -763,9 +714,6 @@ int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsP
     return Tcl_RestoreInterpState(interp, state);
 }
 
-/* Preserve the legacy Tk child-name resource convention: lowercase only the
- * first byte, leaving component identity and the rest of the name unchanged.
- * The caller owns the returned copy and releases it with ckfree. */
 char *Rbc_GetComponentResourceName(const char *name) {
     char *copy = RbcStrdup(name);
 
@@ -843,20 +791,12 @@ int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window pro
     return Tk_InitOptions(interp, recordPtr, optionTable, parent);
 }
 
-/*
- * Custom component commands use the same Tk_OptionSpec table for initialization,
- * option lookup and configure metadata. These tables contain concrete options
- * (no synonyms), end with TK_OPTION_END, and outlive cached option-name objects.
- */
 int Rbc_GetComponentOptionIndex(Tcl_Interp *interp, Tcl_Obj *objPtr, const Tk_OptionSpec *specs,
                                 const char *message, int *indexPtr) {
     return Tcl_GetIndexFromObjStruct(interp, objPtr, &specs[0].optionName, sizeof(Tk_OptionSpec),
                                      message, 0, indexPtr);
 }
 
-/* Return a standard five-field description using a caller-supplied live value.
- * The resulting list retains valueObj; the caller keeps any existing reference.
- * No option table or synthetic component record is needed for this query. */
 Tcl_Obj *Rbc_GetComponentOptionInfo(const Tk_OptionSpec *spec, Tcl_Obj *valueObj) {
     Tcl_Obj *items[5];
     items[0] = Tcl_NewStringObj(spec->optionName, -1);

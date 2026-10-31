@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Component configuration C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Binding dispatch and picking" href="bindings.html" />
+    <link rel="prev" title="Component configuration and resources" href="configuration.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="bindings.html" title="Binding dispatch and picking"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Component configuration and resources"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Component configuration C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="component-configuration-c-reference">
+<h1>Component configuration C reference<a class="headerlink" href="#component-configuration-c-reference" title="Link to this heading">¶</a></h1>
+<p>These are private helpers implemented in <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> and declared in
+<code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. They introduce no public stubs. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for
+transaction ordering, resource identity and cleanup responsibilities.</p>
+<section id="resource-initialization">
+<h2>Resource initialization<a class="headerlink" href="#resource-initialization" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetComponentResourceName">
+<span class="target" id="rbc_int_8h_1a04643a4532a623b0999bcacf4d81b3d3"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentResourceName</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentResourceName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a component name using the legacy resource-name convention. </p>
+<p>
+Only the first byte is lowercased using tolower. The rest is unchanged; this is not Unicode case folding. An empty name produces an empty copy. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Non-NULL component name; component identity is not modified. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Allocated copy owned by the caller; release with ckfree.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_InitComponentOptions">
+<span class="target" id="rbc_int_8h_1a42e7abf2c2a42967b219395d8e45d02e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitComponentOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">parent</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">proxy</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">className</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">recordPtr</span></span>, <span class="n"><span class="pre">Tk_OptionTable</span></span><span class="w"> </span><span class="n"><span class="pre">optionTable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitComponentOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize a component record with its option-database identity. </p>
+<p>
+A matching real child is used first, retaining its class. Otherwise reuse the proxy with the supplied name and class, or use parent when proxy is NULL. No window is created or destroyed here. The temporary proxy diagnostic path is cleared before returning. Record resources and proxy lifetime remain with the caller; this helper does not configure explicit command arguments. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter receiving initialization errors. </p></li>
+<li><p><strong>parent</strong> – Owning widget window. </p></li>
+<li><p><strong>proxy</strong> – Graph-owned anonymous option window, or NULL for parent fallback. </p></li>
+<li><p><strong>name</strong> – Resource name, already normalized by the caller if required. </p></li>
+<li><p><strong>className</strong> – Component resource class used for the proxy. </p></li>
+<li><p><strong>recordPtr</strong> – Component record accepted by Tk_InitOptions. </p></li>
+<li><p><strong>optionTable</strong> – Tk option table describing the record. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of Tk_InitOptions (TCL_OK or TCL_ERROR).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="rollback">
+<h2>Rollback<a class="headerlink" href="#rollback" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RestoreOptionsOnError">
+<span class="target" id="rbc_int_8h_1a423d81cc36374d92aadb0ce6626059ef"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RestoreOptionsOnError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_SavedOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">savedOptionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RestoreOptionsOnError" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Roll back options after validation of a successful Tk_SetOptions fails. </p>
+<p>
+Clear borrowed argument vectors and transaction context before calling. Derived resources remain the caller’s responsibility: do not commit them before all fallible validation succeeds. Do not call after Tk_SetOptions itself fails, or call Tk_FreeSavedOptions after this helper. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter holding the original validation error. </p></li>
+<li><p><strong>savedOptionsPtr</strong> – Successful option transaction to consume and restore. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_ERROR with the original result and return options preserved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="option-lookup-and-metadata">
+<h2>Option lookup and metadata<a class="headerlink" href="#option-lookup-and-metadata" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetComponentOptionIndex">
+<span class="target" id="rbc_int_8h_1a957570bbeac882bc011d70a62b7c654c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="p"><span class="pre">*</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up a custom component option using Tcl’s indexed-name matching. </p>
+<p>Arguments are interpreter, option-name object, specification array, diagnostic label and output index. The array must contain concrete options (no synonyms), terminate with TK_OPTION_END, and outlive Tcl objects caching its entries. Unique abbreviations are accepted. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TCL_OK with the selected index, or TCL_ERROR with a diagnostic. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetComponentOptionInfo">
+<span class="target" id="rbc_int_8h_1ad22b5aa43521881e5b9c71ac50c4f216"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComponentOptionInfo</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="p"><span class="pre">*</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComponentOptionInfo" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build configure metadata from one specification and its live value. </p>
+<p><p>Arguments are a concrete specification with non-NULL optionName, dbName, dbClass and defValue strings, and a valid Tcl value object.</p>
+<p>No option table or synthetic component record is allocated for this query.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New zero-reference-count list containing option name, resource name, resource class, default and supplied value. The list retains the value; the caller retains any references it already owns.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetCanonicalOptionName">
+<span class="target" id="rbc_int_8h_1a5156e8d0e618459f64c5a697c673ebe7"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetCanonicalOptionName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Tk_OptionSpec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">specs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetCanonicalOptionName" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an option spelling for configuration bookkeeping. </p>
+<p>
+Resolves synonyms through their clientData canonical name. Use the same specification as Tk_SetOptions; this helper does not parse option values. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtr</strong> – Option-name object, or NULL. </p></li>
+<li><p><strong>specs</strong> – Complete specification table, or NULL; chained tables are followed. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed canonical name from the specification, or NULL for an empty, missing or ambiguous match. No interpreter diagnostic is produced.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Component configuration C reference</a><ul>
+<li><a class="reference internal" href="#resource-initialization">Resource initialization</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetComponentResourceName"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentResourceName()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_InitComponentOptions"><code class="docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rollback">Rollback</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RestoreOptionsOnError"><code class="docutils literal notranslate"><span class="pre">Rbc_RestoreOptionsOnError()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#option-lookup-and-metadata">Option lookup and metadata</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetComponentOptionIndex"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionIndex()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetComponentOptionInfo"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComponentOptionInfo()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetCanonicalOptionName"><code class="docutils literal notranslate"><span class="pre">Rbc_GetCanonicalOptionName()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="configuration.html"
+                          title="previous chapter">Component configuration and resources</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="bindings.html"
+                          title="next chapter">Binding dispatch and picking</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="bindings.html" title="Binding dispatch and picking"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Component configuration and resources"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Component configuration C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

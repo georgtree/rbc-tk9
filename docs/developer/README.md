@@ -3,7 +3,8 @@
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
 Coverage includes architecture, header dependencies, renderer contracts, graph
 widget lifecycle and redisplay, vector ownership and notifications, binding
-dispatch and picking, and source-comment conventions.
+dispatch and picking, component option transactions and resource ownership,
+and source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
 

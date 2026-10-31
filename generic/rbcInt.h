@@ -1,3 +1,6 @@
+/** @file rbcInt.h
+ * @brief Private shared infrastructure, including component option services.
+ */
 /*
  * rbcInt.h --
  *
@@ -304,9 +307,45 @@ void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
 void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, int *transXPtr, int *transYPtr);
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
+/**
+ * @brief Roll back options after validation of a successful Tk_SetOptions fails.
+ * @param interp Interpreter holding the original validation error.
+ * @param savedOptionsPtr Successful option transaction to consume and restore.
+ * @return TCL_ERROR with the original result and return options preserved.
+ *
+ * Clear borrowed argument vectors and transaction context before calling.
+ * Derived resources remain the caller's responsibility: do not commit them
+ * before all fallible validation succeeds. Do not call after Tk_SetOptions
+ * itself fails, or call Tk_FreeSavedOptions after this helper.
+ */
 int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsPtr);
+/**
+ * @brief Copy a component name using the legacy resource-name convention.
+ * @param name Non-NULL component name; component identity is not modified.
+ * @return Allocated copy owned by the caller; release with ckfree.
+ *
+ * Only the first byte is lowercased using tolower. The rest is unchanged;
+ * this is not Unicode case folding. An empty name produces an empty copy.
+ */
 char *Rbc_GetComponentResourceName(const char *name);
 int Rbc_ClampToInt(Tcl_WideInt value);
+/**
+ * @brief Initialize a component record with its option-database identity.
+ * @param interp Interpreter receiving initialization errors.
+ * @param parent Owning widget window.
+ * @param proxy Graph-owned anonymous option window, or NULL for parent fallback.
+ * @param name Resource name, already normalized by the caller if required.
+ * @param className Component resource class used for the proxy.
+ * @param recordPtr Component record accepted by Tk_InitOptions.
+ * @param optionTable Tk option table describing the record.
+ * @return Result of Tk_InitOptions (TCL_OK or TCL_ERROR).
+ *
+ * A matching real child is used first, retaining its class. Otherwise reuse
+ * the proxy with the supplied name and class, or use parent when proxy is NULL.
+ * No window is created or destroyed here. The temporary proxy diagnostic path
+ * is cleared before returning. Record resources and proxy lifetime remain with
+ * the caller; this helper does not configure explicit command arguments.
+ */
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
                              const char *className, char *recordPtr, Tk_OptionTable optionTable);
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
@@ -325,8 +364,38 @@ int Rbc_ParseScrollRequest(Tcl_Interp *, Tcl_Size, Tcl_Obj *const [], Tcl_Size, 
 
 int Rbc_GetScrollInfoFromObj(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], int *offsetPtr, int worldSize,
                              int windowSize, int scrollUnits, int scrollMode);
+/**
+ * @brief Look up a custom component option using Tcl's indexed-name matching.
+ *
+ * Arguments are interpreter, option-name object, specification array,
+ * diagnostic label and output index. The array must contain concrete options
+ * (no synonyms), terminate with TK_OPTION_END, and outlive Tcl objects caching
+ * its entries. Unique abbreviations are accepted.
+ * @return TCL_OK with the selected index, or TCL_ERROR with a diagnostic.
+ */
 int Rbc_GetComponentOptionIndex(Tcl_Interp *, Tcl_Obj *, const Tk_OptionSpec *, const char *, int *);
+/**
+ * @brief Build configure metadata from one specification and its live value.
+ *
+ * Arguments are a concrete specification with non-NULL optionName, dbName,
+ * dbClass and defValue strings, and a valid Tcl value object.
+ * @return New zero-reference-count list containing option name, resource name,
+ * resource class, default and supplied value. The list retains the value;
+ * the caller retains any references it already owns.
+ *
+ * No option table or synthetic component record is allocated for this query.
+ */
 Tcl_Obj *Rbc_GetComponentOptionInfo(const Tk_OptionSpec *, Tcl_Obj *);
+/**
+ * @brief Resolve an option spelling for configuration bookkeeping.
+ * @param objPtr Option-name object, or NULL.
+ * @param specs Complete specification table, or NULL; chained tables are followed.
+ * @return Borrowed canonical name from the specification, or NULL for an empty,
+ * missing or ambiguous match. No interpreter diagnostic is produced.
+ *
+ * Resolves synonyms through their clientData canonical name. Use the same
+ * specification as Tk_SetOptions; this helper does not parse option values.
+ */
 const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *specs);
 
 #if defined(HAVE_JPEGLIB_H) || defined(HAVE_IJL_H)

@@ -39,7 +39,8 @@ Supporting modules
 ``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.
 ``rbcScroll.c`` parses scroll requests and computes viewports; callers retain
 widget mutation and redraw responsibilities. ``rbcConfig.c`` owns common option
-conversion and rollback helpers. ``rbcDraw.c`` contains shared Tk/Xlib services
+conversion and rollback helpers. See :doc:`configuration` for resource lookup,
+transaction boundaries and the distinction between option and derived resources. ``rbcDraw.c`` contains shared Tk/Xlib services
 used outside graph rendering too, rather than a universal renderer backend.
 
 ``rbcWinDraw.c`` is Windows/Tk compatibility infrastructure used by renderers,
