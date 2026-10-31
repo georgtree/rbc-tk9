@@ -39,6 +39,8 @@ chapters.
    configuration-reference
    bindings
    binding-reference
+   text-fonts
+   text-font-reference
    exports
    export-reference
    rendering

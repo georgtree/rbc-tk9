@@ -178,26 +178,6 @@ static void DrawTextLayout(Display *display, Drawable drawable, GC gc, Tk_Font f
     }
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_GetTextLayout --
- *
- *      Get the extents of a possibly multiple-lined text string.
- *
- * Parameters:
- *      char string[]
- *      TextStyle *tsPtr
- *
- * Results:
- *      Returns via *widthPtr* and *heightPtr* the dimensions of
- *      the text string.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
- */
 TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
     const char *lineStart;
     const char *p;
@@ -333,28 +313,6 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
     return textPtr;
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_GetTextExtents --
- *
- *      Get the extents of a possibly multiple-lined text string.
- *
- * Parameters:
- *      TextStyle *tsPtr
- *      char *string
- *      int *widthPtr
- *      int *heightPtr
- *
- * Results:
- *      Returns via *widthPtr* and *heightPtr* the dimensions of
- *      the text string.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
- */
 void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int *heightPtr) {
     const char *lineStart;
     const char *p;
@@ -693,24 +651,6 @@ Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor a
     return trans;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_InitTextStyle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      TextStyle *tsPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_InitTextStyle(TextStyle *tsPtr) {
     /* Initialize these attributes to zero */
     tsPtr->activeColor = (XColor *)NULL;
@@ -1041,25 +981,6 @@ GC Rbc_GetBitmapGC(Tk_Window tkwin) {
     return gc;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_ResetTextStyle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      TextStyle *tsPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *tsPtr) {
     GC newGC;
     XGCValues gcValues;
@@ -1078,25 +999,6 @@ void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *tsPtr) {
     tsPtr->gc = newGC;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_FreeTextStyle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      TextStyle *tsPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_FreeTextStyle(Display *display, TextStyle *tsPtr) {
     if (tsPtr->gc != NULL) {
         Tk_FreeGC(display, tsPtr->gc);

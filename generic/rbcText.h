@@ -1,7 +1,6 @@
-/*
- * rbcText.h --
- *
- *      TODO: Description
+/**
+ * @file rbcText.h
+ * @brief Private multiline text layout and style resources.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -91,10 +90,42 @@ typedef struct {
 
 } TextStyle;
 
+/**
+ * @brief Allocate an unrotated multiline layout using a borrowed style and font.
+ * Fragment text pointers borrow the input string; keep it alive and unchanged
+ * until the layout is no longer used. NULL is treated as an empty string.
+ * The caller frees the single allocation with ckfree. Counts are UTF byte
+ * counts, not character counts. Rotation and anchoring are drawing operations.
+ */
 TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *stylePtr);
+/**
+ * @brief Measure unrotated text without allocating a fragment array.
+ * Borrow the style and font. NULL returns zero dimensions, ignoring padding.
+ * The height includes leader spacing for every line; unlike GetTextLayout it
+ * does not remove the final leader. Do not substitute it blindly for layout
+ * dimensions when nonzero leader spacing is used.
+ */
 void Rbc_GetTextExtents(TextStyle *tsPtr, const char *string, int *widthPtr, int *heightPtr);
+/**
+ * @brief Initialize style defaults without acquiring or releasing resources.
+ * This is not a full memset: gc, border, width and height are not initialized.
+ * A caller using those fields must initialize them separately. In particular,
+ * set gc to NULL or a valid owned Tk GC before ResetTextStyle or FreeTextStyle.
+ */
 void Rbc_InitTextStyle(TextStyle *stylePtr);
+/**
+ * @brief Replace the style GC using its current font and optional foreground.
+ * Requires a live window, valid font, and gc either NULL or an owned Tk GC.
+ * Acquires the replacement before releasing the old GC. Font and colors are
+ * borrowed; their ownership is unchanged.
+ */
 void Rbc_ResetTextStyle(Tk_Window tkwin, TextStyle *stylePtr);
+/**
+ * @brief Release a non-NULL style GC with Tk_FreeGC.
+ * Does not release font, colors, border or the style record, and does not clear
+ * the gc field. Do not call twice without resetting that field or installing
+ * another owned GC. A borrowed GC must not be released through this helper.
+ */
 void Rbc_FreeTextStyle(Display *display, TextStyle *stylePtr);
 void Rbc_SetDrawTextStyle(TextStyle *stylePtr, Tk_Font font, GC gc, XColor *normalColor, XColor *activeColor,
                           XColor *shadowColor, double theta, Tk_Anchor anchor, Tk_Justify justify, int leader,

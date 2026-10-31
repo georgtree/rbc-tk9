@@ -33,6 +33,7 @@ are private; adding a renderer declaration does not add a public stub entry.
 ``rbcGrTrack.c``; polar work lives in ``rbcGrPolar.c``. Components such as
 ``rbcGrAxis.c``, ``rbcGrLine.c`` and ``rbcGrMarker.c`` use this infrastructure.
 
+See :doc:`text-fonts` for borrowed text layouts and document-local font caches.
 See :doc:`exports` for document lifecycle, geometry restoration and delivery.
 See :doc:`markers` for marker layers, window ownership and XOR handling.
 See :doc:`crosshairs` for XOR state and final-frame presentation.
