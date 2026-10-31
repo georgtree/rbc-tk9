@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Geometry, clipping and simplification &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Geometry C reference" href="geometry-reference.html" />
+    <link rel="prev" title="Renderer C reference" href="reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="geometry-reference.html" title="Geometry C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geometry, clipping and simplification</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="geometry-clipping-and-simplification">
+<h1>Geometry, clipping and simplification<a class="headerlink" href="#geometry-clipping-and-simplification" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGeometry.c</span></code> implements point, segment and polygon operations without Tk
+resources, renderer state or graph ownership. Its private declarations remain
+in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. Callers map coordinates first, select a coordinate system and
+provide the arrays. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for graph/track transformations and
+<a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for actual drawing clips.</p>
+<section id="coordinates-and-borrowed-storage">
+<h2>Coordinates and borrowed storage<a class="headerlink" href="#coordinates-and-borrowed-storage" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Point2D</span></code> and <code class="docutils literal notranslate"><span class="pre">Segment2D</span></code> carry double coordinates. <code class="docutils literal notranslate"><span class="pre">Extents2D</span></code> uses
+left/right/top/bottom bounds; valid rectangles have finite coordinates with
+left &lt;= right and top &lt;= bottom. Zero-width or zero-height rectangles are not
+rejected. In screen coordinates, top normally has the smaller Y value.</p>
+<p>The helpers do not apply axis transforms, logarithms, track offsets or native
+pixel rounding. Distances and tolerances use the same units as their input.
+Arrays are borrowed. Counts must describe allocated storage: a non-NULL pointer
+and a positive count do not prove an array is large enough.</p>
+<p>These are numerical primitives with sentinel/count results, not Tcl command
+error interfaces. Finite-input checks reject many malformed cases, but they are
+not a guarantee against every intermediate overflow at extreme magnitudes.
+Command-facing callers retain validation and diagnostic responsibilities.</p>
+</section>
+<section id="hit-testing">
+<h2>Hit testing<a class="headerlink" href="#hit-testing" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetClosestPointOnSegment</span></code> projects onto the segment direction and clamps
+to its endpoints. A segment whose length is at most <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> uses its
+first endpoint. It writes the closest point and returns Euclidean distance.
+Rejected inputs/intermediates return <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> without writing the result;
+the final distance calculation can still overflow for extreme finite values.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_PointInSegments</span></code> accepts a finite positive halo and tests <code class="docutils literal notranslate"><span class="pre">distance</span> <span class="pre">&lt;</span>
+<span class="pre">halo</span></code>, not &lt;=. An exact hit with halo zero therefore does not match.
+<code class="docutils literal notranslate"><span class="pre">Rbc_PointInPolygon</span></code> uses even-odd ray crossings and closes the last vertex
+back to the first. Its half-open edge comparisons avoid double-counting vertices,
+but do not establish a universal inclusive-boundary policy. Use a separate
+segment-distance test when a boundary tolerance is required.</p>
+<p>Despite its name, <code class="docutils literal notranslate"><span class="pre">Rbc_RegionInPolygon</span></code> with <code class="docutils literal notranslate"><span class="pre">enclosed</span></code> true checks that the
+rectangle encloses every polygon vertex. With <code class="docutils literal notranslate"><span class="pre">enclosed</span></code> false it tests all
+polygon edges against the rectangle, then tests the rectangle’s top-left corner
+inside the polygon. That final check handles a rectangle wholly inside a polygon
+without any edge crossing.</p>
+</section>
+<section id="line-and-polygon-clipping-differ">
+<h2>Line and polygon clipping differ<a class="headerlink" href="#line-and-polygon-clipping-differ" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_LineRectClip</span></code> uses Liang-Barsky clipping against the supplied bounds.
+Its output pointer may be NULL for visibility testing. With separate output
+storage, endpoints remain unchanged; rejected input leaves output untouched.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_PolyRectClip</span></code> preserves a historical pixel-area convention: left/top are
+used directly, while right/bottom are expanded by one coordinate unit. It also
+perturbs zero edge deltas by <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> internally. It is therefore not an
+interchangeable polygon version of the line clipper for arbitrary mathematical
+coordinates.</p>
+<p>The input polygon needs no duplicated closing vertex. Output is explicitly
+closed and its count includes the repeated first vertex. The caller supplies a
+separate buffer and capacity; every append checks capacity, including the final
+closing point. A conservative bound for the current implementation is three
+output vertices per input edge plus one closing vertex. Validate both the
+<code class="docutils literal notranslate"><span class="pre">3*n</span> <span class="pre">+</span> <span class="pre">1</span></code> count arithmetic and allocation-byte arithmetic before allocating.</p>
+<p>A zero result can mean no output, invalid input or insufficient capacity.
+Capacity failure may have written a prefix, so never draw that prefix as a valid
+polygon. Clipping can produce a complex path joined by zero-width/height
+segments rather than separate output contours.</p>
+<p>Clipped centerlines and polygon vertices do not alone constrain the pixels of
+wide strokes, caps, joins, symbols or raised borders. Components and renderers
+must still establish drawing clips; changing this geometry helper is not a
+replacement for clipping the rendered primitive.</p>
+</section>
+<section id="simplification-and-original-indices">
+<h2>Simplification and original indices<a class="headerlink" href="#simplification-and-original-indices" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_SimplifyLine</span></code> implements iterative Douglas-Peucker subdivision using a
+temporary stack. The input interval is inclusive, and output entries are original
+indices, not copied points or offsets relative to <code class="docutils literal notranslate"><span class="pre">low</span></code>. The first and last
+points are retained; a single-point interval returns its sole index.</p>
+<p>For each interval it finds the greatest perpendicular distance to the infinite
+line through the endpoints. This differs from the clamped segment distance used
+for hit testing. Coincident endpoints instead measure distance from the common
+endpoint, preserving excursions that return to their start. It splits only when
+squared distance is strictly greater than squared tolerance.</p>
+<p>Callers provide finite points and a finite nonnegative tolerance in matching
+units, plus room for <code class="docutils literal notranslate"><span class="pre">high-low+1</span></code> indices. The primitive has no input-length or
+output-capacity argument and does not validate all numeric values. Its stack
+allocation is attempted rather than fatal; failure returns zero. Treat any zero
+result as unusable output, including a possible partial prefix from an internal
+capacity guard.</p>
+<p>This helper is not the graph’s screen-column extrema decimator. Preserving
+original indices is useful to callers, but the helper itself knows nothing about
+element picking, gaps, vector notifications or renderer batches. Those policies
+belong to element/vector code.</p>
+<p>See <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a> for the seven function contracts. This chapter
+records the existing boundary and numerical conventions without changing them.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Geometry, clipping and simplification</a><ul>
+<li><a class="reference internal" href="#coordinates-and-borrowed-storage">Coordinates and borrowed storage</a></li>
+<li><a class="reference internal" href="#hit-testing">Hit testing</a></li>
+<li><a class="reference internal" href="#line-and-polygon-clipping-differ">Line and polygon clipping differ</a></li>
+<li><a class="reference internal" href="#simplification-and-original-indices">Simplification and original indices</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="reference.html"
+                          title="previous chapter">Renderer C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="geometry-reference.html"
+                          title="next chapter">Geometry C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="geometry-reference.html" title="Geometry C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="reference.html" title="Renderer C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geometry, clipping and simplification</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

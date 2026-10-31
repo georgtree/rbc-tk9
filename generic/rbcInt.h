@@ -281,13 +281,66 @@ int Rbc_QuadraticParametricSplineEval(const Point2D *origPts, Tcl_Size nOrigPts,
 Tcl_Size Rbc_NaturalParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, const Extents2D *extsPtr, int isClosed,
                                      Point2D *intpPts, Tcl_Size nIntpPts);
 int Rbc_CatromParametricSpline(const Point2D *origPts, Tcl_Size nOrigPts, Point2D *intpPts, Tcl_Size nIntpPts);
+/**
+ * @brief Find the clamped nearest point on a finite segment and return distance.
+ * Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of
+ * length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate
+ * arithmetic return DBL_MAX without writing the result. The final hypot may
+ * still overflow for extreme finite coordinates; this is not a Tcl error API.
+ */
 double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, const Point2D *q, Point2D *closestPtr);
+/**
+ * @brief Clip a segment to inclusive extents using Liang-Barsky parameters.
+ * Requires finite, ordered extents and finite endpoints. Returns false for
+ * invalid/disjoint input, leaving output untouched. On success, writes the
+ * clipped segment if clippedPtr is non-NULL; NULL requests visibility only.
+ * Input endpoints are not modified when output storage is separate.
+ */
 int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr);
+/**
+ * @brief Clip a polygon into a separate caller-owned output array.
+ * Input contains exactly nInputPts vertices; the closing edge is implicit.
+ * Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is
+ * explicitly closed by repeating its first vertex. outputCapacity counts all
+ * available Point2D entries, including closure. Returns the output count, or
+ * zero for empty/invalid input or insufficient capacity. Capacity failure can
+ * leave partial output; discard it. Input and output must not overlap.
+ */
 Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *inputPts, Tcl_Size nInputPts, Point2D *outputPts,
                           Tcl_Size outputCapacity);
+/**
+ * @brief Test polygon membership by an even-odd horizontal ray crossing.
+ * Requires at least three finite vertices and a finite sample; invalid input
+ * returns false. The closing edge is implicit. Half-open crossing comparisons
+ * do not promise that every point on an edge is inside. Does not modify input.
+ */
 int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size nPoints);
+/**
+ * @brief Test polygon enclosure by, or overlap with, a rectangle.
+ * With enclosed nonzero, every polygon vertex must be inside inclusive extents;
+ * this means the rectangle encloses the polygon, not the reverse. Otherwise
+ * test edge intersection and then rectangle-inside-polygon containment.
+ * Invalid extents or fewer than three finite vertices return false.
+ */
 int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, int enclosed);
+/**
+ * @brief Return true if any segment is strictly closer than halo to the sample.
+ * Requires a finite positive halo; zero or invalid halo, no segments or an
+ * invalid sample returns false. Uses clamped segment distance, including
+ * degenerate segments. Does not acquire or modify the borrowed arrays.
+ */
 int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl_Size nSegments, double halo);
+/**
+ * @brief Return retained original indices for an inclusive input interval.
+ * Caller supplies valid finite points through high and space for high-low+1
+ * indices; no array lengths are supplied or checked here. Use a finite,
+ * nonnegative tolerance in the same coordinate units as input. The algorithm
+ * measures distance to the infinite endpoint line, or to the endpoint when
+ * endpoints coincide. Retains interval endpoints in input order, splitting
+ * only when squared distance exceeds squared tolerance. Returns zero on
+ * rejected bounds/allocation failure; discard any partial output. Input is
+ * borrowed and unchanged; temporary stack storage is released before return.
+ */
 Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
 int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);

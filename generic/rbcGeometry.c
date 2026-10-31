@@ -65,27 +65,6 @@ double Rbc_GetClosestPointOnSegment(const Point2D *samplePtr, const Point2D *p, 
     return hypot(samplePtr->x - closestPtr->x, samplePtr->y - closestPtr->y);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PointInSegments --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Point2D *samplePtr
- *      Segment2D *segments
- *      int nSegments
- *      double halo
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl_Size nSegments, double halo) {
     const Segment2D *segPtr;
     const Segment2D *endPtr;
@@ -106,26 +85,6 @@ int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PointInPolygon --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Point2D *samplePtr
- *      Point2D *points
- *      int nPoints
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size nPoints) {
     const Point2D *p;
     const Point2D *q;
@@ -170,27 +129,6 @@ int Rbc_PointInPolygon(const Point2D *samplePtr, const Point2D *points, Tcl_Size
     return inside;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_RegionInPolygon --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Extents2D *extsPtr
- *      Point2D *points
- *      int nPoints
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Size nPoints, int enclosed) {
     const Point2D *pointPtr;
     const Point2D *endPtr;
@@ -292,37 +230,6 @@ static int ClipTest(double ds, double dr, double *t1, double *t2) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_LineRectClip --
- *
- *      Clips a line segment to a rectangular region using the
- *      Liang-Barsky line clipping algorithm.
- *
- * Parameters:
- *      const Extents2D *extsPtr
- *          Rectangular clipping region.
- *
- *      const Point2D *p
- *      const Point2D *q
- *          Original line segment endpoints.
- *
- *      Segment2D *clippedPtr
- *          Receives the clipped line segment when non-NULL and the
- *          segment intersects the clipping region.  May be NULL when
- *          only visibility is required.
- *
- * Results:
- *      Returns TRUE if any portion of the line segment lies within the
- *      clipping region, FALSE otherwise.
- *
- * Side Effects:
- *      Writes the clipped segment to clippedPtr on success when
- *      clippedPtr is non-NULL.  The input endpoints are never modified.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *q, Segment2D *clippedPtr) {
     double dx;
     double dy;
@@ -352,40 +259,6 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_PolyRectClip --
- *
- *      Clips the given polygon to a rectangular region.  The resulting
- *      polygon is returned. Note that the resulting polyon may be
- *      complex, connected by zero width/height segments.  The drawing
- *      routine (such as XFillPolygon) will not draw a connecting
- *      segment.
- *      inputPts is read-only and contains exactly nInputPts vertices.
- *      The closing edge from the last vertex to the first is generated
- *      internally.
- *
- *      outputCapacity is the number of Point2D entries available in
- *      outputPts.
- *
- *      Reference:  Liang-Barsky Polygon Clipping Algorithm
- *
- * Parameters:
- *      Extents2D *extsPtr
- *      Point2D *points
- *      int nPoints
- *      Point2D *clipPts
- *
- * Results:
- *      Returns the number of points in the clipped polygon. The
- *      points of the clipped polygon are stored in *outputPts*.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 static int AppendClipVertex(Point2D *points, Tcl_Size capacity, Tcl_Size *countPtr, double x, double y) {
     Tcl_Size count;
 
@@ -602,28 +475,6 @@ static double FindSplit(const Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size
     return maxSqDist;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_SimplifyLine --
- *
- *      Douglas-Peucker line simplification algorithm
- *
- * Parameters:
- *      Point2D inputPts[]
- *      Tcl_Size low
- *      Tcl_Size high
- *      double tolerance
- *      Tcl_Size indices[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Tcl_Size Rbc_SimplifyLine(const Point2D inputPts[], Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]) {
     Tcl_Size *stack;
     Tcl_Size nPoints;

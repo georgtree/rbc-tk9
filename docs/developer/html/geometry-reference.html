@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Geometry C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Chains and keyed lists" href="containers.html" />
+    <link rel="prev" title="Geometry, clipping and simplification" href="geometry.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="containers.html" title="Chains and keyed lists"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="geometry.html" title="Geometry, clipping and simplification"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geometry C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="geometry-c-reference">
+<h1>Geometry C reference<a class="headerlink" href="#geometry-c-reference" title="Link to this heading">¶</a></h1>
+<p>These declarations remain in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. See <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a> for conventions.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetClosestPointOnSegment">
+<span class="target" id="rbc_int_8h_1ae3ee65cc23aaf85a96649b3e61414c57"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetClosestPointOnSegment</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">closestPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetClosestPointOnSegment" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the clamped nearest point on a finite segment and return distance. </p>
+<p>Inputs and closestPtr are borrowed; closestPtr must be non-NULL. Segments of length at most DBL_EPSILON use p. Invalid inputs or rejected intermediate arithmetic return DBL_MAX without writing the result. The final hypot may still overflow for extreme finite coordinates; this is not a Tcl error API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_LineRectClip">
+<span class="target" id="rbc_int_8h_1a1511c89b7d6bb72ef57d004e710f8b6f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LineRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clippedPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_LineRectClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clip a segment to inclusive extents using Liang-Barsky parameters. </p>
+<p>Requires finite, ordered extents and finite endpoints. Returns false for invalid/disjoint input, leaving output untouched. On success, writes the clipped segment if clippedPtr is non-NULL; NULL requests visibility only. Input endpoints are not modified when output storage is separate. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PolyRectClip">
+<span class="target" id="rbc_int_8h_1a5bdb410a00134922673d1a220c7ff34e"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PolyRectClip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nInputPts</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outputPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">outputCapacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PolyRectClip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clip a polygon into a separate caller-owned output array. </p>
+<p>Input contains exactly nInputPts vertices; the closing edge is implicit. Uses left/top and historical right+1/bottom+1 clipping boundaries. Output is explicitly closed by repeating its first vertex. outputCapacity counts all available Point2D entries, including closure. Returns the output count, or zero for empty/invalid input or insufficient capacity. Capacity failure can leave partial output; discard it. Input and output must not overlap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PointInPolygon">
+<span class="target" id="rbc_int_8h_1a7a8fb13b3169d12bd06f01db14829e49"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test polygon membership by an even-odd horizontal ray crossing. </p>
+<p>Requires at least three finite vertices and a finite sample; invalid input returns false. The closing edge is implicit. Half-open crossing comparisons do not promise that every point on an edge is inside. Does not modify input. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RegionInPolygon">
+<span class="target" id="rbc_int_8h_1ad4388d434f0ddc9a267b255b3698fd9c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RegionInPolygon</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RegionInPolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test polygon enclosure by, or overlap with, a rectangle. </p>
+<p>With enclosed nonzero, every polygon vertex must be inside inclusive extents; this means the rectangle encloses the polygon, not the reverse. Otherwise test edge intersection and then rectangle-inside-polygon containment. Invalid extents or fewer than three finite vertices return false. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_PointInSegments">
+<span class="target" id="rbc_int_8h_1ad3b0785a3149d16d69209a8b69e3ca65"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInSegments</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nSegments</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">halo</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PointInSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return true if any segment is strictly closer than halo to the sample. </p>
+<p>Requires a finite positive halo; zero or invalid halo, no segments or an invalid sample returns false. Uses clamped segment distance, including degenerate segments. Does not acquire or modify the borrowed arrays. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SimplifyLine">
+<span class="target" id="rbc_int_8h_1a453a31f16f9ffb4bc05e962caae197b7"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SimplifyLine</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">low</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">high</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">tolerance</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SimplifyLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return retained original indices for an inclusive input interval. </p>
+<p>Caller supplies valid finite points through high and space for high-low+1 indices; no array lengths are supplied or checked here. Use a finite, nonnegative tolerance in the same coordinate units as input. The algorithm measures distance to the infinite endpoint line, or to the endpoint when endpoints coincide. Retains interval endpoints in input order, splitting only when squared distance exceeds squared tolerance. Returns zero on rejected bounds/allocation failure; discard any partial output. Input is borrowed and unchanged; temporary stack storage is released before return. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Geometry C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetClosestPointOnSegment"><code class="docutils literal notranslate"><span class="pre">Rbc_GetClosestPointOnSegment()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_LineRectClip"><code class="docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PolyRectClip"><code class="docutils literal notranslate"><span class="pre">Rbc_PolyRectClip()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PointInPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_PointInPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RegionInPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_RegionInPolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_PointInSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_PointInSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SimplifyLine"><code class="docutils literal notranslate"><span class="pre">Rbc_SimplifyLine()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="geometry.html"
+                          title="previous chapter">Geometry, clipping and simplification</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="containers.html"
+                          title="next chapter">Chains and keyed lists</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="containers.html" title="Chains and keyed lists"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="geometry.html" title="Geometry, clipping and simplification"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geometry C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

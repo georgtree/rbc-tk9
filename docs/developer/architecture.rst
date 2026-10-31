@@ -51,6 +51,7 @@ Supporting modules
 See :doc:`containers` for chain/list payload ownership and mutation rules.
 
 ``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.
+See :doc:`geometry` for clipping boundaries, hit testing and simplification.
 ``rbcScroll.c`` parses scroll requests and computes viewports; callers retain
 widget mutation and redraw responsibilities. ``rbcConfig.c`` owns common option
 conversion and rollback helpers. See :doc:`configuration` for resource lookup,

@@ -47,6 +47,8 @@ chapters.
    export-reference
    rendering
    reference
+   geometry
+   geometry-reference
    containers
    container-reference
    commenting
