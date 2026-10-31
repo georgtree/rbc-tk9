@@ -224,6 +224,15 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width,
  */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                        int destHeight);
+/**
+ * @brief Return a newly owned color image rotated counterclockwise in display space.
+ *
+ * Borrow image and accept a finite angle in degrees, normalized modulo 360.
+ * Non-finite angles panic. Empty input is copied without swapping dimensions.
+ * Right angles copy pixels exactly; other angles use three filtered shears
+ * after a quadrant rotation, with transparent white background. The result
+ * never aliases image, even at zero degrees; free with Rbc_FreeColorImage().
+ */
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
 /**
  * @brief Resize a source photo region to the destination's existing size without filtering.
@@ -248,10 +257,40 @@ Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientDat
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage);
 GC Rbc_GetBitmapGC(Tk_Window tkwin);
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src);
+/**
+ * @brief Create an owned one-bit pixmap containing the rotated source bitmap.
+ *
+ * Borrow the Tk window and source bitmap, whose positive dimensions must match
+ * the supplied sizes. Require a finite angle in degrees and non-NULL dimension
+ * output pointers. On success assign output sizes and return a new pixmap for
+ * Tk_FreePixmap(). None reports a detected failure; do not rely on output
+ * dimensions after failure, since Windows and X11 initialize them differently.
+ * Rotation uses discrete sampling, not the color-image shear filter.
+ */
 Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap bitmap, int width, int height, double theta, int *widthPtr,
                         int *heightPtr);
+/**
+ * @brief Create an owned one-bit pixmap scaled to the requested dimensions.
+ *
+ * Borrow the window and source bitmap. Require positive source and destination
+ * sizes and a source bitmap matching its declared dimensions. Release a returned
+ * pixmap with Tk_FreePixmap(). X11 copies nearest-neighbour samples; Windows
+ * uses StretchBlt and does not propagate its status. A non-None return is not
+ * a portable guarantee that every native drawing operation succeeded.
+ */
 Pixmap Rbc_ScaleBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int scaledWidth,
                        int scaledHeight);
+/**
+ * @brief Create only a region of a virtually scaled, rotated one-bit bitmap.
+ *
+ * Borrow window and source bitmap. The region coordinates refer to the virtual
+ * rotated destination, whose dimensions are virtWidth and virtHeight. Require
+ * positive dimensions, a finite degree angle and a region contained in that
+ * virtual image, with representable coordinate sums. Right-angle paths assume
+ * these bounds rather than checking each source sample. Return an owned pixmap
+ * of regionWidth by regionHeight, or None for a detected failure. Free with
+ * Tk_FreePixmap(); no source or window ownership is transferred.
+ */
 Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int srcHeight, int regionX,
                                    int regionY, int regionWidth, int regionHeight, int virtWidth, int virtHeight,
                                    double theta);

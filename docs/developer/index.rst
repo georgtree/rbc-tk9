@@ -61,6 +61,8 @@ chapters.
    image-tile-reference
    image-resampling
    resampling-reference
+   image-transforms
+   image-transform-reference
    text-fonts
    text-font-reference
    exports

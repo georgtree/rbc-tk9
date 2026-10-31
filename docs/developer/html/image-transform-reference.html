@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image transform C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Text layout and document fonts" href="text-fonts.html" />
+    <link rel="prev" title="Color-image rotation and bitmap transforms" href="image-transforms.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="image-transforms.html" title="Color-image rotation and bitmap transforms"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image transform C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-transform-c-reference">
+<h1>Image transform C reference<a class="headerlink" href="#image-transform-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private declarations are in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>. Color rotation is implemented
+in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>; bitmap transforms have Windows and X11 implementations in
+<code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code>. See <a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a>.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RotateColorImage">
+<span class="target" id="rbc_image_8h_1a290a146372dcfeaf421afd0e5c80f9c3"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RotateColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a newly owned color image rotated counterclockwise in display space. </p>
+<p>Borrow image and accept a finite angle in degrees, normalized modulo 360. Non-finite angles panic. Empty input is copied without swapping dimensions. Right angles copy pixels exactly; other angles use three filtered shears after a quadrant rotation, with transparent white background. The result never aliases image, even at zero degrees; free with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RotateBitmap">
+<span class="target" id="rbc_image_8h_1a92951eeb0f9c4f178c9b4af1dae3121c"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">bitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">widthPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">heightPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RotateBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an owned one-bit pixmap containing the rotated source bitmap. </p>
+<p>Borrow the Tk window and source bitmap, whose positive dimensions must match the supplied sizes. Require a finite angle in degrees and non-NULL dimension output pointers. On success assign output sizes and return a new pixmap for Tk_FreePixmap(). None reports a detected failure; do not rely on output dimensions after failure, since Windows and X11 initialize them differently. Rotation uses discrete sampling, not the color-image shear filter. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ScaleBitmap">
+<span class="target" id="rbc_image_8h_1a89096bea92653d051f7e48f753d47752"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleBitmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scaledWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">scaledHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScaleBitmap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an owned one-bit pixmap scaled to the requested dimensions. </p>
+<p>Borrow the window and source bitmap. Require positive source and destination sizes and a source bitmap matching its declared dimensions. Release a returned pixmap with Tk_FreePixmap(). X11 copies nearest-neighbour samples; Windows uses StretchBlt and does not propagate its status. A non-None return is not a portable guarantee that every native drawing operation succeeded. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ScaleRotateBitmapRegion">
+<span class="target" id="rbc_image_8h_1afff4fb9e72065410099e4f3dfa129b84"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScaleRotateBitmapRegion</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">srcBitmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">srcHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionX</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionY</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">regionHeight</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">virtHeight</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScaleRotateBitmapRegion" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create only a region of a virtually scaled, rotated one-bit bitmap. </p>
+<p>Borrow window and source bitmap. The region coordinates refer to the virtual rotated destination, whose dimensions are virtWidth and virtHeight. Require positive dimensions, a finite degree angle and a region contained in that virtual image, with representable coordinate sums. Right-angle paths assume these bounds rather than checking each source sample. Return an owned pixmap of regionWidth by regionHeight, or None for a detected failure. Free with Tk_FreePixmap(); no source or window ownership is transferred. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image transform C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_RotateColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_RotateColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RotateBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_RotateBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ScaleBitmap"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ScaleRotateBitmapRegion"><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="image-transforms.html"
+                          title="previous chapter">Color-image rotation and bitmap transforms</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="text-fonts.html"
+                          title="next chapter">Text layout and document fonts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="image-transforms.html" title="Color-image rotation and bitmap transforms"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image transform C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

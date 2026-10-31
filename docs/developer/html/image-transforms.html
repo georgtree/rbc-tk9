@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Color-image rotation and bitmap transforms &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Image transform C reference" href="image-transform-reference.html" />
+    <link rel="prev" title="Image resampling C reference" href="resampling-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="image-transform-reference.html" title="Image transform C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="resampling-reference.html" title="Image resampling C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Color-image rotation and bitmap transforms</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="color-image-rotation-and-bitmap-transforms">
+<h1>Color-image rotation and bitmap transforms<a class="headerlink" href="#color-image-rotation-and-bitmap-transforms" title="Link to this heading">¶</a></h1>
+<p>Color images and monochrome bitmaps use different transformation paths.
+<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> operates on CPU-side RGBA storage; <code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code> operate on native depth-one pixmaps. These services are
+private image utilities used by components and native renderers, not additional
+renderer backends. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for storage ownership and
+<a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for ordinary resizing.</p>
+<section id="color-image-rotation">
+<h2>Color-image rotation<a class="headerlink" href="#color-image-rotation" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_RotateColorImage</span></code> borrows the source and always returns independent
+storage. A zero-degree operation still copies the image. Empty input is copied
+before quadrant handling, retaining its dimensions. Angles must be finite and
+are normalized modulo 360 degrees; positive rotation is counterclockwise in
+display coordinates.</p>
+<p>The function first selects a multiple of 90 degrees, leaving a residual angle
+in the range -45 to 45 degrees. Exact quadrant rotations copy complete pixels
+without interpolation; 90 and 270 degrees exchange width and height. For
+example, the 90-degree path maps source pixel <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> to
+<code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">sourceWidth</span> <span class="pre">-</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
+<p>A nonzero residual goes through <code class="docutils literal notranslate"><span class="pre">Rotate45</span></code>. Despite that helper’s name,
+its argument is radians, not degrees. It performs a row shear, a column shear,
+and a final row shear, using tangent of the half-angle and sine of the angle.
+Two intermediate images are released internally. The public function also
+releases any quadrant-rotated temporary, leaving only the final owned result.</p>
+<p>Each shear blends neighboring contributions with fixed-point arithmetic and
+clamps channels to byte range. Background is transparent white, including its
+RGB values: it is not transparent black. RGB and alpha are processed separately,
+without premultiplication or gamma conversion. This affects partially transparent
+edge pixels, as discussed for filtering in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>.</p>
+<p>Dimensions are derived from the three-shear construction, with checked integer
+conversion and extra space in the later passes. Do not substitute a generic
+rotated bounding-box formula and assume identical dimensions or pixels.
+Non-finite angles and unrepresentable rotation dimensions panic; command-level
+validation remains the caller’s responsibility.</p>
+</section>
+<section id="one-bit-bitmap-ownership">
+<h2>One-bit bitmap ownership<a class="headerlink" href="#one-bit-bitmap-ownership" title="Link to this heading">¶</a></h2>
+<p>Bitmap transforms borrow a valid Tk window and a source pixmap whose actual
+size matches the supplied dimensions. Successful results are newly owned
+pixmaps, released using <code class="docutils literal notranslate"><span class="pre">Tk_FreePixmap</span></code> on the corresponding display. They
+are not <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImage</span></code> objects and must not be freed with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>.</p>
+<p>Rotation computes a containing bounding box and uses special cases for exact
+right angles. General angles map destination pixels back to source coordinates;
+samples outside the source are left clear. Unlike color rotation, this is
+discrete one-bit sampling with no partially covered pixels.</p>
+<p>X11 implementations obtain source and destination <code class="docutils literal notranslate"><span class="pre">XImage</span></code> objects, populate
+the destination and upload it with <code class="docutils literal notranslate"><span class="pre">XPutImage</span></code>. Temporary XImages are released
+with <code class="docutils literal notranslate"><span class="pre">XDestroyImage</span></code>. Windows rotation works through monochrome bitmap bytes
+and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes.
+Those byte-layout rules must not be replaced with packed RGBA assumptions.</p>
+</section>
+<section id="scaling-and-virtual-regions">
+<h2>Scaling and virtual regions<a class="headerlink" href="#scaling-and-virtual-regions" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap</span></code> returns the full requested output. X11 explicitly samples
+nearest source pixels. Windows uses <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> with <code class="docutils literal notranslate"><span class="pre">SRCCOPY</span></code> through
+paired drawable-DC acquisition and release. These are separate implementations;
+do not infer identical downscaling details from their shared C signature.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion</span></code> avoids allocating the full virtual output.
+It uses the rotated source bounding box and the virtual destination dimensions
+to map a requested region back to source pixels. The returned bitmap is only
+<code class="docutils literal notranslate"><span class="pre">regionWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">regionHeight</span></code>. Bitmap markers use this route for the
+visible portion of a larger transformed marker, applying the same transform
+to its mask when needed.</p>
+<p>The region must lie within the virtual destination, and coordinate additions
+must remain representable. The right-angle paths read source samples directly;
+they do not implement general out-of-range padding or edge clamping. This is
+unlike <code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage</span></code>, which explicitly clamps virtual coordinates
+to source edges. Keep these contracts distinct when sharing callers.</p>
+</section>
+<section id="failure-and-platform-differences">
+<h2>Failure and platform differences<a class="headerlink" href="#failure-and-platform-differences" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> indicates a detected bitmap-transform failure, but failure checking
+is not uniform. X11 scaling rejects nonpositive dimensions explicitly;
+Windows scaling relies on its caller and native operations. Windows scaling
+also returns its allocated pixmap without propagating <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> failure.</p>
+<p>The rotation dimension outputs are not portable failure indicators. X11 writes
+them on success; Windows clears them after initial argument validation and
+before later operations. Always check the returned pixmap first, and require
+non-NULL output pointers on both platforms. These helpers do not provide a
+uniform Tcl diagnostic interface.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Use an asymmetric pattern to detect mirroring and rotation direction. Check
+zero, positive and negative right angles, angles near quadrant boundaries,
+non-square images and arbitrary rotations. For color images, inspect RGBA
+values at transparent edges as well as appearance. For bitmaps, exercise
+scanline widths around byte and DWORD boundaries, scaling and contained virtual
+regions on both Windows and X11. Verify returned dimensions, source preservation
+and matching resource cleanup independently of the rendered result.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Color-image rotation and bitmap transforms</a><ul>
+<li><a class="reference internal" href="#color-image-rotation">Color-image rotation</a></li>
+<li><a class="reference internal" href="#one-bit-bitmap-ownership">One-bit bitmap ownership</a></li>
+<li><a class="reference internal" href="#scaling-and-virtual-regions">Scaling and virtual regions</a></li>
+<li><a class="reference internal" href="#failure-and-platform-differences">Failure and platform differences</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="resampling-reference.html"
+                          title="previous chapter">Image resampling C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="image-transform-reference.html"
+                          title="next chapter">Image transform C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="image-transform-reference.html" title="Image transform C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="resampling-reference.html" title="Image resampling C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Color-image rotation and bitmap transforms</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

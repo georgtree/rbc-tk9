@@ -125,5 +125,6 @@ it runs in a separate process and adds no production Tcl command or public stub.
 The void photo-write wrapper described above still lacks status propagation.
 
 See :doc:`image-tile-reference` for the maintained C contracts and
-:doc:`image-resampling` for resizing and filtering. Quantization, bitmap
-transforms and temporary-image compatibility helpers remain separate topics.
+:doc:`image-resampling` for resizing and filtering. Bitmap
+transforms are covered in :doc:`image-transforms`; quantization and temporary-image
+compatibility helpers remain separate topics.
