@@ -12,6 +12,9 @@
 #ifndef _RBCTEXT
 #define _RBCTEXT
 
+#include <tk.h>
+#include "rbcTypes.h"
+
 #define DEF_TEXT_FLAGS (TK_PARTIAL_OK | TK_IGNORE_NEWLINES)
 
 /*

@@ -204,10 +204,10 @@ static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image)
     block.pixelSize = sizeof(Pix32);
     block.pitch = block.width * block.pixelSize;
     block.pixelPtr = (unsigned char *)Rbc_ColorImageBits(image);
-    block.offset[0] = offsetof(Pix32, Red);
-    block.offset[1] = offsetof(Pix32, Green);
-    block.offset[2] = offsetof(Pix32, Blue);
-    block.offset[3] = offsetof(Pix32, Alpha);
+    block.offset[0] = offsetof(Pix32, rgba.red);
+    block.offset[1] = offsetof(Pix32, rgba.green);
+    block.offset[2] = offsetof(Pix32, rgba.blue);
+    block.offset[3] = offsetof(Pix32, rgba.alpha);
     return PdfPhotoResource(token, &block);
 }
 

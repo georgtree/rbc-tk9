@@ -151,13 +151,13 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
     for (i = 0; i < count; i++) {
         Pix32 *b = Rbc_ColorImageBits(black) + i;
         const Pix32 *w = Rbc_ColorImageBits(white) + i;
-        int difference = MAX((int)w->Red - b->Red, MAX((int)w->Green - b->Green, (int)w->Blue - b->Blue));
+        int difference = MAX((int)w->rgba.red - b->rgba.red, MAX((int)w->rgba.green - b->rgba.green, (int)w->rgba.blue - b->rgba.blue));
         int alpha = 255 - MIN(255, MAX(0, difference));
 
-        b->Red = alpha ? (unsigned char)MIN(255, ((int)b->Red * 255 + alpha / 2) / alpha) : 0;
-        b->Green = alpha ? (unsigned char)MIN(255, ((int)b->Green * 255 + alpha / 2) / alpha) : 0;
-        b->Blue = alpha ? (unsigned char)MIN(255, ((int)b->Blue * 255 + alpha / 2) / alpha) : 0;
-        b->Alpha = (unsigned char)alpha;
+        b->rgba.red = alpha ? (unsigned char)MIN(255, ((int)b->rgba.red * 255 + alpha / 2) / alpha) : 0;
+        b->rgba.green = alpha ? (unsigned char)MIN(255, ((int)b->rgba.green * 255 + alpha / 2) / alpha) : 0;
+        b->rgba.blue = alpha ? (unsigned char)MIN(255, ((int)b->rgba.blue * 255 + alpha / 2) / alpha) : 0;
+        b->rgba.alpha = (unsigned char)alpha;
     }
     Rbc_FreeColorImage(white);
     return black;

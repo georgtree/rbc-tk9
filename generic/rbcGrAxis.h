@@ -14,6 +14,8 @@
 
 #include "rbcInt.h"
 #include "rbcList.h"
+
+#include "rbcChain.h"
 #include <tcl.h>
 
 typedef struct GraphStruct Graph;

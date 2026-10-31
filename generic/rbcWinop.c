@@ -968,10 +968,10 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
             for (x = 0; x < src.width; x++) {
                 t = (double)x * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
-                destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-                destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-                destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = (unsigned char)(left[0] + t * range[0]);
+                destPtr->rgba.green = (unsigned char)(left[1] + t * range[1]);
+                destPtr->rgba.blue = (unsigned char)(left[2] + t * range[2]);
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -993,10 +993,10 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
                 t = 1.0 - (double)sqrt(dx * dx + dy2);
                 t += t * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
-                destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-                destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-                destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = (unsigned char)(left[0] + t * range[0]);
+                destPtr->rgba.green = (unsigned char)(left[1] + t * range[1]);
+                destPtr->rgba.blue = (unsigned char)(left[2] + t * range[2]);
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -1023,10 +1023,10 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
                 t = FABS(px) + FABS(py);
                 t += t * (Rbc_RandomDouble() * 0.10 - 0.05);
                 t = CLAMP(t);
-                destPtr->Red = (unsigned char)(left[0] + t * range[0]);
-                destPtr->Green = (unsigned char)(left[1] + t * range[1]);
-                destPtr->Blue = (unsigned char)(left[2] + t * range[2]);
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = (unsigned char)(left[0] + t * range[0]);
+                destPtr->rgba.green = (unsigned char)(left[1] + t * range[1]);
+                destPtr->rgba.blue = (unsigned char)(left[2] + t * range[2]);
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -1037,10 +1037,10 @@ static int GradientOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
 
         for (y = 0; y < src.height; y++) {
             for (x = 0; x < src.width; x++) {
-                destPtr->Red = (unsigned char)0xFF;
-                destPtr->Green = (unsigned char)0xFF;
-                destPtr->Blue = (unsigned char)0xFF;
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = (unsigned char)0xFF;
+                destPtr->rgba.green = (unsigned char)0xFF;
+                destPtr->rgba.blue = (unsigned char)0xFF;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }

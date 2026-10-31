@@ -12,6 +12,12 @@
 #ifndef _RBCMATH
 #define _RBCMATH
 
+#ifdef WIN32
+#include "rbcWinConfig.h"
+#else
+#include "rbcConfig.h"
+#endif
+
 #include <math.h>
 
 #if defined(HAVE_FLOAT_H) || defined(_MSC_VER)

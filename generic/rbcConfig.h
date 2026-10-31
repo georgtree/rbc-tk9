@@ -9,6 +9,9 @@
  * See "license.terms" for details.
  */
 
+#ifndef RBC_CONFIG_H
+#define RBC_CONFIG_H
+
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
 #define HAVE_SYS_WAIT_H 1
 
@@ -147,3 +150,5 @@
 
 /* Define if you have the socket library (-lsocket).  */
 /* #undef HAVE_LIBSOCKET */
+
+#endif /* RBC_CONFIG_H */

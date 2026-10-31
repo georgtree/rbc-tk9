@@ -14,6 +14,8 @@
 
 #include "rbcImage.h"
 
+#include "rbcText.h"
+
 typedef enum { PS_MODE_MONOCHROME, PS_MODE_GREYSCALE, PS_MODE_COLOR } PsColorMode;
 
 typedef struct PsTokenStruct *PsToken;

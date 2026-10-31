@@ -134,10 +134,10 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int 
     for (y = height - 1; y >= 0; y--) {
         srcPtr = srcArr + ((size_t)y * (size_t)ds.dsBm.bmWidthBytes);
         for (x = 0; x < width; x++) {
-            destPtr->Blue = lut[*srcPtr++];
-            destPtr->Green = lut[*srcPtr++];
-            destPtr->Red = lut[*srcPtr++];
-            destPtr->Alpha = (unsigned char)-1;
+            destPtr->rgba.blue = lut[*srcPtr++];
+            destPtr->rgba.green = lut[*srcPtr++];
+            destPtr->rgba.red = lut[*srcPtr++];
+            destPtr->rgba.alpha = (unsigned char)-1;
             destPtr++;
             srcPtr++;
         }
@@ -285,7 +285,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < destHeight; y++) {
         for (x = 0; x < destWidth; x++) {
-            if (srcPtr->Alpha == 0x00) {
+            if (srcPtr->rgba.alpha == 0x00) {
                 SetBit(x, y);
                 count++;
             }
@@ -1142,8 +1142,8 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
             bufPtr = readBuffer[0];
             for (i = 0; i < (int)imageWidth; i++) {
-                destPtr->Red = destPtr->Green = destPtr->Blue = *bufPtr++;
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = *bufPtr++;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -1152,10 +1152,10 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, const char *fileName) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
             bufPtr = readBuffer[0];
             for (JDIMENSION i = 0; i < imageWidth; i++) {
-                destPtr->Red = *bufPtr++;
-                destPtr->Green = *bufPtr++;
-                destPtr->Blue = *bufPtr++;
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = *bufPtr++;
+                destPtr->rgba.green = *bufPtr++;
+                destPtr->rgba.blue = *bufPtr++;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }

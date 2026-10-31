@@ -12,6 +12,8 @@
 #ifndef _RBCGRELEM
 #define _RBCGRELEM
 
+#include "rbcGraph.h"
+
 #define SEARCH_X 0
 #define SEARCH_Y 1
 #define SEARCH_BOTH 2

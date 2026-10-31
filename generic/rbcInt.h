@@ -72,6 +72,7 @@
 #endif /* WIN32 */
 
 #include "rbc.h"
+#include "rbcTypes.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -171,68 +172,7 @@ void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border,
 #define RBC_SCROLL_MODE_LISTBOX (1 << 1)
 #define RBC_SCROLL_MODE_HIERBOX (1 << 2)
 
-#define RGB_ANTIQUEWHITE1 "#ffefdb"
-#define RGB_BISQUE1 "#ffe4c4"
-#define RGB_BISQUE2 "#eed5b7"
-#define RGB_BISQUE3 "#cdb79e"
-#define RGB_BLACK "#000000"
-#define RGB_BLUE "#0000ff"
-#define RGB_GREEN "#00ff00"
-#define RGB_GREY "#b0b0b0"
-#define RGB_GREY15 "#262626"
-#define RGB_GREY50 "#7f7f7f"
-#define RGB_GREY64 "#a3a3a3"
-#define RGB_GREY70 "#b3b3b3"
-#define RGB_GREY75 "#bfbfbf"
-#define RGB_GREY77 "#c3c3c3"
-#define RGB_GREY82 "#d1d1d1"
-#define RGB_GREY85 "#d9d9d9"
-#define RGB_GREY90 "#e5e5e5"
-#define RGB_GREY95 "#f2f2f2"
-#define RGB_LIGHTBLUE0 "#e4f7ff"
-#define RGB_LIGHTBLUE1 "#bfefff"
-#define RGB_LIGHTBLUE2 "#b2dfee"
-#define RGB_LIGHTSKYBLUE1 "#b0e2ff"
-#define RGB_MAROON "#b03060"
-#define RGB_NAVYBLUE "#000080"
-#define RGB_PINK "#ffc0cb"
-#define RGB_BISQUE1 "#ffe4c4"
-#define RGB_RED "#ff0000"
-#define RGB_WHITE "#ffffff"
-#define RGB_YELLOW "#ffff00"
-
-#ifdef OLD_TK_COLORS
-#define STD_NORMAL_BACKGROUND RGB_BISQUE1
-#define STD_ACTIVE_BACKGROUND RGB_BISQUE2
-#define STD_SELECT_BACKGROUND RGB_LIGHTBLUE1
-#define STD_DISABLE_FOREGROUND RGB_GREY64
-#else
-#define STD_NORMAL_BACKGROUND RGB_GREY85
-#define STD_ACTIVE_BACKGROUND RGB_GREY64
-#define STD_SELECT_BACKGROUND RGB_LIGHTBLUE1
-#define STD_DISABLE_FOREGROUND RGB_GREY64
-#endif /* OLD_TK_COLORS */
-
-#define STD_ACTIVE_BG_MONO RGB_BLACK
-#define STD_ACTIVE_FOREGROUND RGB_BLACK
-#define STD_ACTIVE_FG_MONO RGB_WHITE
-#define STD_BORDERWIDTH "1"
-
-#define STD_FONT "TkDefaultFont"
-#define STD_FONT_HUGE "TkCaptionFont"
-#define STD_FONT_LARGE "TkHeadingFont"
-#define STD_FONT_SMALL "TkSmallCaptionFont"
-
-#define STD_INDICATOR_COLOR RGB_MAROON
-#define STD_NORMAL_BG_MONO RGB_WHITE
-#define STD_NORMAL_FOREGROUND RGB_BLACK
-#define STD_NORMAL_FG_MONO RGB_BLACK
-#define STD_SELECT_BG_MONO RGB_BLACK
-#define STD_SELECT_BORDERWIDTH "1"
-#define STD_SELECT_FOREGROUND RGB_BLACK
-#define STD_SELECT_FG_MONO RGB_WHITE
-#define STD_SHADOW_COLOR RGB_GREY64
-#define STD_SHADOW_MONO RGB_BLACK
+#include "rbcDefaults.h"
 
 static inline int Rbc_NativeLineWidth(int width) {
     if (width <= 1) {
@@ -265,34 +205,6 @@ typedef void *DestroyData;
 
 typedef int(QSortCompareProc)(const void *, const void *);
 
-/*
- * ----------------------------------------------------------------------
- *
- * Rbc_Pad --
- *
- *     Specifies vertical and horizontal padding.
- *
- *    Padding can be specified on a per side basis.  The fields
- *    side1 and side2 refer to the opposite sides, either
- *    horizontally or vertically.
- *
- *        side1    side2
- *              -----   -----
- *      x | left    right
- *        y | top     bottom
- *
- * ----------------------------------------------------------------------
- */
-typedef struct {
-    int side1, side2;
-} Rbc_Pad;
-
-#define padLeft padX.side1
-#define padRight padX.side2
-#define padTop padY.side1
-#define padBottom padY.side2
-#define PADDING(x) ((Tcl_WideInt)(x).side1 + (Tcl_WideInt)(x).side2)
-
 int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_Pad *padPtr);
 
 /*
@@ -311,105 +223,9 @@ int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_
 #define FILL_Y 2
 #define FILL_BOTH 3
 
-#define RBC_MAX_DASH_VALUES 10
-
-/*
- * Rbc_Dashes --
- *
- *     List of dash values.  One additional byte terminates the list.
- */
-typedef struct {
-    unsigned char values[RBC_MAX_DASH_VALUES + 1];
-    int offset;
-} Rbc_Dashes;
-
-#define LineIsDashed(d) ((d).values[0] != 0)
-
 int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr);
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
 Rbc_Dashes *Rbc_GetDashes(GC gc);
-
-/*
- * -------------------------------------------------------------------
- *
- * Point2D --
- *
- *    2-D coordinate.
- *
- * -------------------------------------------------------------------
- */
-typedef struct {
-    double x, y;
-} Point2D;
-
-/*
- * -------------------------------------------------------------------
- *
- * Point3D --
- *
- *    3-D coordinate.
- *
- * -------------------------------------------------------------------
- */
-typedef struct {
-    double x, y, z;
-} Point3D;
-
-/*
- * -------------------------------------------------------------------
- *
- * Segment2D --
- *
- *    2-D line segment.
- *
- * -------------------------------------------------------------------
- */
-typedef struct {
-    Point2D p, q; /* The two end points of the segment. */
-} Segment2D;
-
-/*
- * -------------------------------------------------------------------
- *
- * Dim2D --
- *
- *    2-D dimension.
- *
- * -------------------------------------------------------------------
- */
-typedef struct {
-    int width, height;
-} Dim2D;
-
-/*
- *----------------------------------------------------------------------
- *
- * Region2D --
- *
- *      2-D region.  Used to copy parts of images.
- *
- *----------------------------------------------------------------------
- */
-typedef struct {
-    int left, right, top, bottom;
-} Region2D;
-
-#define RegionWidth(r) ((r)->right - (r)->left + 1)
-#define RegionHeight(r) ((r)->bottom - (r)->top + 1)
-
-typedef struct {
-    double left, right, top, bottom;
-} Extents2D;
-
-typedef struct {
-    double left, right, top, bottom, front, back;
-} Extents3D;
-
-#define PointInRegion(e, x, y) (((x) <= (e)->right) && ((x) >= (e)->left) && ((y) <= (e)->bottom) && ((y) >= (e)->top))
-
-#define PointInRectangle(r, x0, y0)                                                                                    \
-    (((x0) <= (int)((r)->x + (r)->width - 1)) && ((x0) >= (int)(r)->x) && ((y0) <= (int)((r)->y + (r)->height - 1)) && \
-     ((y0) >= (int)(r)->y))
 
 /* -------------------------------------------------------------------
  *

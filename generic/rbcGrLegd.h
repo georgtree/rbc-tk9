@@ -12,6 +12,12 @@
 #ifndef _RBCGRLEGEND
 #define _RBCGRLEGEND
 
+#include <tk.h>
+
+typedef struct GraphStruct Graph;
+typedef struct LegendStruct Legend;
+typedef struct ElementStruct Element;
+
 #define LEGEND_RIGHT (1 << 0)  /* Right margin */
 #define LEGEND_LEFT (1 << 1)   /* Left margin */
 #define LEGEND_BOTTOM (1 << 2) /* Bottom margin */

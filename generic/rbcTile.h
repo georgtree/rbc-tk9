@@ -12,6 +12,8 @@
 #ifndef _RBCTILE
 #define _RBCTILE
 
+#include <tk.h>
+
 #define TILE_THREAD_KEY "Rbc Tile Data"
 #define TILE_MAGIC ((unsigned int) 0x46170277)
 

@@ -2,6 +2,9 @@
 #ifndef RBC_EXPORT_H
 #define RBC_EXPORT_H
 
+#include <tcl.h>
+#include <tk.h>
+
 typedef enum { RBC_EXPORT_POSTSCRIPT, RBC_EXPORT_SVG, RBC_EXPORT_PDF } Rbc_ExportBackend;
 
 typedef struct {

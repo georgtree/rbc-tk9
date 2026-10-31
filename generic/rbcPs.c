@@ -669,9 +669,9 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
                     Tcl_DStringAppend(resultPtr, " ", -1);
                 }
                 count += 6;
-                ByteToHex(pixelPtr->Red, string);
-                ByteToHex(pixelPtr->Green, string + 2);
-                ByteToHex(pixelPtr->Blue, string + 4);
+                ByteToHex(pixelPtr->rgba.red, string);
+                ByteToHex(pixelPtr->rgba.green, string + 2);
+                ByteToHex(pixelPtr->rgba.blue, string + 4);
                 string[6] = '\0';
                 if (count >= 60) {
                     string[6] = '\n';
@@ -691,7 +691,7 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
                     Tcl_DStringAppend(resultPtr, " ", -1);
                 }
                 count += 2;
-                byte = ~(pixelPtr->Red);
+                byte = ~(pixelPtr->rgba.red);
                 ByteToHex(byte, string);
                 string[2] = '\0';
                 if (count >= 60) {

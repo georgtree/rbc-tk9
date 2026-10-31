@@ -331,6 +331,16 @@ test: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
 
+# Compile header contracts without linking or opening a display.
+test-headers:
+	@rm -rf header-probes
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/headerProbes.tcl` header-probes auto
+	@set -e; for source in header-probes/*.c; do \
+	    $(COMPILE) -I`@CYGPATH@ $(srcdir)/generic` \
+	        -c `@CYGPATH@ $$source` -o header-probes/probe.$(OBJEXT); \
+	done
+	@echo "Header inclusion checks passed."
+
 test-vector: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/vectorAll.tcl` $(TESTFLAGS)
@@ -479,6 +489,7 @@ dist-zip: dist
 #========================================================================
 
 clean:  
+	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
@@ -594,7 +605,7 @@ uninstall-doc:
 
 uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector \
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc install libraries test test-vector test-headers \
 	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
@@ -603,7 +614,7 @@ uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
 # Private renderer and graph record dependencies.
 rbcRender.$(OBJEXT) rbcGrLine.$(OBJEXT): $(srcdir)/generic/rbcRender.h
-$(PKG_OBJECTS): $(srcdir)/generic/rbcGraph.h $(srcdir)/generic/rbcGrTrack.h $(srcdir)/generic/rbcExport.h $(srcdir)/generic/rbcRender.h
+$(PKG_OBJECTS): $(srcdir)/generic/rbcDefaults.h $(srcdir)/generic/rbcTypes.h $(srcdir)/generic/rbcGraph.h $(srcdir)/generic/rbcGrTrack.h $(srcdir)/generic/rbcExport.h $(srcdir)/generic/rbcRender.h
 
 rbcRender.$(OBJEXT) rbcRenderNative.$(OBJEXT) rbcRenderNativeX11.$(OBJEXT) rbcRenderNativeWin.$(OBJEXT): $(srcdir)/generic/rbcRenderNative.h
 

@@ -9,13 +9,20 @@
  * See "license.terms" for details.
  */
 
+#ifndef _RBCIMAGE
+#define _RBCIMAGE
+
+#include <tk.h>
+#include "rbcTypes.h"
+#ifdef WIN32
+#include "rbcWinConfig.h"
+#else
+#include "rbcConfig.h"
+#endif
 #include <X11/Xutil.h>
 #ifndef WIN32
 #include <X11/Xproto.h>
 #endif
-
-#ifndef _RBCIMAGE
-#define _RBCIMAGE
 
 #define DIV255(i) ((((i) + 1) + (((i) + 1) >> 8)) >> 8)
 
@@ -47,10 +54,6 @@ typedef union {
     unsigned char channel[4];
 } Pix32;
 
-#define Red rgba.red
-#define Blue rgba.blue
-#define Green rgba.green
-#define Alpha rgba.alpha
 
 
 /*

@@ -242,10 +242,10 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
                 red = ((pixel & visualPtr->red_mask) >> masks.redMaskShift) << masks.redAdjust;
                 green = ((pixel & visualPtr->green_mask) >> masks.greenMaskShift) << masks.greenAdjust;
                 blue = ((pixel & visualPtr->blue_mask) >> masks.blueMaskShift) << masks.blueAdjust;
-                destPtr->Red = lut[red];
-                destPtr->Green = lut[green];
-                destPtr->Blue = lut[blue];
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = lut[red];
+                destPtr->rgba.green = lut[green];
+                destPtr->rgba.blue = lut[blue];
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -308,10 +308,10 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
         for (/* empty */; destPtr < endPtr; destPtr++) {
             hPtr = Tcl_FindHashEntry(&pixelTable, INT2PTR(destPtr->value));
             colorPtr = (XColor *)Tcl_GetHashValue(hPtr);
-            destPtr->Red = lut[colorPtr->red >> 8];
-            destPtr->Green = lut[colorPtr->green >> 8];
-            destPtr->Blue = lut[colorPtr->blue >> 8];
-            destPtr->Alpha = (unsigned char)-1;
+            destPtr->rgba.red = lut[colorPtr->red >> 8];
+            destPtr->rgba.green = lut[colorPtr->green >> 8];
+            destPtr->rgba.blue = lut[colorPtr->blue >> 8];
+            destPtr->rgba.alpha = (unsigned char)-1;
         }
         ckfree((char *)colorArr);
         Tcl_DeleteHashTable(&pixelTable);
@@ -393,7 +393,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     for (y = 0; y < height; y++) {
         value = 0, bitMask = 1;
         for (x = 0; x < width; /*empty*/) {
-            pixel = (srcPtr->Alpha != 0x00);
+            pixel = (srcPtr->rgba.alpha != 0x00);
             if (pixel) {
                 value |= bitMask;
             } else {
@@ -994,8 +994,8 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
             bufPtr = readBuffer[0];
             for (i = 0; i < (int)imageWidth; i++) {
-                destPtr->Red = destPtr->Green = destPtr->Blue = *bufPtr++;
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = *bufPtr++;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }
@@ -1004,10 +1004,10 @@ Rbc_ColorImage Rbc_JPEGToColorImage(Tcl_Interp *interp, char *fileName) {
             jpeg_read_scanlines(&jpg, readBuffer, 1);
             bufPtr = readBuffer[0];
             for (i = 0; i < (int)imageWidth; i++) {
-                destPtr->Red = *bufPtr++;
-                destPtr->Green = *bufPtr++;
-                destPtr->Blue = *bufPtr++;
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = *bufPtr++;
+                destPtr->rgba.green = *bufPtr++;
+                destPtr->rgba.blue = *bufPtr++;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 destPtr++;
             }
         }

@@ -497,8 +497,8 @@ static void ReadEPSI(EpsItem *epsPtr, EpsParseInfo *piPtr) {
                 if (result != TCL_OK) {
                     goto error;
                 }
-                destPtr->Red = destPtr->Green = destPtr->Blue = ~byte;
-                destPtr->Alpha = 0xFF;
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = ~byte;
+                destPtr->rgba.alpha = 0xFF;
             }
         }
     } else if (bitsPerPixel == 1) {

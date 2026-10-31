@@ -262,9 +262,9 @@ void Rbc_GammaCorrectColorImage(Rbc_ColorImage src, double newGamma) {
     nPixels = GetColorImagePixelCount(Rbc_ColorImageWidth(src), Rbc_ColorImageHeight(src));
     srcPtr = Rbc_ColorImageBits(src);
     for (endPtr = srcPtr + nPixels; srcPtr < endPtr; srcPtr++) {
-        srcPtr->Red = lut[srcPtr->Red];
-        srcPtr->Green = lut[srcPtr->Green];
-        srcPtr->Blue = lut[srcPtr->Blue];
+        srcPtr->rgba.red = lut[srcPtr->rgba.red];
+        srcPtr->rgba.green = lut[srcPtr->rgba.green];
+        srcPtr->rgba.blue = lut[srcPtr->rgba.blue];
     }
 }
 
@@ -305,8 +305,8 @@ void Rbc_ColorImageToGreyscale(Rbc_ColorImage image) {
     srcPtr = Rbc_ColorImageBits(image);
     endPtr = srcPtr + nPixels;
     for (; srcPtr < endPtr; srcPtr++) {
-        y = (0.212671 * (double)srcPtr->Red) + (0.715160 * (double)srcPtr->Green) + (0.072169 * (double)srcPtr->Blue);
-        srcPtr->Red = srcPtr->Green = srcPtr->Blue = (unsigned char)CLAMP(y);
+        y = (0.212671 * (double)srcPtr->rgba.red) + (0.715160 * (double)srcPtr->rgba.green) + (0.072169 * (double)srcPtr->rgba.blue);
+        srcPtr->rgba.red = srcPtr->rgba.green = srcPtr->rgba.blue = (unsigned char)CLAMP(y);
     }
 }
 
@@ -345,10 +345,10 @@ void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage src, Tk_PhotoHandl
     dest.pitch = (int)((size_t)width * sizeof(Pix32));
     dest.width = width;
     dest.height = height;
-    dest.offset[0] = offsetof(Pix32, Red);
-    dest.offset[1] = offsetof(Pix32, Green);
-    dest.offset[2] = offsetof(Pix32, Blue);
-    dest.offset[3] = offsetof(Pix32, Alpha);
+    dest.offset[0] = offsetof(Pix32, rgba.red);
+    dest.offset[1] = offsetof(Pix32, rgba.green);
+    dest.offset[2] = offsetof(Pix32, rgba.blue);
+    dest.offset[3] = offsetof(Pix32, rgba.alpha);
     dest.pixelPtr = (unsigned char *)Rbc_ColorImageBits(src);
     Tk_PhotoSetSize(interp, photo, width, height);
     Tk_PhotoPutBlock(interp, photo, &dest, 0, 0, width, height, TK_PHOTO_COMPOSITE_SET);
@@ -401,10 +401,10 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
         for (row = 0; row < height; row++) {
             srcData = srcRowPtr;
             for (column = 0; column < width; column++) {
-                destPtr->Red = srcData[offR];
-                destPtr->Green = srcData[offG];
-                destPtr->Blue = srcData[offB];
-                destPtr->Alpha = srcData[offA];
+                destPtr->rgba.red = srcData[offR];
+                destPtr->rgba.green = srcData[offG];
+                destPtr->rgba.blue = srcData[offB];
+                destPtr->rgba.alpha = srcData[offA];
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -414,10 +414,10 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
         for (row = 0; row < height; row++) {
             srcData = srcRowPtr;
             for (column = 0; column < width; column++) {
-                destPtr->Red = srcData[offR];
-                destPtr->Green = srcData[offG];
-                destPtr->Blue = srcData[offB];
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = srcData[offR];
+                destPtr->rgba.green = srcData[offG];
+                destPtr->rgba.blue = srcData[offB];
+                destPtr->rgba.alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -427,8 +427,8 @@ Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, i
         for (row = 0; row < height; row++) {
             srcData = srcRowPtr;
             for (column = 0; column < width; column++) {
-                destPtr->Red = destPtr->Green = destPtr->Blue = srcData[offA];
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = srcData[offA];
+                destPtr->rgba.alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -475,10 +475,10 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
         for (y = 0; y < height; y++) {
             srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
-                destPtr->Red = srcData[src.offset[0]];
-                destPtr->Green = srcData[src.offset[1]];
-                destPtr->Blue = srcData[src.offset[2]];
-                destPtr->Alpha = srcData[src.offset[3]];
+                destPtr->rgba.red = srcData[src.offset[0]];
+                destPtr->rgba.green = srcData[src.offset[1]];
+                destPtr->rgba.blue = srcData[src.offset[2]];
+                destPtr->rgba.alpha = srcData[src.offset[3]];
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -488,11 +488,11 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
         for (y = 0; y < height; y++) {
             srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
-                destPtr->Red = srcData[src.offset[0]];
-                destPtr->Green = srcData[src.offset[1]];
-                destPtr->Blue = srcData[src.offset[2]];
+                destPtr->rgba.red = srcData[src.offset[0]];
+                destPtr->rgba.green = srcData[src.offset[1]];
+                destPtr->rgba.blue = srcData[src.offset[2]];
                 /* No transparency information */
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -502,9 +502,9 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo) {
         for (y = 0; y < height; y++) {
             srcData = srcRowPtr;
             for (x = 0; x < width; x++) {
-                destPtr->Red = destPtr->Green = destPtr->Blue = srcData[src.offset[0]];
+                destPtr->rgba.red = destPtr->rgba.green = destPtr->rgba.blue = srcData[src.offset[0]];
                 /* No transparency information */
-                destPtr->Alpha = (unsigned char)-1;
+                destPtr->rgba.alpha = (unsigned char)-1;
                 srcData += src.pixelSize;
                 destPtr++;
             }
@@ -1271,16 +1271,16 @@ static void ZoomImageVertically(Rbc_ColorImage src, Rbc_ColorImage dest, Resampl
             red = green = blue = alpha = 0;
             srcPtr = srcColumnPtr + ((size_t)s->start * (size_t)srcWidth);
             for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
-                red += srcPtr->Red * weight->i;
-                green += srcPtr->Green * weight->i;
-                blue += srcPtr->Blue * weight->i;
-                alpha += srcPtr->Alpha * weight->i;
+                red += srcPtr->rgba.red * weight->i;
+                green += srcPtr->rgba.green * weight->i;
+                blue += srcPtr->rgba.blue * weight->i;
+                alpha += srcPtr->rgba.alpha * weight->i;
                 srcPtr += srcWidth;
             }
-            destPtr->Red = SICLAMP(red);
-            destPtr->Green = SICLAMP(green);
-            destPtr->Blue = SICLAMP(blue);
-            destPtr->Alpha = SICLAMP(alpha);
+            destPtr->rgba.red = SICLAMP(red);
+            destPtr->rgba.green = SICLAMP(green);
+            destPtr->rgba.blue = SICLAMP(blue);
+            destPtr->rgba.alpha = SICLAMP(alpha);
             destPtr += destWidth;
         }
     }
@@ -1336,16 +1336,16 @@ static void ZoomImageHorizontally(Rbc_ColorImage src, Rbc_ColorImage dest, Resam
             red = green = blue = alpha = 0;
             srcPtr = srcRowPtr + s->start;
             for (weight = s->weights, i = 0; i < s->count; i++, weight++) {
-                red += srcPtr->Red * weight->i;
-                green += srcPtr->Green * weight->i;
-                blue += srcPtr->Blue * weight->i;
-                alpha += srcPtr->Alpha * weight->i;
+                red += srcPtr->rgba.red * weight->i;
+                green += srcPtr->rgba.green * weight->i;
+                blue += srcPtr->rgba.blue * weight->i;
+                alpha += srcPtr->rgba.alpha * weight->i;
                 srcPtr++;
             }
-            destPtr->Red = SICLAMP(red);
-            destPtr->Green = SICLAMP(green);
-            destPtr->Blue = SICLAMP(blue);
-            destPtr->Alpha = SICLAMP(alpha);
+            destPtr->rgba.red = SICLAMP(red);
+            destPtr->rgba.green = SICLAMP(green);
+            destPtr->rgba.blue = SICLAMP(blue);
+            destPtr->rgba.alpha = SICLAMP(alpha);
             destPtr++;
         }
         srcRowPtr += srcWidth;
@@ -1713,19 +1713,19 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage src, Filter2D *filterPtr) {
                         x = (int)sx;
                     }
                     srcPtr = Rbc_ColorImagePixel(src, x, y);
-                    red += *valuePtr * (double)srcPtr->Red;
-                    green += *valuePtr * (double)srcPtr->Green;
-                    blue += *valuePtr * (double)srcPtr->Blue;
+                    red += *valuePtr * (double)srcPtr->rgba.red;
+                    green += *valuePtr * (double)srcPtr->rgba.green;
+                    blue += *valuePtr * (double)srcPtr->rgba.blue;
                     valuePtr++;
                 }
             }
             red /= filterPtr->sum;
             green /= filterPtr->sum;
             blue /= filterPtr->sum;
-            destPtr->Red = (unsigned char)CLAMP(red);
-            destPtr->Green = (unsigned char)CLAMP(green);
-            destPtr->Blue = (unsigned char)CLAMP(blue);
-            destPtr->Alpha = (unsigned char)-1;
+            destPtr->rgba.red = (unsigned char)CLAMP(red);
+            destPtr->rgba.green = (unsigned char)CLAMP(green);
+            destPtr->rgba.blue = (unsigned char)CLAMP(blue);
+            destPtr->rgba.alpha = (unsigned char)-1;
             destPtr++;
         }
     }
@@ -1886,28 +1886,28 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
     for (x = 0; x < destWidth; x++) {
         destRowPtr[x] = bgColor;
     }
-    oldLeftRed = uchar2si(bgColor.Red);
-    oldLeftGreen = uchar2si(bgColor.Green);
-    oldLeftBlue = uchar2si(bgColor.Blue);
-    oldLeftAlpha = uchar2si(bgColor.Alpha);
+    oldLeftRed = uchar2si(bgColor.rgba.red);
+    oldLeftGreen = uchar2si(bgColor.rgba.green);
+    oldLeftBlue = uchar2si(bgColor.rgba.blue);
+    oldLeftAlpha = uchar2si(bgColor.rgba.alpha);
     ifrac = float2si(frac);
     srcPtr = srcRowPtr;
     dx = offset;
     for (x = 0; x < srcWidth; x++, dx++, srcPtr++) {
-        leftRed = srcPtr->Red * ifrac;
-        leftGreen = srcPtr->Green * ifrac;
-        leftBlue = srcPtr->Blue * ifrac;
-        leftAlpha = srcPtr->Alpha * ifrac;
+        leftRed = srcPtr->rgba.red * ifrac;
+        leftGreen = srcPtr->rgba.green * ifrac;
+        leftBlue = srcPtr->rgba.blue * ifrac;
+        leftAlpha = srcPtr->rgba.alpha * ifrac;
         if ((dx >= 0) && (dx < destWidth)) {
             destPtr = destRowPtr + dx;
-            red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
-            green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
-            blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
-            alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
-            destPtr->Red = SICLAMP(red);
-            destPtr->Green = SICLAMP(green);
-            destPtr->Blue = SICLAMP(blue);
-            destPtr->Alpha = SICLAMP(alpha);
+            red = uchar2si(srcPtr->rgba.red) - (leftRed - oldLeftRed);
+            green = uchar2si(srcPtr->rgba.green) - (leftGreen - oldLeftGreen);
+            blue = uchar2si(srcPtr->rgba.blue) - (leftBlue - oldLeftBlue);
+            alpha = uchar2si(srcPtr->rgba.alpha) - (leftAlpha - oldLeftAlpha);
+            destPtr->rgba.red = SICLAMP(red);
+            destPtr->rgba.green = SICLAMP(green);
+            destPtr->rgba.blue = SICLAMP(blue);
+            destPtr->rgba.alpha = SICLAMP(alpha);
         }
         oldLeftRed = leftRed;
         oldLeftGreen = leftGreen;
@@ -1919,19 +1919,19 @@ static void ShearY(Rbc_ColorImage src, Rbc_ColorImage dest, int y, int offset, d
      * pixel, if it lies inside the destination row.
      */
     if ((dx >= 0) && (dx < destWidth)) {
-        leftRed = uchar2si(bgColor.Red);
-        leftGreen = uchar2si(bgColor.Green);
-        leftBlue = uchar2si(bgColor.Blue);
-        leftAlpha = uchar2si(bgColor.Alpha);
+        leftRed = uchar2si(bgColor.rgba.red);
+        leftGreen = uchar2si(bgColor.rgba.green);
+        leftBlue = uchar2si(bgColor.rgba.blue);
+        leftAlpha = uchar2si(bgColor.rgba.alpha);
         destPtr = destRowPtr + dx;
-        red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
-        green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
-        blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
-        alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha * ifrac);
-        destPtr->Red = SICLAMP(red);
-        destPtr->Green = SICLAMP(green);
-        destPtr->Blue = SICLAMP(blue);
-        destPtr->Alpha = SICLAMP(alpha);
+        red = leftRed + oldLeftRed - (bgColor.rgba.red * ifrac);
+        green = leftGreen + oldLeftGreen - (bgColor.rgba.green * ifrac);
+        blue = leftBlue + oldLeftBlue - (bgColor.rgba.blue * ifrac);
+        alpha = leftAlpha + oldLeftAlpha - (bgColor.rgba.alpha * ifrac);
+        destPtr->rgba.red = SICLAMP(red);
+        destPtr->rgba.green = SICLAMP(green);
+        destPtr->rgba.blue = SICLAMP(blue);
+        destPtr->rgba.alpha = SICLAMP(alpha);
     }
 }
 
@@ -1980,28 +1980,28 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
         destPtr = Rbc_ColorImagePixel(dest, x, y);
         *destPtr = bgColor;
     }
-    oldLeftRed = uchar2si(bgColor.Red);
-    oldLeftGreen = uchar2si(bgColor.Green);
-    oldLeftBlue = uchar2si(bgColor.Blue);
-    oldLeftAlpha = uchar2si(bgColor.Alpha);
+    oldLeftRed = uchar2si(bgColor.rgba.red);
+    oldLeftGreen = uchar2si(bgColor.rgba.green);
+    oldLeftBlue = uchar2si(bgColor.rgba.blue);
+    oldLeftAlpha = uchar2si(bgColor.rgba.alpha);
     ifrac = float2si(frac);
     dy = offset;
     for (y = 0; y < srcHeight; y++, dy++) {
         srcPtr = Rbc_ColorImagePixel(src, x, y);
-        leftRed = srcPtr->Red * ifrac;
-        leftGreen = srcPtr->Green * ifrac;
-        leftBlue = srcPtr->Blue * ifrac;
-        leftAlpha = srcPtr->Alpha * ifrac;
+        leftRed = srcPtr->rgba.red * ifrac;
+        leftGreen = srcPtr->rgba.green * ifrac;
+        leftBlue = srcPtr->rgba.blue * ifrac;
+        leftAlpha = srcPtr->rgba.alpha * ifrac;
         if ((dy >= 0) && (dy < destHeight)) {
             destPtr = Rbc_ColorImagePixel(dest, x, dy);
-            red = uchar2si(srcPtr->Red) - (leftRed - oldLeftRed);
-            green = uchar2si(srcPtr->Green) - (leftGreen - oldLeftGreen);
-            blue = uchar2si(srcPtr->Blue) - (leftBlue - oldLeftBlue);
-            alpha = uchar2si(srcPtr->Alpha) - (leftAlpha - oldLeftAlpha);
-            destPtr->Red = SICLAMP(red);
-            destPtr->Green = SICLAMP(green);
-            destPtr->Blue = SICLAMP(blue);
-            destPtr->Alpha = SICLAMP(alpha);
+            red = uchar2si(srcPtr->rgba.red) - (leftRed - oldLeftRed);
+            green = uchar2si(srcPtr->rgba.green) - (leftGreen - oldLeftGreen);
+            blue = uchar2si(srcPtr->rgba.blue) - (leftBlue - oldLeftBlue);
+            alpha = uchar2si(srcPtr->rgba.alpha) - (leftAlpha - oldLeftAlpha);
+            destPtr->rgba.red = SICLAMP(red);
+            destPtr->rgba.green = SICLAMP(green);
+            destPtr->rgba.blue = SICLAMP(blue);
+            destPtr->rgba.alpha = SICLAMP(alpha);
         }
         oldLeftRed = leftRed;
         oldLeftGreen = leftGreen;
@@ -2012,19 +2012,19 @@ static void ShearX(Rbc_ColorImage src, Rbc_ColorImage dest, int x, int offset, d
      * Emit the residual antialiased pixel after the source column.
      */
     if ((dy >= 0) && (dy < destHeight)) {
-        leftRed = uchar2si(bgColor.Red);
-        leftGreen = uchar2si(bgColor.Green);
-        leftBlue = uchar2si(bgColor.Blue);
-        leftAlpha = uchar2si(bgColor.Alpha);
+        leftRed = uchar2si(bgColor.rgba.red);
+        leftGreen = uchar2si(bgColor.rgba.green);
+        leftBlue = uchar2si(bgColor.rgba.blue);
+        leftAlpha = uchar2si(bgColor.rgba.alpha);
         destPtr = Rbc_ColorImagePixel(dest, x, dy);
-        red = leftRed + oldLeftRed - (bgColor.Red * ifrac);
-        green = leftGreen + oldLeftGreen - (bgColor.Green * ifrac);
-        blue = leftBlue + oldLeftBlue - (bgColor.Blue * ifrac);
-        alpha = leftAlpha + oldLeftAlpha - (bgColor.Alpha * ifrac);
-        destPtr->Red = SICLAMP(red);
-        destPtr->Green = SICLAMP(green);
-        destPtr->Blue = SICLAMP(blue);
-        destPtr->Alpha = SICLAMP(alpha);
+        red = leftRed + oldLeftRed - (bgColor.rgba.red * ifrac);
+        green = leftGreen + oldLeftGreen - (bgColor.rgba.green * ifrac);
+        blue = leftBlue + oldLeftBlue - (bgColor.rgba.blue * ifrac);
+        alpha = leftAlpha + oldLeftAlpha - (bgColor.rgba.alpha * ifrac);
+        destPtr->rgba.red = SICLAMP(red);
+        destPtr->rgba.green = SICLAMP(green);
+        destPtr->rgba.blue = SICLAMP(blue);
+        destPtr->rgba.alpha = SICLAMP(alpha);
     }
 }
 
@@ -2362,8 +2362,8 @@ Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage src, double angle) {
         /* FIXME: pick up background blending color from somewhere */
         srcPtr = Rbc_ColorImageBits(src);
         bgColor = *srcPtr;
-        bgColor.Red = bgColor.Green = bgColor.Blue = 0xFF;
-        bgColor.Alpha = 0x00; /* Transparent background */
+        bgColor.rgba.red = bgColor.rgba.green = bgColor.rgba.blue = 0xFF;
+        bgColor.rgba.alpha = 0x00; /* Transparent background */
         theta = (angle / 180.0) * M_PI;
         dest = Rotate45(tmp, theta, bgColor);
         if (tmp != src) {
@@ -2412,14 +2412,14 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
          * will keep the table size (2^15) reasonable without perceptually
          * affecting the final image.
          */
-        r = (srcPtr->Red >> 3) + 1;
-        g = (srcPtr->Green >> 3) + 1;
-        b = (srcPtr->Blue >> 3) + 1;
+        r = (srcPtr->rgba.red >> 3) + 1;
+        g = (srcPtr->rgba.green >> 3) + 1;
+        b = (srcPtr->rgba.blue >> 3) + 1;
         s->wt[r][g][b] += 1;
-        s->mR[r][g][b] += srcPtr->Red;
-        s->mG[r][g][b] += srcPtr->Green;
-        s->mB[r][g][b] += srcPtr->Blue;
-        s->gm2[r][g][b] += sqr[srcPtr->Red] + sqr[srcPtr->Green] + sqr[srcPtr->Blue];
+        s->mR[r][g][b] += srcPtr->rgba.red;
+        s->mG[r][g][b] += srcPtr->rgba.green;
+        s->mB[r][g][b] += srcPtr->rgba.blue;
+        s->gm2[r][g][b] += sqr[srcPtr->rgba.red] + sqr[srcPtr->rgba.green] + sqr[srcPtr->rgba.blue];
     }
     return s;
 }
@@ -2899,7 +2899,7 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
     int i;
 
     lut = RbcCalloc(33u * 33u * 33u, sizeof(*lut));
-    color.Alpha = (unsigned char)-1;
+    color.rgba.alpha = (unsigned char)-1;
     for (cubePtr = cubes, i = 0; i < nColors; i++, cubePtr++) {
         weight = Volume(cubePtr, s->wt);
         if (weight) {
@@ -2910,9 +2910,9 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
             fprintf(stderr, "bogus box %d\n", i);
             red = green = blue = 0;
         }
-        color.Red = red >> 8;
-        color.Green = green >> 8;
-        color.Blue = blue >> 8;
+        color.rgba.red = red >> 8;
+        color.rgba.green = green >> 8;
+        color.rgba.blue = blue >> 8;
         Mark(cubePtr, color.value, (unsigned int (*)[33][33])lut);
     }
     return lut;
@@ -2948,9 +2948,9 @@ static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[
     srcPtr = Rbc_ColorImageBits(src);
     destPtr = Rbc_ColorImageBits(dest);
     for (endPtr = destPtr + count; destPtr < endPtr; srcPtr++, destPtr++) {
-        alpha = srcPtr->Alpha;
-        destPtr->value = lut[srcPtr->Red >> 3][srcPtr->Green >> 3][srcPtr->Blue >> 3];
-        destPtr->Alpha = alpha;
+        alpha = srcPtr->rgba.alpha;
+        destPtr->value = lut[srcPtr->rgba.red >> 3][srcPtr->rgba.green >> 3][srcPtr->rgba.blue >> 3];
+        destPtr->rgba.alpha = alpha;
     }
 }
 

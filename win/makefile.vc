@@ -152,6 +152,13 @@ test: $(PROJECT) $(CAPI_DLL)
 	@echo Running RBC tests...
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)"
 
+test-headers:
+	@if not exist "$(TMP_DIR)" mkdir "$(TMP_DIR)"
+	@if exist "$(TMP_DIR)\header-probes" rmdir /s /q "$(TMP_DIR)\header-probes"
+	@"$(TCLSH)" "$(TESTDIR)\headerProbes.tcl" "$(TMP_DIR)\header-probes" windows
+	@for %f in ("$(TMP_DIR)\header-probes\*.c") do @($(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$(TMP_DIR)\header-probes\probe.obj" "%f" || exit /b 1)
+	@echo Header inclusion checks passed.
+
 test-vector: $(PROJECT) $(CAPI_DLL)
 	@echo Running Tcl-only vector tests...
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\vectorAll.tcl" $(TESTFLAGS)"

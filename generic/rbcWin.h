@@ -12,28 +12,14 @@
 #ifndef _RBCWIN
 #define _RBCWIN
 
+#include <tk.h>
+
 #ifdef WIN32
 #include <windows.h>
 #include <windowsx.h>
 #endif /* WIN32 */
 
-#undef STD_NORMAL_BACKGROUND
-#undef STD_NORMAL_FOREGROUND
-#undef STD_SELECT_BACKGROUND
-#undef STD_SELECT_FOREGROUND
-#undef STD_TEXT_FOREGROUND
-#undef STD_FONT
-#undef STD_FONT_LARGE
-#undef STD_FONT_SMALL
-
-#define STD_NORMAL_BACKGROUND "SystemButtonFace"
-#define STD_NORMAL_FOREGROUND "SystemButtonText"
-#define STD_SELECT_BACKGROUND "SystemHighlight"
-#define STD_SELECT_FOREGROUND "SystemHighlightText"
-#define STD_TEXT_FOREGROUND "SystemWindowText"
-#define STD_FONT "Arial 8"
-#define STD_FONT_LARGE "Arial 12"
-#define STD_FONT_SMALL "Arial 6"
+#include "rbcDefaults.h"
 
 #ifdef CHECK_UNICODE_CALLS
 #define _UNICODE
