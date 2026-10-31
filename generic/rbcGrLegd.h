@@ -1,7 +1,10 @@
+/** @file rbcGrLegd.h
+ * @brief Private legend services.
+ */
 /*
  * rbcGrLegd.h --
  *
- *      TODO: Description
+ *      Private legend layout, drawing and command interfaces.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -32,6 +35,17 @@ typedef struct ElementStruct Element;
 int Rbc_CreateLegend(Graph *graphPtr);
 void Rbc_DestroyLegend(Graph *graphPtr);
 void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable);
+/**
+ * @brief Compute entry and total dimensions for one legend.
+ * @param legendPtr Borrowed initialized legend and its owning graph.
+ * @param width Available plot width; an external window can override it.
+ * @param height Available plot height; an external window can override it.
+ *
+ * Resets cached dimensions before measuring eligible labeled elements. Hidden
+ * legends or unusable dimensions produce an empty layout. Single-row layouts
+ * use individual entry widths; multi-row layouts use uniform cells. Does not
+ * paint; placement is handled separately by the legend origin calculation.
+ */
 void Rbc_MapLegend(Legend *legendPtr, int width, int height);
 int Rbc_LegendOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_LegendSite(Legend *legendPtr);

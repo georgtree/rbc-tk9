@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Legend ownership and layout &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Legend C reference" href="legend-reference.html" />
+    <link rel="prev" title="Marker C reference" href="marker-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="legend-reference.html" title="Legend C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Legend ownership and layout</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="legend-ownership-and-layout">
+<h1>Legend ownership and layout<a class="headerlink" href="#legend-ownership-and-layout" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrLegd.c</span></code> implements the global legend, optional external legend window
+and track-local legends. They share entry measurement and drawing machinery,
+but differ in ownership, placement and event routing. <code class="docutils literal notranslate"><span class="pre">rbcGrLegd.h</span></code> exposes
+an opaque legend type and shared services. See <a class="reference internal" href="legend-reference.html"><span class="doc">Legend C reference</span></a> for
+selected contracts.</p>
+<section id="entries-and-geometry">
+<h2>Entries and geometry<a class="headerlink" href="#entries-and-geometry" title="Link to this heading">¶</a></h2>
+<p>A legend presents elements from the graph’s display list rather than owning
+duplicate element records. An element without a label has no entry. A local
+legend additionally filters for elements belonging to its track; the global
+legend does not apply that track filter. Plot visibility and legend membership
+are separate concerns, so do not remove an entry merely because its trace is
+not currently painted.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_MapLegend</span></code> resets its cached entry counts and dimensions before measuring
+labels, symbols, borders and padding. Hidden legends or unusable available
+sizes yield no displayed layout. An external legend can use its actual window
+dimensions instead of the supplied plot dimensions.</p>
+<p>Single-row layouts use individually measured entry widths. Multi-row layouts
+retain uniform cell sizing based on the maximum entry size. Top and bottom
+placement can select a single row when its summed widths fit. Drawing and
+picking must agree on these widths; using a uniform column index for a compact
+single row would select the wrong element.</p>
+<p>Mapping computes dimensions, while <code class="docutils literal notranslate"><span class="pre">SetLegendOrigin</span></code> computes placement.
+Local legends are mapped after track rectangles are available and do not add
+graph margins. Their available size comes from the full track world rectangle,
+so partial scrolling must not reflow the legend into only the visible remnant.
+See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for full and visible track geometry.</p>
+</section>
+<section id="drawing-and-picking">
+<h2>Drawing and picking<a class="headerlink" href="#drawing-and-picking" title="Link to this heading">¶</a></h2>
+<p>Normal legend drawing uses mapped entries, positions the legend and draws
+symbols through the concrete element’s symbol callback. Legend samples are
+separate from plotted element geometry. Screen drawing and export have separate
+entry points; track export wraps the local legend in a visible-track clip.
+Track dispatch also selects the requested raised or non-raised layer and skips
+collapsed visible track regions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LegendContains</span></code> checks hidden state, mapped entries and legend bounds. For
+local legends it first restricts the point to the visible track rectangle.
+<code class="docutils literal notranslate"><span class="pre">LegendAtPoint</span></code> searches raised legends before non-raised legends, checking
+the global in-widget legend before local legends within each layer. An external
+legend is excluded from this in-widget overlap search.</p>
+<p>Binding dispatch returns the selected element as the object and the owning
+legend as context. The context matters: the same element may have an entry in
+both global and local legends. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for generic dispatch and
+callback lifetime.</p>
+<p>Local legends share <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;trackLegendBindings</span></code> for event routing, created
+when first needed. Each local legend owns a tag table providing separate binding
+identities. Destroying one local legend removes its tag bindings but must not
+destroy the shared binding table while other local legends still use it.
+The global legend has its own binding table.</p>
+</section>
+<section id="external-window-and-redraw">
+<h2>External window and redraw<a class="headerlink" href="#external-window-and-redraw" title="Link to this heading">¶</a></h2>
+<p>An external global legend has its own window, command and event handler.
+<code class="docutils literal notranslate"><span class="pre">Rbc_RedrawExternalLegend</span></code> schedules its independent idle draw when it exists
+and its resources are still valid. <code class="docutils literal notranslate"><span class="pre">EventuallyRedrawLegend</span></code> coalesces requests
+using <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>; scheduling is not immediate painting.</p>
+<p>The idle callback clears the pending flag, checks window existence, and for an
+external legend remaps when its actual dimensions differ from cached legend
+dimensions. It skips unmapped windows and windows too small to draw. Changes
+to graph layout alone do not substitute for this external redraw path.
+Font-change handling resets legend text styles and also requests external
+redisplay when applicable.</p>
+<p>An external legend window is owned by the legend machinery. Final destruction
+removes its event handler and instance-data association, deletes its command,
+and destroys the window after clearing stored handles. Code that changes
+external placement must account for all these associations, not just the
+<code class="docutils literal notranslate"><span class="pre">Tk_Window</span></code> pointer.</p>
+</section>
+<section id="resource-teardown">
+<h2>Resource teardown<a class="headerlink" href="#resource-teardown" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseLegendTkResources</span></code> visits local and global legends while the graph
+window remains valid. It cancels pending idle callbacks, releases the text
+style’s graphics context and the separately allocated shadow color, then frees
+Tk option resources and the option table. Release guards prevent duplicate
+cleanup. In-widget legends stop retaining the graph’s window pointer; an
+external window has its own remaining lifetime.</p>
+<p>Final destruction frees legend records and binding state. Local destruction
+clears the track’s legend pointer and removes its tag keys. Global destruction
+also destroys the shared track-legend binding table, so local legends must be
+cleaned up before that shared routing infrastructure disappears. See
+<a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the enclosing teardown sequence.</p>
+<p>Regression coverage should include differently sized labels in one row,
+multi-row picking, entries appearing in both global and local legends,
+raised-layer overlap, partial track scrolling, external window resize and
+pending redraw cancellation during destruction. Export checks should cover
+local clips as well as restoration after a temporary resized layout.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Legend ownership and layout</a><ul>
+<li><a class="reference internal" href="#entries-and-geometry">Entries and geometry</a></li>
+<li><a class="reference internal" href="#drawing-and-picking">Drawing and picking</a></li>
+<li><a class="reference internal" href="#external-window-and-redraw">External window and redraw</a></li>
+<li><a class="reference internal" href="#resource-teardown">Resource teardown</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="marker-reference.html"
+                          title="previous chapter">Marker C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="legend-reference.html"
+                          title="next chapter">Legend C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="legend-reference.html" title="Legend C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Legend ownership and layout</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

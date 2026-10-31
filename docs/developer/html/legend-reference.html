@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Legend C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Grid mapping and inheritance" href="grids.html" />
+    <link rel="prev" title="Legend ownership and layout" href="legends.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="grids.html" title="Grid mapping and inheritance"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="legends.html" title="Legend ownership and layout"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Legend C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="legend-c-reference">
+<h1>Legend C reference<a class="headerlink" href="#legend-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private interfaces borrow graph, legend and track records. See
+<a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> for ownership and ordering, and <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event routing.</p>
+<section id="mapping-and-scheduling">
+<h2>Mapping and scheduling<a class="headerlink" href="#mapping-and-scheduling" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapLegend">
+<span class="target" id="rbc_gr_legd_8h_1acb975f87451e8dca48d032db0deb1bbf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute entry and total dimensions for one legend. </p>
+<p>
+Resets cached dimensions before measuring eligible labeled elements. Hidden legends or unusable dimensions produce an empty layout. Single-row layouts use individual entry widths; multi-row layouts use uniform cells. Does not paint; placement is handled separately by the legend origin calculation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>legendPtr</strong> – Borrowed initialized legend and its owning graph. </p></li>
+<li><p><strong>width</strong> – Available plot width; an external window can override it. </p></li>
+<li><p><strong>height</strong> – Available plot height; an external window can override it.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MapTrackLegends">
+<span class="target" id="rbc_gr_track_8h_1a71032498d47369c17f65890c39db451e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapTrackLegends</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapTrackLegends" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map local legends after full track rectangles have been laid out. </p>
+<p>
+Uses full world width and height and sets each legend origin. Local legends do not contribute graph margins. Does not draw or schedule redisplay. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with current track geometry.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RedrawExternalLegend">
+<span class="target" id="rbc_graph_8h_1ac857609075546a95292bd12792f5082a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RedrawExternalLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RedrawExternalLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Schedule the global external legend’s independent idle redraw. </p>
+<p>
+Does nothing for an absent, resource-released or non-window legend. Coalesces pending idle work; does not draw synchronously or remap the graph. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph whose global legend may be absent.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="cleanup">
+<h2>Cleanup<a class="headerlink" href="#cleanup" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ReleaseLegendTkResources">
+<span class="target" id="rbc_graph_8h_1a9141112271fa7d80e7f5ad11e223201c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleaseLegendTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleaseLegendTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release global and local legend options while the Tk window is live. </p>
+<p>
+Cancels pending legend redraws, frees text-style resources and the separately owned shadow color, then frees Tk options and their table. Leaves legend records and binding tables for final destruction. Repeated release is guarded. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph with valid track list and Tk window context.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyTrackLegend">
+<span class="target" id="rbc_gr_track_8h_1a33a593148c79900916ec26c6be6e4088"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy one local legend and clear its owning track pointer. </p>
+<p>
+Cancels idle work and removes the legend’s tag bindings, but retains the shared track-legend binding table. Release Tk resources before window loss. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph; shared local binding table must still be live. </p></li>
+<li><p><strong>track</strong> – Track whose optional legend is destroyed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Legend C reference</a><ul>
+<li><a class="reference internal" href="#mapping-and-scheduling">Mapping and scheduling</a><ul>
+<li><a class="reference internal" href="#c.Rbc_MapLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_MapLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MapTrackLegends"><code class="docutils literal notranslate"><span class="pre">Rbc_MapTrackLegends()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RedrawExternalLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_RedrawExternalLegend()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cleanup">Cleanup</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ReleaseLegendTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseLegendTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackLegend()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="legends.html"
+                          title="previous chapter">Legend ownership and layout</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="grids.html"
+                          title="next chapter">Grid mapping and inheritance</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="grids.html" title="Grid mapping and inheritance"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="legends.html" title="Legend ownership and layout"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Legend C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

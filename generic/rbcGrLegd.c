@@ -864,39 +864,6 @@ static ClientData PickTrackLegendEntry(ClientData clientData, int x, int y, Clie
     return PickLegendIn(legendPtr, x, y);
 }
 
-/*
- * -----------------------------------------------------------------
- *
- * Rbc_MapLegend --
- *
- *      Calculates the dimensions (width and height) needed for
- *      the legend.  Also determines the number of rows and columns
- *      necessary to list all the valid element labels.
- *
- * Parameters:
- *      Legend *legendPtr
- *      int plotWidth - Maximum width available in window to draw the legend. Will calculate number of columns from
- * this.
- *
- *      int plotHeight - Maximum height available in window to draw the legend. Will calculate number of rows from this.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The following fields of the legend are calculated and set.
- *
- *      nEntries   - number of valid labels of elements in the
- *                display list.
- *      nRows        - number of rows of entries
- *      nColumns    - number of columns of entries
- *      style.height - height of each entry
- *      style.width  - maximum entry width (uniform for multi-row layouts)
- *      height        - width of legend (includes borders and padding)
- *      width        - height of legend (includes borders and padding)
- *
- * -----------------------------------------------------------------
- */
 void Rbc_MapLegend(Legend *legendPtr, int plotWidth, int plotHeight) {
     Rbc_ChainLink *linkPtr;
     Element *elemPtr;

@@ -34,6 +34,7 @@ are private; adding a renderer declaration does not add a public stub entry.
 ``rbcGrAxis.c``, ``rbcGrLine.c`` and ``rbcGrMarker.c`` use this infrastructure.
 
 See :doc:`markers` for marker layers, window ownership and XOR handling.
+See :doc:`legends` for global, external and track-local legend services.
 See :doc:`grids` for tick-derived segments and local-grid inheritance.
 See :doc:`pens` for shared pen references and palette selection.
 See :doc:`elements` for data-slot ownership, staged updates and type dispatch.

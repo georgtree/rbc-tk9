@@ -23,6 +23,8 @@ chapters.
    vector-reference
    markers
    marker-reference
+   legends
+   legend-reference
    grids
    grid-reference
    pens
