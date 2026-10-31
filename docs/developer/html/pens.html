@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Pens and style palettes &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pen and palette C reference" href="pen-reference.html" />
+    <link rel="prev" title="Marker C reference" href="marker-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pen-reference.html" title="Pen and palette C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pens and style palettes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pens-and-style-palettes">
+<h1>Pens and style palettes<a class="headerlink" href="#pens-and-style-palettes" title="Link to this heading">¶</a></h1>
+<p>Named pens are graph-owned reusable drawing resources. <code class="docutils literal notranslate"><span class="pre">rbcGrPen.c</span></code> manages
+their registry, commands, reference counts and option lifecycle. Concrete line
+and bar implementations provide their drawing attributes and derived resources.
+Strip and polar elements use the line-pen implementation. Shared <code class="docutils literal notranslate"><span class="pre">Pen</span></code> state
+and declarations live in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>; palette services are in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code>
+and <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>. See <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a> for selected contracts.</p>
+<section id="named-and-embedded-pens">
+<h2>Named and embedded pens<a class="headerlink" href="#named-and-embedded-pens" title="Link to this heading">¶</a></h2>
+<p>A named pen belongs to the graph’s pen table. Successful <code class="docutils literal notranslate"><span class="pre">Rbc_GetPen</span></code> lookup
+checks its type and increments its reference count. Each acquisition must be
+paired with <code class="docutils literal notranslate"><span class="pre">Rbc_FreePen</span></code>. Lookup maps strip and polar requirements to the
+line class; a bar pen is not interchangeable with a line pen.</p>
+<p>Elements also have a built-in pen and may select named normal or active pens.
+Do not apply named-pen reference operations indiscriminately to an embedded
+pen. Likewise, an alias to a pen pointer does not itself acquire another
+reference. Element pen transactions stage references before committing them;
+failed preparation must release the staged acquisitions.</p>
+<p>Deletion is deferred while a named pen is referenced. The delete command sets
+<code class="docutils literal notranslate"><span class="pre">PEN_DELETE_PENDING</span></code> and destroys the record immediately only when its count
+is zero. Existing users can keep using the retained record, while ordinary
+name lookup no longer returns it. Releasing the last reference destroys a
+pending pen; releasing the last reference to a live named pen leaves the
+registry’s pen available for later use.</p>
+<p>Creation with the name of an in-use delete-pending pen can revive that record
+when the requested concrete type matches. It is not necessarily a new C entity.
+Changing its type is rejected while that old record remains. Code must not
+assume that command-level deletion immediately invalidates every pen pointer,
+or that recreating the name necessarily creates independent drawing state.</p>
+</section>
+<section id="configuration-and-redraw">
+<h2>Configuration and redraw<a class="headerlink" href="#configuration-and-redraw" title="Link to this heading">¶</a></h2>
+<p>Pen initialization uses the named <code class="docutils literal notranslate"><span class="pre">Pen</span></code> option-database component and the
+shared resource-name convention. Explicit configuration uses <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code>
+followed by the concrete pen configurator. If that configurator fails, saved
+Tk options are restored. Derived resources must be prepared transactionally
+before replacing the active resources; see <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>.</p>
+<p>The pen configure command requests backing-store and margin redraw when a
+successfully configured pen has references. A command naming multiple pens
+configures them in sequence; a later failure does not roll back earlier pens.
+The per-pen option transaction must not be described as a transaction over the
+entire multi-pen command.</p>
+</section>
+<section id="palette-ownership">
+<h2>Palette ownership<a class="headerlink" href="#palette-ownership" title="Link to this heading">¶</a></h2>
+<p>An element palette is a chain of style entries. The first entry represents the
+normal style and borrows the element’s normal pen. Additional entries acquire
+named-pen references and carry weight ranges. The palette’s first entry must
+remain present for style selection, even with no additional styles.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_FreePalette</span></code> releases the counted references and removes entries after
+the first. Despite its name, it does not destroy the chain or release that
+first borrowed pen. The private <code class="docutils literal notranslate"><span class="pre">DestroyPalette</span></code> helper performs the full
+chain destruction after releasing those entries. Confusing these two operations
+can either leak a chain or release a reference the palette never owned.</p>
+<p>Palette parsing builds a candidate chain before replacing the live one.
+An entry that fails to parse is freed before it has been attached; earlier
+candidate entries and their references are then released. Styles transactions
+apply the same prepare/commit/cleanup ordering as other element resources.
+See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the shared transaction model.</p>
+</section>
+<section id="selecting-a-style">
+<h2>Selecting a style<a class="headerlink" href="#selecting-a-style" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_StyleMap</span></code> allocates one pointer per effective data point and initializes
+all entries to the normal style. It considers weights only up to the smaller
+of the weight length and the point count. Missing weights and unmatched values
+therefore leave the normal style selected.</p>
+<p>For each weighted point, the palette is searched from last to first. The first
+matching range wins, so later entries take precedence where ranges overlap.
+Membership uses a normalized range comparison with <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> tolerance
+near endpoints, rather than a strict half-open interval. Nonpositive range
+widths are skipped. Preserve this ordering and tolerance when changing palette
+selection; adjacent boundaries and overlapping styles depend on them.</p>
+<p>The returned array owns only the pointer storage. Its entries borrow palette
+styles and acquire no new pen references. Callers free the array with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>
+and must not retain it after the underlying palette entries are replaced.
+Even the zero-point case returns an allocation so callers can release it
+unconditionally. Size overflow follows the allocator’s fatal-error convention.</p>
+</section>
+<section id="resource-teardown">
+<h2>Resource teardown<a class="headerlink" href="#resource-teardown" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ReleasePenTkResources</span></code> releases derived resources through the concrete
+pen destructor before freeing Tk-managed colors, fonts, borders or bitmaps.
+It retains pen records and the registry, and guards against repeated resource
+release. This pass needs a live Tk window and covers registered named pens;
+embedded pens belong to element cleanup.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyPens</span></code> finally destroys the remaining records and hash table.
+It does not wait for reference counts, so element references must already have
+been released. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for graph teardown ordering.</p>
+<p>Useful regression cases include several elements sharing one pen, deletion
+while referenced, compatible revival, rejected type changes, failed style
+replacement, overlapping ranges, exact range boundaries and empty data. These
+exercise ownership and selection behavior that a simple rendered sample cannot
+fully demonstrate.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Pens and style palettes</a><ul>
+<li><a class="reference internal" href="#named-and-embedded-pens">Named and embedded pens</a></li>
+<li><a class="reference internal" href="#configuration-and-redraw">Configuration and redraw</a></li>
+<li><a class="reference internal" href="#palette-ownership">Palette ownership</a></li>
+<li><a class="reference internal" href="#selecting-a-style">Selecting a style</a></li>
+<li><a class="reference internal" href="#resource-teardown">Resource teardown</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="marker-reference.html"
+                          title="previous chapter">Marker C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pen-reference.html"
+                          title="next chapter">Pen and palette C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pen-reference.html" title="Pen and palette C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="marker-reference.html" title="Marker C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pens and style palettes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

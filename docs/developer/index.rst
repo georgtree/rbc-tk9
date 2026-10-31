@@ -23,6 +23,8 @@ chapters.
    vector-reference
    markers
    marker-reference
+   pens
+   pen-reference
    elements
    element-reference
    mapping

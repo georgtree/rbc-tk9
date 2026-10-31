@@ -176,25 +176,6 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     ckfree(penPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreePen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Pen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreePen(Graph *graphPtr, Pen *penPtr) {
     penPtr->refCount--;
     if ((penPtr->refCount == 0) && (penPtr->flags & PEN_DELETE_PENDING)) {
@@ -338,27 +319,6 @@ Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_S
     return penPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPen --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      const char *name
- *      Rbc_Uid classUid
- *      Pen **penPtrPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtrPtr) {
     Pen *penPtr;
 
@@ -382,24 +342,6 @@ int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtr
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_DestroyPens --
- *
- *      Release memory and resources allocated for the style.
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the pen style is freed up.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_DestroyPens(Graph *graphPtr) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch cursor;

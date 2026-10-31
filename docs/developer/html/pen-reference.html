@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Pen and palette C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Element data and dispatch" href="elements.html" />
+    <link rel="prev" title="Pens and style palettes" href="pens.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pens.html" title="Pens and style palettes"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pen and palette C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pen-and-palette-c-reference">
+<h1>Pen and palette C reference<a class="headerlink" href="#pen-and-palette-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private services distinguish counted named-pen references from borrowed
+normal-palette entries. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> for lifetime and selection rules.</p>
+<section id="named-pen-references">
+<h2>Named pen references<a class="headerlink" href="#named-pen-references" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetPen">
+<span class="target" id="rbc_graph_8h_1a7c5d22851e15c8bbd559d7fc3959a1d4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a reference to a named pen of a compatible concrete type. </p>
+<p>
+Pair each successful acquisition with Rbc_FreePen. The returned pointer is graph-owned and must not outlive graph teardown. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph and interpreter for diagnostics. </p></li>
+<li><p><strong>name</strong> – Pen name to resolve; delete-pending pens are not found. </p></li>
+<li><p><strong>classUid</strong> – Required element class; strip and polar use line pens. </p></li>
+<li><p><strong>penPtrPtr</strong> – Receives the referenced pen on success. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK after incrementing refCount, or TCL_ERROR without acquisition.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreePen">
+<span class="target" id="rbc_graph_8h_1a715720df37fcd849b306805f52a59dfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePen</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Pen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePen" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one acquired named-pen reference. </p>
+<p>
+Decrements refCount and destroys the pen only when it reaches zero and PEN_DELETE_PENDING is set. Does not request deletion of a live named pen. Do not use for an uncounted embedded pen or a palette’s borrowed first entry. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph. </p></li>
+<li><p><strong>penPtr</strong> – Non-NULL pen for which the caller owns a counted reference.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="graph-resource-teardown">
+<h2>Graph resource teardown<a class="headerlink" href="#graph-resource-teardown" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ReleasePenTkResources">
+<span class="target" id="rbc_graph_8h_1a97afde0e0e3d17052d389720a5bb6ed4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePenTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePenTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release registered pen resources while the graph window is live. </p>
+<p>
+Releases derived resources before Tk-owned option resources. Skips records not initialized or already released; leaves records and registry entries intact for later destruction. Does not release element-embedded pens. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Graph with initialized pen registry and live Tk window.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyPens">
+<span class="target" id="rbc_graph_8h_1a4c8cf69ba932694bd06b918edb30e2ae"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyPens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyPens" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy the graph’s remaining registered pens and pen hash table. </p>
+<p>
+Does not wait for reference counts: element references must already have been released. Tk-dependent resources must be released before the window disappears. This destroys registry infrastructure and is not repeatable. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph during final teardown.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="element-palettes">
+<h2>Element palettes<a class="headerlink" href="#element-palettes" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreePalette">
+<span class="target" id="rbc_gr_elem_8h_1abe4af972accf68ce4f10a3eb8d2f4b17"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePalette</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_Chain</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">palette</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePalette" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release named style entries while retaining the normal palette entry. </p>
+<p>
+Releases pen references and removes links after the first entry. Does not release the first entry’s pen or destroy the chain itself. The caller owns the remaining chain and must destroy it when appropriate. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Owning graph used to release pen references. </p></li>
+<li><p><strong>palette</strong> – Valid palette chain; its first entry borrows the normal pen.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_StyleMap">
+<span class="target" id="rbc_gr_elem_8h_1aef88bc8e67efa262cedff1fbcd72be80"></span><span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_StyleMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_StyleMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a per-data-point map of borrowed palette style pointers. </p>
+<p>
+Unmatched or unweighted points retain the first (normal) style. Weighted points search entries from last to first using normalized range tests with DBL_EPSILON tolerance. The map acquires no pen references and must not outlive its palette entries. Allocation-size overflow invokes Tcl_Panic. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Element with a valid nonempty palette and current data. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Allocated pointer array owned by the caller; release with ckfree, including for zero points. Entries borrow styles from the element palette.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Pen and palette C reference</a><ul>
+<li><a class="reference internal" href="#named-pen-references">Named pen references</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetPen"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPen()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreePen"><code class="docutils literal notranslate"><span class="pre">Rbc_FreePen()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graph-resource-teardown">Graph resource teardown</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ReleasePenTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleasePenTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyPens"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyPens()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#element-palettes">Element palettes</a><ul>
+<li><a class="reference internal" href="#c.Rbc_FreePalette"><code class="docutils literal notranslate"><span class="pre">Rbc_FreePalette()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_StyleMap"><code class="docutils literal notranslate"><span class="pre">Rbc_StyleMap()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="pens.html"
+                          title="previous chapter">Pens and style palettes</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="elements.html"
+                          title="next chapter">Element data and dispatch</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="elements.html" title="Element data and dispatch"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pens.html" title="Pens and style palettes"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pen and palette C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

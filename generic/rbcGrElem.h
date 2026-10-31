@@ -422,7 +422,27 @@ void Rbc_CommitElemDataTransaction(Element *elemPtr, ElemDataTransaction *transa
  * ownership out of the candidates. Does not modify the live element.
  */
 void Rbc_FreeElemDataTransaction(ElemDataTransaction *transactionPtr);
+/**
+ * @brief Release named style entries while retaining the normal palette entry.
+ * @param graphPtr Owning graph used to release pen references.
+ * @param palette Valid palette chain; its first entry borrows the normal pen.
+ *
+ * Releases pen references and removes links after the first entry. Does not
+ * release the first entry's pen or destroy the chain itself. The caller owns
+ * the remaining chain and must destroy it when appropriate.
+ */
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette);
+/**
+ * @brief Allocate a per-data-point map of borrowed palette style pointers.
+ * @param elemPtr Element with a valid nonempty palette and current data.
+ * @return Allocated pointer array owned by the caller; release with ckfree,
+ * including for zero points. Entries borrow styles from the element palette.
+ *
+ * Unmatched or unweighted points retain the first (normal) style. Weighted
+ * points search entries from last to first using normalized range tests with
+ * DBL_EPSILON tolerance. The map acquires no pen references and must not outlive
+ * its palette entries. Allocation-size overflow invokes Tcl_Panic.
+ */
 PenStyle **Rbc_StyleMap(Element *elemPtr);
 void Rbc_MapErrorBars(Graph *graphPtr, Element *elemPtr, PenStyle **dataToStyle);
 void Rbc_ExpandErrorBarExtents(Element *elemPtr, Extents2D *extsPtr);

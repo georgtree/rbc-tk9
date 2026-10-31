@@ -2510,25 +2510,6 @@ static int ParseClosestOptions(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size obj
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreePalette --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_Chain *palette
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreePalette(Graph *graphPtr, Rbc_Chain *palette) {
     Rbc_ChainLink *linkPtr;
 
@@ -2659,25 +2640,6 @@ static int ParseStylesObj(Graph *graphPtr, Element *elemPtr, Tcl_Obj *objPtr, si
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_StyleMap --
- *
- *      Creates an array of style indices and fills it based on the weight
- *      of each data point.
- *
- * Parameters:
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is freed and allocated for the index array.
- *
- *----------------------------------------------------------------------
- */
 PenStyle **Rbc_StyleMap(Element *elemPtr) {
     Tcl_Size i;
     Tcl_Size nWeights;

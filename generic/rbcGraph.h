@@ -840,12 +840,48 @@ void Rbc_DrawPolarLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_DrawSmithLabels(Graph *graphPtr, Drawable drawable);
 void Rbc_PolarLabelsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr);
 void Rbc_UpdateCrosshairs(Graph *graphPtr);
+/**
+ * @brief Destroy the graph's remaining registered pens and pen hash table.
+ * @param graphPtr Owning graph during final teardown.
+ *
+ * Does not wait for reference counts: element references must already have
+ * been released. Tk-dependent resources must be released before the window
+ * disappears. This destroys registry infrastructure and is not repeatable.
+ */
 void Rbc_DestroyPens(Graph *graphPtr);
+/**
+ * @brief Release registered pen resources while the graph window is live.
+ * @param graphPtr Graph with initialized pen registry and live Tk window.
+ *
+ * Releases derived resources before Tk-owned option resources. Skips records
+ * not initialized or already released; leaves records and registry entries
+ * intact for later destruction. Does not release element-embedded pens.
+ */
 void Rbc_ReleasePenTkResources(Graph *graphPtr);
+/**
+ * @brief Acquire a reference to a named pen of a compatible concrete type.
+ * @param graphPtr Owning graph and interpreter for diagnostics.
+ * @param name Pen name to resolve; delete-pending pens are not found.
+ * @param classUid Required element class; strip and polar use line pens.
+ * @param penPtrPtr Receives the referenced pen on success.
+ * @return TCL_OK after incrementing refCount, or TCL_ERROR without acquisition.
+ *
+ * Pair each successful acquisition with Rbc_FreePen. The returned pointer is
+ * graph-owned and must not outlive graph teardown.
+ */
 int Rbc_GetPen(Graph *graphPtr, const char *name, Rbc_Uid classUid, Pen **penPtrPtr);
 Pen *Rbc_BarPen(const char *penName);
 Pen *Rbc_LinePen(const char *penName);
 Pen *Rbc_CreatePen(Graph *graphPtr, const char *penName, Rbc_Uid classUid, Tcl_Size nOpts, Tcl_Obj *const options[]);
+/**
+ * @brief Release one acquired named-pen reference.
+ * @param graphPtr Owning graph.
+ * @param penPtr Non-NULL pen for which the caller owns a counted reference.
+ *
+ * Decrements refCount and destroys the pen only when it reaches zero and
+ * PEN_DELETE_PENDING is set. Does not request deletion of a live named pen.
+ * Do not use for an uncounted embedded pen or a palette's borrowed first entry.
+ */
 void Rbc_FreePen(Graph *graphPtr, Pen *penPtr);
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]);
