@@ -49,6 +49,8 @@ chapters.
    fill-reference
    polar
    polar-reference
+   tracks
+   track-reference
    mapping
    mapping-reference
    configuration

@@ -41,8 +41,10 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -75,9 +77,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="decimation-reference.html#c.CanPixelDecimateLine">CanPixelDecimateLine (C function)</a>
 </li>
+      <li><a href="bar-reference.html#c.ClosestBar">ClosestBar (C function)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="bar-reference.html#c.ClosestBar">ClosestBar (C function)</a>
+      <li><a href="track-reference.html#c.ConfigureTrack">ConfigureTrack (C function)</a>
 </li>
       <li><a href="cairo-reference.html#c.CreateRenderPhoto">CreateRenderPhoto (C function)</a>
 </li>
@@ -89,12 +93,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="decimation-reference.html#c.DecimatePointsByPixels">DecimatePointsByPixels (C function)</a>
 </li>
-      <li><a href="graph-reference.html#c.DestroyGraph">DestroyGraph (C function)</a>
+      <li><a href="track-reference.html#c.DeleteTracks">DeleteTracks (C function)</a>
 </li>
-      <li><a href="graph-reference.html#c.DisplayGraph">DisplayGraph (C function)</a>
+      <li><a href="graph-reference.html#c.DestroyGraph">DestroyGraph (C function)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graph-reference.html#c.DisplayGraph">DisplayGraph (C function)</a>
+</li>
       <li><a href="graph-reference.html#c.DisplayGraphFrame">DisplayGraphFrame (C function)</a>
 </li>
       <li><a href="binding-reference.html#c.DoEvent">DoEvent (C function)</a>
@@ -132,6 +138,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="track-reference.html#c.InitTrackOptions">InitTrackOptions (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -150,6 +164,14 @@
       <li><a href="fill-reference.html#c.MapErrorBand">MapErrorBand (C function)</a>
 </li>
       <li><a href="fill-reference.html#c.MapFillArea">MapFillArea (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="track-reference.html#c.OrderTracks">OrderTracks (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -213,6 +235,8 @@
 </li>
       <li><a href="image-tile-reference.html#c.Rbc_CreateColorImage">Rbc_CreateColorImage (C function)</a>
 </li>
+      <li><a href="track-reference.html#c.Rbc_CreateTrackComponentArgs">Rbc_CreateTrackComponentArgs (C function)</a>
+</li>
       <li><a href="crosshair-reference.html#c.Rbc_CrosshairsNeedFullRedraw">Rbc_CrosshairsNeedFullRedraw (C function)</a>
 </li>
       <li><a href="binding-reference.html#c.Rbc_DeleteBindings">Rbc_DeleteBindings (C function)</a>
@@ -228,6 +252,8 @@
       <li><a href="grid-reference.html#c.Rbc_DestroyTrackGrid">Rbc_DestroyTrackGrid (C function)</a>
 </li>
       <li><a href="legend-reference.html#c.Rbc_DestroyTrackLegend">Rbc_DestroyTrackLegend (C function)</a>
+</li>
+      <li><a href="track-reference.html#c.Rbc_DestroyTracks">Rbc_DestroyTracks (C function)</a>
 </li>
       <li><a href="crosshair-reference.html#c.Rbc_DisableCrosshairs">Rbc_DisableCrosshairs (C function)</a>
 </li>
@@ -269,6 +295,8 @@
 </li>
       <li><a href="postscript-reference.html#c.Rbc_FileToPostScript">Rbc_FileToPostScript (C function)</a>
 </li>
+      <li><a href="track-reference.html#c.Rbc_FindTrack">Rbc_FindTrack (C function)</a>
+</li>
       <li><a href="text-font-reference.html#c.Rbc_FirstExportFont">Rbc_FirstExportFont (C function)</a>
 </li>
       <li><a href="text-font-reference.html#c.Rbc_FontUnicodeProgram">Rbc_FontUnicodeProgram (C function)</a>
@@ -288,6 +316,8 @@
       <li><a href="text-font-reference.html#c.Rbc_FreeTextStyle">Rbc_FreeTextStyle (C function)</a>
 </li>
       <li><a href="image-tile-reference.html#c.Rbc_FreeTile">Rbc_FreeTile (C function)</a>
+</li>
+      <li><a href="track-reference.html#c.Rbc_FreeTrackComponentArgs">Rbc_FreeTrackComponentArgs (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_FreeVectorId">Rbc_FreeVectorId (C function)</a>
 </li>
@@ -451,12 +481,12 @@
 </li>
       <li><a href="reference.html#c.RBC_RENDER_BITMAP_OUTLINE_POINTS">RBC_RENDER_BITMAP_OUTLINE_POINTS (C macro)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.Rbc_RenderArc">Rbc_RenderArc (C function)</a>
 </li>
       <li><a href="reference.html#c.Rbc_RenderArcGeometry">Rbc_RenderArcGeometry (C struct)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.Rbc_RenderArcStyle">Rbc_RenderArcStyle (C enum)</a>
 </li>
       <li><a href="reference.html#c.Rbc_RenderArcStyle.RBC_RENDER_ARC_CHORD">Rbc_RenderArcStyle.RBC_RENDER_ARC_CHORD (C enumerator)</a>

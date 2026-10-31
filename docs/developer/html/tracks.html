@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Track ownership and layout &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Track ownership C reference" href="track-reference.html" />
+    <link rel="prev" title="Polar data and geometry C reference" href="polar-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="track-reference.html" title="Track ownership C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="polar-reference.html" title="Polar data and geometry C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Track ownership and layout</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="track-ownership-and-layout">
+<h1>Track ownership and layout<a class="headerlink" href="#track-ownership-and-layout" title="Link to this heading">¶</a></h1>
+<p>A trackgraph is one graph widget with a linked list of named plot regions.
+Tracks are not child windows or independent graph instances. <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>
+owns track records, configuration, ordering and stack layout. Axis, element,
+marker, grid and legend implementations retain their ordinary module owners.</p>
+<section id="records-and-dependencies">
+<h2>Records and dependencies<a class="headerlink" href="#records-and-dependencies" title="Link to this heading">¶</a></h2>
+<p>The graph owns the track list. Each record owns its name and axis-pointer
+array, holds references to its assigned Y axes, and owns optional local grid
+and legend components. An axis has a back-pointer to its track. Elements and
+markers refer to tracks but remain graph-managed objects; deleting a track
+through the command interface does not implicitly delete its data components.</p>
+<p>Track names are case-sensitive and lookup scans the list. Reordering relinks
+the same records, preserving component and binding identities. A borrowed
+<code class="docutils literal notranslate"><span class="pre">RbcTrack</span> <span class="pre">*</span></code> remains valid across reordering, but not deletion or teardown.
+The <code class="docutils literal notranslate"><span class="pre">all</span></code> track binding target uses the address of the graph’s list field,
+not the current first track. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for dispatch and repicking.</p>
+</section>
+<section id="configuration-and-axis-ownership">
+<h2>Configuration and axis ownership<a class="headerlink" href="#configuration-and-axis-ownership" title="Link to this heading">¶</a></h2>
+<p>Creation reads defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component,
+with the resource-name conversion used by older components. Temporary
+<code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code> fields retain Tcl objects rather than immediately converting
+axis names or dimensions. Explicit options replace database defaults before
+validation; the effective option list goes through <code class="docutils literal notranslate"><span class="pre">ConfigureTrack</span></code>.</p>
+<p>Configuration stages scalar values and a replacement axis array. It rejects
+duplicate axes, incompatible classes or margins, axes owned by another track,
+and axes used by graph-wide markers. Removing an axis is rejected when an
+existing track element, local grid or track marker still uses it. New axis
+references are acquired before old ones are released, so an axis retained in
+both lists survives replacement.</p>
+<p>On success, the caller synchronizes the Y-axis display chain. <code class="docutils literal notranslate"><span class="pre">SyncTrackAxes</span></code>
+rebuilds that chain in track order and axis-list order, updates on-screen flags,
+marks <code class="docutils literal notranslate"><span class="pre">RESET_WORLD</span></code> and schedules redraw. This is logical Y-axis ownership:
+inversion changes physical orientation, not the axis class.</p>
+</section>
+<section id="sizing-and-visible-bounds">
+<h2>Sizing and visible bounds<a class="headerlink" href="#sizing-and-visible-bounds" title="Link to this heading">¶</a></h2>
+<p>Tracks share the graph’s other plot dimension. Normal layout divides the
+vertical range; inverted layout divides the horizontal range. Historical
+<code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">minHeight</span></code> field names mean size along this stacking direction.</p>
+<p>Fitted layout subtracts inter-track gaps from the available range. If the sum
+of minima fits, each track receives its minimum plus a weighted share of the
+remainder. If minima exceed the available space, their proportions determine
+the reduced sizes. Positive bounded weights are enforced by configuration.
+Fitted gaps shrink with the available range, up to 12 pixels.</p>
+<p>Scrolling layout uses <code class="docutils literal notranslate"><span class="pre">max(height,</span> <span class="pre">minHeight)</span></code> for each track and 12-pixel
+gaps. Its content extent may exceed the viewport. Each track stores full world
+bounds and their clamped visible bounds. Components must use world bounds for
+mapping and visible bounds for clipping; using visible height as the data
+scale would move data when scrolling. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for paired
+<code class="docutils literal notranslate"><span class="pre">Rbc_EnterTrack</span></code>/<code class="docutils literal notranslate"><span class="pre">Rbc_LeaveTrack</span></code> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the
+separate stack-offset and local data-axis scroll operations.</p>
+<p>A fitted sash adjusts the adjacent pair’s weights while preserving their sum.
+If the pair has no room beyond its minima, the operation does nothing. In
+scrolling layout the sash changes the first track’s requested height instead.
+Both paths invalidate layout and schedule redraw; they do not directly draw
+into the window.</p>
+</section>
+<section id="local-components-and-dispatch">
+<h2>Local components and dispatch<a class="headerlink" href="#local-components-and-dispatch" title="Link to this heading">¶</a></h2>
+<p>A NULL local grid means inheritance from the graph grid. A local grid keeps
+its own configuration and mapped segment caches. Local legends use track
+geometry without contributing outer graph margins. Track bar mode <code class="docutils literal notranslate"><span class="pre">-1</span></code>
+means inheritance from the graph. See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>, <a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> and
+<a class="reference internal" href="bars.html"><span class="doc">Bar grouping and placement</span></a> for component-specific behavior.</p>
+<p>Nested component commands adapt their argument vector for the existing grid
+or legend dispatcher. The adapter allocates an array and one retained,
+list-valued command prefix; all other entries borrow the original objects.
+Use the paired free helper, not a loop decrementing every entry. This keeps
+ordinary component command handling and diagnostics reusable.</p>
+</section>
+<section id="deletion-and-teardown">
+<h2>Deletion and teardown<a class="headerlink" href="#deletion-and-teardown" title="Link to this heading">¶</a></h2>
+<p>Command deletion validates every requested name and dependency before removing
+anything. Duplicate names are harmless. Tracks with elements or markers must
+first have those components moved or deleted. Each removed track releases its
+bindings, local grid and legend, axis references, pointer array and name.
+The remaining axis chain is then synchronized for redraw.</p>
+<p>Graph teardown follows a different entry point: after dependent components are
+disposed of, <code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTracks</span></code> releases the entire list before axes are
+destroyed. It does not revalidate user-facing dependencies or schedule redraw.
+Keep binding tables, the Tk window and other component cleanup resources alive
+until their owners have been released; see <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Changes to ownership should cover failed configuration without partial commits,
+axis retention across replacement, complete and invalid permutations, duplicate
+delete requests, dependency rejection, and graph teardown. Layout changes need
+normal and inverted orientations, undersized fitted regions, scrolling,
+resizing and resized export. Reordering must also repick a stationary pointer
+after layout, without requiring a new motion event.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Track ownership and layout</a><ul>
+<li><a class="reference internal" href="#records-and-dependencies">Records and dependencies</a></li>
+<li><a class="reference internal" href="#configuration-and-axis-ownership">Configuration and axis ownership</a></li>
+<li><a class="reference internal" href="#sizing-and-visible-bounds">Sizing and visible bounds</a></li>
+<li><a class="reference internal" href="#local-components-and-dispatch">Local components and dispatch</a></li>
+<li><a class="reference internal" href="#deletion-and-teardown">Deletion and teardown</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="polar-reference.html"
+                          title="previous chapter">Polar data and geometry C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="track-reference.html"
+                          title="next chapter">Track ownership C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="track-reference.html" title="Track ownership C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="polar-reference.html" title="Polar data and geometry C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Track ownership and layout</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

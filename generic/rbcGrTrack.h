@@ -10,7 +10,20 @@
 #include "rbcGraph.h"
 
 /* Paired nested-command adapter; see ownership contract in rbcGrTrack.c. */
+/**
+ * @brief Allocate an argument vector for nested grid or legend dispatch.
+ *
+ * Require objc >= 5 and the widget track component name operation form. The
+ * result has objc - 2 entries and owns only a newly retained list-valued command
+ * prefix at index 1; other entries borrow input objects. Release with
+ * Rbc_FreeTrackComponentArgs() before those borrowed arguments expire.
+ */
 Tcl_Obj **Rbc_CreateTrackComponentArgs(Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * @brief Release the owned command prefix and array from Rbc_CreateTrackComponentArgs().
+ * Borrowed argument objects are not decremented. Require a non-NULL result
+ * from that allocator and release it exactly once.
+ */
 void Rbc_FreeTrackComponentArgs(Tcl_Obj **args);
 
 /**
@@ -45,6 +58,14 @@ struct RbcTrack {
 };
 
 int Rbc_ConfigureTrackGraph(Graph *graphPtr, int scrollCommandChanged);
+/**
+ * @brief Release all tracks during graph teardown, before destroying axes.
+ *
+ * Removes track bindings, local grids and legends, then releases axis
+ * references, names and records. The caller must already have disposed of
+ * dependent elements and markers and retain the component cleanup resources.
+ * Unlike command deletion, this does not validate dependencies or redraw.
+ */
 void Rbc_DestroyTracks(Graph *graphPtr);
 /**
  * @brief Repick the stationary pointer and report track scrollbar fractions.
@@ -96,6 +117,11 @@ int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y);
 void Rbc_MapTrackLegends(Graph *graphPtr);
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);
+/**
+ * @brief Return a borrowed track by exact, case-sensitive name, or NULL.
+ * Searches the owning graph list without creating or retaining an object.
+ * Reordering preserves the pointer; deletion or graph teardown invalidates it.
+ */
 RbcTrack *Rbc_FindTrack(Graph *graphPtr, const char *name);
 /**
  * @brief Compute full and visible track rectangles from the current plot.

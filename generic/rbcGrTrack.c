@@ -14,6 +14,10 @@
 #include "rbcGrElem.h"
 #include <limits.h>
 
+/** @defgroup track_ownership Track configuration and ownership
+ * Private helpers for staged configuration, ordering and deletion.
+ */
+
 #define CLAMP(value, low, high) MIN(MAX((value), (low)), (high))
 
 typedef struct {
@@ -259,6 +263,16 @@ static Tcl_Obj *TrackOptionInfo(RbcTrack *track, int index) {
 }
 
 /* Stage all options and axis references before committing a track change. */
+/**
+ * @ingroup track_ownership
+ * @brief Validate option pairs and axis dependencies before committing track settings.
+ *
+ * Borrow the graph, track and arguments. A replacement axis array is temporary
+ * until every name, ownership rule and dependent component has been checked.
+ * Acquire new axis references before releasing old ones, including axes retained
+ * in both lists. On error, discard the temporary array and retain track settings.
+ * The caller synchronizes axis display order and schedules redraw after success.
+ */
 static int ConfigureTrack(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int barMode = track->barMode;
     double weight = track->weight;
@@ -412,6 +426,15 @@ error:
  * markers. Keep these as objects: ConfigureTrack performs conversion and axis
  * ownership validation together, before committing any of the effective values.
  * Explicit creation options replace database defaults before validation. */
+/**
+ * @ingroup track_ownership
+ * @brief Resolve creation defaults through the named Track option-database component.
+ *
+ * Explicit arguments override database values before ConfigureTrack validates
+ * the effective options. Temporary option objects and the option table are
+ * released on all exits. The caller owns the unlinked track and handles failed
+ * creation; this helper does not insert it into the graph.
+ */
 static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl_Obj *const objv[]) {
     TrackDefaults defaults = {0};
     Tk_OptionTable table = Tk_CreateOptionTable(graphPtr->interp, trackOptionSpecs);
@@ -470,6 +493,14 @@ done:
 
 /* Validate the complete permutation before modifying the linked list. Track
  * objects, axes, elements and markers retain their identity and ownership. */
+/**
+ * @ingroup track_ownership
+ * @brief Validate a complete permutation, then relink existing track objects.
+ *
+ * Reject unknown, missing or duplicate names without changing the list. On
+ * success, preserve object identity and rebuild the track Y-axis display chain,
+ * marking the graph for remapping and eventual redraw. Borrow namesObj.
+ */
 static int OrderTracks(Graph *graphPtr, Tcl_Obj *namesObj) {
     Tcl_Obj **names;
     Tcl_Size count, n = 0, i, j;
@@ -717,6 +748,15 @@ void Rbc_NotifyTrackView(Graph *graphPtr) {
 
 /* Validate the whole batch before unlinking anything. Repeated names are
  * harmless; missing or occupied tracks leave the complete batch unchanged. */
+/**
+ * @ingroup track_ownership
+ * @brief Validate all requested tracks before unlinking any of them.
+ *
+ * Duplicate names are ignored. Reject tracks still referenced by elements or
+ * markers. Successful deletion releases local components, bindings and axis
+ * references, then synchronizes the axis chain and schedules redraw. The
+ * enclosing command owns graph lifetime; this is not widget teardown.
+ */
 static int DeleteTracks(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     RbcTrack **tracks, **slot;
     Tcl_Size i, j, count = 0;

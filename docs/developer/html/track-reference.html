@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Track ownership C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Track ownership and layout" href="tracks.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tracks.html" title="Track ownership and layout"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Track ownership C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="track-ownership-c-reference">
+<h1>Track ownership C reference<a class="headerlink" href="#track-ownership-c-reference" title="Link to this heading">¶</a></h1>
+<p>Track records and private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.h</span></code>. Static
+configuration helpers live in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>. See <a class="reference internal" href="tracks.html"><span class="doc">Track ownership and layout</span></a> for the
+lifecycle, <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for viewport scopes and
+<a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a> for scroll notification.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FindTrack">
+<span class="target" id="rbc_gr_track_8h_1ad0dad7686a4153f63c294649138f5703"></span><span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a borrowed track by exact, case-sensitive name, or NULL. </p>
+<p>Searches the owning graph list without creating or retaining an object. Reordering preserves the pointer; deletion or graph teardown invalidates it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DestroyTracks">
+<span class="target" id="rbc_gr_track_8h_1a40fc147aad30c666f7cb277b3206493e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTracks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release all tracks during graph teardown, before destroying axes. </p>
+<p>Removes track bindings, local grids and legends, then releases axis references, names and records. The caller must already have disposed of dependent elements and markers and retain the component cleanup resources. Unlike command deletion, this does not validate dependencies or redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CreateTrackComponentArgs">
+<span class="target" id="rbc_gr_track_8h_1ac264eac1e80712bb8b4c354934f9c3ce"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTrackComponentArgs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateTrackComponentArgs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an argument vector for nested grid or legend dispatch. </p>
+<p>Require objc &gt;= 5 and the widget track component name operation form. The result has objc - 2 entries and owns only a newly retained list-valued command prefix at index 1; other entries borrow input objects. Release with <a class="reference internal" href="#rbc_gr_track_8h_1a833467ecb5aff7a5ccea1efc37f1806d"><span class="std std-ref">Rbc_FreeTrackComponentArgs()</span></a> before those borrowed arguments expire. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeTrackComponentArgs">
+<span class="target" id="rbc_gr_track_8h_1a833467ecb5aff7a5ccea1efc37f1806d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeTrackComponentArgs</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeTrackComponentArgs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release the owned command prefix and array from <a class="reference internal" href="#rbc_gr_track_8h_1ac264eac1e80712bb8b4c354934f9c3ce"><span class="std std-ref">Rbc_CreateTrackComponentArgs()</span></a>. </p>
+<p>Borrowed argument objects are not decremented. Require a non-NULL result from that allocator and release it exactly once. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__track__ownership"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Track</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">ownership</span></span></dt>
+<dd><p>Private helpers for staged configuration, ordering and deletion. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ConfigureTrack">
+<span class="target" id="group__track__ownership_1ga81eeb54175b4fc2a8f67425a955698dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate option pairs and axis dependencies before committing track settings. </p>
+<p>Borrow the graph, track and arguments. A replacement axis array is temporary until every name, ownership rule and dependent component has been checked. Acquire new axis references before releasing old ones, including axes retained in both lists. On error, discard the temporary array and retain track settings. The caller synchronizes axis display order and schedules redraw after success. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.InitTrackOptions">
+<span class="target" id="group__track__ownership_1ga6f7c189093ed270d118d4a098e093ea3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitTrackOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InitTrackOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve creation defaults through the named Track option-database component. </p>
+<p>Explicit arguments override database values before ConfigureTrack validates the effective options. Temporary option objects and the option table are released on all exits. The caller owns the unlinked track and handles failed creation; this helper does not insert it into the graph. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.OrderTracks">
+<span class="target" id="group__track__ownership_1ga9a860e7985a89b5ee1169b5023bb56f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OrderTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">namesObj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OrderTracks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a complete permutation, then relink existing track objects. </p>
+<p>Reject unknown, missing or duplicate names without changing the list. On success, preserve object identity and rebuild the track Y-axis display chain, marking the graph for remapping and eventual redraw. Borrow namesObj. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DeleteTracks">
+<span class="target" id="group__track__ownership_1gaa3c50ade10fa414cea4a6b0836756eb0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteTracks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DeleteTracks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate all requested tracks before unlinking any of them. </p>
+<p>Duplicate names are ignored. Reject tracks still referenced by elements or markers. Successful deletion releases local components, bindings and axis references, then synchronizes the axis chain and schedules redraw. The enclosing command owns graph lifetime; this is not widget teardown. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Track ownership C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_FindTrack"><code class="docutils literal notranslate"><span class="pre">Rbc_FindTrack()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DestroyTracks"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CreateTrackComponentArgs"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeTrackComponentArgs"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a></li>
+<li><a class="reference internal" href="#c.ConfigureTrack"><code class="docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a></li>
+<li><a class="reference internal" href="#c.InitTrackOptions"><code class="docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.OrderTracks"><code class="docutils literal notranslate"><span class="pre">OrderTracks()</span></code></a></li>
+<li><a class="reference internal" href="#c.DeleteTracks"><code class="docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tracks.html"
+                          title="previous chapter">Track ownership and layout</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tracks.html" title="Track ownership and layout"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Track ownership C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
