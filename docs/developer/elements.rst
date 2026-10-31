@@ -130,3 +130,5 @@ vector clients, owned arrays and derived resources without destroying external
 source vectors or double-freeing Tk-owned values.
 
 See :doc:`decimation` for dense line mapping, cache maintenance and source picking.
+
+See :doc:`bars` for bar grouping, placement, error translations and mapped ownership.

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Bar grouping and placement &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bar layout C reference" href="bar-reference.html" />
+    <link rel="prev" title="Line decimation C reference" href="decimation-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="bar-reference.html" title="Bar layout C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="decimation-reference.html" title="Line decimation C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bar grouping and placement</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bar-grouping-and-placement">
+<h1>Bar grouping and placement<a class="headerlink" href="#bar-grouping-and-placement" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <code class="docutils literal notranslate"><span class="pre">ElementProcs</span></code>
+interface. Source data and axis transactions follow <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>; screen
+mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The routines in
+<a class="reference internal" href="bar-reference.html"><span class="doc">Bar layout C reference</span></a> share placement rules between axis-limit calculation and
+mapping. They do not modify source vectors or call Tcl scripts.</p>
+<section id="grouping-keys-and-passes">
+<h2>Grouping keys and passes<a class="headerlink" href="#grouping-keys-and-passes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_InitFreqTable</span></code> rebuilds graph-owned duplicate-X metadata from displayed,
+non-hidden, non-plot-hidden bar elements. It considers paired X/Y samples,
+rejecting nonfinite pairs and nonpositive Y on logarithmic Y axes. A key contains
+the original X and both axis pointers; signed zero is normalized. Offsets,
+alignment, width and pen identity do not form part of the key. Repeated X values
+inside one element can therefore participate in a group as well.</p>
+<p>Only duplicate keys receive persistent <code class="docutils literal notranslate"><span class="pre">FreqInfo</span></code> records. <code class="docutils literal notranslate"><span class="pre">freqArr</span></code> owns
+these records; hash values borrow pointers into it. <code class="docutils literal notranslate"><span class="pre">nStacks</span></code> counts duplicate
+keys, not just groups currently drawn in stacked mode. Ordinary normal mode
+needs no table. Trackgraphs still build one because individual tracks may select
+another mode. The owning Y axis supplies a track override when configured;
+otherwise the graph mode applies. Track-owned axis identities isolate groups.</p>
+<p>Axis reset initializes this table, computes stack totals where needed, and
+resets placement counters before visiting element extents. Element mapping
+resets counters again before its ordered pass. <code class="docutils literal notranslate"><span class="pre">Rbc_ResetStacks</span></code> clears
+<code class="docutils literal notranslate"><span class="pre">count</span></code> and <code class="docutils literal notranslate"><span class="pre">lastY</span></code>, retaining frequency and precomputed sums. A new consumer
+must not call <code class="docutils literal notranslate"><span class="pre">PlaceBar</span></code> as an independent query: it advances these counters.
+Skipping or reordering calls can change later bars’ placement.</p>
+</section>
+<section id="placement-formulas">
+<h2>Placement formulas<a class="headerlink" href="#placement-formulas" title="Link to this heading">¶</a></h2>
+<p>Let <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> be the source values, <code class="docutils literal notranslate"><span class="pre">o</span></code> the element offset and <code class="docutils literal notranslate"><span class="pre">W</span></code> its
+positive configured width, falling back to the graph width. The full interval
+starts at <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">o</span> <span class="pre">-</span> <span class="pre">a</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is zero for left alignment, <code class="docutils literal notranslate"><span class="pre">W/2</span></code> for
+center alignment and <code class="docutils literal notranslate"><span class="pre">W</span></code> for right alignment. Alignment names refer to data-X
+edges, including when axes are inverted or descending.</p>
+<p>For a duplicate group of size <code class="docutils literal notranslate"><span class="pre">n</span></code>, let <code class="docutils literal notranslate"><span class="pre">k</span></code> be its one-based placement count
+in the traversal. The formulas are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Data-X interval</p></th>
+<th class="head"><p>Data-Y edges</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Normal (internal <code class="docutils literal notranslate"><span class="pre">MODE_INFRONT</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[L,</span> <span class="pre">L</span> <span class="pre">+</span> <span class="pre">W]</span></code></p></td>
+<td><p>Baseline to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Aligned</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[L</span> <span class="pre">+</span> <span class="pre">(n-k)</span> <span class="pre">W/n,</span> <span class="pre">L</span> <span class="pre">+</span> <span class="pre">(n-k+1)</span> <span class="pre">W/n]</span></code></p></td>
+<td><p>Baseline to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Overlap</p></td>
+<td><p>Start <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">+</span> <span class="pre">(n-k)</span> <span class="pre">s</span></code>, width <code class="docutils literal notranslate"><span class="pre">(n+1)</span> <span class="pre">s</span></code>, with <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">W/(2n)</span></code></p></td>
+<td><p>Baseline to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Stacked</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[L,</span> <span class="pre">L</span> <span class="pre">+</span> <span class="pre">W]</span></code></p></td>
+<td><p>Previous cumulative value to previous cumulative value plus <code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>A key without duplicates uses the full interval and baseline. Each member uses
+its own <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">o</span></code>. Mixed settings do not first produce one shared
+physical interval: they apply a shared slot count to independently anchored
+intervals. For example, with <code class="docutils literal notranslate"><span class="pre">n=2</span></code>, <code class="docutils literal notranslate"><span class="pre">x=10</span></code>, <code class="docutils literal notranslate"><span class="pre">W=4</span></code> and zero offset, a
+left-aligned first member occupies <code class="docutils literal notranslate"><span class="pre">[12,14]</span></code> in aligned mode; a right-aligned
+second member occupies <code class="docutils literal notranslate"><span class="pre">[6,8]</span></code>. With both centered the slots are <code class="docutils literal notranslate"><span class="pre">[10,12]</span></code>
+and <code class="docutils literal notranslate"><span class="pre">[8,10]</span></code>. Different anchors can separate, overlap or reverse the apparent
+order of the slots without changing group membership.</p>
+<p>Stack accumulation starts at zero and uses one signed running total, rather
+than separate positive and negative stacks. A nonfinite cumulative result is
+rejected without updating that total. Logarithmic Y rejects nonpositive source
+values; its first visible stack segment uses the effective baseline when the
+previous total is not positive. The effective baseline is the configured
+baseline, except that an unusable nonpositive log baseline becomes one.</p>
+</section>
+<section id="data-limits-and-error-translations">
+<h2>Data limits and error translations<a class="headerlink" href="#data-limits-and-error-translations" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GetBarExtents</span></code> uses full anchored X intervals, source Y extrema, baseline
+rules and <code class="docutils literal notranslate"><span class="pre">CheckStacks</span></code> totals. Those totals are final signed sums computed
+separately by <code class="docutils literal notranslate"><span class="pre">Rbc_ComputeStacks</span></code>; they are not a list of every intermediate
+stack endpoint. Consequently this is not a tight union of all final screen
+rectangles. Linear Y retains the historical zero-inclusive lower-bound rule.
+Log X bounds use valid positive full intervals.</p>
+<p>Extents also run placement without viewport rejection so that error-bar
+translations follow group order. In <code class="docutils literal notranslate"><span class="pre">-errorbarposition</span> <span class="pre">bar</span></code> mode,
+<code class="docutils literal notranslate"><span class="pre">SetBarErrorOffset</span></code> records, per original source index:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">dx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">placedLeft</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">placedRight</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sourceX</span>
+<span class="n">dy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">placedValueY</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sourceY</span>
+</pre></div>
+</div>
+<p>The implementation averages the two X endpoints as half of each, avoiding an
+unnecessary intermediate sum. Offsets are computed before downward bars swap
+corners and before axis mapping. Symmetric errors and explicit low/high bounds
+receive the same data-space translation. Thus logarithmic axes apply their
+transform after translation, rather than translating an already mapped error
+segment by a fixed pixel distance.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">data</span></code> mode errors retain source positioning plus the element’s X offset;
+they do not follow alignment, slot subdivision or stack displacement. The shared
+error routines expand limits and map segments consistently with that choice.
+Temporary per-point offset arrays start with NaN entries: rejected placements
+must not acquire an apparently valid zero translation. The array is freed after
+error processing and is not stored in the element.</p>
+</section>
+<section id="screen-geometry-ownership-and-output">
+<h2>Screen geometry, ownership and output<a class="headerlink" href="#screen-geometry-ownership-and-output" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">MapBar</span></code> first releases previous mapped storage. It calls <code class="docutils literal notranslate"><span class="pre">PlaceBar</span></code> in
+source order with viewport rejection enabled, saves any error translations,
+swaps downward Y edges, and maps both corners. Nonfinite results are skipped.
+Coordinates are bounded by the graph window before integer conversion. Width
+and height retain the historical rounding and inclusive extra pixel; changing
+these rules changes native output and picking geometry.</p>
+<p>Window-coordinate bounds do not replace plot clipping. Drawing a bar inside a
+track requires the renderer clip covering the complete element, including
+raised borders. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for that outer scope.</p>
+<p>The bar owns its rectangle array and <code class="docutils literal notranslate"><span class="pre">rectToData</span></code> source-index map, plus
+separate arrays for explicitly active rectangles. Shared element fields own
+mapped error segments and their source-index maps. <code class="docutils literal notranslate"><span class="pre">MergePens</span></code> can reorder
+rectangles and errors into pen groups, keeping the corresponding index maps in
+step. Style slices borrow the resulting storage. <code class="docutils literal notranslate"><span class="pre">ResetBar</span></code> clears palette
+views, frees mapped arrays and zeros pointers/counts; source vectors remain
+owned by their original creators.</p>
+<p>Normal drawing batches rectangles through <code class="docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles</span></code>. Export has its own callbacks consuming mapped bar
+geometry and pen styles. Value labels and legend samples are separate drawing
+paths. A legend sample outside the plot is not evidence that a bar escaped its
+clip.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ClosestBar</span></code> measures distance to mapped rectangles, then returns the original
+source X/Y and index through <code class="docutils literal notranslate"><span class="pre">rectToData</span></code>. A stacked hit therefore reports the
+sample contribution, not the cumulative top. <code class="docutils literal notranslate"><span class="pre">Rbc_GetBarRectangle</span></code> supplies
+mapped bounds when a caller needs the actual placed rectangle instead.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Bar grouping and placement</a><ul>
+<li><a class="reference internal" href="#grouping-keys-and-passes">Grouping keys and passes</a></li>
+<li><a class="reference internal" href="#placement-formulas">Placement formulas</a></li>
+<li><a class="reference internal" href="#data-limits-and-error-translations">Data limits and error translations</a></li>
+<li><a class="reference internal" href="#screen-geometry-ownership-and-output">Screen geometry, ownership and output</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="decimation-reference.html"
+                          title="previous chapter">Line decimation C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="bar-reference.html"
+                          title="next chapter">Bar layout C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="bar-reference.html" title="Bar layout C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="decimation-reference.html" title="Line decimation C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bar grouping and placement</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -43,6 +43,8 @@ chapters.
    element-reference
    decimation
    decimation-reference
+   bars
+   bar-reference
    mapping
    mapping-reference
    configuration

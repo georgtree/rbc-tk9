@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Bar layout C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Bar grouping and placement" href="bars.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bars.html" title="Bar grouping and placement"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bar layout C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bar-layout-c-reference">
+<h1>Bar layout C reference<a class="headerlink" href="#bar-layout-c-reference" title="Link to this heading">¶</a></h1>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code>. They are not cross-module APIs.
+See <a class="reference internal" href="bars.html"><span class="doc">Bar grouping and placement</span></a> for grouping passes, placement formulas and array ownership.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__bar__layout"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Bar</span> <span class="pre">layout</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private data-space placement and mapped geometry services. </p>
+<p>Source arrays and graph records are borrowed; these helpers do not invoke Tcl callbacks. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PlaceBar">
+<span class="target" id="group__bar__layout_1gab8e2a125edbac53a72cb487bc3fe25fa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlaceBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Bar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">barPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">clip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">firstPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">secondPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PlaceBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute one bar’s data-space corners and consume its group position. </p>
+<p>
+Apply each element’s width, alignment and offset before subdivision. Duplicate keys use the original X value and both axis identities. Successful grouped placement advances count or lastY; this is not a pure query. Reset grouping state before a new ordered pass. Log-invalid and nonfinite input, invalid full X intervals, viewport rejection and stack overflow are skipped. Corners are not screen mapped or reordered for negative-height bars. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph with initialized grouping state. </p></li>
+<li><p><strong>barPtr</strong> – Borrowed bar element and axis pair. </p></li>
+<li><p><strong>index</strong> – Valid index in both source arrays. </p></li>
+<li><p><strong>clip</strong> – Reject full X intervals outside linear-axis viewport limits. </p></li>
+<li><p><strong>firstPtr</strong> – Receives the lower X edge and placed data-value Y. </p></li>
+<li><p><strong>secondPtr</strong> – Receives the upper X edge and baseline or previous stack Y. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE for a placement; FALSE leaves the output corners unchanged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetBarExtents">
+<span class="target" id="group__bar__layout_1gae6343dabaa9fa06e018de8fc9facb52e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetBarExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetBarExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute bar data limits and translated error limits. </p>
+<p>
+Includes full anchored X intervals, baseline rules and duplicate stack totals. Calls PlaceBar without viewport rejection to advance group state even when error bars retain data positioning. In bar positioning mode, owns a temporary per-source translation array and frees it after expanding error limits. The caller must reset group state before the ordered pass. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – Borrowed bar element. </p></li>
+<li><p><strong>extsPtr</strong> – Receives bounds, or sentinel empty bounds without paired data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClosestBar">
+<span class="target" id="group__bar__layout_1ga6f184bb557a677246406891ce67630f3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">ClosestSearch</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">searchPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClosestBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Search mapped bar rectangles while retaining source identity. </p>
+<p>
+Interior hits have zero distance; other candidates use rectangle edges. rectToData translates mapped order back to source order. Reported X and Y are original data values, not shifted centers or cumulative stack values. No arrays are allocated and no graph state is changed. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph (unused by this search). </p></li>
+<li><p><strong>elemPtr</strong> – Borrowed bar element with current mapped rectangles. </p></li>
+<li><p><strong>searchPtr</strong> – In/out search; replaced only for a strictly closer hit.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MapBar">
+<span class="target" id="group__bar__layout_1gafb47060644c4f51cdf04f898e38e9492"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapBar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MapBar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace bar display geometry from source data and group state. </p>
+<p>
+Allocates owned rectangles and original-source indices, places bars in order, maps corners and bounds coordinates before integer conversion. Owns temporary error translations and style lookup storage; frees both after mapping errors and grouping geometry by pen. Active rectangles are rebuilt when explicit active indices exist. This consumes group state and must run in the ordered mapping pass, after its reset. Renderer clipping is separate from the window bounds used here to keep integer conversion safe. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – Borrowed graph in the element’s mapping viewport. </p></li>
+<li><p><strong>elemPtr</strong> – Borrowed bar element whose old geometry is discarded.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Bar layout C reference</a><ul>
+<li><a class="reference internal" href="#c.PlaceBar"><code class="docutils literal notranslate"><span class="pre">PlaceBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetBarExtents"><code class="docutils literal notranslate"><span class="pre">GetBarExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.ClosestBar"><code class="docutils literal notranslate"><span class="pre">ClosestBar()</span></code></a></li>
+<li><a class="reference internal" href="#c.MapBar"><code class="docutils literal notranslate"><span class="pre">MapBar()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="bars.html"
+                          title="previous chapter">Bar grouping and placement</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bars.html" title="Bar grouping and placement"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bar layout C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

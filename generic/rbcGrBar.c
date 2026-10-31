@@ -9,6 +9,14 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcGrBar.c
+ * Bar implementation; selected placement and mapping contracts are extracted.
+ */
+/** @defgroup bar_layout Bar layout internals
+ * Private data-space placement and mapped geometry services. Source arrays and
+ * graph records are borrowed; these helpers do not invoke Tcl callbacks.
+ */
+
 #include <stdint.h>
 #include <limits.h>
 #include "rbcGraph.h"
@@ -1130,11 +1138,22 @@ static double BarAnchorOffset(const Bar *barPtr, double width) {
     }
 }
 
-/*
- * Compute the data-space corners before swapping downward bars or applying
- * screen transforms. Consume the group slot/stack accumulator in display
- * order. Axis limits use unclipped placements; mapping retains its existing
- * viewport rejection. The first corner's Y remains the placed data value.
+/**
+ * @ingroup bar_layout
+ * @brief Compute one bar's data-space corners and consume its group position.
+ * @param graphPtr Borrowed graph with initialized grouping state.
+ * @param barPtr Borrowed bar element and axis pair.
+ * @param index Valid index in both source arrays.
+ * @param clip Reject full X intervals outside linear-axis viewport limits.
+ * @param firstPtr Receives the lower X edge and placed data-value Y.
+ * @param secondPtr Receives the upper X edge and baseline or previous stack Y.
+ * @return TRUE for a placement; FALSE leaves the output corners unchanged.
+ * @details Apply each element's width, alignment and offset before subdivision.
+ * Duplicate keys use the original X value and both axis identities. Successful
+ * grouped placement advances count or lastY; this is not a pure query. Reset
+ * grouping state before a new ordered pass. Log-invalid and nonfinite input,
+ * invalid full X intervals, viewport rejection and stack overflow are skipped.
+ * Corners are not screen mapped or reordered for negative-height bars.
  */
 static int PlaceBar(Graph *graphPtr, Bar *barPtr, Tcl_Size index, int clip,
                     Point2D *firstPtr, Point2D *secondPtr) {
@@ -1254,24 +1273,16 @@ static void SetBarErrorOffset(Bar *barPtr, Tcl_Size index, const Point2D *firstP
     offsets[index].y = firstPtr->y - barPtr->core.y.valueArr[index];
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * GetBarExtents --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Element *elemPtr
- *      Extents2D *extsPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Compute bar data limits and translated error limits.
+ * @param elemPtr Borrowed bar element.
+ * @param extsPtr Receives bounds, or sentinel empty bounds without paired data.
+ * @details Includes full anchored X intervals, baseline rules and duplicate
+ * stack totals. Calls PlaceBar without viewport rejection to advance group
+ * state even when error bars retain data positioning. In bar positioning mode,
+ * owns a temporary per-source translation array and frees it after expanding
+ * error limits. The caller must reset group state before the ordered pass.
  */
 static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     Graph *graphPtr = elemPtr->graphPtr;
@@ -1364,29 +1375,16 @@ static void GetBarExtents(Element *elemPtr, Extents2D *extsPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * ClosestBar --
- *
- *      Find the bar segment closest to the window coordinates    point
- *      specified.
- *
- *      Note:  This does not return the height of the stacked segment
- *             (in graph coordinates) properly.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Element *elemPtr - Bar element
- *      ClosestSearch *searchPtr - Info of closest point in element
- *
- * Results:
- *      Returns 1 if the point is width any bar segment, otherwise 0.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Search mapped bar rectangles while retaining source identity.
+ * @param graphPtr Borrowed graph (unused by this search).
+ * @param elemPtr Borrowed bar element with current mapped rectangles.
+ * @param searchPtr In/out search; replaced only for a strictly closer hit.
+ * @details Interior hits have zero distance; other candidates use rectangle
+ * edges. rectToData translates mapped order back to source order. Reported X
+ * and Y are original data values, not shifted centers or cumulative stack
+ * values. No arrays are allocated and no graph state is changed.
  */
 static void ClosestBar(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);
@@ -1773,34 +1771,18 @@ static void ResetBar(Bar *barPtr) {
     barPtr->core.yErrorBarCnt = 0;
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * MapBar --
- *
- *      Calculates the actual window coordinates of the bar element.
- *      The window coordinates are saved in the bar element structure.
- *
- *      A bar can have multiple segments (more than one x,y pairs).
- *      In this case, the bar can be represented as either a set of
- *      non-contiguous bars or a single multi-segmented (stacked) bar.
- *
- *      The x-axis layout for a barchart may be presented in one of
- *      two ways.  If abscissas are used, the bars are placed at those
- *      coordinates.  Otherwise, the range will represent the number
- *      of values.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+/**
+ * @ingroup bar_layout
+ * @brief Replace bar display geometry from source data and group state.
+ * @param graphPtr Borrowed graph in the element's mapping viewport.
+ * @param elemPtr Borrowed bar element whose old geometry is discarded.
+ * @details Allocates owned rectangles and original-source indices, places bars
+ * in order, maps corners and bounds coordinates before integer conversion.
+ * Owns temporary error translations and style lookup storage; frees both after
+ * mapping errors and grouping geometry by pen. Active rectangles are rebuilt
+ * when explicit active indices exist. This consumes group state and must run
+ * in the ordered mapping pass, after its reset. Renderer clipping is separate
+ * from the window bounds used here to keep integer conversion safe.
  */
 static void MapBar(Graph *graphPtr, Element *elemPtr) {
     Bar *barPtr = BAR_FROM_CORE(elemPtr);

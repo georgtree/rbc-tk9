@@ -102,6 +102,7 @@ proc ::rbcDocBuild::main {arguments} {
         @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
         @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
         @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
+        @BAR_SOURCE@ [doxyQuote [file join $root generic rbcGrBar.c]] \
         @LINE_SOURCE@ [doxyQuote [file join $root generic rbcGrLine.c]] \
         @GRAPH_SOURCE@ [doxyQuote [file join $root generic rbcGraph.c]] \
         @VECTOR_HEADER@ [doxyQuote [file join $root generic rbcVector.h]] \
