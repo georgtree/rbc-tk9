@@ -65,6 +65,8 @@ chapters.
    pdf-builder-reference
    svg-output
    svg-reference
+   postscript-output
+   postscript-reference
    rendering
    native-rendering
    native-reference

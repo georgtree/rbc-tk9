@@ -101,6 +101,7 @@ proc ::rbcDocBuild::main {arguments} {
         @TILE_HEADER@ [doxyQuote [file join $root generic rbcTile.h]] \
         @TEXT_HEADER@ [doxyQuote [file join $root generic rbcText.h]] \
         @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
+        @PS_HEADER@ [doxyQuote [file join $root generic rbcPs.h]] \
         @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
         @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
         @SVG_SOURCE@ [doxyQuote [file join $root generic rbcRenderSvg.c]] \
