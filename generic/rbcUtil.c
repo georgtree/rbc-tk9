@@ -14,6 +14,18 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+/* Saturate before narrowing. Callers retain their own size minima and rounding
+ * policies; this helper accepts only already-computed integer coordinates. */
+int Rbc_ClampToInt(Tcl_WideInt value) {
+    if (value > INT_MAX) {
+        return INT_MAX;
+    }
+    if (value < INT_MIN) {
+        return INT_MIN;
+    }
+    return (int)value;
+}
+
 #ifndef HAVE_STRTOLOWER
 void strtolower(register char *s) {
     while (*s != '\0') {

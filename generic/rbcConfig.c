@@ -11,6 +11,7 @@
  */
 
 #include "rbcInt.h"
+#include <ctype.h>
 
 static Tk_OptionParseProc StringToDistance;
 static Tk_OptionPrintProc DistanceToString;
@@ -760,6 +761,18 @@ int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsP
     state = Tcl_SaveInterpState(interp, TCL_ERROR);
     Tk_RestoreSavedOptions(savedOptionsPtr);
     return Tcl_RestoreInterpState(interp, state);
+}
+
+/* Preserve the legacy Tk child-name resource convention: lowercase only the
+ * first byte, leaving component identity and the rest of the name unchanged.
+ * The caller owns the returned copy and releases it with ckfree. */
+char *Rbc_GetComponentResourceName(const char *name) {
+    char *copy = RbcStrdup(name);
+
+    if (copy[0] != '\0') {
+        copy[0] = (char)tolower((unsigned char)copy[0]);
+    }
+    return copy;
 }
 
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,

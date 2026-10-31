@@ -42,10 +42,7 @@ static int InitPenOptions(Graph *graphPtr, Pen *penPtr) {
      * beginning with an uppercase letter. Temporary Tk child names cannot
      * begin with an uppercase character.
      */
-    componentName = RbcStrdup(penPtr->name);
-    if (componentName[0] != '\0') {
-        componentName[0] = (char)tolower((unsigned char)componentName[0]);
-    }
+    componentName = Rbc_GetComponentResourceName(penPtr->name);
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Pen",
                                       (char *)penPtr, penPtr->optionTable);
     ckfree(componentName);

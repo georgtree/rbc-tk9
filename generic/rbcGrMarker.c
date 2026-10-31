@@ -837,10 +837,7 @@ static int InitMarkerOptions(Marker *markerPtr) {
     markerPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, optionSpecs);
     initialName = markerPtr->name;
     markerPtr->name = NULL;
-    componentName = RbcStrdup(initialName);
-    if (componentName[0] != '\0') {
-        componentName[0] = (char)tolower((unsigned char)componentName[0]);
-    }
+    componentName = Rbc_GetComponentResourceName(initialName);
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName,
                                       markerPtr->classUid, (char *)markerPtr, markerPtr->optionTable);
     ckfree(componentName);

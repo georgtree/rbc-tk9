@@ -3484,10 +3484,7 @@ static int InitElementOptions(Graph *graphPtr, Element *elemPtr) {
     }
     assert(elemPtr->optionSpecs != NULL);
     elemPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, elemPtr->optionSpecs);
-    componentName = RbcStrdup(elemPtr->name);
-    if (componentName[0] != '\0') {
-        componentName[0] = (char)tolower((unsigned char)componentName[0]);
-    }
+    componentName = Rbc_GetComponentResourceName(elemPtr->name);
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName,
                                       "Element", (char *)elemPtr, elemPtr->optionTable);
     ckfree(componentName);

@@ -489,6 +489,8 @@ void Rbc_TranslateAnchor(int x, int y, int width, int height, Tk_Anchor anchor, 
 Point2D Rbc_TranslatePoint(Point2D *pointPtr, int width, int height, Tk_Anchor anchor);
 Tk_Window Rbc_FindChild(Tk_Window parent, const char *name);
 int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsPtr);
+char *Rbc_GetComponentResourceName(const char *name);
+int Rbc_ClampToInt(Tcl_WideInt value);
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
                              const char *className, char *recordPtr, Tk_OptionTable optionTable);
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);

@@ -363,24 +363,11 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-static int PostScriptLayoutInt(Tcl_WideInt value) {
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    if (value < INT_MIN) {
-        return INT_MIN;
-    }
-    return (int)value;
-}
-
 static Tcl_WideInt PostScriptLayoutSize(Tcl_WideInt value) {
     if (value < 1) {
         return 1;
     }
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    return value;
+    return Rbc_ClampToInt(value);
 }
 
 /*
@@ -501,10 +488,10 @@ static int ComputeBoundingBox(Graph *graphPtr, PostScript *psPtr) {
             y = (paperHeight - vSize) / 2;
         }
     }
-    psPtr->left = PostScriptLayoutInt(x);
-    psPtr->bottom = PostScriptLayoutInt(y);
-    psPtr->right = PostScriptLayoutInt(x + hSize - 1);
-    psPtr->top = PostScriptLayoutInt(y + vSize - 1);
+    psPtr->left = Rbc_ClampToInt(x);
+    psPtr->bottom = Rbc_ClampToInt(y);
+    psPtr->right = Rbc_ClampToInt(x + hSize - 1);
+    psPtr->top = Rbc_ClampToInt(y + vSize - 1);
     graphPtr->flags |= LAYOUT_NEEDED | MAP_WORLD;
     if (Rbc_LayoutGraph(graphPtr) != TCL_OK) {
         return -1;

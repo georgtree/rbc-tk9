@@ -439,10 +439,7 @@ static int InitTrackOptions(Graph *graphPtr, RbcTrack *track, Tcl_Size objc, Tcl
     }
     /* Match the first-character resource-name conversion used by axes and
      * elements, without changing the case-sensitive track name. */
-    componentName = RbcStrdup(track->name);
-    if (componentName[0] != '\0') {
-        componentName[0] = (char)tolower((unsigned char)componentName[0]);
-    }
+    componentName = Rbc_GetComponentResourceName(track->name);
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Track",
                                       (char *)&defaults, table);
     ckfree(componentName);
@@ -1125,4 +1122,27 @@ void Rbc_DestroyTracks(Graph *graphPtr) {
         graphPtr->tracks = track->next;
         FreeTrack(graphPtr, track);
     }
+}
+
+/* Normalize "widget track component name operation ..." for ordinary component
+ * dispatch. The returned vector has objc-2 entries; only its list-valued prefix
+ * is owned. All other Tcl objects are borrowed until the caller returns. */
+Tcl_Obj **Rbc_CreateTrackComponentArgs(Tcl_Size objc, Tcl_Obj *const objv[]) {
+    Tcl_Size i, count = objc - 2;
+    Tcl_Obj **args;
+
+    assert(objc >= 5);
+    args = ckalloc(sizeof(*args) * (size_t)count);
+    args[0] = objv[0];
+    args[1] = Tcl_NewListObj(3, objv + 1);
+    Tcl_IncrRefCount(args[1]);
+    for (i = 2; i < count; i++) {
+        args[i] = objv[i + 2];
+    }
+    return args;
+}
+
+void Rbc_FreeTrackComponentArgs(Tcl_Obj **args) {
+    Tcl_DecrRefCount(args[1]);
+    ckfree(args);
 }

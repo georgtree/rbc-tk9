@@ -87,24 +87,11 @@ typedef struct {
     const char *windowName;
 } LegendPosition;
 
-static int LegendLayoutInt(Tcl_WideInt value) {
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    if (value < INT_MIN) {
-        return INT_MIN;
-    }
-    return (int)value;
-}
-
 static int LegendLayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
         return 0;
     }
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    return (int)value;
+    return Rbc_ClampToInt(value);
 }
 
 static int LegendCoordinate(double value) {
@@ -690,13 +677,13 @@ static void SetLegendOrigin(Legend *legendPtr) {
         }
     width = (Tcl_WideInt)legendPtr->width - width;
     height = (Tcl_WideInt)legendPtr->height - height;
-    ix = LegendLayoutInt(x);
-    iy = LegendLayoutInt(y);
-    iwidth = LegendLayoutInt(width);
-    iheight = LegendLayoutInt(height);
+    ix = Rbc_ClampToInt(x);
+    iy = Rbc_ClampToInt(y);
+    iwidth = Rbc_ClampToInt(width);
+    iheight = Rbc_ClampToInt(height);
     Rbc_TranslateAnchor(ix, iy, iwidth, iheight, legendPtr->anchor, &ix, &iy);
-    legendPtr->x = LegendLayoutInt((Tcl_WideInt)ix + (Tcl_WideInt)legendPtr->padLeft);
-    legendPtr->y = LegendLayoutInt((Tcl_WideInt)iy + (Tcl_WideInt)legendPtr->padTop);
+    legendPtr->x = Rbc_ClampToInt((Tcl_WideInt)ix + (Tcl_WideInt)legendPtr->padLeft);
+    legendPtr->y = Rbc_ClampToInt((Tcl_WideInt)iy + (Tcl_WideInt)legendPtr->padTop);
 }
 
 /*
@@ -1151,12 +1138,12 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
     }
     Tk_GetFontMetrics(legendPtr->style.font, &fontMetrics);
     symbolSize = fontMetrics.ascent;
-    midX = LegendLayoutInt((Tcl_WideInt)symbolSize + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
-    midY = LegendLayoutInt(((Tcl_WideInt)symbolSize / 2) + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
-    labelX = LegendLayoutInt((2 * (Tcl_WideInt)symbolSize) + (Tcl_WideInt)legendPtr->entryBorderWidth +
+    midX = Rbc_ClampToInt((Tcl_WideInt)symbolSize + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
+    midY = Rbc_ClampToInt(((Tcl_WideInt)symbolSize / 2) + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
+    labelX = Rbc_ClampToInt((2 * (Tcl_WideInt)symbolSize) + (Tcl_WideInt)legendPtr->entryBorderWidth +
                              (Tcl_WideInt)legendPtr->ipadX.side1 + 5);
-    symbolY = LegendLayoutInt((Tcl_WideInt)midY + (Tcl_WideInt)legendPtr->ipadY.side1);
-    symbolX = LegendLayoutInt((Tcl_WideInt)midX + (Tcl_WideInt)legendPtr->ipadX.side1);
+    symbolY = Rbc_ClampToInt((Tcl_WideInt)midY + (Tcl_WideInt)legendPtr->ipadY.side1);
+    symbolX = Rbc_ClampToInt((Tcl_WideInt)midX + (Tcl_WideInt)legendPtr->ipadX.side1);
     pixmap = Tk_GetPixmap(graphPtr->display, Tk_WindowId(legendPtr->tkwin), width, height, Tk_Depth(legendPtr->tkwin));
     Rbc_RenderContext *text = Rbc_RenderBeginScreenText(legendPtr->tkwin, pixmap);
     if (legendPtr->border != NULL) {
@@ -1172,8 +1159,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
         if (graphPtr->backPixmap != None) {
             if (legendPtr->track != NULL) {
                 int left = MAX(0, legendPtr->x), top = MAX(0, legendPtr->y);
-                int right = MIN(graphPtr->width, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
-                int bottom = MIN(graphPtr->height, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
+                int right = MIN(graphPtr->width, Rbc_ClampToInt((Tcl_WideInt)legendPtr->x + width));
+                int bottom = MIN(graphPtr->height, Rbc_ClampToInt((Tcl_WideInt)legendPtr->y + height));
                 Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->plotFillGC, NULL, 0, 0, width, height);
                 if (right > left && bottom > top) {
                     Rbc_RenderScreenCopyArea(graphPtr->tkwin, graphPtr->backPixmap, pixmap, graphPtr->drawGC, left, top,
@@ -1199,8 +1186,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
             Rbc_RenderScreenRectangle(legendPtr->tkwin, pixmap, graphPtr->fillGC, NULL, 0, 0, width, height);
         }
     }
-    x = LegendLayoutInt((Tcl_WideInt)legendPtr->padLeft + (Tcl_WideInt)legendPtr->borderWidth);
-    y = LegendLayoutInt((Tcl_WideInt)legendPtr->padTop + (Tcl_WideInt)legendPtr->borderWidth);
+    x = Rbc_ClampToInt((Tcl_WideInt)legendPtr->padLeft + (Tcl_WideInt)legendPtr->borderWidth);
+    y = Rbc_ClampToInt((Tcl_WideInt)legendPtr->padTop + (Tcl_WideInt)legendPtr->borderWidth);
     count = 0;
     startY = y;
     for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -1246,8 +1233,8 @@ void Rbc_DrawLegend(Legend *legendPtr, Drawable drawable) {
                            legendPtr->relief, 0);
     if (legendPtr->track != NULL) {
         int left = MAX(legendPtr->track->left, legendPtr->x), top = MAX(legendPtr->track->top, legendPtr->y);
-        int right = MIN(legendPtr->track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + width));
-        int bottom = MIN(legendPtr->track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + height));
+        int right = MIN(legendPtr->track->right + 1, Rbc_ClampToInt((Tcl_WideInt)legendPtr->x + width));
+        int bottom = MIN(legendPtr->track->bottom + 1, Rbc_ClampToInt((Tcl_WideInt)legendPtr->y + height));
         if (right > left && bottom > top) {
             Rbc_RenderScreenCopyArea(graphPtr->tkwin, pixmap, drawable, graphPtr->drawGC, left - legendPtr->x,
                                      top - legendPtr->y, right - left, bottom - top, left, top);
@@ -1319,12 +1306,12 @@ void Rbc_LegendExport(Legend *legendPtr, Rbc_ExportContext *exportPtr) {
     y += legendPtr->borderWidth;
     Tk_GetFontMetrics(legendPtr->style.font, &fontMetrics);
     symbolSize = fontMetrics.ascent;
-    midX = LegendLayoutInt((Tcl_WideInt)symbolSize + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
-    midY = LegendLayoutInt(((Tcl_WideInt)symbolSize / 2) + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
-    labelX = LegendLayoutInt((2 * (Tcl_WideInt)symbolSize) + (Tcl_WideInt)legendPtr->entryBorderWidth +
+    midX = Rbc_ClampToInt((Tcl_WideInt)symbolSize + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
+    midY = Rbc_ClampToInt(((Tcl_WideInt)symbolSize / 2) + 1 + (Tcl_WideInt)legendPtr->entryBorderWidth);
+    labelX = Rbc_ClampToInt((2 * (Tcl_WideInt)symbolSize) + (Tcl_WideInt)legendPtr->entryBorderWidth +
                              (Tcl_WideInt)legendPtr->ipadX.side1 + 5);
-    symbolY = LegendLayoutInt((Tcl_WideInt)midY + (Tcl_WideInt)legendPtr->ipadY.side1);
-    symbolX = LegendLayoutInt((Tcl_WideInt)midX + (Tcl_WideInt)legendPtr->ipadX.side1);
+    symbolY = Rbc_ClampToInt((Tcl_WideInt)midY + (Tcl_WideInt)legendPtr->ipadY.side1);
+    symbolX = Rbc_ClampToInt((Tcl_WideInt)midX + (Tcl_WideInt)legendPtr->ipadX.side1);
     count = 0;
     startY = y;
     for (linkPtr = Rbc_ChainLastLink(graphPtr->elements.displayList); linkPtr != NULL;
@@ -2301,8 +2288,8 @@ static int TrackLegendBboxOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size obj
     SetLegendOrigin(legendPtr);
     left = MAX(track->left, legendPtr->x);
     top = MAX(track->top, legendPtr->y);
-    right = MIN(track->right + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
-    bottom = MIN(track->bottom + 1, LegendLayoutInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
+    right = MIN(track->right + 1, Rbc_ClampToInt((Tcl_WideInt)legendPtr->x + legendPtr->width));
+    bottom = MIN(track->bottom + 1, Rbc_ClampToInt((Tcl_WideInt)legendPtr->y + legendPtr->height));
     if (right > left && bottom > top) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("%d %d %d %d", left, top, right - left, bottom - top));
     }
@@ -2322,22 +2309,14 @@ static const LegendOpSpec trackLegendOps[] = {{{"activate", 3, 0, "?pattern?..."
 /* Normalize the nested prefix, validate the operation, then update layout. */
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **args;
-    Tcl_Obj *prefix;
-    Tcl_Size i, count = objc - 2;
+    Tcl_Size count = objc - 2;
     int index, code;
     Legend *legendPtr = track->legend;
     if (objc < 5) {
         Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
         return TCL_ERROR;
     }
-    args = ckalloc(sizeof(Tcl_Obj *) * (size_t)count);
-    prefix = Tcl_NewListObj(3, objv + 1);
-    Tcl_IncrRefCount(prefix);
-    args[0] = objv[0];
-    args[1] = prefix;
-    for (i = 2; i < count; i++) {
-        args[i] = objv[i + 2];
-    }
+    args = Rbc_CreateTrackComponentArgs(objc, objv);
     code = Rbc_GetOpIndexFromObj(interp, trackLegendOps, (Tcl_Size)sizeof(trackLegendOps[0]), RBC_OP_ARG2, count,
                                  args, &index);
     if (code == TCL_OK) {
@@ -2346,7 +2325,6 @@ int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_
             code = trackLegendOps[index].proc(legendPtr, interp, count, args);
         }
     }
-    Tcl_DecrRefCount(prefix);
-    ckfree(args);
+    Rbc_FreeTrackComponentArgs(args);
     return code;
 }

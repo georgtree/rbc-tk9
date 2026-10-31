@@ -363,6 +363,19 @@ namespace eval trackgraph.legend {
         list $unknown $extra $ambiguous $::legendFormatCalls
     } -cleanup {destroy .tg; unset ::legendFormatCalls} -result {1 1 1 0}
 
+    test RBC.trackgraph.legend.A.19.1 {nested arguments and diagnostics preserve quoted track names} -setup {
+        Create
+        set name {row {A};B [literal]}
+        .tg track create $name
+    } -body {
+        .tg track legend $name configure -hide 0
+        set code [catch {.tg track legend $name cget} message options]
+        list [.tg track legend $name cget -hide] $code \
+                [dict get $options -errorcode] \
+                [expr {[string first [list track legend $name] $message] >= 0}] \
+                [.tg track exists $name]
+    } -cleanup {destroy .tg; unset name} -result {0 1 {TCL WRONGARGS} 1 1}
+
     cleanupTests
 }
 namespace delete ::trackgraph.legend

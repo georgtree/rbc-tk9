@@ -369,16 +369,6 @@ typedef struct {
     Rbc_GraphOpProc *proc;
 } GraphOpSpec;
 
-static int GraphLayoutInt(Tcl_WideInt value) {
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    if (value < INT_MIN) {
-        return INT_MIN;
-    }
-    return (int)value;
-}
-
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
     const char *name;
     size_t i;
@@ -1063,7 +1053,7 @@ static void GraphWorldChanged(ClientData clientData) {
         int width, height;
 
         Rbc_GetTextExtents(&graphPtr->titleTextStyle, graphPtr->title, &width, &height);
-        graphPtr->titleTextStyle.height = GraphLayoutInt((Tcl_WideInt)height + 10);
+        graphPtr->titleTextStyle.height = Rbc_ClampToInt((Tcl_WideInt)height + 10);
     }
     Rbc_AxisFontsChanged(graphPtr);
     Rbc_LegendFontsChanged(graphPtr);
@@ -1879,7 +1869,7 @@ static int ConfigureGraph(Graph *graphPtr) {
     if (graphPtr->barWidth <= 0.0) {
         graphPtr->barWidth = 0.1;
     }
-    graphPtr->inset = GraphLayoutInt((Tcl_WideInt)graphPtr->borderWidth + (Tcl_WideInt)graphPtr->highlightWidth + 1);
+    graphPtr->inset = Rbc_ClampToInt((Tcl_WideInt)graphPtr->borderWidth + (Tcl_WideInt)graphPtr->highlightWidth + 1);
     if ((graphPtr->reqHeight != Tk_ReqHeight(graphPtr->tkwin)) ||
         (graphPtr->reqWidth != Tk_ReqWidth(graphPtr->tkwin))) {
         Tk_GeometryRequest(graphPtr->tkwin, graphPtr->reqWidth, graphPtr->reqHeight);
@@ -1890,7 +1880,7 @@ static int ConfigureGraph(Graph *graphPtr) {
         int w, h;
 
         Rbc_GetTextExtents(&graphPtr->titleTextStyle, graphPtr->title, &w, &h);
-        graphPtr->titleTextStyle.height = GraphLayoutInt((Tcl_WideInt)h + 10);
+        graphPtr->titleTextStyle.height = Rbc_ClampToInt((Tcl_WideInt)h + 10);
     } else {
         graphPtr->titleTextStyle.width = graphPtr->titleTextStyle.height = 0;
     }
@@ -3552,7 +3542,7 @@ void Rbc_DrawGraph(Graph *graphPtr, Drawable drawable, int backingStore) {
         height = (Tcl_WideInt)graphPtr->height - (2 * (Tcl_WideInt)graphPtr->highlightWidth);
         if ((width > 0) && (height > 0)) {
             Rbc_RenderScreenBorder(graphPtr->tkwin, drawable, graphPtr->border, graphPtr->highlightWidth,
-                                graphPtr->highlightWidth, GraphLayoutInt(width), GraphLayoutInt(height),
+                                graphPtr->highlightWidth, Rbc_ClampToInt(width), Rbc_ClampToInt(height),
                                 graphPtr->borderWidth, graphPtr->relief, 0);
         }
     }

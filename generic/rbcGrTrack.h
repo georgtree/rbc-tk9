@@ -6,6 +6,10 @@
 
 #include "rbcGraph.h"
 
+/* Paired nested-command adapter; see ownership contract in rbcGrTrack.c. */
+Tcl_Obj **Rbc_CreateTrackComponentArgs(Tcl_Size objc, Tcl_Obj *const objv[]);
+void Rbc_FreeTrackComponentArgs(Tcl_Obj **args);
+
 typedef struct {
     RbcTrack *activeTrack;
     int top, bottom, range, offset, pad1, pad2;

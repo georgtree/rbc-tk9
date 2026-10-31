@@ -374,34 +374,18 @@ static RbcGrAxisVirtualOp NamesVirtualOp;
 static RbcGrAxisVirtualOp TransformVirtualOp;
 static RbcGrAxisVirtualOp ViewOp;
 
-static int LayoutInt(Tcl_WideInt value) {
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    if (value < INT_MIN) {
-        return INT_MIN;
-    }
-    return (int)value;
-}
-
 static int LayoutSize(Tcl_WideInt value) {
     if (value <= 0) {
         return 0;
     }
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    return (int)value;
+    return Rbc_ClampToInt(value);
 }
 
 static int LayoutRange(Tcl_WideInt value) {
     if (value < 1) {
         return 1;
     }
-    if (value > INT_MAX) {
-        return INT_MAX;
-    }
-    return (int)value;
+    return Rbc_ClampToInt(value);
 }
 
 static int ValidateAxisCommandPrefix(Tcl_Interp *interp, Tcl_Obj *objPtr) {
@@ -1252,10 +1236,7 @@ static int InitAxisOptions(Graph *graphPtr, Axis *axisPtr) {
      * character, so retain the same first-character conversion used
      * by the modern element path.
      */
-    componentName = RbcStrdup(axisPtr->name);
-    if (componentName[0] != '\0') {
-        componentName[0] = (char)tolower((unsigned char)componentName[0]);
-    }
+    componentName = Rbc_GetComponentResourceName(axisPtr->name);
     result = Rbc_InitComponentOptions(graphPtr->interp, graphPtr->tkwin, graphPtr->optionProxy, componentName, "Axis",
                                       (char *)axisPtr, axisPtr->optionTable);
     ckfree(componentName);
@@ -5177,24 +5158,24 @@ void Rbc_LayoutMargins(Graph *graphPtr) {
     if (height < 1) {
         height = 1;
     }
-    graphPtr->left = LayoutInt(left);
-    graphPtr->top = LayoutInt(top);
-    graphPtr->right = LayoutInt(left + width);
-    graphPtr->bottom = LayoutInt(top + height);
+    graphPtr->left = Rbc_ClampToInt(left);
+    graphPtr->top = Rbc_ClampToInt(top);
+    graphPtr->right = Rbc_ClampToInt(left + width);
+    graphPtr->bottom = Rbc_ClampToInt(top + height);
     value = top + (Tcl_WideInt)graphPtr->padTop;
-    graphPtr->vOffset = LayoutInt(value);
+    graphPtr->vOffset = Rbc_ClampToInt(value);
     value = height - PADDING(graphPtr->padY);
     graphPtr->vRange = LayoutRange(value);
     value = left + (Tcl_WideInt)graphPtr->padLeft;
-    graphPtr->hOffset = LayoutInt(value);
+    graphPtr->hOffset = Rbc_ClampToInt(value);
     value = width - PADDING(graphPtr->padX);
     graphPtr->hRange = LayoutRange(value);
     graphPtr->hScale = 1.0 / (double)graphPtr->hRange;
     graphPtr->vScale = 1.0 / (double)graphPtr->vRange;
     value = ((Tcl_WideInt)graphPtr->titleTextStyle.height / 2) + (Tcl_WideInt)graphPtr->inset;
-    graphPtr->titleY = LayoutInt(value);
+    graphPtr->titleY = Rbc_ClampToInt(value);
     value = (Tcl_WideInt)graphPtr->right + (Tcl_WideInt)graphPtr->left;
-    graphPtr->titleX = LayoutInt(value / 2);
+    graphPtr->titleX = Rbc_ClampToInt(value / 2);
 }
 
 /*

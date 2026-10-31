@@ -149,3 +149,16 @@ implementation is unchanged.
 This document describes renderer boundaries only. A future source manual should also cover widget/component lifecycles,
 mapping and invalidation, binding and picking, vector notification, export orchestration, and platform resource
 ownership, with links from those topics to these renderer contracts.
+
+## Shared component helpers
+
+`rbcConfig.c` owns the legacy first-byte resource-name conversion. Its returned copy is freed by the caller;
+component registry names remain unchanged. This deliberately preserves byte-based `tolower` behavior rather
+than introducing Unicode case folding.
+
+`rbcUtil.c` owns saturation from `Tcl_WideInt` to `int`. Axis and legend sizes still allow zero, axis ranges and
+PostScript dimensions still have a minimum of one, and floating-point rounding stays in each component.
+
+`rbcGrTrack.c` owns the paired nested-command argument adapter used by local grids and legends. The adapter
+owns its argument array and the list-valued command prefix, borrows the remaining objects, and preserves quoting
+in diagnostics. Dispatch tables, argument validation and component lifetime remain with the callers.

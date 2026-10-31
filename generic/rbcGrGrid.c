@@ -1458,7 +1458,7 @@ int Rbc_GridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *cons
 int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Grid *global = graphPtr->gridPtr;
     Grid view, *local = track->grid;
-    Tcl_Obj **args, *prefix, *mapY;
+    Tcl_Obj **args, *mapY;
     Tcl_Size count = objc - 2, i;
     int index, code, query;
     Tk_OptionTable viewTable = NULL;
@@ -1466,14 +1466,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
         Tcl_WrongNumArgs(interp, 4, objv, "operation ?arg ...?");
         return TCL_ERROR;
     }
-    args = ckalloc(sizeof(*args) * (size_t)count);
-    prefix = Tcl_NewListObj(3, objv + 1);
-    Tcl_IncrRefCount(prefix);
-    args[0] = objv[0];
-    args[1] = prefix;
-    for (i = 2; i < count; i++) {
-        args[i] = objv[i + 2];
-    }
+    args = Rbc_CreateTrackComponentArgs(objc, objv);
     code = Rbc_GetOpIndexFromObj(interp, gridOps, sizeof(gridOps[0]), RBC_OP_ARG2, count, args, &index);
     if (code != TCL_OK) {
         goto done;
@@ -1537,7 +1530,6 @@ done:
     if (viewTable != NULL) {
         Tk_DeleteOptionTable(viewTable);
     }
-    Tcl_DecrRefCount(prefix);
-    ckfree(args);
+    Rbc_FreeTrackComponentArgs(args);
     return code;
 }
