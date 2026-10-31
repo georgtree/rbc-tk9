@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Export orchestration C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rendering architecture and contracts" href="rendering.html" />
+    <link rel="prev" title="Export orchestration and document ownership" href="exports.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exports.html" title="Export orchestration and document ownership"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Export orchestration C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="export-orchestration-c-reference">
+<h1>Export orchestration C reference<a class="headerlink" href="#export-orchestration-c-reference" title="Link to this heading">¶</a></h1>
+<p>These interfaces are private. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for ownership, format policy
+and the distinction between ending export mode and restoring screen layout.</p>
+<section id="document-context">
+<h2>Document context<a class="headerlink" href="#document-context" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportInit">
+<span class="target" id="rbc_export_8h_1a2fafddbc546d1809ad01113ba038d775"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportBackend</span></span><span class="w"> </span><span class="n"><span class="pre">backend</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">decorations</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportInit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize fresh caller-owned export storage. </p>
+<p>Zero the record, borrow interp and tkwin, and select the embedded DString as the append destination. Call only on an uninitialized or already freed record; this does not release an earlier document. Font embedding starts disabled. The caller supplies backend state and any alternate buffer after this call. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportError">
+<span class="target" id="rbc_export_8h_1a9814c92414ced0548b43c00a739b8a57"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportError</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">message</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportError" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retain the first export failure without replacing later diagnostics. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exportPtr</strong> – Initialized, borrowed context. </p></li>
+<li><p><strong>message</strong> – Borrowed static string; it is neither copied nor freed. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_ERROR. This helper does not set the interpreter result. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportFree">
+<span class="target" id="rbc_export_8h_1a76d8b7b89c60dd40b840016573f71530"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFree" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release document-local font data and the embedded DString. </p>
+<p>Does not free the caller’s context, backendData, or an alternate buffer. The format owner must release backend resources separately. No renderer context may still be using these resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportAppend">
+<span class="target" id="rbc_export_8h_1ab717315fefe226cb1a7040f171b51beb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportAppend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportAppend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a NULL-terminated sequence of C strings to the current buffer. </p>
+<p>The initialized context borrows buffer; callers must keep that DString alive. This helper neither checks nor clears an existing export error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportFormat">
+<span class="target" id="rbc_export_8h_1a9b57b6addd8420da8282a905ceca7dbb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportFormat</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append printf-formatted text to the current document buffer. </p>
+<p>Uses temporary heap storage when the local formatting buffer is too small. A formatting failure records a static export error; it does not set the Tcl result. The caller must check the context’s error before delivering output. </p>
+</dd></dl>
+
+</section>
+<section id="graph-command-and-traversal">
+<h2>Graph command and traversal<a class="headerlink" href="#graph-command-and-traversal" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_InitGraphExportOptions">
+<span class="target" id="rbc_graph_8h_1a5a373f40f159b730415517fe5673a2ab"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitGraphExportOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitGraphExportOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the named SVG/PDF option-database component. </p>
+<p>Borrow the graph and format policy. Specifications must store concrete pixel or boolean values in native Graph integer fields, without retained Tk resources. The temporary option table is freed on success and failure. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TCL_OK, or TCL_ERROR for invalid options or negative dimensions. Failure is graph-initialization failure, not a rollback transaction. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GraphExportOp">
+<span class="target" id="rbc_graph_8h_1ae20ef30d23960be4be9d2e2d7900a79f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphExportOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_GraphExportFormat</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GraphExportOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch SVG/PDF cget, configure and output operations. </p>
+<p>The enclosing widget command must preserve graph lifetime across callbacks. Requires objv[2] to exist and contain the operation. Option parsing stages all values before committing; successful output options stay configured even if rendering or file delivery later fails. Output remaps at export size, restores screen layout when callback state permits, and then delivers the complete document. Backend and shared context cleanup run on every path. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TCL_OK or TCL_ERROR with an interpreter diagnostic. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportBeginGraph">
+<span class="target" id="rbc_graph_8h_1aff03d194693daa20e2f96cdbc570bf7a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportBeginGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportBeginGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mark a graph as exporting, using requested size for unset dimensions. </p>
+<p>Requires a live Tk window. Does not perform layout or preserve old dimensions. Pair with Rbc_ExportEndGraph on all paths; this flag is not a nesting counter. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportEndGraph">
+<span class="target" id="rbc_graph_8h_1a2c3d3242d3c5c85ba05f1d0e5945d53e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportEndGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportEndGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clear export mode and schedule screen remapping if the window survives. </p>
+<p>With a live window, replace graph dimensions by actual Tk dimensions, replace flags with MAP_WORLD and schedule redraw. Does not remap immediately or restore a saved flag set. With a destroyed window, only clear GRAPH_EXPORT. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ExportGraph">
+<span class="target" id="rbc_graph_8h_1a1f29ecc999a90832b4effb1f1bfda3e9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Traverse mapped graph components into an initialized document context. </p>
+<p>Borrow both arguments; the caller owns layout, GRAPH_EXPORT state, graph lifetime, document framing and final delivery. Each temporary renderer context is ended here. Track components retain their own scope and clipping. Crosshairs are not exported. No screen geometry restoration is performed. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TCL_OK, or TCL_ERROR on invalid callback state or a recorded export error. Successful traversal does not imply successful format finalization. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Export orchestration C reference</a><ul>
+<li><a class="reference internal" href="#document-context">Document context</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ExportInit"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportInit()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportError"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportError()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFree"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFree()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportAppend"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportAppend()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportFormat"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFormat()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graph-command-and-traversal">Graph command and traversal</a><ul>
+<li><a class="reference internal" href="#c.Rbc_InitGraphExportOptions"><code class="docutils literal notranslate"><span class="pre">Rbc_InitGraphExportOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GraphExportOp"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportBeginGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportEndGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ExportGraph"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportGraph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="exports.html"
+                          title="previous chapter">Export orchestration and document ownership</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rendering.html"
+                          title="next chapter">Rendering architecture and contracts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rendering.html" title="Rendering architecture and contracts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exports.html" title="Export orchestration and document ownership"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Export orchestration C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

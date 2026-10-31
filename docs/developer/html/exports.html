@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Export orchestration and document ownership &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Export orchestration C reference" href="export-reference.html" />
+    <link rel="prev" title="Binding and picking C reference" href="binding-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="export-reference.html" title="Export orchestration C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Export orchestration and document ownership</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="export-orchestration-and-document-ownership">
+<h1>Export orchestration and document ownership<a class="headerlink" href="#export-orchestration-and-document-ownership" title="Link to this heading">¶</a></h1>
+<p>The private export layer has two jobs: orchestrate a graph-sized operation and
+provide document state to renderer contexts. <code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code> owns the shared
+traversal and SVG/PDF command services; <code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrPdf.c</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> own format policy and document framing. Backend primitives live
+in the renderer modules described in <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.</p>
+<p>These operations run synchronously on the Tk thread. Neither an export token
+nor a renderer context preserves a graph or its window. The enclosing widget
+command retains lifetime protection, and layout/traversal must respect callback
+invalidation as described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
+<section id="document-state">
+<h2>Document state<a class="headerlink" href="#document-state" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> is caller-owned, normally stack storage.
+Initialization zeroes the record and selects its embedded <code class="docutils literal notranslate"><span class="pre">storage</span></code> DString
+as <code class="docutils literal notranslate"><span class="pre">buffer</span></code>. The interpreter and window are borrowed. The context is private
+and does not extend the installed C API.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26.0%" />
+<col style="width: 74.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Resource</p></th>
+<th class="head"><p>Ownership and release</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">storage</span></code></p></td>
+<td><p>Embedded DString, released by <code class="docutils literal notranslate"><span class="pre">Rbc_ExportFree</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code></p></td>
+<td><p>Append destination; normally aliases storage. PostScript redirects it
+to its separately owned token DString. Shared cleanup does not free an
+alternate buffer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">backendData</span></code></p></td>
+<td><p>Format-owned state. PDF releases it through <code class="docutils literal notranslate"><span class="pre">Rbc_PdfFree</span></code>; PostScript
+releases its token in its command cleanup.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fontData</span></code></p></td>
+<td><p>Document-local font cache, released by shared export cleanup.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">error</span></code></p></td>
+<td><p>Borrowed static message. <code class="docutils literal notranslate"><span class="pre">Rbc_ExportError</span></code> retains the first failure;
+it does not itself set the interpreter result.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Append and formatting helpers write to the current buffer. They do not stop
+simply because an earlier export error exists. Traversal and finalization must
+check errors before publishing the document. End all borrowing renderer
+contexts before releasing document resources.</p>
+</section>
+<section id="svg-pdf-command-transaction">
+<h2>SVG/PDF command transaction<a class="headerlink" href="#svg-pdf-command-transaction" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code> supplies the component name/class,
+integer option offsets, backend, channel policy and two lifecycle callbacks.
+Its option specifications contain concrete pixel and boolean fields only.
+Initialization uses a temporary Tk option table and retains no Tk resources
+from that table. Runtime parsing stages all option values before committing;
+an invalid option leaves the previous configuration intact. Repeated valid
+options use the last value, but an invalid earlier occurrence still fails.</p>
+<p>Successful <code class="docutils literal notranslate"><span class="pre">output</span></code> options remain configured even if rendering or delivery
+subsequently fails. Geometry restoration does not reset those options.
+The shared output helper performs this sequence:</p>
+<ol class="arabic simple">
+<li><p>Save graph dimensions, initialize the document context and enter export mode.</p></li>
+<li><p>Apply positive configured dimensions, request layout/mapping and lay out.</p></li>
+<li><p>Invoke <code class="docutils literal notranslate"><span class="pre">documentProc</span></code> only after successful layout. It returns a new,
+unreferenced Tcl object on success. The shared helper takes a reference.</p></li>
+<li><p>End export mode, restore the saved dimensions and request layout/mapping.
+Remap immediately only if the window survives and axis formatting has not
+invalidated the graph. Preserve an earlier error across this restoration;
+if export succeeded, a restoration failure becomes the command failure.</p></li>
+<li><p>Return or write the complete document only on success. Release the object,
+call optional <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> and release shared context storage on every path.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">documentProc</span></code> owns document framing and format finalization, not screen
+restoration or context cleanup. <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> releases backend-owned state only
+and must accept an empty context, since initial layout can fail before the
+backend is initialized. SVG finishes embedded font definitions before creating
+its string object. PDF initializes its resource writer, traverses the graph,
+then serializes the complete PDF object. Neither exporter requires Cairo.</p>
+</section>
+<section id="graph-traversal-and-geometry">
+<h2>Graph traversal and geometry<a class="headerlink" href="#graph-traversal-and-geometry" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportGraph</span></code> assumes export geometry is already mapped. It opens the
+plot output context and emits the plot background, optional track separators,
+grids and polar/Smith labels. It then validates callback state before continuing
+with under-markers, unraised local/global legends, axis limits, elements,
+raised local/global legends, over-markers and active elements. Finally it ends
+the plot region and emits margins, margin legend, title and axes.</p>
+<p>Track grids are dispatched even when the global grid is hidden; the track
+services decide effective visibility. Track components own their scopes and
+clipping. Crosshairs are screen-only. See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>, <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> and
+<a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> for component-specific output rules.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph</span></code> supplies requested Tk dimensions when graph dimensions
+are not yet usable and sets <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code>. It does not save geometry or
+perform layout. <code class="docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph</span></code> clears the flag; for a surviving window
+it adopts actual Tk dimensions, replaces graph flags with <code class="docutils literal notranslate"><span class="pre">MAP_WORLD</span></code> and
+schedules redraw. It is not a general state-stack operation and is not nestable.
+See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for immediate screen restoration in SVG/PDF versus deferred
+screen remapping in PostScript.</p>
+</section>
+<section id="postscript-policy-and-delivery">
+<h2>PostScript policy and delivery<a class="headerlink" href="#postscript-policy-and-delivery" title="Link to this heading">¶</a></h2>
+<p>PostScript retains its own option transaction and output command because it
+also handles page setup, printer mappings and optional preview formats.
+<code class="docutils literal notranslate"><span class="pre">GraphToPostScript</span></code> borrows a PostScript token, redirects the export buffer
+to that token, enters export mode, prepares the page and traverses components.
+It appends the trailer on success, ends export mode and frees shared state.
+The outer command releases the PostScript token. Unlike SVG/PDF, this path does
+not perform the SVG/PDF restoration transaction. Its optional Windows metafile
+preview does explicitly lay out and draw at screen dimensions.</p>
+<p>All three formats finish document generation before opening a filename for
+writing. SVG uses UTF-8/LF channel settings; PDF uses ISO-8859-1/binary for its
+byte-valued document object. PostScript writes bytes with binary translation,
+including the optional Windows DOS EPS preview wrapper. An output without a
+filename returns the document instead.</p>
+<p>This ordering protects an existing file against rendering failure, but it is
+not atomic file replacement: opening with <code class="docutils literal notranslate"><span class="pre">w</span></code> can truncate the destination,
+and later writing or closing can fail. A prior write/channel error is preserved
+across cleanup; otherwise a close error is reported. Successful file output
+clears the interpreter result. PostScript metadata can vary between exports,
+so byte equality is not a universal test for geometry restoration.</p>
+<p>See <a class="reference internal" href="export-reference.html"><span class="doc">Export orchestration C reference</span></a> for the shared C contracts. Font embedding and PDF
+object serialization internals are separate topics.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Export orchestration and document ownership</a><ul>
+<li><a class="reference internal" href="#document-state">Document state</a></li>
+<li><a class="reference internal" href="#svg-pdf-command-transaction">SVG/PDF command transaction</a></li>
+<li><a class="reference internal" href="#graph-traversal-and-geometry">Graph traversal and geometry</a></li>
+<li><a class="reference internal" href="#postscript-policy-and-delivery">PostScript policy and delivery</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="binding-reference.html"
+                          title="previous chapter">Binding and picking C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="export-reference.html"
+                          title="next chapter">Export orchestration C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="export-reference.html" title="Export orchestration C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="binding-reference.html" title="Binding and picking C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Export orchestration and document ownership</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

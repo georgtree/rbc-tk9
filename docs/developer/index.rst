@@ -39,6 +39,8 @@ chapters.
    configuration-reference
    bindings
    binding-reference
+   exports
+   export-reference
    rendering
    reference
    commenting
