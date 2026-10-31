@@ -11,6 +11,13 @@
  *      This module changes only the representation of the grid.
  */
 
+/** @file rbcGrPolar.c
+ * Polar and Smith grid geometry and label presentation.
+ */
+/** @defgroup polar_geometry Polar grid geometry internals
+ * Private data-plane helpers; axes and grid records are borrowed.
+ */
+
 #include "rbcGraph.h"
 #include "rbcRender.h"
 
@@ -29,6 +36,17 @@ typedef struct {
     double max;
 } PolarRadiusRange;
 
+/**
+ * @ingroup polar_geometry
+ * @brief Bound radii intersecting the grid's Cartesian viewport rectangle.
+ * @param gridPtr Borrowed grid with mapped X/Y axes.
+ * @param rangePtr Receives nearest and farthest distances from the origin.
+ * @return TRUE for a finite nonempty radial range; FALSE for missing axes,
+ * logarithmic axes, invalid axis bounds or nonfinite distances.
+ * @details A viewport spanning the origin has minimum radius zero. The maximum
+ * is the farthest corner distance, not a fully contained circle radius.
+ * Outputs are unspecified on failure. No mapping or allocation is performed.
+ */
 static int GetPolarRadiusRange(Grid *gridPtr, PolarRadiusRange *rangePtr) {
     Axis *xAxisPtr;
     Axis *yAxisPtr;
@@ -1046,6 +1064,18 @@ static void MapSmithResistanceCircle(Graph *graphPtr, Grid *gridPtr, double resi
     }
 }
 
+/**
+ * @ingroup polar_geometry
+ * @brief Parameterize a constant-reactance or constant-susceptance grid arc.
+ * @param reactance Normalized finite reactive value chosen by grid mapping.
+ * @param t Arc parameter from zero through one.
+ * @param admittance Nonzero selects the admittance orientation.
+ * @return A point in the Cartesian Gamma plane, before screen mapping.
+ * @details For t below one, the real component of normalized impedance or
+ * admittance is t/(1-t). At t >= 1 the infinite-real endpoint is supplied
+ * explicitly: (+1,0) for impedance, (-1,0) for admittance. The helper does not
+ * validate arbitrary external inputs and owns no resources.
+ */
 static Point2D SmithReactanceGamma(double reactance, double t, int admittance) {
     Point2D point;
     double resistance;

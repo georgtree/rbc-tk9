@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Polar data and grid geometry &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Polar data and geometry C reference" href="polar-reference.html" />
+    <link rel="prev" title="Line fill C reference" href="fill-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="polar-reference.html" title="Polar data and geometry C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fill-reference.html" title="Line fill C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Polar data and grid geometry</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="polar-data-and-grid-geometry">
+<h1>Polar data and grid geometry<a class="headerlink" href="#polar-data-and-grid-geometry" title="Link to this heading">¶</a></h1>
+<p>Polar elements reuse the line element implementation in <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>.
+<code class="docutils literal notranslate"><span class="pre">rbcGrPolar.c</span></code> supplies polar/Smith grid geometry and label presentation.
+The graph’s mapped plane remains Cartesian. Selecting a Smith grid does not
+itself convert an element’s source values into impedance or admittance.
+See <a class="reference internal" href="polar-reference.html"><span class="doc">Polar data and geometry C reference</span></a> for selected private helper contracts.</p>
+<section id="source-representation-and-conversion">
+<h2>Source representation and conversion<a class="headerlink" href="#source-representation-and-conversion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LinePointCount</span></code> selects either the complex-vector length or the shorter X/Y
+length. <code class="docutils literal notranslate"><span class="pre">GetLineDataPoint</span></code> then supplies Cartesian coordinates to extents,
+screen mapping and other consumers. The data mode determines the adapter:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Input</p></th>
+<th class="head"><p>Graph-plane coordinates</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cartesian X/Y</p></td>
+<td><p>Source X and Y directly</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polar X/Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">radius*cos(theta)</span></code>, <code class="docutils literal notranslate"><span class="pre">radius*sin(theta)</span></code>; theta is in radians</p></td>
+</tr>
+<tr class="row-even"><td><p>Complex gamma</p></td>
+<td><p>Real and imaginary parts directly</p></td>
+</tr>
+<tr class="row-odd"><td><p>Complex impedance Z</p></td>
+<td><p>Normalize <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">Z/Z0</span></code>, then <code class="docutils literal notranslate"><span class="pre">Gamma</span> <span class="pre">=</span> <span class="pre">(z-1)/(z+1)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Complex admittance Y</p></td>
+<td><p>Normalize <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">Y*Z0</span></code>, then <code class="docutils literal notranslate"><span class="pre">Gamma</span> <span class="pre">=</span> <span class="pre">(1-y)/(1+y)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> is validated as positive and finite. Grid angular tick values use degrees;
+this must not be confused with the radians used for polar element input.
+Axis inversion and screen scaling happen later through <code class="docutils literal notranslate"><span class="pre">Rbc_Map2D</span></code>.</p>
+<p>The direct Cartesian/gamma adapters can return nonfinite coordinates; success
+only means that the source sample was available. Mapping callers still check
+finite values and domain validity. Complex conversion uses <code class="docutils literal notranslate"><span class="pre">ComplexDivide</span></code>,
+which rejects nonfinite operands and zero denominators and checks its results.
+It is not an arbitrary-range exact complex arithmetic service. Outputs may have
+been written before a failed conversion, so callers must honor its return value.</p>
+</section>
+<section id="complex-vector-ownership">
+<h2>Complex-vector ownership<a class="headerlink" href="#complex-vector-ownership" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ParseComplexVectorObj</span></code> accepts a named complex RBC vector, with no list
+fallback. It allocates a client ID, verifies the vector type and borrows the
+record and numeric array. A null/empty option produces an empty candidate.
+It initializes its destination rather than releasing an existing candidate.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PrepareLineComplexDataTransaction</span></code> processes initial defaults and explicit
+options in order. Nonempty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> selects complex storage; empty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>
+or explicit ordinary data options select X/Y storage. Canonical option names
+ensure that aliases participate in the same ordering. Staging acquires a new
+client before releasing an earlier staged candidate. Failure frees staged
+resources without replacing the live line data.</p>
+<p>Commit transfers the candidate into the stable <code class="docutils literal notranslate"><span class="pre">linePtr-&gt;z</span></code> member before
+registering <code class="docutils literal notranslate"><span class="pre">ComplexVectorChangedProc</span></code>. Switching away from complex storage
+releases its client and clears the retained <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option. The element does
+not free the source array or destroy the application vector.</p>
+<p>On update, the callback reacquires the record through its client ID and refreshes
+length, capacity and numeric pointer. On destruction it clears those borrowed
+fields and the ID. It requests axis reset/remapping and, for displayed elements,
+backing-store redisplay. It does not draw synchronously. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and
+<a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for shared notification and data-transaction rules.</p>
+</section>
+<section id="polar-grid-construction">
+<h2>Polar grid construction<a class="headerlink" href="#polar-grid-construction" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">GetPolarRadiusRange</span></code> requires linear mapped axes with finite increasing
+bounds. It finds the minimum distance from the origin to the data viewport
+rectangle and the maximum distance to its farthest corner. This supports panned
+views where the origin is outside the visible rectangle. A separate helper,
+<code class="docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius</span></code>, determines a fully contained circle for labels;
+these two radii serve different purposes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MapPolarCircles</span></code> obtains radial candidates from the mapped X axis’s grid
+segments. It discards nonpositive radii and candidates outside the visible
+radial range. Each retained circle is approximated by 180 straight segments,
+with Cartesian points mapped through the selected axis pair. Temporary axis
+segments are freed, and the new array becomes <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;x.segments</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MapPolarSpokes</span></code> reads the global grid’s angular tick arrays. Major spokes are
+always considered; minor spokes follow the minor-grid setting. <code class="docutils literal notranslate"><span class="pre">ClipPolarRay</span></code>
+intersects each forward ray with the data viewport before mapping endpoints.
+The retained spokes become <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;y.segments</span></code>. Mapping allocates these
+arrays; the shared grid lifecycle clears old caches and owns final cleanup.
+It must not call these mappers over populated arrays without that cleanup.
+See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> for grid ownership and renderer clipping of complete strokes.</p>
+</section>
+<section id="smith-grid-construction">
+<h2>Smith grid construction<a class="headerlink" href="#smith-grid-construction" title="Link to this heading">¶</a></h2>
+<p>Smith geometry also requires linear Cartesian axes. Resistance/conductance
+circles and reactance/susceptance arcs are generated in the Gamma plane and
+then screen-mapped. The normalized admittance grid negates both coordinates
+of the impedance construction, rotating it by 180 degrees.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SmithReactanceGamma</span></code> parameterizes the nonnegative real component as
+<code class="docutils literal notranslate"><span class="pre">t/(1-t)</span></code>. The endpoint at <code class="docutils literal notranslate"><span class="pre">t=1</span></code> is supplied explicitly instead of dividing
+by zero: <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> for impedance and <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> for admittance. Current grid
+resolution uses 180 segments for circles and 90 for reactive arcs. These are
+implementation sampling choices, not guarantees of exact analytic curves.
+The grid conversion helpers operate on selected grid values; they are not the
+same validated adapter used for arbitrary element complex-vector input.</p>
+<p>Polar and Smith labels have dedicated screen and export routines, including
+viewport-aware positioning and command-based formatting. They are separate
+from segment mapping: the pure geometry helpers documented here do not execute
+Tcl callbacks. Label formatting and export still run within the graph lifecycle
+and export orchestration described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
+</section>
+<section id="integration-boundaries">
+<h2>Integration boundaries<a class="headerlink" href="#integration-boundaries" title="Link to this heading">¶</a></h2>
+<p>Polar line smoothing uses the parametric path where appropriate, rather than
+assuming monotonic Cartesian X. Density decimation excludes polar elements.
+Ordinary area fills can use origin/chord closure on their mapped geometry;
+error bands remain restricted to Cartesian graphs. See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a>,
+<a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> and <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a>.</p>
+<p>Closest-point information can include derived normalized and physical Smith
+quantities. Reverse conversion explicitly represents the open-circuit gamma
+point <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> as infinite impedance and the short-circuit point <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> as
+infinite admittance. These reporting conventions do not change stored input,
+axis units or the data-mode selection.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Polar data and grid geometry</a><ul>
+<li><a class="reference internal" href="#source-representation-and-conversion">Source representation and conversion</a></li>
+<li><a class="reference internal" href="#complex-vector-ownership">Complex-vector ownership</a></li>
+<li><a class="reference internal" href="#polar-grid-construction">Polar grid construction</a></li>
+<li><a class="reference internal" href="#smith-grid-construction">Smith grid construction</a></li>
+<li><a class="reference internal" href="#integration-boundaries">Integration boundaries</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="fill-reference.html"
+                          title="previous chapter">Line fill C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="polar-reference.html"
+                          title="next chapter">Polar data and geometry C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="polar-reference.html" title="Polar data and geometry C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fill-reference.html" title="Line fill C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Polar data and grid geometry</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -22,6 +22,10 @@
  * Source data is borrowed; mapped polygons belong to the line element.
  */
 
+/** @defgroup polar_data Polar element data internals
+ * Private adapters from retained source data to Cartesian graph coordinates.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -1604,6 +1608,19 @@ static int GammaToNormalizedAdmittance(double gammaReal, double gammaImag, doubl
     return ComplexDivide(1.0 - gammaReal, -gammaImag, 1.0 + gammaReal, gammaImag, conductancePtr, susceptancePtr);
 }
 
+/**
+ * @ingroup polar_data
+ * @brief Convert one borrowed complex sample to graph-plane coordinates.
+ * @param linePtr Borrowed line with validated data format and reference impedance.
+ * @param index Source index in the retained complex vector.
+ * @param xPtr Receives the real graph coordinate.
+ * @param yPtr Receives the imaginary graph coordinate.
+ * @return FALSE for an unavailable sample or failed impedance/admittance division.
+ * @details Gamma input is copied directly, including nonfinite values; callers
+ * must validate coordinates before mapping. Impedance and admittance are
+ * normalized using z0, then converted to Gamma. A FALSE return does not promise
+ * unchanged output values. No source storage is copied, retained or modified.
+ */
 static int GetComplexLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
     const Rbc_Complex *valuePtr;
     double real;
@@ -1748,6 +1765,20 @@ static void ComplexVectorChangedProc(Tcl_Interp *interp, ClientData clientData, 
     }
 }
 
+/**
+ * @ingroup polar_data
+ * @brief Acquire a staged client of a named complex vector.
+ * @param interp Interpreter used for lookup and error reporting.
+ * @param elemPtr Borrowed owner recorded in the candidate.
+ * @param objPtr Borrowed vector name; NULL or empty means no vector.
+ * @param candidatePtr Fresh output slot, initialized here rather than released.
+ * @return TCL_OK for an empty slot or a retained complex-vector client;
+ * TCL_ERROR after releasing a failed lookup/type-check client.
+ * @details The candidate owns its client ID and borrows the vector record and
+ * numeric storage. No update callback is installed until commit moves it into
+ * the stable line record. Release an abandoned candidate with FreeComplexVector.
+ * This parser does not accept a list of complex values as a fallback.
+ */
 static int ParseComplexVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
                                  ElemComplexVector *candidatePtr) {
     const char *name;

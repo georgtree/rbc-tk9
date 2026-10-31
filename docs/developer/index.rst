@@ -47,6 +47,8 @@ chapters.
    bar-reference
    fills
    fill-reference
+   polar
+   polar-reference
    mapping
    mapping-reference
    configuration

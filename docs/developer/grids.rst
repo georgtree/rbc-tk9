@@ -111,3 +111,5 @@ local mutation, independent local visibility, alternate axis selection,
 inversion, thick boundary strokes and resized export followed by restored
 screen geometry. Check both screen renderers and document output: a correct
 centerline or unchanged transform alone does not prove complete stroke clipping.
+
+See :doc:`polar` for polar/Smith geometry and its separation from element data conversion.

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Polar data and geometry C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Axes, mapping and track viewports" href="mapping.html" />
+    <link rel="prev" title="Polar data and grid geometry" href="polar.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="polar.html" title="Polar data and grid geometry"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Polar data and geometry C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="polar-data-and-geometry-c-reference">
+<h1>Polar data and geometry C reference<a class="headerlink" href="#polar-data-and-geometry-c-reference" title="Link to this heading">¶</a></h1>
+<p>These helpers are private to their implementation modules. See <a class="reference internal" href="polar.html"><span class="doc">Polar data and grid geometry</span></a>
+for source ownership and the distinction between data and grid coordinates.</p>
+<section id="element-data-adapters-rbcgrline-c">
+<h2>Element data adapters (rbcGrLine.c)<a class="headerlink" href="#element-data-adapters-rbcgrline-c" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__polar__data"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polar</span> <span class="pre">element</span> <span class="pre">data</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private adapters from retained source data to Cartesian graph coordinates. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetComplexLineDataPoint">
+<span class="target" id="group__polar__data_1ga7c4a37655289bd434a5bda998c95b580"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetComplexLineDataPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">xPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetComplexLineDataPoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert one borrowed complex sample to graph-plane coordinates. </p>
+<p>
+Gamma input is copied directly, including nonfinite values; callers must validate coordinates before mapping. Impedance and admittance are normalized using z0, then converted to Gamma. A FALSE return does not promise unchanged output values. No source storage is copied, retained or modified. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – Borrowed line with validated data format and reference impedance. </p></li>
+<li><p><strong>index</strong> – Source index in the retained complex vector. </p></li>
+<li><p><strong>xPtr</strong> – Receives the real graph coordinate. </p></li>
+<li><p><strong>yPtr</strong> – Receives the imaginary graph coordinate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FALSE for an unavailable sample or failed impedance/admittance division.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParseComplexVectorObj">
+<span class="target" id="group__polar__data_1ga5298afbc741faf53366a569ad8ded451"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseComplexVectorObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ElemComplexVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseComplexVectorObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a staged client of a named complex vector. </p>
+<p>
+The candidate owns its client ID and borrows the vector record and numeric storage. No update callback is installed until commit moves it into the stable line record. Release an abandoned candidate with FreeComplexVector. This parser does not accept a list of complex values as a fallback. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – Interpreter used for lookup and error reporting. </p></li>
+<li><p><strong>elemPtr</strong> – Borrowed owner recorded in the candidate. </p></li>
+<li><p><strong>objPtr</strong> – Borrowed vector name; NULL or empty means no vector. </p></li>
+<li><p><strong>candidatePtr</strong> – Fresh output slot, initialized here rather than released. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TCL_OK for an empty slot or a retained complex-vector client; TCL_ERROR after releasing a failed lookup/type-check client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="grid-geometry-rbcgrpolar-c">
+<h2>Grid geometry (rbcGrPolar.c)<a class="headerlink" href="#grid-geometry-rbcgrpolar-c" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__polar__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polar</span> <span class="pre">grid</span> <span class="pre">geometry</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private data-plane helpers; axes and grid records are borrowed. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetPolarRadiusRange">
+<span class="target" id="group__polar__geometry_1gac2d21c7a458de5ac0f9fe32fa300ba4e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPolarRadiusRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Grid</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gridPtr</span></span>, <span class="n"><span class="pre">PolarRadiusRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetPolarRadiusRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Bound radii intersecting the grid’s Cartesian viewport rectangle. </p>
+<p>
+A viewport spanning the origin has minimum radius zero. The maximum is the farthest corner distance, not a fully contained circle radius. Outputs are unspecified on failure. No mapping or allocation is performed. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gridPtr</strong> – Borrowed grid with mapped X/Y axes. </p></li>
+<li><p><strong>rangePtr</strong> – Receives nearest and farthest distances from the origin. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TRUE for a finite nonempty radial range; FALSE for missing axes, logarithmic axes, invalid axis bounds or nonfinite distances.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SmithReactanceGamma">
+<span class="target" id="group__polar__geometry_1gad80409ed65285fe2721d7d9ea22f6ee4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithReactanceGamma</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">reactance</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">t</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">admittance</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SmithReactanceGamma" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parameterize a constant-reactance or constant-susceptance grid arc. </p>
+<p>
+For t below one, the real component of normalized impedance or admittance is t/(1-t). At t &gt;= 1 the infinite-real endpoint is supplied explicitly: (+1,0) for impedance, (-1,0) for admittance. The helper does not validate arbitrary external inputs and owns no resources. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactance</strong> – Normalized finite reactive value chosen by grid mapping. </p></li>
+<li><p><strong>t</strong> – Arc parameter from zero through one. </p></li>
+<li><p><strong>admittance</strong> – Nonzero selects the admittance orientation. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A point in the Cartesian Gamma plane, before screen mapping.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Polar data and geometry C reference</a><ul>
+<li><a class="reference internal" href="#element-data-adapters-rbcgrline-c">Element data adapters (rbcGrLine.c)</a><ul>
+<li><a class="reference internal" href="#c.GetComplexLineDataPoint"><code class="docutils literal notranslate"><span class="pre">GetComplexLineDataPoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseComplexVectorObj"><code class="docutils literal notranslate"><span class="pre">ParseComplexVectorObj()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#grid-geometry-rbcgrpolar-c">Grid geometry (rbcGrPolar.c)</a><ul>
+<li><a class="reference internal" href="#c.GetPolarRadiusRange"><code class="docutils literal notranslate"><span class="pre">GetPolarRadiusRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.SmithReactanceGamma"><code class="docutils literal notranslate"><span class="pre">SmithReactanceGamma()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="polar.html"
+                          title="previous chapter">Polar data and grid geometry</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="mapping.html"
+                          title="next chapter">Axes, mapping and track viewports</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mapping.html" title="Axes, mapping and track viewports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="polar.html" title="Polar data and grid geometry"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Polar data and geometry C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
