@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image resizing and resampling &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Image resampling C reference" href="resampling-reference.html" />
+    <link rel="prev" title="Image and tile C reference" href="image-tile-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="resampling-reference.html" title="Image resampling C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="image-tile-reference.html" title="Image and tile C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image resizing and resampling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-resizing-and-resampling">
+<h1>Image resizing and resampling<a class="headerlink" href="#image-resizing-and-resampling" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> provides CPU-side resizing over owned, row-major RGBA images.
+These operations do not use a renderer or native drawable. Tk photo wrappers
+snapshot pixels into this representation before processing. See
+<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for allocation, channel offsets and photo-write ownership.</p>
+<section id="three-coordinate-contracts">
+<h2>Three coordinate contracts<a class="headerlink" href="#three-coordinate-contracts" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage</span></code> scales a source region to a requested output size.
+Its origin is clamped into the source, then negative or excessive width/height
+values extend to the remaining edge. This is an origin-and-span policy, not
+geometric rectangle intersection: a negative origin becomes zero without
+subtracting its displacement from a positive span.</p>
+<p>For each destination position, nearest-neighbour mapping selects the truncated
+ratio of destination position to destination size, multiplied by the effective
+source span, then adds the source origin. It copies the entire pixel, including
+alpha. No averaging or antialiasing is performed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage</span></code> instead takes a region in a <em>virtual destination</em>.
+The full source is imagined at <code class="docutils literal notranslate"><span class="pre">destWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">destHeight</span></code>, while only the
+requested region is allocated. Its origin and each output position map back
+through that virtual scale. Positions beyond either edge clamp to the first
+or last source pixel; they do not create transparent padding. This avoids
+allocating a potentially much larger scaled image merely to display a crop.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage</span></code> filters the complete source to a new size. Source
+region extraction, when needed, happens before this call. It allocates an
+intermediate image of destination width by source height, filters horizontally,
+then filters vertically into the final image and releases the intermediate.
+All three functions leave the borrowed source intact and return independent
+storage released with <code class="docutils literal notranslate"><span class="pre">Rbc_FreeColorImage</span></code>.</p>
+</section>
+<section id="filters-and-sampling-weights">
+<h2>Filters and sampling weights<a class="headerlink" href="#filters-and-sampling-weights" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj</span></code> resolves names and unambiguous abbreviations
+against the static filter table. Returned records are borrowed and must not
+be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to NULL; it directs
+command-level policy rather than representing an identity filter that may be
+passed to the filtering kernel.</p>
+<p>The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell,
+Lanczos, sinc, Gaussian and other historical filters with individual support
+radii. Horizontal and vertical passes can use different non-NULL filters.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ComputeWeights</span></code> builds one contribution record per destination coordinate,
+reused across all rows or columns in that pass. Downsampling broadens the
+support radius by the inverse scale; upsampling uses native filter support.
+Source support bounds are clipped to the image. Contributions are normalized
+by their sum (with a zero-sum fallback factor of one), then converted to
+fixed-point weights with 14 fractional bits.</p>
+<p>The loops accumulate red, green, blue and alpha independently in 64-bit
+integers. Each pass rounds and clamps its output to byte range. The intermediate
+image therefore introduces quantization before the second pass; this is not
+a single floating-point two-dimensional convolution. Signed filter lobes can
+produce overshoot that is clipped at this boundary.</p>
+</section>
+<section id="alpha-and-color-space">
+<h2>Alpha and color space<a class="headerlink" href="#alpha-and-color-space" title="Link to this heading">¶</a></h2>
+<p>Filtering operates on straight RGBA bytes. It does not premultiply RGB by alpha
+before averaging, and it does not linearize color through gamma conversion.
+RGB values in transparent pixels can consequently affect edge colors. Do not
+confuse this CPU resampler with Cairo’s separate premultiplied upload path;
+see <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a>. Changing either convention would be a visible
+behavior change requiring its own tests.</p>
+</section>
+<section id="dimensions-and-failure-policy">
+<h2>Dimensions and failure policy<a class="headerlink" href="#dimensions-and-failure-policy" title="Link to this heading">¶</a></h2>
+<p>The C helpers require valid image records and valid filter records. Negative
+output dimensions panic rather than return a Tcl error; zero output dimensions
+are supported. The virtual-region helper permits an empty result before
+checking the virtual dimensions, but requires positive virtual dimensions for
+a nonempty region. Empty source regions leave zero-initialized pixels.</p>
+<p>Allocation and contribution-record size checks prevent representational
+overflow, but these functions are not recoverable, command-facing validation
+interfaces. Filter support must be finite and nonnegative, with a valid
+function pointer. Tcl commands must validate user input before entering them.</p>
+</section>
+<section id="photo-wrappers-and-command-policy">
+<h2>Photo wrappers and command policy<a class="headerlink" href="#photo-wrappers-and-command-policy" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResizePhoto</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto</span></code> use the destination photo’s current
+dimensions as the target size. Both copy the source region first, so identical
+source and destination handles are permitted. Temporary RBC images are released
+after the final write. The underlying void photo-write wrapper does not expose
+Tk write failure as a C return status.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">winop</span></code> command in <code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> adds policy not present in the kernels:
+its resample operation rejects source dimensions at most one, handles unset or
+matching destination sizes through a direct copy, and selects nearest-neighbour
+resizing for <code class="docutils literal notranslate"><span class="pre">none</span></code>. Do not infer those restrictions from the lower-level C
+interfaces, which can process single-pixel dimensions.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Check rectangular and single-pixel images, zero-sized results, source-region
+origins outside bounds, negative spans, and virtual crops beyond image edges.
+For filtered output, exercise reduction and enlargement with different filters
+on each axis, constant colors, transparent colored edges and high-contrast
+patterns. Same-photo source/destination calls need separate coverage from
+independent images. Verify ownership and dimensions as well as appearance.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image resizing and resampling</a><ul>
+<li><a class="reference internal" href="#three-coordinate-contracts">Three coordinate contracts</a></li>
+<li><a class="reference internal" href="#filters-and-sampling-weights">Filters and sampling weights</a></li>
+<li><a class="reference internal" href="#alpha-and-color-space">Alpha and color space</a></li>
+<li><a class="reference internal" href="#dimensions-and-failure-policy">Dimensions and failure policy</a></li>
+<li><a class="reference internal" href="#photo-wrappers-and-command-policy">Photo wrappers and command policy</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="image-tile-reference.html"
+                          title="previous chapter">Image and tile C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="resampling-reference.html"
+                          title="next chapter">Image resampling C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="resampling-reference.html" title="Image resampling C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="image-tile-reference.html" title="Image and tile C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image resizing and resampling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -124,6 +124,6 @@ The normal suite skips this harness unless ``RBC_TILE_TEST_LIB`` is supplied;
 it runs in a separate process and adds no production Tcl command or public stub.
 The void photo-write wrapper described above still lacks status propagation.
 
-See :doc:`image-tile-reference` for the maintained C contracts. Resampling,
-quantization, bitmap transforms and temporary-image compatibility helpers are
-separate algorithm/implementation topics.
+See :doc:`image-tile-reference` for the maintained C contracts and
+:doc:`image-resampling` for resizing and filtering. Quantization, bitmap
+transforms and temporary-image compatibility helpers remain separate topics.

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image resampling C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Text layout and document fonts" href="text-fonts.html" />
+    <link rel="prev" title="Image resizing and resampling" href="image-resampling.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="image-resampling.html" title="Image resizing and resampling"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image resampling C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-resampling-c-reference">
+<h1>Image resampling C reference<a class="headerlink" href="#image-resampling-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in
+<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for coordinate conventions and
+<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for image storage ownership.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetResampleFilterFromObj">
+<span class="target" id="rbc_image_8h_1a28c2b5b3a2d168917f8af540d6627a73"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetResampleFilterFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterObj</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetResampleFilterFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a filter name or unambiguous abbreviation to borrowed static state. </p>
+<p>Return TCL_OK and a filter-table pointer, or NULL for the name none. On lookup failure return TCL_ERROR without assigning the output pointer. Do not free or modify a returned filter. NULL selects policy in callers; it is not a valid filter argument to <a class="reference internal" href="#rbc_image_8h_1aca50351b42f20700152302dd6c06e330"><span class="std std-ref">Rbc_ResampleColorImage()</span></a>. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ResampleColorImage">
+<span class="target" id="rbc_image_8h_1aca50351b42f20700152302dd6c06e330"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResampleColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">horzFilterPtr</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vertFilterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResampleColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a newly owned image filtered horizontally and then vertically. </p>
+<p>Borrow the source and two valid, non-NULL filters; leave the source intact. Release the result with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Negative destination dimensions or missing filters panic. Zero dimensions are allowed; empty input leaves zero-initialized output. Each pass filters straight RGBA channels separately, with fixed-point weights and clamping, without gamma conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ResizeColorImage">
+<span class="target" id="rbc_image_8h_1a95df7476612f4f5b88ac37179b5077c4"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizeColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizeColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a source region into a newly owned image using nearest-neighbour mapping. </p>
+<p>Borrow src. Clamp the origin to source bounds; negative or excessive spans extend to the remaining edge. Scale that effective region to destWidth by destHeight. Empty regions leave zero-initialized output. Negative destination dimensions panic; zero dimensions are allowed. Free the independent result with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. All four channels are copied unchanged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ResizeColorSubimage">
+<span class="target" id="rbc_image_8h_1a5db6d9d8a2de205e6a571d01fa97f863"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizeColorSubimage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">destHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizeColorSubimage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sample a region of a virtually resized source without allocating the full resize. </p>
+<p>Here x and y are virtual destination coordinates, width and height are the returned region size, and destWidth/destHeight are the virtual full size. Nearest-neighbour coordinates clamp to source edges, including regions beyond the virtual image. Borrow src and free the result with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Negative region dimensions panic; empty regions return immediately. A nonempty region requires positive virtual dimensions. Empty source images leave zero-initialized output. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ResamplePhoto">
+<span class="target" id="rbc_image_8h_1a42eaaf8adb5f8100f61fe948f31cecee"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResamplePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">srcPhoto</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">destPhoto</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">horzFilterPtr</span></span>, <span class="n"><span class="pre">ResampleFilter</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vertFilterPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResamplePhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Filter a source photo region into the destination photo’s existing dimensions. </p>
+<p>Snapshot the source region before writing, allowing identical photo handles. Borrow both handles and valid non-NULL filters. Temporary RBC images are released internally. The void photo-write wrapper does not propagate Tk’s write status; callers must not interpret return as a success code. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ResizePhoto">
+<span class="target" id="rbc_image_8h_1a1834800d847236274d3d650f7f6df809"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResizePhoto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">srcPhoto</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_PhotoHandle</span></span><span class="w"> </span><span class="n"><span class="pre">destPhoto</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ResizePhoto" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize a source photo region to the destination’s existing size without filtering. </p>
+<p>Borrow both handles. Snapshot before writing so source and destination may be the same photo. Release temporary RBC images internally. As with <a class="reference internal" href="#rbc_image_8h_1a42eaaf8adb5f8100f61fe948f31cecee"><span class="std std-ref">Rbc_ResamplePhoto()</span></a>, this void wrapper does not return the Tk write status. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image resampling C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetResampleFilterFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ResampleColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ResizeColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ResizeColorSubimage"><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ResamplePhoto"><code class="docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ResizePhoto"><code class="docutils literal notranslate"><span class="pre">Rbc_ResizePhoto()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="image-resampling.html"
+                          title="previous chapter">Image resizing and resampling</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="text-fonts.html"
+                          title="next chapter">Text layout and document fonts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="image-resampling.html" title="Image resizing and resampling"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image resampling C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

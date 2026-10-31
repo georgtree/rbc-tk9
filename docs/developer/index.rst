@@ -59,6 +59,8 @@ chapters.
    binding-reference
    images-tiles
    image-tile-reference
+   image-resampling
+   resampling-reference
    text-fonts
    text-font-reference
    exports

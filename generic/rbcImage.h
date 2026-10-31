@@ -148,6 +148,14 @@ Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter)
 Rbc_ColorImage Rbc_CreateColorImage(int width, int height);
 Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
                                         double inputGamma);
+/**
+ * @brief Resolve a filter name or unambiguous abbreviation to borrowed static state.
+ *
+ * Return TCL_OK and a filter-table pointer, or NULL for the name none. On
+ * lookup failure return TCL_ERROR without assigning the output pointer.
+ * Do not free or modify a returned filter. NULL selects policy in callers;
+ * it is not a valid filter argument to Rbc_ResampleColorImage().
+ */
 int Rbc_GetResampleFilterFromObj(Tcl_Interp *interp, Tcl_Obj *filterObj, ResampleFilter **filterPtrPtr);
 /**
  * @brief Release both the pixel array and its owning image record.
@@ -171,15 +179,59 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
  */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
+/**
+ * @brief Return a newly owned image filtered horizontally and then vertically.
+ *
+ * Borrow the source and two valid, non-NULL filters; leave the source intact.
+ * Release the result with Rbc_FreeColorImage(). Negative destination dimensions
+ * or missing filters panic. Zero dimensions are allowed; empty input leaves
+ * zero-initialized output. Each pass filters straight RGBA channels separately,
+ * with fixed-point weights and clamping, without gamma conversion.
+ */
 Rbc_ColorImage Rbc_ResampleColorImage(Rbc_ColorImage image, int destWidth, int destHeight,
                                       ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
+/**
+ * @brief Filter a source photo region into the destination photo's existing dimensions.
+ *
+ * Snapshot the source region before writing, allowing identical photo handles.
+ * Borrow both handles and valid non-NULL filters. Temporary RBC images are
+ * released internally. The void photo-write wrapper does not propagate Tk's
+ * write status; callers must not interpret return as a success code.
+ */
 void Rbc_ResamplePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                        Tk_PhotoHandle destPhoto, ResampleFilter *horzFilterPtr, ResampleFilter *vertFilterPtr);
+/**
+ * @brief Copy a source region into a newly owned image using nearest-neighbour mapping.
+ *
+ * Borrow src. Clamp the origin to source bounds; negative or excessive spans
+ * extend to the remaining edge. Scale that effective region to destWidth by
+ * destHeight. Empty regions leave zero-initialized output. Negative destination
+ * dimensions panic; zero dimensions are allowed. Free the independent result
+ * with Rbc_FreeColorImage(). All four channels are copied unchanged.
+ */
 Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                     int destHeight);
+/**
+ * @brief Sample a region of a virtually resized source without allocating the full resize.
+ *
+ * Here x and y are virtual destination coordinates, width and height are the
+ * returned region size, and destWidth/destHeight are the virtual full size.
+ * Nearest-neighbour coordinates clamp to source edges, including regions beyond
+ * the virtual image. Borrow src and free the result with Rbc_FreeColorImage().
+ * Negative region dimensions panic; empty regions return immediately. A
+ * nonempty region requires positive virtual dimensions. Empty source images
+ * leave zero-initialized output.
+ */
 Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int x, int y, int width, int height, int destWidth,
                                        int destHeight);
 Rbc_ColorImage Rbc_RotateColorImage(Rbc_ColorImage image, double theta);
+/**
+ * @brief Resize a source photo region to the destination's existing size without filtering.
+ *
+ * Borrow both handles. Snapshot before writing so source and destination may
+ * be the same photo. Release temporary RBC images internally. As with
+ * Rbc_ResamplePhoto(), this void wrapper does not return the Tk write status.
+ */
 void Rbc_ResizePhoto(Tcl_Interp *interp, Tk_PhotoHandle srcPhoto, int x, int y, int width, int height,
                      Tk_PhotoHandle destPhoto);
 int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x, int y, int width, int height,
