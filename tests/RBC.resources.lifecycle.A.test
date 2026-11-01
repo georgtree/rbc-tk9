@@ -1,0 +1,47 @@
+# Private EPS/window ownership checks; normal suite runs skip this harness.
+package provide resources.lifecycle
+package require tcltest
+namespace import tcltest::*
+set resourceAvailable 0
+if {[info exists ::env(RBC_RESOURCE_TEST_LIB)]} {
+    package require Tk
+    load $::env(RBC_RESOURCE_TEST_LIB) Rbcresourcetest
+    set resourceAvailable 1
+}
+testConstraint resourceHarness $resourceAvailable
+namespace eval resources.lifecycle {
+    test RBC.resources.lifecycle.A.1.1 {window lookup/deletion before first setter} \
+        -constraints resourceHarness -body {
+            ::rbcresourcetest missing
+        } -result 1
+    test RBC.resources.lifecycle.A.1.2 {window payload replacement and repeated deletion} \
+        -constraints resourceHarness -body {
+            ::rbcresourcetest roundtrip
+        } -result 1
+    test RBC.resources.lifecycle.A.1.3 {failed X parent lookup keeps the client window} \
+        -constraints {resourceHarness unix} -body {
+            ::rbcresourcetest parent
+        } -result 1
+    foreach {case action} {1 destroy 2 reconfigure} {
+        test RBC.resources.lifecycle.A.2.$case "deleted EPS preview is released on $action" \
+            -constraints resourceHarness -setup {
+                canvas .resourceCanvas
+                set photo [image create photo -width 4 -height 4]
+                set item [.resourceCanvas create eps 0 0 -image $photo]
+                ::rbcresourcetest reset
+            } -body {
+                image delete $photo
+                set deferred [::rbcresourcetest frees]
+                if {$action eq "reconfigure"} {
+                    .resourceCanvas itemconfigure $item -image {}
+                }
+                destroy .resourceCanvas
+                list $deferred [::rbcresourcetest frees]
+            } -cleanup {
+                catch {destroy .resourceCanvas}
+                catch {image delete $photo}
+            } -result {0 1}
+    }
+}
+cleanupTests
+if {$resourceAvailable} {destroy .}

@@ -64,7 +64,7 @@ also uses them. Source snapshots, temporary photos and native pixmaps have
 separate release mechanisms; do not substitute one for another.
 
 Deletion and failure ownership
------------------------------
+------------------------------
 
 ``Rbc_DestroyTemporaryImage`` copies the name of a live image, deletes it with
 ``Tk_DeleteImage`` and releases the retained instance with ``Tk_FreeImage``.

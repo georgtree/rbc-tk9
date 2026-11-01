@@ -161,6 +161,14 @@ typedef struct {
 
 int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
                           Tcl_Obj *const objv[], int *indexPtr);
+/**
+ * @brief Draw the legacy RBC native relief border inside a rectangle.
+ *
+ * Borrow window, drawable and border. For raised/sunken borders wider than one
+ * pixel and dimensions above two, draw an outer edge before delegating the inset
+ * to Tk_Draw3DRectangle. Edge GCs differ between X11 and Windows. This shared
+ * Tk utility does not establish a graph renderer context or clipping region.
+ */
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief);
 
@@ -227,6 +235,13 @@ int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_
 #define FILL_BOTH 3
 
 int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr);
+/**
+ * @brief Set dash bytes and offset on a caller-mutable GC.
+ *
+ * Read at most RBC_MAX_DASH_VALUES bytes, stopping at zero, and call XSetDashes.
+ * Borrow the descriptor; do not alter a shared Tk GC unless its owner explicitly
+ * permits mutation. This helper does not select the GC line style.
+ */
 void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr);
 Rbc_Dashes *Rbc_GetDashes(GC gc);
 
@@ -441,8 +456,28 @@ int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);
 int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr);
 void Rbc_InitHexTable(char *table);
+/**
+ * @brief Allocate an unshared GC compatible with a Tk window depth.
+ *
+ * Borrow tkwin and XGCValues. For an unrealized window use the root drawable
+ * at matching depth, otherwise a temporary 1x1 pixmap. Release that temporary
+ * pixmap before returning. The caller owns the GC and must use
+ * Rbc_FreePrivateGC(), not Tk_FreeGC(). Does not force window realization.
+ */
 GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr);
+/**
+ * @brief Allocate an unshared GC using a borrowed compatible drawable.
+ *
+ * Pass gcMask and valuePtr to XCreateGC. The caller owns the returned GC;
+ * release it with Rbc_FreePrivateGC(). No Tk GC-cache reference is created.
+ */
 GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned long gcMask, XGCValues *valuePtr);
+/**
+ * @brief Release a non-NULL private GC with XFreeGC.
+ *
+ * Borrow display. Do not pass a Tk_GetGC cache reference or reuse the GC
+ * after release. No resource-ownership tracking or NULL check is performed.
+ */
 void Rbc_FreePrivateGC(Display *display, GC gc);
 int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
@@ -495,10 +530,47 @@ int Rbc_ClampToInt(Tcl_WideInt value);
  */
 int Rbc_InitComponentOptions(Tcl_Interp *interp, Tk_Window parent, Tk_Window proxy, const char *name,
                              const char *className, char *recordPtr, Tk_OptionTable optionTable);
+/**
+ * @brief Estimate how many elemSize-byte records fit in an X request.
+ *
+ * Use the extended limit when supported and nonzero, otherwise the ordinary
+ * limit. Reserve four protocol words, convert to bytes and divide by elemSize.
+ * Return zero for zero element size, unusable limits or multiplication overflow;
+ * clamp the count to INT_MAX. Callers still own request batching and headers.
+ */
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize);
+/**
+ * @brief Return a native client or toplevel-wrapper identifier.
+ *
+ * May realize the borrowed Tk window. X11 queries the toplevel parent; Windows
+ * returns a raw HWND cast to Window. It is not a portable Tk drawable token.
+ * No ownership transfers. X11 keeps the realized client if parent lookup fails;
+ * callers must still distinguish native wrapper IDs from Tk drawable tokens.
+ */
 Window Rbc_GetRealWindowId(Tk_Window tkwin);
+/**
+ * @brief Look up a borrowed per-window payload.
+ *
+ * Return NULL for a missing entry or an absent interpreter table. Lookup does
+ * not allocate a table and does not retain the payload or Tk window. Require
+ * a live Tk_Window even when no association exists.
+ */
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin);
+/**
+ * @brief Associate a borrowed payload with a Tk window in its interpreter.
+ *
+ * Lazily allocate a one-word-key table as Tcl associated data. Replacing a value
+ * does not free the old payload. The caller must remove the entry before the
+ * window/payload becomes invalid; interpreter cleanup frees only the table.
+ */
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData);
+/**
+ * @brief Remove a per-window association without freeing its payload.
+ *
+ * Require a live window. An absent table or missing entry is a no-op and does
+ * not allocate storage. The window owner is responsible for removing its
+ * association during teardown.
+ */
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
 /**
  * @brief Clamp an integer offset according to the selected legacy scroll mode.

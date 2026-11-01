@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>EPS canvas item implementation &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="EPS canvas C reference" href="eps-reference.html" />
+    <link rel="prev" title="Window/photo command C reference" href="winop-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="eps-reference.html" title="EPS canvas C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="winop-reference.html" title="Window/photo command C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">EPS canvas item implementation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="eps-canvas-item-implementation">
+<h1>EPS canvas item implementation<a class="headerlink" href="#eps-canvas-item-implementation" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcCanvEps.c</span></code> registers a Tk <code class="docutils literal notranslate"><span class="pre">eps</span></code> canvas item. It is independent of graph
+markers and graph renderer dispatch. Tk owns the item record and invokes its
+creation, configuration, drawing, hit-testing, transformation, PostScript and
+destruction callbacks through a Tk_ItemType. The item uses legacy Tk_ConfigSpec
+and Tk_ConfigureWidget, not the component Tk_OptionTable transaction machinery.</p>
+<section id="parsing-and-retained-content">
+<h2>Parsing and retained content<a class="headerlink" href="#parsing-and-retained-content" title="Link to this heading">¶</a></h2>
+<p>OpenEpsFile owns a binary stdio FILE and calls ReadPostScript. Windows recognizes
+the DOS EPS header and records PostScript/preview section offsets and lengths.
+The parser seeks to the PostScript section and bounds reads by its nonzero
+length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns
+a Tcl diagnostic; OpenEpsFile closes its stream on parse failure.</p>
+<p>ReadPostScript requires a <code class="docutils literal notranslate"><span class="pre">%!PS</span></code> signature and a numeric integer BoundingBox
+in the header. Bounds and extents must fit int, with positive width and height.
+This is a limited metadata parser: it does not implement general PostScript,
+trailer <code class="docutils literal notranslate"><span class="pre">(atend)</span></code> bounding-box resolution or arbitrary DSC processing.
+ReadPsLine has a fixed buffer and may split long physical lines. AppendPsLine
+adds a newline when a retained chunk lacks one; retained content is therefore
+not guaranteed byte-identical to the source file.</p>
+<p>The parser keeps a title, optional EPSI preview and body text in item-owned
+storage. It retains the first body line already consumed while scanning the
+header. The original file need not stay open for drawing or PostScript output.
+Recording TIFF/WMF header fields must not be confused with complete support for
+rendering those preview formats.</p>
+</section>
+<section id="preview-ownership-and-configuration">
+<h2>Preview ownership and configuration<a class="headerlink" href="#preview-ownership-and-configuration" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 45.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Resource</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Release</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>preview</p></td>
+<td><p>Tk image instance of the supplied photo</p></td>
+<td><p>Tk_FreeImage</p></td>
+</tr>
+<tr class="row-odd"><td><p>colorImage</p></td>
+<td><p>Owned snapshot or decoded EPSI pixels</p></td>
+<td><p>Rbc_FreeColorImage</p></td>
+</tr>
+<tr class="row-even"><td><p>tmpImage</p></td>
+<td><p>Private named photo and retained display instance</p></td>
+<td><p>Rbc_DestroyTemporaryImage</p></td>
+</tr>
+<tr class="row-odd"><td><p>dString / title</p></td>
+<td><p>Retained PostScript body / parsed title</p></td>
+<td><p>Tcl_DStringFree / ckfree</p></td>
+</tr>
+<tr class="row-even"><td><p>psFile</p></td>
+<td><p>Open parser stream</p></td>
+<td><p>CloseEpsFile</p></td>
+</tr>
+<tr class="row-odd"><td><p>fillGC / pixmap</p></td>
+<td><p>Tk GC reference / native pixmap</p></td>
+<td><p>Tk_FreeGC / Tk_FreePixmap</p></td>
+</tr>
+</tbody>
+</table>
+<p>ConfigureEps detects image, file and quick options with prefix matching after
+Tk_ConfigureWidget succeeds. It drops old resources and replaces them in steps;
+a later error is not a rollback to the previous complete preview. A supplied
+image must be a photo. Its pixels are copied rather than continuously used as
+a live source. Width/height zero derive dimensions from the preview or EPS
+bounding box. Changing quick mode invalidates cached scaled dimensions.</p>
+<p>DisplayEps rescales the saved pixels when dimensions change: nearest-style
+resize for quick mode, box resampling otherwise. It publishes the result into
+tmpImage and frees the intermediate pixels. With no visible preview it draws a
+placeholder, optionally followed by a fitting title and relief border. All
+screen work uses Tk/native services, without a graph renderer context.</p>
+<p>ImageChangedProc does not refresh the saved color snapshot on ordinary source
+photo writes. Its deletion branch clears the source name and schedules canvas redraw, but
+retains the deleted instance until image reconfiguration or item teardown.
+Tk’s deletion loop still accesses the instance after the callback returns, so
+Tk_FreeImage must not run inside that callback. Keeping the token in the item
+allows its ordinary cleanup paths to release it exactly once. Teardown also
+detaches tmpImage before its deletion can notify other clients.</p>
+</section>
+<section id="coordinates-and-export">
+<h2>Coordinates and export<a class="headerlink" href="#coordinates-and-export" title="Link to this heading">¶</a></h2>
+<p>The item stores one canvas anchor plus width and height. ComputeEpsBbox rounds
+the anchor and applies Tk anchoring; the redraw bbox uses exclusive right/bottom
+edges. Point and area picking use this rectangle, not alpha pixels or EPS paths.
+Translate changes the anchor. ScaleEps scales only the anchor about the supplied
+origin: it does not scale width or height. Resizing the preview requires those
+options to change.</p>
+<p>EpsToPostScript is a canvas callback with a no-op prepass. With an EPS file, it
+loads <code class="docutils literal notranslate"><span class="pre">rbcCanvEps.pro</span></code>, establishes translation, scale and clipping, and embeds
+the retained body between BeginEPSF/EndEPSF guards. With no file it serializes
+the cached temporary photo if present; it does not force a new preview render.
+There is no corresponding canvas SVG/PDF callback here. See
+<a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for shared PsToken services and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for the
+separate graph export pipeline.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Keep parsing, display and export expectations separate. Existing
+<code class="docutils literal notranslate"><span class="pre">RBC.eps.file.A.test</span></code>, <code class="docutils literal notranslate"><span class="pre">RBC.eps.image.A.test</span></code> and the other <code class="docutils literal notranslate"><span class="pre">RBC.eps.*</span></code>
+files cover canvas options and lifecycle cases. Review malformed headers,
+file/image replacement, quick-mode cache invalidation, source-image deletion,
+anchor picking and PostScript body preservation when changing these paths.
+Use <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for temporary-photo acquisition and release.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> harness counts source-instance releases
+on deletion followed by reconfiguration or teardown, without relying on process
+memory measurements. It runs separately from the ordinary suite.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">EPS canvas item implementation</a><ul>
+<li><a class="reference internal" href="#parsing-and-retained-content">Parsing and retained content</a></li>
+<li><a class="reference internal" href="#preview-ownership-and-configuration">Preview ownership and configuration</a></li>
+<li><a class="reference internal" href="#coordinates-and-export">Coordinates and export</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="winop-reference.html"
+                          title="previous chapter">Window/photo command C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="eps-reference.html"
+                          title="next chapter">EPS canvas C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="eps-reference.html" title="EPS canvas C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="winop-reference.html" title="Window/photo command C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">EPS canvas item implementation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

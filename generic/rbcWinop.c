@@ -9,6 +9,15 @@
  * See "license.terms" for details.
  */
 
+/**
+ * @file rbcWinop.c
+ * @brief Standalone window commands and photo-operation dispatch; not graph rendering.
+ */
+
+/** @defgroup winop_commands Window and photo command internals
+ * Private command/canvas callbacks, not installed C APIs.
+ */
+
 #include "rbcInt.h"
 
 #ifndef NO_WINOP
@@ -54,25 +63,13 @@ static RbcWinOp SnapOp;
 static RbcWinOp SubsampleOp;
 static RbcWinOp ImageOp;
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Resolve a Tk path and ensure its native window exists.
  *
- * GetRealizedWindow --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *string
- *      Tk_Window *tkwinPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow the interpreter and return a borrowed Tk_Window through tkwinPtr on
+ * success. Realization does not map the window. Return TCL_ERROR from path
+ * lookup without assigning the output.
  */
 static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *tkwinPtr) {
     Tk_Window tkwin;
@@ -88,24 +85,14 @@ static int GetRealizedWindow(Tcl_Interp *interp, const char *string, Tk_Window *
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Resolve a Tk path or legacy integer native-window identifier.
  *
- * StringToWindow --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *string
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Tk toplevel paths select their wrapper through Rbc_GetRealWindowId(). Numeric
+ * input uses Tcl_GetInt, not a pointer-width parser; Windows wraps that value
+ * with Rbc_WinWindowFromHWND(). Return None on lookup or conversion failure.
+ * The result does not transfer ownership of the window.
  */
 static Window StringToWindow(Tcl_Interp *interp, const char *string) {
     int xid;
@@ -683,26 +670,15 @@ static int WarpToOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
  * moved when a new image type is created for them.
  */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Convolve an existing photo into an existing destination photo.
  *
- * ConvolveOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Require a nonempty square list of finite kernel values with a finite sum.
+ * Own and free the kernel and copied color buffers locally; photo handles are
+ * borrowed. The source is copied before destination publication. Parse failures
+ * return TCL_ERROR. Photo publication uses the void color-image helper and is
+ * not an atomic transaction with rollback.
  */
 static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -781,26 +757,14 @@ error:
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Quantize a copied photo with a palette of one to 256 colors.
  *
- * QuantizeOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow both photo handles and free both color buffers after the quantizer
+ * returns. Resize the destination to the source dimensions before parsing the
+ * optional color count; an error therefore need not leave it unchanged.
+ * Source dimensions of one pixel or less are rejected.
  */
 static int QuantizeOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -1058,26 +1022,15 @@ done:
     return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Resize a photo according to the destination photo dimensions.
  *
- * ResampleOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrow existing photos and filter descriptors. A destination dimension of
+ * one pixel or less causes a source-size copy; equal dimensions also copy.
+ * The default filter is none. A vertical filter is parsed only when the first
+ * filter resolves to a non-NULL descriptor. Lower photo-write return values
+ * are not uniformly propagated by this legacy command.
  */
 static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
@@ -1145,31 +1098,20 @@ static int ResampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Rotate a copied photo by a finite Tcl expression angle in degrees.
  *
- * RotateOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Validate names, preserve the interpreter across angle evaluation, then
+ * reacquire both photo handles before accessing pixels. Reject deleted photos
+ * or destroyed Tk state; same-name replacements are used. Allocate and release
+ * source/rotated buffers locally. Photo publication is not a rollback transaction.
  */
 static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_PhotoHandle srcPhoto, destPhoto;
     Rbc_ColorImage srcImage, destImage;
     double theta;
+    int result;
     const char *srcName = Tcl_GetString(objv[2]);
     const char *destName = Tcl_GetString(objv[3]);
 
@@ -1184,11 +1126,34 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
                          (char *)NULL);
         return TCL_ERROR;
     }
-    if (Tcl_ExprDoubleObj(interp, objv[4], &theta) != TCL_OK) {
-        return TCL_ERROR;
+    /* The angle may execute Tcl that deletes/replaces either photo, destroys
+     * Tk, or deletes the interpreter. Do not keep handles across evaluation. */
+    Tcl_Preserve(interp);
+    result = Tcl_ExprDoubleObj(interp, objv[4], &theta);
+    if (result == TCL_OK && (Tcl_InterpDeleted(interp) || Tk_MainWindow(interp) == NULL)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("Tk was destroyed while evaluating rotation angle", -1));
+        result = TCL_ERROR;
+    }
+    Tcl_Release(interp);
+    if (result != TCL_OK) {
+        return result;
     }
     if (!FINITE(theta)) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("rotation angle must be finite", -1));
+        return TCL_ERROR;
+    }
+    /* Fetch strings again too: callbacks may have changed object representations. */
+    srcName = Tcl_GetString(objv[2]);
+    destName = Tcl_GetString(objv[3]);
+    srcPhoto = Tk_FindPhoto(interp, srcName);
+    if (srcPhoto == NULL) {
+        Rbc_AppendResultStrings(interp, "image \"", srcName, "\" doesn't exist or is not a photo image", (char *)NULL);
+        return TCL_ERROR;
+    }
+    destPhoto = Tk_FindPhoto(interp, destName);
+    if (destPhoto == NULL) {
+        Rbc_AppendResultStrings(interp, "destination image \"", destName,
+                               "\" doesn't exist or is not a photo image", (char *)NULL);
         return TCL_ERROR;
     }
     srcImage = Rbc_PhotoToColorImage(srcPhoto);
@@ -1199,32 +1164,15 @@ static int RotateOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tc
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Capture a native window into a named photo, optionally resizing it.
  *
- * SnapOp --
- *
- *      Snaps a picture of a window and stores it in a
- *      designated photo image.  The window must be completely
- *      visible or the snap will fail.
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result contains
- *      the list of the graph coordinates. If an error occurred
- *      while parsing the window positions, TCL_ERROR is
- *      returned, then the interpreter result will contain an error
- *      message.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * For a Tk path, capture the client drawable and its Tk dimensions rather than
+ * the window-manager wrapper. Numeric input uses StringToWindow() and native
+ * geometry. Borrow all windows and delegate capture and destination lookup to
+ * Rbc_SnapPhoto(); return its Tcl status. This is screen capture, not graph
+ * remapping or vector-document export.
  */
 static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -1266,26 +1214,14 @@ static int SnapOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_
                          GAMMA);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Resize a validated source-photo rectangle into a destination photo.
  *
- * SubsampleOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Require nonnegative origin, positive extent and a rectangle inside the source.
+ * An effectively empty destination takes the region dimensions. Default to the
+ * box filter; none selects the unfiltered resize path. Photos and filters are
+ * borrowed, and the command neither creates nor deletes the destination photo.
  */
 static int SubsampleOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tk_Window tkwin;
@@ -1374,26 +1310,13 @@ static const WinopOpSpec imageOps[] = {{{"convolve", 6, 6, "srcPhoto destPhoto f
                                         SubsampleOp},
                                        {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Dispatch nested winop image operations using direct-operation indices.
  *
- * ImageOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Validate against imageOps, then pass objc - 1 and objv + 1 so shared handlers
+ * see source and destination at their original argument positions. Tables for
+ * direct and nested operations are intentionally not identical.
  */
 static int ImageOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -1432,26 +1355,12 @@ static const WinopOpSpec winOps[] = {{{"changes", 3, 3, "window"}, ChangesOp},
                                      {{"warpto", 2, 3, "?window?"}, WarpToOp},
                                      {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup winop_commands
+ * @brief Dispatch a stateless winop request with the current Tk main window.
  *
- * WinopCmd --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Validate operation and arity through winOps before calling its handler.
+ * No per-command heap object or command deletion callback is maintained.
  */
 static int WinopCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;

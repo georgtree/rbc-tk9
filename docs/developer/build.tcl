@@ -119,6 +119,8 @@ proc ::rbcDocBuild::main {arguments} {
         @CONFIG_HEADER@ [doxyQuote [file join $root generic rbcInt.h]] \
         @BIND_HEADER@ [doxyQuote [file join $root generic rbcBind.h]] \
         @BIND_SOURCE@ [doxyQuote [file join $root generic rbcBind.c]] \
+        @WINOP_SOURCE@ [doxyQuote [file join $root generic rbcWinop.c]] \
+        @EPS_SOURCE@ [doxyQuote [file join $root generic rbcCanvEps.c]] \
         @VERSION@ $version]
     set config [file join $output Doxyfile]
     writeFile $config [string map $substitutions [readFile [file join $source Doxyfile.in]]]

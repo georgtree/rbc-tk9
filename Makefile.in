@@ -71,6 +71,7 @@ PKG_LIB_FILE9 = @PKG_LIB_FILE9@
 PKG_STUB_LIB_FILE = @PKG_STUB_LIB_FILE@
 
 # Public C/stubs API consumer used only by the test suite.
+TEST_RESOURCE_LIB = rbcresourcetest$(SHLIB_SUFFIX)
 TEST_IMAGE_LIB = rbcimagetest$(SHLIB_SUFFIX)
 TEST_TILE_LIB = rbctiletest$(SHLIB_SUFFIX)
 TEST_NOTIFY_LIB = rbcnotifytest$(SHLIB_SUFFIX)
@@ -398,6 +399,18 @@ $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
 		$(filter-out rbcImage.$(OBJEXT),$(PKG_OBJECTS)) rbcImageTest.$(OBJEXT) $(SHLIB_LD_LIBS)
 
+# Inspect EPS instance releases and inject native parent-query failure.
+test-resources: $(TEST_RESOURCE_LIB)
+	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.resources.lifecycle.A.test` $(TESTFLAGS)
+
+rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(PKG_HEADERS)
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcResourceTest.c` -o $@
+
+$(TEST_RESOURCE_LIB): $(PKG_OBJECTS) rbcResourceTest.$(OBJEXT)
+	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
+		$(filter-out rbcCanvEps.$(OBJEXT) rbcWindow.$(OBJEXT),$(PKG_OBJECTS)) rbcResourceTest.$(OBJEXT) $(SHLIB_LD_LIBS)
+
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
 
@@ -545,7 +558,7 @@ clean:
 	-rm -rf _build/developer
 	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
-	-rm -f $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB) $(TEST_IMAGE_LIB)
+	-rm -f $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB) $(TEST_IMAGE_LIB) $(TEST_RESOURCE_LIB)
 	-rm -f *.$(OBJEXT) core *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 	-rm -f graph.tcl trackgraph.tcl graphtoolbar.tcl argparse.tcl argparse-LICENSE.txt argparse-README.txt rbcCanvEps.pro rbcGraph.pro circle.xbm circle_mask.xbm
@@ -660,7 +673,7 @@ uninstall-doc:
 
 uninstall: uninstall-binaries uninstall-libraries uninstall-doc
 
-.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-vector-notify test-tile test-image test-headers \
+.PHONY: all binaries clean depend dist dist-clean dist-zip distclean doc doc-dev check-doc-dev install libraries test test-vector test-vector-notify test-tile test-image test-resources test-headers \
 	uninstall uninstall-binaries uninstall-libraries uninstall-doc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

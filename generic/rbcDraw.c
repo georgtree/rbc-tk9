@@ -2,6 +2,7 @@
  * rbcDraw.c --
  *
  *      Shared Tk/Xlib drawing and graphics-context utilities.
+ *      Shared function contracts are declared in rbcInt.h.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -12,57 +13,10 @@
 #include <X11/Xutil.h>
 #include <math.h>
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPrivateGCFromDrawable --
- *
- *      Like Tk_GetGC, but doesn't share the GC with any other widget.
- *      This is needed because the certain GC parameters (like dashes)
- *      can not be set via XCreateGC, therefore there is no way for
- *      Tk's hashing mechanism to recognize that two such GCs differ.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      unsigned long gcMask
- *      XGCValues *valuePtr
- *
- * Results:
- *      A new GC is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned long gcMask, XGCValues *valuePtr) {
     return XCreateGC(display, drawable, gcMask, valuePtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPrivateGC --
- *
- *      Like Tk_GetGC, but doesn't share the GC with any other widget.
- *      This is needed because the certain GC parameters (like dashes)
- *      can not be set via XCreateGC, therefore there is no way for
- *      Tk's hashing mechanism to recognize that two such GCs differ.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      unsigned long gcMask
- *      XGCValues *valuePtr
- *
- * Results:
- *      A new GC is returned.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr) {
     GC gc;
     Pixmap pixmap;
@@ -92,25 +46,6 @@ GC Rbc_GetPrivateGC(Tk_Window tkwin, unsigned long gcMask, XGCValues *valuePtr) 
     return gc;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreePrivateGC --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      GC gc
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreePrivateGC(Display *display, GC gc) {
     /* Tk 9 removed Tk_FreeXId; previously on 8.6 it was a NOOP
 
@@ -145,25 +80,6 @@ void Rbc_SetDashes(Display *display, GC gc, Rbc_Dashes *dashesPtr) {
     XSetDashes(display, gc, dashesPtr->offset, (const char *)dashesPtr->values, nValues);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_MaxRequestSize --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      unsigned int elemSize
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_MaxRequestSize(Display *display, unsigned int elemSize) {
     long size;
 
@@ -190,32 +106,6 @@ int Rbc_MaxRequestSize(Display *display, unsigned int elemSize) {
 }
 
 #undef Rbc_Draw3DRectangle
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_Draw3DRectangle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin - Window for which border was allocated.
- *      Drawable drawable - X window or pixmap in which to draw.
- *      Tk_3DBorder border - Token for border to draw.
- *      int x - -
- *      int y - -
- *      int width - -
- *      int height - Outside area of rectangular region.
- *      int borderWidth - Desired width for border, in pixels. Border will be *inside* region.
- *      int relief - Indicates 3D effect: TK_RELIEF_FLAT, TK_RELIEF_RAISED, or TK_RELIEF_SUNKEN.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void Rbc_Draw3DRectangle(Tk_Window tkwin, Drawable drawable, Tk_3DBorder border, int x, int y, int width, int height,
                          int borderWidth, int relief) {
     if ((borderWidth > 1) && (width > 2) && (height > 2) &&

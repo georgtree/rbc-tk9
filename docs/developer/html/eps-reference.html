@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>EPS canvas C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="C documentation conventions" href="commenting.html" />
+    <link rel="prev" title="EPS canvas item implementation" href="eps-canvas.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="eps-canvas.html" title="EPS canvas item implementation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">EPS canvas C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="eps-canvas-c-reference">
+<h1>EPS canvas C reference<a class="headerlink" href="#eps-canvas-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="eps-canvas.html"><span class="doc">EPS canvas item implementation</span></a> for ownership, failure and platform boundaries.
+These are private implementation interfaces.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__eps__canvas"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">EPS</span> <span class="pre">canvas</span> <span class="pre">item</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private command/canvas callbacks, not installed C APIs. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ReadPsLine">
+<span class="target" id="group__eps__canvas_1gae314006f88d19e5095c97a863e5b9a59"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadPsLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsParseInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">piPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadPsLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read one bounded chunk of the PostScript stream. </p>
+<p>Borrow the FILE in piPtr and update bytesRead, lineNumber and line. A nonzero maxBytes limits the PostScript section; zero reads to EOF. Return FALSE at the limit or when fgets fails. Long physical lines may be split into chunks; this is not an arbitrary-length line reader. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ReadPostScript">
+<span class="target" id="group__eps__canvas_1gad6e43862fcf698a1a2b11289b4c380ba"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ReadPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse EPS header metadata and retain its PostScript body. </p>
+<p>Borrow the open psFile; reset the item DString and seek to psStart if needed. Require a percent-bang PS signature and an integer BoundingBox with positive, int-representable extents. Retain title and optional EPSI color preview on the item. Preserve an already-consumed first body line. Return TCL_ERROR with a diagnostic on header/seek failure; this does not restore prior item state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.OpenEpsFile">
+<span class="target" id="group__eps__canvas_1gadac404acc2b652714ad33805e12f504b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OpenEpsFile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OpenEpsFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Open the item file and parse its EPS section. </p>
+<p>Own a binary stdio stream in psFile. On Windows recognize the DOS EPS header and record section offsets and lengths before parsing. Close the stream on seek or parse failure; on success the caller must eventually <a class="reference internal" href="#group__eps__canvas_1ga9bf734cc79c646df273983f3425c8553"><span class="std std-ref">CloseEpsFile()</span></a>. Recorded preview formats do not imply a general TIFF/WMF renderer. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CloseEpsFile">
+<span class="target" id="group__eps__canvas_1ga9bf734cc79c646df273983f3425c8553"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CloseEpsFile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CloseEpsFile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Close and clear an item-owned stdio stream if present. </p>
+<p>Does not release parsed text, preview pixels or other item resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DeleteEps">
+<span class="target" id="group__eps__canvas_1ga0d17f9c12de8e24dbda90b878d2ae38f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DeleteEps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release resources of a canvas-owned EPS item. </p>
+<p>Release options, file, DString, color snapshot, source-image instance, private photo, pixmaps, fill GC, title style and parsed title through their matching APIs. Detach tmpImage before temporary-image cleanup can notify clients. The canvas owns the item record itself; this function does not free it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ConfigureEps">
+<span class="target" id="group__eps__canvas_1ga33829327d778bb37df4ee6a3695924f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConfigureEps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply legacy canvas options and rebuild EPS preview resources. </p>
+<p>Use Tk_ConfigureWidget and explicit option-prefix detection for image, file and quick changes. Source images are photo-only and copied to owned pixels. Create or discard the temporary display photo as needed, rebuild the fill GC and bbox, and close the file on success. Return Tcl status. Resource updates are incremental, not a Tk_SetOptions saved-options rollback transaction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ComputeEpsBbox">
+<span class="target" id="group__eps__canvas_1gaa011df5cd0700b4479e2e26a57fe9435"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeEpsBbox</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">EpsItem</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">epsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComputeEpsBbox" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map the item anchor and size into integer canvas bounds. </p>
+<p>Round x/y, translate the anchor, then update canvasX/Y and the Tk_Item bbox. Right and bottom bounds are exclusive for canvas redraw. No graph axes, track viewport or renderer clip stack participates. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DisplayEps">
+<span class="target" id="group__eps__canvas_1gaa7d4a5c3ee9cf8e8b894b98035ec87b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DisplayEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DisplayEps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the preview or placeholder through Tk canvas/native services. </p>
+<p>Rescale the saved color snapshot only when cached dimensions differ. Quick mode uses resize; otherwise use box resampling. Publish into the private photo, release the intermediate buffer, and draw pixmap/photo or filled placeholder, optional title and border. Borrow the drawable and canvas. This path does not construct a graph renderer context. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ScaleEps">
+<span class="target" id="group__eps__canvas_1ga532e8c6e3eb455655b58325f3a83f4bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ScaleEps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">originX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">originY</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleX</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scaleY</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ScaleEps" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Scale the anchor position about a canvas origin and recompute bounds. </p>
+<p>Only x/y change. Configured width and height are not multiplied by scaleX/Y; canvas scale is not equivalent to resizing the preview. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EpsToPostScript">
+<span class="target" id="group__eps__canvas_1gae914577c1a3a409c1f6046cf3ddb2cb7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EpsToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Canvas</span></span><span class="w"> </span><span class="n"><span class="pre">canvas</span></span>, <span class="n"><span class="pre">Tk_Item</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">itemPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">prepass</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EpsToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append EPS item output to the canvas PostScript result. </p>
+<p>Prepass is a no-op. With a file, load rbcCanvEps.pro, transform and clip to the EPS bounding box, and append the retained body between encapsulation guards. Without a file, serialize the cached temporary photo when present. Own a PsToken for output construction and release it on the handled output paths. This callback does not regenerate a stale preview or export SVG/PDF. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">EPS canvas C reference</a><ul>
+<li><a class="reference internal" href="#c.ReadPsLine"><code class="docutils literal notranslate"><span class="pre">ReadPsLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.ReadPostScript"><code class="docutils literal notranslate"><span class="pre">ReadPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.OpenEpsFile"><code class="docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a></li>
+<li><a class="reference internal" href="#c.CloseEpsFile"><code class="docutils literal notranslate"><span class="pre">CloseEpsFile()</span></code></a></li>
+<li><a class="reference internal" href="#c.DeleteEps"><code class="docutils literal notranslate"><span class="pre">DeleteEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.ConfigureEps"><code class="docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.ComputeEpsBbox"><code class="docutils literal notranslate"><span class="pre">ComputeEpsBbox()</span></code></a></li>
+<li><a class="reference internal" href="#c.DisplayEps"><code class="docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.ScaleEps"><code class="docutils literal notranslate"><span class="pre">ScaleEps()</span></code></a></li>
+<li><a class="reference internal" href="#c.EpsToPostScript"><code class="docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="eps-canvas.html"
+                          title="previous chapter">EPS canvas item implementation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="commenting.html"
+                          title="next chapter">C documentation conventions</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="eps-canvas.html" title="EPS canvas item implementation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">EPS canvas C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

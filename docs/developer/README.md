@@ -1,10 +1,19 @@
 # C developer manual
 
 This maintained Sphinx project is independent of the Ruff-generated Tcl manual.
-Coverage includes package initialization and client stubs, architecture, header dependencies, renderer contracts and native batching/clip ownership, Cairo surface and pattern ownership, graph
-widget lifecycle and redisplay, vector ownership and notifications, expression evaluation and callback boundaries, FFT workspace and output ownership, spline interpolation and smoothing, line decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty bands, polar data adapters and grid geometry, binding
-dispatch and picking, component option transactions and resource ownership,
-scrolling and viewport contracts, geometry and clipping contracts, chain/list ownership, image and tile ownership, text layout and document font ownership, export orchestration, SVG definitions and image encoding, PDF resource serialization and document ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, and source-comment conventions.
+Coverage includes package initialization and client stubs, architecture, header dependencies,
+renderer contracts and native batching/clip ownership, Cairo surface and pattern ownership, graph
+widget lifecycle and redisplay, vector ownership and notifications, expression evaluation and
+callback boundaries, FFT workspace and output ownership, spline interpolation and smoothing, line
+decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty
+bands, polar data adapters and grid geometry, binding dispatch and picking, component option
+transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
+contracts, chain/list ownership, image and tile ownership, text layout and document font ownership,
+export orchestration, SVG definitions and image encoding, PDF resource serialization and document
+ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and
+palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, shared
+GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
+ownership, and source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
 
@@ -19,7 +28,7 @@ After configuring, run:
 
 Open `docs/developer/html/index.html` in the source tree.
 The check target treats Doxygen and Sphinx warnings as failures.
-No RBC build, Tk display or Graphviz is required for this first version.
+No RBC build, Tk display or Graphviz is required for documentation generation.
 
 Without configure, from the source root:
 

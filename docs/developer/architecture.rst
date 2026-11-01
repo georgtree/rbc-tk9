@@ -67,6 +67,12 @@ used outside graph rendering too, rather than a universal renderer backend.
 image and tile code. It owns private Tk drawable/DC integration and Xlib
 emulation. See :doc:`rendering` for backend boundaries.
 
+See :doc:`window-services` for private GC ownership, native identifiers and
+window instance associations. See :doc:`winop-internals` for standalone window
+and photo commands, and :doc:`eps-canvas` for the legacy canvas item. These
+services are outside the graph renderer lifecycle even when they reuse shared
+pixel or PostScript helpers.
+
 Lifetime and callbacks
 ----------------------
 

@@ -1,9 +1,8 @@
 /*
  * rbcWindow.c --
  *
- *      This module implements additional window functionality for
- *      the rbc toolkit, such as transparent Tk windows,
- *      and reparenting Tk windows.
+ *      Native client/wrapper identifiers and interpreter-local window data.
+ *      Shared function contracts are declared in rbcInt.h.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -53,29 +52,6 @@ static HWND GetWindowHandle(Tk_Window tkwin) {
     return hWnd;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetRealWindowId --
- *
- *      Returns the XID for the Tk_Window given.  Starting in Tk 8.0,
- *      the toplevel widgets are wrapped by another window.
- *      Currently there's no way to get at that window, other than
- *      what is done here: query the X window hierarchy and grab the
- *      parent.
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      Returns the X Window ID of the widget.  If it's a toplevel,
- *      then the XID of the wrapper is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Window Rbc_GetRealWindowId(Tk_Window tkwin) { return (Window)GetWindowHandle(tkwin); }
 
 #else /* ! WIN32 */
@@ -141,34 +117,10 @@ static Window GetWindowId(Tk_Window tkwin) {
         if (parent != None) {
             window = parent;
         }
-        window = parent;
     }
     return window;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetRealWindowId --
- *
- *      Returns the XID for the Tk_Window given.  Starting in Tk 8.0,
- *      the toplevel widgets are wrapped by another window.
- *      Currently there's no way to get at that window, other than
- *      what is done here: query the X window hierarchy and grab the
- *      parent.
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      Returns the X Window ID of the widget.  If it's a toplevel, then
- *      the XID of the wrapper is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Window Rbc_GetRealWindowId(Tk_Window tkwin) { return GetWindowId(tkwin); }
 
 #endif /* WIN32 */
@@ -183,25 +135,6 @@ static void AssocDataCleanup(void *assocData, Tcl_Interp *interp) {
     ckfree(assocData);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_SetWindowInstanceData --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      ClientData instanceData
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
@@ -217,59 +150,28 @@ void Rbc_SetWindowInstanceData(Tk_Window tkwin, ClientData instanceData) {
     Tcl_SetHashValue(entryPtr, instanceData);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_GetWindowInstanceData --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 ClientData Rbc_GetWindowInstanceData(Tk_Window tkwin) {
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
 
+    if (assocData == NULL) {
+        return NULL;
+    }
     entryPtr = Tcl_FindHashEntry(assocData, tkwin);
     if (!entryPtr)
         return NULL;
     return Tcl_GetHashValue(entryPtr);
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_DeleteWindowInstanceData --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_DeleteWindowInstanceData(Tk_Window tkwin) {
-    /* body originally empty */
     Tcl_Interp *interp = Tk_Interp(tkwin);
     Tcl_HashTable *assocData = Tcl_GetAssocData(interp, INST_DATA_KEY, NULL);
     Tcl_HashEntry *entryPtr;
 
+    if (assocData == NULL) {
+        return;
+    }
     entryPtr = Tcl_FindHashEntry(assocData, tkwin);
     if (entryPtr) {
         Tcl_DeleteHashEntry(entryPtr);

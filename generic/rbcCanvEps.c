@@ -17,6 +17,15 @@
  *       to create hidden photo images.
  *    3. Create a spiffy demo that lets you edit your page description.
  */
+/**
+ * @file rbcCanvEps.c
+ * @brief Legacy EPS canvas item parsing, preview ownership and canvas callbacks.
+ */
+
+/** @defgroup eps_canvas EPS canvas item internals
+ * Private command/canvas callbacks, not installed C APIs.
+ */
+
 #include "rbcInt.h"
 #include "rbcPs.h"
 #include "rbcImage.h"
@@ -294,20 +303,14 @@ static char *SkipBlanks(EpsParseInfo *piPtr) {
     return s;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Read one bounded chunk of the PostScript stream.
  *
- * ReadPsLine --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow the FILE in piPtr and update bytesRead, lineNumber and line. A nonzero
+ * maxBytes limits the PostScript section; zero reads to EOF. Return FALSE at
+ * the limit or when fgets fails. Long physical lines may be split into chunks;
+ * this is not an arbitrary-length line reader.
  */
 static int ReadPsLine(EpsParseInfo *piPtr) {
     int maxChars;
@@ -540,35 +543,15 @@ error:
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Parse EPS header metadata and retain its PostScript body.
  *
- * ReadPostScript --
- *
- *      This routine reads and parses the few fields we need out
- *      of an EPS file.
- *
- *      The EPS standards are outlined from Appendix H of the
- *      "PostScript Language Reference Manual" pp. 709-736.
- *
- *      Mandatory fields:
- *
- *      - Starts with "%!PS*"
- *      - Contains "%%BoundingBox: llx lly urx ury"
- *
- *      Optional fields for EPS item:
- *      - "%%BeginPreview: w h bpp #lines"
- *         Preview is in hexadecimal. Each line must start with "%"
- *          - "%%EndPreview"
- *      - "%%Title: (string)"
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrow the open psFile; reset the item DString and seek to psStart if needed.
+ * Require a percent-bang PS signature and an integer BoundingBox with positive,
+ * int-representable extents. Retain title and optional EPSI color preview on the
+ * item. Preserve an already-consumed first body line. Return TCL_ERROR with a
+ * diagnostic on header/seek failure; this does not restore prior item state.
  */
 static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
     char *field;
@@ -702,20 +685,14 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Open the item file and parse its EPS section.
  *
- * OpenEpsFile --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Own a binary stdio stream in psFile. On Windows recognize the DOS EPS header
+ * and record section offsets and lengths before parsing. Close the stream on
+ * seek or parse failure; on success the caller must eventually CloseEpsFile().
+ * Recorded preview formats do not imply a general TIFF/WMF renderer.
  */
 static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
     FILE *f;
@@ -772,20 +749,11 @@ static int OpenEpsFile(Tcl_Interp *interp, EpsItem *epsPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Close and clear an item-owned stdio stream if present.
  *
- * CloseEpsFile --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Does not release parsed text, preview pixels or other item resources.
  */
 static void CloseEpsFile(EpsItem *epsPtr) {
     if (epsPtr->psFile != NULL) {
@@ -831,21 +799,14 @@ static void ReadTiffPreview(EpsItem *epsPtr) {
 }
 #endif
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Release resources of a canvas-owned EPS item.
  *
- * DeleteEps --
- *
- *      This procedure is called to clean up the data structure
- *      associated with a EPS item.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Resources associated with itemPtr are released.
- *
- *----------------------------------------------------------------------
+ * Release options, file, DString, color snapshot, source-image instance, private
+ * photo, pixmaps, fill GC, title style and parsed title through their matching
+ * APIs. Detach tmpImage before temporary-image cleanup can notify clients.
+ * The canvas owns the item record itself; this function does not free it.
  */
 static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
                       Tk_Item *itemPtr, /* Item that is being deleted. */
@@ -995,7 +956,8 @@ static void ImageChangedProc(ClientData clientData, int x, int y, int width, int
                              int imageHeight) {
     EpsItem *epsPtr = clientData;
     if ((epsPtr->preview == NULL) || (Tk_ImageIsDeleted(epsPtr->preview))) {
-        epsPtr->preview = NULL;
+        /* Tk's deletion loop still visits this instance after the callback.
+         * Retain it until reconfiguration or DeleteEps can release it safely. */
         if (epsPtr->previewName != NULL) {
             ckfree((char *)epsPtr->previewName);
             epsPtr->previewName = NULL;
@@ -1026,22 +988,15 @@ static int EpsOptionSpecified(Tcl_Size objc, Tcl_Obj *const objv[], const char *
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Apply legacy canvas options and rebuild EPS preview resources.
  *
- * ConfigureEps --
- *
- *      This procedure is invoked to configure various aspects
- *      of an EPS item, such as its background color.
- *
- * Results:
- *      A standard Tcl result code.  If an error occurs, then
- *      an error message is left in the interpreter result.
- *
- * Side effects:
- *      Configuration information may be set for itemPtr.
- *
- *----------------------------------------------------------------------
+ * Use Tk_ConfigureWidget and explicit option-prefix detection for image, file
+ * and quick changes. Source images are photo-only and copied to owned pixels.
+ * Create or discard the temporary display photo as needed, rebuild the fill GC
+ * and bbox, and close the file on success. Return Tcl status. Resource updates
+ * are incremental, not a Tk_SetOptions saved-options rollback transaction.
  */
 static int ConfigureEps(Tcl_Interp *interp,    /* Used for error reporting. */
                         Tk_Canvas canvas,      /* Canvas containing itemPtr. */
@@ -1238,24 +1193,13 @@ static int EpsCoords(Tcl_Interp *interp,    /* Used for error reporting. */
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Map the item anchor and size into integer canvas bounds.
  *
- * ComputeEpsBbox --
- *
- *      This procedure is invoked to compute the bounding box of
- *      all the pixels that may be drawn as part of a EPS item.
- *      This procedure is where the preview image's placement is
- *      computed.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The fields x1, y1, x2, and y2 are updated in the header
- *      for itemPtr.
- *
- *----------------------------------------------------------------------
+ * Round x/y, translate the anchor, then update canvasX/Y and the Tk_Item bbox.
+ * Right and bottom bounds are exclusive for canvas redraw. No graph axes,
+ * track viewport or renderer clip stack participates.
  */
 static void ComputeEpsBbox(Tk_Canvas canvas, EpsItem *epsPtr) {
     int x, y;
@@ -1279,23 +1223,15 @@ static void ComputeEpsBbox(Tk_Canvas canvas, EpsItem *epsPtr) {
     epsPtr->yBottom = y + epsPtr->height;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Draw the preview or placeholder through Tk canvas/native services.
  *
- * DisplayEps --
- *
- *      This procedure is invoked to draw the EPS item in a
- *      given drawable.  The EPS item may be drawn as either
- *      a solid rectangle or a pixmap of the preview image.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      ItemPtr is drawn in drawable using the transformation
- *      information in canvas.
- *
- *----------------------------------------------------------------------
+ * Rescale the saved color snapshot only when cached dimensions differ. Quick
+ * mode uses resize; otherwise use box resampling. Publish into the private
+ * photo, release the intermediate buffer, and draw pixmap/photo or filled
+ * placeholder, optional title and border. Borrow the drawable and canvas.
+ * This path does not construct a graph renderer context.
  */
 static void DisplayEps(Tk_Canvas canvas,      /* Canvas that contains item. */
                        Tk_Item *itemPtr,      /* Item to be displayed. */
@@ -1478,23 +1414,12 @@ static int EpsToArea(Tk_Canvas canvas, Tk_Item *itemPtr, double *area) {
     return 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup eps_canvas
+ * @brief Scale the anchor position about a canvas origin and recompute bounds.
  *
- * ScaleEps --
- *
- *      This procedure is invoked to rescale an item.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The item referred to by itemPtr is rescaled so that the
- *      following transformation is applied to all point coordinates:
- *          x' = originX + scaleX*(x-originX)
- *          y' = originY + scaleY*(y-originY)
- *
- *----------------------------------------------------------------------
+ * Only x/y change. Configured width and height are not multiplied by scaleX/Y;
+ * canvas scale is not equivalent to resizing the preview.
  */
 static void ScaleEps(Tk_Canvas canvas, Tk_Item *itemPtr, double originX, double originY, double scaleX, double scaleY) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;
@@ -1546,6 +1471,16 @@ static void TranslateEps(Tk_Canvas canvas, Tk_Item *itemPtr, double deltaX, doub
  *      None.
  *
  *----------------------------------------------------------------------
+ */
+/**
+ * @ingroup eps_canvas
+ * @brief Append EPS item output to the canvas PostScript result.
+ *
+ * Prepass is a no-op. With a file, load rbcCanvEps.pro, transform and clip to the
+ * EPS bounding box, and append the retained body between encapsulation guards.
+ * Without a file, serialize the cached temporary photo when present. Own a
+ * PsToken for output construction and release it on the handled output paths.
+ * This callback does not regenerate a stale preview or export SVG/PDF.
  */
 static int EpsToPostScript(Tcl_Interp *interp, Tk_Canvas canvas, Tk_Item *itemPtr, int prepass) {
     EpsItem *epsPtr = (EpsItem *)itemPtr;

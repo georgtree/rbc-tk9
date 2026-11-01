@@ -47,9 +47,9 @@ Prose chapters explain relationships; reference signatures come from headers.
 Migration and review
 --------------------
 
-Document one coherent module at a time, run ``make check-doc-dev``, and review
+Group related modules into a coherent patch, run ``make check-doc-dev``, and review
 the rendered pages. Check references, table readability and retained caveats.
 
-The reference includes renderer contracts and selected graph lifecycle
-functions. Some parameters and record members still need more detail.
+The reference includes selected contracts across the documented subsystems.
+Undocumented helpers, parameters and record members still need review.
 Strict checking validates included documentation, not coverage of all C sources.

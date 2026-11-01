@@ -111,6 +111,11 @@ used outside graph rendering too, rather than a universal renderer backend.</p>
 <p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> is Windows/Tk compatibility infrastructure used by renderers,
 image and tile code. It owns private Tk drawable/DC integration and Xlib
 emulation. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for backend boundaries.</p>
+<p>See <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for private GC ownership, native identifiers and
+window instance associations. See <a class="reference internal" href="winop-internals.html"><span class="doc">Window and photo command implementation</span></a> for standalone window
+and photo commands, and <a class="reference internal" href="eps-canvas.html"><span class="doc">EPS canvas item implementation</span></a> for the legacy canvas item. These
+services are outside the graph renderer lifecycle even when they reuse shared
+pixel or PostScript helpers.</p>
 </section>
 <section id="lifetime-and-callbacks">
 <h2>Lifetime and callbacks<a class="headerlink" href="#lifetime-and-callbacks" title="Link to this heading">¶</a></h2>
