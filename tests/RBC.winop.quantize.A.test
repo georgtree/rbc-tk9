@@ -141,5 +141,74 @@ namespace eval winop.quantize {
 	    destroy .graph1
 	} -result {0}
 	
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Verify that zero and extreme channels select populated histogram bins.
+    # ------------------------------------------------------------------------------------
+    test RBC.winop.quantize.A.4.1 {
+        winop quantize: solid colors retain their exact RGB values
+    } -setup {
+        set src [image create photo -width 2 -height 2]
+        set dest [image create photo]
+    } -body {
+        set result {}
+        foreach color {#ff0000 #00ff00 #0000ff #000000 #ffffff #070707 #080808 #f8f8f8} {
+            $src put $color -to 0 0 2 2
+            winop quantize $src $dest 1
+            lappend result [expr {[$dest get 0 0] eq [$src get 0 0] &&
+                                 [$dest get 1 1] eq [$src get 1 1]}]
+        }
+        set result
+    } -cleanup {
+        image delete $src $dest
+    } -result {1 1 1 1 1 1 1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Exercise both sides of five-bit bin boundaries in each color channel.
+    # ------------------------------------------------------------------------------------
+    test RBC.winop.quantize.A.4.2 {
+        winop quantize: adjacent populated bins map to their own palette colors
+    } -setup {
+        set src [image create photo -width 2 -height 2]
+        set dest [image create photo]
+    } -body {
+        set result {}
+        foreach channel {0 1 2} {
+            foreach low {7 127 247} {
+                set first {64 64 64}
+                set second $first
+                lset first $channel $low
+                lset second $channel [expr {$low + 1}]
+                $src put [format {#%02x%02x%02x} {*}$first] -to 0 0 1 2
+                $src put [format {#%02x%02x%02x} {*}$second] -to 1 0 2 2
+                winop quantize $src $dest 2
+                lappend result [expr {[$dest get 0 0] eq $first && [$dest get 1 0] eq $second &&
+                                     [$dest get 0 1] eq $first && [$dest get 1 1] eq $second}]
+            }
+        }
+        set result
+    } -cleanup {
+        image delete $src $dest
+    } -result {1 1 1 1 1 1 1 1 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Verify same-photo output and transparency alongside corrected RGB mapping.
+    # ------------------------------------------------------------------------------------
+    test RBC.winop.quantize.A.4.3 {
+        winop quantize: in-place output retains colors and transparency
+    } -setup {
+        set src [image create photo -width 2 -height 2]
+        $src put red -to 0 0 1 2
+        $src put blue -to 1 0 2 2
+        $src transparency set 0 1 true
+    } -body {
+        winop quantize $src $src 2
+        list [$src get 0 0] [$src get 1 0] [$src get 1 1] \
+             [$src transparency get 0 0] [$src transparency get 0 1] \
+             [$src transparency get 1 1]
+    } -cleanup {
+        image delete $src
+    } -result {{255 0 0} {0 0 255} {0 0 255} 0 1 0}
+
 	cleanupTests
 }

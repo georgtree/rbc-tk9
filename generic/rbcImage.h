@@ -129,6 +129,13 @@ typedef struct {
 
 /* Prototypes of image routines */
 
+/**
+ * @brief Replace RGB channels in place with their weighted greyscale value.
+ *
+ * Borrow image and retain its dimensions, storage and alpha values. Apply
+ * coefficients 0.212671, 0.715160 and 0.072169 to stored RGB bytes, clamp and
+ * truncate to a byte. No gamma conversion or temporary image is involved.
+ */
 void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
 /**
  * @brief Replace a borrowed Tk photo's size and pixels from an RBC image.
@@ -138,6 +145,16 @@ void Rbc_ColorImageToGreyscale(Rbc_ColorImage image);
  * reliable success/failure status to its caller.
  */
 void Rbc_ColorImageToPhoto(Tcl_Interp *interp, Rbc_ColorImage image, Tk_PhotoHandle photo);
+/**
+ * @brief Return a newly owned, same-size image filtered over RGB with opaque alpha.
+ *
+ * Borrow source and filter. The effective radius is max(1, (int)support).
+ * The caller supplies a row-major square kernel of (2 * radius + 1)^2 finite
+ * coefficients and a finite nonzero divisor in sum. scale is unused. Samples
+ * beyond the image repeat its edge pixels. The kernel is traversed as stored,
+ * without reversal. Release the result with Rbc_FreeColorImage(). Invalid
+ * filter metadata panics; kernel length and coefficients are not validated.
+ */
 Rbc_ColorImage Rbc_ConvolveColorImage(Rbc_ColorImage srcImage, Filter2D *filter);
 /**
  * @brief Allocate an owned row-major RGBA pixel buffer and image record.
@@ -178,6 +195,17 @@ Rbc_ColorImage Rbc_PhotoToColorImage(Tk_PhotoHandle photo);
  * not NULL. The result owns its pixels and must be freed with Rbc_FreeColorImage.
  */
 Rbc_ColorImage Rbc_PhotoRegionToColorImage(Tk_PhotoHandle photo, int x, int y, int width, int height);
+/**
+ * @brief Map source RGB into an existing, equal-size destination while preserving alpha.
+ *
+ * Borrow both images; identical source and destination are supported. Require
+ * 1..256 requested colors and matching dimensions, otherwise return TCL_ERROR
+ * without a Tcl diagnostic or pixel changes. Empty images return TCL_OK.
+ * Temporary histogram, boxes and lookup table are released internally.
+ *
+ * Mapping uses the same one-based channel bins as histogram construction and
+ * lookup-table population. Some split diagnostics use stderr.
+ */
 int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int nColors);
 /**
  * @brief Return a newly owned image filtered horizontally and then vertically.

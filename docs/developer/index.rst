@@ -63,6 +63,8 @@ chapters.
    resampling-reference
    image-transforms
    image-transform-reference
+   image-colors
+   image-color-reference
    text-fonts
    text-font-reference
    exports

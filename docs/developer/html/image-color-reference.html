@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Image color processing C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Text layout and document fonts" href="text-fonts.html" />
+    <link rel="prev" title="Image color processing" href="image-colors.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="image-colors.html" title="Image color processing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image color processing C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-color-processing-c-reference">
+<h1>Image color processing C reference<a class="headerlink" href="#image-color-processing-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in
+<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a> for algorithms and current limitations.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ColorImageToGreyscale">
+<span class="target" id="rbc_image_8h_1ad5e32baf678c094c228f752cf5405b47"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToGreyscale</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ColorImageToGreyscale" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace RGB channels in place with their weighted greyscale value. </p>
+<p>Borrow image and retain its dimensions, storage and alpha values. Apply coefficients 0.212671, 0.715160 and 0.072169 to stored RGB bytes, clamp and truncate to a byte. No gamma conversion or temporary image is involved. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_ConvolveColorImage">
+<span class="target" id="rbc_image_8h_1a8d7f84e0d79de40c6fc443e5ea10f2fc"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ConvolveColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">srcImage</span></span>, <span class="n"><span class="pre">Filter2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filter</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ConvolveColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a newly owned, same-size image filtered over RGB with opaque alpha. </p>
+<p>Borrow source and filter. The effective radius is max(1, (int)support). The caller supplies a row-major square kernel of (2 * radius + 1)^2 finite coefficients and a finite nonzero divisor in sum. scale is unused. Samples beyond the image repeat its edge pixels. The kernel is traversed as stored, without reversal. Release the result with <a class="reference internal" href="image-tile-reference.html#rbc_image_8h_1a482512d691341bdb6c90440caafdd6f0"><span class="std std-ref">Rbc_FreeColorImage()</span></a>. Invalid filter metadata panics; kernel length and coefficients are not validated. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_QuantizeColorImage">
+<span class="target" id="rbc_image_8h_1a5f7c7723d0ac5531174cd0e639568409"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_QuantizeColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nColors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_QuantizeColorImage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map source RGB into an existing, equal-size destination while preserving alpha. </p>
+<p>Borrow both images; identical source and destination are supported. Require 1..256 requested colors and matching dimensions, otherwise return TCL_ERROR without a Tcl diagnostic or pixel changes. Empty images return TCL_OK. Temporary histogram, boxes and lookup table are released internally.</p>
+<p>Mapping uses the same one-based channel bins as histogram construction and lookup-table population. Some split diagnostics use stderr. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image color processing C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_ColorImageToGreyscale"><code class="docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_ConvolveColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_ConvolveColorImage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_QuantizeColorImage"><code class="docutils literal notranslate"><span class="pre">Rbc_QuantizeColorImage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="image-colors.html"
+                          title="previous chapter">Image color processing</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="text-fonts.html"
+                          title="next chapter">Text layout and document fonts</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="text-fonts.html" title="Text layout and document fonts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="image-colors.html" title="Image color processing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Image color processing C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

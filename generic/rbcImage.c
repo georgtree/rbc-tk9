@@ -2849,7 +2849,9 @@ static void MapColors(Rbc_ColorImage src, Rbc_ColorImage dest, unsigned int lut[
     destPtr = Rbc_ColorImageBits(dest);
     for (endPtr = destPtr + count; destPtr < endPtr; srcPtr++, destPtr++) {
         alpha = srcPtr->rgba.alpha;
-        destPtr->value = lut[srcPtr->rgba.red >> 3][srcPtr->rgba.green >> 3][srcPtr->rgba.blue >> 3];
+        /* Match the one-based histogram bins; index zero is the moment boundary. */
+        destPtr->value = lut[(srcPtr->rgba.red >> 3) + 1][(srcPtr->rgba.green >> 3) + 1]
+                            [(srcPtr->rgba.blue >> 3) + 1];
         destPtr->rgba.alpha = alpha;
     }
 }
