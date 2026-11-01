@@ -4,7 +4,8 @@ Expression parser and adapter internals
 ``rbcVecMath.c`` contains a recursive expression evaluator, not a wrapper around
 Tcl's ``expr``. It uses Tcl parsing and evaluation for substitutions, then
 performs vector arithmetic on its own temporary records. See :doc:`expressions`
-for command entry points and result ownership, and
+for command entry points and result ownership, :doc:`expression-numerics` for
+reduction formulas and scalar kernels, and
 :doc:`expression-engine-reference` for the source contracts.
 
 Parser state and precedence

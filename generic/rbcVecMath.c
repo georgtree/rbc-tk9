@@ -16,6 +16,9 @@
 /** @defgroup expression_engine Expression engine internals
  * Private evaluator helpers. Registered vector types remain immutable.
  */
+/** @defgroup expression_numerics Expression numerical kernels
+ * Private reductions and scalar kernels used by the expression adapters.
+ */
 #include "rbcVectorInt.h"
 #include <stdint.h>
 #include <errno.h>
@@ -141,6 +144,7 @@ static double Q3(Rbc_Vector *vecPtr);
 static double Round(double value);
 static double StdDeviation(Rbc_Vector *vecPtr);
 static double Skew(Rbc_Vector *vecPtr);
+static double Skewness(Rbc_Vector *vecPtr);
 static int Sort(VectorObject *vPtr);
 static double Sum(Rbc_Vector *vecPtr);
 static double Variance(Rbc_Vector *vecPtr);
@@ -227,6 +231,7 @@ static MathFunction mathFunctions[] = {
     {"sin", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinFunction},
     {"sinh", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sinhFunction},
     {"skew", (GenericMathProc *)ScalarFunc, (ClientData)Skew},
+    {"skewness", (GenericMathProc *)ScalarFunc, (ClientData)Skewness},
     {"sort", (GenericMathProc *)VectorFunc, (ClientData)Sort},
     {"sqrt", (GenericMathProc *)ComplexComponentFunc, (ClientData)&sqrtFunction},
     {"sum", (GenericMathProc *)ComplexScalarFunc, (ClientData)&sumFunction},
@@ -922,25 +927,6 @@ static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current) {
     return -1;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_VecMin --
- *
- *      Calculates the minimum value of all the indexes in the
- *      vector.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - The vector to calculate the min for
- *
- * Results:
- *      The minimum value in the vector
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
 double Rbc_VecMin(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
@@ -965,11 +951,25 @@ double Rbc_VecMin(Rbc_Vector *vecPtr) {
     return vPtr->min;
 }
 
+/**
+ * @brief Draw one real random value, ignoring the input value.
+ * @ingroup expression_numerics
+ *
+ * Delegates to Rbc_RandomDouble and advances its random state. Invocation count is controlled by the
+ * component adapter; this helper does not seed or create an independent generator.
+ */
 static double Random(double value) {
     (void)value;
     return Rbc_RandomDouble();
 }
 
+/**
+ * @brief Draw independent real and imaginary random components.
+ * @ingroup expression_numerics
+ *
+ * Ignores the supplied pair and calls Rbc_RandomDouble twice in real-then-imaginary order. Uses the
+ * shared random helper, not a vector-owned generator.
+ */
 static Rbc_Complex ComplexRandom(Rbc_Complex value) {
     Rbc_Complex result;
 
@@ -979,25 +979,6 @@ static Rbc_Complex ComplexRandom(Rbc_Complex value) {
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_VecMax --
- *
- *      Calculates the minimum value of all the indexes in the
- *      vector.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - The vector to calculate the max for
- *
- * Results:
- *      The minimum value in the vector
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
 double Rbc_VecMax(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     double max;
@@ -1021,24 +1002,12 @@ double Rbc_VecMax(Rbc_Vector *vecPtr) {
     return vPtr->max;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Compute the real mean over finite selected values.
+ * @ingroup expression_numerics
  *
- * Mean --
- *
- *      Calculates the mean of all the value in the
- *      vector.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - The vector to calculate the mean of
- *
- * Results:
- *      The mean value of the vector
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Uses First/Next and ordinary double summation. Divides by the finite count; no finite values produce
+ * a nonfinite result rejected by expression evaluation. Does not modify storage or selection.
  */
 static double Mean(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1055,24 +1024,12 @@ static double Mean(Rbc_Vector *vecPtr) {
     return sum / (double)count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Sum finite real values in the selected interval.
+ * @ingroup expression_numerics
  *
- * Sum --
- *
- *      Calculates the sum of all the value in the
- *      vector.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - The vector to calculate the sum for
- *
- * Results:
- *      The sum value of the vector
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Starts at zero and accumulates in storage order without compensation. Empty or entirely nonfinite
+ * selections return zero. No allocation, notification or Tcl evaluation.
  */
 static double Sum(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1086,24 +1043,12 @@ static double Sum(Rbc_Vector *vecPtr) {
     return sum;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Multiply finite real values in the selected interval.
+ * @ingroup expression_numerics
  *
- * Product --
- *
- *      Calculates the product of all the value in the
- *      vector.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - The Vector to calculate product for
- *
- * Results:
- *      The product value of the vector
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Starts at one; empty or entirely nonfinite selections return one. Ordinary multiplication can
+ * overflow or underflow; final validation belongs to the adapter/evaluator.
  */
 static double Product(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1117,24 +1062,13 @@ static double Product(Rbc_Vector *vecPtr) {
     return prod;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Sort the selected real interval through an index permutation.
+ * @ingroup expression_numerics
  *
- * Sort --
- *
- *      A vector math function.  Sorts the values of the given
- *      vector.
- *
- * Parameters:
- *      VectorObject *vPtr
- *
- * Results:
- *      Always TCL_OK.
- *
- * Side Effects:
- *      The vector is sorted.
- *
- *--------------------------------------------------------------
+ * Selections of at most one value are unchanged. Allocates an index array and a temporary value array,
+ * copies sorted values back only after allocation succeeds, then frees both arrays. Returns TCL_ERROR
+ * on size/allocation failure. Intended for detached expression storage; sends no notifications.
  */
 static int Sort(VectorObject *vPtr) {
     Tcl_Size *indexArr;
@@ -1172,23 +1106,12 @@ static int Sort(VectorObject *vPtr) {
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Count finite real values in the selected interval.
+ * @ingroup expression_numerics
  *
- * Length --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns the count as double, not allocated capacity or unfiltered vector length. Uses First/Next and
+ * does not mutate the record.
  */
 static double Length(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1202,23 +1125,14 @@ static double Length(Rbc_Vector *vecPtr) {
     return (double)count;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the real middle order statistic without rearranging data.
+ * @ingroup expression_numerics
  *
- * Median --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Allocates a sort index and frees it before returning. Uses full vector length to choose one middle
+ * value or the average of two; requires the selected interval to cover the full vector, as expression
+ * copies normally do. Empty input or sort-index failure returns the finite sentinel -DBL_MAX rather
+ * than a Tcl status.
  */
 static double Median(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1247,23 +1161,13 @@ static double Median(Rbc_Vector *vecPtr) {
     return q2;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute real sample variance over finite selected values.
+ * @ingroup expression_numerics
  *
- * Variance --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Computes Mean first, then sums squared deviations and divides by count-1. Fewer than two finite
+ * samples return zero. Uses ordinary double arithmetic without compensated summation or overflow
+ * scaling.
  */
 static double Variance(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1286,23 +1190,13 @@ static double Variance(Rbc_Vector *vecPtr) {
     return var;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute the legacy absolute standardized third moment.
+ * @ingroup expression_numerics
  *
- * Skew --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Accumulates absolute cubed deviations and divides by count times sample variance to the power 3/2.
+ * Fewer than two finite samples return zero; constant samples of length at least two yield a nonfinite
+ * division. This is not conventional signed skewness; symmetry does not generally give zero.
  */
 static double Skew(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1329,23 +1223,54 @@ static double Skew(Rbc_Vector *vecPtr) {
     return skew;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute signed skewness using population central moments.
+ * @ingroup expression_numerics
  *
- * StdDeviation --
+ * Uses finite selected real samples and returns m3/(m2*sqrt(m2)), where
+ * mk=sum((x-mean)^k)/count. This is the unadjusted moment coefficient, not a
+ * bias-corrected sample estimator. Scales inputs by their maximum magnitude
+ * before accumulation to avoid overflow/underflow from cubing raw values.
+ * Returns NaN for empty or constant input; final expression validation reports
+ * a domain error. Does not modify storage or change the legacy Skew formula.
+ */
+static double Skewness(Rbc_Vector *vecPtr) {
+    VectorObject *vPtr = (VectorObject *)vecPtr;
+    Tcl_Size i, count = 0;
+    double scale = 0.0, mean = 0.0, m2 = 0.0, m3 = 0.0;
+
+    for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
+        scale = MAX(scale, FABS(vPtr->data.real[i]));
+        count++;
+    }
+    if (count < 2 || scale == 0.0) {
+        return rbcNaN;
+    }
+    for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
+        mean += vPtr->data.real[i] / scale;
+    }
+    mean /= (double)count;
+    for (i = First(vPtr); i >= 0; i = Next(vPtr, i)) {
+        double diff = vPtr->data.real[i] / scale - mean;
+        double square = diff * diff;
+
+        m2 += square;
+        m3 += square * diff;
+    }
+    if (m2 == 0.0) {
+        return rbcNaN;
+    }
+    m2 /= (double)count;
+    m3 /= (double)count;
+    return m3 / (m2 * sqrt(m2));
+}
+
+/**
+ * @brief Return the square root of positive real sample variance.
+ * @ingroup expression_numerics
  *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Delegates to Variance. Returns zero when variance is not greater than zero, including a NaN
+ * comparison; does not independently propagate a Tcl status.
  */
 static double StdDeviation(Rbc_Vector *vecPtr) {
     double var;
@@ -1357,23 +1282,12 @@ static double StdDeviation(Rbc_Vector *vecPtr) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute mean absolute real deviation from the finite-sample mean.
+ * @ingroup expression_numerics
  *
- * AvgDeviation --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses finite selected values, divides by their count, and returns zero for fewer than two. Does not
+ * use sample count-1 normalization.
  */
 static double AvgDeviation(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1396,23 +1310,13 @@ static double AvgDeviation(Rbc_Vector *vecPtr) {
     return avg;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute the legacy fourth-moment excess statistic.
+ * @ingroup expression_numerics
  *
- * Kurtosis --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses finite selected values and sample variance. Returns sum of fourth powers divided by
+ * count*variance*variance, minus three. Returns zero for fewer than two samples or zero variance. This
+ * is not a bias-corrected estimator and is not population-moment normalization.
  */
 static double Kurtosis(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1441,23 +1345,13 @@ static double Kurtosis(Rbc_Vector *vecPtr) {
     return kurt - 3.0; /* Fisher Kurtosis */
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the legacy lower quartile from a sorted index.
+ * @ingroup expression_numerics
  *
- * Q1 --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the minimum.
+ * Otherwise mid=(length-1)/2 and q=mid/2; odd mid selects q, even mid averages q and q+1. Requires a
+ * full-length selection. Frees the index without rearranging source data.
  */
 static double Q1(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1488,23 +1382,14 @@ static double Q1(Rbc_Vector *vecPtr) {
     return q1;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the legacy upper quartile from a sorted index.
+ * @ingroup expression_numerics
  *
- * Q3 --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Empty input or index allocation failure returns -DBL_MAX. Lengths below four select the maximum.
+ * Otherwise mid=(length-1)/2 and q=mid+(length-mid)/2; odd mid selects q, even mid averages q and q+1.
+ * Requires a full-length selection. These are legacy index rules, not a selectable percentile
+ * convention.
  */
 static double Q3(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1535,23 +1420,13 @@ static double Q3(Rbc_Vector *vecPtr) {
     return q3;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Normalize every real value using full-vector finite extrema.
+ * @ingroup expression_numerics
  *
- * Norm --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Computes min/max, then writes (value-min)/(max-min) in place over the full length. Has no zero-range
+ * guard: constant nonempty input produces nonfinite values rejected later by the expression evaluator.
+ * Returns TCL_OK after the loop and does not notify; operates on detached expression storage.
  */
 static int Norm(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1568,23 +1443,12 @@ static int Norm(Rbc_Vector *vecPtr) {
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Count nonzero finite real values in the selected interval.
+ * @ingroup expression_numerics
  *
- * Nonzeros --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses exact comparison with zero, so both signed zeros are excluded. Returns a double count; no
+ * tolerance or magnitude threshold is applied.
  */
 static double Nonzeros(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
@@ -1600,29 +1464,91 @@ static double Nonzeros(Rbc_Vector *vecPtr) {
     return (double)count;
 }
 
+/**
+ * @brief Return a real component unchanged.
+ * @ingroup expression_numerics
+ *
+ * Used by real branches of component adapters. Does not validate finiteness or normalize signed zero.
+ */
 static double Identity(double value) { return value; }
 
+/**
+ * @brief Return real zero regardless of the input.
+ * @ingroup expression_numerics
+ *
+ * Supplies the imaginary-part adapter for real input. Finite-input iteration belongs to the enclosing
+ * adapter.
+ */
 static double Zero(double value) {
     (void)value;
 
     return 0.0;
 }
 
+/**
+ * @brief Return the phase of a real value in radians.
+ * @ingroup expression_numerics
+ *
+ * Uses atan2 with positive zero as the imaginary argument. Branch and signed-zero behavior follow that
+ * libm call, rather than a hand-coded sign test.
+ */
 static double Arg(double value) { return atan2(0.0, value); }
 
+/**
+ * @brief Return a complex value's Euclidean magnitude.
+ * @ingroup expression_numerics
+ *
+ * Uses hypot to avoid unnecessary overflow in intermediate squares. The magnitude itself can exceed
+ * the finite double range.
+ */
 static double ComplexAbs(Rbc_Complex value) { return hypot(value.real, value.imag); }
 
+/**
+ * @brief Return complex phase in radians.
+ * @ingroup expression_numerics
+ *
+ * Uses atan2(imag, real), including its branch and signed-zero behavior. Does not alter the value or
+ * report a Tcl status.
+ */
 static double ComplexArg(Rbc_Complex value) { return atan2(value.imag, value.real); }
 
+/**
+ * @brief Extract the real component.
+ * @ingroup expression_numerics
+ *
+ * Returns the stored double directly; validation is the adapter's responsibility.
+ */
 static double ComplexReal(Rbc_Complex value) { return value.real; }
 
+/**
+ * @brief Extract the imaginary component.
+ * @ingroup expression_numerics
+ *
+ * Returns the stored double directly; validation is the adapter's responsibility.
+ */
 static double ComplexImag(Rbc_Complex value) { return value.imag; }
 
+/**
+ * @brief Return the complex conjugate.
+ * @ingroup expression_numerics
+ *
+ * Negates only the imaginary component, including its sign bit for zero. Does not allocate or validate
+ * the pair.
+ */
 static Rbc_Complex ComplexConj(Rbc_Complex value) {
     value.imag = -value.imag;
     return value;
 }
 
+/**
+ * @brief Compute the square-root branch with nonnegative real part.
+ * @ingroup expression_numerics
+ *
+ * Returns complex zero unchanged. Scales very large components before hypot/2 to avoid avoidable
+ * overflow. For negative real input, imaginary sign uses imag<0, so negative zero takes the same
+ * branch as positive zero. The adapter checks errno and finite components; this is not a full C99
+ * signed-zero branch guarantee.
+ */
 static Rbc_Complex ComplexSqrt(Rbc_Complex value) {
     Rbc_Complex result;
     double halfMagnitude;
@@ -1652,6 +1578,13 @@ static Rbc_Complex ComplexSqrt(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute exp(real) times the unit complex phase.
+ * @ingroup expression_numerics
+ *
+ * Uses exp(real), cos(imag) and sin(imag). Can overflow or underflow; the component adapter owns errno
+ * and finite-result checks.
+ */
 static Rbc_Complex ComplexExp(Rbc_Complex value) {
     Rbc_Complex result;
     double scale;
@@ -1662,6 +1595,13 @@ static Rbc_Complex ComplexExp(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute log of a magnitude without first forming that magnitude.
+ * @ingroup expression_numerics
+ *
+ * For finite inputs, factors out the larger absolute component and uses log(max)+log(1+ratio*ratio)/2.
+ * Both zero calls log(0), preserving libm error behavior. Does not clear errno or set Tcl errors.
+ */
 static double LogHypot(double x, double y) {
     double a, b;
     double maximum, minimum;
@@ -1683,6 +1623,13 @@ static double LogHypot(double x, double y) {
     return log(maximum) + 0.5 * log(1.0 + ratio * ratio);
 }
 
+/**
+ * @brief Return logarithmic magnitude and principal atan2 phase.
+ * @ingroup expression_numerics
+ *
+ * Uses LogHypot for the real part and atan2(imag, real) for the imaginary part. Zero input is
+ * singular; the adapter reports its libm/nonfinite failure.
+ */
 static Rbc_Complex ComplexLog(Rbc_Complex value) {
     Rbc_Complex result;
 
@@ -1691,6 +1638,13 @@ static Rbc_Complex ComplexLog(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Scale the complex natural logarithm to base ten.
+ * @ingroup expression_numerics
+ *
+ * Multiplies both components by 1/ln(10), retaining the same phase branch and zero singularity as
+ * ComplexLog.
+ */
 static Rbc_Complex ComplexLog10(Rbc_Complex value) {
     Rbc_Complex result;
     const double invLn10 = 0.43429448190325182765;
@@ -1701,6 +1655,13 @@ static Rbc_Complex ComplexLog10(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex sine using real trigonometric and hyperbolic functions.
+ * @ingroup expression_numerics
+ *
+ * Returns sin(x)*cosh(y) + i*cos(x)*sinh(y). Intermediate hyperbolic overflow is not scaled away;
+ * caller validates errno and result components.
+ */
 static Rbc_Complex ComplexSin(Rbc_Complex value) {
     Rbc_Complex result;
     double sinhImag;
@@ -1713,6 +1674,13 @@ static Rbc_Complex ComplexSin(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex cosine from real trigonometric/hyperbolic functions.
+ * @ingroup expression_numerics
+ *
+ * Returns cos(x)*cosh(y) - i*sin(x)*sinh(y). Does not independently handle overflow or report a Tcl
+ * error.
+ */
 static Rbc_Complex ComplexCos(Rbc_Complex value) {
     Rbc_Complex result;
     double sinhImag;
@@ -1725,6 +1693,12 @@ static Rbc_Complex ComplexCos(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex hyperbolic sine.
+ * @ingroup expression_numerics
+ *
+ * Returns sinh(x)*cos(y) + i*cosh(x)*sin(y). Caller owns errno and finite-result validation.
+ */
 static Rbc_Complex ComplexSinh(Rbc_Complex value) {
     Rbc_Complex result;
     double sinhReal;
@@ -1737,6 +1711,12 @@ static Rbc_Complex ComplexSinh(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex hyperbolic cosine.
+ * @ingroup expression_numerics
+ *
+ * Returns cosh(x)*cos(y) + i*sinh(x)*sin(y). Caller owns errno and finite-result validation.
+ */
 static Rbc_Complex ComplexCosh(Rbc_Complex value) {
     Rbc_Complex result;
     double sinhReal;
@@ -1749,6 +1729,15 @@ static Rbc_Complex ComplexCosh(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex tangent using a decaying exponential formulation.
+ * @ingroup expression_numerics
+ *
+ * On the real axis delegates to tan and preserves imaginary zero. Otherwise uses exp(-2*abs(imag)) and
+ * a denominator arranged to reduce cancellation near poles. For abs(imag)>350 sets the exponential
+ * term to zero to avoid irrelevant underflow errno. Does not suppress true singular or nonfinite
+ * results.
+ */
 static Rbc_Complex ComplexTan(Rbc_Complex value) {
     Rbc_Complex result;
     double a;
@@ -1794,6 +1783,14 @@ static Rbc_Complex ComplexTan(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex hyperbolic tangent with scaled exponential terms.
+ * @ingroup expression_numerics
+ *
+ * On the imaginary axis uses i*tan(imag) and preserves real zero. Otherwise uses exp(-2*abs(real)),
+ * setting it to zero above 350, with a cancellation-reduced denominator. Caller checks
+ * singularities/nonfinite results.
+ */
 static Rbc_Complex ComplexTanh(Rbc_Complex value) {
     Rbc_Complex result;
     double a;
@@ -1826,6 +1823,13 @@ static Rbc_Complex ComplexTanh(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute real acosh for an argument at least one.
+ * @ingroup expression_numerics
+ *
+ * Uses log(value+sqrt(value-1)*sqrt(value+1)); above DBL_MAX/2 uses log(value)+ln(2). Does not
+ * validate its domain; ComplexAsin clamps its argument before calling.
+ */
 static double RealAcosh(double value) {
     const double ln2 = 0.69314718055994530942;
 
@@ -1835,6 +1839,14 @@ static double RealAcosh(double value) {
     return log(value + sqrt(value - 1.0) * sqrt(value + 1.0));
 }
 
+/**
+ * @brief Compute an inverse-sine branch from distances to plus/minus one.
+ * @ingroup expression_numerics
+ *
+ * Forms alpha as two half magnitudes to avoid adding them before division. Clamps alpha to at least
+ * one and beta=real/alpha into [-1,1], then combines asin(beta) and signed acosh(alpha). Uses copysign
+ * for imaginary sign. Individual magnitudes can still overflow for extreme finite inputs.
+ */
 static Rbc_Complex ComplexAsin(Rbc_Complex value) {
     Rbc_Complex result;
     double rPlus;
@@ -1871,6 +1883,13 @@ static Rbc_Complex ComplexAsin(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute inverse cosine from the inverse-sine branch.
+ * @ingroup expression_numerics
+ *
+ * Returns pi/2 minus the real part of ComplexAsin and negates its imaginary part. Inherits that
+ * helper's numerical limits and branch behavior.
+ */
 static Rbc_Complex ComplexAcos(Rbc_Complex value) {
     Rbc_Complex result;
     Rbc_Complex asinValue;
@@ -1881,6 +1900,14 @@ static Rbc_Complex ComplexAcos(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex inverse tangent with scaled angle and logarithmic distances.
+ * @ingroup expression_numerics
+ *
+ * Scales the quadratic terms used by atan2 and uses LogHypot for distances to plus/minus i. Returns
+ * half the angle and half the log-distance difference. Poles at plus/minus i remain singular; caller
+ * validates errno and finite components.
+ */
 static Rbc_Complex ComplexAtan(Rbc_Complex value) {
     Rbc_Complex result;
     double scale;
@@ -1915,6 +1942,16 @@ static Rbc_Complex ComplexAtan(Rbc_Complex value) {
     return result;
 }
 
+/**
+ * @brief Compute complex powers with a separate integral-exponent path.
+ * @ingroup expression_numerics
+ *
+ * Finite real integer exponents use exponentiation by squaring with the exponent kept as double. Zero
+ * exponent returns one, including zero-to-zero; negative powers of zero fail. For zero base, positive
+ * nonintegral real powers return zero and finite nonreal exponents fail. Other cases use
+ * exp(exponent*Log(base)). Returns Tcl status; successful computation can still be nonfinite and
+ * requires outer validation.
+ */
 static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex exponent, Rbc_Complex *resultPtr) {
     Rbc_Complex one;
 
@@ -2000,6 +2037,13 @@ static int ComplexPower(Tcl_Interp *interp, Rbc_Complex base, Rbc_Complex expone
     return TCL_OK;
 }
 
+/**
+ * @brief Sum selected complex values having two finite components.
+ * @ingroup expression_numerics
+ *
+ * Starts at 0+0i and skips the entire sample if either component is nonfinite. Uses ordinary complex
+ * addition in storage order; empty input returns complex zero.
+ */
 static Rbc_Complex ComplexSum(VectorObject *vPtr) {
     Rbc_Complex sum;
     Tcl_Size i;
@@ -2018,6 +2062,14 @@ static Rbc_Complex ComplexSum(VectorObject *vPtr) {
     return sum;
 }
 
+/**
+ * @brief Compute the componentwise mean of finite complex samples.
+ * @ingroup expression_numerics
+ *
+ * Both components must be finite for a sample to count. Divides real and imaginary sums by the same
+ * selected sample count. No finite samples return NaN in both components; the evaluator rejects that
+ * result.
+ */
 static Rbc_Complex ComplexMean(VectorObject *vPtr) {
     Rbc_Complex sum;
     Rbc_Complex result;
@@ -2051,6 +2103,13 @@ static Rbc_Complex ComplexMean(VectorObject *vPtr) {
     return result;
 }
 
+/**
+ * @brief Multiply selected finite complex samples.
+ * @ingroup expression_numerics
+ *
+ * Starts at 1+0i and skips samples with either component nonfinite. Empty input returns complex one.
+ * Uses Rbc_ComplexMul; does not promise overflow-free accumulation.
+ */
 static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
     Rbc_Complex product;
     Tcl_Size i;
@@ -2069,6 +2128,13 @@ static Rbc_Complex ComplexProduct(VectorObject *vPtr) {
     return product;
 }
 
+/**
+ * @brief Count selected complex samples with both components finite.
+ * @ingroup expression_numerics
+ *
+ * Returns a double count. A sample with only one finite component is excluded entirely; this is not
+ * raw vector length.
+ */
 static double ComplexLength(VectorObject *vPtr) {
     Tcl_Size count;
     Tcl_Size i;
@@ -2082,6 +2148,12 @@ static double ComplexLength(VectorObject *vPtr) {
     return (double)count;
 }
 
+/**
+ * @brief Count finite selected complex samples other than complex zero.
+ * @ingroup expression_numerics
+ *
+ * A sample counts when both components are finite and at least one is nonzero. No tolerance is used.
+ */
 static double ComplexNonzeros(VectorObject *vPtr) {
     Tcl_Size count;
     Tcl_Size i;
@@ -2101,24 +2173,49 @@ static double ComplexNonzeros(VectorObject *vPtr) {
     return (double)count;
 }
 
+/**
+ * @brief Apply ceil independently to both complex components.
+ * @ingroup expression_numerics
+ *
+ * Does not round magnitude or phase. The adapter validates errno and finite results.
+ */
 static Rbc_Complex ComplexCeil(Rbc_Complex value) {
     value.real = ceil(value.real);
     value.imag = ceil(value.imag);
     return value;
 }
 
+/**
+ * @brief Apply floor independently to both complex components.
+ * @ingroup expression_numerics
+ *
+ * Does not round magnitude or phase. The adapter validates errno and finite results.
+ */
 static Rbc_Complex ComplexFloor(Rbc_Complex value) {
     value.real = floor(value.real);
     value.imag = floor(value.imag);
     return value;
 }
 
+/**
+ * @brief Round both components halfway away from zero.
+ * @ingroup expression_numerics
+ *
+ * Delegates each component to Round. Does not change a complex temporary into real storage.
+ */
 static Rbc_Complex ComplexRound(Rbc_Complex value) {
     value.real = Round(value.real);
     value.imag = Round(value.imag);
     return value;
 }
 
+/**
+ * @brief Compute mean complex-plane distance from the sample mean.
+ * @ingroup expression_numerics
+ *
+ * Uses hypot(realDiff, imagDiff) for each finite selected sample and divides by count. Returns real
+ * zero for fewer than two finite samples. Does not compute independent real/imaginary deviations.
+ */
 static double ComplexAvgDeviation(VectorObject *vPtr) {
     Rbc_Complex mean;
     double avg;
@@ -2152,6 +2249,14 @@ static double ComplexAvgDeviation(VectorObject *vPtr) {
     return avg;
 }
 
+/**
+ * @brief Compute real sample variance from squared complex magnitudes.
+ * @ingroup expression_numerics
+ *
+ * Computes the complex mean, accumulates hypot(realDiff, imagDiff) squared and divides by count-1.
+ * Returns zero for fewer than two finite samples. This is squared-magnitude variance, not the possibly
+ * complex mean of squared deviations; squaring can still overflow.
+ */
 static double ComplexVariance(VectorObject *vPtr) {
     Rbc_Complex mean;
     double var;
@@ -2187,6 +2292,13 @@ static double ComplexVariance(VectorObject *vPtr) {
     return var;
 }
 
+/**
+ * @brief Return the square root of positive complex sample variance.
+ * @ingroup expression_numerics
+ *
+ * Returns a real scalar. Delegates to ComplexVariance and returns zero when variance is not greater
+ * than zero; does not separately diagnose a nonfinite intermediate.
+ */
 static double ComplexStdDeviation(VectorObject *vPtr) {
     double var;
 
@@ -2197,23 +2309,12 @@ static double ComplexStdDeviation(VectorObject *vPtr) {
     return 0.0;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the legacy sign-test absolute value.
+ * @ingroup expression_numerics
  *
- * Fabs --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double value
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Negates values strictly below zero and otherwise returns the original value. Unlike fabs, negative
+ * zero retains its sign.
  */
 static double Fabs(double value) {
     if (value < 0.0) {
@@ -2222,23 +2323,12 @@ static double Fabs(double value) {
     return value;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Round a real value halfway away from zero as a double.
+ * @ingroup expression_numerics
  *
- * Round --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double value
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Uses ceil(value-0.5) for negative values and floor(value+0.5) otherwise. Performs no integer
+ * conversion or independent finite check.
  */
 static double Round(double value) {
     if (value < 0.0) {

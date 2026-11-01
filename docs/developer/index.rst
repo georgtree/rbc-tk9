@@ -42,6 +42,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
    expression-reference
    expression-engine
    expression-engine-reference
+   expression-numerics
+   expression-numerics-reference
    fft
    fft-reference
    splines

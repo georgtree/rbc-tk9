@@ -464,7 +464,25 @@ Tcl_ObjCmdProc2 Rbc_VectorInstanceObjCmd;
 typedef double(ComponentProc)(double value);
 typedef int(VectorProc)(VectorObject *vPtr);
 typedef double(ScalarProc)(VectorObject *vPtr);
+/**
+ * @brief Scan the full real vector for its finite minimum.
+ * @ingroup expression_numerics
+ *
+ * Requires real storage and a live record. Ignores first/last selection and
+ * nonfinite values, stores the result in the min cache and returns it. Empty
+ * or entirely nonfinite input returns NaN. Does not update extrema indices,
+ * clear cache-invalid flags, allocate storage or send notifications.
+ */
 double Rbc_VecMin(Rbc_Vector *vecPtr);
+/**
+ * @brief Scan the full real vector for its finite maximum.
+ * @ingroup expression_numerics
+ *
+ * Requires real storage and a live record. Ignores first/last selection and
+ * nonfinite values, stores the result in the max cache and returns it. Empty
+ * or entirely nonfinite input returns NaN. Does not update extrema indices,
+ * clear cache-invalid flags, allocate storage or send notifications.
+ */
 double Rbc_VecMax(Rbc_Vector *vecPtr);
 Rbc_Complex Rbc_ComplexFromReal(double value);
 int Rbc_ComplexIsZero(Rbc_Complex value);
