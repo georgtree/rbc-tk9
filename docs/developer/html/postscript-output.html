@@ -42,6 +42,8 @@
             
   <section id="postscript-output-and-drawing-state">
 <h1>PostScript output and drawing state<a class="headerlink" href="#postscript-output-and-drawing-state" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript
+primitive contracts, including graphics-state and capture boundaries.</p>
 <p>PostScript output is independent of Cairo. <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> owns page setup and
 command delivery, <code class="docutils literal notranslate"><span class="pre">rbcRenderPostscript.c</span></code> implements renderer primitives,
 and <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> supplies the private output token and legacy drawing helpers.

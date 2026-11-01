@@ -86,6 +86,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
    text-font-reference
    exports
    export-reference
+   document-rendering
+   document-render-reference
    pdf-builder
    pdf-builder-reference
    svg-output

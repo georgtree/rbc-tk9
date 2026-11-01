@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PDF builder C reference" href="pdf-builder-reference.html" />
-    <link rel="prev" title="Export orchestration C reference" href="export-reference.html" /> 
+    <link rel="prev" title="Document renderer C reference" href="document-render-reference.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -28,7 +28,7 @@
           <a href="pdf-builder-reference.html" title="PDF builder C reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="export-reference.html" title="Export orchestration C reference"
+          <a href="document-render-reference.html" title="Document renderer C reference"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">PDF resource builder and serialization</a></li> 
@@ -42,6 +42,8 @@
             
   <section id="pdf-resource-builder-and-serialization">
 <h1>PDF resource builder and serialization<a class="headerlink" href="#pdf-resource-builder-and-serialization" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript
+primitive contracts, including graphics-state and capture boundaries.</p>
 <p><code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code> owns PDF object bodies and final document assembly.
 <code class="docutils literal notranslate"><span class="pre">rbcRenderPdf.c</span></code> emits drawing operators and registers resources;
 <code class="docutils literal notranslate"><span class="pre">rbcPdfFont.c</span></code> resolves document fonts. <code class="docutils literal notranslate"><span class="pre">rbcGrPdf.c</span></code> selects scale and invokes
@@ -197,8 +199,8 @@ belong to the shared export orchestration.</p>
   </div>
   <div>
     <h4>Previous topic</h4>
-    <p class="topless"><a href="export-reference.html"
-                          title="previous chapter">Export orchestration C reference</a></p>
+    <p class="topless"><a href="document-render-reference.html"
+                          title="previous chapter">Document renderer C reference</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -229,7 +231,7 @@ belong to the shared export orchestration.</p>
           <a href="pdf-builder-reference.html" title="PDF builder C reference"
              >next</a> |</li>
         <li class="right" >
-          <a href="export-reference.html" title="Export orchestration C reference"
+          <a href="document-render-reference.html" title="Document renderer C reference"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">PDF resource builder and serialization</a></li> 

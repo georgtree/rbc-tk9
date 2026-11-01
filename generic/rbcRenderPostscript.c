@@ -1,4 +1,10 @@
 /* Postscript renderer. See license.terms. */
+/** @file rbcRenderPostscript.c
+ * PostScript drawing backend.
+ */
+/** @defgroup postscript_backend PostScript drawing backend
+ * Private renderer callbacks; components use the common renderer interface.
+ */
 #include "rbcRenderExportInt.h"
 
 typedef struct {
@@ -10,17 +16,38 @@ typedef struct {
 
 #define POSTSCRIPT(ctx) ((PostscriptRenderContext *)(ctx))
 
+/**
+ * @brief Open a saved rectangular PostScript clip.
+ * @ingroup postscript_backend
+ *
+ * Emits gsave and a closed path followed by clip/newpath. Common renderer depth tracking owns pairing;
+ * PostScriptClipEnd closes this scope.
+ */
 static void PostScriptClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr,
                      "gsave newpath %d %d moveto %d 0 rlineto 0 %d rlineto %d 0 rlineto closepath clip newpath\n", x, y,
                      width, height, -width);
 }
 
+/**
+ * @brief Restore one rectangular PostScript clipping scope.
+ * @ingroup postscript_backend
+ *
+ * Emits grestore without changing common clip depth. Requires a matching begin.
+ */
 static void PostScriptClipEnd(Rbc_RenderContext *ctx) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "grestore\n", (char *)NULL);
 }
 
 /* The existing PostScript emitter remains responsible for PS syntax and maps. */
+/**
+ * @brief Stroke a connected path in bounded PostScript batches.
+ * @ingroup postscript_backend
+ *
+ * Fewer than two points is a no-op. Splits at 1500 path components and restarts at the shared vertex.
+ * Invokes the current DashesProc before each foreground stroke; caller ordering must preserve that
+ * document-level definition.
+ */
 static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Tcl_Size i;
     int components;
@@ -44,17 +71,39 @@ static void PostScriptPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tc
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "DashesProc stroke\n", (char *)NULL);
 }
 
+/**
+ * @brief Delegate an independent segment batch to the legacy token.
+ * @ingroup postscript_backend
+ *
+ * Positive counts pass borrowed mapped geometry to Rbc_2DSegmentsToPostScript. Does not own points or
+ * establish a new line style.
+ */
 static void PostScriptSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     if (count > 0) {
         Rbc_2DSegmentsToPostScript(POSTSCRIPT(ctx)->psToken, (Segment2D *)segments, count);
     }
 }
 
+/**
+ * @brief Emit cap and join settings immediately.
+ * @ingroup postscript_backend
+ *
+ * Delegates to the legacy token conversion functions. Unlike PDF/SVG setters, this mutates the output
+ * graphics state rather than a cached style record.
+ */
 static void PostScriptLineStyle(Rbc_RenderContext *ctx, int capStyle, int joinStyle) {
     Rbc_CapStyleToPostScript(POSTSCRIPT(ctx)->psToken, capStyle);
     Rbc_JoinStyleToPostScript(POSTSCRIPT(ctx)->psToken, joinStyle);
 }
 
+/**
+ * @brief Define the document's dash-background procedure.
+ * @ingroup postscript_backend
+ *
+ * For a dashed stroke with a color, defines DashesProc to paint an undashed background inside
+ * gsave/grestore. Otherwise defines an empty procedure. Dictionary definitions are not scoped by
+ * gsave: emit a batch before another context changes this definition.
+ */
 static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color) {
     if (POSTSCRIPT(ctx)->postScriptDashed && (color != NULL)) {
         Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "/DashesProc {\n  gsave\n    ", (char *)NULL);
@@ -67,6 +116,14 @@ static void PostScriptDashBackground(Rbc_RenderContext *ctx, const XColor *color
     }
 }
 
+/**
+ * @brief Paint the current path using legacy fill and stipple helpers.
+ * @ingroup postscript_backend
+ *
+ * Paints an optional background via the prolog Fill procedure, then selects foreground. backgroundOnly
+ * returns after that selection. Otherwise paints stipple or solid fill. Borrows graph/display and
+ * style resources; does not apply fill opacity or image tiles.
+ */
 static void PostScriptFillPath(Rbc_RenderContext *ctx) {
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
 
@@ -85,6 +142,13 @@ static void PostScriptFillPath(Rbc_RenderContext *ctx) {
     }
 }
 
+/**
+ * @brief Close and fill a supplied polygonal path.
+ * @ingroup postscript_backend
+ *
+ * Delegates path creation to the legacy token and fill policy to PostScriptFillPath. The caller
+ * supplies valid mapped geometry and retains its storage.
+ */
 static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_PathToPostScript(POSTSCRIPT(ctx)->psToken, (Point2D *)points, count);
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "closepath\n", (char *)NULL);
@@ -94,6 +158,14 @@ static void PostScriptFillPolygon(Rbc_RenderContext *ctx, const Point2D *points,
 /* The current path survives setmatrix, unlike grestore. Save the CTM on the
  * operand stack while constructing the unit-circle arc, then restore it before
  * stroking/filling so widths, dash lengths and stipples stay in display units. */
+/**
+ * @brief Build an elliptical arc while restoring display-space line units.
+ * @ingroup postscript_backend
+ *
+ * Requires normalized nonzero arc geometry. Saves the current matrix on the operand stack, constructs
+ * a scaled unit-circle arc, then restores the matrix without losing the path. Negated angles preserve
+ * screen-space orientation. Closes full ellipses/chords and joins partial pieslices to the center.
+ */
 static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     Rbc_FormatToPostScript(POSTSCRIPT(ctx)->psToken,
                            "newpath matrix currentmatrix\n%g %g translate %g %g scale\n0 0 1 %g %g %s\nsetmatrix\n",
@@ -109,16 +181,36 @@ static void PostScriptArcPath(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometr
     }
 }
 
+/**
+ * @brief Stroke an arc with the current dash-background procedure.
+ * @ingroup postscript_backend
+ *
+ * Builds the path and invokes DashesProc before stroke. Does not independently establish line style.
+ */
 static void PostScriptArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     PostScriptArcPath(ctx, arc);
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "DashesProc stroke\n", (char *)NULL);
 }
 
+/**
+ * @brief Fill an arc with the legacy fill policy.
+ * @ingroup postscript_backend
+ *
+ * Builds normalized geometry then delegates to PostScriptFillPath; does not emit an outline.
+ */
 static void PostScriptFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     PostScriptArcPath(ctx, arc);
     PostScriptFillPath(ctx);
 }
 
+/**
+ * @brief Paint mapped rectangles using legacy solid/stipple behavior.
+ * @ingroup postscript_backend
+ *
+ * Stipple fills paint optional background then foreground, falling back to background color when
+ * foreground is absent. Solid rectangles require foreground. This path does not implement image tiles
+ * or opacity, and does not share every polygon backgroundOnly rule.
+ */
 static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
     Tcl_Size i;
@@ -141,6 +233,13 @@ static void PostScriptFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRec
     }
 }
 
+/**
+ * @brief Emit centers using the context's configured prolog macro.
+ * @ingroup postscript_backend
+ *
+ * Requires symbol setup to have selected a valid macro and size and defined DrawSymbolProc. Emits
+ * centers in order without retaining them or redefining the procedure.
+ */
 static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     Tcl_Size i;
 
@@ -150,11 +249,25 @@ static void PostScriptSymbolPoints(Rbc_RenderContext *ctx, const Point2D *center
     }
 }
 
+/**
+ * @brief Delegate mapped text to the legacy PostScript text writer.
+ * @ingroup postscript_backend
+ *
+ * Borrows the string and TextStyle. Uses token font/color maps and legacy encoding, not the PDF/SVG
+ * document font pipeline.
+ */
 static void PostScriptText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_TextToPostScript(POSTSCRIPT(ctx)->psToken, string, style, x, y);
 }
 
 /* Legacy PostScript silently omits non-photo image markers. */
+/**
+ * @brief Retain the legacy omission of non-photo Tk images.
+ * @ingroup postscript_backend
+ *
+ * Intentionally emits nothing. Photo markers use PostScriptPhoto; generic Tk-image raster capture is
+ * not attempted here.
+ */
 static void PostScriptTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     (void)ctx;
     (void)image;
@@ -162,22 +275,50 @@ static void PostScriptTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, 
     (void)y;
 }
 
+/**
+ * @brief Delegate a non-NULL photo to the legacy image writer.
+ * @ingroup postscript_backend
+ *
+ * Borrows the handle and emits at the supplied mapped origin. NULL is a no-op; does not use the PDF
+ * alpha-resource path.
+ */
 static void PostScriptPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     if (photo != NULL) {
         Rbc_PhotoToPostScript(POSTSCRIPT(ctx)->psToken, photo, x, y);
     }
 }
 
+/**
+ * @brief Delegate window capture to the legacy PostScript writer.
+ * @ingroup postscript_backend
+ *
+ * Borrows the live window. Capture behavior and errors belong to Rbc_WindowToPostScript; this adapter
+ * does not introduce a clipping container.
+ */
 static void PostScriptWindow(Rbc_RenderContext *ctx, Tk_Window tkwin, double x, double y) {
     Rbc_WindowToPostScript(POSTSCRIPT(ctx)->psToken, tkwin, x, y);
 }
 
+/**
+ * @brief Select background color and emit a filled polygon.
+ * @ingroup postscript_backend
+ *
+ * Uses the token's background/color-map policy and borrows the mapped point array. Does not establish
+ * an independent saved graphics scope.
+ */
 static void PostScriptBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points,
                                         Tcl_Size count) {
     Rbc_BackgroundToPostScript(POSTSCRIPT(ctx)->psToken, (XColor *)color);
     Rbc_PolygonToPostScript(POSTSCRIPT(ctx)->psToken, (Point2D *)points, count);
 }
 
+/**
+ * @brief Dispatch filled or outline-only Tk relief output.
+ * @ingroup postscript_backend
+ *
+ * Borrows the border and delegates to the matching legacy 3D rectangle helper. Geometry and relief are
+ * already selected by the component.
+ */
 static void PostScriptBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                              int borderWidth, int relief, int fill) {
     if (fill) {
@@ -187,11 +328,24 @@ static void PostScriptBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double 
     }
 }
 
+/**
+ * @brief Paint a rectangle using the token's clear-background policy.
+ * @ingroup postscript_backend
+ *
+ * Clearing emits paint through legacy helpers; it does not remove prior document content.
+ */
 static void PostScriptClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
     Rbc_ClearBackgroundToPostScript(POSTSCRIPT(ctx)->psToken);
     Rbc_RectangleToPostScript(POSTSCRIPT(ctx)->psToken, x, y, width, height);
 }
 
+/**
+ * @brief Select one background and paint a rectangle batch.
+ * @ingroup postscript_backend
+ *
+ * NULL color uses the clear-background policy. Otherwise selects background once, then emits all
+ * borrowed rectangles in order.
+ */
 static void PostScriptBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
                                            const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
@@ -207,6 +361,13 @@ static void PostScriptBackgroundRectangles(Rbc_RenderContext *ctx, const XColor 
     }
 }
 
+/**
+ * @brief Paint plot background and open its saved clipping scope.
+ * @ingroup postscript_backend
+ *
+ * Selects the supplied font, constructs the region and paints via prolog Fill before gsave/clip. NULL
+ * background uses the token's clear policy. PostScriptPlotEnd balances this plot scope.
+ */
 static void PostScriptPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                                 const XColor *background) {
     Rbc_FontToPostScript(POSTSCRIPT(ctx)->psToken, font);
@@ -219,10 +380,25 @@ static void PostScriptPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, 
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "Fill\n", "gsave clip\n\n", (char *)NULL);
 }
 
+/**
+ * @brief Close the saved plot clipping scope.
+ * @ingroup postscript_backend
+ *
+ * Emits grestore separately from the common renderer's explicit clip-depth mechanism. Requires a
+ * matching plot begin.
+ */
 static void PostScriptPlotEnd(Rbc_RenderContext *ctx) {
     Rbc_AppendToPostScript(POSTSCRIPT(ctx)->psToken, "\n", "% Unset clipping\n", "grestore\n\n", (char *)NULL);
 }
 
+/**
+ * @brief Emit a translated and Y-corrected imagemask.
+ * @ingroup postscript_backend
+ *
+ * Missing bitmap or nonpositive dimensions produce no output. Selects foreground/background according
+ * to the flag, emits bitmap bytes through the legacy helper and balances gsave/grestore. Borrows
+ * display, pixmap and color.
+ */
 static void PostScriptBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                                  int height, const XColor *color, int background) {
     if ((bitmap == None) || (width < 1) || (height < 1)) {

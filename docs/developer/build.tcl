@@ -104,6 +104,9 @@ proc ::rbcDocBuild::main {arguments} {
         @PS_HEADER@ [doxyQuote [file join $root generic rbcPs.h]] \
         @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
         @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
+        @PDF_RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRenderPdf.c]] \
+        @PS_RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRenderPostscript.c]] \
+        @EXPORT_RENDER_HEADER@ [doxyQuote [file join $root generic rbcRenderExportInt.h]] \
         @SVG_SOURCE@ [doxyQuote [file join $root generic rbcRenderSvg.c]] \
         @CAIRO_SOURCE@ [doxyQuote [file join $root generic rbcRenderCairo.c]] \
         @POLAR_SOURCE@ [doxyQuote [file join $root generic rbcGrPolar.c]] \

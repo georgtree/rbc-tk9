@@ -1,6 +1,9 @@
 PDF resource builder and serialization
 ======================================
 
+See :doc:`document-rendering` for shared context ownership and the PDF/PostScript
+primitive contracts, including graphics-state and capture boundaries.
+
 ``rbcPdf.c`` owns PDF object bodies and final document assembly.
 ``rbcRenderPdf.c`` emits drawing operators and registers resources;
 ``rbcPdfFont.c`` resolves document fonts. ``rbcGrPdf.c`` selects scale and invokes

@@ -1,6 +1,9 @@
 PostScript output and drawing state
 ===================================
 
+See :doc:`document-rendering` for shared context ownership and the PDF/PostScript
+primitive contracts, including graphics-state and capture boundaries.
+
 PostScript output is independent of Cairo. ``rbcGrPs.c`` owns page setup and
 command delivery, ``rbcRenderPostscript.c`` implements renderer primitives,
 and ``rbcPs.c`` supplies the private output token and legacy drawing helpers.

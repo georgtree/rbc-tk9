@@ -1,9 +1,28 @@
 /* Pdf renderer. See license.terms. */
+/** @file rbcRenderPdf.c
+ * PDF drawing backend.
+ */
+/** @defgroup pdf_backend PDF drawing backend
+ * Private renderer callbacks; components use the common renderer interface.
+ */
 #include "rbcRenderExportInt.h"
 
+/**
+ * @brief Save graphics state and intersect a rectangular clip.
+ * @ingroup pdf_backend
+ *
+ * Coordinates are mapped display pixels. Emits q/re/W/n; PdfClipEnd must balance the save. Common
+ * renderer clip-depth tracking owns pairing, not this callback.
+ */
 static void PdfClipBegin(Rbc_RenderContext *ctx, int x, int y, int width, int height) {
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "q %d %d %d %d re W n\n", x, y, width, height);
 }
+/**
+ * @brief Restore one rectangular clipping scope.
+ * @ingroup pdf_backend
+ *
+ * Emits Q only. Requires a matching begin; does not inspect or change common clip depth.
+ */
 static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
 /* ----------------------------------------------------------------------
@@ -11,6 +30,13 @@ static void PdfClipEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(
  * matrix converts pixels to points and reverses the PDF Y axis. Every
  * primitive saves/restores graphics state, independently of Cairo.
  * ---------------------------------------------------------------------- */
+/**
+ * @brief Select DeviceRGB stroke or fill color.
+ * @ingroup pdf_backend
+ *
+ * Converts 16-bit XColor components to unit values. A NULL color leaves the current color unchanged;
+ * this helper does not save graphics state.
+ */
 static void PdfColor(Rbc_ExportContext *token, const XColor *color, int stroke) {
     if (color != NULL) {
         Rbc_ExportFormat(token, "%.8f %.8f %.8f %s\n", color->red / 65535.0, color->green / 65535.0,
@@ -18,6 +44,13 @@ static void PdfColor(Rbc_ExportContext *token, const XColor *color, int stroke) 
     }
 }
 
+/**
+ * @brief Append a polygonal path without painting it.
+ * @ingroup pdf_backend
+ *
+ * Borrows count points in mapped pixels and optionally emits h. The caller supplies valid geometry,
+ * chooses the fill rule and owns graphics-state scope.
+ */
 static void PdfPath(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, int close) {
     Tcl_Size i;
     for (i = 0; i < count; i++) {
@@ -28,6 +61,13 @@ static void PdfPath(Rbc_ExportContext *token, const Point2D *points, Tcl_Size co
     }
 }
 
+/**
+ * @brief Paint a positive-size solid rectangle in an isolated scope.
+ * @ingroup pdf_backend
+ *
+ * NULL color or nonpositive dimensions produce no output. Uses nonstroking RGB and restores the
+ * previous graphics state.
+ */
 static void PdfRectangle(Rbc_ExportContext *token, double x, double y, double width, double height,
                          const XColor *color) {
     if (color != NULL && width > 0 && height > 0) {
@@ -38,6 +78,14 @@ static void PdfRectangle(Rbc_ExportContext *token, double x, double y, double wi
 }
 
 /* Elliptical arcs use cubic Beziers of at most 90 degrees each. */
+/**
+ * @brief Append an elliptical arc using cubic Bezier pieces.
+ * @ingroup pdf_backend
+ *
+ * Requires normalized finite geometry with nonzero extent from the renderer dispatcher. Each piece
+ * spans at most 90 degrees. Negates angles for screen Y, closes full ellipses and chords, and adds the
+ * center for partial pieslices. Does not paint or change the transformation matrix.
+ */
 static void PdfArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *arc) {
     double a = -arc->start * M_PI / 180.0;
     int i, steps = (int)ceil(fabs(arc->extent) / 90.0);
@@ -61,6 +109,13 @@ static void PdfArcPath(Rbc_ExportContext *token, const Rbc_RenderArcGeometry *ar
     }
 }
 
+/**
+ * @brief Emit cached stroke color, width, cap, join and dashes.
+ * @ingroup pdf_backend
+ *
+ * The background pass selects the off-color and an empty dash pattern with zero offset. The foreground
+ * pass uses the bounded dash array and its offset. The caller saves/restores graphics state.
+ */
 static void PdfStrokeStyle(Rbc_RenderContext *ctx, int background) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     int i;
@@ -78,6 +133,13 @@ static void PdfStrokeStyle(Rbc_RenderContext *ctx, int background) {
 }
 
 /* Paint each segment's dash background immediately before its foreground. */
+/**
+ * @brief Stroke a connected path, optionally over a solid dash background.
+ * @ingroup pdf_backend
+ *
+ * No foreground color or fewer than two points is a no-op. Each pass reconstructs the whole path and
+ * has its own q/Q scope; the input array remains borrowed.
+ */
 static void PdfPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     int pass;
     if (!RENDER_EXPORT(ctx)->vectorHasColor || count < 2) {
@@ -92,6 +154,13 @@ static void PdfPolyline(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size 
     }
 }
 
+/**
+ * @brief Stroke independent segments in their original painter order.
+ * @ingroup pdf_backend
+ *
+ * Each segment delegates to PdfPolyline, including its background and foreground passes, before the
+ * next segment. Does not combine the batch into one shared path.
+ */
 static void PdfSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_Size count) {
     Tcl_Size i;
     for (i = 0; i < count; i++) {
@@ -100,6 +169,13 @@ static void PdfSegments(Rbc_RenderContext *ctx, const Segment2D *segments, Tcl_S
     }
 }
 
+/**
+ * @brief Stroke normalized arc geometry with the cached line style.
+ * @ingroup pdf_backend
+ *
+ * No foreground color is a no-op. Rebuilds the arc for each dash-background/foreground pass and
+ * balances graphics state for each pass.
+ */
 static void PdfArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     int pass;
     if (!RENDER_EXPORT(ctx)->vectorHasColor) {
@@ -115,6 +191,14 @@ static void PdfArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
 }
 
 /* Bitmap runs remain vector rectangles, including transparent stipples. */
+/**
+ * @brief Convert set bitmap pixels into filled horizontal rectangles.
+ * @ingroup pdf_backend
+ *
+ * Borrows a valid XImage and optional same-sized mask. Emits runs where both images are set; NULL
+ * color produces no output. Uses the current transform and graphics scope, paints once with f, and
+ * does not release either image.
+ */
 static void PdfBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, const XColor *color) {
     int x, y;
     if (color == NULL) {
@@ -140,6 +224,15 @@ static void PdfBitmapRuns(Rbc_ExportContext *token, XImage *bits, XImage *mask, 
 }
 
 /* RGB image plus an optional grayscale soft mask preserves photo alpha. */
+/**
+ * @brief Copy a Tk photo block into PDF RGB and optional alpha resources.
+ * @ingroup pdf_backend
+ *
+ * Returns an image object ID, or zero for empty/invalid input. Invalid size/storage records an export
+ * error. Requires valid Tk channel offsets and row layout. Copies RGB bytes row by row and creates an
+ * 8-bit grayscale SMask only if any alpha is nonopaque. Frees temporary DStrings; does not retain the
+ * borrowed block or pixel pointer.
+ */
 static int PdfPhotoResource(Rbc_ExportContext *token, const Tk_PhotoImageBlock *block) {
     Tcl_DString rgb, alpha;
     int x, y, hasAlpha, translucent = FALSE, mask = 0, id;
@@ -187,12 +280,27 @@ static int PdfPhotoResource(Rbc_ExportContext *token, const Tk_PhotoImageBlock *
     return id;
 }
 
+/**
+ * @brief Place an image resource using top-left display coordinates.
+ * @ingroup pdf_backend
+ *
+ * A zero resource ID is a no-op. Emits a locally saved matrix with negative image height to correct
+ * raster orientation, then invokes the image XObject.
+ */
 static void PdfImageUse(Rbc_ExportContext *token, int id, double x, double y, int width, int height) {
     if (id) {
         Rbc_ExportFormat(token, "q\n%d 0 0 %d %.8f %.8f cm /I%d Do\nQ\n", width, -height, x, y + height, id);
     }
 }
 
+/**
+ * @brief Adapt a packed RBC color image to the photo resource writer.
+ * @ingroup pdf_backend
+ *
+ * Borrows the image, checks that row pitch fits int, and describes Pix32 channel offsets without
+ * copying the source first. Resource construction copies the pixels. Returns zero and records an
+ * export error for excessive pitch; does not free the image.
+ */
 static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image) {
     Tk_PhotoImageBlock block;
     if ((size_t)Rbc_ColorImageWidth(image) > (size_t)INT_MAX / sizeof(Pix32)) {
@@ -211,6 +319,17 @@ static int PdfColorImageResource(Rbc_ExportContext *token, Rbc_ColorImage image)
     return PdfPhotoResource(token, &block);
 }
 
+/**
+ * @brief Create or reuse this fill context's colored tiling pattern.
+ * @ingroup pdf_backend
+ *
+ * Uses a borrowed tile for backgroundOnly fills, otherwise a stipple bitmap. Tile photos use their
+ * pixel block; other Tk images use raster capture. Stipples become bitmap runs over an optional
+ * background. Restores token->buffer after constructing temporary pattern content and releases
+ * temporary images. The pattern matrix includes page scale/Y reversal; tile origin also accounts for
+ * graph ancestry. Caches the resource ID until the tile setter invalidates it. Zero means no pattern;
+ * the enclosing export error remains authoritative.
+ */
 static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     Tcl_DString content;
@@ -285,6 +404,15 @@ static unsigned int PdfPattern(Rbc_RenderContext *ctx, const XColor *foreground)
 
 /* Establish a fill independently of path construction; never lose a path
  * while creating a stipple/image resource. */
+/**
+ * @brief Prepare nonstroking opacity and solid or patterned fill state.
+ * @ingroup pdf_backend
+ *
+ * Returns false for nonpositive opacity, missing solid color or unavailable pattern. Opacity below one
+ * uses an ExtGState ca resource. Pattern creation precedes path construction so resource emission
+ * cannot consume the drawing path. The caller provides a q/Q scope; this helper is not a Tcl status
+ * API.
+ */
 static int PdfFillStyle(Rbc_RenderContext *ctx) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     const Rbc_RenderFillStyle *style = &RENDER_EXPORT(ctx)->fillStyle;
@@ -318,6 +446,13 @@ static int PdfFillStyle(Rbc_RenderContext *ctx) {
     return TRUE;
 }
 
+/**
+ * @brief Fill a closed polygon with the even-odd rule.
+ * @ingroup pdf_backend
+ *
+ * Establishes fill resources before appending borrowed geometry. Always balances its local graphics
+ * save, including when the style produces no fill.
+ */
 static void PdfFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Size count) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
     if (PdfFillStyle(ctx)) {
@@ -327,6 +462,13 @@ static void PdfFillPolygon(Rbc_RenderContext *ctx, const Point2D *points, Tcl_Si
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL);
 }
 
+/**
+ * @brief Fill each supplied rectangle in a separate graphics scope.
+ * @ingroup pdf_backend
+ *
+ * Uses the cached fill style, with shared pattern resource reuse across the batch. Geometry is already
+ * mapped; no outline or clipping calculation is performed here.
+ */
 static void PdfFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     Tcl_Size i;
     for (i = 0; i < count; i++) {
@@ -339,6 +481,13 @@ static void PdfFillRectangles(Rbc_RenderContext *ctx, const Rbc_RenderRectangle 
     }
 }
 
+/**
+ * @brief Fill normalized ellipse, chord or sector geometry.
+ * @ingroup pdf_backend
+ *
+ * Prepares fill state before constructing the path and uses even-odd fill. The caller selects a
+ * fillable arc style; the helper balances graphics state even if filling is disabled.
+ */
 static void PdfFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc) {
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
     if (PdfFillStyle(ctx)) {
@@ -348,6 +497,16 @@ static void PdfFillArc(Rbc_RenderContext *ctx, const Rbc_RenderArcGeometry *arc)
     Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL);
 }
 
+/**
+ * @brief Emit anchored, rotated text using document-local font resources.
+ * @ingroup pdf_backend
+ *
+ * Owns and frees a temporary TextLayout. Resolves glyphs before output to widen zero-width Tk
+ * measurements when a fallback has positive advance, then recomputes justification. Emits shadow
+ * before foreground, selecting active color when requested. Each glyph uses Tk prefix advance plus
+ * fallback corrections; genuine zero-width glyphs retain their position. Font/width errors are
+ * recorded on the export; this void emitter does not return a completed-document status.
+ */
 static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, double x, double y) {
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;
     TextLayout *layout;
@@ -440,6 +599,13 @@ static void PdfText(Rbc_RenderContext *ctx, char *string, TextStyle *style, doub
     ckfree(layout);
 }
 
+/**
+ * @brief Read a borrowed Tk photo and place its copied PDF resource.
+ * @ingroup pdf_backend
+ *
+ * A missing/unreadable photo records an export error. Does not destroy the photo or retain its pixel
+ * block.
+ */
 static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, double y) {
     Tk_PhotoImageBlock block;
     if (photo == NULL || !Tk_PhotoGetImage(photo, &block)) {
@@ -450,6 +616,13 @@ static void PdfPhoto(Rbc_RenderContext *ctx, Tk_PhotoHandle photo, double x, dou
                 block.width, block.height);
 }
 
+/**
+ * @brief Rasterize a non-photo Tk image and emit its PDF resource.
+ * @ingroup pdf_backend
+ *
+ * Owns the capture returned by Rbc_RenderExportRasterImage and frees it after resource creation. A
+ * NULL capture emits no image; consult the export error for failed captures.
+ */
 static void PdfTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double y) {
     Rbc_ColorImage captured = Rbc_RenderExportRasterImage(RENDER_EXPORT(ctx)->exportPtr, image);
     if (captured != NULL) {
@@ -459,6 +632,14 @@ static void PdfTkImage(Rbc_RenderContext *ctx, Tk_Image image, double x, double 
     }
 }
 
+/**
+ * @brief Capture a mapped window at its current screen dimensions.
+ * @ingroup pdf_backend
+ *
+ * Unmapped or empty windows are omitted. Owns and frees the captured color image; capture failure
+ * records an export error. The caller decides whether window export is enabled. This captures pixels,
+ * not a reconstructed widget or new clipping container.
+ */
 static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double y) {
     Rbc_ColorImage captured;
     if (!Tk_IsMapped(window) || Tk_Width(window) <= 0 || Tk_Height(window) <= 0) {
@@ -474,6 +655,14 @@ static void PdfWindow(Rbc_RenderContext *ctx, Tk_Window window, double x, double
     Rbc_FreeColorImage(captured);
 }
 
+/**
+ * @brief Paint a positioned one-bit mask as vector rectangles.
+ * @ingroup pdf_backend
+ *
+ * Missing bitmap/color or nonpositive dimensions are ignored. Acquires and destroys an XImage; failure
+ * records an export error. The background selector is unused because the explicit color determines
+ * painting. Translation is confined to a q/Q scope.
+ */
 static void PdfBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitmap, double x, double y, int width,
                           int height, const XColor *color, int background) {
     XImage *bits;
@@ -492,6 +681,12 @@ static void PdfBitmapMask(Rbc_RenderContext *ctx, Display *display, Pixmap bitma
     XDestroyImage(bits);
 }
 
+/**
+ * @brief Paint a solid even-odd background polygon.
+ * @ingroup pdf_backend
+ *
+ * NULL color is a no-op. Borrows mapped points and isolates the RGB fill in a saved graphics scope.
+ */
 static void PdfBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, const Point2D *points, Tcl_Size count) {
     if (color != NULL) {
         Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "q\n", (char *)NULL);
@@ -501,6 +696,13 @@ static void PdfBackgroundPolygon(Rbc_RenderContext *ctx, const XColor *color, co
     }
 }
 
+/**
+ * @brief Adapt border polygon output to a temporary export state.
+ * @ingroup pdf_backend
+ *
+ * Creates a stack-local state borrowing the token and delegates to PdfBackgroundPolygon. The opacity
+ * parameter is currently ignored; border callers pass opaque color.
+ */
 static void PdfPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size count, const XColor *color,
                        double opacity) {
     Rbc_RenderExportState ctx;
@@ -510,6 +712,15 @@ static void PdfPolygon(Rbc_ExportContext *token, const Point2D *points, Tcl_Size
     PdfBackgroundPolygon(&ctx.core, color, points, count);
 }
 
+/**
+ * @brief Approximate Tk relief using solid rectangles and a polygon.
+ * @ingroup pdf_backend
+ *
+ * Obtains border colors after forcing lazy light-GC allocation. Optionally fills the interior, then
+ * emits raised/sunken/solid edges; groove and ridge recurse into two half-width borders. Flat,
+ * nonpositive or undersized borders omit the edges. Borrows the Tk border; does not allocate
+ * replacement colors.
+ */
 static void PdfBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, double y, int width, int height,
                       int borderWidth, int relief, int fill) {
     XColor bg, dark, light;
@@ -550,6 +761,13 @@ static void PdfBorder(Rbc_RenderContext *ctx, Tk_3DBorder border, double x, doub
     PdfPolygon(RENDER_EXPORT(ctx)->exportPtr, points, 6, top, 1.0);
 }
 
+/**
+ * @brief Paint an opaque white rectangle.
+ * @ingroup pdf_backend
+ *
+ * Clearing document output means white paint, not erasing to transparency. Nonpositive dimensions are
+ * ignored by PdfRectangle.
+ */
 static void PdfClearRectangle(Rbc_RenderContext *ctx, double x, double y, int width, int height) {
     XColor white;
     memset(&white, 0, sizeof(white));
@@ -557,6 +775,13 @@ static void PdfClearRectangle(Rbc_RenderContext *ctx, double x, double y, int wi
     PdfRectangle(RENDER_EXPORT(ctx)->exportPtr, x, y, width, height, &white);
 }
 
+/**
+ * @brief Paint background rectangles in order.
+ * @ingroup pdf_backend
+ *
+ * NULL color selects opaque white; otherwise uses the supplied RGB color. Borrows the batch and does
+ * not retain geometry.
+ */
 static void PdfBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color, const Rbc_RenderRectangle *rectangles,
                                     Tcl_Size count) {
     Tcl_Size i;
@@ -570,6 +795,13 @@ static void PdfBackgroundRectangles(Rbc_RenderContext *ctx, const XColor *color,
     }
 }
 
+/**
+ * @brief Paint the plot background and open its clipping scope.
+ * @ingroup pdf_backend
+ *
+ * NULL background selects white. Ignores the font argument because text resolves its own resources.
+ * Emits q/re/W/n after painting; PdfPlotEnd balances this separate plot scope.
+ */
 static void PdfPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double y, int width, int height,
                          const XColor *background) {
     (void)font;
@@ -581,9 +813,25 @@ static void PdfPlotBegin(Rbc_RenderContext *ctx, Tk_Font font, double x, double 
     Rbc_ExportFormat(RENDER_EXPORT(ctx)->exportPtr, "q %.8f %.8f %d %d re W n\n", x, y, width, height);
 }
 
+/**
+ * @brief Close the saved plot clipping scope.
+ * @ingroup pdf_backend
+ *
+ * Requires a matching PdfPlotBegin. This Q is separate from common renderer clip-depth unwinding.
+ */
 static void PdfPlotEnd(Rbc_RenderContext *ctx) { Rbc_ExportAppend(RENDER_EXPORT(ctx)->exportPtr, "Q\n", (char *)NULL); }
 
 /* Match the SVG/PostScript symbol size corrections and painter order. */
+/**
+ * @brief Paint symbol centers with legacy size corrections and painter order.
+ * @ingroup pdf_backend
+ *
+ * Bar samples delegate to rectangle fills. Bitmap symbols acquire their source/mask once per batch,
+ * require matching mask dimensions when used, and release both XImages on completion or failure. Each
+ * center has a local transform; bitmap aspect ratio is preserved. Geometric symbols fill before
+ * outlining, skinny symbols only stroke, and cross variants rotate the plus geometry. Borrows style
+ * colors and handles throughout the call.
+ */
 static void PdfSymbolPoints(Rbc_RenderContext *ctx, const Point2D *centers, Tcl_Size count) {
     const Rbc_RenderSymbolStyle *style = &RENDER_EXPORT(ctx)->vectorSymbol;
     Rbc_ExportContext *token = RENDER_EXPORT(ctx)->exportPtr;

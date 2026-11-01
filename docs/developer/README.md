@@ -10,7 +10,7 @@ bands, polar data adapters and grid geometry, binding dispatch and picking, comp
 transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
 contracts, chain/list ownership, image and tile ownership, text layout and document font ownership,
 export orchestration, SVG definitions and image encoding, PDF resource serialization and document
-ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and
+ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and
 palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, shared
 GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
 ownership, allocation and UID ownership, typed operation dispatch, shared value conversion, numeric
