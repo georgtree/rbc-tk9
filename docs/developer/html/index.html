@@ -252,6 +252,62 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="expression-engine.html">Expression parser and adapter internals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html#parser-state-and-precedence">Parser state and precedence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html#token-recognition-and-substitutions">Token recognition and substitutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html#temporary-storage-and-type-changes">Temporary storage and type changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html#function-adapters-and-validation">Function adapters and validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html#scalar-conversion-and-operand-reuse">Scalar conversion and operand reuse</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.GetArrayByteCount"><code class="docutils literal notranslate"><span class="pre">GetArrayByteCount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.GetDoubleArrayByteCount"><code class="docutils literal notranslate"><span class="pre">GetDoubleArrayByteCount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.GetRotationOffset"><code class="docutils literal notranslate"><span class="pre">GetRotationOffset()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.RotateExpressionVector"><code class="docutils literal notranslate"><span class="pre">RotateExpressionVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.FreeExpressionData"><code class="docutils literal notranslate"><span class="pre">FreeExpressionData()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ReleaseExpressionStorage"><code class="docutils literal notranslate"><span class="pre">ReleaseExpressionStorage()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionVectorType"><code class="docutils literal notranslate"><span class="pre">SetExpressionVectorType()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.CopyExpressionVector"><code class="docutils literal notranslate"><span class="pre">CopyExpressionVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.PromoteExpressionVectorToComplex"><code class="docutils literal notranslate"><span class="pre">PromoteExpressionVectorToComplex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionRealScalar"><code class="docutils literal notranslate"><span class="pre">SetExpressionRealScalar()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionComplexScalar"><code class="docutils literal notranslate"><span class="pre">SetExpressionComplexScalar()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ApplyComplexBinaryValue"><code class="docutils literal notranslate"><span class="pre">ApplyComplexBinaryValue()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ApplyComplexNotOperator"><code class="docutils literal notranslate"><span class="pre">ApplyComplexNotOperator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ApplyComplexBooleanOperator"><code class="docutils literal notranslate"><span class="pre">ApplyComplexBooleanOperator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ApplyComplexShiftOperator"><code class="docutils literal notranslate"><span class="pre">ApplyComplexShiftOperator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ApplyComplexBinaryOperator"><code class="docutils literal notranslate"><span class="pre">ApplyComplexBinaryOperator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComplexValueIsFinite"><code class="docutils literal notranslate"><span class="pre">ComplexValueIsFinite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.InstallIndexProc"><code class="docutils literal notranslate"><span class="pre">InstallIndexProc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.First"><code class="docutils literal notranslate"><span class="pre">First()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.Next"><code class="docutils literal notranslate"><span class="pre">Next()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.CopyExpressionResult"><code class="docutils literal notranslate"><span class="pre">CopyExpressionResult()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ExpressionDestinationChanged"><code class="docutils literal notranslate"><span class="pre">ExpressionDestinationChanged()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression"><code class="docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.NextValue"><code class="docutils literal notranslate"><span class="pre">NextValue()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.SetMathError"><code class="docutils literal notranslate"><span class="pre">SetMathError()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.MathError"><code class="docutils literal notranslate"><span class="pre">MathError()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseSubstitutionResult"><code class="docutils literal notranslate"><span class="pre">ParseSubstitutionResult()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseBracketScript"><code class="docutils literal notranslate"><span class="pre">ParseBracketScript()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseBracketValue"><code class="docutils literal notranslate"><span class="pre">ParseBracketValue()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseQuotedValue"><code class="docutils literal notranslate"><span class="pre">ParseQuotedValue()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseBracedValue"><code class="docutils literal notranslate"><span class="pre">ParseBracedValue()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.NextToken"><code class="docutils literal notranslate"><span class="pre">NextToken()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.Fmod"><code class="docutils literal notranslate"><span class="pre">Fmod()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseString"><code class="docutils literal notranslate"><span class="pre">ParseString()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseMapPrefix"><code class="docutils literal notranslate"><span class="pre">ParseMapPrefix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.MapVector"><code class="docutils literal notranslate"><span class="pre">MapVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseMapFunction"><code class="docutils literal notranslate"><span class="pre">ParseMapFunction()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ParseMathFunction"><code class="docutils literal notranslate"><span class="pre">ParseMathFunction()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComponentFunc"><code class="docutils literal notranslate"><span class="pre">ComponentFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComplexComponentFunc"><code class="docutils literal notranslate"><span class="pre">ComplexComponentFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ScalarFunc"><code class="docutils literal notranslate"><span class="pre">ScalarFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComplexScalarFunc"><code class="docutils literal notranslate"><span class="pre">ComplexScalarFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComplexRealScalarFunc"><code class="docutils literal notranslate"><span class="pre">ComplexRealScalarFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.VectorFunc"><code class="docutils literal notranslate"><span class="pre">VectorFunc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html#c.ComplexRealFunc"><code class="docutils literal notranslate"><span class="pre">ComplexRealFunc()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="fft.html">FFT workspace and output ownership</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fft.html#dispatch-and-validation">Dispatch and validation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fft.html#transform-length-and-normalization">Transform length and normalization</a></li>

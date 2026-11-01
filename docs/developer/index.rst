@@ -40,6 +40,8 @@ safe. Chapters identify current limitations separately from intended guarantees.
    vector-numeric-reference
    expressions
    expression-reference
+   expression-engine
+   expression-engine-reference
    fft
    fft-reference
    splines

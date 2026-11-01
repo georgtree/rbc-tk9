@@ -113,6 +113,7 @@ proc ::rbcDocBuild::main {arguments} {
         @BAR_SOURCE@ [doxyQuote [file join $root generic rbcGrBar.c]] \
         @LINE_SOURCE@ [doxyQuote [file join $root generic rbcGrLine.c]] \
         @GRAPH_SOURCE@ [doxyQuote [file join $root generic rbcGraph.c]] \
+        @EXPRESSION_SOURCE@ [doxyQuote [file join $root generic rbcVecMath.c]] \
         @VECTOR_SOURCE@ [doxyQuote [file join $root generic rbcVector.c]] \
         @VECTOR_HEADER@ [doxyQuote [file join $root generic rbcVector.h]] \
         @VECTOR_COMMAND_SOURCE@ [doxyQuote [file join $root generic rbcVecCmd.c]] \

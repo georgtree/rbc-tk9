@@ -5,7 +5,9 @@ Vector expression evaluation
 objects. ``rbcVector.c`` selects list output or named-result creation, while
 ``rbcVecCmd.c`` owns assignment to an existing vector. These paths share parsing
 but have different result ownership and notification responsibilities.
-See :doc:`expression-reference` and :doc:`vectors`.
+See :doc:`expression-reference` and :doc:`vectors`. Parser state, temporary
+storage, function adapters and scalar-conversion invariants are described
+in :doc:`expression-engine`.
 
 Entry points and result ownership
 ---------------------------------

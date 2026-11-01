@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Expression parser and adapter internals &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Expression engine internal C reference" href="expression-engine-reference.html" />
+    <link rel="prev" title="Vector expression C reference" href="expression-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="expression-engine-reference.html" title="Expression engine internal C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="expression-reference.html" title="Vector expression C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Expression parser and adapter internals</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="expression-parser-and-adapter-internals">
+<h1>Expression parser and adapter internals<a class="headerlink" href="#expression-parser-and-adapter-internals" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code> contains a recursive expression evaluator, not a wrapper around
+Tcl’s <code class="docutils literal notranslate"><span class="pre">expr</span></code>. It uses Tcl parsing and evaluation for substitutions, then
+performs vector arithmetic on its own temporary records. See <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a>
+for command entry points and result ownership, and
+<a class="reference internal" href="expression-engine-reference.html"><span class="doc">Expression engine internal C reference</span></a> for the source contracts.</p>
+<section id="parser-state-and-precedence">
+<h2>Parser state and precedence<a class="headerlink" href="#parser-state-and-precedence" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Value</span></code> holds an already allocated temporary vector. <code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> borrows the
+complete writable expression string and stores <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code> plus the last scanned
+token. A token describes characters immediately before <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code>; returning
+from a recursive value parse does not rewind the terminating operator.</p>
+<p><code class="docutils literal notranslate"><span class="pre">NextValue</span></code> allocates a second operand temporary for each invocation. It first
+handles an ordinary value, parenthesized expression or unary operator, then
+recursively obtains right operands while their operators have greater precedence
+than the caller’s limit. It stops at the end, comma, closing parenthesis or an
+operator at or below that limit. The second temporary is reused for subsequent
+operators in that invocation and freed on every exit.</p>
+<p>The precedence table is part of RBC’s grammar. Multiplication/division/modulus
+bind more tightly than addition/subtraction; rotations follow; comparisons,
+equality and logical operators occupy lower levels. Exponentiation is above
+multiplication but below unary operators. Equal precedence stops recursion, so
+the current implementation groups repeated operators, including exponentiation,
+from the left. Do not assume Tcl or another numerical language’s associativity.</p>
+<p>Both operands are evaluated before logical AND/OR are applied. They are
+vector operations, not short-circuit control flow: a command substitution in
+the right operand can run even when every left value already determines the
+logical result. Failed evaluation discards temporary results but cannot undo
+those Tcl side effects.</p>
+</section>
+<section id="token-recognition-and-substitutions">
+<h2>Token recognition and substitutions<a class="headerlink" href="#token-recognition-and-substitutions" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">NextToken</span></code> tries an unsigned-leading numeric token first; leading <code class="docutils literal notranslate"><span class="pre">+</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-</span></code> remain operator tokens. It recognizes punctuation/operators directly.
+Other text first tries a known function call, then a vector/range reference.
+An unknown function name returns the internal sentinel <code class="docutils literal notranslate"><span class="pre">TCL_RETURN</span></code> from
+<code class="docutils literal notranslate"><span class="pre">ParseMathFunction</span></code> so vector parsing can try the same text. It does not mean
+a Tcl script executed <code class="docutils literal notranslate"><span class="pre">return</span></code>.</p>
+<p>Function syntax requires the opening parenthesis immediately after the scanned
+name. Lookup temporarily changes it to NUL, then restores it. This is why the
+expression input must be writable even though most parsing only reads it.
+Ordinary function arguments are complete expressions ending at a close
+parenthesis. <code class="docutils literal notranslate"><span class="pre">map</span></code> has its own two-argument parser.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Value-producing paths</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 45.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Syntax/path</p></th>
+<th class="head"><p>Evaluation</p></th>
+<th class="head"><p>Conversion</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bare number</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">strtod</span></code> token scan</p></td>
+<td><p>Explicit real scalar setter</p></td>
+</tr>
+<tr class="row-odd"><td><p>Variable</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Tcl_ParseVar</span></code>; traces may run</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Bracketed script</p></td>
+<td><p>Find closing bracket with Tcl parser, then evaluate script</p></td>
+<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Quoted value</p></td>
+<td><p>Tcl quoted tokens and substitutions</p></td>
+<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Braced value</p></td>
+<td><p>Tcl brace token rules</p></td>
+<td><p>Retained result through <code class="docutils literal notranslate"><span class="pre">ParseString</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Vector/range</p></td>
+<td><p>Registry and index lookup</p></td>
+<td><p>Copy selected values into temporary storage</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">ParseString</span></code> accepts a completely consumed number, a two-element complex
+pair, or a completely consumed vector reference. It does not turn an arbitrary
+list of numbers into a vector. Substitution-result conversion retains the Tcl
+result object before clearing the interpreter result, protecting the string
+while conversion itself may report an error.</p>
+<p>Bracket scanning uses <code class="docutils literal notranslate"><span class="pre">Tcl_ParseCommand</span></code> to find the real closing bracket
+rather than searching for the next literal <code class="docutils literal notranslate"><span class="pre">]</span></code>. Token evaluation follows Tcl’s
+quote/brace rules. These helpers do not independently retain the interpreter or
+its registry across arbitrary destructive callbacks. In particular, ordinary
+function lookup borrows a hash entry while its argument expression is evaluated.
+Callers must obey the surrounding lifetime requirements.</p>
+</section>
+<section id="temporary-storage-and-type-changes">
+<h2>Temporary storage and type changes<a class="headerlink" href="#temporary-storage-and-type-changes" title="Link to this heading">¶</a></h2>
+<p>Only evaluator temporaries may change numeric type. They have no registry entry,
+command or mapped array. <code class="docutils literal notranslate"><span class="pre">SetExpressionVectorType</span></code> discards their old storage;
+promotion instead allocates complex capacity, copies used real values with zero
+imaginary parts and then releases the old allocation. These operations do not
+change named-vector type or send client notifications.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FreeExpressionData</span></code> and <code class="docutils literal notranslate"><span class="pre">ReleaseExpressionStorage</span></code> are deliberately small
+private helpers. They rely on exclusive temporary ownership. Unlike the public
+reset APIs, they do not install new metadata before a custom release callback or
+retain the vector through destructive reentry. Ordinary evaluator allocations
+are dynamic storage with no user release callback; do not reuse these helpers
+as a general named-vector commit API.</p>
+<p>Complex binary arithmetic promotes the left temporary and broadcasts a
+length-one operand; other lengths must agree. Boolean operators build a separate
+real result before replacing the left storage. Equality compares both components
+exactly; logical truth is nonzero in either component. Ordering and modulus are
+not supported by the complex operator dispatcher.</p>
+<p>Shift operators rotate values rather than shift integer bits. A count must be a
+scalar with zero imaginary part. Positive finite counts are reduced modulo the
+length and truncated; nonpositive counts retain the historical no-op behavior.
+Length zero or one returns before finite-count validation. Rotation uses a hold
+buffer for the wrapped portion and overlap-safe movement for the remainder.</p>
+</section>
+<section id="function-adapters-and-validation">
+<h2>Function adapters and validation<a class="headerlink" href="#function-adapters-and-validation" title="Link to this heading">¶</a></h2>
+<p>Built-in descriptors are shared static records, while each interpreter owns its
+lookup table. Descriptor <code class="docutils literal notranslate"><span class="pre">clientData</span></code> selects the actual component, reduction
+or whole-vector procedure. The adapter controls type handling and storage:</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Adapter families</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Adapter</p></th>
+<th class="head"><p>Contract</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ComponentFunc</span></code> / <code class="docutils literal notranslate"><span class="pre">ComplexComponentFunc</span></code></p></td>
+<td><p>Transform values in place; errors can leave earlier temporary values changed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ComplexRealFunc</span></code></p></td>
+<td><p>Complex input is converted into a separate real buffer, installed after validation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ScalarFunc</span></code> / <code class="docutils literal notranslate"><span class="pre">ComplexScalarFunc</span></code></p></td>
+<td><p>Compute a reduction before resizing to one; retain the supported input type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ComplexRealScalarFunc</span></code></p></td>
+<td><p>Compute before releasing/retyping, then store one real result.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">VectorFunc</span></code></p></td>
+<td><p>Reject complex input and delegate the whole-vector mutation policy.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Real component iteration uses <code class="docutils literal notranslate"><span class="pre">First</span></code>/<code class="docutils literal notranslate"><span class="pre">Next</span></code> to skip nonfinite values within
+the selected interval. Complex component iteration visits the full used length.
+Those are different internal policies, not interchangeable loops. The final
+<code class="docutils literal notranslate"><span class="pre">EvaluateExpression</span></code> pass rejects any nonfinite real or imaginary component
+remaining in the result. Reducer adapters check <code class="docutils literal notranslate"><span class="pre">errno</span></code> but can defer finite
+validation to that final pass. <code class="docutils literal notranslate"><span class="pre">MathError</span></code> reads <code class="docutils literal notranslate"><span class="pre">errno</span></code>; callers relying on
+it must reset it before the operation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">map</span></code> adapter differs from these C math adapters. It retains each command
+prefix word, allocates an independent result, validates every returned scalar or
+pair, and attaches an element index to callback errors. Prefix substitutions run
+once, numeric argument evaluation follows, and only then do per-element calls
+begin. See <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a> for its completion-code and promotion rules.</p>
+</section>
+<section id="scalar-conversion-and-operand-reuse">
+<h2>Scalar conversion and operand reuse<a class="headerlink" href="#scalar-conversion-and-operand-reuse" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">NextValue</span></code> reuses its right-operand temporary between operations. Each parsed
+value must therefore establish its own type, rather than relying on the type
+left by a preceding operand. The numeric branch of <code class="docutils literal notranslate"><span class="pre">ParseString</span></code> uses
+<code class="docutils literal notranslate"><span class="pre">SetExpressionRealScalar</span></code>, just like bare numeric tokens. A preceding complex
+operand cannot contribute a stale imaginary component to a later real scalar.</p>
+<p>Braces, quotes, variables and command substitutions all use this conversion.
+These expressions both return <code class="docutils literal notranslate"><span class="pre">{{9.0</span> <span class="pre">6.0}}</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">rbc</span><span class="o">::</span><span class="n">vector</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="p">{{</span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">{</span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">{</span><span class="mi">5</span><span class="p">}}</span>
+<span class="n">rbc</span><span class="o">::</span><span class="n">vector</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="p">{{</span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">{</span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">5</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>A two-element pair still explicitly establishes complex type, including a pair
+whose imaginary component is zero. This rule concerns evaluator temporaries;
+it does not permit changing the type of an existing named vector.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Expression parser and adapter internals</a><ul>
+<li><a class="reference internal" href="#parser-state-and-precedence">Parser state and precedence</a></li>
+<li><a class="reference internal" href="#token-recognition-and-substitutions">Token recognition and substitutions</a></li>
+<li><a class="reference internal" href="#temporary-storage-and-type-changes">Temporary storage and type changes</a></li>
+<li><a class="reference internal" href="#function-adapters-and-validation">Function adapters and validation</a></li>
+<li><a class="reference internal" href="#scalar-conversion-and-operand-reuse">Scalar conversion and operand reuse</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="expression-reference.html"
+                          title="previous chapter">Vector expression C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="expression-engine-reference.html"
+                          title="next chapter">Expression engine internal C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="expression-engine-reference.html" title="Expression engine internal C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="expression-reference.html" title="Vector expression C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Expression parser and adapter internals</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

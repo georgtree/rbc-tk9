@@ -2479,5 +2479,58 @@ namespace eval vector.expr {
         rename $occupied {}
     } -result {1 original 2.0}
 
+    # ------------------------------------------------------------------------------------
+    # Purpose: Real substitutions reset a reused complex expression operand completely.
+    # ------------------------------------------------------------------------------------
+    foreach {case syntax} {1 {{5}} 2 {"5"} 3 {$scalar} 4 {[set scalar]}} {
+        test RBC.vector.expr.A.20.$case {real scalar after complex operands: list result} -setup {
+            set scalar 5
+            set expression [format {{1 2} + {3 4} + %s} $syntax]
+        } -body {
+            vector expr $expression
+        } -cleanup {
+            unset scalar expression
+        } -result {{9.0 6.0}}
+
+        test RBC.vector.expr.A.21.$case {real scalar after complex operands: named result} -setup {
+            set scalar 5
+            set expression [format {{1 2} + {3 4} + %s} $syntax]
+        } -body {
+            vector expr -name Result $expression
+            list [Result type] [Result range 0 end]
+        } -cleanup {
+            vector destroy Result
+            unset scalar expression
+        } -result {complex {{9.0 6.0}}}
+
+        test RBC.vector.expr.A.22.$case {real scalar after complex operands: real destination} -setup {
+            vector create Result
+            Result set {99}
+            set scalar 5
+            set expression [format {imag({1 2} + {3 4} + %s)} $syntax]
+        } -body {
+            Result expr $expression
+            list [Result type] [Result range 0 end]
+        } -cleanup {
+            vector destroy Result
+            unset scalar expression
+        } -result {real 6.0}
+    }
+
+    test RBC.vector.expr.A.23.1 {scalar substitutions can alternate real and complex types} -body {
+        vector expr {{1 2} + {3 4} + {5} + {6 7} + {8}}
+    } -result {{23.0 13.0}}
+
+    test RBC.vector.expr.A.23.2 {real substitution broadcasts after a complex vector operand} -setup {
+        vector create -type complex Source
+        Source set {{1 2} {3 4}}
+        set scalar 5
+    } -body {
+        vector expr {Source + Source + $scalar}
+    } -cleanup {
+        vector destroy Source
+        unset scalar
+    } -result {{7.0 4.0} {11.0 8.0}}
+
 	cleanupTests
 }

@@ -10,6 +10,12 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcVecMath.c
+ * Vector-expression parser, temporary storage and math-function adapters.
+ */
+/** @defgroup expression_engine Expression engine internals
+ * Private evaluator helpers. Registered vector types remain immutable.
+ */
 #include "rbcVectorInt.h"
 #include <stdint.h>
 #include <errno.h>
@@ -43,18 +49,10 @@ typedef struct {
     ComplexRealScalarProc *complexProc;
 } ComplexRealScalarFunction;
 
-/*
- *    Contains information about math functions that can be called
- *    for vectors.  The table of math functions is global within the
- *    application.  So you can't define two different "sqrt"
- *    functions.
- */
+/* Built-in descriptors are shared static storage. Each interpreter owns its
+ * lookup table; entries borrow these descriptors and their adapter data. */
 typedef struct {
-    char *name;            /* Name of built-in math function.  If
-                            * NULL, indicates that the function
-                            * was user-defined and dynamically
-                            * allocated.  Function names are
-                            * global across all interpreters. */
+    char *name;            /* Built-in name; NULL terminates the descriptor array. */
     GenericMathProc *proc; /* Procedure that implements this math
                             * function. */
     ClientData clientData; /* Argument to pass when invoking the
@@ -240,6 +238,13 @@ static MathFunction mathFunctions[] = {
     },
 };
 
+/**
+ * @brief Check a temporary-array allocation size.
+ * @ingroup expression_engine
+ *
+ * Requires nonzero elementSize. Rejects negative count and size_t multiplication overflow with a Tcl
+ * error; writes byteCountPtr only on success. Does not allocate storage.
+ */
 static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementSize, size_t *byteCountPtr) {
     if (count < 0) {
         Tcl_SetObjResult(interp, Tcl_NewStringObj("array size cannot be negative", -1));
@@ -253,10 +258,24 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
     return TCL_OK;
 }
 
+/**
+ * @brief Check the byte count for real expression storage.
+ * @ingroup expression_engine
+ *
+ * Delegates to GetArrayByteCount with sizeof(double); output remains untouched on validation failure.
+ */
 static int GetDoubleArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t *byteCountPtr) {
     return GetArrayByteCount(interp, count, sizeof(double), byteCountPtr);
 }
 
+/**
+ * @brief Convert a scalar shift into a bounded rotation offset.
+ * @ingroup expression_engine
+ *
+ * Initializes the output to zero. Length zero or one returns before finite validation. Otherwise
+ * rejects nonfinite counts, leaves nonpositive counts as a no-op for compatibility, reduces positive
+ * counts modulo length and truncates the remainder to Tcl_Size.
+ */
 static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length, Tcl_Size *offsetPtr) {
     double remainder;
 
@@ -282,6 +301,14 @@ static int GetRotationOffset(Tcl_Interp *interp, double scalar, Tcl_Size length,
     return TCL_OK;
 }
 
+/**
+ * @brief Rotate real or complex temporary storage in place.
+ * @ingroup expression_engine
+ *
+ * Requires LEFT_SHIFT or RIGHT_SHIFT and an evaluator-owned vector. Allocates a hold buffer for the
+ * wrapped portion, then uses memmove for overlap. Validation/allocation errors precede data mutation;
+ * successful rotation leaves type, length and selection unchanged and sends no notifications.
+ */
 static int RotateExpressionVector(Tcl_Interp *interp, VectorObject *vPtr, int operator, double scalar) {
     unsigned char *data;
     unsigned char *hold;
@@ -335,6 +362,14 @@ static int RotateExpressionVector(Tcl_Interp *interp, VectorObject *vPtr, int op
     return TCL_OK;
 }
 
+/**
+ * @brief Release a temporary allocation according to its current policy.
+ * @ingroup expression_engine
+ *
+ * Static storage is borrowed, dynamic storage uses ckfree, and a custom policy is invoked directly.
+ * Does not clear metadata or retain the record across custom callbacks. Evaluator temporaries normally
+ * own dynamic storage; this is not the guarded public reset path.
+ */
 static void FreeExpressionData(VectorObject *vPtr) {
     if ((vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
         if (vPtr->freeProc == TCL_DYNAMIC) {
@@ -345,6 +380,14 @@ static void FreeExpressionData(VectorObject *vPtr) {
     }
 }
 
+/**
+ * @brief Release and clear an expression temporary's storage metadata.
+ * @ingroup expression_engine
+ *
+ * Resets data, length, capacity, selection and freeProc after FreeExpressionData. Leaves type and
+ * registration fields unchanged. Requires exclusive temporary ownership and no destructive release
+ * reentry.
+ */
 static void ReleaseExpressionStorage(VectorObject *vPtr) {
     FreeExpressionData(vPtr);
     vPtr->data.raw = NULL;
@@ -355,6 +398,13 @@ static void ReleaseExpressionStorage(VectorObject *vPtr) {
     vPtr->freeProc = TCL_STATIC;
 }
 
+/**
+ * @brief Discard storage when changing an unregistered temporary's type.
+ * @ingroup expression_engine
+ *
+ * Same type is a no-op. A change asserts no registry entry, command or mapped array, releases old
+ * storage, then sets type. Not valid for changing a named vector's immutable type.
+ */
 static void SetExpressionVectorType(VectorObject *vPtr, Rbc_VectorType type) {
     if (vPtr->type == type) {
         return;
@@ -369,11 +419,27 @@ static void SetExpressionVectorType(VectorObject *vPtr, Rbc_VectorType type) {
     vPtr->type = type;
 }
 
+/**
+ * @brief Copy a selected source into an evaluator temporary of matching type.
+ * @ingroup expression_engine
+ *
+ * Changes the destination temporary's type before private duplication. The caller retains the source
+ * for the synchronous copy. Failure can leave the temporary cleared or retyped; no named output is
+ * committed here.
+ */
 static int CopyExpressionVector(VectorObject *destPtr, VectorObject *srcPtr) {
     SetExpressionVectorType(destPtr, srcPtr->type);
     return Rbc_VectorDuplicate(destPtr, srcPtr);
 }
 
+/**
+ * @brief Promote a real temporary while preserving length and capacity.
+ * @ingroup expression_engine
+ *
+ * Allocates complex capacity, copies used real values with zero imaginary parts and then releases old
+ * storage. Already-complex input is unchanged. Size/allocation failures leave old storage intact;
+ * requires exclusive temporary ownership across release.
+ */
 static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
     Rbc_Complex *newArr;
     size_t byteCount;
@@ -407,6 +473,13 @@ static int PromoteExpressionVectorToComplex(VectorObject *vPtr) {
     return TCL_OK;
 }
 
+/**
+ * @brief Replace an expression temporary with one real value.
+ * @ingroup expression_engine
+ *
+ * Sets real type, resizes to one and stores the value. Returns Tcl status without checking finiteness;
+ * evaluation or the calling adapter owns that check.
+ */
 static int SetExpressionRealScalar(VectorObject *vPtr, double value) {
     SetExpressionVectorType(vPtr, RBC_VECTOR_REAL);
     if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
@@ -416,6 +489,13 @@ static int SetExpressionRealScalar(VectorObject *vPtr, double value) {
     return TCL_OK;
 }
 
+/**
+ * @brief Replace an expression temporary with one complex value.
+ * @ingroup expression_engine
+ *
+ * Sets complex type, resizes to one and stores the pair. Returns Tcl status; does not publish a named-
+ * vector change or validate component finiteness.
+ */
 static int SetExpressionComplexScalar(VectorObject *vPtr, Rbc_Complex value) {
     SetExpressionVectorType(vPtr, RBC_VECTOR_COMPLEX);
     if (Rbc_VectorChangeLength(vPtr, 1) != TCL_OK) {
@@ -425,6 +505,14 @@ static int SetExpressionComplexScalar(VectorObject *vPtr, Rbc_Complex value) {
     return TCL_OK;
 }
 
+/**
+ * @brief Compute one supported complex arithmetic operation.
+ * @ingroup expression_engine
+ *
+ * Handles addition, subtraction, multiplication, division and power. Rejects zero divisor and
+ * unsupported operators; power delegates domain checks. Writes the output on success and returns Tcl
+ * status. The enclosing evaluator checks final finiteness.
+ */
 static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex a, Rbc_Complex b,
                                    Rbc_Complex *resultPtr) {
     switch (operator) {
@@ -451,6 +539,14 @@ static int ApplyComplexBinaryValue(Tcl_Interp *interp, int operator, Rbc_Complex
     return TCL_ERROR;
 }
 
+/**
+ * @brief Replace a complex temporary with real boolean negation values.
+ * @ingroup expression_engine
+ *
+ * Allocates a separate real array and computes exact complex-zero tests before releasing the input.
+ * Sets capacity equal to length and resets selection to the complete result. Validation/allocation
+ * failure leaves the input untouched.
+ */
 static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr) {
     double *newArr;
     size_t byteCount;
@@ -484,6 +580,15 @@ static int ApplyComplexNotOperator(Tcl_Interp *interp, VectorObject *vPtr) {
     return TCL_OK;
 }
 
+/**
+ * @brief Compute broadcast complex equality or logical results as real values.
+ * @ingroup expression_engine
+ *
+ * Requires EQUAL, NEQ, AND or OR. Length-one operands broadcast; other lengths must match. Computes
+ * into a new real array before replacing the left temporary. Equality compares both components
+ * exactly; truth means either component is nonzero. Both operands have already been evaluated, so this
+ * is not short-circuit evaluation.
+ */
 static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
     double *newArr;
     size_t byteCount;
@@ -572,6 +677,13 @@ static int ApplyComplexBooleanOperator(Tcl_Interp *interp, int operator, VectorO
     return TCL_OK;
 }
 
+/**
+ * @brief Validate a real-valued scalar count and rotate the left temporary.
+ * @ingroup expression_engine
+ *
+ * Requires a length-one right operand. A complex scalar with zero imaginary part is accepted; nonzero
+ * imaginary part is rejected. Rotation retains the left type and length.
+ */
 static int ApplyComplexShiftOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
     Rbc_Complex shift;
 
@@ -591,6 +703,15 @@ static int ApplyComplexShiftOperator(Tcl_Interp *interp, int operator, VectorObj
     return RotateExpressionVector(interp, vPtr, operator, shift.real);
 }
 
+/**
+ * @brief Dispatch complex arithmetic, boolean or rotation operations.
+ * @ingroup expression_engine
+ *
+ * Either operand may be real. Arithmetic promotes the left temporary and broadcasts scalars, otherwise
+ * requires equal lengths; boolean operations return real storage and shifts retain the left type.
+ * Unsupported ordering/modulus operators fail. Elementwise arithmetic can partially change the
+ * temporary before an error; named destinations are committed by the outer layer only.
+ */
 static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorObject * vPtr, VectorObject *v2Ptr) {
     Tcl_Size i;
 
@@ -680,6 +801,13 @@ static int ApplyComplexBinaryOperator(Tcl_Interp *interp, int operator, VectorOb
     return TCL_OK;
 }
 
+/**
+ * @brief Test finiteness of both complex components.
+ * @ingroup expression_engine
+ *
+ * Returns true only if both real and imaginary values are finite. Does not inspect errno or set a Tcl
+ * diagnostic.
+ */
 static int ComplexValueIsFinite(Rbc_Complex value) { return FINITE(value.real) && FINITE(value.imag); }
 
 /*
@@ -739,27 +867,12 @@ void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr) {
     InstallIndexProc(tablePtr, "prod", Product);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Install or remove a named special-index procedure.
+ * @ingroup expression_engine
  *
- * InstallIndexProc --
- *
- *      Creates a hash entry for every index
- *      and sets the value to the function.
- *
- * Parameters:
- *      Tcl_HashTable *tablePtr
- *      char *string
- *      Rbc_VectorIndexProc *procPtr - Pointer to function to be called when the vector finds the named index. If NULL,
- *                                     this indicates to remove the index from the table.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Adds to the hash entry the special indicies
- *
- *----------------------------------------------------------------------
+ * Requires an initialized string-key hash table. Stores a borrowed function pointer, or deletes the
+ * entry for NULL. Does not own or release callback state.
  */
 static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIndexProc *procPtr) {
     Tcl_HashEntry *hPtr;
@@ -773,27 +886,12 @@ static void InstallIndexProc(Tcl_HashTable *tablePtr, char *string, Rbc_VectorIn
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Find the first finite real value in the selected interval.
+ * @ingroup expression_engine
  *
- * First --
- *
- *      Gets the first index of the designated interval.  The interval
- *      is between vPtr->first and vPtr->last.  But the range may
- *      NaN or Inf values that should be ignored.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to retrieve the first index from 
- *
- * Results:
- *      Returns the index of the first finite value in the designated
- *      interval.  If no finite values exists in the range, then -1 is
- *      returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires valid real storage and first/last bounds. Returns its storage index or -1. Does not alter
+ * selection or cached extrema.
  */
 static Tcl_Size First(VectorObject *vPtr) {
     Tcl_Size i;
@@ -806,28 +904,12 @@ static Tcl_Size First(VectorObject *vPtr) {
     return -1;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Find the next finite real value after a current index.
+ * @ingroup expression_engine
  *
- * Next --
- *
- *      Gets the next index of the designated interval.  The interval
- *      is between vPtr->first and vPtr->last.  Ignore NaN or Inf
- *      values.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to retrieve the next index for
- *      int current - The current index
- *
- * Results:
- *      Returns the index of the next finite value in the designated
- *      interval.  If no more finite values exists in the range,
- *      then -1 is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Scans through last inclusive, returning a storage index or -1. Requires valid real storage and a
+ * current index from the same traversal.
  */
 static Tcl_Size Next(VectorObject *vPtr, Tcl_Size current) {
     Tcl_Size i;
@@ -2166,10 +2248,14 @@ static double Round(double value) {
     }
 }
 
-/*
- * CopyExpressionResult -- Commit a temporary without changing the named target's type.
- * Matching types copy the selected range; a real result can fill a complex target
- * with zero imaginary parts. Cache flushing and notification belong to the caller.
+/**
+ * @brief Copy an evaluated temporary into a fixed-type destination.
+ * @ingroup expression_engine
+ *
+ * Matching types delegate to private duplication. Real results can populate a complex destination with
+ * zero imaginary parts; complex-to-real assignment is rejected. Resizing/copying does not flush mapped
+ * caches or notify. The caller checks destination lifetime and writability across expression
+ * callbacks.
  */
 static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, VectorObject *srcPtr) {
     Tcl_Size i;
@@ -2197,9 +2283,12 @@ static int CopyExpressionResult(Tcl_Interp *interp, VectorObject *destPtr, Vecto
     return TCL_ERROR;
 }
 
-/*
- * ExpressionDestinationChanged -- Record destruction while Tcl substitutions or map callbacks run.
- * The vector frees this client after the destroy notification; the stack flag outlives the callback.
+/**
+ * @brief Record destruction of the original assignment destination.
+ * @ingroup expression_engine
+ *
+ * clientData points to the caller's live stack flag. Only DESTROY sets it. The destruction path
+ * releases the observer; the callback does not access the vector or keep an interpreter alive.
  */
 static void ExpressionDestinationChanged(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     (void)interp;
@@ -2287,11 +2376,13 @@ done:
     return result;
 }
 
-/*
- * EvaluateExpression -- Parse into the caller's initialized expression temporary.
- * Requires complete input consumption and finite real/imaginary result components.
- * The caller owns the temporary on both success and failure. Substitutions and
- * map callbacks execute Tcl code and their side effects are not rolled back.
+/**
+ * @brief Evaluate the complete writable expression into a caller-owned temporary.
+ * @ingroup expression_engine
+ *
+ * Initializes parser state, calls NextValue and requires END. Rejects nonfinite components in the
+ * final result through MathError. The caller frees the temporary on success or failure. Substitutions
+ * and map callbacks execute Tcl; their side effects are not rolled back.
  */
 static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr) {
     ParseInfo info;
@@ -2335,32 +2426,14 @@ static int EvaluateExpression(Tcl_Interp *interp, char *string, Value *valuePtr)
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Evaluate one precedence-delimited expression into an existing temporary.
+ * @ingroup expression_engine
  *
- * NextValue --
- *
- *      Parse a "value" from the remainder of the expression in parsePtr.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to use for error reporting.
- *      ParseInfo *parsePtr - Describes the state of the parse just before the value (i.e. NextToken will be called to
- *                            get first token of value).
- *      int prec - Treat any un-parenthesized operator with precedence <= this as the end of the expression.
- *      Value *valuePtr - Where to store the value of the expression. Caller must have initialized pv field.
- *
- * Results:
- *      Normally TCL_OK is returned.  The value of the expression is
- *      returned in *valuePtr.  If an error occurred, then the interpreter
- *      result contains an error message and TCL_ERROR is returned.
- *      InfoPtr->token will be left pointing to the token AFTER the
- *      expression, and parsePtr->nextPtr will point to the character just
- *      after the terminating token.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Owns a second operand temporary for this recursive invocation and frees it on every exit. Stops at
+ * END, CLOSE_PAREN, COMMA or an operator whose precedence is at most prec; token/nextPtr describe the
+ * terminator already scanned. Evaluates both operands before applying operators, including logical
+ * operators. Errors can leave partial temporary data and Tcl side effects.
  */
 static int NextValue(Tcl_Interp *interp, ParseInfo *parsePtr, int prec, Value *valuePtr) {
     Value value2; /* Second operand for current operator.  */
@@ -2780,6 +2853,14 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @brief Set an arithmetic message and structured Tcl error code.
+ * @ingroup expression_engine
+ *
+ * Installs messageObj as result and as the third element of the ARITH/class/message error-code list.
+ * Accepts a newly created message object; Tcl result/error-code references retain it. Does not raise a
+ * completion code itself.
+ */
 static void SetMathError(Tcl_Interp *interp, const char *className, Tcl_Obj *messageObj) {
     Tcl_Obj *codeObj;
     Tcl_Obj *codeObjv[3];
@@ -2792,26 +2873,12 @@ static void SetMathError(Tcl_Interp *interp, const char *className, Tcl_Obj *mes
     Tcl_SetObjErrorCode(interp, codeObj);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Classify a floating-point failure using errno and the value.
+ * @ingroup expression_engine
  *
- * MathError --
- *
- *      This procedure is called when an error occurs during a
- *      floating-point operation.  It reads errno and sets
- *      the interpreter result accordingly.
- *
- * Parameters:
- *      Tcl_Interp *interp - Where to store error message.
- *      double value - Value returned after error; used to distinguish underflows from overflows.
- *
- * Results:
- *      The Interpreter result is set to hold an error message.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Reports DOMAIN for EDOM or NaN, UNDERFLOW/OVERFLOW for ERANGE or infinity, otherwise UNKNOWN. Reads
+ * but does not clear errno. Callers that depend on errno must reset it before the operation.
  */
 static void MathError(Tcl_Interp *interp, double value) {
     Tcl_Obj *messageObj;
@@ -2843,6 +2910,14 @@ static void MathError(Tcl_Interp *interp, double value) {
     SetMathError(interp, className, messageObj);
 }
 
+/**
+ * @brief Convert a retained Tcl result into an expression value.
+ * @ingroup expression_engine
+ *
+ * Increments the result object reference before clearing the interpreter result, so conversion cannot
+ * invalidate its borrowed string. Releases the reference afterward and returns ParseString status.
+ * Does not retain arbitrary vector identities resolved by the conversion.
+ */
 static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
     Tcl_Obj *resultObj;
     const char *string;
@@ -2861,6 +2936,15 @@ static int ParseSubstitutionResult(Tcl_Interp *interp, Value *valuePtr) {
     return result;
 }
 
+/**
+ * @brief Locate a matching close bracket and evaluate the enclosed Tcl script.
+ * @ingroup expression_engine
+ *
+ * Input begins after the opening bracket. Uses Tcl_ParseCommand repeatedly to respect command syntax,
+ * writes termPtr after the closing bracket once found, then returns Tcl_EvalEx completion unchanged.
+ * Missing terminator reports an error. The caller provides valid input and interpreter lifetime
+ * through evaluation.
+ */
 static int ParseBracketScript(Tcl_Interp *interp, const char *string, const char **termPtr) {
     Tcl_Parse parse;
     const char *scanPtr;
@@ -2899,6 +2983,13 @@ static int ParseBracketScript(Tcl_Interp *interp, const char *string, const char
     return Tcl_EvalEx(interp, string, scriptLength, 0);
 }
 
+/**
+ * @brief Evaluate bracketed Tcl and convert its result to numeric storage.
+ * @ingroup expression_engine
+ *
+ * Delegates bracket parsing/evaluation and then ParseSubstitutionResult. Non-OK Tcl completion
+ * propagates before numeric conversion.
+ */
 static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
     int result = ParseBracketScript(interp, string, termPtr);
     if (result != TCL_OK) {
@@ -2907,6 +2998,14 @@ static int ParseBracketValue(Tcl_Interp *interp, const char *string, const char 
     return ParseSubstitutionResult(interp, valuePtr);
 }
 
+/**
+ * @brief Parse and evaluate a quoted Tcl token sequence.
+ * @ingroup expression_engine
+ *
+ * Input includes the opening quote. Uses Tcl parsing/substitution rules, releases parse storage after
+ * token evaluation, then converts the retained result. termPtr follows the closing quote on successful
+ * parsing; substitutions may execute Tcl.
+ */
 static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
     Tcl_Parse parse;
     int result;
@@ -2923,6 +3022,14 @@ static int ParseQuotedValue(Tcl_Interp *interp, const char *string, const char *
     return ParseSubstitutionResult(interp, valuePtr);
 }
 
+/**
+ * @brief Parse a braced Tcl value and convert it to expression storage.
+ * @ingroup expression_engine
+ *
+ * Input includes the opening brace. Uses Tcl_ParseBraces and evaluates its tokens, preserving brace
+ * substitution rules including backslash-newline handling. Converts through ParseSubstitutionResult
+ * after freeing successful parse storage.
+ */
 static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char **termPtr, Value *valuePtr) {
     Tcl_Parse parse;
     int result;
@@ -2939,33 +3046,14 @@ static int ParseBracedValue(Tcl_Interp *interp, const char *string, const char *
     return ParseSubstitutionResult(interp, valuePtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Scan one operator, delimiter or numeric/vector value.
+ * @ingroup expression_engine
  *
- * NextToken --
- *
- *      Lexical analyzer for expression parser:  parses a single value,
- *      operator, or other syntactic element from an expression string.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to use for error reporting.
- *      ParseInfo *parsePtr - Describes the state of the parse.
- *      Value *valuePtr - Where to store a parsed value.
- *
- * Results:
- *      TCL_OK is returned unless an error occurred while doing lexical
- *      analysis or executing an embedded command.  In that case a
- *      standard Tcl error is returned, using the interpreter result to hold
- *      an error message.  In the event of a successful return, the token
- *      and field in parsePtr is updated to refer to the next symbol in
- *      the expression string, and the expr field is advanced past that
- *      token;  if the token is a value, then the value is stored at
- *      valuePtr.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Advances nextPtr and records token; VALUE fills the supplied temporary. Bare numbers use
+ * SetExpressionRealScalar. Substitutions use ParseString, while other names first try function lookup
+ * then vector/range lookup and copying. Variable traces, commands and map functions can execute Tcl;
+ * this scanner has no independent interpreter lifetime guard.
  */
 static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
     char *p;
@@ -3164,24 +3252,12 @@ static int NextToken(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
  * Fmod --
  *     Returns x mod y
  */
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Compute the legacy floor-based real remainder.
+ * @ingroup expression_engine
  *
- * Fmod --
- *
- *      Returns the remainder after performing x divided by y.
- *
- * Parameters:
- *      double x
- *      double y
- *
- * Results:
- *      x mod y
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns zero for a zero divisor; otherwise x-floor(x/y)*y. This differs from C fmod for negative
+ * operands. Does not report an error or validate finite input.
  */
 static double Fmod(double x, double y) {
     if (y == 0.0) {
@@ -3190,33 +3266,15 @@ static double Fmod(double x, double y) {
     return x - (floor(x / y) * y);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Interpret substitution text as a scalar, complex pair or vector reference.
+ * @ingroup expression_engine
  *
- * ParseString --
- *
- *      Given a string (such as one coming from command or variable
- *      substitution), make a Value based on the string.  The value
- *      will be a floating-point or integer, if possible, or else it
- *      will just be a copy of the string.
- *
- * Parameters:
- *      Tcl_Interp *interp - Where to store error message.
- *      const char *string - String to turn into value.
- *      Value *valuePtr - Where to store value information. Caller must have initialized pv field.
- *
- * Results:
- *      TCL_OK is returned under normal circumstances, and TCL_ERROR
- *      is returned if a floating-point overflow or underflow occurred
- *      while reading in a number.  The value at *valuePtr is modified
- *      to hold a number, if possible.
- *
- * Side effects:
- *      None.
- *
- *--------------------------------------------------------------
+ * Tries a fully consumed strtod number, then a two-element complex list, then a fully consumed
+ * vector/range reference. Does not accept arbitrary numeric lists as vectors. The current real-number
+ * branch uses the same real scalar setter as bare numeric tokens, clearing any complex type and
+ * imaginary component left in a reused operand temporary.
  */
-
 static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) {
     char *numberEndPtr;
     const char *vectorEndPtr;
@@ -3230,11 +3288,7 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
             MathError(interp, value);
             return TCL_ERROR;
         }
-        if (Rbc_VectorChangeLength(valuePtr->vPtr, 1) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        valuePtr->vPtr->data.real[0] = value;
-        return TCL_OK;
+        return SetExpressionRealScalar(valuePtr->vPtr, value);
     }
     while (isspace(UCHAR(*string))) {
         string++;
@@ -3273,15 +3327,14 @@ static int ParseString(Tcl_Interp *interp, const char *string, Value *valuePtr) 
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Parse and retain one Tcl command-prefix value.
+ * @ingroup expression_engine
  *
- * ParseMapPrefix -- Parse one Tcl command prefix without numeric conversion.
- * Braces, quotes, a variable, or a bracketed script yield one list value.
- * A bare command name ends at whitespace, a comma, or a parenthesis.
- * Returns a retained object on success. Substitutions run once, in the caller's frame.
- *
- *----------------------------------------------------------------------
+ * Accepts braces, quotes, variable or bracket substitution, or a bare word ending at
+ * whitespace/comma/parenthesis. Substitutions run once in the current frame. Returns a reference-
+ * counted object and advances nextPtr, or NULL on failure. The caller decrements the reference;
+ * MapVector validates list structure and nonemptiness.
  */
 static Tcl_Obj *ParseMapPrefix(Tcl_Interp *interp, const char **nextPtr) {
     const char *p = *nextPtr, *endPtr;
@@ -3326,16 +3379,16 @@ static Tcl_Obj *ParseMapPrefix(Tcl_Interp *interp, const char **nextPtr) {
     return prefix;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Apply a Tcl command prefix to every value of a detached temporary.
+ * @ingroup expression_engine
  *
- * MapVector -- Apply a Tcl command prefix to every element of an expression temporary.
- * The input is already detached from named vectors. Results use separate real storage,
- * promoted to complex if any callback returns a pair. Callback errors retain their Tcl
- * error details with a zero-based element index added to the error stack. No named vector
- * is written here; the outer expression commits only after successful evaluation.
- *
- *----------------------------------------------------------------------
+ * Retains individual prefix words against recursive shimmering and appends one real or complex-pair
+ * argument per invocation. Builds a separate zero-initialized result, promoting on the first pair
+ * return. Requires finite numeric results; empty input yields an empty real result with no calls. Tcl
+ * errors gain an element index, other completion codes become MAP COMPLETION errors, and invalid
+ * results become MAP VALUE errors. Frees argument references and partial results on failure; callback
+ * side effects remain.
  */
 static int MapVector(Tcl_Interp *interp, Tcl_Obj *prefix, VectorObject *vPtr) {
     Tcl_Obj **prefixObjv, **objv;
@@ -3441,9 +3494,13 @@ done:
     return result;
 }
 
-/*
- * ParseMapFunction -- Parse map(commandPrefix, expression), then evaluate the callbacks.
- * The comma and closing parenthesis are mandatory; the second argument is a full vector expression.
+/**
+ * @brief Parse map(prefix, expression) before invoking element callbacks.
+ * @ingroup expression_engine
+ *
+ * Retains the parsed prefix while evaluating the complete second argument. Requires comma and closing
+ * parenthesis; successful MapVector changes token to VALUE. Releases the prefix on every exit. Prefix
+ * and numeric-argument evaluation precede the per-element callbacks.
  */
 static int ParseMapFunction(Tcl_Interp *interp, ParseInfo *parsePtr, Value *valuePtr) {
     const char *p = parsePtr->nextPtr;
@@ -3478,38 +3535,15 @@ done:
     return result;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Try function syntax before falling back to vector-name parsing.
+ * @ingroup expression_engine
  *
- * ParseMathFunction --
- *
- *      This procedure is invoked to parse a math function from an
- *      expression string, carry out the function, and return the
- *      value computed.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to use for error reporting.
- *      char *start - Start of string to parse
- *      ParseInfo *parsePtr - Describes the state of the parse. parsePtr->nextPtr must point to the first character of 
- *                            the function's name.
- *      Value *valuePtr - Where to store value, if that is what's parsed from string.  Caller must have initialized pv 
- *                        field correctly.
- *
- * Results:
- *      TCL_OK is returned if all went well and the function's value
- *      was computed successfully.  If the name doesn't match any
- *      known math function, returns TCL_RETURN. And if a format error
- *      was found, TCL_ERROR is returned and an error message is left
- *      in the interpreter result.
- *
- *      After a successful return parsePtr will be updated to point to
- *      the character just after the function call, the token is set
- *      to VALUE, and the value is stored in valuePtr.
- *
- * Side effects:
- *      Embedded commands could have arbitrary side-effects.
- *
- *----------------------------------------------------------------------
+ * Requires a writable input string: temporarily replaces the opening parenthesis with NUL during
+ * lookup, then restores it. Recognizes map specially; ordinary names use the interpreter's math table.
+ * TCL_RETURN means no recognized function, not a script return. Parses one expression argument and
+ * invokes its adapter after the close parenthesis. The hash entry is borrowed across argument
+ * evaluation; this helper does not guard registry teardown during callbacks.
  */
 static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePtr, Value *valuePtr) {
     Tcl_HashEntry *hPtr;
@@ -3561,28 +3595,13 @@ static int ParseMathFunction(Tcl_Interp *interp, char *start, ParseInfo *parsePt
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Apply a real component function to finite selected values.
+ * @ingroup expression_engine
  *
- * Math Functions --
- *
- *      This page contains the procedures that implement all of the
- *      built-in math functions for expressions.
- *
- * Parameters:
- *      ClientData clientData - Contains address of procedure that takes one double argument and returns a double result.
- *      Tcl_Interp *interp
- *      VectorObject *vPtr
- *
- * Results:
- *      Each procedure returns TCL_OK if it succeeds and places result
- *      information at *resultPtr.  If it fails it returns TCL_ERROR
- *      and leaves an error message in the interpreter result.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
+ * Rejects complex input, resets errno and walks First/Next. Writes each result before errno/finite
+ * validation; failure can leave a partially transformed temporary. Does not notify or commit named
+ * output.
  */
 static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComponentProc *procPtr = (ComponentProc *)clientData;
@@ -3610,6 +3629,14 @@ static int ComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject
     return TCL_OK;
 }
 
+/**
+ * @brief Apply paired real/complex component implementations.
+ * @ingroup expression_engine
+ *
+ * Real input delegates to ComponentFunc. Complex input visits all used values, resets errno for each
+ * call, validates both components and stores each successful result. Errors can leave earlier elements
+ * changed.
+ */
 static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComplexComponentFunction *functionPtr;
     Tcl_Size i;
@@ -3650,25 +3677,13 @@ static int ComplexComponentFunc(ClientData clientData, Tcl_Interp *interp, Vecto
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Reduce a real temporary to one real value.
+ * @ingroup expression_engine
  *
- * ScalarFunc --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      VectorObject *vPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Rejects complex input, computes the scalar before resizing and checks errno. Stores one value on
+ * successful resize; final finiteness is checked by EvaluateExpression. No named-vector notification
+ * is sent.
  */
 static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     double value;
@@ -3691,6 +3706,13 @@ static int ScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
     return TCL_OK;
 }
 
+/**
+ * @brief Reduce a real or complex temporary while retaining its type.
+ * @ingroup expression_engine
+ *
+ * Selects the corresponding reducer, computes before resizing to one, and reports errno failures. A
+ * complex result remains a pair. Final nonfinite results are rejected by the enclosing evaluator.
+ */
 static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComplexScalarFunction *functionPtr;
 
@@ -3741,6 +3763,14 @@ static int ComplexScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorOb
     return TCL_OK;
 }
 
+/**
+ * @brief Reduce either numeric type to one real result.
+ * @ingroup expression_engine
+ *
+ * Computes the reduction before any type change or release, checks errno, then uses
+ * SetExpressionRealScalar. Operates on evaluator temporaries only; final finiteness belongs to
+ * EvaluateExpression.
+ */
 static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComplexRealScalarFunction *functionPtr;
     double value;
@@ -3764,25 +3794,12 @@ static int ComplexRealScalarFunc(ClientData clientData, Tcl_Interp *interp, Vect
     return SetExpressionRealScalar(vPtr, value);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Invoke a real-only whole-vector function adapter.
+ * @ingroup expression_engine
  *
- * VectorFunc --
- *
- *      TODO: Description
- *
- * Parameters:
- *      ClientData clientData
- *      Tcl_Interp *interp
- *      VectorObject *vPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Rejects complex input and returns the selected function's Tcl status. The function owns its
+ * mutation/allocation policy; this wrapper neither checks errno nor publishes notifications.
  */
 static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     VectorProc *procPtr = (VectorProc *)clientData;
@@ -3793,6 +3810,15 @@ static int VectorFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *v
     return (*procPtr)(vPtr);
 }
 
+/**
+ * @brief Convert component results from complex input into real temporary storage.
+ * @ingroup expression_engine
+ *
+ * Real input delegates to ComponentFunc. Complex input allocates real capacity and validates each
+ * transformed value before releasing old storage. Failure frees the new buffer and retains the old
+ * one. On success preserves length/capacity/selection and changes only the temporary type and owned
+ * data.
+ */
 static int ComplexRealFunc(ClientData clientData, Tcl_Interp *interp, VectorObject *vPtr) {
     ComplexRealFunction *functionPtr;
     double *newArr;
