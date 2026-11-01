@@ -3258,10 +3258,19 @@ Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientDat
     Tcl_IncrRefCount(resultObj);
     name = Tcl_GetString(resultObj);
     token = Tk_GetImage(interp, tkwin, name, TempImageChangedProc, clientData);
-    Tcl_DecrRefCount(resultObj);
     if (token == NULL) {
+        Tcl_InterpState state;
+
+        /* Roll back the named image without losing the acquisition error. */
+        Tcl_Preserve(interp);
+        state = Tcl_SaveInterpState(interp, TCL_ERROR);
+        Tk_DeleteImage(interp, name);
+        Tcl_RestoreInterpState(interp, state);
+        Tcl_DecrRefCount(resultObj);
+        Tcl_Release(interp);
         return NULL;
     }
+    Tcl_DecrRefCount(resultObj);
     return token;
 }
 
@@ -3285,26 +3294,27 @@ Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientDat
  *--------------------------------------------------------------
  */
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage) {
-    Tcl_Obj *objv[3];
-    int result;
+    Tcl_InterpState state;
+    Tcl_Obj *nameObj = NULL;
 
     if (tkImage == NULL) {
         return TCL_OK;
     }
-    objv[0] = Tcl_NewStringObj("image", -1);
-    objv[1] = Tcl_NewStringObj("delete", -1);
-    objv[2] = Tcl_NewStringObj(Rbc_NameOfImage(tkImage), -1);
-    Tcl_IncrRefCount(objv[0]);
-    Tcl_IncrRefCount(objv[1]);
-    Tcl_IncrRefCount(objv[2]);
-    result = Tcl_EvalObjv(interp, 3, objv, 0);
-    Tcl_DecrRefCount(objv[2]);
-    Tcl_DecrRefCount(objv[1]);
-    Tcl_DecrRefCount(objv[0]);
-    if (result != TCL_OK) {
-        return TCL_ERROR;
+    /* A retained instance may outlive deletion of its named image. */
+    if (!Tk_ImageIsDeleted(tkImage)) {
+        nameObj = Tcl_NewStringObj(Rbc_NameOfImage(tkImage), -1);
+        Tcl_IncrRefCount(nameObj);
+    }
+    Tcl_Preserve(interp);
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    /* Private resource cleanup must not depend on a replaceable Tcl command. */
+    if (nameObj != NULL) {
+        Tk_DeleteImage(interp, Tcl_GetString(nameObj));
+        Tcl_DecrRefCount(nameObj);
     }
     Tk_FreeImage(tkImage);
+    Tcl_RestoreInterpState(interp, state);
+    Tcl_Release(interp);
     return TCL_OK;
 }
 

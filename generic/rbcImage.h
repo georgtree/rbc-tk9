@@ -321,19 +321,20 @@ const char *Rbc_NameOfImage(Tk_Image tkImage);
  * Borrow interp, tkwin and clientData; the installed change callback is a no-op.
  * Return a caller-owned token paired with Rbc_DestroyTemporaryImage(), or NULL
  * on failure. The Tcl result object is retained while Tk_GetImage consumes its
- * name. If instance acquisition fails, the created named image is not deleted.
+ * name. If instance acquisition fails, the named image is deleted through Tk's
+ * C API while preserving the acquisition error.
  * Evaluates the image command in the current context and does not preserve
  * caller lifetime or interpreter result across callbacks.
  */
 Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData);
 /**
- * @brief Delete a temporary image by name through Tcl, then release its instance.
+ * @brief Delete a temporary image through Tk's C API and consume its instance.
  *
- * NULL is a successful no-op. Otherwise require a retained token with a valid
- * master. On command success, Tk_FreeImage consumes the token; on command
- * failure return TCL_ERROR without freeing it. The caller still owns that
- * token on failure. Evaluation may invoke callbacks and changes the interpreter
- * result; this helper does not preserve the owning component or interpreter.
+ * NULL is a successful no-op. Otherwise require a retained token. Already
+ * deleted images still have their instance released. Always returns TCL_OK;
+ * cleanup preserves interpreter state and does not evaluate the image command.
+ * Tk deletion may notify other image clients. Callers must detach the token
+ * from owner fields before calling and provide their own owner lifetime guard.
  */
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage);
 GC Rbc_GetBitmapGC(Tk_Window tkwin);

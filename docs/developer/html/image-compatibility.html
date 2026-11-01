@@ -97,30 +97,42 @@ separate release mechanisms; do not substitute one for another.</p>
 </section>
 <section id="deletion-and-failure-ownership">
 <h2>Deletion and failure ownership<a class="headerlink" href="#deletion-and-failure-ownership" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage</span></code> copies the current name into a Tcl object,
-evaluates <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">delete</span> <span class="pre">name</span></code>, and calls <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code> only after command
-success. NULL input is a successful no-op. On error the token remains allocated
-and caller-owned; a caller that clears its field unconditionally can lose that
-reference. A later retry also requires the image/master state to remain valid.</p>
-<p>Creation has a corresponding incomplete-cleanup path: if Tcl image creation
-succeeds but <code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> fails, the function returns NULL without deleting
-the newly created named image. These are current failure-path limitations, not
-ownership patterns to copy into new code. This documentation does not alter
-their runtime behavior.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage</span></code> copies the name of a live image, deletes it with
+<code class="docutils literal notranslate"><span class="pre">Tk_DeleteImage</span></code> and releases the retained instance with <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code>.
+An already-deleted image still has its instance released. NULL is a successful
+no-op. Cleanup always consumes a non-NULL token and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; callers
+must not retry with that token.</p>
+<p>Deletion uses Tk’s C API rather than evaluating the replaceable Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code>
+command. A failing wrapper or a renamed command therefore cannot block private
+resource release. The helper preserves the interpreter and saves/restores its
+state around cleanup, retaining the caller’s result and error information.</p>
+<p>Creation retains its result-name object through acquisition and rollback. If
+<code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> fails after successful photo creation, the helper deletes the
+named image through Tk’s C API while preserving the acquisition error. Scaled
+image markers also release their temporary color buffer on this failure path.</p>
 </section>
 <section id="callbacks-and-interpreter-state">
 <h2>Callbacks and interpreter state<a class="headerlink" href="#callbacks-and-interpreter-state" title="Link to this heading">¶</a></h2>
-<p>Both helpers evaluate the command name <code class="docutils literal notranslate"><span class="pre">image</span></code> with ordinary Tcl evaluation
-flags. They do not bypass command wrappers, namespace command resolution or
-execution traces. Such evaluation can run arbitrary Tcl and invalidate the
-component, window or interpreter used by the caller. Retaining the result name
-protects that object only; it does not retain the owning component.</p>
-<p>The helpers do not save and restore the interpreter result, preserve the owner,
-or revalidate it after evaluation. Enclosing operations must provide appropriate
-lifetime protection and avoid assuming their graph or marker survives a callback.
-See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for the broader ownership rules.
-Cleanup callers must also decide how an image-command error affects their own
-result and resource release, rather than silently treating every call as success.</p>
+<p>Creation still evaluates <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">create</span> <span class="pre">photo</span></code> with ordinary Tcl evaluation
+flags. Command wrappers, namespace command resolution and execution traces can
+run arbitrary Tcl. Retaining the result name protects that object only; it does
+not preserve the component or its window. Enclosing operations remain
+responsible for lifetime protection and callback validity.</p>
+<p>C-level deletion does not execute the Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code> command, but Tk can notify
+other clients attached to the image. Callers detach their temporary-image field
+before cleanup so a reentrant teardown cannot release the same instance twice.
+Detaching a field does not itself preserve the enclosing component; retain the
+broader lifetime discipline described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and
+<a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>.</p>
+</section>
+<section id="private-cleanup-tests">
+<h2>Private cleanup tests<a class="headerlink" href="#private-cleanup-tests" title="Link to this heading">¶</a></h2>
+<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-image</span></code> with a Tk display. The private harness includes the image
+implementation to inject acquisition failure and count instance releases without
+adding production commands or installed APIs. It checks rollback, original-error
+retention, ordinary deletion, a failing or renamed Tcl image command, external
+image deletion and NULL cleanup. Normal suite runs skip these tests unless
+<code class="docutils literal notranslate"><span class="pre">RBC_IMAGE_TEST_LIB</span></code> identifies the harness library.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
@@ -150,6 +162,7 @@ cannot validate that ABI boundary.</p>
 <li><a class="reference internal" href="#two-resources-in-a-temporary-photo">Two resources in a temporary photo</a></li>
 <li><a class="reference internal" href="#deletion-and-failure-ownership">Deletion and failure ownership</a></li>
 <li><a class="reference internal" href="#callbacks-and-interpreter-state">Callbacks and interpreter state</a></li>
+<li><a class="reference internal" href="#private-cleanup-tests">Private cleanup tests</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 </ul>
 </li>

@@ -866,7 +866,10 @@ static void DeleteEps(Tk_Canvas canvas, /* Info about overall canvas widget. */
         ckfree((char *)epsPtr->previewName);
     }
     if (epsPtr->tmpImage != NULL) {
-        Rbc_DestroyTemporaryImage(epsPtr->interp, epsPtr->tmpImage);
+        Tk_Image tmpImage = epsPtr->tmpImage;
+
+        epsPtr->tmpImage = NULL;
+        Rbc_DestroyTemporaryImage(epsPtr->interp, tmpImage);
     }
     if (epsPtr->pixmap != None) {
         Tk_FreePixmap(display, epsPtr->pixmap);

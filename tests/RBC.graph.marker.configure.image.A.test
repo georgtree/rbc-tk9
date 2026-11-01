@@ -298,5 +298,43 @@ namespace eval graph.marker {
         catch {image delete image2}
     } -result ok
 
+    test RBC.graph.marker.configure.image.A.4.2 {
+        scaled image cleanup ignores a failing Tcl image deletion wrapper
+    } -setup {
+        graph .graph1 -width 320 -height 240
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        set source [image create photo -width 4 -height 4]
+        $source put red -to 0 0 4 4
+        set baseline [lsort [image names]]
+        .graph1 marker create image -name Marker1 -coords {2 2 8 8} -image $source
+        update
+    } -body {
+        set created [expr {[lsort [image names]] ne $baseline}]
+        rename ::image ::rbcImageCleanupOriginal
+        proc ::image {args} {
+            if {[lindex $args 0] eq "delete"} {error "image deletion blocked"}
+            uplevel 1 [list ::rbcImageCleanupOriginal {*}$args]
+        }
+        .graph1 marker configure Marker1 -coords {5 5}
+        update
+        set natural [expr {[lsort [image names]] eq $baseline}]
+        .graph1 marker configure Marker1 -coords {2 2 8 8}
+        update
+        destroy .graph1
+        list $created $natural [expr {[lsort [image names]] eq $baseline}]
+    } -cleanup {
+        if {[llength [info commands ::rbcImageCleanupOriginal]]} {
+            rename ::image {}
+            rename ::rbcImageCleanupOriginal ::image
+        }
+        catch {destroy .graph1}
+        foreach name [image names] {
+            if {$name ni $baseline} {image delete $name}
+        }
+        image delete $source
+    } -result {1 1 1}
+
 	cleanupTests
 }

@@ -64,35 +64,49 @@ also uses them. Source snapshots, temporary photos and native pixmaps have
 separate release mechanisms; do not substitute one for another.
 
 Deletion and failure ownership
-------------------------------
+-----------------------------
 
-``Rbc_DestroyTemporaryImage`` copies the current name into a Tcl object,
-evaluates ``image delete name``, and calls ``Tk_FreeImage`` only after command
-success. NULL input is a successful no-op. On error the token remains allocated
-and caller-owned; a caller that clears its field unconditionally can lose that
-reference. A later retry also requires the image/master state to remain valid.
+``Rbc_DestroyTemporaryImage`` copies the name of a live image, deletes it with
+``Tk_DeleteImage`` and releases the retained instance with ``Tk_FreeImage``.
+An already-deleted image still has its instance released. NULL is a successful
+no-op. Cleanup always consumes a non-NULL token and returns ``TCL_OK``; callers
+must not retry with that token.
 
-Creation has a corresponding incomplete-cleanup path: if Tcl image creation
-succeeds but ``Tk_GetImage`` fails, the function returns NULL without deleting
-the newly created named image. These are current failure-path limitations, not
-ownership patterns to copy into new code. This documentation does not alter
-their runtime behavior.
+Deletion uses Tk's C API rather than evaluating the replaceable Tcl ``image``
+command. A failing wrapper or a renamed command therefore cannot block private
+resource release. The helper preserves the interpreter and saves/restores its
+state around cleanup, retaining the caller's result and error information.
+
+Creation retains its result-name object through acquisition and rollback. If
+``Tk_GetImage`` fails after successful photo creation, the helper deletes the
+named image through Tk's C API while preserving the acquisition error. Scaled
+image markers also release their temporary color buffer on this failure path.
 
 Callbacks and interpreter state
 -------------------------------
 
-Both helpers evaluate the command name ``image`` with ordinary Tcl evaluation
-flags. They do not bypass command wrappers, namespace command resolution or
-execution traces. Such evaluation can run arbitrary Tcl and invalidate the
-component, window or interpreter used by the caller. Retaining the result name
-protects that object only; it does not retain the owning component.
+Creation still evaluates ``image create photo`` with ordinary Tcl evaluation
+flags. Command wrappers, namespace command resolution and execution traces can
+run arbitrary Tcl. Retaining the result name protects that object only; it does
+not preserve the component or its window. Enclosing operations remain
+responsible for lifetime protection and callback validity.
 
-The helpers do not save and restore the interpreter result, preserve the owner,
-or revalidate it after evaluation. Enclosing operations must provide appropriate
-lifetime protection and avoid assuming their graph or marker survives a callback.
-See :doc:`graph-lifecycle` and :doc:`markers` for the broader ownership rules.
-Cleanup callers must also decide how an image-command error affects their own
-result and resource release, rather than silently treating every call as success.
+C-level deletion does not execute the Tcl ``image`` command, but Tk can notify
+other clients attached to the image. Callers detach their temporary-image field
+before cleanup so a reentrant teardown cannot release the same instance twice.
+Detaching a field does not itself preserve the enclosing component; retain the
+broader lifetime discipline described in :doc:`graph-lifecycle` and
+:doc:`markers`.
+
+Private cleanup tests
+---------------------
+
+Run ``make test-image`` with a Tk display. The private harness includes the image
+implementation to inject acquisition failure and count instance releases without
+adding production commands or installed APIs. It checks rollback, original-error
+retention, ordinary deletion, a failing or renamed Tcl image command, external
+image deletion and NULL cleanup. Normal suite runs skip these tests unless
+``RBC_IMAGE_TEST_LIB`` identifies the harness library.
 
 Maintenance checks
 ------------------

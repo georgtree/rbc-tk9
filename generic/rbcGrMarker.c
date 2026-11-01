@@ -2400,8 +2400,10 @@ static int ConfigureImageMarker(Marker *markerPtr) {
         imPtr->pixmap = None;
     }
     if (imPtr->tmpImage != NULL) {
-        Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+        Tk_Image tmpImage = imPtr->tmpImage;
+
         imPtr->tmpImage = NULL;
+        Rbc_DestroyTemporaryImage(graphPtr->interp, tmpImage);
     }
     if (imPtr->srcImage != NULL) {
         Rbc_FreeColorImage(imPtr->srcImage);
@@ -2489,8 +2491,10 @@ static void MapImageMarker(Marker *markerPtr) {
     corner1 = MapPoint(graphPtr, imPtr->core.worldPts, &imPtr->core.axes);
     if (imPtr->srcImage == NULL) {
         if (imPtr->tmpImage != NULL) {
-            Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+            Tk_Image tmpImage = imPtr->tmpImage;
+
             imPtr->tmpImage = NULL;
+            Rbc_DestroyTemporaryImage(graphPtr->interp, tmpImage);
         }
         /*
          * Don't scale or rotate non-photo images.
@@ -2576,6 +2580,7 @@ static void MapImageMarker(Marker *markerPtr) {
         if (imPtr->tmpImage == NULL) {
             imPtr->tmpImage = Rbc_CreateTemporaryImage(graphPtr->interp, graphPtr->tkwin, imPtr);
             if (imPtr->tmpImage == NULL) {
+                Rbc_FreeColorImage(destImage);
                 return;
             }
         }
@@ -2587,8 +2592,10 @@ static void MapImageMarker(Marker *markerPtr) {
         imPtr->height = height;
     } else if (imPtr->tmpImage != NULL) {
         /* Returning to natural size must not reuse the last scaled photo. */
-        Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+        Tk_Image tmpImage = imPtr->tmpImage;
+
         imPtr->tmpImage = NULL;
+        Rbc_DestroyTemporaryImage(graphPtr->interp, tmpImage);
     }
     imPtr->anchorPos = anchorPos;
 }
@@ -2822,8 +2829,10 @@ static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
         imPtr->tkImage = NULL;
     }
     if (imPtr->tmpImage != NULL) {
-        Rbc_DestroyTemporaryImage(graphPtr->interp, imPtr->tmpImage);
+        Tk_Image tmpImage = imPtr->tmpImage;
+
         imPtr->tmpImage = NULL;
+        Rbc_DestroyTemporaryImage(graphPtr->interp, tmpImage);
     }
     if (imPtr->srcImage != NULL) {
         Rbc_FreeColorImage(imPtr->srcImage);
