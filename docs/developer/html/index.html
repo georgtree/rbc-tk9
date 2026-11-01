@@ -107,6 +107,56 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="vector-reference.html#private-update-helpers">Private update helpers</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="vector-storage.html">Vector C API and storage primitives</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#public-versus-private-entry-points">Public versus private entry points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#registry-and-creation">Registry and creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#lookup-and-borrowed-views">Lookup and borrowed views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#resizing-resetting-and-copying">Resizing, resetting and copying</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#protection-publication-and-destruction">Protection, publication and destruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html#callback-boundaries-and-ownership-commits">Callback boundaries and ownership commits</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vector-storage-reference.html">Vector storage public C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorExists2"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorExists2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_GetVector"><code class="docutils literal notranslate"><span class="pre">Rbc_GetVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_CreateVector"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_CreateVectorWithType"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVectorWithType()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResizeVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ResizeVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_NameOfVector"><code class="docutils literal notranslate"><span class="pre">Rbc_NameOfVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResetComplexVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ResetComplexVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResetVector"><code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorIsReadOnly"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorIsReadOnly()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorSetReadOnly"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorSetReadOnly()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorCheckWritable"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorCheckWritable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChanged()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorChangedRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangedRange()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_FreeVector"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeVector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorLength"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorLength()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorSize"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorSize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorDirty"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorDirty()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorGetType"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetType()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vector-storage-private-reference.html">Vector storage private C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorElementSize"><code class="docutils literal notranslate"><span class="pre">VectorElementSize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.GetVectorByteCount"><code class="docutils literal notranslate"><span class="pre">GetVectorByteCount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ZeroVectorElements"><code class="docutils literal notranslate"><span class="pre">ZeroVectorElements()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorGetInterpData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetInterpData()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorInterpDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInterpDeleteProc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorNew"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorNew()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorCreate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorCreate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.VectorInstDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInstDeleteProc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.FreeVectorRecord"><code class="docutils literal notranslate"><span class="pre">FreeVectorRecord()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorFree"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorDuplicate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorDuplicate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.ResetVectorStorage"><code class="docutils literal notranslate"><span class="pre">ResetVectorStorage()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorReset"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorReset()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorChangeLength"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangeLength()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_CreateVector2"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="vector-access.html">Vector names, indices and mapped arrays</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vector-access.html#names-and-selections">Names and selections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector-access.html#mapped-arrays">Mapped arrays</a></li>

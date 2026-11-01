@@ -226,6 +226,10 @@ static void FftTestAction(FftTest *test) {
         }
     } else if (strcmp(test->action, "interp") == 0) {
         Tcl_DeleteInterp(test->interp);
+    } else if (strcmp(test->action, "mutate") == 0) {
+        if (Tcl_EvalEx(test->interp, "::fftTestReal length 1", -1, TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
+    } else if (strcmp(test->action, "lock") == 0) {
+        Rbc_VectorSetReadOnly(test->interp, (Rbc_Vector *)test->dest[0], 1);
     } else if (strcmp(test->action, "nested") == 0) {
         if (Tcl_EvalEx(test->interp, "::fftTestSource fft -real ::fftTestReal -imag ::fftTestImag", -1,
                        TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
@@ -233,7 +237,7 @@ static void FftTestAction(FftTest *test) {
         if (Tcl_EvalEx(test->interp, "rbc::vector rename ::fftTestReal ::fftTestRenamed", -1,
                        TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
     }
-    if (strcmp(test->operation, "binread-error") == 0) {
+    if (strcmp(test->operation, "binread-error") == 0 || strncmp(test->operation, "capi-", 5) == 0) {
         Tcl_SetObjResult(test->interp, Tcl_NewStringObj("callback result", -1));
         Tcl_SetErrorCode(test->interp, "CALLBACK", NULL);
     }
@@ -398,6 +402,38 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     if (strcmp(test.phase, "trace") == 0) {
         Tcl_TraceVar2(target, names[0], NULL, TCL_GLOBAL_ONLY | TCL_TRACE_UNSETS, FftTestTrace, &test);
     }
+    if (strncmp(test.operation, "capi-", 5) == 0) {
+        Rbc_Vector *vector = (Rbc_Vector *)test.dest[0];
+        test.commandLength = 4;
+        test.commandValues[0] = 3; test.commandValues[1] = 4;
+        Tcl_ResetResult(target);
+        if (strcmp(test.operation, "capi-resize") == 0) {
+            code = Rbc_ResizeVector(vector, 4);
+        } else if (strcmp(test.operation, "capi-create") == 0) {
+            Rbc_Vector *output = NULL;
+            code = Rbc_CreateVector(target, "::fftTestReal", 4, &output);
+            if ((code == TCL_OK && output != vector) || (code != TCL_OK && output != NULL)) test.valid = 0;
+        } else if (strcmp(test.operation, "capi-duplicate") == 0) {
+            test.commandLength = 1; test.commandValues[0] = 4;
+            test.dest[0]->first = test.dest[0]->last = 1;
+            code = Rbc_VectorDuplicate(test.dest[0], test.dest[0]);
+        } else if (strcmp(test.operation, "capi-reset") == 0) {
+            double *values = ckalloc(4 * sizeof(double));
+            for (k = 0; k < 4; k++) values[k] = test.commandValues[k] = k + 1;
+            code = Rbc_ResetVector(vector, values, 4, 4, TCL_DYNAMIC);
+        } else if (strcmp(test.operation, "capi-volatile") == 0) {
+            test.commandLength = 2;
+            code = Rbc_ResetVector(vector, Rbc_VectorData(vector), 2, 2, TCL_VOLATILE);
+        } else {
+            test.commandLength = 2;
+            test.commandValues[0] = Rbc_VectorData(vector)[0] = 1;
+            test.commandValues[1] = Rbc_VectorData(vector)[1] = 2;
+            if (strcmp(test.operation, "capi-changed") == 0) Rbc_VectorChanged(vector);
+            else Rbc_VectorChangedRange(vector, 0, 1);
+            code = TCL_OK;
+        }
+        goto recordResult;
+    }
     if (strstr(test.operation, "-multi") != NULL) {
         if (Tcl_EvalEx(target, "rbc::vector create ::multiSource; ::multiSource set {1 2 3 4}", -1,
                        TCL_EVAL_GLOBAL) != TCL_OK) Tcl_Panic("multi-output setup failed");
@@ -469,7 +505,15 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     Tcl_IncrRefCount(command);
     code = Tcl_EvalObjEx(target, command, TCL_EVAL_GLOBAL);
     Tcl_DecrRefCount(command);
+recordResult:
     validName = strcmp(Tcl_GetStringResult(target), strcmp(test.operation, "binread") == 0 ? "2" : "") == 0;
+    if (strncmp(test.operation, "capi-", 5) == 0 && code == TCL_ERROR) {
+        const char *message = Tcl_GetStringResult(target);
+        validName = strcmp(message, "vector was destroyed during callback") == 0 ||
+                    strcmp(message, "vector storage changed during callback") == 0 ||
+                    strcmp(message, "can't resize vector \"::fftTestReal\"") == 0 ||
+                    strcmp(message, "vector \"::fftTestReal\" is read-only") == 0;
+    }
     if (strstr(test.operation, "-multi") != NULL && code == TCL_ERROR) {
         validName = strcmp(Tcl_GetStringResult(target), "vector was destroyed during command evaluation") == 0;
     }

@@ -38,6 +38,8 @@ a public stub slot: the observer-ID functions are not in ``rbc.decls``.
 The :doc:`vector-reference` distinguishes these client declarations from private
 update helpers. See :doc:`expressions` for evaluation temporaries, named results and map callbacks.
 See :doc:`fft` for transform workspace, output installation and generators.
+See :doc:`vector-storage` for public C storage entry points, private allocation
+primitives and their remaining callback restrictions.
 Not every numerical operation is documented here.
 
 Records, names and storage

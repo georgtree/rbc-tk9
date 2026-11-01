@@ -53,7 +53,9 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -175,6 +177,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cairo-reference.html#c.FreeRenderContext">FreeRenderContext (C function)</a>
 </li>
+      <li><a href="vector-storage-private-reference.html#c.FreeVectorRecord">FreeVectorRecord (C function)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -189,11 +193,13 @@
 </li>
       <li><a href="vector-numeric-reference.html#c.GetComplexSequenceComponentLength">GetComplexSequenceComponentLength (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="polar-reference.html#c.GetPolarRadiusRange">GetPolarRadiusRange (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="winop-reference.html#c.GetRealizedWindow">GetRealizedWindow (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.GetVectorByteCount">GetVectorByteCount (C function)</a>
 </li>
       <li><a href="graph-reference.html#c.GraphEventProc">GraphEventProc (C function)</a>
 </li>
@@ -359,6 +365,12 @@
 </li>
       <li><a href="track-reference.html#c.Rbc_CreateTrackComponentArgs">Rbc_CreateTrackComponentArgs (C function)</a>
 </li>
+      <li><a href="vector-storage-reference.html#c.Rbc_CreateVector">Rbc_CreateVector (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_CreateVector2">Rbc_CreateVector2 (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_CreateVectorWithType">Rbc_CreateVectorWithType (C function)</a>
+</li>
       <li><a href="crosshair-reference.html#c.Rbc_CrosshairsNeedFullRedraw">Rbc_CrosshairsNeedFullRedraw (C function)</a>
 </li>
       <li><a href="binding-reference.html#c.Rbc_DeleteBindings">Rbc_DeleteBindings (C function)</a>
@@ -457,6 +469,8 @@
 </li>
       <li><a href="utility-reference.html#c.Rbc_FreeUid">Rbc_FreeUid (C function)</a>
 </li>
+      <li><a href="vector-storage-reference.html#c.Rbc_FreeVector">Rbc_FreeVector (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_FreeVectorId">Rbc_FreeVectorId (C function)</a>
 </li>
       <li><a href="configuration-reference.html#c.Rbc_GetCanonicalOptionName">Rbc_GetCanonicalOptionName (C function)</a>
@@ -516,6 +530,8 @@
       <li><a href="utility-reference.html#c.Rbc_GetUid">Rbc_GetUid (C function)</a>
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_GetValues">Rbc_GetValues (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_GetVector">Rbc_GetVector (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_GetVectorById">Rbc_GetVectorById (C function)</a>
 </li>
@@ -586,6 +602,8 @@
       <li><a href="binding-reference.html#c.Rbc_MoveBindingTable">Rbc_MoveBindingTable (C function)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.Rbc_NameOfImage">Rbc_NameOfImage (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_NameOfVector">Rbc_NameOfVector (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_NameOfVectorId">Rbc_NameOfVectorId (C function)</a>
 </li>
@@ -661,8 +679,6 @@
 </li>
       <li><a href="spline-reference.html#c.Rbc_QuadraticParametricSplineEval">Rbc_QuadraticParametricSplineEval (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="spline-reference.html#c.Rbc_QuadraticSpline">Rbc_QuadraticSpline (C function)</a>
 </li>
       <li><a href="image-color-reference.html#c.Rbc_QuantizeColorImage">Rbc_QuantizeColorImage (C function)</a>
@@ -681,6 +697,8 @@
 </li>
       <li><a href="postscript-reference.html#c.Rbc_ReleasePsToken">Rbc_ReleasePsToken (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.RBC_RENDER_ARROW_POINTS">RBC_RENDER_ARROW_POINTS (C macro)</a>
 </li>
       <li><a href="reference.html#c.RBC_RENDER_BITMAP_OUTLINE_POINTS">RBC_RENDER_BITMAP_OUTLINE_POINTS (C macro)</a>
@@ -917,13 +935,19 @@
 </li>
       <li><a href="resampling-reference.html#c.Rbc_ResamplePhoto">Rbc_ResamplePhoto (C function)</a>
 </li>
+      <li><a href="vector-storage-reference.html#c.Rbc_ResetComplexVector">Rbc_ResetComplexVector (C function)</a>
+</li>
       <li><a href="text-font-reference.html#c.Rbc_ResetTextStyle">Rbc_ResetTextStyle (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_ResetVector">Rbc_ResetVector (C function)</a>
 </li>
       <li><a href="resampling-reference.html#c.Rbc_ResizeColorImage">Rbc_ResizeColorImage (C function)</a>
 </li>
       <li><a href="resampling-reference.html#c.Rbc_ResizeColorSubimage">Rbc_ResizeColorSubimage (C function)</a>
 </li>
       <li><a href="resampling-reference.html#c.Rbc_ResizePhoto">Rbc_ResizePhoto (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_ResizeVector">Rbc_ResizeVector (C function)</a>
 </li>
       <li><a href="configuration-reference.html#c.Rbc_RestoreOptionsOnError">Rbc_RestoreOptionsOnError (C function)</a>
 </li>
@@ -957,7 +981,27 @@
 </li>
       <li><a href="vector-reference.html#c.Rbc_Vector">Rbc_Vector (C type)</a>
 </li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorChanged">Rbc_VectorChanged (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorChangedRange">Rbc_VectorChangedRange (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorChangeLength">Rbc_VectorChangeLength (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorCheckWritable">Rbc_VectorCheckWritable (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorComplexData">Rbc_VectorComplexData (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorCreate">Rbc_VectorCreate (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorData">Rbc_VectorData (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorDirty">Rbc_VectorDirty (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorDuplicate">Rbc_VectorDuplicate (C function)</a>
+</li>
       <li><a href="expression-reference.html#c.Rbc_VectorEvaluate">Rbc_VectorEvaluate (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorExists2">Rbc_VectorExists2 (C function)</a>
 </li>
       <li><a href="fft-reference.html#c.Rbc_VectorFftfreqOp">Rbc_VectorFftfreqOp (C function)</a>
 </li>
@@ -965,19 +1009,31 @@
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorFlushCache">Rbc_VectorFlushCache (C function)</a>
 </li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorFree">Rbc_VectorFree (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_VectorGetChangedRange">Rbc_VectorGetChangedRange (C function)</a>
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorGetIndex">Rbc_VectorGetIndex (C function)</a>
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorGetIndexRange">Rbc_VectorGetIndexRange (C function)</a>
 </li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorGetInterpData">Rbc_VectorGetInterpData (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_VectorGetRange">Rbc_VectorGetRange (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorGetType">Rbc_VectorGetType (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_VectorId">Rbc_VectorId (C type)</a>
 </li>
       <li><a href="initialization-reference.html#c.Rbc_VectorInitStubs">Rbc_VectorInitStubs (C function)</a>
 </li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorIsReadOnly">Rbc_VectorIsReadOnly (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorLength">Rbc_VectorLength (C function)</a>
+</li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorMapVariable">Rbc_VectorMapVariable (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorNew">Rbc_VectorNew (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_VectorNotify">Rbc_VectorNotify (C enum)</a>
 </li>
@@ -988,6 +1044,12 @@
       <li><a href="vector-reference.html#c.Rbc_VectorNotifyPending">Rbc_VectorNotifyPending (C function)</a>
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorParseElement">Rbc_VectorParseElement (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.Rbc_VectorReset">Rbc_VectorReset (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorSetReadOnly">Rbc_VectorSetReadOnly (C function)</a>
+</li>
+      <li><a href="vector-storage-reference.html#c.Rbc_VectorSize">Rbc_VectorSize (C function)</a>
 </li>
       <li><a href="vector-access-reference.html#c.Rbc_VectorSortIndex">Rbc_VectorSortIndex (C function)</a>
 </li>
@@ -1018,6 +1080,8 @@
       <li><a href="decimation-reference.html#c.RefreshLineDecimateCache">RefreshLineDecimateCache (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.ResampleOp">ResampleOp (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.ResetVectorStorage">ResetVectorStorage (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.RotateOp">RotateOp (C function)</a>
 </li>
@@ -1090,10 +1154,32 @@
   </ul></td>
 </tr></table>
 
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-storage-private-reference.html#c.VectorElementSize">VectorElementSize (C function)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-storage-private-reference.html#c.VectorInstDeleteProc">VectorInstDeleteProc (C function)</a>
+</li>
+      <li><a href="vector-storage-private-reference.html#c.VectorInterpDeleteProc">VectorInterpDeleteProc (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="winop-reference.html#c.WinopCmd">WinopCmd (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-storage-private-reference.html#c.ZeroVectorElements">ZeroVectorElements (C function)</a>
 </li>
   </ul></td>
 </tr></table>

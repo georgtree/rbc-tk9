@@ -1,12 +1,25 @@
 /*
  * rbcVector.c --
  *
- *      TODO: Description
+ *      Interpreter-local vectors, storage ownership and client notifications.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/**
+ * @file rbcVector.c
+ * @brief Interpreter-owned vector identities, storage, access and notification.
+ */
+/**
+ * @defgroup vector_storage_public Vector storage public C API
+ * @brief Reviewed stubs-facing lifetime, storage and protection contracts.
+ */
+/**
+ * @defgroup vector_storage_private Vector storage private implementation
+ * @brief Registry and storage primitives with guarded callback boundaries.
  */
 
 #include "tcl.h"
@@ -86,6 +99,13 @@ static double MakeNaN(void) {
 }
 #endif /* !__BORLANDC__  && !_MSC_VER */
 
+/**
+ * @brief Return the byte stride for one real or complex value.
+ * @ingroup vector_storage_private
+ *
+ * Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic;
+ * this is not a recoverable public type validator.
+ */
 static size_t VectorElementSize(Rbc_VectorType type) {
     switch (type) {
     case RBC_VECTOR_REAL:
@@ -97,6 +117,14 @@ static size_t VectorElementSize(Rbc_VectorType type) {
     return 0;
 }
 
+/**
+ * @brief Validate a value count and convert it to an allocation byte count.
+ * @ingroup vector_storage_private
+ *
+ * Rejects negative counts and multiplication overflow with a Tcl error. Writes
+ * the output only on success; calls VectorElementSize, so the type must already
+ * be valid. Does not allocate storage or evaluate Tcl.
+ */
 static int GetVectorByteCount(Tcl_Interp *interp, Rbc_VectorType type, Tcl_Size count, size_t *byteCountPtr) {
     size_t elemSize;
 
@@ -114,6 +142,64 @@ static int GetVectorByteCount(Tcl_Interp *interp, Rbc_VectorType type, Tcl_Size 
         return TCL_ERROR;
     }
     *byteCountPtr = (size_t)count * elemSize;
+    return TCL_OK;
+}
+
+/* Callers pass retained records, not arbitrary potentially freed pointers. */
+static int VectorAlive(VectorObject *vPtr) {
+    if (vPtr->destroying || Tcl_InterpDeleted(vPtr->interp)) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector was destroyed during callback", -1));
+        Tcl_SetErrorCode(vPtr->interp, "RBC", "VECTOR", "DESTROYED", NULL);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
+/* The completed storage contract is installed before invoking this callback.
+ * Preserve the outer Tcl result, including error options, across user code. */
+static void ReleaseVectorStorage(Tcl_Interp *interp, void *data, Tcl_FreeProc *freeProc) {
+    if (data != NULL && freeProc != TCL_STATIC) {
+        if (freeProc == TCL_DYNAMIC) ckfree(data);
+        else {
+            Tcl_InterpState state = Tcl_SaveInterpState(interp, TCL_OK);
+            freeProc(data);
+            Tcl_RestoreInterpState(interp, state);
+        }
+    }
+}
+
+/* Cache traces and observers may delete or replace the vector. Keep the
+ * original identity, and never continue on a replacement found by name. */
+static void PublishVectorChange(VectorObject *vPtr, int all, Tcl_Size first, Tcl_Size last) {
+    Tcl_Interp *interp = vPtr->interp;
+    Tcl_InterpState state;
+
+    Tcl_Preserve(interp);
+    Tcl_Preserve(vPtr);
+    state = Tcl_SaveInterpState(interp, TCL_OK);
+    if (!vPtr->destroying && !Tcl_InterpDeleted(interp)) {
+        if (vPtr->flush) Rbc_VectorFlushCache(vPtr);
+        if (!vPtr->destroying && !Tcl_InterpDeleted(interp)) {
+            if (all) Rbc_VectorUpdateClients(vPtr);
+            else Rbc_VectorUpdateClientsRange(vPtr, first, last);
+        }
+    }
+    Tcl_RestoreInterpState(interp, state);
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+}
+
+/* Internal resize callers often continue filling the result. Reject a changed
+ * layout or newly protected destination instead of letting them use stale bounds. */
+static int CheckResizedVector(VectorObject *vPtr, void *data, Tcl_Size length, Tcl_Size size) {
+    if (VectorAlive(vPtr) != TCL_OK) return TCL_ERROR;
+    if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) return TCL_ERROR;
+    if (vPtr->data.raw != data || vPtr->length != length || vPtr->size != size ||
+        vPtr->first != 0 || vPtr->last != length - 1) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector storage changed during callback", -1));
+        Tcl_SetErrorCode(vPtr->interp, "RBC", "VECTOR", "CHANGED", NULL);
+        return TCL_ERROR;
+    }
     return TCL_OK;
 }
 
@@ -141,6 +227,13 @@ int Rbc_VectorGetRange(Rbc_Vector *vecPtr, double *minPtr, double *maxPtr) {
     return TCL_OK;
 }
 
+/**
+ * @brief Zero the half-open interval [first,last) of typed storage.
+ * @ingroup vector_storage_private
+ *
+ * Zeros both components for complex values. Bounds and capacity are caller
+ * preconditions; does not allocate, change metadata, invalidate extrema or notify.
+ */
 static void ZeroVectorElements(Rbc_VectorType type, VectorData data, Tcl_Size first, Tcl_Size last) {
     Tcl_Size i;
 
@@ -622,8 +715,7 @@ error:
 }
 
 /* Allow the same operation through the conventional vector dispatcher. */
-static int VectorSimplifyOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
-                            Tcl_Obj *const objv[]) {
+static int VectorSimplifyOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     return VectorSimplifyObjCmd(clientData, interp, objc - 1, objv + 1);
 }
 
@@ -997,27 +1089,32 @@ static int VectorCreateObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
         if (vPtr == NULL) {
             goto error;
         }
+        Tcl_Preserve(interp);
+        Tcl_Preserve(vPtr);
         vPtr->freeOnUnset = freeOnUnset;
         vPtr->flush = flush;
         vPtr->offset = first;
         if (size > 0) {
             if (Rbc_VectorChangeLength(vPtr, size) != TCL_OK) {
+                Tcl_Release(vPtr);
+                Tcl_Release(interp);
                 goto error;
             }
         }
         if (!isNew) {
-            if (vPtr->flush) {
-                VectorFlushCache(vPtr);
-            }
-            Rbc_VectorUpdateClients(vPtr);
+            PublishVectorChange(vPtr, TRUE, 0, 0);
         }
+        if (VectorAlive(vPtr) != TCL_OK) {
+            Tcl_Release(vPtr);
+            Tcl_Release(interp);
+            goto error;
+        }
+        Tcl_SetStringObj(resultPtr, vPtr->name, -1);
+        Tcl_Release(vPtr);
+        Tcl_Release(interp);
     }
     ckfree(objNameArray);
     Tcl_DStringFree(&ds);
-    if (vPtr != NULL) {
-        /* Return the name of the last vector created  */
-        Tcl_AppendStringsToObj(resultPtr, vPtr->name, NULL);
-    }
     Tcl_SetObjResult(interp, resultPtr);
     Tcl_DecrRefCount(resultPtr);
     return TCL_OK;
@@ -1198,27 +1295,14 @@ static int VectorNamesObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Obtain or lazily initialize an interpreter-local vector registry.
+ * @ingroup vector_storage_private
  *
- *Rbc_VectorGetInterpData --
- *
- *      Gathers the data need for the vector interpreter to function.
- *      It then stores it into the vector interpreter.
- *
- * Parameters:
- *      Tcl_Interp *interp - Base interpreter to wrap.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Creates the new command and adds a new entry into a global Tcl
- *      associative array.
- *
- * ------------------------------------------------------------------------
+ * Returns borrowed associated data. First access allocates the vector, math and
+ * special-index tables, installs built-in functions and registers interpreter
+ * cleanup. Does not create Tcl commands or establish thread-shared storage.
  */
-
 VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp) {
     VectorInterpData *dataPtr;
     Tcl_InterpDeleteProc *proc;
@@ -1243,26 +1327,14 @@ VectorInterpData *Rbc_VectorGetInterpData(Tcl_Interp *interp) {
     return dataPtr;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Destroy registered vectors and release interpreter-local tables.
+ * @ingroup vector_storage_private
  *
- * VectorInterpDeleteProc --
- *
- *      This is called when the interpreter hosting the "vector"
- *      command is deleted.
- *
- * Parameters:
- *      ClientData clientData - Interpreter Specific
- *      Tcl_Interp *interp
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Destroys the math and index hash tables.  In addition removes
- *      the hash table managing all vector names.
- *
- * ------------------------------------------------------------------------
+ * Repeatedly takes the first remaining registry entry because destruction mutates
+ * the table and invokes callbacks. Deletes the math/index table containers and
+ * associated data, then frees the registry record. This is interpreter teardown,
+ * not a general-purpose registry reset API.
  */
 static void VectorInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
     VectorInterpData *dataPtr = clientData;
@@ -1282,23 +1354,15 @@ static void VectorInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
     ckfree((char *)dataPtr);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Allocate an unregistered empty real vector record.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorNew --
- *
- *      Creates a new vector object and populates with the needed data.
- *
- * Parameters:
- *      VectorInterpData *dataPtr - Interpreter-specific data.
- *
- * Results:
- *      A pointer to the new vector object
- *
- * Side effects:
- *      None
- *
- * ---------------------------------------------------------------------- */
+ * Initializes static NULL storage, zero length/capacity, an empty observer chain,
+ * idle notifications, invalid extrema and no array flushing. The caller owns the
+ * record and may register it or use it as a temporary; release with Rbc_VectorFree.
+ * Does not create a name, Tcl command, mapped array or numeric allocation.
+ */
 VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     VectorObject *vPtr;
 
@@ -1318,36 +1382,19 @@ VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     return vPtr;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Create or reuse a registered vector and configure its access surfaces.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorCreate --
- *
- *      Actually creates a vector structure and the following items:
- *
- *        o Tcl command
- *        o Tcl array variable and establishes traces on the variable
- *        o Adds a  new entry in the vector hash table
- *
- * Parameters:
- *      VectorInterpData *dataPtr - Interpreter-specific data (clientData).
- *      const char *vecName - Name of the vector
- *      const char *cmdName - Name of the Tcl command mapped to the vector; if NULL (actually '\0') then do not create 
- *                            a command
- *      const char *varName - Name of the Tcl array mapped to the vector; if NULL (actually '\0') then do not create a 
- *                            variable 
- *      int *newPtr - pointer to the vector created
- *
- * Results:
- *      A pointer to the new vector structure.  If an error occurred
- *      NULL is returned and an error message is left in
- *      the interpreter result.
- *
- * Side effects:
- *      A new Tcl command and array variable is added to the
- *      interpreter.
- *
- * ---------------------------------------------------------------------- */
+ * Qualifies the name in the current namespace; \#auto selects an unused registry
+ * and command name. Existing vectors must be writable and have the requested
+ * type. Checks command collisions, replaces an existing instance command, and
+ * optionally maps an array. NULL command/variable arguments suppress that setup.
+ * Returns a borrowed record and writes newPtr on success, or NULL on error.
+ * Failure frees a newly created record, but does not roll back existing-object
+ * changes. Retains the record and interpreter across command deletion and mapping,
+ * and rejects destruction, new protection or replacement commands before continuing.
+ */
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
                                Rbc_VectorType type, int *newPtr) {
     Tcl_Obj *resultPtr = Tcl_NewStringObj("", -1);
@@ -1360,6 +1407,8 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     Tcl_HashEntry *hPtr;
     Tcl_Interp *interp = dataPtr->interp;
     Tcl_DString qualVecNamePtr;
+    int held = FALSE;
+    char *savedVarName = NULL;
 
     Tcl_IncrRefCount(resultPtr);
     isNew = 0;
@@ -1373,6 +1422,11 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         Tcl_DecrRefCount(resultPtr);
         return NULL;
     }
+    Tcl_Preserve(interp);
+    if (varName != NULL) {
+        savedVarName = RbcStrdup(varName);
+    }
+    varName = savedVarName;
     /* process the vector name: */
     vecName = BuildQualifiedName(interp, vecName, &qualVecNamePtr);
     if (ParseQualifiedName(interp, vecName, &nsPtr, &vecNameTail) != TCL_OK) {
@@ -1435,6 +1489,8 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
         Tcl_SetObjResult(interp, Tcl_NewStringObj("vector type mismatch", -1));
         goto error;
     }
+    Tcl_Preserve(vPtr);
+    held = TRUE;
     if (!isNew && Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
         goto error;
     }
@@ -1471,6 +1527,13 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     }
     if (vPtr->cmdToken != 0) {
         DeleteCommand(vPtr); /* Command already exists, delete old first */
+        if (VectorAlive(vPtr) != TCL_OK || Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK)
+            goto error;
+        if (vPtr->cmdToken != NULL ||
+            (cmdName != NULL && Tcl_FindCommand(interp, cmdName, NULL, TCL_GLOBAL_ONLY) != NULL)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector command changed during callback", -1));
+            goto error;
+        }
     }
     if (cmdName != NULL) {
         vPtr->cmdToken = Tcl_CreateObjCommand2(interp, cmdName, Rbc_VectorInstanceObjCmd, vPtr, VectorInstDeleteProc);
@@ -1487,39 +1550,43 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
             goto error;
         }
     }
+    if (VectorAlive(vPtr) != TCL_OK || Rbc_VectorCheckWritable(interp, (Rbc_Vector *)vPtr) != TCL_OK) {
+        goto error;
+    }
     *newPtr = isNew;
     Tcl_DStringFree(&qualVecNamePtr);
     Tcl_DecrRefCount(resultPtr);
+    if (savedVarName != NULL) {
+        ckfree(savedVarName);
+    }
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
     return vPtr;
 
 error:
-    if ((vPtr != NULL) && isNew) {
+    if ((vPtr != NULL) && isNew && !vPtr->destroying) {
+        Tcl_InterpState state = Tcl_SaveInterpState(interp, TCL_ERROR);
         Rbc_VectorFree(vPtr);
+        Tcl_RestoreInterpState(interp, state);
     }
     Tcl_DStringFree(&qualVecNamePtr);
     Tcl_DecrRefCount(resultPtr);
+    if (savedVarName != NULL) {
+        ckfree(savedVarName);
+    }
+    if (held) {
+        Tcl_Release(vPtr);
+    }
+    Tcl_Release(interp);
     return NULL;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Destroy a vector when its instance command is deleted.
+ * @ingroup vector_storage_private
  *
- * VectorInstDeleteProc --
- *
- *     Deletes the command associated with the vector.  This is
- *     called only when the command associated with the vector is
- *     destroyed.
- *
- * Parameters:
- *      ClientData clientData - Vector object to delete
- *
- * Results:
- *     None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Clears the command token before calling Rbc_VectorFree, avoiding deletion of
+ * the same command again. Called by Tcl; no record access follows destruction.
  */
 static void VectorInstDeleteProc(ClientData clientData) {
     VectorObject *vPtr = clientData;
@@ -1527,38 +1594,29 @@ static void VectorInstDeleteProc(ClientData clientData) {
     Rbc_VectorFree(vPtr);
 }
 
-/* Final release for records retained by notification snapshots. */
+/**
+ * @brief Release a record after Tcl preservation references have drained.
+ * @ingroup vector_storage_private
+ *
+ * Calls ckfree on the supplied allocation. Used for deferred vector and client
+ * record reclamation; resources must already have been detached.
+ */
 static void FreeVectorRecord(DestroyData data) {
     ckfree((char *)data);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Destroy a vector identity, its observers and owned resources.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorFree --
- *
- *     Removes the memory and frees resources associated with the
- *     vector.
- *
- *        o Removes the trace and the Tcl array variable and unsets
- *          the variable.
- *        o Notifies clients of the vector that the vector is being
- *          destroyed.
- *        o Removes any clients that are left after notification.
- *        o Frees the memory (if necessary) allocated for the array.
- *        o Removes the entry from the hash table of vectors.
- *        o Frees the memory allocated for the name.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to free
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Ignores recursive destruction while the retained record is marked destroying.
+ * Preserves record/interpreter, deletes the command and mapping, unregisters the
+ * name, cancels pending idle work and delivers synchronous DESTROY with length
+ * zero. A temporary name copy remains valid during observer delivery. Detaches
+ * remaining clients, releases non-static storage, then defers record reclamation.
+ * Callbacks can run during command deletion, unmapping, notification and custom
+ * storage release. Preservation delays record reclamation, not logical destruction
+ * or storage cleanup. Requires a live non-NULL record; ignores read-only state.
  */
 void Rbc_VectorFree(VectorObject *vPtr) {
     Rbc_ChainLink *linkPtr;
@@ -1620,52 +1678,78 @@ void Rbc_VectorFree(VectorObject *vPtr) {
     Tcl_Release(interp);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Resize an existing destination and copy the selected source values.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorDuplicate --
- *
- *      Duplicates all elements of a vector.
- *
- * Parameters:
- *      VectorObject *destPtr
- *      VectorObject *srcPtr
- *
- * Results:
- *      Standard Tcl result.
- *
- * Side effects:
- *      New vector is created.
- *
- * ----------------------------------------------------------------------
+ * Requires matching numeric types; selected length is last-first+1. Checks byte
+ * arithmetic and writability, copies with memmove and copies the source offset.
+ * Completes copying before releasing old storage, including same-object slices.
+ * Invalidates extrema but does not create a vector, flush or notify. Retains the
+ * destination through custom release and rejects destruction, protection or
+ * storage/selection changes before returning success. Callback effects remain.
  */
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr) {
-    Tcl_Size length;
-    size_t byteCount;
+    Tcl_Size first = srcPtr->first, length = srcPtr->last - first + 1;
+    Tcl_Size size = length == 0 ? 0 : DEF_ARRAY_SIZE;
+    size_t bytes, capacityBytes;
+    VectorData data;
+    void *oldData;
+    Tcl_FreeProc *oldFree;
+    Tcl_Interp *interp = destPtr->interp;
+    int result;
 
     if (destPtr->type != srcPtr->type) {
-        Tcl_SetObjResult(destPtr->interp, Tcl_NewStringObj("can't duplicate vectors of different types", -1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("can't duplicate vectors of different types", -1));
         return TCL_ERROR;
     }
-    length = srcPtr->last - srcPtr->first + 1;
-    if (GetVectorByteCount(destPtr->interp, srcPtr->type, length, &byteCount) != TCL_OK) {
+    if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)destPtr) != TCL_OK ||
+        GetVectorByteCount(interp, srcPtr->type, length, &bytes) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (Rbc_VectorChangeLength(destPtr, length) != TCL_OK) {
+    if (first < 0 || first > srcPtr->length || length > srcPtr->length - first) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("invalid source vector selection", -1));
         return TCL_ERROR;
     }
-    if (byteCount > 0) {
-        switch (srcPtr->type) {
-        case RBC_VECTOR_REAL:
-            memmove(destPtr->data.real, srcPtr->data.real + srcPtr->first, byteCount);
-            break;
-        case RBC_VECTOR_COMPLEX:
-            memmove(destPtr->data.complex, srcPtr->data.complex + srcPtr->first, byteCount);
-            break;
+    while (size < length) {
+        if (size > TCL_SIZE_MAX / 2) { size = length; break; }
+        size *= 2;
+    }
+    if (GetVectorByteCount(interp, srcPtr->type, size, &capacityBytes) != TCL_OK) return TCL_ERROR;
+    data.raw = NULL;
+    if (size > 0) {
+        data = destPtr->data;
+        if (size != destPtr->size) {
+            data.raw = Tcl_AttemptAlloc(capacityBytes);
+            if (data.raw == NULL) {
+                Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector copy", -1));
+                return TCL_ERROR;
+            }
+        }
+        if (bytes > 0) {
+            memmove(data.raw, (char *)srcPtr->data.raw + (size_t)first * VectorElementSize(srcPtr->type), bytes);
         }
     }
+    /* No callbacks occur before the copy is complete, including self-slices. */
+    Tcl_Preserve(interp);
+    Tcl_Preserve(destPtr);
+    oldData = destPtr->data.raw;
+    oldFree = destPtr->freeProc;
     destPtr->offset = srcPtr->offset;
-    return TCL_OK;
+    destPtr->data = data;
+    destPtr->length = length;
+    destPtr->size = size;
+    destPtr->first = 0;
+    destPtr->last = length - 1;
+    destPtr->notifyFlags |= UPDATE_RANGE;
+    if (oldData != data.raw) {
+        destPtr->freeProc = data.raw == NULL ? TCL_STATIC : TCL_DYNAMIC;
+        ReleaseVectorStorage(interp, oldData, oldFree);
+    }
+    result = CheckResizedVector(destPtr, data.raw, length, size);
+    Tcl_Release(destPtr);
+    Tcl_Release(interp);
+    return result;
 }
 
 /*
@@ -1774,8 +1858,12 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
     name = savedName;
     if (vPtr->arrayName != NULL) {
         UnmapVariable(vPtr);
-        if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
-        if (vPtr->arrayName != NULL) goto remapped;
+        if (vPtr->destroying || Tcl_InterpDeleted(interp)) {
+            goto destroyed;
+        }
+        if (vPtr->arrayName != NULL) {
+            goto remapped;
+        }
     }
     if ((name == NULL) || (name[0] == '\0')) {
         /* If the variable name is the empty string, simply return after removing any existing variable. */
@@ -1788,15 +1876,23 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
      * be currently using it.
      */
     Tcl_UnsetVar2(interp, name, NULL, 0);
-    if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
-    if (vPtr->arrayName != NULL) goto remapped;
+    if (vPtr->destroying || Tcl_InterpDeleted(interp)) {
+        goto destroyed;
+    }
+    if (vPtr->arrayName != NULL) {
+        goto remapped;
+    }
     /* Set the index "end" in the array.  This will create the
      * variable immediately so that we can check its namespace
      * context.
      */
     result = Tcl_SetVar2(interp, name, "end", "", TCL_LEAVE_ERR_MSG);
-    if (vPtr->destroying || Tcl_InterpDeleted(interp)) goto destroyed;
-    if (vPtr->arrayName != NULL) goto remapped;
+    if (vPtr->destroying || Tcl_InterpDeleted(interp)) {
+        goto destroyed;
+    }
+    if (vPtr->arrayName != NULL) {
+        goto remapped;
+    }
     /* Determine if the variable is global or not.  If there wasn't a
      * namespace qualifier, it still may be global.  We need to look
      * inside the Var structure to see what it's namespace field says.
@@ -1825,35 +1921,20 @@ done:
     return code;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Validate and replace the complete storage ownership contract.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorReset --
- *
- *      Resets the vector data.  This is called by a client to
- *      indicate that the vector data has changed.  The vector does
- *      not need to point to different memory.  Any clients of the
- *      vector will be notified of the change.
- *
- * Parameters:
- *      VectorObject *vPtr
- *      double *valueArr - Array containing the elements of the vector. If NULL, indicates to reset the vector.
- *      Tcl_Size length - Number of elements currently in the vector.
- *      Tcl_Size size   - Maximum number of elements the supplied
- *                        array can hold.
- *      Tcl_FreeProc *freeProc - Address of memory deallocation routine for the array of values.  Can also be
- *                               TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE.
- *
- * Results:
- *      A standard Tcl result.  If the new array size is invalid,
- *      TCL_ERROR is returned.  Otherwise TCL_OK is returned and the
- *      new vector data is recorded.
- *
- * Side Effects:
- *      Any client designated callbacks will be posted.  Memory may
- *      be changed for the vector array.
- *
- * -----------------------------------------------------------------------
+ * Checks writability, nonnegative length/capacity, length<=capacity and byte
+ * counts. NULL data or zero capacity installs empty static storage. TCL_VOLATILE
+ * copies used values into capacity-sized owned storage, even for the same input
+ * address. Otherwise adopts/borrows the supplied pointer under freeProc. Releases
+ * the old owned allocation only when its address differs, after installing the
+ * completed metadata. Retains the record and interpreter through release and
+ * publication, skipping publication after destruction. Returns TCL_OK once the
+ * buffer ownership contract is accepted, even if callbacks destroy the vector;
+ * callers must not free an adopted buffer again. Precommit errors leave ownership
+ * with the caller. Does not reset the shared first/last selection.
  */
 static int ResetVectorStorage(VectorObject *vPtr, void *valueArr, Tcl_Size length, Tcl_Size size,
                               Tcl_FreeProc *freeProc) {
@@ -1900,31 +1981,37 @@ static int ResetVectorStorage(VectorObject *vPtr, void *valueArr, Tcl_Size lengt
         valueArr = newArr;
         freeProc = TCL_DYNAMIC;
     }
-    /*
-     * Release the old array only when it is actually being replaced.
-     */
-    if ((vPtr->data.raw != valueArr) && (vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
-        if (vPtr->freeProc == TCL_DYNAMIC) {
-            ckfree(vPtr->data.raw);
-        } else {
-            vPtr->freeProc(vPtr->data.raw);
+    {
+        void *oldData = vPtr->data.raw;
+        Tcl_FreeProc *oldFree = vPtr->freeProc;
+        Tcl_Interp *interp = vPtr->interp;
+        Tcl_Preserve(interp);
+        Tcl_Preserve(vPtr);
+        vPtr->freeProc = freeProc;
+        vPtr->data.raw = valueArr;
+        vPtr->size = size;
+        vPtr->length = length;
+        vPtr->notifyFlags |= UPDATE_RANGE;
+        if (oldData != valueArr) {
+            ReleaseVectorStorage(interp, oldData, oldFree);
         }
+        PublishVectorChange(vPtr, TRUE, 0, 0);
+        Tcl_Release(vPtr);
+        Tcl_Release(interp);
     }
-    /*
-     * Record the complete new array contract even if the address did
-     * not change. The caller may have resized storage in place.
-     */
-    vPtr->freeProc = freeProc;
-    vPtr->data.raw = valueArr;
-    vPtr->size = size;
-    vPtr->length = length;
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
+    /* Ownership has transferred at commit, even if a later callback destroys
+     * the vector. Returning an error here would invite callers to free it twice. */
     return TCL_OK;
 }
 
+/**
+ * @brief Apply a real storage reset after checking the vector type.
+ * @ingroup vector_storage_private
+ *
+ * Rejects a complex vector with a Tcl error; otherwise delegates to
+ * ResetVectorStorage, including its ownership and callback restrictions.
+ * Does not convert types or make a separate numeric result.
+ */
 int Rbc_VectorReset(VectorObject *vPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
     if (vPtr->type != RBC_VECTOR_REAL) {
         Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("Rbc_ResetVector cannot reset a complex vector", -1));
@@ -1989,8 +2076,7 @@ static void VectorNotifyClients(ClientData clientData) {
     }
     clients = (VectorClient **)Tcl_Alloc(count * sizeof(VectorClient *));
     i = 0;
-    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL;
-         linkPtr = Rbc_ChainNextLink(linkPtr)) {
+    for (linkPtr = Rbc_ChainFirstLink(vPtr->chainPtr); linkPtr != NULL; linkPtr = Rbc_ChainNextLink(linkPtr)) {
         clients[i] = Rbc_ChainGetValue(linkPtr);
         Tcl_Preserve(clients[i]);
         i++;
@@ -2080,37 +2166,18 @@ static void VectorFlushCache(VectorObject *vPtr) {
                   vPtr);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Resize typed storage without publishing a change to clients.
+ * @ingroup vector_storage_private
  *
- * Rbc_VectorChangeLength --
- *
- *      Resizes the vector to the new size.
- *
- *      The new size of the vector is computed by doubling the
- *      size of the vector until it fits the number of slots needed
- *      (designated by *length*).
- *
- *      If the new size is the same as the old, simply adjust the
- *      length of the vector.  Otherwise we're copying the data from
- *      one memory location to another. The trailing elements of the
- *      vector need to be reset to zero.
- *
- *      If the storage changed memory locations, free up the old
- *      location if it was dynamically allocated.
- *
- * Parameters:
- *      VectorObject *vPtr - The vector to change lengths
- *      int length - The new size of the vector
- *
- * Results:
- *      A standard Tcl result.  If the reallocation is successful,
- *      TCL_OK is returned, otherwise TCL_ERROR.
- *
- * Side effects:
- *      Memory for the array is reallocated.
- *
- * ----------------------------------------------------------------------
+ * Checks writability and a nonnegative length. Chooses a capacity starting at
+ * DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal
+ * capacity allocation; otherwise copies the retained prefix into new storage.
+ * Zeros added values and installs length/capacity, selection 0..length-1 and
+ * invalid extrema before releasing old owned storage. Zero length releases storage.
+ * Does not flush or notify. Retains the record and interpreter across custom
+ * release; returns TCL_ERROR if it destroys, protects or changes the installed
+ * storage/selection. Such errors do not roll back the commit or callback effects.
  */
 int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
     Tcl_Size newSize;
@@ -2171,20 +2238,28 @@ int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length) {
             ZeroVectorElements(vPtr->type, newData, used, length);
         }
     }
-    if ((newData.raw != vPtr->data.raw) && (vPtr->data.raw != NULL) && (vPtr->freeProc != TCL_STATIC)) {
-        if (vPtr->freeProc == TCL_DYNAMIC) {
-            ckfree(vPtr->data.raw);
-        } else {
-            vPtr->freeProc(vPtr->data.raw);
+    {
+        void *oldData = vPtr->data.raw;
+        Tcl_FreeProc *oldFree = vPtr->freeProc;
+        Tcl_Interp *interp = vPtr->interp;
+        int result;
+        Tcl_Preserve(interp);
+        Tcl_Preserve(vPtr);
+        vPtr->data = newData;
+        vPtr->size = newSize;
+        vPtr->length = length;
+        vPtr->first = 0;
+        vPtr->last = length - 1;
+        vPtr->freeProc = freeProc;
+        vPtr->notifyFlags |= UPDATE_RANGE;
+        if (oldData != newData.raw) {
+            ReleaseVectorStorage(interp, oldData, oldFree);
         }
+        result = CheckResizedVector(vPtr, newData.raw, length, newSize);
+        Tcl_Release(vPtr);
+        Tcl_Release(interp);
+        return result;
     }
-    vPtr->data = newData;
-    vPtr->size = newSize;
-    vPtr->length = length;
-    vPtr->first = 0;
-    vPtr->last = length - 1;
-    vPtr->freeProc = freeProc;
-    return TCL_OK;
 }
 
 /*
@@ -2554,9 +2629,10 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
         }
         return TCL_ERROR;
     }
-    if ((flags & INDEX_CHECK) && vPtr->length > 0 &&
-        (first >= vPtr->length || last >= vPtr->length)) {
-        if (interp != NULL) Tcl_SetObjResult(interp, Tcl_NewStringObj("vector range changed during index evaluation", -1));
+    if ((flags & INDEX_CHECK) && vPtr->length > 0 && (first >= vPtr->length || last >= vPtr->length)) {
+        if (interp != NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector range changed during index evaluation", -1));
+        }
         return TCL_ERROR;
     }
     /*
@@ -3462,7 +3538,9 @@ static void UnmapVariable(VectorObject *vPtr) {
     char *name = vPtr->arrayName;
     int flags = vPtr->varFlags;
 
-    if (name == NULL) return;
+    if (name == NULL) {
+        return;
+    }
     /* Detach before user unset traces can recursively destroy or remap it. */
     vPtr->arrayName = NULL;
     Tcl_UntraceVar2(interp, name, NULL, TRACE_ALL | flags, (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
@@ -3676,25 +3754,13 @@ int Rbc_GetVectorById(Tcl_Interp *interp, Rbc_VectorId clientId, Rbc_Vector **ve
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Test whether a literal registered vector name exists.
+ * @ingroup vector_storage_public
  *
- * Rbc_VectorExists2 --
- *
- *      Returns whether the vector associated with the client token
- *      still exists.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *vecName
- *
- * Results:
- *      Returns 1 is the vector still exists, 0 otherwise.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Searches the current/global namespace rules without parsing a vector range.
+ * Returns a boolean; accepts an interpreter and name, not an observer token.
+ * May lazily initialize interpreter vector data. Does not retain a found vector.
  */
 int Rbc_VectorExists2(Tcl_Interp *interp, const char *vecName) {
     VectorInterpData *dataPtr; /* Interpreter-specific data. */
@@ -3776,27 +3842,15 @@ char *Rbc_NameOfVectorId(Rbc_VectorId clientId) {
     return clientPtr->serverPtr->name;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Resolve a vector reference into a borrowed C vector pointer.
+ * @ingroup vector_storage_public
  *
- * Rbc_GetVector --
- *
- *      Returns a pointer to the vector associated with the given name.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *name
- *      Rbc_Vector **vecPtrPtr
- *
- * Results:
- *      A standard Tcl result.  If there is no vector "name", TCL_ERROR
- *      is returned.  Otherwise TCL_OK is returned and vecPtrPtr will
- *      point to the vector.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Returns TCL_OK and writes vecPtrPtr on success; reports lookup failure with
+ * TCL_ERROR. Allows range syntax, updates the shared first/last selection and
+ * refreshes invalid cached extrema. Index expressions may execute Tcl. The result
+ * is the original vector identity, not a slice or ownership reference; callers
+ * must manage lifetime before using it across subsequent evaluation.
  */
 int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) {
     VectorInterpData *dataPtr;
@@ -3813,37 +3867,23 @@ int Rbc_GetVector(Tcl_Interp *interp, const char *name, Rbc_Vector **vecPtrPtr) 
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Create or reuse a typed vector with explicit command and array names.
+ * @ingroup vector_storage_private
  *
- * Rbc_CreateVector --
- *
- *      Creates a new vector by the name and size.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *vecName
- *      const char *cmdName
- *      const char *varName
- *      int initialSize
- *      Rbc_Vector **vecPtrPtr
- *
- * Results:
- *      A standard Tcl result.  If the new array size is invalid or a
- *      vector already exists by that name, TCL_ERROR is returned.
- *      Otherwise TCL_OK is returned and the new vector is created.
- *
- * Side Effects:
- *      Memory will be allocated for the new vector.  A new Tcl command
- *      and Tcl array variable will be created.
- *
- * -----------------------------------------------------------------------
+ * Validates nonnegative initialSize and real/complex type, then delegates to
+ * Rbc_VectorCreate. A positive size resizes; zero leaves an existing vector
+ * length unchanged. Writes an optional borrowed output pointer on success.
+ * Returns a Tcl status; initial resize failure removes a newly created identity
+ * if still alive. The output pointer is untouched on failure. Retains and checks
+ * the identity across callbacks; does not explicitly publish the initial resize.
+ * Existing-object changes and callback effects are not rolled back.
  */
 int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdName, const char *varName,
                       Tcl_Size initialSize, Rbc_VectorType type, Rbc_Vector **vecPtrPtr) {
     VectorInterpData *dataPtr;
     VectorObject *vPtr;
-    int isNew;
+    int isNew, result = TCL_ERROR;
 
     if (initialSize < 0) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad vector size \"%" TCL_SIZE_MODIFIER "d\"", initialSize));
@@ -3858,42 +3898,51 @@ int Rbc_CreateVector2(Tcl_Interp *interp, const char *vecName, const char *cmdNa
     if (vPtr == NULL) {
         return TCL_ERROR;
     }
-    if (initialSize > 0) {
-        if (Rbc_VectorChangeLength(vPtr, initialSize) != TCL_OK) {
-            return TCL_ERROR;
-        }
+    Tcl_Preserve(interp);
+    Tcl_Preserve(vPtr);
+    if (initialSize > 0 && Rbc_VectorChangeLength(vPtr, initialSize) != TCL_OK) {
+        goto done;
+    }
+    if (VectorAlive(vPtr) != TCL_OK) {
+        goto done;
     }
     if (vecPtrPtr != NULL) {
         *vecPtrPtr = (Rbc_Vector *)vPtr;
     }
-    return TCL_OK;
+    result = TCL_OK;
+done:
+    if (result != TCL_OK && isNew && !vPtr->destroying) {
+        Tcl_InterpState state = Tcl_SaveInterpState(interp, result);
+        Rbc_VectorFree(vPtr);
+        Tcl_RestoreInterpState(interp, state);
+    }
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+    return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Create or reuse a real vector through the typed creation interface.
+ * @ingroup vector_storage_public
  *
- * Rbc_CreateVector --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      const char *name
- *      int size
- *      Rbc_Vector **vecPtrPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Delegates to Rbc_CreateVectorWithType with RBC_VECTOR_REAL. Returns a Tcl
+ * status and optionally a borrowed vector pointer. Existing same-type writable
+ * vectors may be reused; this is not a create-only operation.
  */
 int Rbc_CreateVector(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_Vector **vecPtrPtr) {
     return Rbc_CreateVectorWithType(interp, name, size, RBC_VECTOR_REAL, vecPtrPtr);
 }
 
+/**
+ * @brief Create or reuse a typed vector with its same-named Tcl command.
+ * @ingroup vector_storage_public
+ *
+ * Real names without an opening parenthesis request a same-named mapped array;
+ * complex names and real names containing parentheses do not. Delegates to
+ * Rbc_CreateVector2. Type must be real or complex. A zero requested size does
+ * not clear an existing vector. Returns a Tcl status; output ownership and
+ * callback handling are those of the underlying creation helpers.
+ */
 int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *name, Tcl_Size size, Rbc_VectorType type,
                              Rbc_Vector **vecPtrPtr) {
     const char *varName;
@@ -3907,66 +3956,55 @@ int Rbc_CreateVectorWithType(Tcl_Interp *interp, const char *name, Tcl_Size size
     return Rbc_CreateVector2(interp, name, name, varName, size, type, vecPtrPtr);
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Resize a live vector and publish a full change.
+ * @ingroup vector_storage_public
  *
- * Rbc_ResizeVector --
- *
- *      Changes the size of the vector.  All clients with designated
- *      callback routines will be notified of the size change.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *      int length
- *
- * Results:
- *      A standard Tcl result.  If no vector exists by that name,
- *      TCL_ERROR is returned.  Otherwise TCL_OK is returned and
- *      vector is resized.
- *
- * Side Effects:
- *      Memory may be reallocated for the new vector size.  All clients
- *      which set call back procedures will be notified.
- *
- * -----------------------------------------------------------------------
+ * Delegates to Rbc_VectorChangeLength, flushes when configured and reports a
+ * full update. On resize error replaces the message with a generic resize error
+ * unless the identity was destroyed. Retains the record and interpreter across
+ * custom release and publication. May invalidate borrowed storage; success does
+ * not promise that a later publication callback left the vector alive.
  */
 int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size length) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
+    Tcl_Interp *interp = vPtr->interp;
+    int result;
 
-    if (Rbc_VectorChangeLength(vPtr, length) != TCL_OK) {
-        Tcl_SetObjResult(vPtr->interp, Tcl_ObjPrintf("can't resize vector \"%s\"", vPtr->name));
-        return TCL_ERROR;
+    Tcl_Preserve(interp);
+    Tcl_Preserve(vPtr);
+    result = Rbc_VectorChangeLength(vPtr, length);
+    if (result == TCL_OK) {
+        PublishVectorChange(vPtr, TRUE, 0, 0);
+    } else if (!vPtr->destroying && !Tcl_InterpDeleted(interp)) {
+        Tcl_SetObjResult(interp, Tcl_ObjPrintf("can't resize vector \"%s\"", vPtr->name));
     }
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
-    return TCL_OK;
+    Tcl_Release(vPtr);
+    Tcl_Release(interp);
+    return result;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Return the borrowed current registered name.
+ * @ingroup vector_storage_public
  *
- * Rbc_NameOfVector --
- *
- *      Returns the current registered vector name.
- *
- * Parameters:
- *      Rbc_Vector *vecPtr - Vector to query.
- *
- * Results:
- *      A borrowed name, valid until the vector is renamed or destroyed.
- *
- * Side effects:
- *      None
- *
- *--------------------------------------------------------------
+ * Valid until rename or destruction; copy it if needed across either operation.
+ * Requires a live registered vector. Does not allocate, retain or change it.
  */
 char *Rbc_NameOfVector(Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
     return vPtr->name;
 }
 
+/**
+ * @brief Replace the storage contract of a complex vector.
+ * @ingroup vector_storage_public
+ *
+ * Rejects real vectors, then delegates to ResetVectorStorage. Length/capacity
+ * count complex values, not components or bytes. Honors static, dynamic, volatile
+ * and custom ownership policies; publishes a full change on success. Returns a
+ * Tcl status with the ownership-commit semantics of ResetVectorStorage.
+ */
 int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *valueArr, Tcl_Size length, Tcl_Size size,
                            Tcl_FreeProc *freeProc) {
     VectorObject *vPtr;
@@ -3979,55 +4017,37 @@ int Rbc_ResetComplexVector(Rbc_Vector *vecPtr, Rbc_Complex *valueArr, Tcl_Size l
     return ResetVectorStorage(vPtr, valueArr, length, size, freeProc);
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Replace the storage contract of a real vector.
+ * @ingroup vector_storage_public
  *
- * Rbc_ResetVector --
-*
- * Replaces the vector's storage contract. The supplied array,
- * length, capacity, and ownership policy become the vector's
- * current storage description. Clients are notified after the
- * reset succeeds.
- *
- * Use Rbc_VectorChanged() instead when modifying the existing
- * vector storage in place without changing its ownership contract.
- *
- *
- * Parameters:
- *      Rbc_Vector *vecPtr
- *      double *valueArr - Array containing the elements of the vector. If NULL, indicates to reset the vector.
- *      int length - The number of elements that the vector currently holds.
- *      int size - The maximum number of elements that the array can hold.
- *      Tcl_FreeProc *freeProc - Address of memory deallocation routine for the array of values. Can also be 
- *                               TCL_STATIC, TCL_DYNAMIC, or TCL_VOLATILE.
- *
- * Results:
- *      A standard Tcl result.  If the new array size is invalid,
- *      TCL_ERROR is returned.  Otherwise TCL_OK is returned and the
- *      new vector data is recorded.
- *
- * Side Effects:
- *      Any client designated callbacks will be posted.  Memory may
- *      be changed for the vector array.
- *
- * -----------------------------------------------------------------------
+ * Delegates to Rbc_VectorReset and ResetVectorStorage. Length/capacity count
+ * doubles. Use Rbc_VectorChanged instead for an in-place write with unchanged
+ * length and ownership. Returns a Tcl status; ownership transfer and release/cache
+ * callback handling follow the shared storage-reset implementation.
  */
 int Rbc_ResetVector(Rbc_Vector *vecPtr, double *valueArr, Tcl_Size length, Tcl_Size size, Tcl_FreeProc *freeProc) {
     return Rbc_VectorReset((VectorObject *)vecPtr, valueArr, length, size, freeProc);
 }
 
-/*
- * Rbc_VectorIsReadOnly -- Return the vector's data protection state.
- * This does not restrict lifetime management or access to borrowed storage.
+/**
+ * @brief Return the current data-protection flag.
+ * @ingroup vector_storage_public
+ *
+ * Requires a live vector. Does not protect ownership/lifetime or intercept native
+ * pointer writes. No notification, allocation or Tcl evaluation occurs.
  */
 int Rbc_VectorIsReadOnly(Rbc_Vector *vecPtr) {
     return ((VectorObject *)vecPtr)->readOnly;
 }
 
-/*
- * Rbc_VectorSetReadOnly -- Change data protection without changing values,
- * storage, identity or client bindings. No value-change notification is sent.
- * The state is publicly reversible; it is not an ownership/security boundary.
+/**
+ * @brief Set reversible data protection without publishing a value change.
+ * @ingroup vector_storage_public
+ *
+ * Normalizes any nonzero argument to true and returns TCL_OK. The interpreter
+ * argument is unused. Requires a live vector; does not alter storage, type,
+ * identity, clients or lifetime ownership.
  */
 int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly) {
     (void)interp;
@@ -4035,14 +4055,21 @@ int Rbc_VectorSetReadOnly(Tcl_Interp *interp, Rbc_Vector *vecPtr, int readOnly) 
     return TCL_OK;
 }
 
-/*
- * Rbc_VectorCheckWritable -- Check before modifying a destination. Native
- * producers must also call this before writing through borrowed data pointers.
- * Returns TCL_ERROR with a stable error code if the vector is read-only.
+/**
+ * @brief Reject a protected destination before writing through the C API.
+ * @ingroup vector_storage_public
+ *
+ * Returns TCL_OK when writable, or TCL_ERROR with RBC VECTOR READONLY and a
+ * name-bearing message. Requires a live record; it is not a destroyed-pointer
+ * validator. Native producers must call it before direct writes and recheck after
+ * callbacks that could change protection. Does not undo a prior write.
  */
 int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr) {
     VectorObject *vPtr = (VectorObject *)vecPtr;
 
+    if (VectorAlive(vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
     if (vPtr->readOnly) {
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" is read-only", vPtr->name));
         Tcl_SetErrorCode(interp, "RBC", "VECTOR", "READONLY", NULL);
@@ -4051,43 +4078,52 @@ int Rbc_VectorCheckWritable(Tcl_Interp *interp, Rbc_Vector *vecPtr) {
     return TCL_OK;
 }
 
+/**
+ * @brief Publish a full change after an in-place native write.
+ * @ingroup vector_storage_public
+ *
+ * Flushes the mapped cache when configured, then invalidates extrema and follows
+ * the notification policy. Does not check writability, replace storage or change
+ * length. The caller checks before writing. Retains the record and interpreter,
+ * preserves interpreter result state and skips notification if flushing destroys
+ * the identity. A same-named replacement is never used as the notification target.
+ */
 void Rbc_VectorChanged(Rbc_Vector *vecPtr) {
-    VectorObject *vPtr;
-
-    vPtr = (VectorObject *)vecPtr;
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
+    PublishVectorChange((VectorObject *)vecPtr, TRUE, 0, 0);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @brief Publish an inclusive changed interval of existing storage.
+ * @ingroup vector_storage_public
  *
- * Rbc_VectorChangedRange --
- *
- *      Reports that an inclusive range of existing vector storage was
- *      modified in place.
- *
- *      This is the ranged equivalent of Rbc_VectorChanged().  Storage,
- *      vector length, and ownership must remain unchanged.
- *
- *      Invalid ranges conservatively become complete vector changes.
- *
- * ----------------------------------------------------------------------
+ * Indices are zero-based storage positions, independent of external offset.
+ * Invalid intervals conservatively become full updates. Storage ownership and
+ * length must remain unchanged. Flushes before ranged notification and does not
+ * check writability; shares Rbc_VectorChanged lifetime restrictions.
  */
 void Rbc_VectorChangedRange(Rbc_Vector *vecPtr, Tcl_Size first, Tcl_Size last) {
-    VectorObject *vPtr;
-
-    vPtr = (VectorObject *)vecPtr;
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClientsRange(vPtr, first, last);
+    PublishVectorChange((VectorObject *)vecPtr, FALSE, first, last);
 }
 
+/**
+ * @brief Destroy a vector identity through the private destruction implementation.
+ * @ingroup vector_storage_public
+ *
+ * Delegates to Rbc_VectorFree, including synchronous DESTROY notification and
+ * custom storage release. Requires a live non-NULL pointer; read-only state does
+ * not block destruction. All borrowed storage/name pointers and observer IDs
+ * become unusable according to the destruction contract.
+ */
 void Rbc_FreeVector(Rbc_Vector *v) { Rbc_VectorFree((VectorObject *)v); }
 
+/**
+ * @brief Borrow the complex storage pointer, or return NULL for a real vector.
+ * @ingroup vector_storage_public
+ *
+ * Requires a live record. NULL may also denote empty complex storage. Length and
+ * capacity count pairs. Reacquire after storage replacement or callbacks; check
+ * writability before native writes and publish changes afterward.
+ */
 Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vPtr) {
     if (vPtr->type != RBC_VECTOR_COMPLEX) {
         return NULL;
@@ -4095,6 +4131,14 @@ Rbc_Complex *Rbc_VectorComplexData(Rbc_Vector *vPtr) {
     return vPtr->data.complex;
 }
 
+/**
+ * @brief Borrow the real storage pointer, or return NULL for a complex vector.
+ * @ingroup vector_storage_public
+ *
+ * Requires a live record. NULL may also denote empty real storage. Does not
+ * retain the record or buffer. Reacquire after storage replacement or callbacks;
+ * check writability before native writes and publish changes afterward.
+ */
 double *Rbc_VectorData(Rbc_Vector *vPtr) {
     if (vPtr->type != RBC_VECTOR_REAL) {
         return NULL;
@@ -4102,7 +4146,36 @@ double *Rbc_VectorData(Rbc_Vector *vPtr) {
     return vPtr->data.real;
 }
 
+/**
+ * @brief Return the number of used values in a live vector.
+ * @ingroup vector_storage_public
+ *
+ * Real and complex vectors both count values, not bytes. Does not refresh
+ * extrema, retain storage or evaluate Tcl.
+ */
 Tcl_Size Rbc_VectorLength(Rbc_Vector *vPtr) { return vPtr->length; }
+/**
+ * @brief Return allocated capacity in values, not the used length or bytes.
+ * @ingroup vector_storage_public
+ *
+ * Requires a live vector. Real capacity counts doubles; complex capacity counts
+ * Rbc_Complex values. Capacity is an implementation/storage contract detail and
+ * may change on resize or reset.
+ */
 Tcl_Size Rbc_VectorSize(Rbc_Vector *vPtr) { return vPtr->size; }
+/**
+ * @brief Return the current modification counter from a live vector.
+ * @ingroup vector_storage_public
+ *
+ * Returns an int counter, not a boolean or pending-notification flag. Internal
+ * update scheduling increments it even when ordinary notifications are disabled.
+ * Direct unreported pointer writes do not increment it. Does not clear it.
+ */
 int Rbc_VectorDirty(Rbc_Vector *vPtr) { return vPtr->dirty; }
+/**
+ * @brief Return the immutable real/complex type of a live vector.
+ * @ingroup vector_storage_public
+ *
+ * Does not inspect contents, convert storage, retain the record or evaluate Tcl.
+ */
 Rbc_VectorType Rbc_VectorGetType(Rbc_Vector *vPtr) { return vPtr->type; }

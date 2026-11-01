@@ -371,4 +371,61 @@ namespace eval vector.capi {
     } -result {1 1 1 {3.0 4.0}}
 
 
+    proc CreateDeleteTrace {action args} {
+        if {$action eq "command"} {
+            proc ::CapiTrace {} {return replacement}
+            return
+        }
+        ::rbc::vector destroy ::CapiTrace
+        if {$action eq "recreate"} {
+            ::rbc::vector create ::CapiTrace
+            ::CapiTrace set {99}
+        }
+    }
+    foreach {case action expected} {
+        1 destroy {1 0 0}
+        2 command {1 1 1}
+    } {
+        test RBC.vector.capi.A.20.$case {creation retains identity across command deletion trace} -setup {
+            CleanupVectors ::CapiTrace
+            ::rbccapitest create ::CapiTrace real 2
+            trace add command ::CapiTrace delete [namespace code [list CreateDeleteTrace $action]]
+        } -body {
+            set code [catch {::rbccapitest create ::CapiTrace real 4}]
+            set intact 0
+            if {$action eq "command"} {set intact [expr {[::CapiTrace] eq "replacement"}]}
+            list $code [::rbccapitest exists ::CapiTrace] $intact
+        } -cleanup {
+            CleanupVectors ::CapiTrace
+            catch {rename ::CapiTrace {}}
+        } -result $expected
+    }
+    foreach {case action exists} {1 destroy 0 2 recreate 1} {
+        test RBC.vector.capi.A.21.$case {new-vector mapping trace destroys or replaces output} -setup {
+            CleanupVectors ::CapiTrace
+            set ::CapiTrace placeholder
+            trace add variable ::CapiTrace unset [namespace code [list CreateDeleteTrace $action]]
+        } -body {
+            set code [catch {::rbccapitest create ::CapiTrace real 4}]
+            list $code [::rbccapitest exists ::CapiTrace]
+        } -cleanup {
+            CleanupVectors ::CapiTrace
+            unset -nocomplain ::CapiTrace
+        } -result [list 1 $exists]
+    }
+    test RBC.vector.capi.A.22.1 {failed initial allocation removes newly created identity} -setup {
+        CleanupVectors ::CapiTooLarge
+    } -body {
+        set code [catch {::rbccapitest create ::CapiTooLarge real 9223372036854775807}]
+        list $code [::rbccapitest exists ::CapiTooLarge] [info commands ::CapiTooLarge]
+    } -cleanup {CleanupVectors ::CapiTooLarge} -result {1 0 {}}
+    test RBC.vector.capi.A.22.2 {failed existing-vector resize retains earlier values} -setup {
+        CleanupVectors ::CapiTooLarge
+        ::rbccapitest create ::CapiTooLarge real 2
+        ::CapiTooLarge set {1 2}
+    } -body {
+        set code [catch {::rbccapitest create ::CapiTooLarge real 9223372036854775807}]
+        list $code [::CapiTooLarge range 0 end]
+    } -cleanup {CleanupVectors ::CapiTooLarge} -result {1 {1.0 2.0}}
+
 }

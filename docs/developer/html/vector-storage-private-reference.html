@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector storage private C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector names, indices and mapped arrays" href="vector-access.html" />
+    <link rel="prev" title="Vector storage public C reference" href="vector-storage-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-access.html" title="Vector names, indices and mapped arrays"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-storage-reference.html" title="Vector storage public C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector storage private C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-storage-private-c-reference">
+<h1>Vector storage private C reference<a class="headerlink" href="#vector-storage-private-c-reference" title="Link to this heading">¶</a></h1>
+<p>These registry, allocation, creation and destruction helpers are private to RBC.
+They are not substitutes for installed public stub entries. See
+<a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for their relationships and callback restrictions.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__vector__storage__private"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">storage</span> <span class="pre">private</span> <span class="pre">implementation</span></span></dt>
+<dd><p>Registry and storage primitives with guarded callback boundaries. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.VectorElementSize">
+<span class="target" id="group__vector__storage__private_1ga9bfb33f4c315fc9684873851329f5b87"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorElementSize</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorElementSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the byte stride for one real or complex value. </p>
+<p>Uses sizeof(double) or sizeof(Rbc_Complex). Unsupported internal types panic; this is not a recoverable public type validator. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetVectorByteCount">
+<span class="target" id="group__vector__storage__private_1gab568761ccf607d93ec483452f8e6bfa4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetVectorByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteCountPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetVectorByteCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate a value count and convert it to an allocation byte count. </p>
+<p>Rejects negative counts and multiplication overflow with a Tcl error. Writes the output only on success; calls VectorElementSize, so the type must already be valid. Does not allocate storage or evaluate Tcl. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ZeroVectorElements">
+<span class="target" id="group__vector__storage__private_1ga66f2408898b303ccb790d553eb8f6c3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ZeroVectorElements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="n"><span class="pre">VectorData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ZeroVectorElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Zero the half-open interval [first,last) of typed storage. </p>
+<p>Zeros both components for complex values. Bounds and capacity are caller preconditions; does not allocate, change metadata, invalidate extrema or notify. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorGetInterpData">
+<span class="target" id="group__vector__storage__private_1ga9af08f7d8b460419b71a7041d3154764"></span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetInterpData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetInterpData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Obtain or lazily initialize an interpreter-local vector registry. </p>
+<p>Returns borrowed associated data. First access allocates the vector, math and special-index tables, installs built-in functions and registers interpreter cleanup. Does not create Tcl commands or establish thread-shared storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.VectorInterpDeleteProc">
+<span class="target" id="group__vector__storage__private_1ga97ff4d9c292f2161a61d342462b2625e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInterpDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorInterpDeleteProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy registered vectors and release interpreter-local tables. </p>
+<p>Repeatedly takes the first remaining registry entry because destruction mutates the table and invokes callbacks. Deletes the math/index table containers and associated data, then frees the registry record. This is interpreter teardown, not a general-purpose registry reset API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorNew">
+<span class="target" id="group__vector__storage__private_1gaa97f25caf076bf6e4654013ba08959a5"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorNew</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorNew" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unregistered empty real vector record. </p>
+<p>Initializes static NULL storage, zero length/capacity, an empty observer chain, idle notifications, invalid extrema and no array flushing. The caller owns the record and may register it or use it as a temporary; release with Rbc_VectorFree. Does not create a name, Tcl command, mapped array or numeric allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorCreate">
+<span class="target" id="group__vector__storage__private_1ga4d9513b27cd54918de53c1ac460f09ae"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorCreate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorCreate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create or reuse a registered vector and configure its access surfaces. </p>
+<p>Qualifies the name in the current namespace; #auto selects an unused registry and command name. Existing vectors must be writable and have the requested type. Checks command collisions, replaces an existing instance command, and optionally maps an array. NULL command/variable arguments suppress that setup. Returns a borrowed record and writes newPtr on success, or NULL on error. Failure frees a newly created record, but does not roll back existing-object changes. Retains the record and interpreter across command deletion and mapping, and rejects destruction, new protection or replacement commands before continuing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.VectorInstDeleteProc">
+<span class="target" id="group__vector__storage__private_1gabf1716ee4b2e679be3d6b083086d7700"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorInstDeleteProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.VectorInstDeleteProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy a vector when its instance command is deleted. </p>
+<p>Clears the command token before calling Rbc_VectorFree, avoiding deletion of the same command again. Called by Tcl; no record access follows destruction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FreeVectorRecord">
+<span class="target" id="group__vector__storage__private_1ga0c83158065c10911ac9758ce500c62c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeVectorRecord</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">DestroyData</span></span><span class="w"> </span><span class="n"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FreeVectorRecord" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a record after Tcl preservation references have drained. </p>
+<p>Calls ckfree on the supplied allocation. Used for deferred vector and client record reclamation; resources must already have been detached. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorFree">
+<span class="target" id="group__vector__storage__private_1ga2da4593c69a92f1830b46ef6537ceed7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFree" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy a vector identity, its observers and owned resources. </p>
+<p>Ignores recursive destruction while the retained record is marked destroying. Preserves record/interpreter, deletes the command and mapping, unregisters the name, cancels pending idle work and delivers synchronous DESTROY with length zero. A temporary name copy remains valid during observer delivery. Detaches remaining clients, releases non-static storage, then defers record reclamation. Callbacks can run during command deletion, unmapping, notification and custom storage release. Preservation delays record reclamation, not logical destruction or storage cleanup. Requires a live non-NULL record; ignores read-only state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorDuplicate">
+<span class="target" id="group__vector__storage__private_1ga3cfbe47e41eb765769c1aa9f03357b29"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorDuplicate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorDuplicate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize an existing destination and copy the selected source values. </p>
+<p>Requires matching numeric types; selected length is last-first+1. Checks byte arithmetic and writability, copies with memmove and copies the source offset. Completes copying before releasing old storage, including same-object slices. Invalidates extrema but does not create a vector, flush or notify. Retains the destination through custom release and rejects destruction, protection or storage/selection changes before returning success. Callback effects remain. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ResetVectorStorage">
+<span class="target" id="group__vector__storage__private_1ga13584814c97b3e4519f77d7dd59c0b1a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetVectorStorage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valueArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ResetVectorStorage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and replace the complete storage ownership contract. </p>
+<p>Checks writability, nonnegative length/capacity, length&lt;=capacity and byte counts. NULL data or zero capacity installs empty static storage. TCL_VOLATILE copies used values into capacity-sized owned storage, even for the same input address. Otherwise adopts/borrows the supplied pointer under freeProc. Releases the old owned allocation only when its address differs, after installing the completed metadata. Retains the record and interpreter through release and publication, skipping publication after destruction. Returns TCL_OK once the buffer ownership contract is accepted, even if callbacks destroy the vector; callers must not free an adopted buffer again. Precommit errors leave ownership with the caller. Does not reset the shared first/last selection. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorReset">
+<span class="target" id="group__vector__storage__private_1ga10aac13fe50f6fb4ffcc6c7902333544"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorReset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valueArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_FreeProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">freeProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorReset" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply a real storage reset after checking the vector type. </p>
+<p>Rejects a complex vector with a Tcl error; otherwise delegates to ResetVectorStorage, including its ownership and callback restrictions. Does not convert types or make a separate numeric result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorChangeLength">
+<span class="target" id="group__vector__storage__private_1ga8bf46aba1ddb536dc8e1396ed596d029"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorChangeLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorChangeLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize typed storage without publishing a change to clients. </p>
+<p>Checks writability and a nonnegative length. Chooses a capacity starting at DEF_ARRAY_SIZE and doubling to fit, with overflow protection. Reuses an equal capacity allocation; otherwise copies the retained prefix into new storage. Zeros added values and installs length/capacity, selection 0..length-1 and invalid extrema before releasing old owned storage. Zero length releases storage. Does not flush or notify. Retains the record and interpreter across custom release; returns TCL_ERROR if it destroys, protects or changes the installed storage/selection. Such errors do not roll back the commit or callback effects. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_CreateVector2">
+<span class="target" id="group__vector__storage__private_1ga0c536c45a764e5f270405b5bf78c6aff"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateVector2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdName</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">varName</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">initialSize</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorType" title="Rbc_VectorType"><span class="n"><span class="pre">Rbc_VectorType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><span class="n"><span class="pre">Rbc_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vecPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateVector2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create or reuse a typed vector with explicit command and array names. </p>
+<p>Validates nonnegative initialSize and real/complex type, then delegates to Rbc_VectorCreate. A positive size resizes; zero leaves an existing vector length unchanged. Writes an optional borrowed output pointer on success. Returns a Tcl status; initial resize failure removes a newly created identity if still alive. The output pointer is untouched on failure. Retains and checks the identity across callbacks; does not explicitly publish the initial resize. Existing-object changes and callback effects are not rolled back. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector storage private C reference</a><ul>
+<li><a class="reference internal" href="#c.VectorElementSize"><code class="docutils literal notranslate"><span class="pre">VectorElementSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetVectorByteCount"><code class="docutils literal notranslate"><span class="pre">GetVectorByteCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.ZeroVectorElements"><code class="docutils literal notranslate"><span class="pre">ZeroVectorElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorGetInterpData"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetInterpData()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInterpDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInterpDeleteProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorNew"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorNew()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorCreate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorCreate()</span></code></a></li>
+<li><a class="reference internal" href="#c.VectorInstDeleteProc"><code class="docutils literal notranslate"><span class="pre">VectorInstDeleteProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.FreeVectorRecord"><code class="docutils literal notranslate"><span class="pre">FreeVectorRecord()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorFree"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorDuplicate"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorDuplicate()</span></code></a></li>
+<li><a class="reference internal" href="#c.ResetVectorStorage"><code class="docutils literal notranslate"><span class="pre">ResetVectorStorage()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorReset"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorReset()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorChangeLength"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorChangeLength()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_CreateVector2"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateVector2()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-storage-reference.html"
+                          title="previous chapter">Vector storage public C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-access.html"
+                          title="next chapter">Vector names, indices and mapped arrays</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-access.html" title="Vector names, indices and mapped arrays"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-storage-reference.html" title="Vector storage public C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector storage private C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

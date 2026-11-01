@@ -27,6 +27,9 @@ safe. Chapters identify current limitations separately from intended guarantees.
    graph-reference
    vectors
    vector-reference
+   vector-storage
+   vector-storage-reference
+   vector-storage-private-reference
    vector-access
    vector-access-reference
    vector-commands
