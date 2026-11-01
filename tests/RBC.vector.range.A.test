@@ -136,5 +136,18 @@ namespace eval vector.range {
         catch {vector destroy foo}
     } -result {{3.0 4.0} {5.0 6.0} {7.0 8.0}}
 	
+
+    test RBC.vector.range.A.20.1 {second endpoint cannot invalidate first} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {
+        set code [catch {foo range 2 {[foo length 1; expr 0]}} message options]
+        list $code [dict get $options -errorcode]
+    } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR RANGE}}
+    test RBC.vector.range.A.20.2 {append position is not a readable endpoint} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {catch {foo range 0 ++end}} -cleanup {catch {vector destroy foo}} -result 1
+
 	cleanupTests
 }

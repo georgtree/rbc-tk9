@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector indexed edits and rearrangement &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector edit C reference" href="vector-edit-reference.html" />
+    <link rel="prev" title="Vector command C reference" href="vector-command-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-edit-reference.html" title="Vector edit C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-command-reference.html" title="Vector command C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector indexed edits and rearrangement</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-indexed-edits-and-rearrangement">
+<h1>Vector indexed edits and rearrangement<a class="headerlink" href="#vector-indexed-edits-and-rearrangement" title="Link to this heading">¶</a></h1>
+<p>This chapter covers the remaining legacy instance-command mutation paths in
+<code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. It complements <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>, which describes the
+staged set/append paths, binary input and coordinated sorting. Contracts for
+the handlers below are collected in <a class="reference internal" href="vector-edit-reference.html"><span class="doc">Vector edit C reference</span></a>. Numerical
+queries and generators are covered in <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
+<section id="mutation-boundaries">
+<h2>Mutation boundaries<a class="headerlink" href="#mutation-boundaries" title="Link to this heading">¶</a></h2>
+<p>The instance dispatcher retains the receiver record and interpreter while a
+handler runs. Output handlers additionally retain destination identities, and
+<code class="docutils literal notranslate"><span class="pre">merge</span></code> retains each resolved source through subsequent range evaluation.
+Retaining a record does not retain its numeric storage after destruction.
+Handlers therefore check lifetime, writability and relevant bounds after
+expressions that can execute Tcl.</p>
+<p>Prepared data is filled before <code class="docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code> installs it and releases
+old storage. A custom free procedure therefore sees complete data. Ordinary
+indexed writes keep their existing fast path; resizing generators and append
+paths reuse capacity when possible. Population and normalization stage a full
+result; splitting snapshots its shared source once. Duplication copies directly
+into prepared output storage without callbacks before the copy completes.</p>
+<p>New real outputs receive their automatic array mapping only after data is
+complete. Existing mappings and command identities are retained. Cache flushing
+precedes notification, and both stages skip destroyed identities and preserve
+the command result. A callback that destroys and recreates a name cannot redirect
+an in-progress write into the replacement.</p>
+<p>Callback side effects are not rolled back. Multi-output splitting prechecks
+existing destinations before creating missing names, but is not a transaction: a custom release callback can prevent a later commit. Earlier
+committed outputs are still published. Notifications and mapping traces run after
+the write loop, so they cannot invalidate a destination still awaiting a write.</p>
+</section>
+<section id="indexed-access-and-deletion">
+<h2>Indexed access and deletion<a class="headerlink" href="#indexed-access-and-deletion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">IndexOp</span></code> uses the shared inclusive selection parser. Reading returns a Tcl
+list, even for one selected value. Writing converts one real or complex value
+and replicates it through the selection, returning the original Tcl input
+object. The append index may extend storage by one element but cannot be read.
+The handler checks lifetime, writable state and saved indices after value
+conversion. An append follows the current end if a callback changed length;
+an ordinary index that is no longer valid produces an error.</p>
+<p>For an existing real-value write, the handler reports the exact changed range;
+recognized appends also report a range. Other writes report a full update.
+This distinction lets graph clients maintain extrema and decimation caches
+without treating every single-value update as a complete replacement.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DeleteOp</span></code> with explicit indices allocates one bitmap bit per original value,
+marks all selected ranges, then compacts surviving entries in place. Overlapping
+ranges therefore remove a value once. Capacity is retained, length is reduced,
+and clients receive a full update because later indices have shifted.
+Argument errors before compaction leave values untouched in ordinary execution.
+If an index-expression callback changes length, the operation rejects the stale
+bitmap before marking or compacting values. Destroyed/read-only receivers and
+out-of-range selections are also rejected.</p>
+<p>With no indices, <code class="docutils literal notranslate"><span class="pre">delete</span></code> destroys the vector. The dispatcher still applies
+its receiver-writable check to this legacy command. This differs from destroying
+a vector through the top-level ownership command and should not be mistaken for
+a new lifecycle-locking policy.</p>
+</section>
+<section id="length-and-offset">
+<h2>Length and offset<a class="headerlink" href="#length-and-offset" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LengthOp</span></code> parses a nonnegative Tcl-sized integer, prepares storage while
+retaining the existing allocation when its capacity matches the requested size
+class, and zero-fills new entries before commit. Substantial shrinking releases
+excess capacity, and length zero releases storage. It returns the requested length, including when a post-commit callback
+destroys the vector. Notification does not overwrite that result.</p>
+<p><code class="docutils literal notranslate"><span class="pre">OffsetOp</span></code> changes external numeric indexing without moving values. Both query
+and setter return the current offset. The setter does not flush mapped array
+entries or notify clients, although it is classified as a receiver mutation
+for the read-only check. Offsets are metadata, not an address displacement of
+the stored array.</p>
+</section>
+<section id="copying-interleaving-and-splitting">
+<h2>Copying, interleaving and splitting<a class="headerlink" href="#copying-interleaving-and-splitting" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Destination behavior</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 18.0%" />
+<col style="width: 38.0%" />
+<col style="width: 44.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Data relationship</p></th>
+<th class="head"><p>Commit behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dup</span></code></p></td>
+<td><p>Copy source selection and offset</p></td>
+<td><p>Prepare and copy one destination before release or publication</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></td>
+<td><p>Interleave equal-length source selections</p></td>
+<td><p>Validate retained sources, build one full result, then transfer storage</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">split</span></code></p></td>
+<td><p>Distribute source values round-robin</p></td>
+<td><p>Append to each destination sequentially</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">populate</span></code></p></td>
+<td><p>Insert linear intermediate values</p></td>
+<td><p>Build the complete output before resolving its destination</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">DupOp</span></code> skips a destination that is the receiver itself. Other destinations
+inherit the source numeric type when created, and existing types must be
+compatible. The command table permits one destination. No callback occurs
+between output resolution and completing the copy; the source therefore needs
+no extra snapshot. Outputs use the current namespace, matching creation semantics
+rather than falling back to a same-named global vector.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MergeOp</span></code> saves the selected first index of each source, requires matching
+types and selected lengths, and stages values in source-argument order. For
+sources <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">a1}</span></code> and <code class="docutils literal notranslate"><span class="pre">{b0</span> <span class="pre">b1}</span></code>, the result is <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">b0</span> <span class="pre">a1</span> <span class="pre">b1}</span></code>. Ordinary
+self-merge works because staging precedes destination replacement. Each resolved
+source record is retained, and all saved ranges are validated again after the
+last source lookup. A callback destroying or shrinking an earlier source causes
+an error before destination data is modified.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SplitOp</span></code> requires divisibility of source length by the number of destinations.
+Destination zero receives source positions 0, K, 2K, and so on for K destinations;
+the next receives 1, K+1, 2K+1. Existing destination values are retained and the
+subsequence is appended. The full source is snapshotted before destination
+resolution, including when the source is itself an output. Duplicate destination
+names append their subsequences in argument order. Each destination is checked
+again immediately before writing; cache flushing and notification follow the
+write loop.</p>
+<p>For real destinations, these creation paths normally request a same-named array
+mapping unless the name contains an opening parenthesis. Mapping is deferred
+until the new output is complete. Existing destinations retain their mappings.
+Complex destinations are created without that automatic array mapping. These
+rules are separate from the registry’s support for literal vector names
+containing parentheses.</p>
+</section>
+<section id="population-and-source-aliasing">
+<h2>Population and source aliasing<a class="headerlink" href="#population-and-source-aliasing" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PopulateOp</span></code> takes an integer density D of at least one, meaning D inserted
+values between neighboring samples. For N greater than zero, the output has
+<code class="docutils literal notranslate"><span class="pre">(N-1)*(D+1)+1</span></code> values. Empty input gives empty output; one input value stays
+one value. Count arithmetic is checked before allocation.</p>
+<p>Each interval contributes its first endpoint and D intermediate values; the
+last source endpoint is written once at the end. Complex values interpolate
+real and imaginary components separately. The result is computed into owned
+storage before resolving its output. This handles source/output aliasing and
+ensures that storage-release and array-mapping callbacks see a complete result.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector indexed edits and rearrangement</a><ul>
+<li><a class="reference internal" href="#mutation-boundaries">Mutation boundaries</a></li>
+<li><a class="reference internal" href="#indexed-access-and-deletion">Indexed access and deletion</a></li>
+<li><a class="reference internal" href="#length-and-offset">Length and offset</a></li>
+<li><a class="reference internal" href="#copying-interleaving-and-splitting">Copying, interleaving and splitting</a></li>
+<li><a class="reference internal" href="#population-and-source-aliasing">Population and source aliasing</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-command-reference.html"
+                          title="previous chapter">Vector command C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-edit-reference.html"
+                          title="next chapter">Vector edit C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-edit-reference.html" title="Vector edit C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-command-reference.html" title="Vector command C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector indexed edits and rearrangement</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

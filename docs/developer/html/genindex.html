@@ -45,6 +45,7 @@
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#Q"><strong>Q</strong></a>
@@ -67,6 +68,8 @@
       <li><a href="vector-command-reference.html#c.AppendOp">AppendOp (C function)</a>
 </li>
       <li><a href="vector-command-reference.html#c.AppendVector">AppendVector (C function)</a>
+</li>
+      <li><a href="vector-numeric-reference.html#c.ArithOp">ArithOp (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -96,12 +99,18 @@
 </li>
       <li><a href="bar-reference.html#c.ClosestBar">ClosestBar (C function)</a>
 </li>
-      <li><a href="eps-reference.html#c.ComputeEpsBbox">ComputeEpsBbox (C function)</a>
+      <li><a href="vector-numeric-reference.html#c.ComplexArithmetic">ComplexArithmetic (C function)</a>
 </li>
-      <li><a href="eps-reference.html#c.ConfigureEps">ConfigureEps (C function)</a>
+      <li><a href="vector-numeric-reference.html#c.ComplexSearchOp">ComplexSearchOp (C function)</a>
+</li>
+      <li><a href="vector-numeric-reference.html#c.ComplexSeqOp">ComplexSeqOp (C function)</a>
+</li>
+      <li><a href="eps-reference.html#c.ComputeEpsBbox">ComputeEpsBbox (C function)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="eps-reference.html#c.ConfigureEps">ConfigureEps (C function)</a>
+</li>
       <li><a href="track-reference.html#c.ConfigureTrack">ConfigureTrack (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.ConvolveOp">ConvolveOp (C function)</a>
@@ -126,6 +135,8 @@
 </li>
       <li><a href="eps-reference.html#c.DeleteEps">DeleteEps (C function)</a>
 </li>
+      <li><a href="vector-edit-reference.html#c.DeleteOp">DeleteOp (C function)</a>
+</li>
       <li><a href="track-reference.html#c.DeleteTracks">DeleteTracks (C function)</a>
 </li>
       <li><a href="graph-reference.html#c.DestroyGraph">DestroyGraph (C function)</a>
@@ -141,6 +152,8 @@
       <li><a href="binding-reference.html#c.DoEvent">DoEvent (C function)</a>
 </li>
       <li><a href="fill-reference.html#c.DrawLineFill">DrawLineFill (C function)</a>
+</li>
+      <li><a href="vector-edit-reference.html#c.DupOp">DupOp (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -168,14 +181,18 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-numeric-reference.html#c.GetArithmeticScalar">GetArithmeticScalar (C function)</a>
+</li>
       <li><a href="bar-reference.html#c.GetBarExtents">GetBarExtents (C function)</a>
 </li>
       <li><a href="polar-reference.html#c.GetComplexLineDataPoint">GetComplexLineDataPoint (C function)</a>
 </li>
-      <li><a href="polar-reference.html#c.GetPolarRadiusRange">GetPolarRadiusRange (C function)</a>
+      <li><a href="vector-numeric-reference.html#c.GetComplexSequenceComponentLength">GetComplexSequenceComponentLength (C function)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="polar-reference.html#c.GetPolarRadiusRange">GetPolarRadiusRange (C function)</a>
+</li>
       <li><a href="winop-reference.html#c.GetRealizedWindow">GetRealizedWindow (C function)</a>
 </li>
       <li><a href="graph-reference.html#c.GraphEventProc">GraphEventProc (C function)</a>
@@ -192,15 +209,23 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="winop-reference.html#c.ImageOp">ImageOp (C function)</a>
 </li>
+      <li><a href="vector-edit-reference.html#c.IndexOp">IndexOp (C function)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="track-reference.html#c.InitTrackOptions">InitTrackOptions (C function)</a>
+</li>
+      <li><a href="vector-numeric-reference.html#c.InRange">InRange (C function)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-edit-reference.html#c.LengthOp">LengthOp (C function)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="decimation-reference.html#c.LineNeedsPixelDecimation">LineNeedsPixelDecimation (C function)</a>
 </li>
@@ -212,11 +237,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bar-reference.html#c.MapBar">MapBar (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fill-reference.html#c.MapErrorBand">MapErrorBand (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fill-reference.html#c.MapFillArea">MapFillArea (C function)</a>
+</li>
+      <li><a href="vector-edit-reference.html#c.MergeOp">MergeOp (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-numeric-reference.html#c.NormalizeOp">NormalizeOp (C function)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -224,10 +259,12 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="eps-reference.html#c.OpenEpsFile">OpenEpsFile (C function)</a>
+      <li><a href="vector-edit-reference.html#c.OffsetOp">OffsetOp (C function)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="eps-reference.html#c.OpenEpsFile">OpenEpsFile (C function)</a>
+</li>
       <li><a href="track-reference.html#c.OrderTracks">OrderTracks (C function)</a>
 </li>
   </ul></td>
@@ -250,6 +287,8 @@
 </li>
       <li><a href="bar-reference.html#c.PlaceBar">PlaceBar (C function)</a>
 </li>
+      <li><a href="vector-edit-reference.html#c.PopulateOp">PopulateOp (C function)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -264,6 +303,10 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-numeric-reference.html#c.RandomOp">RandomOp (C function)</a>
+</li>
+      <li><a href="vector-numeric-reference.html#c.RangeOp">RangeOp (C function)</a>
+</li>
       <li><a href="scroll-reference.html#c.Rbc_AdjustViewport">Rbc_AdjustViewport (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_AllocVectorId">Rbc_AllocVectorId (C function)</a>
@@ -618,10 +661,10 @@
 </li>
       <li><a href="spline-reference.html#c.Rbc_QuadraticParametricSplineEval">Rbc_QuadraticParametricSplineEval (C function)</a>
 </li>
-      <li><a href="spline-reference.html#c.Rbc_QuadraticSpline">Rbc_QuadraticSpline (C function)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="spline-reference.html#c.Rbc_QuadraticSpline">Rbc_QuadraticSpline (C function)</a>
+</li>
       <li><a href="image-color-reference.html#c.Rbc_QuantizeColorImage">Rbc_QuantizeColorImage (C function)</a>
 </li>
       <li><a href="utility-reference.html#c.Rbc_RandomDouble">Rbc_RandomDouble (C function)</a>
@@ -988,6 +1031,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="eps-reference.html#c.ScaleEps">ScaleEps (C function)</a>
 </li>
+      <li><a href="vector-numeric-reference.html#c.SearchOp">SearchOp (C function)</a>
+</li>
+      <li><a href="vector-numeric-reference.html#c.SeqOp">SeqOp (C function)</a>
+</li>
       <li><a href="vector-command-reference.html#c.SetOp">SetOp (C function)</a>
 </li>
       <li><a href="polar-reference.html#c.SmithReactanceGamma">SmithReactanceGamma (C function)</a>
@@ -996,10 +1043,12 @@
 </li>
       <li><a href="vector-command-reference.html#c.SortOp">SortOp (C function)</a>
 </li>
-      <li><a href="winop-reference.html#c.StringToWindow">StringToWindow (C function)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="vector-edit-reference.html#c.SplitOp">SplitOp (C function)</a>
+</li>
+      <li><a href="winop-reference.html#c.StringToWindow">StringToWindow (C function)</a>
+</li>
       <li><a href="cairo-reference.html#c.StrokeRenderPath">StrokeRenderPath (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.SubsampleOp">SubsampleOp (C function)</a>

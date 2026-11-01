@@ -101,6 +101,46 @@ namespace eval vector.dup {
         catch {vector destroy Vector2}
     } -result {1 real {9.0 10.0}}
 
+
+    proc OutputTrace {action args} {
+        set ::outputSeen [::outputResult range 0 end]
+        if {$action eq "source"} {rbc::vector destroy ::outputSource}
+        if {$action eq "replace"} {
+            rbc::vector destroy ::outputResult
+            rbc::vector create ::outputResult
+            ::outputResult set {99}
+        }
+    }
+    foreach {case action expectedCode expectedValues} {
+        1 source 0 {1.0 3.0}
+        2 replace 1 99.0
+    } {
+        test RBC.vector.dup.A.20.$case {mapping trace sees complete output and retains identity} -setup {
+            vector create ::outputSource
+            ::outputSource set {1 3}
+            set ::outputResult placeholder
+            trace add variable ::outputResult unset [namespace code [list OutputTrace $action]]
+        } -body {
+            set code [catch {::outputSource dup ::outputResult}]
+            list $code $::outputSeen [::outputResult range 0 end]
+        } -cleanup {
+            foreach v {::outputSource ::outputResult} {catch {vector destroy $v}; catch {unset $v}}
+            unset -nocomplain ::outputSeen
+        } -result [list $expectedCode {1.0 3.0} $expectedValues]
+    }
+
+    test RBC.vector.dup.A.20.3 {relative destination stays in current namespace} -setup {
+        vector create ::dupGlobal
+        ::dupGlobal set {99}
+        vector create foo
+        foo set {1 2}
+    } -body {
+        foo dup dupGlobal
+        list [dupGlobal range 0 end] [::dupGlobal range 0 end]
+    } -cleanup {
+        foreach v {foo dupGlobal ::dupGlobal} {catch {vector destroy $v}}
+    } -result {{1.0 2.0} 99.0}
+
     cleanupTests
 # }
 }

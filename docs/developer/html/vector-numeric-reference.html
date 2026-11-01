@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector numerical operation C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector expression evaluation" href="expressions.html" />
+    <link rel="prev" title="Vector queries and numerical generators" href="vector-numerics.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-numerics.html" title="Vector queries and numerical generators"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector numerical operation C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-numerical-operation-c-reference">
+<h1>Vector numerical operation C reference<a class="headerlink" href="#vector-numerical-operation-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private handlers are implemented in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Their runtime
+limitations are described in <a class="reference internal" href="vector-operations.html"><span class="doc">Vector indexed edits and rearrangement</span></a>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__vector__numeric__paths"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">queries</span> <span class="pre">and</span> <span class="pre">numerical</span> <span class="pre">generators</span></span></dt>
+<dd><p>Queries and generators with callback-aware storage ownership. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetArithmeticScalar">
+<span class="target" id="group__vector__numeric__paths_1ga9e62f7c28d2265de5a1e29f77295d236"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetArithmeticScalar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">isComplexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetArithmeticScalar" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Distinguish an explicit complex pair before scalar expression parsing. </p>
+<p>Marks a two-item Tcl list as complex even if the imaginary part is zero, then delegates conversion to Rbc_GetComplex. Thus a pair such as {3 -4} is not treated as the arithmetic expression 3-4. Returns a Tcl status; conversion may execute Tcl and partially populate the output on failure. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ComplexArithmetic">
+<span class="target" id="group__vector__numeric__paths_1ga5f8318a1fe7ffeea093d255cf1a9e131"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexArithmetic</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">operator</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexArithmetic" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply one supported arithmetic operator to two complex scalars. </p>
+<p>Accepts +, -, * and /. Returns TCL_ERROR with divide-by-zero diagnostic for an exactly zero complex divisor; otherwise writes resultPtr and returns TCL_OK. An unsupported internal operator panics. Does not invoke callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ArithOp">
+<span class="target" id="group__vector__numeric__paths_1gaec214be99962d2b0303b9f0ceb03a5f7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArithOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ArithOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return element-wise arithmetic as a Tcl list without assigning it. </p>
+<p>Resolves a vector operand before scalar conversion. A vector selection must match receiver length; scalars are broadcast. Produces complex pairs if either operand is complex, otherwise doubles. Real arithmetic uses native double operators; complex division explicitly rejects a zero divisor. Returns a Tcl status. Rechecks receiver lifetime after operand evaluation; arithmetic then reads current storage without callbacks. Owns the result list through error cleanup, including complex division failure. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.NormalizeOp">
+<span class="target" id="group__vector__numeric__paths_1ga159171d9fcaa5398951492ff50d10085"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalizeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.NormalizeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Normalize real values by the cached source minimum and range. </p>
+<p>Computes (value-min)/(max-min) after refreshing source extrema. Without a destination, returns a Tcl list and does not modify the receiver. Otherwise creates/resizes a real destination, fills it, and flushes/notifies existing outputs. No explicit zero-range or finite-value policy is implemented here. Stages the complete result before output resolution and commits it before invoking storage release or mapping callbacks. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RandomOp">
+<span class="target" id="group__vector__numeric__paths_1ga5e5bbaca7504631a19275c8a14ac8062"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RandomOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RandomOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace existing values with samples from the shared random generator. </p>
+<p>Keeps length and type. Real entries receive one Rbc_RandomDouble sample; complex entries receive separate samples for real and imaginary components. Samples lie in [0,1); this is not a cryptographic generator. Flushes when configured and reports a full update. The dispatcher checks writable state; skips notification if a cache-flush callback destroys the receiver. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RangeOp">
+<span class="target" id="group__vector__numeric__paths_1ga49bc0518730ec653d6a2ea8f75ad9ba8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RangeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RangeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return an inclusive interval of copied Tcl values. </p>
+<p>Parses both external indices and traverses forward or backward according to their order. Real entries are doubles; complex entries are two-item lists. Returns a Tcl status and a list without writing vector data. Index parsing can evaluate Tcl; revalidates both endpoints and receiver lifetime after evaluation before reading any values. The append position is not readable. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ComplexSearchOp">
+<span class="target" id="group__vector__numeric__paths_1ga92208c5679c1f04b19b45f4ad2225b5b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSearchOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSearchOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Search for a complex value by matching both scalar components. </p>
+<p>Accepts one target only; interval search is rejected. Uses InRange separately for real and imaginary equality. Returns external indices with checked positive offset addition, or pairs with -value. Target conversion may run Tcl; rechecks receiver lifetime before scanning its current storage without further callbacks. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SearchOp">
+<span class="target" id="group__vector__numeric__paths_1gaef67e6e2b48a6ea769b03852b5a79c80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SearchOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SearchOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find real values in a tolerant interval or delegate complex matching. </p>
+<p>Returns external indices including the offset, or values with -value. One bound means an equality search using InRange tolerance. A sufficiently reversed interval returns TCL_OK without scanning. Checks positive index offset overflow. Bound conversion may evaluate Tcl; checks receiver lifetime afterward and scans current storage without further callbacks. Reversed bounds explicitly return an empty result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetComplexSequenceComponentLength">
+<span class="target" id="group__vector__numeric__paths_1ga0ad702195c292ad25fc85286b60ac039"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetComplexSequenceComponentLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">componentName</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">start</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">finish</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hasLengthPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lengthPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetComplexSequenceComponentLength" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Derive one component’s finite, representable sequence count. </p>
+<p>Initializes hasLengthPtr false and lengthPtr zero. Rejects nonfinite bounds or step. Zero step is accepted only for equal bounds and leaves the component unconstrained. Otherwise sets hasLengthPtr true and computes trunc((finish-start)/step)+1, clamping nonpositive counts to zero and rejecting excessive counts before integer conversion. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ComplexSeqOp">
+<span class="target" id="group__vector__numeric__paths_1ga4ab6558ece666d9a49f5791bd5db94f1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexSeqOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ComplexSeqOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Generate a complex progression with compatible component lengths. </p>
+<p>Defaults step to 1+0i. Numeric finish requires each varying component to imply the same count; a zero-step constant component imposes no count. Both constant components with zero step cannot determine a numeric-finish count. Literal end instead uses current length and permits a zero step. Positive counts resize, fill each component and flush/notify; zero count is a no-op. Rechecks lifetime and writability after argument conversion. Fills prepared storage before committing and releasing the old allocation. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SeqOp">
+<span class="target" id="group__vector__numeric__paths_1ga87c282188dc1f470b0f20e7aabd3ef12"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SeqOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SeqOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Generate a real arithmetic progression or delegate complex generation. </p>
+<p>Defaults step to one. Literal end fills the current length; numeric finish uses trunc((finish-start)/step)+1 with finite and size checks. A nonpositive calculated count leaves data unchanged. Positive counts resize and fill values as start+i*step, then flush/notify. The end form bypasses count-derived finite and zero-step validation. Returns a Tcl status; converting arguments may execute Tcl. Rechecks lifetime and writability after conversion, fills prepared storage, and commits before custom storage-release callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.InRange">
+<span class="target" id="group__vector__numeric__paths_1gafd78e07752ebf9229112caceffca8292"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.InRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test scalar membership using the legacy search tolerance. </p>
+<p>When max-min is below DBL_EPSILON, compares absolute distance from max strictly below DBL_EPSILON. Otherwise accepts normalized positions at least -DBL_EPSILON and less than one plus DBL_EPSILON. Does not reorder bounds, check finiteness, allocate storage or invoke Tcl. Returns a Boolean integer. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector numerical operation C reference</a><ul>
+<li><a class="reference internal" href="#c.GetArithmeticScalar"><code class="docutils literal notranslate"><span class="pre">GetArithmeticScalar()</span></code></a></li>
+<li><a class="reference internal" href="#c.ComplexArithmetic"><code class="docutils literal notranslate"><span class="pre">ComplexArithmetic()</span></code></a></li>
+<li><a class="reference internal" href="#c.ArithOp"><code class="docutils literal notranslate"><span class="pre">ArithOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.NormalizeOp"><code class="docutils literal notranslate"><span class="pre">NormalizeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.RandomOp"><code class="docutils literal notranslate"><span class="pre">RandomOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.RangeOp"><code class="docutils literal notranslate"><span class="pre">RangeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.ComplexSearchOp"><code class="docutils literal notranslate"><span class="pre">ComplexSearchOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SearchOp"><code class="docutils literal notranslate"><span class="pre">SearchOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.GetComplexSequenceComponentLength"><code class="docutils literal notranslate"><span class="pre">GetComplexSequenceComponentLength()</span></code></a></li>
+<li><a class="reference internal" href="#c.ComplexSeqOp"><code class="docutils literal notranslate"><span class="pre">ComplexSeqOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SeqOp"><code class="docutils literal notranslate"><span class="pre">SeqOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.InRange"><code class="docutils literal notranslate"><span class="pre">InRange()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-numerics.html"
+                          title="previous chapter">Vector queries and numerical generators</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="expressions.html"
+                          title="next chapter">Vector expression evaluation</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-numerics.html" title="Vector queries and numerical generators"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector numerical operation C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

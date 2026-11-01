@@ -218,5 +218,25 @@ namespace eval vector.search {
         catch {vector destroy Vector1}
     } -result {range search is not supported for complex vectors}
 	
+
+    foreach {case type initial value} {
+        1 real {1 2 3} {[rbc::vector destroy foo; expr 9]}
+        2 complex {{1 2} {3 4} {5 6}} {{[rbc::vector destroy foo; expr 9]} 0}
+    } {
+        test RBC.vector.search.A.21.$case {conversion destroys original receiver} -setup {
+            vector create foo -type $type
+            foo set $initial
+        } -body {
+            set code [catch {foo search $value} message options]
+            list $code [dict get $options -errorcode]
+        } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR DESTROYED}}
+    }
+
+
+    test RBC.vector.search.A.20.1 {reversed bounds return empty result after expression} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {foo search {[expr 9]} {[expr 1]}} -cleanup {catch {vector destroy foo}} -result {}
+
 	cleanupTests
 }

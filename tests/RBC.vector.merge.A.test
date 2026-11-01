@@ -105,5 +105,22 @@ namespace eval vector.merge {
         catch {vector destroy Foo}
     } -result {1 {{1.0 2.0} {3.0 4.0}}}
 
+
+    foreach {case action} {
+        1 {vector destroy ::mergeSource}
+        2 {::mergeSource length 1}
+    } {
+        test RBC.vector.merge.A.20.$case {later source lookup invalidates earlier source} -setup {
+            vector create ::mergeSource ::mergeOther ::mergeResult
+            ::mergeSource set {1 2 3}; ::mergeOther set {4 5 6}; ::mergeResult set {99}
+        } -body {
+            set reference "::mergeOther(\[$action; expr 0\]:2)"
+            set code [catch {::mergeResult merge ::mergeSource $reference}]
+            list $code [::mergeResult range 0 end]
+        } -cleanup {
+            foreach v {::mergeSource ::mergeOther ::mergeResult} {catch {vector destroy $v}}
+        } -result {1 99.0}
+    }
+
 	cleanupTests
 }

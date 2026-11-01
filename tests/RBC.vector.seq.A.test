@@ -212,5 +212,19 @@ namespace eval vector.seq {
         catch {vector destroy TestVector}
     } -result {1 {sequence step cannot be zero} {{9.0 10.0}}}
 	
+
+    foreach {case type initial value} {
+        1 real {1 2 3} {[rbc::vector destroy foo; expr 9]}
+        2 complex {{1 2} {3 4} {5 6}} {{[rbc::vector destroy foo; expr 9]} 0}
+    } {
+        test RBC.vector.seq.A.21.$case {conversion destroys original receiver} -setup {
+            vector create foo -type $type
+            foo set $initial
+        } -body {
+            set code [catch {foo seq $value end} message options]
+            list $code [dict get $options -errorcode]
+        } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR DESTROYED}}
+    }
+
 	cleanupTests
 }

@@ -168,5 +168,23 @@ namespace eval vector.delete {
         catch {vector destroy foo}
     } -result {1 4 {{1.0 2.0} {3.0 4.0} {5.0 6.0} {7.0 8.0}}}
 	
+
+    foreach {case action} {1 {foo length 1} 2 {foo length 100}} {
+        test RBC.vector.delete.A.20.$case {index callback changes deletion bitmap size} -setup {
+            vector create foo
+            foo set {1 2 3}
+        } -body {
+            set code [catch {foo delete "\[$action; expr 0\]"} message]
+            list $code $message
+        } -cleanup {catch {vector destroy foo}} \
+            -result {1 {vector length changed during command evaluation}}
+    }
+    test RBC.vector.delete.A.20.3 {append index cannot address deletion bitmap} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {
+        list [catch {foo delete ++end}] [foo range 0 end]
+    } -cleanup {catch {vector destroy foo}} -result {1 {1.0 2.0 3.0}}
+
 	cleanupTests
 }

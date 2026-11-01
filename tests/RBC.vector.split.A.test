@@ -144,5 +144,33 @@ namespace eval vector.split {
         catch {vector destroy bar}
     } -result {1 real 9.0}
 	
+
+    proc OutputTrace {action args} {
+        set ::outputSeen [::outputResult range 0 end]
+        if {$action eq "source"} {rbc::vector destroy ::outputSource}
+        if {$action eq "replace"} {
+            rbc::vector destroy ::outputResult
+            rbc::vector create ::outputResult
+            ::outputResult set {99}
+        }
+    }
+    foreach {case action expectedCode expectedValues} {
+        1 source 0 {1.0 3.0}
+        2 replace 1 99.0
+    } {
+        test RBC.vector.split.A.20.$case {mapping trace sees complete output and retains identity} -setup {
+            vector create ::outputSource
+            ::outputSource set {1 3}
+            set ::outputResult placeholder
+            trace add variable ::outputResult unset [namespace code [list OutputTrace $action]]
+        } -body {
+            set code [catch {::outputSource split ::outputResult}]
+            list $code $::outputSeen [::outputResult range 0 end]
+        } -cleanup {
+            foreach v {::outputSource ::outputResult} {catch {vector destroy $v}; catch {unset $v}}
+            unset -nocomplain ::outputSeen
+        } -result [list $expectedCode {1.0 3.0} $expectedValues]
+    }
+
 	cleanupTests
 }

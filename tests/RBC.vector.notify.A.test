@@ -180,4 +180,56 @@ namespace eval vector.notify {
             -constraints notifyHarness -body [list ::rbcmutationtest binread-error notify $action] \
             -result [list 1 1 1 $updates 0]
     }
+    namespace eval vector.notify {
+        foreach {group operation} {25 index 26 length 27 seq 28 merge 29 populate 30 normalize 31 split 32 dup 36 length-zero} {
+            foreach {case phase action updates} {
+                1 release self 0
+                2 release interp 0
+                3 release recreate 0
+                4 release rename 1
+                5 notify self 1
+                6 notify interp 1
+                7 notify recreate 1
+                8 notify rename 1
+                9 trace self 0
+                10 trace interp 0
+            } {
+                test RBC.vector.notify.A.$group.$case "completed command data before $operation $phase $action" \
+                    -constraints notifyHarness -body [list ::rbcmutationtest $operation $phase $action] \
+                    -result [list 0 1 1 $updates 0]
+            }
+        }
+        foreach {group operation} {33 delete 34 random} {
+            foreach {case phase action updates releases} {
+                1 notify self 1 1
+                2 notify interp 1 0
+                3 notify recreate 1 1
+                4 notify rename 1 0
+                5 trace self 0 1
+                6 trace interp 0 0
+            } {
+                test RBC.vector.notify.A.$group.$case "in-place command callbacks: $operation $phase $action" \
+                    -constraints notifyHarness -body [list ::rbcmutationtest $operation $phase $action] \
+                    -result [list 0 1 $releases $updates 0]
+            }
+        }
+    }
+    namespace eval vector.notify {
+        foreach {group operation} {35 split-multi} {
+            foreach {case phase action code releases updates} {
+                1 release other 1 2 {1 0}
+                2 release both 1 2 {0 0}
+                3 release recreate 1 2 {0 0}
+                4 release interp 1 1 {0 0}
+                5 notify other 0 2 {1 0}
+                6 notify both 0 2 {1 0}
+                7 notify recreate 0 2 {1 0}
+                8 trace other 0 2 {1 0}
+            } {
+                test RBC.vector.notify.A.$group.$case "retain later destination through $operation $phase $action" \
+                    -constraints notifyHarness -body [list ::rbcmutationtest $operation $phase $action] \
+                    -result [concat [list $code 1 $releases] $updates]
+            }
+        }
+    }
     cleanupTests

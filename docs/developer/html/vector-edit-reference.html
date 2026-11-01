@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector edit C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector queries and numerical generators" href="vector-numerics.html" />
+    <link rel="prev" title="Vector indexed edits and rearrangement" href="vector-operations.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-numerics.html" title="Vector queries and numerical generators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-operations.html" title="Vector indexed edits and rearrangement"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector edit C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-edit-c-reference">
+<h1>Vector edit C reference<a class="headerlink" href="#vector-edit-c-reference" title="Link to this heading">¶</a></h1>
+<p>These private handlers are implemented in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Their runtime
+limitations are described in <a class="reference internal" href="vector-operations.html"><span class="doc">Vector indexed edits and rearrangement</span></a>.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__vector__edit__paths"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">indexed</span> <span class="pre">edits</span> <span class="pre">and</span> <span class="pre">rearrangement</span></span></dt>
+<dd><p>Indexed and multi-output handlers with callback-aware storage ownership. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DeleteOp">
+<span class="target" id="group__vector__edit__paths_1gad4df07e95a0445c41b7c0a7523fa7b32"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DeleteOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Delete selected values by bitmap compaction, or destroy the receiver. </p>
+<p>With no indices, destroys the vector. Otherwise parses inclusive ranges into a bitmap, then compacts surviving real or complex entries in place and reduces length without shrinking capacity. Flushes when configured and reports a full update. Returns a Tcl status. Index expressions may run Tcl; rejects length changes, destroyed/read-only receivers and invalid selections before accessing the original bitmap. Callback side effects are not undone. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.DupOp">
+<span class="target" id="group__vector__edit__paths_1ga7fad1d8cb6fff6eaf3964c76f1de2875"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DupOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DupOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy the receiver into a named destination. </p>
+<p>Creates a missing destination with the source type; skips the receiver itself. Copies the source selection and offset into prepared storage before releasing the previous allocation. Retains destination identity through mapping and notification callbacks. Returns a Tcl status. The command table permits one destination; source data need not be snapshotted because no callback occurs before the copy completes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IndexOp">
+<span class="target" id="group__vector__edit__paths_1ga2441c78db295bb1074ef3f24425b4dc8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IndexOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IndexOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read an inclusive selection or fill it with a scalar value. </p>
+<p>Reads return a Tcl list, including one-element selections. Writes convert a real scalar or complex pair and return the original input object. The append position may grow storage by one value but cannot be read. Reports a ranged update for existing real writes or recognized appends, otherwise a full update. Rechecks lifetime, writability and saved bounds after conversion; append follows the current end. Complete data precedes custom storage release. Cache flushing and notification retain identity and preserve the Tcl result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.LengthOp">
+<span class="target" id="group__vector__edit__paths_1gadb438a2b28697fa92930bdb1cb20d60b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LengthOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.LengthOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or resize the receiver and return its resulting length. </p>
+<p>Accepts a nonnegative Tcl_Size, reuses capacity or prepares larger storage, and zero-fills new entries before committing. Returns the requested length even if a post-commit callback destroys the vector. Flushes/notifies only a still-live identity, preserving the result across callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.MergeOp">
+<span class="target" id="group__vector__edit__paths_1ga9c36aebcd639dd86b13b814381ecf13a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MergeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.MergeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Interleave equal-length, same-type source selections into the receiver. </p>
+<p>Resolves sources and saves their first indices, then builds the complete interleaved array before replacing destination storage. Retains all resolved source identities and revalidates their selections after the final lookup. Supports self-merge, checks count/byte arithmetic, and frees scratch storage on all exits. Completed data precedes release/flush callbacks. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.OffsetOp">
+<span class="target" id="group__vector__edit__paths_1ga6d4f2fb850397642f00ea2414e89fcfc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OffsetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.OffsetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query or assign the external numeric index offset. </p>
+<p>Parses a Tcl_Size and returns the current offset as an integer. Does not move values, flush array entries or notify observers. The dispatcher treats the setter as a receiver mutation and rejects read-only vectors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.PopulateOp">
+<span class="target" id="group__vector__edit__paths_1gaa87b0533aca05f7815e3d0f5e293a55f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PopulateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.PopulateOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Insert evenly spaced values between neighboring source values. </p>
+<p>Requires integer density at least one. For nonempty length N, output length is (N-1)*(density+1)+1 with overflow checks; empty input produces empty output. Builds a complete same-type result before resolving the destination, allowing self-output without a temporary vector object. Interpolates real and imaginary components independently and retains the last endpoint. Publishes only after commit; callbacks see complete data. Returns a Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SplitOp">
+<span class="target" id="group__vector__edit__paths_1ga1ffc6c7f4b0bf09940d247323aa14e9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SplitOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SplitOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append round-robin source subsequences to named destinations. </p>
+<p>Requires source length divisible by destination count; no destinations is a no-op. Prechecks writable existing destinations and creates missing ones. Snapshots the source and retains all destination identities. Each append is complete before releasing its old storage; publication follows the write loop, flushing before notification. A later failure leaves earlier appends committed and published. Destroyed/recreated identities are never written again. Returns a Tcl status; this is not an all-output transaction. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector edit C reference</a><ul>
+<li><a class="reference internal" href="#c.DeleteOp"><code class="docutils literal notranslate"><span class="pre">DeleteOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.DupOp"><code class="docutils literal notranslate"><span class="pre">DupOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.IndexOp"><code class="docutils literal notranslate"><span class="pre">IndexOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.LengthOp"><code class="docutils literal notranslate"><span class="pre">LengthOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.MergeOp"><code class="docutils literal notranslate"><span class="pre">MergeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.OffsetOp"><code class="docutils literal notranslate"><span class="pre">OffsetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.PopulateOp"><code class="docutils literal notranslate"><span class="pre">PopulateOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SplitOp"><code class="docutils literal notranslate"><span class="pre">SplitOp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-operations.html"
+                          title="previous chapter">Vector indexed edits and rearrangement</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-numerics.html"
+                          title="next chapter">Vector queries and numerical generators</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-numerics.html" title="Vector queries and numerical generators"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-operations.html" title="Vector indexed edits and rearrangement"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector edit C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

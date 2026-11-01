@@ -162,19 +162,30 @@ struct FftTest {
     int releases;
     int updates[2];
     int count;
+    int commandLength;
+    double commandValues[8];
 };
 
 static void FftTestAction(FftTest *test) {
     int k;
     if (test->acted) return;
     test->acted = 1;
-    if (strcmp(test->operation, "set") == 0 || strcmp(test->operation, "append") == 0 ||
+    if (test->commandLength != 0) {
+        VectorObject *v = test->dest[0];
+        int length = test->commandLength > 0 ? test->commandLength : (test->commandLength == -2 ? 0 : 2);
+        if (v == NULL || v->length != length || (length == 0 && v->size != 0)) test->valid = 0;
+        else for (k = 0; k < length; k++) {
+            if (test->commandLength < 0) {
+                if (v->data.real[k] < 0 || v->data.real[k] >= 1) test->valid = 0;
+            } else if (v->data.real[k] != test->commandValues[k]) test->valid = 0;
+        }
+    } else if (strcmp(test->operation, "set") == 0 || strcmp(test->operation, "append") == 0 ||
         strcmp(test->operation, "sort") == 0 || strncmp(test->operation, "binread", 7) == 0) {
         int grow = strcmp(test->operation, "append") == 0 || strncmp(test->operation, "binread", 7) == 0;
         int length = strcmp(test->operation, "binread-error") == 0 ? 1026 : (grow ? 4 : 2);
         for (k = 0; k < test->count; k++) {
             VectorObject *v = test->dest[k];
-            if (v == NULL || v->length != length) test->valid = 0;
+            if (v == NULL || v->length != length || (length == 0 && v->size != 0)) test->valid = 0;
             else if (grow) {
                 if (v->data.real[0] != 3 || v->data.real[1] != 4 ||
                     v->data.real[2] != 1 || v->data.real[3] != 1) test->valid = 0;
@@ -332,7 +343,9 @@ static int FftTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[0]));
     Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[1]));
     Tcl_IncrRefCount(answer);
-    /* Observers clear their IDs during interpreter cleanup. */
+    /* Observers clear their IDs during interpreter cleanup. Do not trigger
+     * an action during cleanup if an earlier test-command error prevented it. */
+    test.acted = 1;
     if (!Tcl_InterpDeleted(target)) Tcl_DeleteInterp(target);
     Tcl_Release(target);
     Tcl_SetObjResult(interp, answer);
@@ -356,7 +369,7 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     test.operation = Tcl_GetString(objv[1]);
     test.phase = Tcl_GetString(objv[2]);
     test.action = Tcl_GetString(objv[3]);
-    test.count = strcmp(test.operation, "sort") == 0 ? 2 : 1;
+    test.count = strcmp(test.operation, "sort") == 0 || strstr(test.operation, "-multi") != NULL ? 2 : 1;
     test.valid = 1;
     target = test.interp = Tcl_CreateInterp();
     /* Keep the test interpreter available for checking its result after deletion. */
@@ -385,7 +398,14 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     if (strcmp(test.phase, "trace") == 0) {
         Tcl_TraceVar2(target, names[0], NULL, TCL_GLOBAL_ONLY | TCL_TRACE_UNSETS, FftTestTrace, &test);
     }
-    if (test.count == 2) {
+    if (strstr(test.operation, "-multi") != NULL) {
+        if (Tcl_EvalEx(target, "rbc::vector create ::multiSource; ::multiSource set {1 2 3 4}", -1,
+                       TCL_EVAL_GLOBAL) != TCL_OK) Tcl_Panic("multi-output setup failed");
+        command = Tcl_NewStringObj("::multiSource split ::fftTestReal ::fftTestImag", -1);
+        test.commandLength = 4;
+        test.commandValues[0] = 4; test.commandValues[1] = 3;
+        test.commandValues[2] = 1; test.commandValues[3] = 3;
+    } else if (test.count == 2) {
         command = Tcl_NewStringObj("::fftTestReal sort ::fftTestImag", -1);
     } else if (strncmp(test.operation, "binread", 7) == 0) {
         if (Tcl_EvalEx(target,
@@ -399,6 +419,50 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
         path = Tcl_GetVar2Ex(target, "path", NULL, TCL_GLOBAL_ONLY);
         Tcl_IncrRefCount(path);
         command = Tcl_NewStringObj("::fftTestReal binread $ch", -1);
+    } else if (strcmp(test.operation, "index") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal index ++end 1", -1);
+        test.commandLength = 3;
+        test.commandValues[0] = 3; test.commandValues[1] = 4; test.commandValues[2] = 1;
+    } else if (strcmp(test.operation, "length") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal length 4", -1);
+        test.commandLength = 4;
+        test.commandValues[0] = 3; test.commandValues[1] = 4;
+    } else if (strcmp(test.operation, "length-zero") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal length 0", -1);
+        test.commandLength = -2;
+    } else if (strcmp(test.operation, "seq") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal seq 1 4", -1);
+        test.commandLength = 4;
+        for (k = 0; k < 4; k++) test.commandValues[k] = k + 1;
+    } else if (strcmp(test.operation, "delete") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal delete 0", -1);
+        test.commandLength = 1; test.commandValues[0] = 4;
+    } else if (strcmp(test.operation, "random") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal random", -1);
+        test.commandLength = -1;
+    } else if (strcmp(test.operation, "merge") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal merge ::fftTestReal ::fftTestReal", -1);
+        test.commandLength = 4;
+        test.commandValues[0] = test.commandValues[1] = 3;
+        test.commandValues[2] = test.commandValues[3] = 4;
+    } else if (strcmp(test.operation, "populate") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal populate ::fftTestReal 1", -1);
+        test.commandLength = 3;
+        test.commandValues[0] = 3; test.commandValues[1] = 3.5; test.commandValues[2] = 4;
+    } else if (strcmp(test.operation, "normalize") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal normalize ::fftTestReal", -1);
+        test.commandLength = 2; test.commandValues[1] = 1;
+    } else if (strcmp(test.operation, "split") == 0) {
+        command = Tcl_NewStringObj("::fftTestReal split ::fftTestReal", -1);
+        test.commandLength = 4;
+        test.commandValues[0] = test.commandValues[2] = 3;
+        test.commandValues[1] = test.commandValues[3] = 4;
+    } else if (strcmp(test.operation, "dup") == 0) {
+        if (Tcl_EvalEx(target, "rbc::vector create ::dupSource; ::dupSource set {1 2 3 4}", -1,
+                       TCL_EVAL_GLOBAL) != TCL_OK) Tcl_Panic("dup test source setup failed");
+        command = Tcl_NewStringObj("::dupSource dup ::fftTestReal", -1);
+        test.commandLength = 4;
+        for (k = 0; k < 4; k++) test.commandValues[k] = k + 1;
     } else {
         command = Tcl_ObjPrintf("::fftTestReal %s {1 1}", test.operation);
     }
@@ -406,6 +470,12 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     code = Tcl_EvalObjEx(target, command, TCL_EVAL_GLOBAL);
     Tcl_DecrRefCount(command);
     validName = strcmp(Tcl_GetStringResult(target), strcmp(test.operation, "binread") == 0 ? "2" : "") == 0;
+    if (strstr(test.operation, "-multi") != NULL && code == TCL_ERROR) {
+        validName = strcmp(Tcl_GetStringResult(target), "vector was destroyed during command evaluation") == 0;
+    }
+    if (strcmp(test.operation, "index") == 0) validName = strcmp(Tcl_GetStringResult(target), "1") == 0;
+    if (strcmp(test.operation, "length") == 0) validName = strcmp(Tcl_GetStringResult(target), "4") == 0;
+    if (strcmp(test.operation, "length-zero") == 0) validName = strcmp(Tcl_GetStringResult(target), "0") == 0;
     if (strcmp(test.operation, "binread-error") == 0) {
         Tcl_Obj *options = Tcl_GetReturnOptions(target, code);
         Tcl_Obj *key = Tcl_NewStringObj("-errorcode", -1), *value;
@@ -429,7 +499,9 @@ static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[0]));
     Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[1]));
     Tcl_IncrRefCount(answer);
-    /* Observers clear their IDs during interpreter cleanup. */
+    /* Observers clear their IDs during interpreter cleanup. Do not trigger
+     * an action during cleanup if an earlier test-command error prevented it. */
+    test.acted = 1;
     if (!Tcl_InterpDeleted(target)) Tcl_DeleteInterp(target);
     Tcl_Release(target);
     if (path != NULL) {

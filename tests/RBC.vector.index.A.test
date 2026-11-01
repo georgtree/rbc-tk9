@@ -201,5 +201,47 @@ namespace eval vector.index {
         catch {vector destroy foo}
     } -result {1 {expected complex value as a real number or {real imag}} {{3.0 4.0}}}
 	
+
+    foreach {case type initial value} {
+        1 real {1 2 3} {[foo length 1; expr 9]}
+        2 complex {{1 2} {3 4} {5 6}} {{[foo length 1; expr 9]} 0}
+    } {
+        test RBC.vector.index.A.20.$case {value conversion invalidates saved index} -setup {
+            vector create foo -type $type
+            foo set $initial
+        } -body {
+            set code [catch {foo index 2 $value} message options]
+            list $code [dict get $options -errorcode] [foo length]
+        } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR RANGE} 1}
+    }
+    test RBC.vector.index.A.20.3 {append follows end after value callback} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {
+        foo index ++end {[foo length 1; expr 9]}
+        foo range 0 end
+    } -cleanup {catch {vector destroy foo}} -result {1.0 9.0}
+    test RBC.vector.index.A.20.4 {read-only change during value conversion} -setup {
+        vector create foo
+        foo set {1 2 3}
+    } -body {
+        set code [catch {foo index 1 {[foo readonly true; expr 9]}} message options]
+        list $code [dict get $options -errorcode] [foo range 0 end]
+    } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR READONLY} {1.0 2.0 3.0}}
+
+
+    foreach {case type initial value} {
+        1 real {1 2 3} {[rbc::vector destroy foo; expr 9]}
+        2 complex {{1 2} {3 4} {5 6}} {{[rbc::vector destroy foo; expr 9]} 0}
+    } {
+        test RBC.vector.index.A.21.$case {conversion destroys original receiver} -setup {
+            vector create foo -type $type
+            foo set $initial
+        } -body {
+            set code [catch {foo index 1 $value} message options]
+            list $code [dict get $options -errorcode]
+        } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR DESTROYED}}
+    }
+
 	cleanupTests
 }
