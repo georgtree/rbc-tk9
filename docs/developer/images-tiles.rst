@@ -127,4 +127,4 @@ The void photo-write wrapper described above still lacks status propagation.
 See :doc:`image-tile-reference` for the maintained C contracts and
 :doc:`image-resampling` for resizing and filtering. Bitmap
 transforms are covered in :doc:`image-transforms` and color processing in
-:doc:`image-colors`. Temporary-image compatibility helpers remain a separate topic.
+:doc:`image-colors`. See :doc:`image-compatibility` for temporary-image and private Tk adapters.

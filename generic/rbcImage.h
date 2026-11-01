@@ -275,13 +275,66 @@ int Rbc_SnapPhoto(Tcl_Interp *interp, Tk_Window tkwin, Drawable drawable, int x,
                   int destWidth, int destHeight, const char *photoName, double inputGamma);
 Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr);
 /* Missing routines from the Tk photo C API */
+/**
+ * @brief Inspect whether a retained image instance has lost its image manager.
+ *
+ * Require a non-NULL, unfreed Tk_Image. Return true for a NULL master pointer
+ * or NULL master type. This RBC-defined helper reads copied private Tk layout;
+ * it cannot validate an arbitrary or already-freed pointer.
+ */
 int Tk_ImageIsDeleted(Tk_Image tkImage);
+/**
+ * @brief Return the borrowed master pointer from a retained, non-NULL Tk image.
+ * No reference is acquired. The result may be NULL; callers must establish
+ * validity before passing it to further Tk or RBC operations. This helper is
+ * implemented by RBC using copied private Tk structure layout.
+ */
 Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage);
+/**
+ * @brief Return a borrowed image-type pointer using RBC's private-layout adapter.
+ * Require a retained non-NULL instance with a non-NULL master. A deleted
+ * master's type may be NULL. Do not free or modify the returned descriptor.
+ */
 Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage);
+/**
+ * @brief Borrow the native display pixmap of a live photo instance, or return None
+ * for a different live image type. Require non-NULL instance, master and type.
+ * This is RBC's private-layout accessor, not a retained pixel snapshot. Do not
+ * free the pixmap or retain it across image changes.
+ */
 Pixmap Tk_ImageGetPhotoPixmap(Tk_Image photoImage);
+/**
+ * @brief Borrow the display GC of a live photo instance, or return NULL for another
+ * live type. Require non-NULL instance, master and type. Do not free or mutate
+ * the returned Tk-owned GC. This RBC helper relies on private photo layout.
+ */
 GC Tk_ImageGetPhotoGC(Tk_Image photoImage);
+/**
+ * @brief Return the borrowed Tk name of an image with a valid master.
+ * No name copy or lifetime reference is acquired. Do not free the result;
+ * copy it before an operation that can invalidate the image or master.
+ */
 const char *Rbc_NameOfImage(Tk_Image tkImage);
+/**
+ * @brief Create a named photo through Tcl and acquire an image instance for tkwin.
+ *
+ * Borrow interp, tkwin and clientData; the installed change callback is a no-op.
+ * Return a caller-owned token paired with Rbc_DestroyTemporaryImage(), or NULL
+ * on failure. The Tcl result object is retained while Tk_GetImage consumes its
+ * name. If instance acquisition fails, the created named image is not deleted.
+ * Evaluates the image command in the current context and does not preserve
+ * caller lifetime or interpreter result across callbacks.
+ */
 Tk_Image Rbc_CreateTemporaryImage(Tcl_Interp *interp, Tk_Window tkwin, ClientData clientData);
+/**
+ * @brief Delete a temporary image by name through Tcl, then release its instance.
+ *
+ * NULL is a successful no-op. Otherwise require a retained token with a valid
+ * master. On command success, Tk_FreeImage consumes the token; on command
+ * failure return TCL_ERROR without freeing it. The caller still owns that
+ * token on failure. Evaluation may invoke callbacks and changes the interpreter
+ * result; this helper does not preserve the owning component or interpreter.
+ */
 int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage);
 GC Rbc_GetBitmapGC(Tk_Window tkwin);
 Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src);

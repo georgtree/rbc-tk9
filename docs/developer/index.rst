@@ -65,6 +65,8 @@ chapters.
    image-transform-reference
    image-colors
    image-color-reference
+   image-compatibility
+   image-compatibility-reference
    text-fonts
    text-font-reference
    exports
