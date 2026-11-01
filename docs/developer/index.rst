@@ -27,6 +27,10 @@ safe. Chapters identify current limitations separately from intended guarantees.
    graph-reference
    vectors
    vector-reference
+   vector-access
+   vector-access-reference
+   vector-commands
+   vector-command-reference
    expressions
    expression-reference
    fft

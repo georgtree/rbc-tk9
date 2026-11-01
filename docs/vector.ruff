@@ -1588,6 +1588,10 @@ namespace eval ::rbc::VECINST {
         # For a complex vector, list elements may be `{real imag}` pairs or real scalars; real scalars are promoted
         # to complex values with zero imaginary component.
         #
+        # Each list is converted completely before it is appended. If conversion fails, that list contributes no
+        # values; earlier successful arguments remain appended and clients are notified. Tcl conversion callbacks
+        # retain their own side effects. A callback that destroys or locks the destination prevents further writes.
+        #
         # Clients are notified with the exact inclusive source range occupied by the newly appended values. This lets
         # clients that maintain ranged caches update only the new tail instead of treating the operation as an
         # unknown/full-vector modification.
@@ -1620,7 +1624,11 @@ namespace eval ::rbc::VECINST {
         #
         # The channel is temporarily placed in binary translation mode and its previous translation setting is
         # restored before the command returns. Input must end on a complete vector-value boundary. In particular,
-        # complex input must contain complete real/imaginary pairs.
+        # complex input must contain complete real/imaginary pairs. If a later read fails, completed chunks remain
+        # in the vector and clients are notified of those changes; the command still reports the original error.
+        # The incomplete final chunk is not stored. A positive count performs at most one read and may return fewer
+        # values. A zero-byte nonblocking read stops the operation. Closing the channel in a reflected callback does
+        # not cause it to be reopened.
         # Returns: Number of complete vector values read.
         # Synopsis: channel ?numValues? ?-at index? ?-format format? ?-swap?
     }
@@ -1853,6 +1861,9 @@ namespace eval ::rbc::VECINST {
         # Replaces the contents of the vector. `list` may be a Tcl list of numeric values or the name of another
         # vector. When the argument names another vector, the source and destination vector types must match.
         # For a complex destination, list elements may be `{real imag}` values or real scalars.
+        # A list is converted completely before replacement; failed conversion leaves the previous values and length
+        # intact. This does not undo side effects performed by Tcl expressions within the list. A callback that
+        # destroys or locks the destination prevents the replacement.
         # list - numeric list or vector name.
         # Returns: Nothing.
     }
@@ -1863,7 +1874,8 @@ namespace eval ::rbc::VECINST {
         #
         # Values are compared lexicographically: this vector is the primary sort key, the first additional vector
         # breaks ties in the primary vector, the next vector breaks any remaining ties, and so on. The resulting
-        # permutation is applied to every participating vector.
+        # permutation is applied to every participating vector before any client notification or array-cache trace
+        # is invoked. Callbacks may subsequently modify or destroy vectors; renaming preserves their identity.
         #
         # `-reverse` reverses the resulting sort order.
         #

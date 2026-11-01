@@ -341,6 +341,13 @@ Element *Rbc_BarElement(Graph *, const char *, Rbc_Uid);
 Element *Rbc_LineElement(Graph *, const char *, Rbc_Uid);
 int Rbc_GetBarRectangle(Element *, Tcl_Size, Extents2D *);
 /**
+ * @brief Refresh element arrays with pending vector updates before layout.
+ * Does not deliver notifications or run Tcl callbacks. Marks affected mapping
+ * and axis ranges dirty; covers coordinates, weights and error vectors.
+ */
+void Rbc_SyncElementVectors(Graph *graphPtr);
+
+/**
  * @brief Release an element data slot and zero its record.
  * @param vPtr Initialized slot or zeroed candidate owned by the caller.
  *

@@ -691,6 +691,36 @@ static void VectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_Vec
 }
 
 /*
+ * Refresh borrowed arrays before synchronous layout/export. Notifications stay
+ * queued: this does not invoke clients or process unrelated Tcl events. A full
+ * change is conservative because ranged notification metadata is only available
+ * inside the actual vector callback.
+ */
+void Rbc_SyncElementVectors(Graph *graphPtr) {
+    Tcl_HashSearch search;
+    Tcl_HashEntry *hPtr;
+
+    for (hPtr = Tcl_FirstHashEntry(&graphPtr->elements.table, &search); hPtr != NULL;
+         hPtr = Tcl_NextHashEntry(&search)) {
+        Element *elemPtr = Tcl_GetHashValue(hPtr);
+        ElemVector *vectors[] = {&elemPtr->x, &elemPtr->y, &elemPtr->w,
+            &elemPtr->xError, &elemPtr->xLow, &elemPtr->xHigh,
+            &elemPtr->yError, &elemPtr->yLow, &elemPtr->yHigh};
+        size_t i;
+
+        for (i = 0; i < sizeof(vectors) / sizeof(vectors[0]); i++) {
+            ElemVector *vPtr = vectors[i];
+            if (vPtr->clientId != NULL && Rbc_VectorNotifyPending(vPtr->clientId)) {
+                SyncElemVector(vPtr);
+                RecordElemVectorChange(vPtr, FALSE, 0, 0);
+                elemPtr->flags |= MAP_ITEM;
+                graphPtr->flags |= RESET_AXES | REDRAW_BACKING_STORE;
+            }
+        }
+    }
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * EvalExprListObj --
@@ -4285,6 +4315,7 @@ static int ClosestOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tcl_Size
     int x, y;
     int flags = TCL_LEAVE_ERR_MSG;
 
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }

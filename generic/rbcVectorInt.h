@@ -301,7 +301,24 @@ int Rbc_VectorFftfreqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, T
  * and skips updates after destruction.
  */
 int Rbc_VectorWindowOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+/**
+ * @brief Discard cached array elements while retaining the current mapping.
+ *
+ * Preserves the vector and interpreter across variable traces. Reinstalls the
+ * end entry and RBC trace only while the same mapping remains live. This void
+ * helper does not notify clients, report trace errors, or save the Tcl result.
+ */
 void Rbc_VectorFlushCache(VectorObject *vPtr);
+/**
+ * @brief Resolve a vector name and optional range into a borrowed vector.
+ *
+ * Prefers the longest existing name at a balanced-parenthesis boundary, so
+ * parentheses may belong to the name itself. Sets the shared first/last
+ * selection; restores it on range or trailing-text errors. With endPtr, returns
+ * the unconsumed suffix there; without it, requires complete consumption.
+ * Returns NULL on failure. Index expressions may evaluate Tcl; no lifetime
+ * reference is acquired for the returned object.
+ */
 VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataPtr, const char *start,
                                      const char **endPtr, int flags);
 int Rbc_VectorChangeLength(VectorObject *vPtr, Tcl_Size length);
@@ -341,20 +358,84 @@ void Rbc_VectorUpdateClientsRange(VectorObject *vPtr, Tcl_Size first, Tcl_Size l
  * This helper is private and has no public stub entry.
  */
 int Rbc_VectorGetChangedRange(Rbc_VectorId clientId, Tcl_Size *firstPtr, Tcl_Size *lastPtr);
+/**
+ * @brief Replace or remove a vector's mapped Tcl array.
+ *
+ * An empty or NULL name unmaps; parentheses in mapping names are rejected.
+ * Unsets the old mapping and target variable, creates an end entry, and installs
+ * RBC traces. Preserves the vector/interpreter and checks destruction or
+ * reentrant remapping after trace-capable operations. Returns TCL_OK or
+ * TCL_ERROR; failure does not restore the previous mapping.
+ */
 int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *name);
 VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, const char *cmdName, const char *varName,
                                Rbc_VectorType type, int *newPtr);
+/**
+ * @brief Translate an external index into a storage index or special callback.
+ *
+ * Numeric indices subtract the vector offset with overflow checks. end-based
+ * indices are relative to length; ++end denotes the append position.
+ * INDEX_CHECK bounds ordinary indices; callers must handle append and special
+ * indices separately. An optional procPtrPtr receives a registered special
+ * index procedure and indexPtr receives SPECIAL_INDEX. Expression fallback
+ * evaluates Tcl in the owning interpreter even with NULL diagnostic interp.
+ * Returns TCL_OK or TCL_ERROR. Retains the vector/interpreter during expression
+ * evaluation and rejects destruction before using its result.
+ */
 int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *string, Tcl_Size *indexPtr, int flags,
                        Rbc_VectorIndexProc **procPtrPtr);
+/**
+ * @brief Convert an object to a double, with Tcl expression fallback.
+ *
+ * Tries Tcl_GetDoubleFromObj first, then clears its error and calls
+ * Tcl_ExprDoubleObj. Returns a Tcl status. Expression evaluation can execute
+ * commands; callers own lifetime and writable-state checks after conversion.
+ */
 int Rbc_GetDouble(Tcl_Interp *interp, Tcl_Obj *objPtr, double *valuePtr);
+/**
+ * @brief Convert a two-item list or a real scalar to a complex value.
+ *
+ * Each pair component uses Rbc_GetDouble; scalar input receives zero imaginary
+ * part. Returns a Tcl status. Conversion may execute Tcl and can modify the
+ * real output component before failure of the imaginary component.
+ */
 int Rbc_GetComplex(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Complex *valuePtr);
+/**
+ * @brief Create a reference-count-zero two-double Tcl list.
+ *
+ * The result owns copies of the real and imaginary values; the caller follows
+ * normal Tcl object ownership rules.
+ */
 Tcl_Obj *Rbc_NewComplexObj(Rbc_Complex value);
+/**
+ * @brief Create a reference-count-zero Tcl value for one storage index.
+ *
+ * Returns a double for real vectors or a two-double list for complex vectors.
+ * The caller supplies a live vector and valid zero-based index. Does not check
+ * bounds and does not expose or retain vector storage.
+ */
 Tcl_Obj *Rbc_NewVectorValueObj(VectorObject *vPtr, Tcl_Size index);
 
 void Rbc_VectorFree(VectorObject *vPtr);
+/**
+ * @brief Set the vector's inclusive first/last selection.
+ *
+ * INDEX_COLON enables first:last syntax with omitted endpoints. A single
+ * index selects one value. Commits selection only after both endpoints and
+ * ordering succeed; returns TCL_ERROR otherwise. Selection is shared mutable
+ * object state, not a retained slice. Callers must handle empty vectors and
+ * special/append indices before accessing storage. Index conversion may run Tcl.
+ */
 int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *string, int flags,
                             Rbc_VectorIndexProc **procPtrPtr);
 int Rbc_VectorDuplicate(VectorObject *destPtr, VectorObject *srcPtr);
+/**
+ * @brief Copy an inclusive storage interval into a new Tcl list.
+ *
+ * Returns a reference-count-zero list, empty when first exceeds last. The
+ * caller validates storage bounds and lifetime. Complex entries are pairs;
+ * real entries are doubles. Does not change the vector selection.
+ */
 Tcl_Obj *Rbc_GetValues(VectorObject *vPtr, Tcl_Size first, Tcl_Size last);
 void Rbc_ReplicateValue(VectorObject *vPtr, Tcl_Size first, Tcl_Size last, double value);
 int Rbc_VectorLookupName(VectorInterpData *dataPtr, const char *vecName, VectorObject **vPtrPtr);
@@ -434,6 +515,16 @@ int Rbc_VectorEvaluate(Tcl_Interp *interp, char *string, VectorObject **resultPt
 int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr);
 void Rbc_VectorInstallMathFunctions(Tcl_HashTable *tablePtr);
 void Rbc_VectorInstallSpecialIndices(Tcl_HashTable *tablePtr);
+/**
+ * @brief Allocate a lexicographic permutation for real vector keys.
+ *
+ * Requires nVectors greater than zero, live vectors, and valid storage for
+ * every index in the first vector's inclusive selection. Returns a Tcl-allocated
+ * index array for the caller to free, including an allocation for an empty
+ * successful sort; NULL reports failure in the first vector's interpreter.
+ * Does not reorder data. Heap sorting is not stable; comparisons do not define
+ * a total ordering for NaNs. Complex keys are rejected.
+ */
 Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors);
 
 #endif /* _RBCVECTORINT */

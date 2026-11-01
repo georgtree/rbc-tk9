@@ -140,4 +140,44 @@ namespace eval vector.notify {
     }
 
 }
-cleanupTests
+
+    foreach {group operation} {20 set 21 append 22 binread} {
+        foreach {case phase action updates releases} {
+            1 release self 0 1
+            2 release interp 0 1
+            3 release recreate 0 1
+            4 release rename 1 1
+            5 notify self 1 1
+            6 notify interp 1 1
+            7 notify recreate 1 1
+            8 notify rename 1 1
+            9 trace self 0 1
+            10 trace interp 0 1
+        } {
+            test RBC.vector.notify.A.$group.$case "command commit: $operation $phase $action" \
+                -constraints notifyHarness -body [list ::rbcmutationtest $operation $phase $action] \
+                -result [list 0 1 $releases $updates 0]
+        }
+    }
+    foreach {case phase action releases updates} {
+        1 notify self 1 {1 1}
+        2 notify other 1 {1 0}
+        3 notify both 2 {1 0}
+        4 notify recreate 2 {1 0}
+        5 notify interp 0 {1 0}
+        6 notify rename 0 {1 1}
+        7 trace self 1 {0 1}
+        8 trace other 1 {1 0}
+        9 trace both 2 {0 0}
+        10 trace interp 0 {0 0}
+    } {
+        test RBC.vector.notify.A.23.$case "all sort destinations committed before $phase $action" \
+            -constraints notifyHarness -body [list ::rbcmutationtest sort $phase $action] \
+            -result [concat [list 0 1 $releases] $updates]
+    }
+    foreach {case action updates} {1 self 1 2 rename 1 3 recreate 1} {
+        test RBC.vector.notify.A.24.$case "partial binary read notifies on error: $action" \
+            -constraints notifyHarness -body [list ::rbcmutationtest binread-error notify $action] \
+            -result [list 1 1 1 $updates 0]
+    }
+    cleanupTests

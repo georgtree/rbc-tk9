@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector instance commands and binary input &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector command C reference" href="vector-command-reference.html" />
+    <link rel="prev" title="Vector access C reference" href="vector-access-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-command-reference.html" title="Vector command C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-access-reference.html" title="Vector access C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance commands and binary input</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-instance-commands-and-binary-input">
+<h1>Vector instance commands and binary input<a class="headerlink" href="#vector-instance-commands-and-binary-input" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code> dispatches instance operations and implements many of their
+conversion and mutation paths. This chapter covers selected common paths, not
+every instance operation. See <a class="reference internal" href="vector-command-reference.html"><span class="doc">Vector command C reference</span></a> for their C
+contracts, <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for evaluating conversions, and <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>
+for storage ownership and client notifications.</p>
+<section id="dispatch-and-mutation-boundaries">
+<h2>Dispatch and mutation boundaries<a class="headerlink" href="#dispatch-and-mutation-boundaries" title="Link to this heading">¶</a></h2>
+<p>The instance dispatcher checks operation spelling and arity, rejects operations
+unsupported for complex vectors, and checks read-only state for operations
+that write their receiver. Output operations must check their own destinations.
+It resets the receiver’s selection to the full vector before calling a handler.
+It preserves the receiver and interpreter during the handler. This retains the
+record, not its destroyed storage: each handler still needs lifetime checks
+after callback-capable work.</p>
+<p>Mutation, array-cache flushing and client notification are separate steps.
+A helper that changes storage does not necessarily perform all three. Immediate
+notifications and Tcl variable traces are callback boundaries; numerical
+expression conversion and reflected-channel operations can also execute Tcl.
+Handler-specific protection must not be inferred from the common dispatcher.</p>
+</section>
+<section id="append-and-replacement">
+<h2>Append and replacement<a class="headerlink" href="#append-and-replacement" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">append</span></code> tries each argument as a vector reference before treating it as a
+list. Vector append requires matching types and permits self-append. List
+conversion stages every value before changing destination storage. Failed
+conversion or a read-only check cannot leave an appended prefix of that list.
+Earlier successful arguments remain appended if a later argument fails, and
+the handler still notifies clients about those earlier changes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">set</span></code> also prefers vector references. It stages vector ranges, including
+self-copy, and transfers completed list storage into the destination. Failed
+list conversion does not resize or overwrite destination values. Callback
+side effects are not rolled back: a callback may edit the vector, and append
+uses its current length after conversion. Destruction or locking prevents the
+subsequent commit. Renaming does not change the retained destination identity.</p>
+<p>List staging retains a private Tcl list representation, so conversion callbacks
+can shimmer the original argument without invalidating the remaining values.
+Storage installation precedes invocation of any old custom free procedure.
+Cache flushing and notifications check that the object and interpreter remain
+live and preserve command results/errors across callbacks.</p>
+<p>These protections cover the reviewed set/append/binread/sort paths, not every
+legacy mutation handler or the mapped-array write trace.</p>
+</section>
+<section id="sorting">
+<h2>Sorting<a class="headerlink" href="#sorting" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex</span></code> builds an owned array of indices without moving values.
+The first vector’s selected interval determines the indices; callers must
+provide valid corresponding storage in every key vector. Keys are compared
+lexicographically, and a heap sort constructs the permutation. Sorting is not
+stable and does not define a total ordering for NaNs. Complex keys are rejected.
+An empty successful sort still returns an allocation so NULL denotes failure.</p>
+<p>The sort command resolves and retains all destination objects, validates them,
+and allocates the permutation and one reusable scratch array. It applies every
+permutation before invoking any variable trace or observer. This avoids a full
+output allocation per vector. Callbacks see all sorted data; later callbacks
+may legitimately edit or delete it. Renames retain identity, and deleted objects
+are skipped rather than resolving a replacement with the same name.</p>
+</section>
+<section id="binary-channel-input">
+<h2>Binary channel input<a class="headerlink" href="#binary-channel-input" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">binread</span></code> retains a readable Tcl channel for the duration of the command. Formats select supported native C
+scalar types by family and byte width; bytes are converted to doubles. This is
+not a platform-independent file format, and large integers may lose precision.
+Real vectors consume one scalar per value; complex vectors consume interleaved
+real/imaginary pairs. Byte swapping reverses each scalar independently.</p>
+<p>The starting position defaults to the current length. A positive requested
+count performs one read, which may be short. A zero count reads successive
+chunks until EOF or a zero-byte read. Every returned chunk must contain complete
+logical values; partial scalars or complex pairs are rejected rather than
+carried into the next read. Nonblocking zero-byte reads stop the operation.</p>
+<p>The handler saves and restores the channel’s translation option and temporarily
+uses binary translation. It does not snapshot all channel settings. A temporary
+channel registration prevents reflected callbacks from freeing the channel
+under the read. The command checks whether the caller closed it and stops rather
+than using an unregistered handle; it does not reopen or restore a closed channel.
+The channel remains caller-owned. Destination lifetime/read-only checks follow
+reflected reads, and the complete original error state survives cleanup callbacks.</p>
+<p>Each successful chunk is copied directly into storage, reusing capacity when
+possible. Completed chunks remain if a later read or translation restoration
+fails. The error path flushes and notifies any surviving destination when data
+was committed, preserving the original error and its options. The incomplete
+final chunk is not committed. Successful completion returns the logical value
+count. The command does not stage the entire stream or retry a short positive-
+count read to satisfy the requested count.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector instance commands and binary input</a><ul>
+<li><a class="reference internal" href="#dispatch-and-mutation-boundaries">Dispatch and mutation boundaries</a></li>
+<li><a class="reference internal" href="#append-and-replacement">Append and replacement</a></li>
+<li><a class="reference internal" href="#sorting">Sorting</a></li>
+<li><a class="reference internal" href="#binary-channel-input">Binary channel input</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-access-reference.html"
+                          title="previous chapter">Vector access C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-command-reference.html"
+                          title="next chapter">Vector command C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-command-reference.html" title="Vector command C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-access-reference.html" title="Vector access C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector instance commands and binary input</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

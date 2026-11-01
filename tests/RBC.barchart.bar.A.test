@@ -536,5 +536,61 @@ namespace eval barchart.bar {
     }
 
 
+    # Do not process events between vector replacement and the first export.
+    foreach {case option oldValues newValues} {
+        1 -xdata {4 7} {5 8}
+        2 -ydata {3 5} {6 8}
+        3 -xerror {1 1} {2 3}
+        4 -yerror {1 1} {2 3}
+        5 -xlow {2 3} {1 2}
+        6 -xhigh {8 9} {9 10}
+        7 -ylow {1 2} {2 3}
+        8 -yhigh {7 8} {8 9}
+    } {
+        test RBC.barchart.bar.A.22.$case "immediate export refreshes replaced $option vector" -setup {
+            AlignmentCreate barchart 0 0 0
+            .ba axis configure y -max 12
+            .ba element configure a -xdata {4 7} -ydata {3 5} -xerror {} -yerror {} \
+                -xlow {2 3} -xhigh {8 9} -ylow {1 2} -yhigh {7 8}
+            ::rbc::vector create exportValues
+            exportValues set $oldValues
+            .ba element configure a $option exportValues
+            update idletasks
+            set old [.ba svg output]
+        } -body {
+            exportValues set $newValues
+            set immediate [.ba svg output]
+            update idletasks
+            set delivered [.ba svg output]
+            list [expr {$old ne $immediate}] [expr {$immediate eq $delivered}]
+        } -cleanup {
+            destroy .ba
+            ::rbc::vector destroy exportValues
+        } -result {1 1}
+    }
+
+    test RBC.barchart.bar.A.23.1 {immediate axis limits refresh changed vector length and extrema} -setup {
+        AlignmentCreate barchart 0 0 0
+        ::rbc::vector create exportValues
+        exportValues set {3 5}
+        .ba element configure a -xdata {4 7 9} -ydata exportValues
+        .ba axis configure y -min {} -max {}
+        update idletasks
+    } -body {
+        set result {}
+        foreach values {{6 8 100} {2}} {
+            exportValues set $values
+            set limits [.ba axis limits y]
+            set immediate [.ba svg output]
+            update idletasks
+            lappend result [expr {$limits eq [.ba axis limits y]}] \
+                [expr {$immediate eq [.ba svg output]}]
+        }
+        set result
+    } -cleanup {
+        destroy .ba
+        ::rbc::vector destroy exportValues
+    } -result {1 1 1 1}
+
 	cleanupTests
 }

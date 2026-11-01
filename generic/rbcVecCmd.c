@@ -10,6 +10,16 @@
  * See "license.terms" for details.
  */
 
+/**
+ * @file rbcVecCmd.c
+ * @brief Vector instance operations, conversions and binary input.
+ */
+/**
+ * @defgroup vector_command_paths Vector instance command paths
+ * @brief Selected private mutation and input helpers; see the developer manual
+ * for partial-update and callback lifetime limitations.
+ */
+
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -39,6 +49,143 @@ static int GetArrayByteCount(Tcl_Interp *interp, Tcl_Size count, size_t elementS
         return TCL_ERROR;
     }
     *byteCountPtr = (size_t)count * elementSize;
+    return TCL_OK;
+}
+
+/*
+ * Command mutation helpers. Callers preserve the destination and interpreter.
+ * Never dereference names or storage after a callback without checking lifetime.
+ */
+static int CheckCommandDestination(VectorObject *vPtr) {
+    if (Tcl_InterpDeleted(vPtr->interp) || vPtr->destroying) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("vector was destroyed during command evaluation", -1));
+        Tcl_SetErrorCode(vPtr->interp, "RBC", "VECTOR", "DESTROYED", NULL);
+        return TCL_ERROR;
+    }
+    return Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr);
+}
+
+/* Prepare storage without invoking a user free procedure. Existing capacity is
+ * reused for appends and binary writes; growth copies the existing prefix. */
+static int PrepareCommandWrite(VectorObject *vPtr, Tcl_Size length, VectorData *dataPtr, Tcl_Size *sizePtr) {
+    size_t bytes, usedBytes;
+    size_t elementSize = (vPtr->type == RBC_VECTOR_REAL) ? sizeof(double) : sizeof(Rbc_Complex);
+    Tcl_Size size = vPtr->size;
+
+    if (CheckCommandDestination(vPtr) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (length <= size) {
+        *dataPtr = vPtr->data;
+        *sizePtr = size;
+        return TCL_OK;
+    }
+    if (size == 0) size = DEF_ARRAY_SIZE;
+    while (size < length) {
+        if (size > TCL_SIZE_MAX / 2) {
+            size = length;
+            break;
+        }
+        size *= 2;
+    }
+    if (GetArrayByteCount(vPtr->interp, size, elementSize, &bytes) != TCL_OK ||
+        GetArrayByteCount(vPtr->interp, vPtr->length, elementSize, &usedBytes) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    dataPtr->raw = Tcl_AttemptAlloc(bytes);
+    if (dataPtr->raw == NULL) {
+        Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate vector command storage", -1));
+        return TCL_ERROR;
+    }
+    if (usedBytes > 0) memcpy(dataPtr->raw, vPtr->data.raw, usedBytes);
+    *sizePtr = size;
+    return TCL_OK;
+}
+
+/* Install completed data before releasing old storage: a custom free procedure
+ * may delete, rename or modify the destination. No storage access follows it. */
+static void FinishCommandWrite(VectorObject *vPtr, VectorData data, Tcl_Size length, Tcl_Size size) {
+    void *oldData = vPtr->data.raw;
+    Tcl_FreeProc *oldFree = vPtr->freeProc;
+    Tcl_Interp *interp = vPtr->interp;
+    Tcl_InterpState state;
+
+    vPtr->data = data;
+    vPtr->length = length;
+    vPtr->size = size;
+    vPtr->first = 0;
+    vPtr->last = length - 1;
+    vPtr->min = vPtr->max = rbcNaN;
+    vPtr->minIndex = vPtr->maxIndex = -1;
+    vPtr->notifyFlags |= UPDATE_RANGE;
+    if (oldData != data.raw) {
+        vPtr->freeProc = TCL_DYNAMIC;
+        if (oldData != NULL && oldFree != TCL_STATIC) {
+            state = Tcl_SaveInterpState(interp, TCL_OK);
+            if (oldFree == TCL_DYNAMIC) ckfree(oldData);
+            else oldFree(oldData);
+            Tcl_RestoreInterpState(interp, state);
+        }
+    }
+}
+
+/* Preserve the command's result and error options across traces and clients.
+ * A negative first reports a full change; append callers may supply a range. */
+static void NotifyCommandWrite(VectorObject *vPtr, Tcl_Size first) {
+    Tcl_Interp *interp = vPtr->interp;
+    Tcl_InterpState state = Tcl_SaveInterpState(interp, TCL_OK);
+
+    if (!Tcl_InterpDeleted(interp) && !vPtr->destroying) {
+        if (vPtr->flush) Rbc_VectorFlushCache(vPtr);
+        if (!Tcl_InterpDeleted(interp) && !vPtr->destroying) {
+            if (first >= 0 && first < vPtr->length) {
+                Rbc_VectorUpdateClientsRange(vPtr, first, vPtr->length - 1);
+            } else {
+                Rbc_VectorUpdateClients(vPtr);
+            }
+        }
+    }
+    Tcl_RestoreInterpState(interp, state);
+}
+
+/* Convert once into owned staging storage. Conversion callbacks have their own
+ * side effects, but this helper never writes destination values or length. */
+static int ConvertCommandList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[], VectorData *dataPtr) {
+    Tcl_Size i;
+    Tcl_Obj *listObj;
+    Tcl_Obj **values;
+    size_t bytes;
+    size_t elementSize = (vPtr->type == RBC_VECTOR_REAL) ? sizeof(double) : sizeof(Rbc_Complex);
+
+    dataPtr->raw = NULL;
+    if (GetArrayByteCount(vPtr->interp, objc, elementSize, &bytes) != TCL_OK) return TCL_ERROR;
+    if (bytes > 0) {
+        dataPtr->raw = Tcl_AttemptAlloc(bytes);
+        if (dataPtr->raw == NULL) {
+            Tcl_SetObjResult(vPtr->interp, Tcl_NewStringObj("can't allocate vector conversion storage", -1));
+            return TCL_ERROR;
+        }
+    }
+    /* Keep a private list representation: a conversion callback may shimmer
+     * the original argument into another Tcl internal representation. */
+    listObj = Tcl_NewListObj(objc, objv);
+    Tcl_IncrRefCount(listObj);
+    Tcl_ListObjGetElements(NULL, listObj, &objc, &values);
+    for (i = 0; i < objc; i++) {
+        int result;
+        if (vPtr->type == RBC_VECTOR_COMPLEX) {
+            result = Rbc_GetComplex(vPtr->interp, values[i], &dataPtr->complex[i]);
+        } else {
+            result = Rbc_GetDouble(vPtr->interp, values[i], &dataPtr->real[i]);
+        }
+        if (result != TCL_OK || CheckCommandDestination(vPtr) != TCL_OK) {
+            if (dataPtr->raw != NULL) ckfree(dataPtr->raw);
+            dataPtr->raw = NULL;
+            Tcl_DecrRefCount(listObj);
+            return TCL_ERROR;
+        }
+    }
+    Tcl_DecrRefCount(listObj);
     return TCL_OK;
 }
 
@@ -110,7 +257,6 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
                              int swap, Tcl_Size *indexPtr);
 static int InRange(double value, double min, double max);
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]);
-static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv);
 static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVectors, Tcl_Size i1, Tcl_Size i2);
 static void SiftVectorIndices(Tcl_Size *indexArr, Tcl_Size start, Tcl_Size end, VectorObject *const *vectorArr,
                               Tcl_Size nVectors);
@@ -251,7 +397,15 @@ int Rbc_VectorInstanceObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size
      */
     vPtr->first = 0;
     vPtr->last = vPtr->length - 1;
-    return vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
+    {
+        int result;
+        Tcl_Preserve(interp);
+        Tcl_Preserve(vPtr);
+        result = vectorInstOpCmd[index].proc(vPtr, interp, objc, objv);
+        Tcl_Release(vPtr);
+        Tcl_Release(interp);
+        return result;
+    }
 }
 
 /*
@@ -291,85 +445,44 @@ static int TypeOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Append vector ranges or Tcl lists in argument order.
+ * @ingroup vector_command_paths
  *
- * AppendOp --
- *
- *      Appends one of more Tcl lists of values, or vector objects
- *      onto the end of the current vector object.
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.  If a current vector can't be created,
- *      resized, any of the named vectors can't be found, or one of
- *      lists of values is invalid, TCL_ERROR is returned.
- *
- * Side Effects:
- *      Clients of current vector will be notified of the change.
- *
- * -----------------------------------------------------------------------
+ * Vector lookup precedes list conversion. Earlier arguments remain appended
+ * if a later argument fails. Reports the appended range when length grew,
+ * including the error path; otherwise successful calls report a full update.
+ * Flushes the mapped cache when configured. Notification may execute callbacks.
  */
 static int AppendOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Tcl_Size oldLength;
+    Tcl_Size oldLength = vPtr->length;
     Tcl_Size i;
-    int result;
-    VectorObject *v2Ptr;
+    int result = TCL_OK;
+    int changed = FALSE;
 
-    oldLength = vPtr->length;
     for (i = 2; i < objc; i++) {
-        v2Ptr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[i]), NULL, NS_SEARCH_BOTH);
-        if (v2Ptr != NULL) {
-            result = AppendVector(vPtr, v2Ptr);
-        } else {
-            Tcl_Size nElem;
-            Tcl_Obj **elemObjArr;
-
-            if (Tcl_ListObjGetElements(interp, objv[i], &nElem, &elemObjArr) != TCL_OK) {
-                result = TCL_ERROR;
-            } else {
-                result = AppendList(vPtr, nElem, elemObjArr);
-            }
+        VectorObject *srcPtr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[i]), NULL, NS_SEARCH_BOTH);
+        if (CheckCommandDestination(vPtr) != TCL_OK) {
+            result = TCL_ERROR;
+            break;
         }
-        if (result != TCL_OK) {
-            /*
-             * Earlier append arguments may already have changed the
-             * vector.  Keep clients and the cached range coherent even
-             * though a later argument failed.
-             */
-            if (vPtr->length > oldLength) {
-                if (vPtr->flush) {
-                    Rbc_VectorFlushCache(vPtr);
-                }
-                Rbc_VectorUpdateClientsRange(vPtr, oldLength, vPtr->length - 1);
-            }
-            return TCL_ERROR;
+        if (srcPtr != NULL) {
+            result = AppendVector(vPtr, srcPtr);
+        } else {
+            Tcl_Size count;
+            Tcl_Obj **values;
+            result = Tcl_ListObjGetElements(interp, objv[i], &count, &values);
+            if (result == TCL_OK) result = AppendList(vPtr, count, values);
+        }
+        if (result != TCL_OK) break;
+        changed = TRUE;
+        if (i + 1 < objc && CheckCommandDestination(vPtr) != TCL_OK) {
+            result = TCL_ERROR;
+            break;
         }
     }
-    if (objc > 2) {
-        if (vPtr->flush) {
-            Rbc_VectorFlushCache(vPtr);
-        }
-        if (vPtr->length > oldLength) {
-            /*
-             * Appending preserves every source value before oldLength.
-             * Report only the newly created inclusive source range.
-             */
-            Rbc_VectorUpdateClientsRange(vPtr, oldLength, vPtr->length - 1);
-        } else {
-            /*
-             * Preserve the existing notification behaviour for an
-             * append operation that happened not to grow the vector.
-             */
-            Rbc_VectorUpdateClients(vPtr);
-        }
-    }
-    return TCL_OK;
+    if (changed) NotifyCommandWrite(vPtr, oldLength);
+    return result;
 }
 
 /*
@@ -534,7 +647,14 @@ struct NativeFmtValue {
     enum NativeFormats format;
 };
 
-/* Parses "-format" option */
+/**
+ * @brief Select a supported native scalar type from a format and byte width.
+ * @ingroup vector_command_paths
+ *
+ * Floating, signed and unsigned formats resolve against native C sizeof
+ * values. Returns the consumed argument count, or -1 on error. This is host representation, not a portable
+ * serialized type description; conversion to double may lose integer precision.
+ */
 static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv, void *dstPtr) {
     const struct NativeFmtValue *table, *cursor;
     int size;
@@ -602,7 +722,14 @@ static Tcl_Size ParseFormat(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
     return -1;
 }
 
-/* Parses "-at" option */
+/**
+ * @brief Parse a binary-input starting storage position.
+ * @ingroup vector_command_paths
+ *
+ * Uses vector index conversion, allowing positions from zero through length
+ * inclusive. Returns the consumed argument count, or -1 on error.
+ * Index expressions may evaluate Tcl.
+ */
 static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv, void *dstPtr) {
     VectorObject *vPtr = (VectorObject *)clientData;
     const char *string;
@@ -623,48 +750,29 @@ static Tcl_Size ParseAt(void *clientData, Tcl_Interp *interp, Tcl_Size objc, Tcl
     *(Tcl_Size *)dstPtr = first;
     return 1;
 }
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Read native-format channel scalars into vector storage.
+ * @ingroup vector_command_paths
  *
- * BinreadOp --
- *
- *      Reads binary values from a Tcl channel. Values are either appended
- *      to the end of the vector or placed at a given index (using the
- *      "-at" option), overwriting existing values.  Data is read until EOF
- *      is found on the channel or a specified number of values are read.
- *      (note that this is not necessarily the same as the number of bytes).
- *
- *      The following flags are supported:
- *        -swap          Swap bytes
- *        -at index      Start writing data at the index.
- *        -format fmt    Specifies the format of the data.
- *
- *      This binary reader was created by Harald Kirsch (kir@iitb.fhg.de).
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      Returns a standard Tcl result. The interpreter result will contain
- *      the number of values (not the number of bytes) read.
- *
- * Caveats:
- *      Channel reads must end on an element boundary.
- *
- * -----------------------------------------------------------------------
+ * Retains a readable channel, temporarily sets binary translation, and restores
+ * the saved translation if the caller has not closed the channel. Real values use one scalar, complex values
+ * two interleaved scalars. A positive count performs one read; zero reads
+ * chunks until EOF or a zero-byte read. Rejects incomplete values rather than
+ * buffering partial records. Completed chunks remain on error and trigger cache
+ * flushing/notification while preserving the original error state. Success
+ * reports logical value count. Checks destination lifetime/read-only state and
+ * channel registration after reflected reads. The dispatcher retains the vector.
  */
 static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Tcl_Channel channel;
+    Tcl_Channel channel = NULL;
+    int retained = FALSE;
     const char *channelName;
     const char *string;
     char *byteArr;
     enum NativeFormats fmt;
     struct NativeFmtValue nfmt;
     Tcl_DString translation;
-    Tcl_Obj *savedErrorObj;
+    Tcl_InterpState savedState;
     Tcl_Size count;
     Tcl_Size first;
     Tcl_Size total;
@@ -685,7 +793,7 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     int result;
 
     byteArr = NULL;
-    savedErrorObj = NULL;
+    savedState = NULL;
     count = 0;
     first = vPtr->length;
     total = 0;
@@ -705,6 +813,8 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         Tcl_SetObjResult(interp, Tcl_ObjPrintf("channel \"%s\" wasn't opened for reading", channelName));
         goto cleanup;
     }
+    Tcl_RegisterChannel(NULL, channel);
+    retained = TRUE;
     /*
      * An optional count precedes the options. A zero count retains the
      * historical meaning of reading until EOF.
@@ -736,6 +846,11 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
         if (Tcl_ParseArgsObjv(interp, binreadOpts, &argc, objv + optionStart - 1, NULL) != TCL_OK) {
             goto cleanup;
         }
+    }
+    if (CheckCommandDestination(vPtr) != TCL_OK) goto cleanup;
+    if (!Tcl_IsChannelRegistered(interp, channel)) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("channel was closed during command evaluation", -1));
+        goto cleanup;
     }
     fmt = nfmt.format;
     size = nfmt.size;
@@ -789,7 +904,17 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     }
     translationChanged = TRUE;
     for (;;) {
+        if (CheckCommandDestination(vPtr) != TCL_OK) goto cleanup;
+        if (!Tcl_IsChannelRegistered(interp, channel)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("channel was closed during command evaluation", -1));
+            goto cleanup;
+        }
         bytesRead = Tcl_Read(channel, byteArr, bufferBytes);
+        if (CheckCommandDestination(vPtr) != TCL_OK) goto cleanup;
+        if (!Tcl_IsChannelRegistered(interp, channel)) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("channel was closed during command evaluation", -1));
+            goto cleanup;
+        }
         if (bytesRead < 0) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("error reading channel: %s", Tcl_PosixError(interp)));
             goto cleanup;
@@ -814,6 +939,7 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             goto cleanup;
         }
         length = bytesRead / bytesPerValue;
+        if (AddVectorSizes(interp, total, length, &newTotal) != TCL_OK) goto cleanup;
         switch (vPtr->type) {
         case RBC_VECTOR_REAL:
             if (CopyValues(vPtr, byteArr, fmt, size, length, swap, &first) != TCL_OK) {
@@ -827,9 +953,6 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
             break;
         default:
             Tcl_Panic("bad vector type %d", (int)vPtr->type);
-            goto cleanup;
-        }
-        if (AddVectorSizes(interp, total, length, &newTotal) != TCL_OK) {
             goto cleanup;
         }
         total = newTotal;
@@ -848,40 +971,28 @@ static int BinreadOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
     result = TCL_OK;
 
 cleanup:
-    /*
-     * Preserve the original error if restoring the channel itself also
-     * fails.
-     */
-    if (result != TCL_OK) {
-        savedErrorObj = Tcl_GetObjResult(interp);
-        Tcl_IncrRefCount(savedErrorObj);
-    }
-    if (translationChanged) {
-        if (Tcl_SetChannelOption(interp, channel, "-translation", Tcl_DStringValue(&translation)) != TCL_OK) {
-            if (result == TCL_OK) {
-                result = TCL_ERROR;
-            }
+    /* Keep the complete original error across restoration, channel finalizers,
+     * cache traces and notifications. Partial successful chunks remain valid. */
+    if (result != TCL_OK) savedState = Tcl_SaveInterpState(interp, result);
+    if (translationChanged && !Tcl_InterpDeleted(interp) && Tcl_IsChannelRegistered(interp, channel)) {
+        if (Tcl_SetChannelOption(interp, channel, "-translation", Tcl_DStringValue(&translation)) != TCL_OK &&
+            result == TCL_OK) {
+            result = TCL_ERROR;
+            savedState = Tcl_SaveInterpState(interp, result);
         }
     }
-    if (savedErrorObj != NULL) {
-        Tcl_SetObjResult(interp, savedErrorObj);
-        Tcl_DecrRefCount(savedErrorObj);
+    if (retained) {
+        Tcl_InterpState state = Tcl_SaveInterpState(interp, result);
+        Tcl_UnregisterChannel(NULL, channel);
+        Tcl_RestoreInterpState(interp, state);
     }
     Tcl_DStringFree(&translation);
-    if (byteArr != NULL) {
-        ckfree(byteArr);
-    }
-    if (result != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
-    Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)total));
-    return TCL_OK;
+    if (byteArr != NULL) ckfree(byteArr);
+    if (savedState != NULL) Tcl_RestoreInterpState(interp, savedState);
+    if (total > 0 || result == TCL_OK) NotifyCommandWrite(vPtr, -1);
+    if (result == TCL_OK) Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)total));
+    return result;
 }
-
 /*
  * -----------------------------------------------------------------------
  *
@@ -2197,101 +2308,64 @@ static int SeqOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Replace values from a vector range or Tcl list.
+ * @ingroup vector_command_paths
  *
- * SetOp --
- *
- *      Sets the data of the vector object from a list of values.
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.  If the source vector doesn't exist
- *      or the source list is not a valid list of numbers, TCL_ERROR
- *      returned.  Otherwise TCL_OK is returned.
- *
- * Side Effects:
- *      The vector data is reset.  Clients of the vector are notified.
- *      Any cached array indices are flushed.
- *
- * -----------------------------------------------------------------------
+ * Stages vector ranges (including self-copy) or converted list values before
+ * replacing storage. Failed conversion does not write destination data. Tcl
+ * callbacks retain their own side effects. Flushes/notifies only a still-live
+ * committed object; callbacks cannot redirect the operation by recreating a name.
  */
 static int SetOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    VectorObject *srcPtr;
     int result;
-    VectorObject *v2Ptr;
-    Tcl_Size nElem;
-    Tcl_Obj **elemObjArr;
 
-    /* The source can be either a list of numbers or another vector.  */
-    v2Ptr = Rbc_VectorParseElement((Tcl_Interp *)NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
-    if (v2Ptr != NULL) {
-        if (vPtr == v2Ptr) {
-            VectorObject *tmpPtr;
-            /*
-             * Source and destination vectors are the same.  Copy the
-             * source first into a temporary vector to avoid memory
-             * overlaps.
-             */
-            tmpPtr = Rbc_VectorNew(vPtr->dataPtr);
-            tmpPtr->type = vPtr->type;
-            result = Rbc_VectorDuplicate(tmpPtr, v2Ptr);
-            if (result == TCL_OK) {
-                result = Rbc_VectorDuplicate(vPtr, tmpPtr);
-            }
-            Rbc_VectorFree(tmpPtr);
-        } else {
-            result = Rbc_VectorDuplicate(vPtr, v2Ptr);
+    (void)objc;
+    srcPtr = Rbc_VectorParseElement(NULL, vPtr->dataPtr, Tcl_GetString(objv[2]), NULL, NS_SEARCH_BOTH);
+    if (CheckCommandDestination(vPtr) != TCL_OK) return TCL_ERROR;
+    if (srcPtr != NULL) {
+        VectorData data;
+        Tcl_Size length = srcPtr->last - srcPtr->first + 1;
+        size_t bytes;
+        size_t elementSize = (vPtr->type == RBC_VECTOR_REAL) ? sizeof(double) : sizeof(Rbc_Complex);
+        if (srcPtr->type != vPtr->type) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't duplicate vectors of different types", -1));
+            return TCL_ERROR;
         }
-    } else if (Tcl_ListObjGetElements(interp, objv[2], &nElem, &elemObjArr) == TCL_OK) {
-        result = CopyList(vPtr, nElem, elemObjArr);
+        if (GetArrayByteCount(interp, length, elementSize, &bytes) != TCL_OK) return TCL_ERROR;
+        data.raw = (bytes > 0) ? Tcl_AttemptAlloc(bytes) : NULL;
+        if (bytes > 0 && data.raw == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("can't allocate vector command storage", -1));
+            return TCL_ERROR;
+        }
+        if (bytes > 0) memcpy(data.raw, (char *)srcPtr->data.raw + srcPtr->first * elementSize, bytes);
+        vPtr->offset = srcPtr->offset;
+        FinishCommandWrite(vPtr, data, length, length);
+        result = TCL_OK;
     } else {
-        return TCL_ERROR;
+        Tcl_Size count;
+        Tcl_Obj **values;
+        result = Tcl_ListObjGetElements(interp, objv[2], &count, &values);
+        if (result == TCL_OK) result = CopyList(vPtr, count, values);
     }
-    if (result == TCL_OK) {
-        /*
-         * The vector has changed; so flush the array indices (they're
-         * wrong now), find the new range of the data, and notify
-         * the vector's clients that it's been modified.
-         */
-        if (vPtr->flush) {
-            Rbc_VectorFlushCache(vPtr);
-        }
-        Rbc_VectorUpdateClients(vPtr);
-    }
+    if (result == TCL_OK) NotifyCommandWrite(vPtr, -1);
     return result;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Sort real values and apply their permutation to companion vectors.
+ * @ingroup vector_command_paths
  *
- * SortOp --
- *
- *      Sorts the vector object and any other vectors according to
- *      sorting order of the vector object.
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      A standard Tcl result.  If any of the auxiliary vectors are
- *      a different size than the sorted vector object, TCL_ERROR is
- *      returned.  Otherwise TCL_OK is returned.
- *
- * Side Effects:
- *      The vectors are sorted.
- *
- * -----------------------------------------------------------------------
+ * Retains resolved destination identities and validates all keys before any
+ * write. Reuses one scratch array to apply the permutation without callbacks;
+ * only then flushes and notifies surviving objects. Notifications may alter or
+ * destroy committed vectors, but never expose a partially applied permutation.
  */
 static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    VectorObject *v2Ptr;
+    VectorObject **vectors;
+    Tcl_Size vectorCount, j, retained = 0;
+    size_t vectorBytes;
     char *string;
     double *mergeArr;
     Tcl_Size *iArr;
@@ -2317,14 +2391,42 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
             objv++;
         }
     }
-    if (objc > 2) {
-        iArr = SortVectors(vPtr, interp, objc - 2, objv + 2);
-    } else {
-        iArr = Rbc_VectorSortIndex(&vPtr, 1);
+    vectorCount = objc - 1;
+    if (GetArrayByteCount(interp, vectorCount, sizeof(*vectors), &vectorBytes) != TCL_OK) return TCL_ERROR;
+    vectors = ckalloc(vectorBytes);
+    vectors[0] = vPtr;
+    Tcl_Preserve(vPtr);
+    retained = 1;
+    result = TCL_ERROR;
+    for (i = 1; i < vectorCount; i++) {
+        if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i + 1]), &vectors[i]) != TCL_OK) goto lookupError;
+        Tcl_Preserve(vectors[i]);
+        retained++;
+        if (CheckCommandDestination(vPtr) != TCL_OK ||
+            CheckCommandDestination(vectors[i]) != TCL_OK) goto lookupError;
+        if (vectors[i]->length != vPtr->length) {
+            Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" is not the same size as \"%s\"",
+                                                  vectors[i]->name, vPtr->name));
+            goto lookupError;
+        }
+        for (j = 0; j < i; j++) {
+            if (vectors[j] == vectors[i]) {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" specified more than once", vectors[i]->name));
+                goto lookupError;
+            }
+        }
     }
-    if (iArr == NULL) {
-        return TCL_ERROR;
+    for (i = 0; i < vectorCount; i++) {
+        if (CheckCommandDestination(vectors[i]) != TCL_OK) goto lookupError;
+        if (vectors[i]->length != vPtr->length) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector lengths changed during sort evaluation", -1));
+            goto lookupError;
+        }
     }
+    vPtr->first = 0;
+    vPtr->last = vPtr->length - 1;
+    iArr = Rbc_VectorSortIndex(vectors, vectorCount);
+    if (iArr == NULL) goto lookupError;
     refSize = vPtr->length;
     /*
      * Rbc_VectorSortIndex always returns ascending order.  Reverse the
@@ -2354,51 +2456,28 @@ static int SortOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj
      */
     if (GetArrayByteCount(interp, refSize, sizeof(*mergeArr), &nBytes) != TCL_OK) {
         ckfree(iArr);
-        return TCL_ERROR;
+        goto lookupError;
     }
     mergeArr = ckalloc(nBytes);
-    if (nBytes > 0) {
-        memcpy(mergeArr, vPtr->data.raw, nBytes);
+    /* No callback-capable operations between validation and the last write.
+     * Reuse one scratch array rather than staging a full copy per destination. */
+    for (i = 0; i < vectorCount; i++) {
+        if (nBytes > 0) memcpy(mergeArr, vectors[i]->data.raw, nBytes);
+        for (n = 0; n < refSize; n++) vectors[i]->data.real[n] = mergeArr[iArr[n]];
+        vectors[i]->notifyFlags |= UPDATE_RANGE;
+        vectors[i]->minIndex = vectors[i]->maxIndex = -1;
     }
-    for (n = 0; n < refSize; n++) {
-        vPtr->data.real[n] = mergeArr[iArr[n]];
-    }
-    if (vPtr->flush) {
-        Rbc_VectorFlushCache(vPtr);
-    }
-    Rbc_VectorUpdateClients(vPtr);
-    /* Now sort any other vectors in the same fashion.  The vectors
-     * must be the same size as the iArr though.  */
-    result = TCL_ERROR;
-    for (i = 2; i < objc; i++) {
-        if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-            goto error;
-        }
-        if (v2Ptr->length != refSize) {
-            Rbc_AppendResultStrings(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
-                             (char *)NULL);
-            goto error;
-        }
-        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)v2Ptr) != TCL_OK) {
-            goto error;
-        }
-        memcpy((char *)mergeArr, (char *)v2Ptr->data.raw, nBytes);
-        for (n = 0; n < refSize; n++) {
-            v2Ptr->data.real[n] = mergeArr[iArr[n]];
-        }
-        Rbc_VectorUpdateClients(v2Ptr);
-        if (v2Ptr->flush) {
-            Rbc_VectorFlushCache(v2Ptr);
-        }
-    }
+    ckfree(mergeArr);
+    ckfree(iArr);
+    /* All data is final before any cache trace or observer can inspect it.
+     * Retained identities survive renames; deleted/recreated names are skipped. */
+    for (i = 0; i < vectorCount; i++) NotifyCommandWrite(vectors[i], -1);
     result = TCL_OK;
-    
-error:
-    ckfree((char *)mergeArr);
-    ckfree((char *)iArr);
+lookupError:
+    for (i = 0; i < retained; i++) Tcl_Release(vectors[i]);
+    ckfree(vectors);
     return result;
 }
-
 /*
  * -----------------------------------------------------------------------
  *
@@ -2554,26 +2633,17 @@ static int VariableOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Append a selected vector range without Tcl-list conversion.
+ * @ingroup vector_command_paths
  *
- * AppendVector --
- *
- *      Appends a vector to the end of another vector
- *
- * Parameters:
- *      VectorObject *destPtr
- *      VectorObject *srcPtr
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Requires matching real/complex types. Saves source selection before resize
+ * and uses memmove against current storage, permitting self-append. Checks
+ * length/byte arithmetic. Returns a Tcl status; does not flush or notify.
  */
 static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
+    VectorData data;
+    Tcl_Size size;
     Tcl_Size sourceFirst;
     Tcl_Size sourceLength;
     Tcl_Size oldSize;
@@ -2613,112 +2683,68 @@ static int AppendVector(VectorObject *destPtr, VectorObject *srcPtr) {
     if (GetArrayByteCount(destPtr->interp, sourceLength, elementSize, &byteCount) != TCL_OK) {
         return TCL_ERROR;
     }
-    if (Rbc_VectorChangeLength(destPtr, newSize) != TCL_OK) {
+    if (PrepareCommandWrite(destPtr, newSize, &data, &size) != TCL_OK) {
         return TCL_ERROR;
     }
     if (byteCount > 0) {
         switch (destPtr->type) {
         case RBC_VECTOR_REAL:
-            memmove(destPtr->data.real + oldSize, srcPtr->data.real + sourceFirst, byteCount);
+            memmove(data.real + oldSize, srcPtr->data.real + sourceFirst, byteCount);
             break;
         case RBC_VECTOR_COMPLEX:
-            memmove(destPtr->data.complex + oldSize, srcPtr->data.complex + sourceFirst, byteCount);
+            memmove(data.complex + oldSize, srcPtr->data.complex + sourceFirst, byteCount);
             break;
         default:
             Tcl_Panic("bad vector type %d", (int)destPtr->type);
         }
     }
+    FinishCommandWrite(destPtr, data, newSize, size);
     return TCL_OK;
 }
 
-/*
- * -----------------------------------------------------------------------
+/**
+ * @brief Stage list values before appending the completed list.
+ * @ingroup vector_command_paths
  *
- * AppendList --
- *
- *      Appends a list to the end of another list
- *
- * Parameters:
- *      VectorObject *vPtr
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------------
+ * Converts a complete list into temporary storage and rechecks lifetime and
+ * writable state after conversion. Appends to the current length, accounting
+ * for callback edits. Conversion failure does not append a partial list.
+ * Does not flush or notify; the instance dispatcher retains the destination.
  */
 static int AppendList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Tcl_Size oldSize;
-    Tcl_Size newSize;
-    Tcl_Size i;
+    VectorData values, data;
+    Tcl_Size length, size;
+    size_t bytes;
+    size_t elementSize = (vPtr->type == RBC_VECTOR_REAL) ? sizeof(double) : sizeof(Rbc_Complex);
 
-    oldSize = vPtr->length;
-    if (AddVectorSizes(vPtr->interp, oldSize, objc, &newSize) != TCL_OK) {
+    if (ConvertCommandList(vPtr, objc, objv, &values) != TCL_OK) return TCL_ERROR;
+    /* A conversion may have changed length: append to the current destination. */
+    if (CheckCommandDestination(vPtr) != TCL_OK ||
+        AddVectorSizes(vPtr->interp, vPtr->length, objc, &length) != TCL_OK ||
+        GetArrayByteCount(vPtr->interp, objc, elementSize, &bytes) != TCL_OK ||
+        PrepareCommandWrite(vPtr, length, &data, &size) != TCL_OK) {
+        if (values.raw != NULL) ckfree(values.raw);
         return TCL_ERROR;
     }
-    if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
-        return TCL_ERROR;
-    }
-    if (vPtr->type == RBC_VECTOR_COMPLEX) {
-        for (i = 0; i < objc; i++) {
-            Rbc_Complex value;
-
-            if (Rbc_GetComplex(vPtr->interp, objv[i], &value) != TCL_OK) {
-                Rbc_VectorChangeLength(vPtr, oldSize);
-                return TCL_ERROR;
-            }
-            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->data.complex[oldSize + i] = value;
-        }
-    } else {
-        for (i = 0; i < objc; i++) {
-            double value;
-
-            if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-                Rbc_VectorChangeLength(vPtr, oldSize);
-                return TCL_ERROR;
-            }
-            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->data.real[oldSize + i] = value;
-        }
-    }
+    if (bytes > 0) memcpy((char *)data.raw + vPtr->length * elementSize, values.raw, bytes);
+    if (values.raw != NULL) ckfree(values.raw);
+    FinishCommandWrite(vPtr, data, length, size);
     return TCL_OK;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Convert a binary scalar buffer into real vector storage.
+ * @ingroup vector_command_paths
  *
- * CopyValues --
- *
- *      TODO: Description
- *
- * Parameters:
- *      VectorObject *vPtr
- *      char *byteArr
- *      enum NativeFormats fmt
- *      int size
- *      int length
- *      int swap
- *      int *indexPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Checks writable state, range and size arithmetic, extends storage as needed,
+ * and advances indexPtr. Optional byte swapping modifies the input buffer
+ * in place per scalar. Returns a Tcl status; does not flush or notify.
  */
 static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length, int swap,
                       Tcl_Size *indexPtr) {
+    VectorData data;
+    Tcl_Size capacity;
+    Tcl_Size finalLength;
     Tcl_Size i;
     Tcl_Size n;
     Tcl_Size newSize;
@@ -2758,15 +2784,12 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
             }
         }
     }
-    if (newSize > vPtr->length) {
-        if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    }
+    finalLength = MAX(newSize, vPtr->length);
+    if (PrepareCommandWrite(vPtr, finalLength, &data, &capacity) != TCL_OK) return TCL_ERROR;
 #define CopyArrayToVector(array)                                                                                       \
     do {                                                                                                               \
         for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
-            vPtr->data.real[n] = (double)(array)[i];                                                                    \
+            data.real[n] = (double)(array)[i];                                                                    \
         }                                                                                                              \
     } while (0)
     switch (fmt) {
@@ -2816,12 +2839,24 @@ static int CopyValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt,
     }
 #undef CopyArrayToVector
     *indexPtr = newSize;
-    vPtr->notifyFlags |= UPDATE_RANGE;
+    FinishCommandWrite(vPtr, data, finalLength, capacity);
     return TCL_OK;
 }
 
+/**
+ * @brief Convert interleaved binary components into complex storage.
+ * @ingroup vector_command_paths
+ *
+ * Requires a complex vector. Checks writable state and size arithmetic;
+ * extends storage and advances indexPtr by logical values. Swaps bytes within
+ * each scalar component, never exchanging real and imaginary components.
+ * Modifies the input buffer when swapping; does not flush or notify.
+ */
 static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeFormats fmt, int size, Tcl_Size length,
                              int swap, Tcl_Size *indexPtr) {
+    VectorData data;
+    Tcl_Size capacity;
+    Tcl_Size finalLength;
     Tcl_Size i;
     Tcl_Size n;
     Tcl_Size newSize;
@@ -2873,16 +2908,13 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
             }
         }
     }
-    if (newSize > vPtr->length) {
-        if (Rbc_VectorChangeLength(vPtr, newSize) != TCL_OK) {
-            return TCL_ERROR;
-        }
-    }
+    finalLength = MAX(newSize, vPtr->length);
+    if (PrepareCommandWrite(vPtr, finalLength, &data, &capacity) != TCL_OK) return TCL_ERROR;
 #define CopyArrayToComplexVector(array)                                                                                \
     do {                                                                                                               \
         for (i = 0, n = *indexPtr; i < length; i++, n++) {                                                             \
-            vPtr->data.complex[n].real = (double)(array)[2 * i];                                                       \
-            vPtr->data.complex[n].imag = (double)(array)[2 * i + 1];                                                   \
+            data.complex[n].real = (double)(array)[2 * i];                                                       \
+            data.complex[n].imag = (double)(array)[2 * i + 1];                                                   \
         }                                                                                                              \
     } while (0)
     switch (fmt) {
@@ -2928,7 +2960,7 @@ static int CopyComplexValues(VectorObject *vPtr, char *byteArr, enum NativeForma
     }
 #undef CopyArrayToComplexVector
     *indexPtr = newSize;
-    vPtr->notifyFlags |= UPDATE_RANGE;
+    FinishCommandWrite(vPtr, data, finalLength, capacity);
     return TCL_OK;
 }
 
@@ -2973,59 +3005,23 @@ static int InRange(double value, double min, double max) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Convert a complete Tcl list before replacing vector storage.
+ * @ingroup vector_command_paths
  *
- * CopyList --
- *
- *      TODO: Description
- *
- * Parameters:
- *      VectorObject *vPtr
- *      int objc
- *      Tcl_Obj * const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Returns a Tcl status. Conversion failure leaves destination values/length
+ * unchanged except for the callbacks' own changes. Transfers staged storage
+ * on success, with lifetime/read-only checks before commit. Does not notify;
+ * callers retain the destination and interpreter through callbacks.
  */
 static int CopyList(VectorObject *vPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    Tcl_Size i;
-
-    if (Rbc_VectorChangeLength(vPtr, objc) != TCL_OK) {
+    VectorData data;
+    if (ConvertCommandList(vPtr, objc, objv, &data) != TCL_OK) return TCL_ERROR;
+    if (CheckCommandDestination(vPtr) != TCL_OK) {
+        if (data.raw != NULL) ckfree(data.raw);
         return TCL_ERROR;
     }
-    if (vPtr->type == RBC_VECTOR_COMPLEX) {
-        for (i = 0; i < objc; i++) {
-            Rbc_Complex value;
-
-            if (Rbc_GetComplex(vPtr->interp, objv[i], &value) != TCL_OK) {
-                Rbc_VectorChangeLength(vPtr, i);
-                return TCL_ERROR;
-            }
-            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->data.complex[i] = value;
-        }
-    } else {
-        for (i = 0; i < objc; i++) {
-            double value;
-
-            if (Rbc_GetDouble(vPtr->interp, objv[i], &value) != TCL_OK) {
-                Rbc_VectorChangeLength(vPtr, i);
-                return TCL_ERROR;
-            }
-            if (Rbc_VectorCheckWritable(vPtr->interp, (Rbc_Vector *)vPtr) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            vPtr->data.real[i] = value;
-        }
-    }
+    FinishCommandWrite(vPtr, data, objc, objc);
     return TCL_OK;
 }
 
@@ -3094,77 +3090,6 @@ Tcl_Size *Rbc_VectorSortIndex(VectorObject **vPtrPtr, Tcl_Size nVectors) {
     }
     SortVectorIndices(indexArr, length, vPtrPtr, nVectors);
     return indexArr;
-}
-
-/*
- *--------------------------------------------------------------
- *
- * SortVectors --
- *
- *      TODO: Description
- *
- * Parameters:
- *      VectorObject *vPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const *objv
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
-static Tcl_Size *SortVectors(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const *objv) {
-    VectorObject **vPtrArray;
-    VectorObject *v2Ptr;
-    Tcl_Size *iArr;
-    Tcl_Size vectorCount;
-    Tcl_Size i;
-    Tcl_Size j;
-    size_t vectorBytes;
-
-    if (AddVectorSizes(interp, objc, 1, &vectorCount) != TCL_OK) {
-        return NULL;
-    }
-    if (GetArrayByteCount(interp, vectorCount, sizeof(*vPtrArray), &vectorBytes) != TCL_OK) {
-        return NULL;
-    }
-    vPtrArray = ckalloc(vectorBytes);
-    vPtrArray[0] = vPtr;
-    iArr = NULL;
-    for (i = 0; i < objc; i++) {
-        if (Rbc_VectorLookupName(vPtr->dataPtr, Tcl_GetString(objv[i]), &v2Ptr) != TCL_OK) {
-            goto error;
-        }
-        if (Rbc_VectorCheckWritable(interp, (Rbc_Vector *)v2Ptr) != TCL_OK) {
-            goto error;
-        }
-        if (v2Ptr->length != vPtr->length) {
-            Rbc_AppendResultStrings(interp, "vector \"", v2Ptr->name, "\" is not the same size as \"", vPtr->name, "\"",
-                             (char *)NULL);
-            goto error;
-        }
-        /*
-         * A vector may participate in the sort only once.  Applying the
-         * resulting permutation more than once would reorder its already
-         * sorted contents a second time.
-         */
-        for (j = 0; j <= i; j++) {
-            if (vPtrArray[j] == v2Ptr) {
-                Tcl_SetObjResult(interp, Tcl_ObjPrintf("vector \"%s\" specified more than once", v2Ptr->name));
-                goto error;
-            }
-        }
-        vPtrArray[i + 1] = v2Ptr;
-    }
-    iArr = Rbc_VectorSortIndex(vPtrArray, vectorCount);
-    
-error:
-    ckfree(vPtrArray);
-    return iArr;
 }
 
 static int CompareVectorIndices(VectorObject *const *vectorArr, Tcl_Size nVectors, Tcl_Size i1, Tcl_Size i2) {

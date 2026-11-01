@@ -420,5 +420,65 @@ test RBC.vector.binread.A.6.6 {
 } -result {1 {error reading channel: input ended inside a complex binary value} {{9.0 10.0}}}
 
 
-cleanupTests
+
+    foreach {case kind width} {1 real 1 2 complex 2} {
+        test RBC.vector.binread.A.7.$case "partial $kind binary input notifies and refreshes cached values" -setup {
+            vector create partial -type $kind
+            partial set [lrepeat 1024 [expr {$width == 1 ? 9 : {9 10}}]]
+            set cached [lindex [partial index 0] 0]
+            set channel [file tempfile path]
+            fconfigure $channel -translation binary
+            puts -nonewline $channel [binary format d* [lrepeat [expr {1024*$width}] 2.0]]
+            puts -nonewline $channel x
+            seek $channel 0
+        } -body {
+            set code [catch {partial binread $channel -at 0} message]
+            list $code [partial length] [lindex [partial index 0] 0] \
+                [string match {error reading channel:*} $message]
+        } -cleanup {
+            catch {close $channel}
+            catch {file delete $path}
+            catch {vector destroy partial}
+        } -result [list 1 1024 [expr {$width == 1 ? {2.0} : {2.0 2.0}}] 1]
+    }
+
+    proc reflectedRead {action operation channel args} {
+        switch -- $operation {
+            initialize {return {initialize finalize watch read}}
+            finalize - watch {return}
+            read {
+                if {!${::vector.binread::acted}} {
+                    set ::vector.binread::acted 1
+                    switch -- $action {
+                        lock {partial readonly true}
+                        destroy {vector destroy partial; vector create partial; partial set {77}}
+                        close {close $channel}
+                    }
+                    return [binary format d 2.0]
+                }
+                return {}
+            }
+        }
+    }
+    foreach {case action expected} {
+        1 lock {1 9.0}
+        2 destroy {1 77.0}
+        3 close {1 9.0}
+    } {
+        test RBC.vector.binread.A.8.$case "reflected read callback: $action" -setup {
+            vector create partial
+            partial set {9}
+            set ::vector.binread::acted 0
+            set channel [chan create read [list [namespace current]::reflectedRead $action]]
+        } -body {
+            set code [catch {partial binread $channel 1} message]
+            list $code [partial range 0 end]
+        } -cleanup {
+            catch {close $channel}
+            catch {vector destroy partial}
+        } -result $expected
+    }
+    rename reflectedRead {}
+
+    cleanupTests
 }

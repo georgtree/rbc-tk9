@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector names, indices and mapped arrays &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector access C reference" href="vector-access-reference.html" />
+    <link rel="prev" title="Vector client C reference" href="vector-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-access-reference.html" title="Vector access C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector names, indices and mapped arrays</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-names-indices-and-mapped-arrays">
+<h1>Vector names, indices and mapped arrays<a class="headerlink" href="#vector-names-indices-and-mapped-arrays" title="Link to this heading">¶</a></h1>
+<p>The registry and storage lifetime are described in <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>. Access
+helpers in <code class="docutils literal notranslate"><span class="pre">rbcVector.c</span></code> translate Tcl input into borrowed objects and storage
+indices; they do not create independent slice objects. Their private contracts
+are collected in <a class="reference internal" href="vector-access-reference.html"><span class="doc">Vector access C reference</span></a>.</p>
+<section id="names-and-selections">
+<h2>Names and selections<a class="headerlink" href="#names-and-selections" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_VectorParseElement</span></code> looks for the longest existing vector name at a
+balanced-parenthesis boundary. This lets a name such as <code class="docutils literal notranslate"><span class="pre">v(out)</span></code> coexist with
+range syntax: <code class="docutils literal notranslate"><span class="pre">v(out)(1:20)</span></code> selects a range from that vector. Without an
+<code class="docutils literal notranslate"><span class="pre">endPtr</span></code> the whole argument must be consumed; expression parsing supplies an
+<code class="docutils literal notranslate"><span class="pre">endPtr</span></code> to receive the remaining operators.</p>
+<p>Successful lookup writes <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> on the vector itself. These are
+inclusive storage indices, shared by subsequent operations on the same object.
+A caller needing stable selection across another lookup or Tcl evaluation must
+save the indices, and must separately ensure the vector remains alive. Parse
+errors restore the previous selection; a returned pointer is borrowed.</p>
+<p>Ordinary numeric indices subtract the vector’s external offset. <code class="docutils literal notranslate"><span class="pre">end</span></code> forms
+are relative to length, while <code class="docutils literal notranslate"><span class="pre">++end</span></code> selects the append position. Registered
+special indices return a sentinel and callback rather than a storage index.
+Bounds checking does not make these special cases safe to dereference. Range
+consumers must also handle empty vectors explicitly.</p>
+<p>Index expressions and numerical conversion can execute Tcl. Index-expression
+evaluation retains the vector and interpreter and detects their deletion before
+using the result; vector-reference parsing retains the object through range
+parsing so failure cannot restore selection into freed memory. In particular,
+index evaluation uses the owning interpreter even if the caller passes a NULL
+interpreter to suppress lookup diagnostics. Suppressing an error message is not
+a promise that lookup has no side effects.</p>
+</section>
+<section id="mapped-arrays">
+<h2>Mapped arrays<a class="headerlink" href="#mapped-arrays" title="Link to this heading">¶</a></h2>
+<p>The mapped Tcl array is a traced access surface and cache, not the authoritative
+vector storage. A read materializes a scalar or range; a write converts and
+assigns values; unsetting an indexed range compacts the following values.
+Writes notify the affected inclusive range, while removal reports a full change
+because subsequent source indices shift. Read-only state blocks data writes
+and element unsets. Whole-array unsets instead unmap the array and may destroy
+the vector according to its ownership setting.</p>
+<p>Array names cannot contain parentheses, even though vector command names can.
+<code class="docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable</span></code> removes the old mapping before establishing the new
+one; failure does not restore the old array. Mapping and public cache flushing
+preserve the vector/interpreter across variable traces and check for destruction
+or reentrant remapping before reinstalling RBC’s trace. This local protection
+does not automatically protect the caller after the helper returns.</p>
+</section>
+<section id="value-objects">
+<h2>Value objects<a class="headerlink" href="#value-objects" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetDouble</span></code> first tries direct Tcl conversion, then expression evaluation.
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetComplex</span></code> accepts a two-item list or a scalar with imaginary part zero.
+The pair conversion can write its real component before imaginary conversion
+fails. Neither helper establishes an atomic vector update or retains a vector.</p>
+<p>The output helpers return new reference-count-zero Tcl objects containing copied
+values: doubles for real storage and two-double lists for complex storage.
+They do not validate storage bounds. <code class="docutils literal notranslate"><span class="pre">Rbc_GetValues</span></code> uses an inclusive interval
+and returns an empty list for a reversed interval.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector names, indices and mapped arrays</a><ul>
+<li><a class="reference internal" href="#names-and-selections">Names and selections</a></li>
+<li><a class="reference internal" href="#mapped-arrays">Mapped arrays</a></li>
+<li><a class="reference internal" href="#value-objects">Value objects</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-reference.html"
+                          title="previous chapter">Vector client C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-access-reference.html"
+                          title="next chapter">Vector access C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-access-reference.html" title="Vector access C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-reference.html" title="Vector client C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector names, indices and mapped arrays</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -160,6 +160,17 @@ source vectors or double-freeing Tk-owned values.</p>
 <p>See <a class="reference internal" href="bars.html"><span class="doc">Bar grouping and placement</span></a> for bar grouping, placement, error translations and mapped ownership.</p>
 <p>See <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a> for area closure, uncertainty-band runs and fill resource ownership.</p>
 </section>
+<section id="synchronous-layout-before-idle-notifications">
+<h2>Synchronous layout before idle notifications<a class="headerlink" href="#synchronous-layout-before-idle-notifications" title="Link to this heading">¶</a></h2>
+<p>Vector updates normally notify clients at idle. A command can replace vector
+storage and immediately request export or axis limits before that notification
+runs. <code class="docutils literal notranslate"><span class="pre">Rbc_SyncElementVectors</span></code> refreshes pending coordinate, weight and error
+slots before graph layout or axis reset uses their borrowed arrays. It marks
+mapping and ranges dirty without delivering client callbacks or processing Tcl
+events. A full change is recorded because exact ranged metadata is only
+available inside the notification callback; the queued notification remains
+scheduled normally.</p>
+</section>
 </section>
 
 
@@ -178,6 +189,7 @@ source vectors or double-freeing Tk-owned values.</p>
 <li><a class="reference internal" href="#updates-and-invalidation">Updates and invalidation</a></li>
 <li><a class="reference internal" href="#type-dispatch-and-display-order">Type dispatch and display order</a></li>
 <li><a class="reference internal" href="#destruction">Destruction</a></li>
+<li><a class="reference internal" href="#synchronous-layout-before-idle-notifications">Synchronous layout before idle notifications</a></li>
 </ul>
 </li>
 </ul>

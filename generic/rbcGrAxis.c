@@ -5798,6 +5798,7 @@ static int LimitsOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc, T
     double min, max;
     Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
@@ -5837,6 +5838,7 @@ static int InvTransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size o
     int x;    /* Integer window coordinate*/
     double y; /* Real graph coordinate */
 
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
@@ -5896,6 +5898,7 @@ static int TransformOp(Graph *graphPtr, Axis *axisPtr, int margin, Tcl_Size objc
     (void)margin;
     (void)objc;
     interp = graphPtr->interp;
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }

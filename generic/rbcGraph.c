@@ -2588,6 +2588,7 @@ static int InvtransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
     if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK) {
         return TCL_ERROR;
     }
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
@@ -2640,6 +2641,7 @@ static int TransformOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     if (Tcl_ExprDoubleObj(interp, objv[2], &x) != TCL_OK || Tcl_ExprDoubleObj(interp, objv[3], &y) != TCL_OK) {
         return TCL_ERROR;
     }
+    Rbc_SyncElementVectors(graphPtr);
     if (graphPtr->flags & RESET_AXES) {
         Rbc_ResetAxes(graphPtr);
     }
@@ -3360,6 +3362,7 @@ int Rbc_LayoutGraph(Graph *graphPtr) {
         return TCL_ERROR;
     }
     graphPtr->axisFormatInvalid = FALSE;
+    Rbc_SyncElementVectors(graphPtr);
     if (!Rbc_GraphCallbackValid(graphPtr)) {
         return TCL_ERROR;
     }

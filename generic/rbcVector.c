@@ -2407,10 +2407,26 @@ int Rbc_VectorGetIndex(Tcl_Interp *interp, VectorObject *vPtr, const char *strin
          * vector's interpreter because the public interp argument may be
          * NULL.
          */
-        result = Tcl_ExprObj(vPtr->interp, indexObjPtr, &valueObjPtr);
+        Tcl_Interp *owner = vPtr->interp;
+        int deleted;
+
+        Tcl_Preserve(owner);
+        Tcl_Preserve(vPtr);
+        result = Tcl_ExprObj(owner, indexObjPtr, &valueObjPtr);
         if (result == TCL_OK) {
-            result = Tcl_GetSizeIntFromObj(vPtr->interp, valueObjPtr, &value);
+            result = Tcl_GetSizeIntFromObj(owner, valueObjPtr, &value);
             Tcl_DecrRefCount(valueObjPtr);
+        }
+        deleted = Tcl_InterpDeleted(owner) || vPtr->destroying;
+        if (deleted && interp != NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("vector was destroyed during index evaluation", -1));
+            Tcl_SetErrorCode(interp, "RBC", "VECTOR", "DESTROYED", NULL);
+        }
+        Tcl_Release(vPtr);
+        Tcl_Release(owner);
+        if (deleted) {
+            Tcl_DecrRefCount(indexObjPtr);
+            return TCL_ERROR;
         }
         if (result != TCL_OK) {
             Tcl_ResetResult(vPtr->interp);
@@ -2536,6 +2552,11 @@ int Rbc_VectorGetIndexRange(Tcl_Interp *interp, VectorObject *vPtr, const char *
         if (interp != NULL) {
             Tcl_SetObjResult(interp, Tcl_ObjPrintf("bad range \"%s\" (first > last)", string));
         }
+        return TCL_ERROR;
+    }
+    if ((flags & INDEX_CHECK) && vPtr->length > 0 &&
+        (first >= vPtr->length || last >= vPtr->length)) {
+        if (interp != NULL) Tcl_SetObjResult(interp, Tcl_NewStringObj("vector range changed during index evaluation", -1));
         return TCL_ERROR;
     }
     /*
@@ -2668,13 +2689,18 @@ VectorObject *Rbc_VectorParseElement(Tcl_Interp *interp, VectorInterpData *dataP
         }
         rangeObjPtr = Tcl_NewStringObj(rangeStart, (Tcl_Size)(p - rangeStart));
         Tcl_IncrRefCount(rangeObjPtr);
+        Tcl_Preserve(vPtr);
         result = Rbc_VectorGetIndexRange(interp, vPtr, Tcl_GetString(rangeObjPtr), INDEX_COLON | INDEX_CHECK, NULL);
         Tcl_DecrRefCount(rangeObjPtr);
         if (result != TCL_OK) {
-            vPtr->first = oldFirst;
-            vPtr->last = oldLast;
+            if (!vPtr->destroying) {
+                vPtr->first = oldFirst;
+                vPtr->last = oldLast;
+            }
+            Tcl_Release(vPtr);
             return NULL;
         }
+        Tcl_Release(vPtr);
         /*
          * Advance beyond the closing parenthesis.
          */

@@ -168,7 +168,21 @@ static void FftTestAction(FftTest *test) {
     int k;
     if (test->acted) return;
     test->acted = 1;
-    if (strstr(test->operation, "natural") != NULL || strstr(test->operation, "quadratic") != NULL) {
+    if (strcmp(test->operation, "set") == 0 || strcmp(test->operation, "append") == 0 ||
+        strcmp(test->operation, "sort") == 0 || strncmp(test->operation, "binread", 7) == 0) {
+        int grow = strcmp(test->operation, "append") == 0 || strncmp(test->operation, "binread", 7) == 0;
+        int length = strcmp(test->operation, "binread-error") == 0 ? 1026 : (grow ? 4 : 2);
+        for (k = 0; k < test->count; k++) {
+            VectorObject *v = test->dest[k];
+            if (v == NULL || v->length != length) test->valid = 0;
+            else if (grow) {
+                if (v->data.real[0] != 3 || v->data.real[1] != 4 ||
+                    v->data.real[2] != 1 || v->data.real[3] != 1) test->valid = 0;
+            } else if (strcmp(test->operation, "sort") == 0) {
+                if (v->data.real[0] != 3 || v->data.real[1] != 4) test->valid = 0;
+            } else if (v->data.real[0] != 1 || v->data.real[1] != 1) test->valid = 0;
+        }
+    } else if (strstr(test->operation, "natural") != NULL || strstr(test->operation, "quadratic") != NULL) {
         VectorObject *v = test->dest[0];
         if (v == NULL || v->length != 5) test->valid = 0;
         else for (k = 0; k < 5; k++) {
@@ -207,6 +221,10 @@ static void FftTestAction(FftTest *test) {
     } else if (strcmp(test->action, "rename") == 0) {
         if (Tcl_EvalEx(test->interp, "rbc::vector rename ::fftTestReal ::fftTestRenamed", -1,
                        TCL_EVAL_GLOBAL) != TCL_OK) test->valid = 0;
+    }
+    if (strcmp(test->operation, "binread-error") == 0) {
+        Tcl_SetObjResult(test->interp, Tcl_NewStringObj("callback result", -1));
+        Tcl_SetErrorCode(test->interp, "CALLBACK", NULL);
     }
 }
 
@@ -322,6 +340,107 @@ static int FftTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
     return TCL_OK;
 }
 
+/* Command mutations reuse the existing callback/deletion harness. */
+static int MutationTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    FftTest test;
+    Tcl_Interp *target;
+    Tcl_Obj *command, *answer, *path = NULL;
+    const char *names[] = {"::fftTestReal", "::fftTestImag"};
+    int k, code, validName;
+    (void)data;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "operation phase action");
+        return TCL_ERROR;
+    }
+    memset(&test, 0, sizeof(test));
+    test.operation = Tcl_GetString(objv[1]);
+    test.phase = Tcl_GetString(objv[2]);
+    test.action = Tcl_GetString(objv[3]);
+    test.count = strcmp(test.operation, "sort") == 0 ? 2 : 1;
+    test.valid = 1;
+    target = test.interp = Tcl_CreateInterp();
+    /* Keep the test interpreter available for checking its result after deletion. */
+    Tcl_Preserve(target);
+    Tcl_CreateNamespace(target, "::rbc", NULL, NULL);
+    if (Rbc_VectorInit(target) != TCL_OK) Tcl_Panic("mutation test init failed");
+    for (k = 0; k < test.count; k++) {
+        Rbc_Vector *vector;
+        FftStorage *storage = ckalloc(sizeof(*storage));
+        if (Rbc_CreateVector(target, names[k], 2, &vector) != TCL_OK) Tcl_Panic("FFT test create failed");
+        test.dest[k] = (VectorObject *)vector;
+        test.dest[k]->notifyFlags = NOTIFY_NEVER;
+        test.dest[k]->flush = strcmp(test.phase, "trace") == 0;
+        storage->values[0] = test.count == 2 ? 4.0 : 3.0;
+        storage->values[1] = test.count == 2 ? 3.0 : 4.0;
+        storage->test = &test;
+        storage->index = k;
+        if (Rbc_ResetVector(vector, storage->values, 2, 2, FftTestRelease) != TCL_OK)
+            Tcl_Panic("FFT test reset failed");
+        test.dest[k]->notifyFlags = NOTIFY_ALWAYS;
+        test.clients[k].test = &test;
+        test.clients[k].index = k;
+        test.ids[k] = Rbc_AllocVectorId(target, names[k]);
+        Rbc_SetVectorChangedProc(test.ids[k], FftTestNotify, &test.clients[k]);
+    }
+    if (strcmp(test.phase, "trace") == 0) {
+        Tcl_TraceVar2(target, names[0], NULL, TCL_GLOBAL_ONLY | TCL_TRACE_UNSETS, FftTestTrace, &test);
+    }
+    if (test.count == 2) {
+        command = Tcl_NewStringObj("::fftTestReal sort ::fftTestImag", -1);
+    } else if (strncmp(test.operation, "binread", 7) == 0) {
+        if (Tcl_EvalEx(target,
+            "set ch [file tempfile path]; fconfigure $ch -translation binary; "
+            "puts -nonewline $ch [binary format d* {1 1}]; seek $ch 0", -1, TCL_EVAL_GLOBAL) != TCL_OK)
+            Tcl_Panic("mutation test channel setup failed");
+        if (strcmp(test.operation, "binread-error") == 0 && Tcl_EvalEx(target,
+            "seek $ch 0; puts -nonewline $ch [binary format d* [lrepeat 1024 1]]; "
+            "puts -nonewline $ch x; seek $ch 0", -1, TCL_EVAL_GLOBAL) != TCL_OK)
+            Tcl_Panic("mutation test partial input failed");
+        path = Tcl_GetVar2Ex(target, "path", NULL, TCL_GLOBAL_ONLY);
+        Tcl_IncrRefCount(path);
+        command = Tcl_NewStringObj("::fftTestReal binread $ch", -1);
+    } else {
+        command = Tcl_ObjPrintf("::fftTestReal %s {1 1}", test.operation);
+    }
+    Tcl_IncrRefCount(command);
+    code = Tcl_EvalObjEx(target, command, TCL_EVAL_GLOBAL);
+    Tcl_DecrRefCount(command);
+    validName = strcmp(Tcl_GetStringResult(target), strcmp(test.operation, "binread") == 0 ? "2" : "") == 0;
+    if (strcmp(test.operation, "binread-error") == 0) {
+        Tcl_Obj *options = Tcl_GetReturnOptions(target, code);
+        Tcl_Obj *key = Tcl_NewStringObj("-errorcode", -1), *value;
+        Tcl_IncrRefCount(options);
+        Tcl_IncrRefCount(key);
+        Tcl_DictObjGet(NULL, options, key, &value);
+        validName = strcmp(Tcl_GetStringResult(target), "error reading channel: input ended inside a binary value") == 0 &&
+                    value != NULL && strcmp(Tcl_GetString(value), "CALLBACK") != 0;
+        Tcl_DecrRefCount(key);
+        Tcl_DecrRefCount(options);
+    }
+    if (strcmp(test.action, "recreate") == 0) {
+        Rbc_Vector *replacement;
+        if (Rbc_GetVector(target, "::fftTestReal", &replacement) != TCL_OK ||
+            Rbc_VectorLength(replacement) != 1 || Rbc_VectorData(replacement)[0] != 99.0) test.valid = 0;
+    }
+    answer = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(code));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.acted && test.valid && validName));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.releases));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[0]));
+    Tcl_ListObjAppendElement(NULL, answer, Tcl_NewIntObj(test.updates[1]));
+    Tcl_IncrRefCount(answer);
+    /* Observers clear their IDs during interpreter cleanup. */
+    if (!Tcl_InterpDeleted(target)) Tcl_DeleteInterp(target);
+    Tcl_Release(target);
+    if (path != NULL) {
+        Tcl_FSDeleteFile(path);
+        Tcl_DecrRefCount(path);
+    }
+    Tcl_SetObjResult(interp, answer);
+    Tcl_DecrRefCount(answer);
+    return TCL_OK;
+}
+
 /* Spline outputs change length from two to five, so resize notifications
  * would expose incomplete data in the old implementation. */
 static int SplineTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
@@ -401,6 +520,7 @@ DLLEXPORT int Rbcnotifytest_Init(Tcl_Interp *interp) {
     if (Rbc_VectorInit(interp) != TCL_OK) return TCL_ERROR;
     Tcl_CreateObjCommand2(interp, "::rbcnotifytest", NotifyTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcffttest", FftTestCmd, NULL, NULL);
+    Tcl_CreateObjCommand2(interp, "::rbcmutationtest", MutationTestCmd, NULL, NULL);
     Rbc_SplineInit(interp);
     Tcl_CreateObjCommand2(interp, "::rbcsplinetest", SplineTestCmd, NULL, NULL);
     return Tcl_PkgProvide(interp, "rbcnotifytest", "1.0");

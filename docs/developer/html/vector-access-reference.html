@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector access C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector instance commands and binary input" href="vector-commands.html" />
+    <link rel="prev" title="Vector names, indices and mapped arrays" href="vector-access.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="vector-commands.html" title="Vector instance commands and binary input"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-access.html" title="Vector names, indices and mapped arrays"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector access C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-access-c-reference">
+<h1>Vector access C reference<a class="headerlink" href="#vector-access-c-reference" title="Link to this heading">¶</a></h1>
+<p>These declarations are private to RBC. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a>.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorFlushCache">
+<span class="target" id="rbc_vector_int_8h_1ab21ca6a57b76152e902e83e2e6ebb47a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFlushCache</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFlushCache" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard cached array elements while retaining the current mapping. </p>
+<p>Preserves the vector and interpreter across variable traces. Reinstalls the end entry and RBC trace only while the same mapping remains live. This void helper does not notify clients, report trace errors, or save the Tcl result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorParseElement">
+<span class="target" id="rbc_vector_int_8h_1a89a735ca77a45c1fe41423688d7048d8"></span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorParseElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorInterpData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">start</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">endPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorParseElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a vector name and optional range into a borrowed vector. </p>
+<p>Prefers the longest existing name at a balanced-parenthesis boundary, so parentheses may belong to the name itself. Sets the shared first/last selection; restores it on range or trailing-text errors. With endPtr, returns the unconsumed suffix there; without it, requires complete consumption. Returns NULL on failure. Index expressions may evaluate Tcl; no lifetime reference is acquired for the returned object. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorMapVariable">
+<span class="target" id="rbc_vector_int_8h_1a609b50171e5e76babdeb9ecc2b6cb852"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorMapVariable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorMapVariable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace or remove a vector’s mapped Tcl array. </p>
+<p>An empty or NULL name unmaps; parentheses in mapping names are rejected. Unsets the old mapping and target variable, creates an end entry, and installs RBC traces. Preserves the vector/interpreter and checks destruction or reentrant remapping after trace-capable operations. Returns TCL_OK or TCL_ERROR; failure does not restore the previous mapping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorGetIndex">
+<span class="target" id="rbc_vector_int_8h_1a16383c5016fe4b957f0bdeeb3dcdb60c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span>, <span class="n"><span class="pre">Rbc_VectorIndexProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">procPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translate an external index into a storage index or special callback. </p>
+<p>Numeric indices subtract the vector offset with overflow checks. end-based indices are relative to length; ++end denotes the append position. INDEX_CHECK bounds ordinary indices; callers must handle append and special indices separately. An optional procPtrPtr receives a registered special index procedure and indexPtr receives SPECIAL_INDEX. Expression fallback evaluates Tcl in the owning interpreter even with NULL diagnostic interp. Returns TCL_OK or TCL_ERROR. Retains the vector/interpreter during expression evaluation and rejects destruction before using its result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorGetIndexRange">
+<span class="target" id="rbc_vector_int_8h_1af520fd12d83ec88ffe9c718b5ae3d07b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorGetIndexRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">flags</span></span>, <span class="n"><span class="pre">Rbc_VectorIndexProc</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">procPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorGetIndexRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set the vector’s inclusive first/last selection. </p>
+<p>INDEX_COLON enables first:last syntax with omitted endpoints. A single index selects one value. Commits selection only after both endpoints and ordering succeed; returns TCL_ERROR otherwise. Selection is shared mutable object state, not a retained slice. Callers must handle empty vectors and special/append indices before accessing storage. Index conversion may run Tcl. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetDouble">
+<span class="target" id="rbc_vector_int_8h_1ae01f03052bf7d80248946976f6fecebf"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetDouble</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetDouble" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert an object to a double, with Tcl expression fallback. </p>
+<p>Tries Tcl_GetDoubleFromObj first, then clears its error and calls Tcl_ExprDoubleObj. Returns a Tcl status. Expression evaluation can execute commands; callers own lifetime and writable-state checks after conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetComplex">
+<span class="target" id="rbc_vector_int_8h_1a6335586e3c8363605e42112d4fe30e57"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetComplex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetComplex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a two-item list or a real scalar to a complex value. </p>
+<p>Each pair component uses Rbc_GetDouble; scalar input receives zero imaginary part. Returns a Tcl status. Conversion may execute Tcl and can modify the real output component before failure of the imaginary component. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NewComplexObj">
+<span class="target" id="rbc_vector_int_8h_1ae6ee9c04802e9a4a842f90c36c534468"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NewComplexObj</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NewComplexObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a reference-count-zero two-double Tcl list. </p>
+<p>The result owns copies of the real and imaginary values; the caller follows normal Tcl object ownership rules. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_NewVectorValueObj">
+<span class="target" id="rbc_vector_int_8h_1a89642e7410205d3565f09b979a2bf8d9"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NewVectorValueObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NewVectorValueObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a reference-count-zero Tcl value for one storage index. </p>
+<p>Returns a double for real vectors or a two-double list for complex vectors. The caller supplies a live vector and valid zero-based index. Does not check bounds and does not expose or retain vector storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetValues">
+<span class="target" id="rbc_vector_int_8h_1a0abb4ad9ea44a5dcea42ee0076b4c865"></span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">last</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetValues" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy an inclusive storage interval into a new Tcl list. </p>
+<p>Returns a reference-count-zero list, empty when first exceeds last. The caller validates storage bounds and lifetime. Complex entries are pairs; real entries are doubles. Does not change the vector selection. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_VectorSortIndex">
+<span class="target" id="rbc_vector_int_8h_1af2fdf896400360bc7a09226c531e1798"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorSortIndex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtrPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nVectors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorSortIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a lexicographic permutation for real vector keys. </p>
+<p>Requires nVectors greater than zero, live vectors, and valid storage for every index in the first vector’s inclusive selection. Returns a Tcl-allocated index array for the caller to free, including an allocation for an empty successful sort; NULL reports failure in the first vector’s interpreter. Does not reorder data. Heap sorting is not stable; comparisons do not define a total ordering for NaNs. Complex keys are rejected. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector access C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_VectorFlushCache"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorFlushCache()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorParseElement"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorParseElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorMapVariable"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorGetIndex"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetIndex()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorGetIndexRange"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorGetIndexRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_GetDouble()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetComplex"><code class="docutils literal notranslate"><span class="pre">Rbc_GetComplex()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_NewComplexObj"><code class="docutils literal notranslate"><span class="pre">Rbc_NewComplexObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_NewVectorValueObj"><code class="docutils literal notranslate"><span class="pre">Rbc_NewVectorValueObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetValues"><code class="docutils literal notranslate"><span class="pre">Rbc_GetValues()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_VectorSortIndex"><code class="docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-access.html"
+                          title="previous chapter">Vector names, indices and mapped arrays</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="vector-commands.html"
+                          title="next chapter">Vector instance commands and binary input</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="vector-commands.html" title="Vector instance commands and binary input"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-access.html" title="Vector names, indices and mapped arrays"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector access C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

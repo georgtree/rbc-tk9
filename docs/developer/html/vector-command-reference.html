@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vector command C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Vector expression evaluation" href="expressions.html" />
+    <link rel="prev" title="Vector instance commands and binary input" href="vector-commands.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vector-commands.html" title="Vector instance commands and binary input"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector command C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="vector-command-c-reference">
+<h1>Vector command C reference<a class="headerlink" href="#vector-command-c-reference" title="Link to this heading">¶</a></h1>
+<p>Selected private handlers and helpers from <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. See
+<a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a> for dispatch, partial updates and callback limitations.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__vector__command__paths"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">instance</span> <span class="pre">command</span> <span class="pre">paths</span></span></dt>
+<dd><p>Selected private mutation and input helpers; see the developer manual for partial-update and callback lifetime limitations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AppendOp">
+<span class="target" id="group__vector__command__paths_1ga2e7e0565d97e44376e1e9aee4681adca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append vector ranges or Tcl lists in argument order. </p>
+<p>Vector lookup precedes list conversion. Earlier arguments remain appended if a later argument fails. Reports the appended range when length grew, including the error path; otherwise successful calls report a full update. Flushes the mapped cache when configured. Notification may execute callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParseFormat">
+<span class="target" id="group__vector__command__paths_1ga41cd0bf0ff4a4bee83bed9986540e984"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseFormat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseFormat" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select a supported native scalar type from a format and byte width. </p>
+<p>Floating, signed and unsigned formats resolve against native C sizeof values. Returns the consumed argument count, or -1 on error. This is host representation, not a portable serialized type description; conversion to double may lose integer precision. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ParseAt">
+<span class="target" id="group__vector__command__paths_1ga6ecdf9807f64869bdf5d58c4b900e7ac"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseAt</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objv</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ParseAt" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a binary-input starting storage position. </p>
+<p>Uses vector index conversion, allowing positions from zero through length inclusive. Returns the consumed argument count, or -1 on error. Index expressions may evaluate Tcl. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.BinreadOp">
+<span class="target" id="group__vector__command__paths_1gac4f505724683035261de2ae3da36aae2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BinreadOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.BinreadOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read native-format channel scalars into vector storage. </p>
+<p>Retains a readable channel, temporarily sets binary translation, and restores the saved translation if the caller has not closed the channel. Real values use one scalar, complex values two interleaved scalars. A positive count performs one read; zero reads chunks until EOF or a zero-byte read. Rejects incomplete values rather than buffering partial records. Completed chunks remain on error and trigger cache flushing/notification while preserving the original error state. Success reports logical value count. Checks destination lifetime/read-only state and channel registration after reflected reads. The dispatcher retains the vector. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SetOp">
+<span class="target" id="group__vector__command__paths_1gaa61fd39e30e3fab73b9e4153a06ed4ea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace values from a vector range or Tcl list. </p>
+<p>Stages vector ranges (including self-copy) or converted list values before replacing storage. Failed conversion does not write destination data. Tcl callbacks retain their own side effects. Flushes/notifies only a still-live committed object; callbacks cannot redirect the operation by recreating a name. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SortOp">
+<span class="target" id="group__vector__command__paths_1ga11c9c3ac266bba0b62d09c950cda6542"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SortOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SortOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Sort real values and apply their permutation to companion vectors. </p>
+<p>Retains resolved destination identities and validates all keys before any write. Reuses one scratch array to apply the permutation without callbacks; only then flushes and notifies surviving objects. Notifications may alter or destroy committed vectors, but never expose a partially applied permutation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AppendVector">
+<span class="target" id="group__vector__command__paths_1gabb05eeca455c477b43d05bafb50aed85"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">destPtr</span></span>, <span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendVector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a selected vector range without Tcl-list conversion. </p>
+<p>Requires matching real/complex types. Saves source selection before resize and uses memmove against current storage, permitting self-append. Checks length/byte arithmetic. Returns a Tcl status; does not flush or notify. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AppendList">
+<span class="target" id="group__vector__command__paths_1gab90c7632638a6757c978ae67cd84915c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendList" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage list values before appending the completed list. </p>
+<p>Converts a complete list into temporary storage and rechecks lifetime and writable state after conversion. Appends to the current length, accounting for callback edits. Conversion failure does not append a partial list. Does not flush or notify; the instance dispatcher retains the destination. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CopyValues">
+<span class="target" id="group__vector__command__paths_1ga33df9783ee82b389ab18502b8c2f4dcf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CopyValues" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a binary scalar buffer into real vector storage. </p>
+<p>Checks writable state, range and size arithmetic, extends storage as needed, and advances indexPtr. Optional byte swapping modifies the input buffer in place per scalar. Returns a Tcl status; does not flush or notify. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CopyComplexValues">
+<span class="target" id="group__vector__command__paths_1ga073a7baa979560610b7dbb319d6217f6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyComplexValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CopyComplexValues" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert interleaved binary components into complex storage. </p>
+<p>Requires a complex vector. Checks writable state and size arithmetic; extends storage and advances indexPtr by logical values. Swaps bytes within each scalar component, never exchanging real and imaginary components. Modifies the input buffer when swapping; does not flush or notify. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.CopyList">
+<span class="target" id="group__vector__command__paths_1gacf829e325065570f97f86571ef4be687"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyList</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CopyList" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a complete Tcl list before replacing vector storage. </p>
+<p>Returns a Tcl status. Conversion failure leaves destination values/length unchanged except for the callbacks’ own changes. Transfers staged storage on success, with lifetime/read-only checks before commit. Does not notify; callers retain the destination and interpreter through callbacks. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Vector command C reference</a><ul>
+<li><a class="reference internal" href="#c.AppendOp"><code class="docutils literal notranslate"><span class="pre">AppendOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseFormat"><code class="docutils literal notranslate"><span class="pre">ParseFormat()</span></code></a></li>
+<li><a class="reference internal" href="#c.ParseAt"><code class="docutils literal notranslate"><span class="pre">ParseAt()</span></code></a></li>
+<li><a class="reference internal" href="#c.BinreadOp"><code class="docutils literal notranslate"><span class="pre">BinreadOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SetOp"><code class="docutils literal notranslate"><span class="pre">SetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SortOp"><code class="docutils literal notranslate"><span class="pre">SortOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.AppendVector"><code class="docutils literal notranslate"><span class="pre">AppendVector()</span></code></a></li>
+<li><a class="reference internal" href="#c.AppendList"><code class="docutils literal notranslate"><span class="pre">AppendList()</span></code></a></li>
+<li><a class="reference internal" href="#c.CopyValues"><code class="docutils literal notranslate"><span class="pre">CopyValues()</span></code></a></li>
+<li><a class="reference internal" href="#c.CopyComplexValues"><code class="docutils literal notranslate"><span class="pre">CopyComplexValues()</span></code></a></li>
+<li><a class="reference internal" href="#c.CopyList"><code class="docutils literal notranslate"><span class="pre">CopyList()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="vector-commands.html"
+                          title="previous chapter">Vector instance commands and binary input</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="expressions.html"
+                          title="next chapter">Vector expression evaluation</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="expressions.html" title="Vector expression evaluation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vector-commands.html" title="Vector instance commands and binary input"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Vector command C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

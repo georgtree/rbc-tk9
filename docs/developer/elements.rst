@@ -134,3 +134,15 @@ See :doc:`decimation` for dense line mapping, cache maintenance and source picki
 See :doc:`bars` for bar grouping, placement, error translations and mapped ownership.
 
 See :doc:`fills` for area closure, uncertainty-band runs and fill resource ownership.
+
+Synchronous layout before idle notifications
+--------------------------------------------
+
+Vector updates normally notify clients at idle. A command can replace vector
+storage and immediately request export or axis limits before that notification
+runs. ``Rbc_SyncElementVectors`` refreshes pending coordinate, weight and error
+slots before graph layout or axis reset uses their borrowed arrays. It marks
+mapping and ranges dirty without delivering client callbacks or processing Tcl
+events. A full change is recorded because exact ranged metadata is only
+available inside the notification callback; the queued notification remains
+scheduled normally.
