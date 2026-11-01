@@ -152,13 +152,30 @@ typedef enum {
     RBC_OP_ARG4  /* Op is the fifth argument. */
 } Rbc_OpIndex;
 
+/**
+ * @brief Common first member of persistent typed operation-table entries.
+ *
+ * Terminate a table with a NULL name. Bounds count the complete command word
+ * vector; maxArgs <= 0 is unbounded. The enclosing entry supplies its own
+ * correctly typed callback, and its sizeof is the lookup stride.
+ */
 typedef struct {
-    const char *name;
-    Tcl_Size minArgs;
-    Tcl_Size maxArgs;
-    const char *usage;
+    const char *name;    /**< Borrowed persistent operation name. */
+    Tcl_Size minArgs;    /**< Minimum total argument count. */
+    Tcl_Size maxArgs;    /**< Maximum total count, or nonpositive for no maximum. */
+    const char *usage;   /**< Borrowed suffix for Tcl_WrongNumArgs. */
 } Rbc_OpSpecHeader;
 
+/**
+ * @brief Select a typed operation-table entry and validate total argument count.
+ *
+ * Require a persistent NULL-name-terminated table whose entries start with
+ * Rbc_OpSpecHeader and have byte stride specSize. Tcl lookup accepts unique
+ * abbreviations and caches the table in the operation object. On success assign
+ * indexPtr, not a function pointer; the caller dispatches through its typed table.
+ * minArgs/maxArgs count all objc words; maxArgs <= 0 means unbounded. Leave the
+ * output unchanged on error and set an interpreter diagnostic.
+ */
 int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
                           Tcl_Obj *const objv[], int *indexPtr);
 /**
@@ -216,6 +233,13 @@ typedef void *DestroyData;
 
 typedef int(QSortCompareProc)(const void *, const void *);
 
+/**
+ * @brief Parse one or two nonnegative screen distances into a staged padding value.
+ *
+ * One distance sets both sides; two preserve order. Borrow the Tcl list and
+ * window. Only assign padPtr after all conversions succeed; errors leave the
+ * previous padding unchanged. No resources are allocated into the result.
+ */
 int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_Pad *padPtr);
 
 /*
@@ -234,6 +258,15 @@ int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_
 #define FILL_Y 2
 #define FILL_BOTH 3
 
+/**
+ * @brief Parse named or expression-valued dashes into a staged descriptor.
+ *
+ * NULL/empty input or the singleton zero yields solid lines. Named patterns
+ * are exact matches; lists have at most RBC_MAX_DASH_VALUES entries in 1..255.
+ * Evaluate list entries through Tcl_ExprLongObj, so arbitrary Tcl callbacks are
+ * possible. Commit only on success and reset the descriptor offset to zero.
+ * The helper does not preserve the owning component across those callbacks.
+ */
 int Rbc_GetDashesFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Rbc_Dashes *dashesPtr);
 /**
  * @brief Set dash bytes and offset on a caller-mutable GC.
@@ -284,9 +317,34 @@ void Rbc_FreeColorPair(ColorPair *pairPtr);
 #define XNOSTDHDRS 1
 #endif
 
+/**
+ * @brief Format an int into borrowed shared scratch storage.
+ *
+ * Return a pointer to the same process-static buffer used by Rbc_Utoa and
+ * Rbc_Dtoa. A subsequent call to any of them overwrites it. Do not free or
+ * retain it without copying; concurrent calls are not synchronized.
+ */
 char *Rbc_Itoa(int value);
+/**
+ * @brief Format an unsigned int into borrowed shared scratch storage.
+ *
+ * Shares the buffer and overwrite/threading restrictions of Rbc_Itoa.
+ * The returned decimal string is not caller-owned.
+ */
 char *Rbc_Utoa(unsigned int value);
+/**
+ * @brief Format a double through Tcl_PrintDouble into shared scratch storage.
+ *
+ * Borrow interp. Shares the buffer with Rbc_Itoa and Rbc_Utoa; copy the result
+ * before another formatting call and never free the returned pointer.
+ */
 char *Rbc_Dtoa(Tcl_Interp *interp, double value);
+/**
+ * @brief Return a rand-derived value in the half-open interval [0, 1).
+ *
+ * Consumes the C library PRNG state and does not seed it. No interpreter-local
+ * state, reproducibility across platforms or cryptographic quality is promised.
+ */
 double Rbc_RandomDouble(void);
 
 /**
@@ -451,10 +509,46 @@ int Rbc_PointInSegments(const Point2D *samplePtr, const Segment2D *segments, Tcl
  * borrowed and unchanged; temporary stack storage is released before return.
  */
 Tcl_Size Rbc_SimplifyLine(const Point2D *origPts, Tcl_Size low, Tcl_Size high, double tolerance, Tcl_Size indices[]);
+/**
+ * @brief Parse a color and optional nonnegative pixel offset into an owned shadow.
+ *
+ * NULL or empty input yields no color and offset zero. A color alone defaults
+ * to offset one. Acquire a Tk color reference and release it on offset failure.
+ * Only success assigns shadowPtr. The caller must release any previous shadow
+ * separately and ultimately Tk_FreeColor the returned non-NULL color.
+ */
 int Rbc_GetShadowFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Shadow *shadowPtr);
+/**
+ * @brief Parse a nonempty fill-name prefix into an integer mode.
+ *
+ * Accept none (also legacy no), x, y or both using case-sensitive prefix
+ * matching. Commit fillPtr only on success. This is directional fill selection,
+ * not the graph area-fill brush or uncertainty-band parser.
+ */
 int Rbc_GetFillFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *fillPtr);
+/**
+ * @brief Parse an exact normal, active or disabled state name.
+ *
+ * Borrow objPtr and commit statePtr only on success. Abbreviations and case
+ * variants are not accepted. Return TCL_ERROR with a diagnostic otherwise.
+ */
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr);
+/**
+ * @brief Copy a Tcl list into one caller-owned pointer-and-string allocation.
+ *
+ * NULL input and an empty list yield NULL. Set listPtrPtr to NULL before parsing,
+ * including on failure; do not pass the sole owning field of an existing list
+ * unless its storage is managed separately. Release a nonempty result with one
+ * ckfree, never by freeing individual entries. Input strings are NUL-terminated.
+ */
 int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr);
+/**
+ * @brief Set hexadecimal digit entries in a caller-owned character table.
+ *
+ * Require storage addressable by the character codes for 0-9, a-f and A-F
+ * (typically 256 entries). Set only those slots to 0 through 15. All other
+ * slots keep their previous contents; callers initialize invalid-digit sentinels.
+ */
 void Rbc_InitHexTable(char *table);
 /**
  * @brief Allocate an unshared GC compatible with a Tk window depth.
@@ -479,10 +573,47 @@ GC Rbc_GetPrivateGCFromDrawable(Display *display, Drawable drawable, unsigned lo
  * after release. No resource-ownership tracking or NULL check is performed.
  */
 void Rbc_FreePrivateGC(Display *display, GC gc);
+/**
+ * @brief Parse a Tk screen distance and validate its converted integer value.
+ *
+ * Borrow window/string. Apply PIXELS_ANY, PIXELS_NONNEGATIVE or PIXELS_POSITIVE
+ * after Tk_GetPixels succeeds; these flags do not override Tk parser policy.
+ * Commit valuePtr only on success. Return Tcl status with an error diagnostic.
+ */
 int Rbc_GetPixels(Tcl_Interp *, Tk_Window, const char *, int, int *);
+/**
+ * @brief Parse an object screen distance with the same checks as Rbc_GetPixels.
+ *
+ * Borrow object/window and use Tk_GetPixelsFromObj before RBC range checks.
+ * Only success assigns valuePtr; the object may acquire Tk conversion state.
+ * No expression evaluation or graph-axis conversion is performed here.
+ */
 int Rbc_GetPixelsFromObj(Tcl_Interp *, Tk_Window, Tcl_Obj *, int, int *);
+/**
+ * @brief Parse an optional \@x,y position using Tk screen-distance conversion.
+ *
+ * NULL/empty input succeeds with both outputs set to -SHRT_MAX. Otherwise copy
+ * the X substring without modifying the input and parse both components. Commit
+ * x/y only after both succeed. These are screen pixels, not graph coordinates;
+ * conversion errors append position context to the interpreter diagnostic.
+ */
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *x, int *y);
+/**
+ * @brief Append NUL-terminated strings as Tcl list elements.
+ *
+ * Borrow the initialized DString and arguments, ending varargs with a NULL
+ * string pointer. Tcl_DStringAppendElement supplies list quoting. Existing
+ * contents remain; the caller owns the DString and eventually frees it.
+ */
 void Rbc_DStringAppendElements(Tcl_DString *, ...);
+/**
+ * @brief Append raw string fragments to a duplicate of the interpreter result.
+ *
+ * Borrow interp and NUL-terminated arguments ending with a NULL string pointer.
+ * Duplicate the current object before appending, then install and release the
+ * local reference. Shared original objects remain unchanged. Fragments are not
+ * list-quoted, and this helper does not set structured Tcl error metadata.
+ */
 void Rbc_AppendResultStrings(Tcl_Interp *interp, ...);
 void Rbc_GetBoundingBox(int width, int height, double theta, double *widthPtr, double *heightPtr, Point2D *points);
 void Rbc_InitEpsCanvasItem(Tcl_Interp *interp);
@@ -510,6 +641,12 @@ int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsP
  * this is not Unicode case folding. An empty name produces an empty copy.
  */
 char *Rbc_GetComponentResourceName(const char *name);
+/**
+ * @brief Saturate an already-computed wide integer to INT_MIN..INT_MAX.
+ *
+ * Pure conversion with no interpreter state. Does not round floating values,
+ * check finiteness or impose widget-specific minimum sizes.
+ */
 int Rbc_ClampToInt(Tcl_WideInt value);
 /**
  * @brief Initialize a component record with its option-database identity.
@@ -683,7 +820,22 @@ Tcl_AppInitProc Rbc_WinopInit;
 Tcl_AppInitProc Rbc_SplineInit;
 #endif
 
+/**
+ * @brief Copy a non-NULL NUL-terminated string into Tcl-owned storage.
+ *
+ * Borrow the input and copy through its first NUL, including the terminator.
+ * The caller releases the result with ckfree, not libc free. Uses ckalloc
+ * failure policy; this is not a binary-data or length-delimited copy.
+ */
 char *RbcStrdup(const char *ptr);
+/**
+ * @brief Allocate a zero-initialized Tcl-owned block.
+ *
+ * Check nElem * size for size_t overflow and panic on overflow. A zero logical
+ * size allocates one zero byte, preserving a non-NULL ckalloc-style result.
+ * The caller releases the allocation with ckfree. Allocation failure is fatal,
+ * not a recoverable NULL result.
+ */
 void *RbcCalloc(size_t nElem, size_t size);
 
 #ifdef WIN32

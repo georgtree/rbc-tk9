@@ -13,7 +13,8 @@ export orchestration, SVG definitions and image encoding, PDF resource serializa
 ownership, crosshair presentation, legend ownership and layout, grid inheritance and output, pen and
 palette ownership, marker lifecycle, element data and dispatch, axis and track mapping, shared
 GC/window services, standalone window/photo command dispatch, EPS canvas parsing and preview
-ownership, and source-comment conventions.
+ownership, allocation and UID ownership, typed operation dispatch, shared value conversion, numeric
+compatibility, and source-comment conventions.
 
 Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
 

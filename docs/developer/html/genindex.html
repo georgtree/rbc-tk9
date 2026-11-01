@@ -51,6 +51,7 @@
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
@@ -105,6 +106,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="decimation-reference.html#c.DecimatePointsByPixels">DecimatePointsByPixels (C function)</a>
 </li>
+      <li><a href="math-reference.html#c.DEFINED">DEFINED (C macro)</a>
+</li>
       <li><a href="eps-reference.html#c.DeleteEps">DeleteEps (C function)</a>
 </li>
       <li><a href="track-reference.html#c.DeleteTracks">DeleteTracks (C function)</a>
@@ -136,6 +139,10 @@
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="math-reference.html#c.FMOD">FMOD (C macro)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cairo-reference.html#c.FreeRenderContext">FreeRenderContext (C function)</a>
 </li>
@@ -243,6 +250,8 @@
 </li>
       <li><a href="postscript-reference.html#c.Rbc_AppendPostScriptString">Rbc_AppendPostScriptString (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_AppendResultStrings">Rbc_AppendResultStrings (C function)</a>
+</li>
       <li><a href="postscript-reference.html#c.Rbc_AppendToPostScript">Rbc_AppendToPostScript (C function)</a>
 </li>
       <li><a href="binding-reference.html#c.Rbc_BindTable">Rbc_BindTable (C type)</a>
@@ -260,6 +269,8 @@
       <li><a href="container-reference.html#c.Rbc_ChainReset">Rbc_ChainReset (C function)</a>
 </li>
       <li><a href="container-reference.html#c.Rbc_ChainUnlinkLink">Rbc_ChainUnlinkLink (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_ClampToInt">Rbc_ClampToInt (C function)</a>
 </li>
       <li><a href="image-color-reference.html#c.Rbc_ColorImageToGreyscale">Rbc_ColorImageToGreyscale (C function)</a>
 </li>
@@ -317,6 +328,10 @@
 </li>
       <li><a href="marker-reference.html#c.Rbc_DrawMarkers">Rbc_DrawMarkers (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_DStringAppendElements">Rbc_DStringAppendElements (C function)</a>
+</li>
+      <li><a href="utility-reference.html#c.Rbc_Dtoa">Rbc_Dtoa (C function)</a>
+</li>
       <li><a href="element-reference.html#c.Rbc_ElemDataTransactionPointCount">Rbc_ElemDataTransactionPointCount (C function)</a>
 </li>
       <li><a href="crosshair-reference.html#c.Rbc_EnableCrosshairs">Rbc_EnableCrosshairs (C function)</a>
@@ -351,6 +366,8 @@
 </li>
       <li><a href="track-reference.html#c.Rbc_FindTrack">Rbc_FindTrack (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_FindUid">Rbc_FindUid (C function)</a>
+</li>
       <li><a href="text-font-reference.html#c.Rbc_FirstExportFont">Rbc_FirstExportFont (C function)</a>
 </li>
       <li><a href="text-font-reference.html#c.Rbc_FontUnicodeProgram">Rbc_FontUnicodeProgram (C function)</a>
@@ -375,6 +392,8 @@
 </li>
       <li><a href="track-reference.html#c.Rbc_FreeTrackComponentArgs">Rbc_FreeTrackComponentArgs (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_FreeUid">Rbc_FreeUid (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_FreeVectorId">Rbc_FreeVectorId (C function)</a>
 </li>
       <li><a href="configuration-reference.html#c.Rbc_GetCanonicalOptionName">Rbc_GetCanonicalOptionName (C function)</a>
@@ -387,7 +406,19 @@
 </li>
       <li><a href="configuration-reference.html#c.Rbc_GetComponentResourceName">Rbc_GetComponentResourceName (C function)</a>
 </li>
+      <li><a href="value-reference.html#c.Rbc_GetDashesFromObj">Rbc_GetDashesFromObj (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetFillFromObj">Rbc_GetFillFromObj (C function)</a>
+</li>
+      <li><a href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj">Rbc_GetOpIndexFromObj (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetPadFromObj">Rbc_GetPadFromObj (C function)</a>
+</li>
       <li><a href="pen-reference.html#c.Rbc_GetPen">Rbc_GetPen (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetPixels">Rbc_GetPixels (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetPixelsFromObj">Rbc_GetPixelsFromObj (C function)</a>
 </li>
       <li><a href="window-service-reference.html#c.Rbc_GetPrivateGC">Rbc_GetPrivateGC (C function)</a>
 </li>
@@ -401,6 +432,12 @@
 </li>
       <li><a href="scroll-reference.html#c.Rbc_GetScrollInfoFromObj">Rbc_GetScrollInfoFromObj (C function)</a>
 </li>
+      <li><a href="value-reference.html#c.Rbc_GetShadowFromObj">Rbc_GetShadowFromObj (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetStateFromObj">Rbc_GetStateFromObj (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetStringListFromObj">Rbc_GetStringListFromObj (C function)</a>
+</li>
       <li><a href="text-font-reference.html#c.Rbc_GetTextExtents">Rbc_GetTextExtents (C function)</a>
 </li>
       <li><a href="text-font-reference.html#c.Rbc_GetTextLayout">Rbc_GetTextLayout (C function)</a>
@@ -409,9 +446,13 @@
 </li>
       <li><a href="image-tile-reference.html#c.Rbc_GetTilePhoto">Rbc_GetTilePhoto (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_GetUid">Rbc_GetUid (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_GetVectorById">Rbc_GetVectorById (C function)</a>
 </li>
       <li><a href="window-service-reference.html#c.Rbc_GetWindowInstanceData">Rbc_GetWindowInstanceData (C function)</a>
+</li>
+      <li><a href="value-reference.html#c.Rbc_GetXY">Rbc_GetXY (C function)</a>
 </li>
       <li><a href="graph-reference.html#c.Rbc_GraphCallbackValid">Rbc_GraphCallbackValid (C function)</a>
 </li>
@@ -429,11 +470,15 @@
 </li>
       <li><a href="export-reference.html#c.Rbc_InitGraphExportOptions">Rbc_InitGraphExportOptions (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_InitHexTable">Rbc_InitHexTable (C function)</a>
+</li>
       <li><a href="initialization-reference.html#c.Rbc_InitStubs">Rbc_InitStubs (C function)</a>
 </li>
       <li><a href="text-font-reference.html#c.Rbc_InitTextStyle">Rbc_InitTextStyle (C function)</a>
 </li>
       <li><a href="mapping-reference.html#c.Rbc_InvMap2D">Rbc_InvMap2D (C function)</a>
+</li>
+      <li><a href="utility-reference.html#c.Rbc_Itoa">Rbc_Itoa (C function)</a>
 </li>
       <li><a href="graph-reference.html#c.Rbc_LayoutGraph">Rbc_LayoutGraph (C function)</a>
 </li>
@@ -495,6 +540,16 @@
 </li>
       <li><a href="scroll-reference.html#c.Rbc_NotifyTrackView">Rbc_NotifyTrackView (C function)</a>
 </li>
+      <li><a href="dispatch-reference.html#c.Rbc_OpSpecHeader">Rbc_OpSpecHeader (C struct)</a>
+</li>
+      <li><a href="dispatch-reference.html#c.Rbc_OpSpecHeader.maxArgs">Rbc_OpSpecHeader.maxArgs (C var)</a>
+</li>
+      <li><a href="dispatch-reference.html#c.Rbc_OpSpecHeader.minArgs">Rbc_OpSpecHeader.minArgs (C var)</a>
+</li>
+      <li><a href="dispatch-reference.html#c.Rbc_OpSpecHeader.name">Rbc_OpSpecHeader.name (C var)</a>
+</li>
+      <li><a href="dispatch-reference.html#c.Rbc_OpSpecHeader.usage">Rbc_OpSpecHeader.usage (C var)</a>
+</li>
       <li><a href="element-reference.html#c.Rbc_ParseElemVectorObj">Rbc_ParseElemVectorObj (C function)</a>
 </li>
       <li><a href="scroll-reference.html#c.Rbc_ParseScrollRequest">Rbc_ParseScrollRequest (C function)</a>
@@ -535,7 +590,11 @@
 </li>
       <li><a href="spline-reference.html#c.Rbc_QuadraticSpline">Rbc_QuadraticSpline (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="image-color-reference.html#c.Rbc_QuantizeColorImage">Rbc_QuantizeColorImage (C function)</a>
+</li>
+      <li><a href="utility-reference.html#c.Rbc_RandomDouble">Rbc_RandomDouble (C function)</a>
 </li>
       <li><a href="legend-reference.html#c.Rbc_RedrawExternalLegend">Rbc_RedrawExternalLegend (C function)</a>
 </li>
@@ -553,8 +612,6 @@
 </li>
       <li><a href="reference.html#c.RBC_RENDER_BITMAP_OUTLINE_POINTS">RBC_RENDER_BITMAP_OUTLINE_POINTS (C macro)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference.html#c.Rbc_RenderArc">Rbc_RenderArc (C function)</a>
 </li>
       <li><a href="reference.html#c.Rbc_RenderArcGeometry">Rbc_RenderArcGeometry (C struct)</a>
@@ -823,6 +880,8 @@
 </li>
       <li><a href="crosshair-reference.html#c.Rbc_UpdateCrosshairs">Rbc_UpdateCrosshairs (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_Utoa">Rbc_Utoa (C function)</a>
+</li>
       <li><a href="vector-reference.html#c.Rbc_Vector">Rbc_Vector (C type)</a>
 </li>
       <li><a href="expression-reference.html#c.Rbc_VectorEvaluate">Rbc_VectorEvaluate (C function)</a>
@@ -861,6 +920,10 @@
 </li>
       <li><a href="mapping-reference.html#c.Rbc_VMap">Rbc_VMap (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.RbcCalloc">RbcCalloc (C function)</a>
+</li>
+      <li><a href="utility-reference.html#c.RbcStrdup">RbcStrdup (C function)</a>
+</li>
       <li><a href="mapping-reference.html#c.RbcTrackViewport">RbcTrackViewport (C struct)</a>
 </li>
       <li><a href="eps-reference.html#c.ReadPostScript">ReadPostScript (C function)</a>
@@ -872,6 +935,8 @@
       <li><a href="winop-reference.html#c.ResampleOp">ResampleOp (C function)</a>
 </li>
       <li><a href="winop-reference.html#c.RotateOp">RotateOp (C function)</a>
+</li>
+      <li><a href="math-reference.html#c.ROUND">ROUND (C macro)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -918,6 +983,14 @@
       <li><a href="image-compatibility-reference.html#c.Tk_ImageGetType">Tk_ImageGetType (C function)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.Tk_ImageIsDeleted">Tk_ImageIsDeleted (C function)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="math-reference.html#c.UNDEFINED">UNDEFINED (C macro)</a>
 </li>
   </ul></td>
 </tr></table>

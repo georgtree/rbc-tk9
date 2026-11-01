@@ -27,30 +27,6 @@ static const char *NameOfColor(XColor *colorPtr);
  * ----------------------------------------------------------------------
  */
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetXY --
- *
- *      Parses a position in the form "@x,y".
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter used for error reporting.
- *      Tk_Window tkwin    - Window used to convert Tk distance units.
- *      const char *string - Position string.
- *      int *xPtr          - Receives the X coordinate.
- *      int *yPtr          - Receives the Y coordinate.
- *
- * Results:
- *      Returns TCL_OK and stores the converted coordinates in xPtr
- *      and yPtr on success.  Returns TCL_ERROR and sets the interpreter
- *      result if the position is malformed or cannot be converted.
- *
- * Side Effects:
- *      May set the interpreter result.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetXY(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int *xPtr, int *yPtr) {
     const char *comma;
     Tcl_DString xString;

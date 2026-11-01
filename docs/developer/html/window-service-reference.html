@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Shared drawing and window C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Window and photo command implementation" href="winop-internals.html" />
+    <link rel="prev" title="Shared drawing and window services" href="window-services.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="winop-internals.html" title="Window and photo command implementation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="window-services.html" title="Shared drawing and window services"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared drawing and window C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="shared-drawing-and-window-c-reference">
+<h1>Shared drawing and window C reference<a class="headerlink" href="#shared-drawing-and-window-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for ownership, failure and platform boundaries.
+These are private implementation interfaces.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetPrivateGC">
+<span class="target" id="rbc_int_8h_1a951ec6fd067f78c5ab360508da919c0e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPrivateGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">gcMask</span></span>, <span class="n"><span class="pre">XGCValues</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPrivateGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unshared GC compatible with a Tk window depth. </p>
+<p>Borrow tkwin and XGCValues. For an unrealized window use the root drawable at matching depth, otherwise a temporary 1x1 pixmap. Release that temporary pixmap before returning. The caller owns the GC and must use <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>, not Tk_FreeGC(). Does not force window realization. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetPrivateGCFromDrawable">
+<span class="target" id="rbc_int_8h_1aaf47b731b33514877456cd51ecfe51ac"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetPrivateGCFromDrawable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">gcMask</span></span>, <span class="n"><span class="pre">XGCValues</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetPrivateGCFromDrawable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unshared GC using a borrowed compatible drawable. </p>
+<p>Pass gcMask and valuePtr to XCreateGC. The caller owns the returned GC; release it with <a class="reference internal" href="#rbc_int_8h_1a569f02c16274d93b31e193f6df872158"><span class="std std-ref">Rbc_FreePrivateGC()</span></a>. No Tk GC-cache reference is created. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreePrivateGC">
+<span class="target" id="rbc_int_8h_1a569f02c16274d93b31e193f6df872158"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreePrivateGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreePrivateGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a non-NULL private GC with XFreeGC. </p>
+<p>Borrow display. Do not pass a Tk_GetGC cache reference or reuse the GC after release. No resource-ownership tracking or NULL check is performed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SetDashes">
+<span class="target" id="rbc_int_8h_1a9048afa1583009f3e54722d80049833e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetDashes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetDashes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set dash bytes and offset on a caller-mutable GC. </p>
+<p>Read at most RBC_MAX_DASH_VALUES bytes, stopping at zero, and call XSetDashes. Borrow the descriptor; do not alter a shared Tk GC unless its owner explicitly permits mutation. This helper does not select the GC line style. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_MaxRequestSize">
+<span class="target" id="rbc_int_8h_1aeb5db42358b4e98eba0999dabd8949c0"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MaxRequestSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">elemSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MaxRequestSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Estimate how many elemSize-byte records fit in an X request. </p>
+<p>Use the extended limit when supported and nonzero, otherwise the ordinary limit. Reserve four protocol words, convert to bytes and divide by elemSize. Return zero for zero element size, unusable limits or multiplication overflow; clamp the count to INT_MAX. Callers still own request batching and headers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Draw3DRectangle">
+<span class="target" id="rbc_int_8h_1a48779938d3d96544a1d650986888ecbc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Draw3DRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tk_3DBorder</span></span><span class="w"> </span><span class="n"><span class="pre">border</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">relief</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Draw3DRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw the legacy RBC native relief border inside a rectangle. </p>
+<p>Borrow window, drawable and border. For raised/sunken borders wider than one pixel and dimensions above two, draw an outer edge before delegating the inset to Tk_Draw3DRectangle. Edge GCs differ between X11 and Windows. This shared Tk utility does not establish a graph renderer context or clipping region. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetRealWindowId">
+<span class="target" id="rbc_int_8h_1a4b42fed6e014e46c943cbd6978ce487d"></span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetRealWindowId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetRealWindowId" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a native client or toplevel-wrapper identifier. </p>
+<p>May realize the borrowed Tk window. X11 queries the toplevel parent; Windows returns a raw HWND cast to Window. It is not a portable Tk drawable token. No ownership transfers. X11 keeps the realized client if parent lookup fails; callers must still distinguish native wrapper IDs from Tk drawable tokens. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_SetWindowInstanceData">
+<span class="target" id="rbc_int_8h_1a39f1587d0089d79b12964156082a969d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">instanceData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_SetWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Associate a borrowed payload with a Tk window in its interpreter. </p>
+<p>Lazily allocate a one-word-key table as Tcl associated data. Replacing a value does not free the old payload. The caller must remove the entry before the window/payload becomes invalid; interpreter cleanup frees only the table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetWindowInstanceData">
+<span class="target" id="rbc_int_8h_1a4103cc5d4097b78af6642ea74f3cebfd"></span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Look up a borrowed per-window payload. </p>
+<p>Return NULL for a missing entry or an absent interpreter table. Lookup does not allocate a table and does not retain the payload or Tk window. Require a live Tk_Window even when no association exists. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DeleteWindowInstanceData">
+<span class="target" id="rbc_int_8h_1aeb5d6fde3978fc6506e70e6d49be178b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DeleteWindowInstanceData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DeleteWindowInstanceData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Remove a per-window association without freeing its payload. </p>
+<p>Require a live window. An absent table or missing entry is a no-op and does not allocate storage. The window owner is responsible for removing its association during teardown. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Shared drawing and window C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_GetPrivateGC"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetPrivateGCFromDrawable"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPrivateGCFromDrawable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreePrivateGC"><code class="docutils literal notranslate"><span class="pre">Rbc_FreePrivateGC()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SetDashes"><code class="docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_MaxRequestSize"><code class="docutils literal notranslate"><span class="pre">Rbc_MaxRequestSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Draw3DRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetRealWindowId"><code class="docutils literal notranslate"><span class="pre">Rbc_GetRealWindowId()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_SetWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_SetWindowInstanceData()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_GetWindowInstanceData()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DeleteWindowInstanceData"><code class="docutils literal notranslate"><span class="pre">Rbc_DeleteWindowInstanceData()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="window-services.html"
+                          title="previous chapter">Shared drawing and window services</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="winop-internals.html"
+                          title="next chapter">Window and photo command implementation</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="winop-internals.html" title="Window and photo command implementation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="window-services.html" title="Shared drawing and window services"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared drawing and window C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

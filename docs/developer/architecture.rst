@@ -52,6 +52,10 @@ See :doc:`splines` for interpolation kernels, vector outputs and trace smoothing
 Supporting modules
 ------------------
 
+See :doc:`utility-ownership` for allocation, UID references and scratch strings;
+:doc:`command-dispatch` for typed operation tables; and :doc:`value-conversion`
+for parser commit rules, expression callbacks and numeric compatibility limits.
+
 See :doc:`containers` for chain/list payload ownership and mutation rules.
 
 ``rbcGeometry.c`` contains geometry algorithms without graph state or drawing.

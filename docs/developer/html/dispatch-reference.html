@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Typed dispatch C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shared value conversion and numeric policy" href="value-conversion.html" />
+    <link rel="prev" title="Typed command dispatch" href="command-dispatch.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="value-conversion.html" title="Shared value conversion and numeric policy"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="command-dispatch.html" title="Typed command dispatch"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Typed dispatch C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="typed-dispatch-c-reference">
+<h1>Typed dispatch C reference<a class="headerlink" href="#typed-dispatch-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="command-dispatch.html"><span class="doc">Typed command dispatch</span></a> for table lifetime, argument counts and callback
+boundaries. These are private implementation interfaces.</p>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.Rbc_OpSpecHeader">
+<span class="target" id="struct_rbc___op_spec_header"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></span><a class="headerlink" href="#c.Rbc_OpSpecHeader" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Common first member of persistent typed operation-table entries. </p>
+<p>Terminate a table with a NULL name. Bounds count the complete command word vector; maxArgs &lt;= 0 is unbounded. The enclosing entry supplies its own correctly typed callback, and its sizeof is the lookup stride. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_OpSpecHeader.name">
+<span class="target" id="struct_rbc___op_spec_header_1a53d3d701952c35178d601faf57d6581e"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">name</span></span></span><a class="headerlink" href="#c.Rbc_OpSpecHeader.name" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed persistent operation name. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_OpSpecHeader.minArgs">
+<span class="target" id="struct_rbc___op_spec_header_1a0f54b3bd108ff0ef43b435a71b07e50c"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">minArgs</span></span></span><a class="headerlink" href="#c.Rbc_OpSpecHeader.minArgs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Minimum total argument count. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_OpSpecHeader.maxArgs">
+<span class="target" id="struct_rbc___op_spec_header_1a1132949f17a189eb1872b3b95729c4bb"></span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">maxArgs</span></span></span><a class="headerlink" href="#c.Rbc_OpSpecHeader.maxArgs" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Maximum total count, or nonpositive for no maximum. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.Rbc_OpSpecHeader.usage">
+<span class="target" id="struct_rbc___op_spec_header_1ad58e8216ce9ed086042366dace01982e"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">usage</span></span></span><a class="headerlink" href="#c.Rbc_OpSpecHeader.usage" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed suffix for Tcl_WrongNumArgs. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetOpIndexFromObj">
+<span class="target" id="rbc_int_8h_1a94052ea21b0ad85cddac5aaff316a632"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetOpIndexFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">specArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">specSize</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">operPos</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetOpIndexFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select a typed operation-table entry and validate total argument count. </p>
+<p>Require a persistent NULL-name-terminated table whose entries start with <a class="reference internal" href="#struct_rbc___op_spec_header"><span class="std std-ref">Rbc_OpSpecHeader</span></a> and have byte stride specSize. Tcl lookup accepts unique abbreviations and caches the table in the operation object. On success assign indexPtr, not a function pointer; the caller dispatches through its typed table. minArgs/maxArgs count all objc words; maxArgs &lt;= 0 means unbounded. Leave the output unchanged on error and set an interpreter diagnostic. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Typed dispatch C reference</a><ul>
+<li><a class="reference internal" href="#c.Rbc_OpSpecHeader"><code class="docutils literal notranslate"><span class="pre">Rbc_OpSpecHeader</span></code></a><ul>
+<li><a class="reference internal" href="#c.Rbc_OpSpecHeader.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_OpSpecHeader.minArgs"><code class="docutils literal notranslate"><span class="pre">minArgs</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_OpSpecHeader.maxArgs"><code class="docutils literal notranslate"><span class="pre">maxArgs</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_OpSpecHeader.usage"><code class="docutils literal notranslate"><span class="pre">usage</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c.Rbc_GetOpIndexFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="command-dispatch.html"
+                          title="previous chapter">Typed command dispatch</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="value-conversion.html"
+                          title="next chapter">Shared value conversion and numeric policy</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="value-conversion.html" title="Shared value conversion and numeric policy"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="command-dispatch.html" title="Typed command dispatch"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Typed dispatch C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

@@ -73,6 +73,13 @@ materializes inherited grid settings through its own initialization path.
 Local-grid queries use a temporary view without creating a persistent local
 grid or freezing its inherited defaults.</p>
 </section>
+<section id="shared-value-parsers">
+<h2>Shared value parsers<a class="headerlink" href="#shared-value-parsers" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a> for pixel, padding, shadow, dash, state, fill and
+string-list conversion. In particular, staged values do not imply owner
+lifetime protection across expression callbacks, and not every parser preserves
+its output pointer on failure.</p>
+</section>
 <section id="transactions">
 <h2>Transactions<a class="headerlink" href="#transactions" title="Link to this heading">¶</a></h2>
 <p>Tk-managed values and derived resources have separate commit points. A typical
@@ -154,6 +161,7 @@ metadata consistency and destruction after partial setup.</p>
     <ul>
 <li><a class="reference internal" href="#">Component configuration and resources</a><ul>
 <li><a class="reference internal" href="#resource-identity">Resource identity</a></li>
+<li><a class="reference internal" href="#shared-value-parsers">Shared value parsers</a></li>
 <li><a class="reference internal" href="#transactions">Transactions</a></li>
 <li><a class="reference internal" href="#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li><a class="reference internal" href="#cleanup-boundaries">Cleanup boundaries</a></li>

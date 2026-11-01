@@ -37,8 +37,30 @@
 
 typedef char *Rbc_Uid;
 
+/**
+ * @brief Acquire a reference to an interned NUL-terminated name.
+ *
+ * Equal strings share a stable pointer while references remain. Do not modify
+ * the returned characters despite the historical mutable typedef. Pair each
+ * acquisition with Rbc_FreeUid. The process-static table is neither interpreter
+ * local nor protected by locks; this is not a cross-thread sharing API.
+ */
 EXTERN Rbc_Uid Rbc_GetUid (const char *string);
+/**
+ * @brief Release one acquired UID reference, deleting its key at zero.
+ *
+ * Require a still-valid UID acquired through Rbc_GetUid. Do not free the string
+ * with ckfree or release a merely borrowed Rbc_FindUid result. Unknown valid
+ * strings produce a stderr diagnostic; NULL or dangling pointers are not safe.
+ */
 EXTERN void Rbc_FreeUid (Rbc_Uid uid);
+/**
+ * @brief Borrow an existing interned name without increasing its reference count.
+ *
+ * Return NULL when absent. The pointer remains valid only while an acquiring
+ * owner keeps a reference. Lookup lazily initializes the shared table but does
+ * not insert a missing name. Use Rbc_GetUid when independent ownership is needed.
+ */
 EXTERN Rbc_Uid Rbc_FindUid (char *string);
 
 /**

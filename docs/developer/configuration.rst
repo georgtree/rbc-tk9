@@ -37,6 +37,14 @@ materializes inherited grid settings through its own initialization path.
 Local-grid queries use a temporary view without creating a persistent local
 grid or freezing its inherited defaults.
 
+Shared value parsers
+--------------------
+
+See :doc:`value-conversion` for pixel, padding, shadow, dash, state, fill and
+string-list conversion. In particular, staged values do not imply owner
+lifetime protection across expression callbacks, and not every parser preserves
+its output pointer on failure.
+
 Transactions
 ------------
 

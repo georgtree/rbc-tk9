@@ -321,6 +321,7 @@ safe. Chapters identify current limitations separately from intended guarantees.
 </li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Component configuration and resources</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#resource-identity">Resource identity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#shared-value-parsers">Shared value parsers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#transactions">Transactions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
@@ -682,6 +683,69 @@ safe. Chapters identify current limitations separately from intended guarantees.
 <li class="toctree-l2"><a class="reference internal" href="eps-reference.html#c.DisplayEps"><code class="docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="eps-reference.html#c.ScaleEps"><code class="docutils literal notranslate"><span class="pre">ScaleEps()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="eps-reference.html#c.EpsToPostScript"><code class="docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utility-ownership.html">Allocation, strings and interned names</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html#allocation-and-failure-policy">Allocation and failure policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html#uid-table">UID table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html#formatting-and-result-assembly">Formatting and result assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html#other-utility-boundaries">Other utility boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utility-reference.html">Utility ownership C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.RbcCalloc"><code class="docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.RbcStrdup"><code class="docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_GetUid"><code class="docutils literal notranslate"><span class="pre">Rbc_GetUid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_FindUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_Itoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Itoa()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_Utoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Utoa()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_Dtoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Dtoa()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_DStringAppendElements"><code class="docutils literal notranslate"><span class="pre">Rbc_DStringAppendElements()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_AppendResultStrings"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_InitHexTable"><code class="docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="command-dispatch.html">Typed command dispatch</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="command-dispatch.html#table-layout-and-lifetime">Table layout and lifetime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-dispatch.html#argument-counts-and-diagnostics">Argument counts and diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader"><code class="docutils literal notranslate"><span class="pre">Rbc_OpSpecHeader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html#strings-and-matching-policies">Strings and matching policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html#numeric-compatibility-macros">Numeric compatibility macros</a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="value-reference.html">Value conversion C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetPixels"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPixels()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetPixelsFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPixelsFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetPadFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetPadFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetShadowFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetShadowFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetDashesFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetDashesFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetFillFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetFillFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetStateFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetStateFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetStringListFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetStringListFromObj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_GetXY"><code class="docutils literal notranslate"><span class="pre">Rbc_GetXY()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html#c.Rbc_ClampToInt"><code class="docutils literal notranslate"><span class="pre">Rbc_ClampToInt()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="math-reference.html">Numeric compatibility C reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="math-reference.html#c.ROUND"><code class="docutils literal notranslate"><span class="pre">ROUND</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math-reference.html#c.FMOD"><code class="docutils literal notranslate"><span class="pre">FMOD</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math-reference.html#c.DEFINED"><code class="docutils literal notranslate"><span class="pre">DEFINED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math-reference.html#c.UNDEFINED"><code class="docutils literal notranslate"><span class="pre">UNDEFINED</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>

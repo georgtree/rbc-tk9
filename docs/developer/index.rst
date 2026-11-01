@@ -99,4 +99,11 @@ safe. Chapters identify current limitations separately from intended guarantees.
    winop-reference
    eps-canvas
    eps-reference
+   utility-ownership
+   utility-reference
+   command-dispatch
+   dispatch-reference
+   value-conversion
+   value-reference
+   math-reference
    commenting

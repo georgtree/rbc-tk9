@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Shared drawing and window services &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shared drawing and window C reference" href="window-service-reference.html" />
+    <link rel="prev" title="Container C reference" href="container-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="window-service-reference.html" title="Shared drawing and window C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="container-reference.html" title="Container C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared drawing and window services</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="shared-drawing-and-window-services">
+<h1>Shared drawing and window services<a class="headerlink" href="#shared-drawing-and-window-services" title="Link to this heading">¶</a></h1>
+<p>These are private Tk support services, not another graph renderer. They are
+used by graph components, image code and standalone canvas/window operations.
+All handles belong to the owning Tk thread; none of these functions supplies
+locking, reference-counted widget lifetime or automatic callback protection.</p>
+<section id="graphics-context-ownership">
+<h2>Graphics-context ownership<a class="headerlink" href="#graphics-context-ownership" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> creates private GCs directly through XCreateGC. Unlike Tk_GetGC,
+these do not share a cache entry with other widgets. Use them for mutable dash
+state or other settings that cannot be represented by the Tk cache key.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Acquisition</p></th>
+<th class="head"><p>Ownership</p></th>
+<th class="head"><p>Release</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Rbc_GetPrivateGC / Rbc_GetPrivateGCFromDrawable</p></td>
+<td><p>Exclusive caller-owned GC</p></td>
+<td><p>Rbc_FreePrivateGC</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tk_GetGC</p></td>
+<td><p>Reference to Tk’s shared cache</p></td>
+<td><p>Tk_FreeGC</p></td>
+</tr>
+<tr class="row-even"><td><p>Tk_3DBorderGC / DefaultGC</p></td>
+<td><p>Borrowed GC</p></td>
+<td><p>No release by borrower</p></td>
+</tr>
+</tbody>
+</table>
+<p>An unrealized Tk window is not forced into existence merely to obtain a GC.
+Rbc_GetPrivateGC uses the screen root when depths agree, or a temporary 1x1
+pixmap at the window depth otherwise. The pixmap is released before returning
+and the GC remains caller-owned. The drawable form requires the caller to
+supply a compatible drawable. Neither destructor accepts arbitrary ownership
+or makes repeated release safe.</p>
+<p>Rbc_SetDashes reads a bounded, zero-terminated byte sequence and changes the
+GC dash offset/pattern. It does not choose the line style. Do not use this as
+permission to mutate a borrowed shared GC.</p>
+</section>
+<section id="request-sizing-and-relief">
+<h2>Request sizing and relief<a class="headerlink" href="#request-sizing-and-relief" title="Link to this heading">¶</a></h2>
+<p>Rbc_MaxRequestSize reports an element count, not bytes. It reserves four
+32-bit protocol words, converts the remaining limit to bytes and divides by
+the caller’s element size. It prefers the extended X request limit when
+available, falls back to the ordinary limit, returns zero for unusable inputs
+and saturates the result at INT_MAX. A caller still needs to account for its
+actual request format and split batches. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<p>Rbc_Draw3DRectangle preserves RBC’s historical raised/sunken outer-edge
+appearance, then delegates the inset to Tk_Draw3DRectangle. Its X11 and Windows
+edge GCs differ. It borrows all drawing resources and establishes no clipping
+region. Graph paths should enter through their renderer service where one
+exists; standalone canvas callers do not acquire a graph context merely to
+use this utility. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the module boundary.</p>
+</section>
+<section id="native-identifiers">
+<h2>Native identifiers<a class="headerlink" href="#native-identifiers" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWindow.c</span></code> distinguishes a Tk client from its window-manager wrapper.
+Rbc_GetRealWindowId can realize the client and returns the parent for a
+toplevel. On Windows its result is a raw HWND cast to Window, not Tk’s drawable
+wrapper. Passing that value to an API expecting a Tk drawable is incorrect.
+The winop snapshot path deliberately uses Tk_WindowId for Tk path arguments.</p>
+<p>On X11 the helper queries the tree and releases the returned child array.
+If the parent lookup fails or returns None, the helper keeps the realized
+client window as its fallback. Windows retains its platform-specific wrapper
+lookup; the X11 fallback does not change the Windows handle representation.</p>
+</section>
+<section id="window-instance-associations">
+<h2>Window instance associations<a class="headerlink" href="#window-instance-associations" title="Link to this heading">¶</a></h2>
+<p>The same module stores window-to-payload associations in an interpreter-owned
+Tcl hash table using one-word Tk_Window keys. It replaces older reliance on
+private Tk instance fields. Setting a value creates the table lazily. Getting
+a value borrows it; replacing or deleting an entry never destroys its payload.
+Interpreter cleanup releases the table storage only.</p>
+<p>The owner must delete its association while the Tk window is still valid.
+There is no automatic per-window destroy handler in this service. A missing
+entry or an absent table returns NULL from lookup. Deletion is a no-op in both
+cases and does not allocate a table. A live Tk window is still required; these
+guards do not make a stale Tk_Window valid.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Keep GC acquisition/release pairs explicit, preserve depth selection for
+unrealized windows, and review both platform branches when changing native
+identifiers. Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after declaration changes. Window
+capture regressions belong in the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.snap*.test</span></code> files;
+renderer changes also need the appropriate component drawing tests.</p>
+<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> exercises lookup/deletion before the first setter,
+payload replacement, repeated deletion and the X11 parent-query fallback. The
+private harness injects parent-query failure only on X11; other tests also run
+on Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Shared drawing and window services</a><ul>
+<li><a class="reference internal" href="#graphics-context-ownership">Graphics-context ownership</a></li>
+<li><a class="reference internal" href="#request-sizing-and-relief">Request sizing and relief</a></li>
+<li><a class="reference internal" href="#native-identifiers">Native identifiers</a></li>
+<li><a class="reference internal" href="#window-instance-associations">Window instance associations</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="container-reference.html"
+                          title="previous chapter">Container C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="window-service-reference.html"
+                          title="next chapter">Shared drawing and window C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="window-service-reference.html" title="Shared drawing and window C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="container-reference.html" title="Container C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared drawing and window services</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

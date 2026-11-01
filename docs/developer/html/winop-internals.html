@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Window and photo command implementation &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Window/photo command C reference" href="winop-reference.html" />
+    <link rel="prev" title="Shared drawing and window C reference" href="window-service-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="winop-reference.html" title="Window/photo command C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="window-service-reference.html" title="Shared drawing and window C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Window and photo command implementation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="window-and-photo-command-implementation">
+<h1>Window and photo command implementation<a class="headerlink" href="#window-and-photo-command-implementation" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> implements the standalone <code class="docutils literal notranslate"><span class="pre">rbc::winop</span></code> command when NO_WINOP
+is not defined. It owns no per-handle object: WinopCmd selects an operation
+and passes the current Tk main window as client data. See the Tcl manual for
+command syntax; this chapter describes dispatch, resources and limitations.</p>
+<section id="dispatch-and-platform-boundaries">
+<h2>Dispatch and platform boundaries<a class="headerlink" href="#dispatch-and-platform-boundaries" title="Link to this heading">¶</a></h2>
+<p>The direct winOps table and nested imageOps table are separate. ImageOp validates
+its own operation/arity, then removes the <code class="docutils literal notranslate"><span class="pre">image</span></code> word by passing <code class="docutils literal notranslate"><span class="pre">objc</span> <span class="pre">-</span> <span class="pre">1</span></code>
+and <code class="docutils literal notranslate"><span class="pre">objv</span> <span class="pre">+</span> <span class="pre">1</span></code>. Shared handlers consequently keep the same source/destination
+argument indices. Do not add a handler to one table assuming the other is an
+automatic alias: quantize is direct-only, while gradient and rotate are nested.</p>
+<p>GetRealizedWindow resolves a Tk path and creates its native window if necessary;
+it does not map it. StringToWindow accepts paths or legacy Tcl integer IDs.
+Toplevel paths select wrappers. Numeric parsing uses Tcl_GetInt, so this path
+must not be described as accepting arbitrary pointer-width native handles.
+Windows numeric IDs pass through Rbc_WinWindowFromHWND. See
+<a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for raw-handle versus drawable distinctions.</p>
+<p>Window operations issue native map, unmap, stack and movement requests. Pointer
+query/warp uses screen or window coordinates, not graph data coordinates.
+The colormap operation is compiled only for X11. These operations neither
+participate in graph mapping nor acquire renderer contexts.</p>
+</section>
+<section id="photo-operation-ownership">
+<h2>Photo-operation ownership<a class="headerlink" href="#photo-operation-ownership" title="Link to this heading">¶</a></h2>
+<p>Most operations require existing Tk photos. Tk_FindPhoto handles and filter
+descriptors are borrowed. Color-image snapshots, transformed results and
+convolution kernels are owned locally and released through their matching
+APIs. Destination writes can notify Tk image clients; a handle lookup is not a
+lifetime guard. See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> and <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 40.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Work and sizing</p></th>
+<th class="head"><p>Important boundary</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>convolve</p></td>
+<td><p>Copy source; allocate kernel and output pixels</p></td>
+<td><p>Nonempty square finite kernel and finite sum required</p></td>
+</tr>
+<tr class="row-odd"><td><p>quantize</p></td>
+<td><p>Resize destination, then copy source and destination</p></td>
+<td><p>One to 256 colors; resizing precedes color-count validation</p></td>
+</tr>
+<tr class="row-even"><td><p>resample</p></td>
+<td><p>Destination dimensions choose output size</p></td>
+<td><p>Default none filter; equal sizes take a copy path</p></td>
+</tr>
+<tr class="row-odd"><td><p>subsample</p></td>
+<td><p>Validate source rectangle; resize into destination</p></td>
+<td><p>Default box filter; positive extent and nonnegative origin</p></td>
+</tr>
+<tr class="row-even"><td><p>rotate</p></td>
+<td><p>Evaluate angle, copy source, allocate rotated pixels</p></td>
+<td><p>Finite degrees; Tcl expression evaluation can invoke callbacks</p></td>
+</tr>
+<tr class="row-odd"><td><p>gradient</p></td>
+<td><p>Allocate pixels at existing photo size and temporary Tk colors</p></td>
+<td><p>Linear/radial/rectangular paths include random perturbation</p></td>
+</tr>
+<tr class="row-even"><td><p>readjpeg</p></td>
+<td><p>Delegate file decoding into a borrowed destination</p></td>
+<td><p>Returns an unsupported diagnostic without JPEG build support</p></td>
+</tr>
+<tr class="row-odd"><td><p>snap</p></td>
+<td><p>Capture native pixels, optionally resize</p></td>
+<td><p>Captures a drawable; does not rerender a graph at export size</p></td>
+</tr>
+</tbody>
+</table>
+<p>Resample rejects source dimensions of one pixel or less. If either destination
+dimension is one pixel or less, it sets source dimensions and copies. Subsample
+instead uses the requested region dimensions for such a destination. Both
+resolve an optional vertical filter only when the first filter is non-NULL.
+The pixel algorithms and edge policies are described in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>,
+<a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a> and <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a>.</p>
+</section>
+<section id="failure-and-callback-boundaries">
+<h2>Failure and callback boundaries<a class="headerlink" href="#failure-and-callback-boundaries" title="Link to this heading">¶</a></h2>
+<p>These handlers do not provide a uniform transaction. Quantize can resize its
+destination before detecting an invalid color count. Several paths ignore
+Tk_PhotoSetSize/Tk_PhotoPutBlock status or publish via a void helper, so TCL_OK
+must not be interpreted as a checked commit of every lower-level photo write.
+Do not document a destination-unchanged-on-error guarantee for this family.</p>
+<p>Rotate validates photo names before evaluating the angle, preserving the
+interpreter across Tcl_ExprDoubleObj. After evaluation it rejects destroyed Tk
+state and looks up both photos again before accessing pixels. Deleted photos
+produce an error; same-name replacements become the current source/destination.
+Expression errors retain their original diagnostic. This protects the angle
+callback boundary without changing the family’s photo-publication semantics.</p>
+<p>Snap has a deliberate path-specific distinction: a Tk path uses the client
+window and Tk dimensions, while numeric IDs use native geometry lookup.
+Visibility and platform capture behavior matter. Tests should not confuse
+this with widget <code class="docutils literal notranslate"><span class="pre">snap</span></code> or SVG/PDF/PostScript output, which have their own
+rendering and restoration contracts.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Use the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.*.A.test</span></code> and <code class="docutils literal notranslate"><span class="pre">RBC.winop.image.*.A.test</span></code> families.
+Check direct and nested dispatch separately, invalid kernels and regions,
+source/destination dimensions, and toplevel snapshots on both platforms.
+These tests need a Tk display. Pixel algorithms alone cannot validate native
+capture, wrapper handling or photo client notifications.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Window and photo command implementation</a><ul>
+<li><a class="reference internal" href="#dispatch-and-platform-boundaries">Dispatch and platform boundaries</a></li>
+<li><a class="reference internal" href="#photo-operation-ownership">Photo-operation ownership</a></li>
+<li><a class="reference internal" href="#failure-and-callback-boundaries">Failure and callback boundaries</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="window-service-reference.html"
+                          title="previous chapter">Shared drawing and window C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="winop-reference.html"
+                          title="next chapter">Window/photo command C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="winop-reference.html" title="Window/photo command C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="window-service-reference.html" title="Shared drawing and window C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Window and photo command implementation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

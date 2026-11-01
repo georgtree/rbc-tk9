@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Window/photo command C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="EPS canvas item implementation" href="eps-canvas.html" />
+    <link rel="prev" title="Window and photo command implementation" href="winop-internals.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="eps-canvas.html" title="EPS canvas item implementation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="winop-internals.html" title="Window and photo command implementation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Window/photo command C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="window-photo-command-c-reference">
+<h1>Window/photo command C reference<a class="headerlink" href="#window-photo-command-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="winop-internals.html"><span class="doc">Window and photo command implementation</span></a> for ownership, failure and platform boundaries.
+These are private implementation interfaces.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__winop__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Window</span> <span class="pre">and</span> <span class="pre">photo</span> <span class="pre">command</span> <span class="pre">internals</span></span></dt>
+<dd><p>Private command/canvas callbacks, not installed C APIs. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.GetRealizedWindow">
+<span class="target" id="group__winop__commands_1ga59f73cec03c75b34e422f87006e4244d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRealizedWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tkwinPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetRealizedWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a Tk path and ensure its native window exists. </p>
+<p>Borrow the interpreter and return a borrowed Tk_Window through tkwinPtr on success. Realization does not map the window. Return TCL_ERROR from path lookup without assigning the output. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.StringToWindow">
+<span class="target" id="group__winop__commands_1ga92e954cb0a0c2f37d8e80d9c4553466d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Window</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StringToWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StringToWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a Tk path or legacy integer native-window identifier. </p>
+<p>Tk toplevel paths select their wrapper through <a class="reference internal" href="window-service-reference.html#rbc_int_8h_1a4b42fed6e014e46c943cbd6978ce487d"><span class="std std-ref">Rbc_GetRealWindowId()</span></a>. Numeric input uses Tcl_GetInt, not a pointer-width parser; Windows wraps that value with Rbc_WinWindowFromHWND(). Return None on lookup or conversion failure. The result does not transfer ownership of the window. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ConvolveOp">
+<span class="target" id="group__winop__commands_1gab8890aa998c4841fede9a1a68beb4783"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConvolveOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ConvolveOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convolve an existing photo into an existing destination photo. </p>
+<p>Require a nonempty square list of finite kernel values with a finite sum. Own and free the kernel and copied color buffers locally; photo handles are borrowed. The source is copied before destination publication. Parse failures return TCL_ERROR. Photo publication uses the void color-image helper and is not an atomic transaction with rollback. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.QuantizeOp">
+<span class="target" id="group__winop__commands_1ga87dba462822e79a448a9adb33de0bd9e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QuantizeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.QuantizeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Quantize a copied photo with a palette of one to 256 colors. </p>
+<p>Borrow both photo handles and free both color buffers after the quantizer returns. Resize the destination to the source dimensions before parsing the optional color count; an error therefore need not leave it unchanged. Source dimensions of one pixel or less are rejected. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ResampleOp">
+<span class="target" id="group__winop__commands_1gad809c1553db248824873268969b44a4d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResampleOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ResampleOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize a photo according to the destination photo dimensions. </p>
+<p>Borrow existing photos and filter descriptors. A destination dimension of one pixel or less causes a source-size copy; equal dimensions also copy. The default filter is none. A vertical filter is parsed only when the first filter resolves to a non-NULL descriptor. Lower photo-write return values are not uniformly propagated by this legacy command. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RotateOp">
+<span class="target" id="group__winop__commands_1ga3853694dec606b341b16391b2c3095af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RotateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RotateOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rotate a copied photo by a finite Tcl expression angle in degrees. </p>
+<p>Validate names, preserve the interpreter across angle evaluation, then reacquire both photo handles before accessing pixels. Reject deleted photos or destroyed Tk state; same-name replacements are used. Allocate and release source/rotated buffers locally. Photo publication is not a rollback transaction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SnapOp">
+<span class="target" id="group__winop__commands_1ga08f47ee5e7921449be29ac07a2ced19f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SnapOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SnapOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Capture a native window into a named photo, optionally resizing it. </p>
+<p>For a Tk path, capture the client drawable and its Tk dimensions rather than the window-manager wrapper. Numeric input uses <a class="reference internal" href="#group__winop__commands_1ga92e954cb0a0c2f37d8e80d9c4553466d"><span class="std std-ref">StringToWindow()</span></a> and native geometry. Borrow all windows and delegate capture and destination lookup to Rbc_SnapPhoto(); return its Tcl status. This is screen capture, not graph remapping or vector-document export. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.SubsampleOp">
+<span class="target" id="group__winop__commands_1ga25b92e4b63cb8d4cd9598fc665631197"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SubsampleOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.SubsampleOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resize a validated source-photo rectangle into a destination photo. </p>
+<p>Require nonnegative origin, positive extent and a rectangle inside the source. An effectively empty destination takes the region dimensions. Default to the box filter; none selects the unfiltered resize path. Photos and filters are borrowed, and the command neither creates nor deletes the destination photo. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ImageOp">
+<span class="target" id="group__winop__commands_1ga9d5292a3c240df111438d1f79662e7bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ImageOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ImageOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch nested winop image operations using direct-operation indices. </p>
+<p>Validate against imageOps, then pass objc - 1 and objv + 1 so shared handlers see source and destination at their original argument positions. Tables for direct and nested operations are intentionally not identical. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.WinopCmd">
+<span class="target" id="group__winop__commands_1ga08eae380e5fe7795e36d2b9758261019"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WinopCmd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.WinopCmd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Dispatch a stateless winop request with the current Tk main window. </p>
+<p>Validate operation and arity through winOps before calling its handler. No per-command heap object or command deletion callback is maintained. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Window/photo command C reference</a><ul>
+<li><a class="reference internal" href="#c.GetRealizedWindow"><code class="docutils literal notranslate"><span class="pre">GetRealizedWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.StringToWindow"><code class="docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.ConvolveOp"><code class="docutils literal notranslate"><span class="pre">ConvolveOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.QuantizeOp"><code class="docutils literal notranslate"><span class="pre">QuantizeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.ResampleOp"><code class="docutils literal notranslate"><span class="pre">ResampleOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.RotateOp"><code class="docutils literal notranslate"><span class="pre">RotateOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SnapOp"><code class="docutils literal notranslate"><span class="pre">SnapOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.SubsampleOp"><code class="docutils literal notranslate"><span class="pre">SubsampleOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.ImageOp"><code class="docutils literal notranslate"><span class="pre">ImageOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.WinopCmd"><code class="docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="winop-internals.html"
+                          title="previous chapter">Window and photo command implementation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="eps-canvas.html"
+                          title="next chapter">EPS canvas item implementation</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="eps-canvas.html" title="EPS canvas item implementation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="winop-internals.html" title="Window and photo command implementation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Window/photo command C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

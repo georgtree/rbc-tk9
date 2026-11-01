@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Numeric compatibility C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="C documentation conventions" href="commenting.html" />
+    <link rel="prev" title="Value conversion C reference" href="value-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="value-reference.html" title="Value conversion C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Numeric compatibility C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="numeric-compatibility-c-reference">
+<h1>Numeric compatibility C reference<a class="headerlink" href="#numeric-compatibility-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a> for finite-value versus NaN checks and narrowing
+preconditions. These macros do not evaluate arguments exactly once.</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.ROUND">
+<span class="target" id="rbc_math_8h_1acd66e8cacf954c3bc3bba81d09425a12"></span><span class="sig-name descname"><span class="n"><span class="pre">ROUND</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ROUND" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round halfway away from zero, then narrow to int. </p>
+<p>Require a finite value whose adjusted magnitude fits int. This macro can evaluate its argument repeatedly and does not clamp or reject overflow. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.FMOD">
+<span class="target" id="rbc_math_8h_1aff4e721b49a057c4e4a3a6f56cc06469"></span><span class="sig-name descname"><span class="n"><span class="pre">FMOD</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">x</span></span>, <span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FMOD" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute a legacy remainder using an int-truncated quotient. </p>
+<p>Require a nonzero divisor and a finite quotient representable as int. This is not a range-safe replacement for the C fmod function. Arguments may be evaluated repeatedly; do not supply expressions with side effects. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.DEFINED">
+<span class="target" id="rbc_math_8h_1af8641ee9c1391f20d2c2a57ea00b98ab"></span><span class="sig-name descname"><span class="n"><span class="pre">DEFINED</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.DEFINED" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test for a value other than NaN; infinity still counts as defined. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.UNDEFINED">
+<span class="target" id="rbc_math_8h_1affccf90ee5ab8f8edf494668f0a06f00"></span><span class="sig-name descname"><span class="n"><span class="pre">UNDEFINED</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.UNDEFINED" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test for NaN, independently of whether other nonfinite values exist. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Numeric compatibility C reference</a><ul>
+<li><a class="reference internal" href="#c.ROUND"><code class="docutils literal notranslate"><span class="pre">ROUND</span></code></a></li>
+<li><a class="reference internal" href="#c.FMOD"><code class="docutils literal notranslate"><span class="pre">FMOD</span></code></a></li>
+<li><a class="reference internal" href="#c.DEFINED"><code class="docutils literal notranslate"><span class="pre">DEFINED</span></code></a></li>
+<li><a class="reference internal" href="#c.UNDEFINED"><code class="docutils literal notranslate"><span class="pre">UNDEFINED</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="value-reference.html"
+                          title="previous chapter">Value conversion C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="commenting.html"
+                          title="next chapter">C documentation conventions</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="commenting.html" title="C documentation conventions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="value-reference.html" title="Value conversion C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Numeric compatibility C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

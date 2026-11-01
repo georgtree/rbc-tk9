@@ -142,28 +142,6 @@ const char *Rbc_GetCanonicalOptionName(Tcl_Obj *objPtr, const Tk_OptionSpec *spe
     return bestPtr->optionName;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPixels --
- *
- *      Like Tk_GetPixels, but checks for negative, zero.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      const char *string
- *      int check - Can be PIXELS_POSITIVE, PIXELS_NONNEGATIVE, or PIXELS_ANY
- *      int *valuePtr
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetPixels(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int check, int *valuePtr) {
     int length;
 
@@ -177,28 +155,6 @@ int Rbc_GetPixels(Tcl_Interp *interp, Tk_Window tkwin, const char *string, int c
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPixelsFromObj --
- *
- *      Like Tk_GetPixelsFromObj, but checks for negative, zero.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *      Tcl_Obj *pixelsObj
- *      int check - Can be PIXELS_POSITIVE, PIXELS_NONNEGATIVE, or PIXELS_ANY
- *      int *valuePtr
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetPixelsFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *pixelsObj, int check, int *valuePtr) {
     int length;
 
@@ -212,26 +168,6 @@ int Rbc_GetPixelsFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *pixelsObj
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetPadFromObj --
- *
- *      Converts a Tcl list containing one or two screen distances
- *      into an Rbc_Pad structure.
- *
- *      A single value applies to both sides. Two values specify the
- *      two sides independently.
- *
- * Results:
- *      Returns TCL_OK on success and TCL_ERROR on failure.
- *
- * Side Effects:
- *      Updates *padPtr only after the complete value has been
- *      successfully parsed.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetPadFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Rbc_Pad *padPtr) {
     Tcl_Obj **objv;
     Tcl_Size objc;
@@ -565,29 +501,6 @@ static int GetState(Tcl_Interp *interp, const char *string, int *statePtr) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetStateFromObj --
- *
- *      Converts a Tcl object containing an element state into its
- *      integer representation.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter for error reporting.
- *      Tcl_Obj *objPtr    - Object containing the state name.
- *      int *statePtr      - Receives the parsed state.
- *
- * Results:
- *      TCL_OK if the state is valid.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Sets the interpreter result on error. The destination is
- *      modified only on success.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
     return GetState(interp, Tcl_GetString(objPtr), statePtr);
 }
@@ -643,29 +556,6 @@ static int GetStringList(Tcl_Interp *interp, const char *string, char ***listPtr
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetStringListFromObj --
- *
- *      Converts a Tcl object containing a list into a newly allocated,
- *      NULL-terminated string array.
- *
- * Parameters:
- *      Tcl_Interp *interp  - Interpreter for list parsing and errors.
- *      Tcl_Obj *objPtr     - Object containing the Tcl list.
- *      char ***listPtrPtr  - Receives the allocated string array.
- *
- * Results:
- *      TCL_OK if the list was parsed successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Allocates a string-list block on success. The destination is
- *      modified only after the value has been validated.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetStringListFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***listPtrPtr) {
     const char *string;
 

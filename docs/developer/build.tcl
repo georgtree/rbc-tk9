@@ -121,6 +121,7 @@ proc ::rbcDocBuild::main {arguments} {
         @BIND_SOURCE@ [doxyQuote [file join $root generic rbcBind.c]] \
         @WINOP_SOURCE@ [doxyQuote [file join $root generic rbcWinop.c]] \
         @EPS_SOURCE@ [doxyQuote [file join $root generic rbcCanvEps.c]] \
+        @MATH_HEADER@ [doxyQuote [file join $root generic rbcMath.h]] \
         @VERSION@ $version]
     set config [file join $output Doxyfile]
     writeFile $config [string map $substitutions [readFile [file join $source Doxyfile.in]]]

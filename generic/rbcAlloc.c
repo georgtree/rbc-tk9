@@ -1,7 +1,8 @@
 /*
- * rbcAlloc.C --
+ * rbcAlloc.c --
  *
- *      TODO: Description
+ *      Checked Tcl allocation and NUL-terminated string copies.
+ *      Ownership contracts are declared in rbcInt.h.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -11,21 +12,6 @@
 
 #include "rbcInt.h"
 
-/*
- *----------------------------------------------------------------------
- *
- * RbcCalloc --
- *
- *      TODO: Description
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 void *RbcCalloc(size_t nElems, size_t sizeOfElem) {
     char *allocPtr;
     size_t size;
@@ -46,21 +32,6 @@ void *RbcCalloc(size_t nElems, size_t sizeOfElem) {
     return allocPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * RbcStrdup --
- *
- *      Create a copy of the string from heap storage.
- *
- * Results:
- *      Returns a pointer to the need string copy.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 char *RbcStrdup(const char *string) {
     size_t size;
     char *allocPtr;

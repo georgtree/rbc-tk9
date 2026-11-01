@@ -361,25 +361,6 @@ void Rbc_Panic(char *format, ...) {
 
 double Rbc_RandomDouble(void) { return (double)rand() / ((double)RAND_MAX + 1.0); }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_DStringAppendElements --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_DString *dsPtr
- *      ...
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_DStringAppendElements(Tcl_DString *dsPtr, ...) {
     va_list argList;
     const char *elem;
@@ -391,25 +372,6 @@ void Rbc_DStringAppendElements(Tcl_DString *dsPtr, ...) {
     va_end(argList);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_AppendResultStrings --
- *
- *      Appends one or more NUL-terminated strings to the current
- *      interpreter result using Tcl's object result API.
- *
- *      The argument list must be terminated by NULL.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Replaces the interpreter result with an object containing the
- *      previous result followed by all supplied strings.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_AppendResultStrings(Tcl_Interp *interp, ...) {
     Tcl_Obj *resultObj;
     const char *string;
@@ -433,71 +395,16 @@ void Rbc_AppendResultStrings(Tcl_Interp *interp, ...) {
 
 static char stringRep[200];
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_Itoa --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int value
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 char *Rbc_Itoa(int value) {
     snprintf(stringRep, sizeof(stringRep), "%d", value);
     return stringRep;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_Utoa --
- *
- *      TODO: Description
- *
- * Parameters:
- *      unsigned int value
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 char *Rbc_Utoa(unsigned int value) {
     snprintf(stringRep, sizeof(stringRep), "%u", value);
     return stringRep;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_Dtoa --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      double value
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 char *Rbc_Dtoa(Tcl_Interp *interp, double value) {
     Tcl_PrintDouble(interp, value, stringRep);
     return stringRep;
@@ -533,33 +440,6 @@ FILE *Rbc_OpenUtfFile(char *fileName, char *mode) {
     return f;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_InitHexTable --
- *
- *      Table index for the hex values. Initialized once, first time.
- *      Used for translation value or delimiter significance lookup.
- *
- *      We build the table at run time for several reasons:
- *
- *        1.  portable to non-ASCII machines.
- *        2.  still reentrant since we set the init flag after setting
- *            table.
- *        3.  easier to extend.
- *        4.  less prone to bugs.
- *
- * Parameters:
- *      char hexTable[]
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
 void Rbc_InitHexTable(char hexTable[]) {
     hexTable['0'] = 0;
     hexTable['1'] = 1;
@@ -586,33 +466,6 @@ void Rbc_InitHexTable(char hexTable[]) {
 static Tcl_HashTable uidTable;
 static int uidInitialized = 0;
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetUid --
- *
- *      Given a string, returns a unique identifier for the string.
- *      A reference count is maintained, so that the identifier
- *      can be freed when it is not needed any more. This can be used
- *      in many places to replace Tcl_GetUid.
- *
- * Parameters:
- *      const char *string - String to convert.
- *
- * Results:
- *      This procedure returns a Rbc_Uid corresponding to the "string"
- *      argument.  The Rbc_Uid has a string value identical to string
- *      (strcmp will return 0), but it's guaranteed that any other
- *      calls to this procedure with a string equal to "string" will
- *      return exactly the same result (i.e. can compare Rbc_Uid
- *      *values* directly, without having to call strcmp on what they
- *      point to).
- *
- * Side effects:
- *      New information may be entered into the identifier table.
- *
- *----------------------------------------------------------------------
- */
 Rbc_Uid Rbc_GetUid(const char *string) {
     int isNew;
     Tcl_HashEntry *hPtr;
@@ -633,25 +486,6 @@ Rbc_Uid Rbc_GetUid(const char *string) {
     return (Rbc_Uid)Tcl_GetHashKey(&uidTable, hPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FreeUid --
- *
- *      Frees the Rbc_Uid if there are no more clients using this
- *      identifier.
- *
- * Parameters:
- *      Rbc_Uid uid - Identifier to release.
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The identifier may be deleted from the identifier table.
- *
- *----------------------------------------------------------------------
- */
 void Rbc_FreeUid(Rbc_Uid uid) {
     Tcl_HashEntry *hPtr;
 
@@ -675,25 +509,6 @@ void Rbc_FreeUid(Rbc_Uid uid) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_FindUid --
- *
- *      Returns a Rbc_Uid associated with a given string, if one
- *      exists.
- *
- * Parameters:
- *      char *string - String to find.
- *
- * Results:
- *      A Rbc_Uid for the string if one exists. Otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
 Rbc_Uid Rbc_FindUid(char *string) {
     Tcl_HashEntry *hPtr;
 
@@ -708,37 +523,6 @@ Rbc_Uid Rbc_FindUid(char *string) {
     return (Rbc_Uid)Tcl_GetHashKey(&uidTable, hPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_GetOpIndexFromObj --
- *
- *      Finds an operation in a typed operation table and validates its
- *      argument count.
- *
- *      Each table entry must begin with an Rbc_OpSpecHeader. specSize is
- *      the size of one complete typed table entry.
- *
- * Parameters:
- *      Tcl_Interp *interp        - Interpreter used for error reporting.
- *      const void *specArr       - Typed operation table.
- *      Tcl_Size specSize         - Size of one table entry.
- *      Tcl_Size operPos          - Position of the operation name.
- *      Tcl_Size objc             - Number of argument objects.
- *      Tcl_Obj *const objv[]     - Argument object vector.
- *      int *indexPtr             - Destination for the selected table
- *                                  index.
- *
- * Results:
- *      TCL_OK if a valid operation was found and its argument count is
- *      valid.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Sets the interpreter result on error.
- *
- *----------------------------------------------------------------------
- */
 int Rbc_GetOpIndexFromObj(Tcl_Interp *interp, const void *specArr, Tcl_Size specSize, Tcl_Size operPos, Tcl_Size objc,
                           Tcl_Obj *const objv[], int *indexPtr) {
     const Rbc_OpSpecHeader *headerPtr;

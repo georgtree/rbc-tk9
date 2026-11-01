@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Utility ownership C reference &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Typed command dispatch" href="command-dispatch.html" />
+    <link rel="prev" title="Allocation, strings and interned names" href="utility-ownership.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="command-dispatch.html" title="Typed command dispatch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="utility-ownership.html" title="Allocation, strings and interned names"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Utility ownership C reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="utility-ownership-c-reference">
+<h1>Utility ownership C reference<a class="headerlink" href="#utility-ownership-c-reference" title="Link to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="utility-ownership.html"><span class="doc">Allocation, strings and interned names</span></a> for lifetime and failure policy.</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RbcCalloc">
+<span class="target" id="rbc_int_8h_1affd2e78d8fe221e7c54cec24b86a1421"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">RbcCalloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nElem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RbcCalloc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a zero-initialized Tcl-owned block. </p>
+<p>Check nElem * size for size_t overflow and panic on overflow. A zero logical size allocates one zero byte, preserving a non-NULL ckalloc-style result. The caller releases the allocation with ckfree. Allocation failure is fatal, not a recoverable NULL result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.RbcStrdup">
+<span class="target" id="rbc_int_8h_1a80e15f606cd4480568f0d0dbcd162dcc"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">RbcStrdup</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RbcStrdup" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy a non-NULL NUL-terminated string into Tcl-owned storage. </p>
+<p>Borrow the input and copy through its first NUL, including the terminator. The caller releases the result with ckfree, not libc free. Uses ckalloc failure policy; this is not a binary-data or length-delimited copy. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_GetUid">
+<span class="target" id="rbc_8h_1a837769464296d346d3fe150d9007da87"></span><span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetUid</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetUid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a reference to an interned NUL-terminated name. </p>
+<p>Equal strings share a stable pointer while references remain. Do not modify the returned characters despite the historical mutable typedef. Pair each acquisition with Rbc_FreeUid. The process-static table is neither interpreter local nor protected by locks; this is not a cross-thread sharing API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FreeUid">
+<span class="target" id="rbc_8h_1a297ed15e31a84edf081f9f03b19ba78c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FreeUid</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">uid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FreeUid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one acquired UID reference, deleting its key at zero. </p>
+<p>Require a still-valid UID acquired through Rbc_GetUid. Do not free the string with ckfree or release a merely borrowed Rbc_FindUid result. Unknown valid strings produce a stderr diagnostic; NULL or dangling pointers are not safe. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_FindUid">
+<span class="target" id="rbc_8h_1a7d9395e52a6aac13d523ba11cd453ec3"></span><span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FindUid</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FindUid" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow an existing interned name without increasing its reference count. </p>
+<p>Return NULL when absent. The pointer remains valid only while an acquiring owner keeps a reference. Lookup lazily initializes the shared table but does not insert a missing name. Use Rbc_GetUid when independent ownership is needed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Itoa">
+<span class="target" id="rbc_int_8h_1a1b9b86cecf3a736225133f8862c4c111"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Itoa</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Itoa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format an int into borrowed shared scratch storage. </p>
+<p>Return a pointer to the same process-static buffer used by Rbc_Utoa and Rbc_Dtoa. A subsequent call to any of them overwrites it. Do not free or retain it without copying; concurrent calls are not synchronized. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Utoa">
+<span class="target" id="rbc_int_8h_1a98df523bf0a26753a8fe4f049c140d3c"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Utoa</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Utoa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format an unsigned int into borrowed shared scratch storage. </p>
+<p>Shares the buffer and overwrite/threading restrictions of Rbc_Itoa. The returned decimal string is not caller-owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_Dtoa">
+<span class="target" id="rbc_int_8h_1a93259ced815a8d9798d9501c73987141"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Dtoa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Dtoa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format a double through Tcl_PrintDouble into shared scratch storage. </p>
+<p>Borrow interp. Shares the buffer with Rbc_Itoa and Rbc_Utoa; copy the result before another formatting call and never free the returned pointer. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_DStringAppendElements">
+<span class="target" id="rbc_int_8h_1aeefe7f209c996ca47b69fdf6b3d77ef5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DStringAppendElements</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_DString</span></span><span class="p"><span class="pre">*</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DStringAppendElements" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append NUL-terminated strings as Tcl list elements. </p>
+<p>Borrow the initialized DString and arguments, ending varargs with a NULL string pointer. Tcl_DStringAppendElement supplies list quoting. Existing contents remain; the caller owns the DString and eventually frees it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_AppendResultStrings">
+<span class="target" id="rbc_int_8h_1aeb8a5cc7c50c273351247d509c102806"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendResultStrings</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendResultStrings" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append raw string fragments to a duplicate of the interpreter result. </p>
+<p>Borrow interp and NUL-terminated arguments ending with a NULL string pointer. Duplicate the current object before appending, then install and release the local reference. Shared original objects remain unchanged. Fragments are not list-quoted, and this helper does not set structured Tcl error metadata. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_InitHexTable">
+<span class="target" id="rbc_int_8h_1a2971bb127a9b054d704e7937b17b618c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_InitHexTable</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">table</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_InitHexTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set hexadecimal digit entries in a caller-owned character table. </p>
+<p>Require storage addressable by the character codes for 0-9, a-f and A-F (typically 256 entries). Set only those slots to 0 through 15. All other slots keep their previous contents; callers initialize invalid-digit sentinels. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_RandomDouble">
+<span class="target" id="rbc_int_8h_1a6c3395a3e7ea0b205dcd5e0fec4773db"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RandomDouble</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RandomDouble" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a rand-derived value in the half-open interval [0, 1). </p>
+<p>Consumes the C library PRNG state and does not seed it. No interpreter-local state, reproducibility across platforms or cryptographic quality is promised. </p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Utility ownership C reference</a><ul>
+<li><a class="reference internal" href="#c.RbcCalloc"><code class="docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a></li>
+<li><a class="reference internal" href="#c.RbcStrdup"><code class="docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_GetUid"><code class="docutils literal notranslate"><span class="pre">Rbc_GetUid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FreeUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_FindUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Itoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Itoa()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Utoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Utoa()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_Dtoa"><code class="docutils literal notranslate"><span class="pre">Rbc_Dtoa()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_DStringAppendElements"><code class="docutils literal notranslate"><span class="pre">Rbc_DStringAppendElements()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_AppendResultStrings"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_InitHexTable"><code class="docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_RandomDouble"><code class="docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="utility-ownership.html"
+                          title="previous chapter">Allocation, strings and interned names</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="command-dispatch.html"
+                          title="next chapter">Typed command dispatch</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="command-dispatch.html" title="Typed command dispatch"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="utility-ownership.html" title="Allocation, strings and interned names"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Utility ownership C reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

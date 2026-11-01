@@ -1,7 +1,7 @@
 /*
  * rbcMath.h --
  *
- *      TODO: Description
+ *      Numeric constants, compatibility macros and finite-value predicates.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -136,9 +136,22 @@
  * can't use these macros with numbers bigger than than 2^31-1.
  */
 #undef FMOD
+/**
+ * @brief Compute a legacy remainder using an int-truncated quotient.
+ *
+ * Require a nonzero divisor and a finite quotient representable as int.
+ * This is not a range-safe replacement for the C fmod function. Arguments may
+ * be evaluated repeatedly; do not supply expressions with side effects.
+ */
 #define FMOD(x, y) ((x) - (((int)((x) / (y))) * y))
 
 #undef ROUND
+/**
+ * @brief Round halfway away from zero, then narrow to int.
+ *
+ * Require a finite value whose adjusted magnitude fits int. This macro can
+ * evaluate its argument repeatedly and does not clamp or reject overflow.
+ */
 #define ROUND(x) ((int)((x) + (((x) < 0.0) ? -0.5 : 0.5)))
 
 #ifndef FINITE
@@ -163,7 +176,13 @@
 
 extern double rbcNaN;
 
+/**
+ * @brief Test for a value other than NaN; infinity still counts as defined.
+ */
 #define DEFINED(x) (!isnan(x))
+/**
+ * @brief Test for NaN, independently of whether other nonfinite values exist.
+ */
 #define UNDEFINED(x) (isnan(x))
 #define VALUE_UNDEFINED rbcNaN
 

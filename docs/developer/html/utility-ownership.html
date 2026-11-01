@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Allocation, strings and interned names &#8212; RBC 0.8.5 Developer Manual</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=84dcd668"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utility ownership C reference" href="utility-reference.html" />
+    <link rel="prev" title="EPS canvas C reference" href="eps-reference.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="utility-reference.html" title="Utility ownership C reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="eps-reference.html" title="EPS canvas C reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Allocation, strings and interned names</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="allocation-strings-and-interned-names">
+<h1>Allocation, strings and interned names<a class="headerlink" href="#allocation-strings-and-interned-names" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">rbcAlloc.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> supply shared infrastructure. Their contracts
+are not interchangeable: an allocated copy, a reference-counted UID, a borrowed
+UID lookup and a scratch formatting buffer all have different lifetimes.
+See <a class="reference internal" href="utility-reference.html"><span class="doc">Utility ownership C reference</span></a> for the selected C declarations.</p>
+<section id="allocation-and-failure-policy">
+<h2>Allocation and failure policy<a class="headerlink" href="#allocation-and-failure-policy" title="Link to this heading">¶</a></h2>
+<p>RbcCalloc checks the multiplication of element count and element size against
+SIZE_MAX. Overflow invokes Tcl_Panic. A zero logical size still allocates and
+zeros one byte, retaining ckalloc-style non-NULL behavior. RbcStrdup copies a
+non-NULL NUL-terminated string, including its terminator. Both use Tcl allocation
+and return storage to release with ckfree, not libc free.</p>
+<p>These wrappers do not offer a recoverable allocation-failure protocol. Code
+that requires a diagnostic and TCL_ERROR must choose an appropriate allocation
+strategy explicitly. A check after a fatal allocator is not a substitute.
+Likewise, a successful allocation does not prove that earlier arithmetic used
+to compute a count was safe; callers own those calculations.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Result</p></th>
+<th class="head"><p>Ownership and lifetime</p></th>
+<th class="head"><p>Release/copy rule</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>RbcCalloc / RbcStrdup</p></td>
+<td><p>New allocation owned by caller</p></td>
+<td><p>ckfree</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rbc_GetUid</p></td>
+<td><p>One reference to shared immutable characters</p></td>
+<td><p>Rbc_FreeUid once per acquisition</p></td>
+</tr>
+<tr class="row-even"><td><p>Rbc_FindUid</p></td>
+<td><p>Borrowed existing key, no new reference</p></td>
+<td><p>Acquire separately if it must outlive its owner</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rbc_Itoa / Rbc_Utoa / Rbc_Dtoa</p></td>
+<td><p>One shared process-static scratch buffer</p></td>
+<td><p>Copy immediately if it must be retained</p></td>
+</tr>
+<tr class="row-even"><td><p>Rbc_GetStringListFromObj</p></td>
+<td><p>One allocation containing pointers and characters</p></td>
+<td><p>One ckfree of the block</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="uid-table">
+<h2>UID table<a class="headerlink" href="#uid-table" title="Link to this heading">¶</a></h2>
+<p>Rbc_GetUid lazily initializes a process-static Tcl hash table keyed by string
+contents. It increments the entry count and returns the table’s key pointer.
+Equal names share identity while references remain. Rbc_FreeUid decrements the
+count and deletes the entry at zero. The historical Rbc_Uid typedef is mutable,
+but callers must not modify hash-key characters or release them directly.</p>
+<p>Rbc_FindUid returns the same pointer without incrementing its count. It is not
+an acquisition. Retaining its result after the last owner releases the UID is
+invalid, even if the characters previously matched another string. An unknown
+still-valid string passed to Rbc_FreeUid produces a stderr diagnostic; this is
+not protection against NULL, stale or already-freed pointers.</p>
+<p>The table is not interpreter-associated and has no synchronization or teardown
+hook for each interpreter. Do not treat sharing a UID pointer as cross-thread
+support. These declarations already appear in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>; they do not have
+entries in the vector stubs table. Documentation adds neither new symbols nor
+stub slots. See <a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for the actual client-stubs boundary.</p>
+</section>
+<section id="formatting-and-result-assembly">
+<h2>Formatting and result assembly<a class="headerlink" href="#formatting-and-result-assembly" title="Link to this heading">¶</a></h2>
+<p>The integer and double formatting helpers all return the same static buffer.
+Calling one overwrites the others’ output. In particular, using two formatter
+calls as arguments of one function does not produce two independent strings;
+argument evaluation order cannot make that safe. Copy or append one result
+before requesting the next. These helpers have no thread synchronization.</p>
+<p>Rbc_AppendResultStrings duplicates the current Tcl result object, appends raw
+NUL-terminated fragments and installs the completed duplicate. It preserves
+shared original objects, but does not quote list elements, retain binary data
+past NUL, or set errorCode/errorInfo. Its varargs terminate with a NULL string
+pointer. Rbc_DStringAppendElements instead appends each argument through Tcl’s
+list-element quoting API. It borrows an initialized DString; the caller remains
+responsible for freeing it. Neither helper is an arbitrary Tcl evaluator.</p>
+</section>
+<section id="other-utility-boundaries">
+<h2>Other utility boundaries<a class="headerlink" href="#other-utility-boundaries" title="Link to this heading">¶</a></h2>
+<p>Rbc_InitHexTable initializes only the hexadecimal digit entries. Callers must
+initialize the remaining slots to their desired invalid-digit sentinel; the
+helper neither clears the table nor maintains an initialization flag.</p>
+<p>Rbc_RandomDouble consumes the C library rand state and divides by RAND_MAX + 1,
+producing values from zero inclusive to one exclusive. It does not seed a
+per-interpreter generator, promise identical sequences across C libraries or
+provide a cryptographic random source.</p>
+<p>The same module contains legacy byte-case fallback routines, dictionary
+comparison and stdio filename conversion. They are not unified Unicode string
+or Tcl-channel abstractions. In particular, Rbc_OpenUtfFile converts a name to
+the default external encoding and uses fopen; it is not Tcl filesystem/VFS
+access. Their presence does not change the ownership rules above.</p>
+</section>
+<section id="maintenance-checks">
+<h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
+<p>Review allocation/free pairs and UID acquisitions/releases at call sites.
+Test shared Tcl result objects when changing result assembly. Keep long-lived
+names separate from scratch formatting results. For parser-owned string arrays,
+review replacement and failure cleanup together as described in
+<a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a>. No generated stubs should be edited for these private
+utility changes.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Allocation, strings and interned names</a><ul>
+<li><a class="reference internal" href="#allocation-and-failure-policy">Allocation and failure policy</a></li>
+<li><a class="reference internal" href="#uid-table">UID table</a></li>
+<li><a class="reference internal" href="#formatting-and-result-assembly">Formatting and result assembly</a></li>
+<li><a class="reference internal" href="#other-utility-boundaries">Other utility boundaries</a></li>
+<li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="eps-reference.html"
+                          title="previous chapter">EPS canvas C reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="utility-reference.html"
+                          title="next chapter">Utility ownership C reference</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="utility-reference.html" title="Utility ownership C reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="eps-reference.html" title="EPS canvas C reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Allocation, strings and interned names</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright .
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>
