@@ -176,5 +176,59 @@ namespace eval graph.marker.arrowalignment {
         destroy .arrowAlign
     } -result 1
 
+    # 8. Capture the actual window without processing pending redraws. A graph
+    # snapshot or update would repaint the background and hide incomplete XOR erasure.
+    set testCase(8) 0
+    foreach renderer {native cairo} {
+        set constraints {}
+        if {$renderer eq "cairo"} {set constraints arrowAlignmentCairo}
+        foreach {arrow geometry} {first shaft last shaft both shaft first head last head} {
+            foreach operation {clear disable delete move restyle} {
+                test RBC.graph.marker.arrowalignment.A.8.[incr testCase(8)] \
+                        "immediate XOR erases old $geometry/$arrow geometry on $operation ($renderer)" \
+                        -constraints $constraints -setup {
+                    Setup $renderer
+                    set photo [image create photo]
+                    rbc::winop snap .arrowAlign $photo
+                    set blank [$photo data -from 0 40 230 120]
+                    if {$geometry eq "shaft"} {
+                        set pixels {60 80 180 80}
+                    } else {
+                        # Tip at the left plot boundary, neighbor outside. The
+                        # backed-up shaft lies wholly outside; only the head remains.
+                        lassign [.arrowAlign transform 0 0.5] left y
+                        set pixels [list $left 80 [expr {$left-40}] 80]
+                        if {$arrow eq "last"} {
+                            set pixels [list [expr {$left-40}] 80 $left 80]
+                        }
+                    }
+                    .arrowAlign marker create line -name direction -coords [Coordinates $pixels] \
+                        -arrow $arrow -arrowshape {20 26 10} -outline red -linewidth 3 -xor yes
+                } -body {
+                    rbc::winop snap .arrowAlign $photo
+                    set drawn [expr {[$photo data -from 0 40 230 120] ne $blank}]
+                    switch $operation {
+                        clear {.arrowAlign marker configure direction -coords {}}
+                        disable {.arrowAlign marker configure direction -xor no}
+                        delete {.arrowAlign marker delete direction}
+                        move {
+                            .arrowAlign marker configure direction \
+                                -coords [Coordinates {60 170 180 170}]
+                        }
+                        restyle {
+                            .arrowAlign marker configure direction -xor no -arrow none \
+                                -outline blue -linewidth 7 -arrowshape {12 15 5}
+                        }
+                    }
+                    rbc::winop snap .arrowAlign $photo
+                    list $drawn [expr {[$photo data -from 0 40 230 120] eq $blank}]
+                } -cleanup {
+                    catch {image delete $photo}
+                    destroy .arrowAlign
+                } -result {1 1}
+            }
+        }
+    }
+
     cleanupTests
 }

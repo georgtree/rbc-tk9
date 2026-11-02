@@ -25,6 +25,18 @@
  * Internal services shared by concrete marker classes.
  */
 
+/** @defgroup marker_line_geometry Line marker geometry and lifetime
+ * Internal geometric marker implementation.
+ */
+
+/** @defgroup marker_shape_output Geometric marker renderer dispatch
+ * Internal geometric marker implementation.
+ */
+
+/** @defgroup marker_polygon_geometry Polygon and arc geometry and ownership
+ * Internal geometric marker implementation.
+ */
+
 #include <float.h>
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
@@ -431,6 +443,15 @@ typedef enum { LINE_ARROW_NONE, LINE_ARROW_FIRST, LINE_ARROW_LAST, LINE_ARROW_BO
 
 static const char *const arrowStrings[] = {"none", "first", "last", "both", NULL};
 
+/**
+ * @ingroup marker_line_geometry
+ * @brief Line-specific option state, owned segment cache and fixed arrow arrays.
+ *
+ * Common Marker is embedded first. Tk options own Tcl representations and
+ * colors; class cleanup owns the private GC and segment allocation. Arrow
+ * arrays have five unique vertices plus a repeated tip. xorState records an
+ * immediate graph-wide image, not the current requested xor option alone.
+ */
 typedef struct {
     Marker core;
     /*
@@ -512,12 +533,15 @@ static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
-/*
- * -------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Shared polygon/arc storage with separately owned mapped caches.
  *
- * PolygonMarker --
- *
- * -------------------------------------------------------------------
+ * screenPts retains full mapped geometry; fillPts and outlinePts are clipped
+ * output caches. Polygon vertex count is core.nWorldPts; arc count is nArcPts
+ * while its world input remains two corners. arc retains exact curve geometry
+ * for curved renderers. Color pairs and GCs are class-owned; Tk options own
+ * their Tcl representations and stipple reference.
  */
 typedef struct {
     Marker core;
@@ -3961,6 +3985,16 @@ static void ChildCustodyProc(ClientData clientData, Tk_Window tkwin) {
     Rbc_EventuallyRedrawGraph(graphPtr);
 }
 
+/**
+ * @ingroup marker_line_geometry
+ * @brief Construct a closed arrowhead and shortened shaft endpoint.
+ *
+ * Borrows the three shape distances and writes six vertices, including the
+ * repeated tip, plus shaftPtr. Uses mapped display coordinates, effective line
+ * width and Tk-style neck interpolation. Returns FALSE for an adjacent point
+ * within DBL_EPSILON of the tip; outputs must not be used on that path.
+ * Allocates nothing and does not clip the resulting head.
+ */
 static int ComputeArrowHead(Point2D tip, Point2D adjacent, double lineWidth, const double shape[3],
                             Point2D arrow[PTS_IN_ARROW], Point2D *shaftPtr) {
     double shapeA, shapeB, shapeC;
@@ -4008,30 +4042,28 @@ static int ComputeArrowHead(Point2D tip, Point2D adjacent, double lineWidth, con
     return TRUE;
 }
 
+/**
+ * @ingroup marker_line_geometry
+ * @brief Test inclusive containment of a display point.
+ *
+ * Borrows both inputs; returns TRUE on the rectangle boundary as well as
+ * inside it. No coordinate mapping, tolerance expansion or mutation.
+ */
 static int PointInsideExtents(const Point2D *pointPtr, const Extents2D *extsPtr) {
     return ((pointPtr->x >= extsPtr->left) && (pointPtr->x <= extsPtr->right) && (pointPtr->y >= extsPtr->top) &&
             (pointPtr->y <= extsPtr->bottom));
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Replace clipped shaft segments and endpoint arrow geometry.
  *
- * MapLineMarker --
- *
- *      Calculate the layout position for a line marker.  Positional
- *      information is saved in the marker.  The line positions are
- *      stored in an array of points (malloc'ed).
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Clears prior segments and arrow flags, then maps at least two world points
+ * with pixel offsets. Heads are constructed only when their original tips lie
+ * inside plot extents; shaft endpoints are shortened before edge clipping.
+ * Owns the replacement segment allocation. Size/allocation failure leaves an
+ * empty clipped marker without a Tcl error. A visible head alone makes the
+ * marker non-clipped even when no shaft segment survives.
  */
 static void MapLineMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4141,24 +4173,13 @@ static void MapLineMarker(Marker *markerPtr) {
     lmPtr->core.clipped = FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Pick mapped arrow polygons or clipped shaft segments.
  *
- * PointInLineMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows mapped caches. Tests five unique vertices per enabled head, then
+ * segment distance using the graph halo. Does not expand that halo by shaft
+ * width or refresh layout.
  */
 static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4180,25 +4201,14 @@ static int PointInLineMarker(Marker *markerPtr, Point2D *samplePtr) {
     return Rbc_PointInSegments(samplePtr, lmPtr->segments, lmPtr->nSegments, (double)lmPtr->core.graphPtr->halo);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Test original mapped line edges and cached arrowheads against a region.
  *
- * RegionInLineMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires two world points. Enclosure requires every original mapped point
+ * (including pixel offsets) and every enabled head inside the rectangle.
+ * Overlap accepts any original edge or cached head intersection. Unlike point
+ * picking, shaft tests do not use the plot-clipped segment cache or graph halo.
  */
 static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     LineMarker *lmPtr;
@@ -4276,7 +4286,15 @@ static int RegionInLineMarker(Marker *markerPtr, Extents2D *extsPtr, int enclose
     }
 }
 
-/* Keep clipped segments independent, as in native marker drawing. */
+/**
+ * @ingroup marker_shape_output
+ * @brief Submit independent clipped segments to the selected renderer.
+ *
+ * Borrows geometry/style. XOR requests or a missing render context return
+ * FALSE so the caller can use its native GC path. Otherwise sets caps/joins,
+ * submits all segments, ends the context and returns TRUE. Width is at least
+ * one pixel; TRUE denotes dispatch, not a pixel-visibility assertion.
+ */
 static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const Segment2D *segments, Tcl_Size count,
                                       const XColor *color, const XColor *gapColor, int width, const Rbc_Dashes *dashes,
                                       int cap, int join, int xorMode) {
@@ -4295,13 +4313,14 @@ static int DrawRenderedMarkerSegments(Graph *graphPtr, Drawable drawable, const 
     return TRUE;
 }
 
-/*
- * DrawNativeLineSegments --
+/**
+ * @ingroup marker_shape_output
+ * @brief Draw shaft segments with legacy native endpoint conversion.
  *
- *      Round arrowed shaft endpoints to pixel centers, instead of letting the
- *      general segment routine truncate their endpoints. Keep mapped
- *      doubles intact for hit testing and export. Use bounded batches
- *      and retain the general routine's protocol clipping.
+ * Borrows the line GC/cache. Without heads, delegates directly to the screen
+ * segment renderer. With heads, rounds endpoints in bounded 128-segment
+ * stack batches before dispatch. Never modifies mapped doubles used by
+ * picking/export and never draws the heads themselves.
  */
 static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
     Graph *graphPtr = lmPtr->core.graphPtr;
@@ -4324,13 +4343,43 @@ static void DrawNativeLineSegments(LineMarker *lmPtr, Drawable drawable) {
     }
 }
 
-/*
- * DrawRenderedArrowHead --
+/**
+ * @ingroup marker_shape_output
+ * @brief Erase all recorded immediate line geometry with its original native GC.
  *
- *      Area fills use pixel boundaries, while line-marker coordinates
- *      identify pixel centers. Move only the temporary fill vertices
- *      by half a pixel to match the Cairo shaft's translation. Native
- *      drawing and exports continue to use the original geometry.
+ * Borrows the old shaft/head caches and GC, independent of newly installed Tk
+ * options such as xor, arrow and outline. Redraws shaft and enabled heads when
+ * a drawable and GC remain, including head-only markers, then clears xorState.
+ * Does not map geometry, select a renderer or schedule graph redraw.
+ */
+static void EraseLineMarkerXor(LineMarker *lmPtr, Drawable drawable) {
+    Graph *graphPtr = lmPtr->core.graphPtr;
+
+    if (!lmPtr->xorState) {
+        return;
+    }
+    if ((drawable != None) && (lmPtr->gc != NULL)) {
+        if (lmPtr->nSegments > 0) {
+            DrawNativeLineSegments(lmPtr, drawable);
+        }
+        if (lmPtr->hasFirstArrow) {
+            Rbc_RenderScreenArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->firstArrow);
+        }
+        if (lmPtr->hasLastArrow) {
+            Rbc_RenderScreenArrowHead(graphPtr, drawable, lmPtr->gc, lmPtr->lastArrow);
+        }
+    }
+    lmPtr->xorState = FALSE;
+}
+
+/**
+ * @ingroup marker_shape_output
+ * @brief Submit temporary half-pixel-shifted arrow fill vertices.
+ *
+ * Copies the five unique vertices and shifts both coordinates by 0.5 to
+ * align area boundaries with the rendered shaft. Returns the area helper
+ * status for fallback selection. Original geometry remains unchanged for
+ * native drawing, picking and document export.
  */
 static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point2D *arrow, XColor *color) {
     Point2D points[PTS_IN_ARROW - 1];
@@ -4344,24 +4393,14 @@ static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point
 }
 
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_shape_output
+ * @brief Draw mapped shafts followed by first and last arrowheads.
  *
- * DrawLineMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses renderer strokes/fills where possible, otherwise native GC services;
+ * XOR always uses native paths. An absent non-XOR outline may be recovered
+ * from the GC foreground for screen drawing. Toggles xorState after any
+ * drawing only for graph-wide XOR markers, not track-owned markers.
  */
 static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4399,6 +4438,15 @@ static void DrawLineMarker(Marker *markerPtr, Drawable drawable) {
     }
 }
 
+/**
+ * @ingroup marker_line_geometry
+ * @brief Parse three screen distances into caller-owned shape storage.
+ *
+ * Borrows arrowShapeObjPtr and the graph window. Returns TCL_ERROR with a
+ * diagnostic for a malformed list, wrong count or invalid screen distance.
+ * Earlier output entries may be written before failure. No additional
+ * positivity or relative-size check is performed here.
+ */
 static int ParseArrowShape(LineMarker *lmPtr, double shape[3]) {
     Graph *graphPtr = lmPtr->core.graphPtr;
     Tcl_Interp *interp = graphPtr->interp;
@@ -4422,28 +4470,17 @@ static int ParseArrowShape(LineMarker *lmPtr, double shape[3]) {
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Prepare and commit line style, common options and a private GC.
  *
- * ConfigureLineMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or reconfigure)
- *      a line marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as line width, colors, dashes,
- *      etc. get set for markerPtr; old resources get freed, if there
- *      were any.  The marker is eventually redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Parses common options, arrow shape, caps, joins, dashes and nonnegative
+ * width/offset before committing derived state. Error paths release staged
+ * resources; the outer option transaction restores Tk-managed values.
+ * Erases the recorded old XOR shaft and heads before replacing geometry/GC,
+ * then maps/draws graph-wide XOR immediately or schedules redraw (including
+ * track transitions). Erasure uses old caches and GC regardless of new options.
+ * Under-layer scheduled drawing invalidates the backing store.
  */
 static int ConfigureLineMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4553,10 +4590,7 @@ static int ConfigureLineMarker(Marker *markerPtr) {
      * installed the newly requested -xor value, whereas xorState says
      * whether an old XOR image is currently present in the window.
      */
-    if (lmPtr->xorState && (drawable != None) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
-        DrawNativeLineSegments(lmPtr, drawable);
-        lmPtr->xorState = FALSE;
-    }
+    EraseLineMarkerXor(lmPtr, drawable);
     /*
      * Commit the common marker options. This transfers ownership of
      * tags, coordinates, and axis references to markerPtr.
@@ -4605,18 +4639,13 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_shape_output
+ * @brief Export the five unique arrow vertices using the explicit outline color.
  *
- * ArrowHeadExport --
- *
- *      Emits PostScript commands for a filled line-marker arrowhead.
- *      The arrowhead uses the marker's outline color.
- *
- *      arrow[PTS_IN_ARROW - 1] duplicates arrow[0], so only the
- *      unique vertices are passed to Rbc_PathToPostScript.
- *
- * ----------------------------------------------------------------------
+ * Borrows the mapped arrow and export context. An empty outline suppresses
+ * head output rather than recovering the screen GC color. Creates and ends
+ * a fill-render context; does not shorten or remap the shaft.
  */
 static void ArrowHeadExport(LineMarker *lmPtr, Rbc_ExportContext *exportPtr, Point2D *arrow) {
     if (lmPtr->outlineColor == NULL) {
@@ -4629,27 +4658,14 @@ static void ArrowHeadExport(LineMarker *lmPtr, Rbc_ExportContext *exportPtr, Poi
     Rbc_RenderEnd(ctx);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_shape_output
+ * @brief Export clipped shaft segments and mapped arrowheads.
  *
- * LineMarkerExport --
- *
- *      Prints postscript commands to display the connect line.
- *      Dashed lines need to be handled specially, especially if a
- *      background color is designated.
- *
- * Parameters:
- *      Marker *markerPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript output commands are saved in the interpreter
- *      (infoPtr->interp) result field.
- *
- * ----------------------------------------------------------------------
+ * Borrows caches at the current export layout. Sets cap/join/dash state and
+ * dash-gap color for the shaft, then exports enabled heads. Uses the original
+ * double geometry without native rounding or screen half-pixel shifts.
+ * Export does not toggle XOR state.
  */
 static void LineMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     LineMarker *lmPtr = LINE_MARKER_FROM_CORE(markerPtr);
@@ -4677,25 +4693,14 @@ static void LineMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Release line-owned segment storage and private graphics context.
  *
- * FreeLineMarker --
- *
- *      Destroys the structure and attributes of a line marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Line attributes (GCs, colors, stipple, etc) get released.
- *      Memory is deallocated, X resources are freed.
- *
- * ----------------------------------------------------------------------
+ * Borrows graph and marker; does not free the record or common options.
+ * Erases recorded immediate XOR shaft and heads while a drawable and GC
+ * remain, including head-only geometry. Clears released pointers and
+ * segment count. Common lifecycle code owns subsequent record destruction.
  */
 static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
     LineMarker *lmPtr;
@@ -4705,13 +4710,8 @@ static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
     /*
      * Remove an immediately drawn XOR marker before releasing its GC.
      */
-    if (lmPtr->xorState && (graphPtr->tkwin != NULL) && (lmPtr->gc != NULL) && (lmPtr->nSegments > 0)) {
-        drawable = Tk_WindowId(graphPtr->tkwin);
-        if (drawable != None) {
-            DrawNativeLineSegments(lmPtr, drawable);
-        }
-        lmPtr->xorState = FALSE;
-    }
+    drawable = (graphPtr->tkwin != NULL) ? Tk_WindowId(graphPtr->tkwin) : None;
+    EraseLineMarkerXor(lmPtr, drawable);
     if (lmPtr->gc != NULL) {
         Rbc_FreePrivateGC(graphPtr->display, lmPtr->gc);
         lmPtr->gc = NULL;
@@ -4723,20 +4723,13 @@ static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_line_geometry
+ * @brief Allocate a zeroed line record and install initial class/style values.
  *
- * CreateLineMarker --
- *
- *      Allocate memory and initialize methods for a new line marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is returned.
- *
- * Side effects:
- *      Memory is allocated for the line marker structure.
- *
- * ----------------------------------------------------------------------
+ * Uses the RBC allocation wrapper, sets the class, disables XOR and selects
+ * butt caps/miter joins. Returns the embedded common marker; the caller owns
+ * option initialization, registry insertion and eventual destruction.
  */
 static Marker *CreateLineMarker() {
     LineMarker *lmPtr;
@@ -4751,25 +4744,16 @@ static Marker *CreateLineMarker() {
     return &lmPtr->core;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Replace full mapped vertices and independently clipped fill/outline caches.
  *
- * MapPolygonMarker --
- *
- *      Calculate the layout position for a polygon marker.  Positional
- *      information is saved in the polygon in an array of points
- *      (malloc'ed).
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Frees old geometry first and requires at least three world vertices.
+ * Applies axes and pixel offsets to screenPts. Fill clipping is attempted
+ * only with a fill foreground; outlines require foreground and positive
+ * width, and include the closing edge. Each allocation is size-checked and
+ * fallible without a Tcl error. A partial cache may survive another cache
+ * allocation failure; clipped becomes FALSE when drawable geometry remains.
  */
 static void MapPolygonMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -4869,24 +4853,13 @@ static void MapPolygonMarker(Marker *markerPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Pick the interior of the full mapped polygon.
  *
- * PointInPolygonMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Point2D *samplePtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires screenPts and at least three world vertices. Borrows that cache
+ * and tests polygon interior irrespective of fill visibility or line width.
+ * Does not use clipped fill geometry, graph halo or refresh mapping.
  */
 static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
     PolygonMarker *pmPtr;
@@ -4898,25 +4871,13 @@ static int PointInPolygonMarker(Marker *markerPtr, Point2D *samplePtr) {
     return Rbc_PointInPolygon(samplePtr, pmPtr->screenPts, pmPtr->core.nWorldPts);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Test the full mapped polygon for enclosure or overlap.
  *
- * RegionInPolygonMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Extents2D *extsPtr
- *      int enclosed
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires screenPts and at least three world vertices, then delegates to
+ * the region/polygon helper. Uses original mapped vertices rather than
+ * clipped fill/outline caches and ignores stroke thickness.
  */
 static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     PolygonMarker *pmPtr;
@@ -4928,28 +4889,15 @@ static int RegionInPolygonMarker(Marker *markerPtr, Extents2D *extsPtr, int encl
     return Rbc_RegionInPolygon(extsPtr, pmPtr->screenPts, pmPtr->core.nWorldPts, enclosed);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_shape_output
+ * @brief Draw clipped polygon fill followed by clipped outline segments.
  *
- * DrawPolygonMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Drawable drawable - Pixmap or window to draw into
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows fill/outline caches and colors. Tries selected-renderer area and
+ * stroke operations, with native GC fallback (forced for XOR). Fill needs
+ * at least three points; outline needs positive width and a foreground.
+ * Does not update immediate-XOR bookkeeping.
  */
-
-
-
 static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     Graph *graphPtr;
     PolygonMarker *pmPtr;
@@ -4984,24 +4932,14 @@ static void DrawPolygonMarker(Marker *markerPtr, Drawable drawable) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_shape_output
+ * @brief Export polygon fill and outline from clipped caches.
  *
- * PolygonMarkerExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *      Rbc_ExportContext *exportPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows the export context and current mapped caches. Fill preserves
+ * foreground/background/stipple; outline preserves width, cap/join and dash
+ * gap color. Creates and ends each renderer context independently, without
+ * remapping or altering XOR state.
  */
 static void PolygonMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = markerPtr->graphPtr;
@@ -5023,29 +4961,18 @@ static void PolygonMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr)
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Prepare and commit shared polygon/arc appearance and common options.
  *
- * ConfigurePolygonMarker --
- *
- *      This procedure is called to process an argv/argc list, plus
- *      the Tk option database, in order to configure (or reconfigure)
- *      a polygon marker.
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      A standard Tcl result.  If TCL_ERROR is returned, then
- *      the interpreter result contains an error message.
- *
- * Side effects:
- *      Configuration information, such as polygon color, dashes,
- *      fillstyle, etc. get set for markerPtr; old resources get
- *      freed, if there were any.  The marker is eventually
- *      redisplayed.
- *
- * ----------------------------------------------------------------------
+ * Arc angles must be finite. Stages common resources, styles and owned color
+ * pairs, builds a private outline GC and shared fill GC, then erases a
+ * recorded immediate outline before commit. Errors release staged resources;
+ * the outer Tk option transaction restores option fields. Immediate XOR is
+ * restricted to graph-wide outline-only cases without pending axis reset;
+ * open arcs qualify as outline-only. Otherwise marks for mapping and redraw,
+ * invalidating under-layer backing storage. Fill GC construction does not
+ * apply the outline GC XOR function.
  */
 static int ConfigurePolygonMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -5250,24 +5177,15 @@ error:
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Release polygon/arc caches, color pairs and graphics contexts.
  *
- * FreePolygonMarker --
- *
- *      Release memory and resources allocated for the polygon element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Marker *markerPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Everything associated with the polygon element is freed up.
- *
- * ----------------------------------------------------------------------
+ * Erases a recorded immediate outline when its drawable/resources remain.
+ * Releases the private outline GC, shared fill GC and three owned geometry
+ * arrays, clearing pointers/counts as implemented. Frees manually owned color
+ * pairs; common option/record cleanup retains responsibility for the stipple,
+ * world points, tags and the record itself.
  */
 static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
     PolygonMarker *pmPtr;
@@ -5311,22 +5229,13 @@ static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
     Rbc_FreeColorPair(&pmPtr->fill);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Allocate polygon storage with its class and initial line style.
  *
- * CreatePolygonMarker --
- *
- *      Allocate memory and initialize methods for the new polygon
- *      marker.
- *
- * Results:
- *      The pointer to the newly allocated marker structure is
- *      returned.
- *
- * Side effects:
- *      Memory is allocated for the polygon marker structure.
- *
- * ----------------------------------------------------------------------
+ * Returns the embedded common marker, with butt caps/miter joins and other
+ * fields zeroed. Common creation configures options and registers the record.
+ * The same allocation layout is reused by arc markers.
  */
 static Marker *CreatePolygonMarker(void) {
     PolygonMarker *pmPtr;
@@ -5340,31 +5249,19 @@ static Marker *CreatePolygonMarker(void) {
     return (pmPtr != NULL) ? &pmPtr->core : NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Map an ellipse box and build bounded flattened geometry caches.
  *
- * NameToMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      const char *name
- *      Marker **markerPtrPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Clears old caches, requires two corners and nonzero extent, and rejects
+ * nonfinite/zero mapped radii. Normalizes start modulo 360 and clamps signed
+ * extent to one turn. Stores the exact ellipse separately; flattened points
+ * target 0.15-pixel chord error with at most 8192 steps. Closure follows open,
+ * chord or pieslice style. Visibility is conservative from the ellipse box
+ * plus outline margin, independent of successful cache allocation. Fallible
+ * allocations do not set Tcl errors; picking caches can be absent even when
+ * the exact curve remains eligible for renderer drawing.
  */
-/* Arc geometry is constructed after mapping the opposite box corners. Angles
- * are display-space angles, unaffected by log/descending/inverted axes.
- * Flattening uses a 0.15 pixel chord-error target, capped at 8192 segments
- * for extreme off-screen boxes. These vertices serve native drawing and
- * picking; curved renderers consume the original mapped ellipse. */
 static void MapArcMarker(Marker *markerPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     Graph *graphPtr = markerPtr->graphPtr;
@@ -5489,6 +5386,14 @@ static void MapArcMarker(Marker *markerPtr) {
     }
 }
 
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Pick clipped arc fill or outline caches.
+ *
+ * Requires a two-corner world box. Tests the clipped fill polygon first, then
+ * outline segments with tolerance max(graph halo, half line width). Borrows
+ * caches; does not analytically test the ellipse or rebuild missing geometry.
+ */
 static int PointInArcMarker(Marker *markerPtr, Point2D *samplePtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if (markerPtr->nWorldPts != 2) return FALSE;
@@ -5497,6 +5402,15 @@ static int PointInArcMarker(Marker *markerPtr, Point2D *samplePtr) {
         MAX((double)markerPtr->graphPtr->halo, pmPtr->lineWidth * 0.5));
 }
 
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Test flattened arc geometry for enclosure or overlap.
+ *
+ * Requires mapped vertices and at least one nonempty fill/outline cache.
+ * Enclosure tests every untrimmed flattened vertex; overlap tests clipped
+ * fill and outline segments. Neither branch expands the rectangle by stroke
+ * width or provides an exact analytic curve test.
+ */
 static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     Tcl_Size i;
@@ -5516,8 +5430,16 @@ static int RegionInArcMarker(Marker *markerPtr, Extents2D *extsPtr, int enclosed
     return FALSE;
 }
 
-/* Join adjacent clipped segments into continuous paths: dash phase and joins
- * must not restart at every flattened curve vertex. */
+/**
+ * @ingroup marker_shape_output
+ * @brief Stroke the mapped ellipse through curved or native renderer services.
+ *
+ * Skips zero extent, empty outline or nonpositive width. An export context
+ * selects document output; otherwise uses the screen renderer unless XOR is
+ * requested. Native fallback receives clipped flattened segments as well as
+ * the exact ellipse. Renderer arc handling owns continuous-path dash/join
+ * behavior; this helper does not join vertices itself.
+ */
 static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportContext *exportPtr) {
     Graph *graphPtr = pmPtr->core.graphPtr;
     Rbc_RenderContext *ctx;
@@ -5539,6 +5461,15 @@ static void StrokeArcMarker(PolygonMarker *pmPtr, Drawable drawable, Rbc_ExportC
     Rbc_RenderEnd(ctx);
 }
 
+/**
+ * @ingroup marker_shape_output
+ * @brief Draw or erase a polygon/arc outline using existing native state.
+ *
+ * Borrows the old outline GC and geometry. Polygon outlines submit cached
+ * segments. Arcs temporarily force the XOR flag while calling StrokeArcMarker
+ * to bypass Cairo, then restore it. The caller owns xorState bookkeeping
+ * and must retain valid old resources until the call completes.
+ */
 static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable) {
     if (pmPtr->core.classUid == rbcArcMarkerUid) {
         int savedXor = pmPtr->xor;
@@ -5552,6 +5483,15 @@ static void DrawImmediatePolygonOutline(PolygonMarker *pmPtr, Drawable drawable)
     }
 }
 
+/**
+ * @ingroup marker_shape_output
+ * @brief Fill a closed mapped arc and then stroke its outline.
+ *
+ * Skips zero extent. Open arcs never fill. Selected-renderer fill contexts
+ * consume the exact ellipse; native fallback also receives the clipped fill
+ * polygon. Stroke dispatch is shared with export/immediate outline paths.
+ * Does not change immediate-XOR bookkeeping.
+ */
 static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if (pmPtr->arc.extent == 0.0) return;
@@ -5571,6 +5511,15 @@ static void DrawArcMarker(Marker *markerPtr, Drawable drawable) {
     StrokeArcMarker(pmPtr, drawable, NULL);
 }
 
+/**
+ * @ingroup marker_shape_output
+ * @brief Export the exact mapped ellipse with its closure and appearance.
+ *
+ * Skips zero extent and omits fill for open arcs. Borrows geometry/export
+ * context, emits a fill if requested and calls the shared arc stroke path.
+ * Does not export the flattened picking polygon as the primary curve or
+ * modify screen XOR state.
+ */
 static void ArcMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     PolygonMarker *pmPtr = POLYGON_MARKER_FROM_CORE(markerPtr);
     if (pmPtr->arc.extent == 0.0) return;
@@ -5583,6 +5532,14 @@ static void ArcMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     StrokeArcMarker(pmPtr, None, exportPtr);
 }
 
+/**
+ * @ingroup marker_polygon_geometry
+ * @brief Allocate polygon storage and substitute the arc callback class.
+ *
+ * Delegates allocation/default style to CreatePolygonMarker, then changes
+ * only classPtr when non-NULL. Common initialization installs arc options;
+ * configuration and cleanup remain the polygon class implementations.
+ */
 static Marker *CreateArcMarker(void) {
     Marker *markerPtr = CreatePolygonMarker();
     if (markerPtr != NULL) markerPtr->classPtr = &arcMarkerClass;

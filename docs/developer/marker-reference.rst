@@ -35,9 +35,9 @@ option-table fields are included directly:
 Shared implementation reference
 -------------------------------
 
-Concrete marker geometry and platform batching remain separate documentation
-work. These groups cover common transactions, lifecycle, mapping helpers and
-commands. Namespaces disambiguate private names without changing C linkage.
+These groups cover common transactions, lifecycle, mapping helpers and
+commands. Geometric class contracts follow below; bitmap, image, text, window
+class internals and platform batching remain separate documentation work. Namespaces disambiguate private names without changing C linkage.
 
 Option preparation and commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,6 +75,36 @@ Registry and commands
 .. c:namespace-push:: rbcGrMarkerCommands
 
 .. doxygengroup:: marker_commands
+   :members:
+
+.. c:namespace-pop::
+
+Line geometry and lifetime
+--------------------------
+
+.. c:namespace-push:: rbcGrMarkerLine
+
+.. doxygengroup:: marker_line_geometry
+   :members:
+
+.. c:namespace-pop::
+
+Polygon and arc geometry and ownership
+--------------------------------------
+
+.. c:namespace-push:: rbcGrMarkerPolygon
+
+.. doxygengroup:: marker_polygon_geometry
+   :members:
+
+.. c:namespace-pop::
+
+Geometric renderer dispatch
+---------------------------
+
+.. c:namespace-push:: rbcGrMarkerShapeOutput
+
+.. doxygengroup:: marker_shape_output
    :members:
 
 .. c:namespace-pop::

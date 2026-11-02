@@ -456,12 +456,12 @@ void Rbc_PresentGraphWithCrosshairs(Graph *graphPtr, Drawable drawable) {
      * with the completed frame in a single copy.
      */
     if (graphPtr->flags & DRAW_MARGINS) {
-        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0, graphPtr->width,
-                  graphPtr->height, 0, 0);
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, 0, 0,
+                                 graphPtr->width, graphPtr->height, 0, 0);
     } else {
-        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC, graphPtr->left,
-                  graphPtr->top, graphPtr->right - graphPtr->left + 1, graphPtr->bottom - graphPtr->top + 1,
-                  graphPtr->left, graphPtr->top);
+        Rbc_RenderScreenCopyArea(graphPtr->tkwin, drawable, Tk_WindowId(graphPtr->tkwin), graphPtr->drawGC,
+                                 graphPtr->left, graphPtr->top, graphPtr->right - graphPtr->left + 1,
+                                 graphPtr->bottom - graphPtr->top + 1, graphPtr->left, graphPtr->top);
     }
     /*
      * The next direct XOR move must erase the hairs just copied to

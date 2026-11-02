@@ -359,6 +359,188 @@ likewise visits hidden text markers, resets text style and layout, rebuilds the
 rotated bounding outline and sets <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden geometry must be ready to
 remap when the marker is shown again.</p>
 </section>
+<section id="geometric-markers-line-polygon-and-arc">
+<h2>Geometric markers: line, polygon and arc<a class="headerlink" href="#geometric-markers-line-polygon-and-arc" title="Link to this heading">¶</a></h2>
+<p>These three classes share renderer services but deliberately retain different
+geometry and picking contracts. <code class="docutils literal notranslate"><span class="pre">LineMarker</span></code> owns its segment array and
+private GC, with fixed-size arrowhead arrays inside the record.
+<code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code> is also the storage type for arcs: <code class="docutils literal notranslate"><span class="pre">CreateArcMarker</span></code> changes
+the class callback table, while configuration and resource release continue to
+use <code class="docutils literal notranslate"><span class="pre">ConfigurePolygonMarker</span></code> and <code class="docutils literal notranslate"><span class="pre">FreePolygonMarker</span></code>.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Geometry ownership and consumers</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 40.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Record/cache</p></th>
+<th class="head"><p>Contents</p></th>
+<th class="head"><p>Consumers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Line <code class="docutils literal notranslate"><span class="pre">segments</span></code></p></td>
+<td><p>Plot-clipped independent shaft segments, with arrow necks substituted</p></td>
+<td><p>Screen/export strokes and point picking</p></td>
+</tr>
+<tr class="row-odd"><td><p>Line arrow arrays</p></td>
+<td><p>Five unique display vertices plus a repeated tip</p></td>
+<td><p>Screen/export fills and point/region tests</p></td>
+</tr>
+<tr class="row-even"><td><p>Polygon <code class="docutils literal notranslate"><span class="pre">screenPts</span></code></p></td>
+<td><p>All mapped world vertices, with pixel offsets</p></td>
+<td><p>Polygon point/region tests and generation of clipped caches</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polygon/arc <code class="docutils literal notranslate"><span class="pre">fillPts</span></code></p></td>
+<td><p>Rectangle-clipped fill polygon</p></td>
+<td><p>Polygon output, native arc fallback and arc fill picking</p></td>
+</tr>
+<tr class="row-even"><td><p>Polygon/arc <code class="docutils literal notranslate"><span class="pre">outlinePts</span></code></p></td>
+<td><p>Rectangle-clipped outline segments</p></td>
+<td><p>Polygon output, native arc fallback and arc stroke picking</p></td>
+</tr>
+<tr class="row-odd"><td><p>Arc <code class="docutils literal notranslate"><span class="pre">screenPts</span></code> and <code class="docutils literal notranslate"><span class="pre">nArcPts</span></code></p></td>
+<td><p>Flattened ellipse path, including style-dependent closure</p></td>
+<td><p>Arc enclosure tests and clipped-cache generation</p></td>
+</tr>
+<tr class="row-even"><td><p>Arc <code class="docutils literal notranslate"><span class="pre">arc</span></code></p></td>
+<td><p>Unclipped center, radii, normalized start, signed extent and closure</p></td>
+<td><p>Curved screen and document renderers</p></td>
+</tr>
+</tbody>
+</table>
+<p>The mappers discard old geometry before allocating replacements. Checked
+<code class="docutils literal notranslate"><span class="pre">Tcl_AttemptAlloc</span></code> failures do not propagate Tcl errors: line mapping remains
+empty/clipped, polygon mapping can retain only one successful output cache, and
+arc mapping can retain exact curve geometry without its flattened caches. Do not
+assume that a non-clipped arc necessarily has points available for picking.
+These are void mapping callbacks, not transactional configuration operations.</p>
+<section id="line-shafts-and-arrowheads">
+<h3>Line shafts and arrowheads<a class="headerlink" href="#line-shafts-and-arrowheads" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">MapLineMarker</span></code> first obtains plot extents, maps the original endpoint and its
+immediate neighbor, and applies pixel offsets. It creates a requested head only
+if the tip is inside those extents. Coincident endpoint/neighbor pairs suppress
+that head; mapping does not search farther along the polyline for a direction.
+The resulting shaft endpoint is backed up to the neck before the shaft edges
+are individually clipped. A surviving arrowhead can keep the marker drawable
+even when no shaft segment survives.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ComputeArrowHead</span></code> follows Tk-style arrow construction. Shape distances are
+adjusted by a small epsilon, lateral width includes half the effective shaft
+width, and neck interpolation determines the shaft backup. <code class="docutils literal notranslate"><span class="pre">ParseArrowShape</span></code>
+requires exactly three valid screen distances; it adds no separate positivity
+or ordering validation. The effective width used for head geometry is at least
+one pixel.</p>
+<p>Screen alignment conversions belong to output, not mapping. Native arrowed
+shafts round coordinates in 128-segment stack batches. The rendered fill helper
+copies the five unique head vertices and adds half a pixel to align area
+boundaries with the rendered shaft. Neither conversion changes the cached
+doubles used for picking and document output.</p>
+<p>The line’s <code class="docutils literal notranslate"><span class="pre">-fill</span></code> color is the dash-gap/background color, not a separate
+arrow fill: heads use the outline. Screen drawing may recover an absent outline
+from the GC foreground. <code class="docutils literal notranslate"><span class="pre">ArrowHeadExport</span></code> instead omits heads when the explicit
+outline is empty. Export sends mapped doubles through renderer contexts and
+does not replay the screen XOR operation or pixel-alignment adjustments.</p>
+</section>
+<section id="polygon-fill-versus-outline">
+<h3>Polygon fill versus outline<a class="headerlink" href="#polygon-fill-versus-outline" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">MapPolygonMarker</span></code> maps all world vertices and offsets once. It clips fill
+only when a fill foreground exists. Outline generation requires a foreground
+and positive width and clips every original edge, including last-to-first.
+This separation matters: polygon clipping can add viewport-boundary edges to a
+fill, but those new edges must not become an artificial visible outline.</p>
+<p>Screen drawing submits the clipped fill first and the independent outline
+segments second. Fill styles carry foreground, background and stipple. Stroke
+styles carry width, caps, joins, dashes and optional dash-gap color. Selected
+renderer operations have native GC fallbacks; XOR forces native paths.
+Polygon export uses the same clipped caches through document renderer contexts.
+The class does not promise a single continuous stroked polygon after clipping.</p>
+</section>
+<section id="arc-mapping-and-output">
+<h3>Arc mapping and output<a class="headerlink" href="#arc-mapping-and-output" title="Link to this heading">¶</a></h3>
+<p>An arc takes exactly two world corners. After mapping those corners, the mapper
+constructs an axis-aligned display ellipse from their center and absolute
+half-differences. Thus logarithmic, descending and inverted axes affect the
+box mapping; arc angles are then display-space angles. Positive angles use
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">cx</span> <span class="pre">+</span> <span class="pre">rx*cos(angle)</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">cy</span> <span class="pre">-</span> <span class="pre">ry*sin(angle)</span></code>.</p>
+<p>Zero extent, zero radii and nonfinite mapped geometry produce no usable arc.
+Start is reduced modulo 360 degrees and extent is clamped to one signed turn.
+A full turn closes on the first point. A partial open arc stays open, a chord
+returns directly to the first point, and a pieslice adds the center before
+returning. Open arcs ignore fill for drawing and export.</p>
+<p>Flattening targets a 0.15-pixel chord error, with angular steps no larger than
+0.1 radians and a maximum of 8192 segments. At extreme zoom the cap can prevent
+that error target from being met. Conservative visibility therefore uses the
+full ellipse bounds plus outline margin, not only the flattened path. Curved
+renderers consume the exact ellipse and their context applies clipping. Native
+fallback additionally receives flattened, clipped fill/outline geometry.
+<code class="docutils literal notranslate"><span class="pre">StrokeArcMarker</span></code> delegates continuous-path dash and join handling to the
+renderer instead of restarting strokes at each flattened vertex.</p>
+</section>
+<section id="picking-differences">
+<h3>Picking differences<a class="headerlink" href="#picking-differences" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Point and region semantics</span><a class="headerlink" href="#id5" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 40.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Point picking</p></th>
+<th class="head"><p>Region queries</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Line</p></td>
+<td><p>Arrow interior or clipped shaft within graph halo</p></td>
+<td><p>Original mapped edges and cached heads; enclosure requires all original
+vertices and full heads inside</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polygon</p></td>
+<td><p>Interior of the full mapped polygon, even without a visible fill</p></td>
+<td><p>Full mapped polygon, independent of clipped output caches</p></td>
+</tr>
+<tr class="row-even"><td><p>Arc</p></td>
+<td><p>Clipped fill or clipped outline within max(halo, half linewidth)</p></td>
+<td><p>Enclosure uses full flattened vertices; overlap uses clipped fill/outline</p></td>
+</tr>
+</tbody>
+</table>
+<p>Region queries do not expand by stroke width. Arc queries are flattened tests,
+not analytic ellipse intersections, and require nonempty output caches. Line
+region queries remap original world points whereas point picking consumes the
+segment cache. These differences are current behavior, not a unified notion of
+visible painted coverage. The caller must still arrange valid mapped state.</p>
+</section>
+<section id="configuration-and-xor-lifetime">
+<h3>Configuration and XOR lifetime<a class="headerlink" href="#configuration-and-xor-lifetime" title="Link to this heading">¶</a></h3>
+<p>Both configuration callbacks stage common options and converted class values
+before replacing active derived state. The polygon/arc callback also acquires
+new color pairs; the line callback’s colors are Tk-managed. Replacement GCs are
+constructed before committing, and error paths release staged resources. The
+outer Tk option transaction remains responsible for restoring option fields.</p>
+<p>Line configuration uses immediate drawing only for graph-wide XOR markers;
+track-owned markers and track transitions use scheduled drawing. Polygon/arc
+immediate drawing additionally requires an outline-only case and no pending
+axis reset. Open arcs count as outline-only even if fill options were supplied.
+The private outline GC gets the XOR function; the shared fill GC does not get
+that same function merely because the marker has <code class="docutils literal notranslate"><span class="pre">-xor</span></code> enabled.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DrawImmediatePolygonOutline</span></code> preserves native erase behavior for arcs by
+temporarily forcing the XOR dispatch flag and then restoring it. Cleanup must
+retain the old GC and mapped geometry until erasure is complete; it then frees
+class-owned caches/GCs and, for polygon/arc, color pairs. Common cleanup owns
+Tk options, world coordinates, tags, axis references and the record itself.</p>
+<p>Line configuration and cleanup share <code class="docutils literal notranslate"><span class="pre">EraseLineMarkerXor</span></code>. It redraws the
+recorded shaft and each enabled head with the original native GC before those
+resources are replaced or freed, then clears <code class="docutils literal notranslate"><span class="pre">xorState</span></code>. Head-only geometry
+is erased even when no shaft segment survives clipping. Newly installed options
+such as <code class="docutils literal notranslate"><span class="pre">-xor</span></code>, <code class="docutils literal notranslate"><span class="pre">-arrow</span></code> and colors must not select the erase operation:
+only the old mapped caches and GC describe the image currently on screen.</p>
+</section>
+</section>
 </section>
 
 
@@ -383,6 +565,14 @@ remap when the marker is shown again.</p>
 <li><a class="reference internal" href="#bindings-point-picking-and-region-searches">Bindings, point picking and region searches</a></li>
 <li><a class="reference internal" href="#display-order-changes">Display-order changes</a></li>
 <li><a class="reference internal" href="#teardown-and-invalidation-details">Teardown and invalidation details</a></li>
+<li><a class="reference internal" href="#geometric-markers-line-polygon-and-arc">Geometric markers: line, polygon and arc</a><ul>
+<li><a class="reference internal" href="#line-shafts-and-arrowheads">Line shafts and arrowheads</a></li>
+<li><a class="reference internal" href="#polygon-fill-versus-outline">Polygon fill versus outline</a></li>
+<li><a class="reference internal" href="#arc-mapping-and-output">Arc mapping and output</a></li>
+<li><a class="reference internal" href="#picking-differences">Picking differences</a></li>
+<li><a class="reference internal" href="#configuration-and-xor-lifetime">Configuration and XOR lifetime</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

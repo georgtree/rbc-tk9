@@ -159,9 +159,9 @@ option-table fields are included directly:</p>
 </section>
 <section id="shared-implementation-reference">
 <h2>Shared implementation reference<a class="headerlink" href="#shared-implementation-reference" title="Link to this heading">¶</a></h2>
-<p>Concrete marker geometry and platform batching remain separate documentation
-work. These groups cover common transactions, lifecycle, mapping helpers and
-commands. Namespaces disambiguate private names without changing C linkage.</p>
+<p>These groups cover common transactions, lifecycle, mapping helpers and
+commands. Geometric class contracts follow below; bitmap, image, text, window
+class internals and platform batching remain separate documentation work. Namespaces disambiguate private names without changing C linkage.</p>
 <section id="option-preparation-and-commit">
 <h3>Option preparation and commit<a class="headerlink" href="#option-preparation-and-commit" title="Link to this heading">¶</a></h3>
 <dl>
@@ -463,6 +463,286 @@ commands. Namespaces disambiguate private names without changing C linkage.</p>
 
 </section>
 </section>
+<section id="line-geometry-and-lifetime">
+<h2>Line geometry and lifetime<a class="headerlink" href="#line-geometry-and-lifetime" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__line__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">marker</span> <span class="pre">geometry</span> <span class="pre">and</span> <span class="pre">lifetime</span></span></dt>
+<dd><p>Internal geometric marker implementation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.ComputeArrowHead">
+<span class="target" id="group__marker__line__geometry_1ga4478280c665c9e57cfdc116fc8baabed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComputeArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">tip</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">adjacent</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">lineWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">arrow</span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">PTS_IN_ARROW</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shaftPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ComputeArrowHead" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct a closed arrowhead and shortened shaft endpoint. </p>
+<p>Borrows the three shape distances and writes six vertices, including the repeated tip, plus shaftPtr. Uses mapped display coordinates, effective line width and Tk-style neck interpolation. Returns FALSE for an adjacent point within DBL_EPSILON of the tip; outputs must not be used on that path. Allocates nothing and does not clip the resulting head. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.PointInsideExtents">
+<span class="target" id="group__marker__line__geometry_1gaf49ff2e5c391181b44223af9df71096c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInsideExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.PointInsideExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test inclusive containment of a display point. </p>
+<p>Borrows both inputs; returns TRUE on the rectangle boundary as well as inside it. No coordinate mapping, tolerance expansion or mutation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.MapLineMarker">
+<span class="target" id="group__marker__line__geometry_1ga0d139658d0fad33e0dcf336c90eb8094"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.MapLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace clipped shaft segments and endpoint arrow geometry. </p>
+<p>Clears prior segments and arrow flags, then maps at least two world points with pixel offsets. Heads are constructed only when their original tips lie inside plot extents; shaft endpoints are shortened before edge clipping. Owns the replacement segment allocation. Size/allocation failure leaves an empty clipped marker without a Tcl error. A visible head alone makes the marker non-clipped even when no shaft segment survives. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.PointInLineMarker">
+<span class="target" id="group__marker__line__geometry_1ga75500c373dde1c7738702fa718d9590d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.PointInLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pick mapped arrow polygons or clipped shaft segments. </p>
+<p>Borrows mapped caches. Tests five unique vertices per enabled head, then segment distance using the graph halo. Does not expand that halo by shaft width or refresh layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.RegionInLineMarker">
+<span class="target" id="group__marker__line__geometry_1gaa79ed2623d244245eb89c2d9dc7c3105"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.RegionInLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test original mapped line edges and cached arrowheads against a region. </p>
+<p>Requires two world points. Enclosure requires every original mapped point (including pixel offsets) and every enabled head inside the rectangle. Overlap accepts any original edge or cached head intersection. Unlike point picking, shaft tests do not use the plot-clipped segment cache or graph halo. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.ParseArrowShape">
+<span class="target" id="group__marker__line__geometry_1ga96bc090cb4934f513b0a328e2f8f1733"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseArrowShape</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.rbcGrMarkerLine.LineMarker" title="LineMarker"><span class="n"><span class="pre">LineMarker</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ParseArrowShape" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse three screen distances into caller-owned shape storage. </p>
+<p>Borrows arrowShapeObjPtr and the graph window. Returns TCL_ERROR with a diagnostic for a malformed list, wrong count or invalid screen distance. Earlier output entries may be written before failure. No additional positivity or relative-size check is performed here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.ConfigureLineMarker">
+<span class="target" id="group__marker__line__geometry_1ga50e2afc5f231c4c985692311a8bd4485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.ConfigureLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare and commit line style, common options and a private GC. </p>
+<p>Parses common options, arrow shape, caps, joins, dashes and nonnegative width/offset before committing derived state. Error paths release staged resources; the outer option transaction restores Tk-managed values. Erases the recorded old XOR shaft and heads before replacing geometry/GC, then maps/draws graph-wide XOR immediately or schedules redraw (including track transitions). Erasure uses old caches and GC regardless of new options. Under-layer scheduled drawing invalidates the backing store. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.FreeLineMarker">
+<span class="target" id="group__marker__line__geometry_1gaa0f8d38b5e52143a933427cd3f47e071"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.FreeLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release line-owned segment storage and private graphics context. </p>
+<p>Borrows graph and marker; does not free the record or common options. Erases recorded immediate XOR shaft and heads while a drawable and GC remain, including head-only geometry. Clears released pointers and segment count. Common lifecycle code owns subsequent record destruction. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.CreateLineMarker">
+<span class="target" id="group__marker__line__geometry_1ga0cbeef6fdc8fe4ede4f190c834bc4a2b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateLineMarker</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLine.CreateLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a zeroed line record and install initial class/style values. </p>
+<p>Uses the RBC allocation wrapper, sets the class, disables XOR and selects butt caps/miter joins. Returns the embedded common marker; the caller owns option initialization, registry insertion and eventual destruction. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLine.LineMarker">
+<span class="target" id="struct_line_marker"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineMarker</span></span></span><a class="headerlink" href="#c.rbcGrMarkerLine.LineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Line-specific option state, owned segment cache and fixed arrow arrays. </p>
+<p>Common Marker is embedded first. Tk options own Tcl representations and colors; class cleanup owns the private GC and segment allocation. Arrow arrays have five unique vertices plus a repeated tip. xorState records an immediate graph-wide image, not the current requested xor option alone. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="polygon-and-arc-geometry-and-ownership">
+<h2>Polygon and arc geometry and ownership<a class="headerlink" href="#polygon-and-arc-geometry-and-ownership" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__polygon__geometry"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polygon</span> <span class="pre">and</span> <span class="pre">arc</span> <span class="pre">geometry</span> <span class="pre">and</span> <span class="pre">ownership</span></span></dt>
+<dd><p>Internal geometric marker implementation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.MapPolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga4058aa03e237220bc2b49348f1b8a03d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.MapPolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace full mapped vertices and independently clipped fill/outline caches. </p>
+<p>Frees old geometry first and requires at least three world vertices. Applies axes and pixel offsets to screenPts. Fill clipping is attempted only with a fill foreground; outlines require foreground and positive width, and include the closing edge. Each allocation is size-checked and fallible without a Tcl error. A partial cache may survive another cache allocation failure; clipped becomes FALSE when drawable geometry remains. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.PointInPolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga98a3edd7da1244f523c972e7a2cac870"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.PointInPolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pick the interior of the full mapped polygon. </p>
+<p>Requires screenPts and at least three world vertices. Borrows that cache and tests polygon interior irrespective of fill visibility or line width. Does not use clipped fill geometry, graph halo or refresh mapping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.RegionInPolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1gaa11f2e6678d989e17f9efd4aed08ae60"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.RegionInPolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test the full mapped polygon for enclosure or overlap. </p>
+<p>Requires screenPts and at least three world vertices, then delegates to the region/polygon helper. Uses original mapped vertices rather than clipped fill/outline caches and ignores stroke thickness. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.ConfigurePolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1gaca8f39a532d46e5b07f2c673671e8fec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigurePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare and commit shared polygon/arc appearance and common options. </p>
+<p>Arc angles must be finite. Stages common resources, styles and owned color pairs, builds a private outline GC and shared fill GC, then erases a recorded immediate outline before commit. Errors release staged resources; the outer Tk option transaction restores option fields. Immediate XOR is restricted to graph-wide outline-only cases without pending axis reset; open arcs qualify as outline-only. Otherwise marks for mapping and redraw, invalidating under-layer backing storage. Fill GC construction does not apply the outline GC XOR function. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.FreePolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1gad7d9b637eeaa0e45157abba1198646d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.FreePolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release polygon/arc caches, color pairs and graphics contexts. </p>
+<p>Erases a recorded immediate outline when its drawable/resources remain. Releases the private outline GC, shared fill GC and three owned geometry arrays, clearing pointers/counts as implemented. Frees manually owned color pairs; common option/record cleanup retains responsibility for the stipple, world points, tags and the record itself. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.MapArcMarker">
+<span class="target" id="group__marker__polygon__geometry_1gaa73e9c313a462364bce58ce04ba06deb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.MapArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map an ellipse box and build bounded flattened geometry caches. </p>
+<p>Clears old caches, requires two corners and nonzero extent, and rejects nonfinite/zero mapped radii. Normalizes start modulo 360 and clamps signed extent to one turn. Stores the exact ellipse separately; flattened points target 0.15-pixel chord error with at most 8192 steps. Closure follows open, chord or pieslice style. Visibility is conservative from the ellipse box plus outline margin, independent of successful cache allocation. Fallible allocations do not set Tcl errors; picking caches can be absent even when the exact curve remains eligible for renderer drawing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.PointInArcMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga365d84cc03b8c398168558f7363b174c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointInArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">samplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.PointInArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pick clipped arc fill or outline caches. </p>
+<p>Requires a two-corner world box. Tests the clipped fill polygon first, then outline segments with tolerance max(graph halo, half line width). Borrows caches; does not analytically test the ellipse or rebuild missing geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.RegionInArcMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga028c968e90bb9852d34167496d38f27e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RegionInArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">enclosed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.RegionInArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test flattened arc geometry for enclosure or overlap. </p>
+<p>Requires mapped vertices and at least one nonempty fill/outline cache. Enclosure tests every untrimmed flattened vertex; overlap tests clipped fill and outline segments. Neither branch expands the rectangle by stroke width or provides an exact analytic curve test. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.CreatePolygonMarker">
+<span class="target" id="group__marker__polygon__geometry_1ga8fd57ca1a2a02e3753d9f67ee21e7fb0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreatePolygonMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate polygon storage with its class and initial line style. </p>
+<p>Returns the embedded common marker, with butt caps/miter joins and other fields zeroed. Common creation configures options and registers the record. The same allocation layout is reused by arc markers. </p>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.CreateArcMarker">
+<span class="target" id="group__marker__polygon__geometry_1gac7f76a3053dd7e472297683d0133133c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">MarkerCreateProc</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateArcMarker</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerPolygon.CreateArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate polygon storage and substitute the arc callback class. </p>
+<p>Delegates allocation/default style to CreatePolygonMarker, then changes only classPtr when non-NULL. Common initialization installs arc options; configuration and cleanup remain the polygon class implementations. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrMarkerPolygon.PolygonMarker">
+<span class="target" id="struct_polygon_marker"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMarker</span></span></span><a class="headerlink" href="#c.rbcGrMarkerPolygon.PolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared polygon/arc storage with separately owned mapped caches. </p>
+<p>screenPts retains full mapped geometry; fillPts and outlinePts are clipped output caches. Polygon vertex count is core.nWorldPts; arc count is nArcPts while its world input remains two corners. arc retains exact curve geometry for curved renderers. Color pairs and GCs are class-owned; Tk options own their Tcl representations and stipple reference. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="geometric-renderer-dispatch">
+<h2>Geometric renderer dispatch<a class="headerlink" href="#geometric-renderer-dispatch" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__shape__output"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Geometric</span> <span class="pre">marker</span> <span class="pre">renderer</span> <span class="pre">dispatch</span></span></dt>
+<dd><p>Internal geometric marker implementation. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawRenderedMarkerSegments">
+<span class="target" id="group__marker__shape__output_1ga191cda01e5ce480e382bb9419b437403"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedMarkerSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">gapColor</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Dashes</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dashes</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">cap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">join</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xorMode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawRenderedMarkerSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit independent clipped segments to the selected renderer. </p>
+<p>Borrows geometry/style. XOR requests or a missing render context return FALSE so the caller can use its native GC path. Otherwise sets caps/joins, submits all segments, ends the context and returns TRUE. Width is at least one pixel; TRUE denotes dispatch, not a pixel-visibility assertion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawNativeLineSegments">
+<span class="target" id="group__marker__shape__output_1ga2838d1f8eb0f5b4895e1550b0f1239d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawNativeLineSegments</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawNativeLineSegments" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw shaft segments with legacy native endpoint conversion. </p>
+<p>Borrows the line GC/cache. Without heads, delegates directly to the screen segment renderer. With heads, rounds endpoints in bounded 128-segment stack batches before dispatch. Never modifies mapped doubles used by picking/export and never draws the heads themselves. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.EraseLineMarkerXor">
+<span class="target" id="group__marker__shape__output_1ga4b337402e37cc97ed9a12cf6b3fa44e3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EraseLineMarkerXor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Erase all recorded immediate line geometry with its original native GC. </p>
+<p>Borrows the old shaft/head caches and GC, independent of newly installed Tk options such as xor, arrow and outline. Redraws shaft and enabled heads when a drawable and GC remain, including head-only markers, then clears xorState. Does not map geometry, select a renderer or schedule graph redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawRenderedArrowHead">
+<span class="target" id="group__marker__shape__output_1ga9591965ff762c628a83729e744c4a210"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawRenderedArrowHead</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrow</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">color</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawRenderedArrowHead" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit temporary half-pixel-shifted arrow fill vertices. </p>
+<p>Copies the five unique vertices and shifts both coordinates by 0.5 to align area boundaries with the rendered shaft. Returns the area helper status for fallback selection. Original geometry remains unchanged for native drawing, picking and document export. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawLineMarker">
+<span class="target" id="group__marker__shape__output_1gab19678055fe7a57e29be589fd20d6f3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw mapped shafts followed by first and last arrowheads. </p>
+<p>Uses renderer strokes/fills where possible, otherwise native GC services; XOR always uses native paths. An absent non-XOR outline may be recovered from the GC foreground for screen drawing. Toggles xorState after any drawing only for graph-wide XOR markers, not track-owned markers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.ArrowHeadExport">
+<span class="target" id="group__marker__shape__output_1ga301e28c7dfb1cf9237447ce3c3398564"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArrowHeadExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">arrow</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.ArrowHeadExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export the five unique arrow vertices using the explicit outline color. </p>
+<p>Borrows the mapped arrow and export context. An empty outline suppresses head output rather than recovering the screen GC color. Creates and ends a fill-render context; does not shorten or remap the shaft. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.LineMarkerExport">
+<span class="target" id="group__marker__shape__output_1gad843cf2e5787e30f9b48dd56653e8bec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.LineMarkerExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export clipped shaft segments and mapped arrowheads. </p>
+<p>Borrows caches at the current export layout. Sets cap/join/dash state and dash-gap color for the shaft, then exports enabled heads. Uses the original double geometry without native rounding or screen half-pixel shifts. Export does not toggle XOR state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawPolygonMarker">
+<span class="target" id="group__marker__shape__output_1ga88a8b5951031cb95094523278b30e42a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawPolygonMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawPolygonMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw clipped polygon fill followed by clipped outline segments. </p>
+<p>Borrows fill/outline caches and colors. Tries selected-renderer area and stroke operations, with native GC fallback (forced for XOR). Fill needs at least three points; outline needs positive width and a foreground. Does not update immediate-XOR bookkeeping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.PolygonMarkerExport">
+<span class="target" id="group__marker__shape__output_1ga9f9e93592914aa2a0536f2d8e12b274a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.PolygonMarkerExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export polygon fill and outline from clipped caches. </p>
+<p>Borrows the export context and current mapped caches. Fill preserves foreground/background/stipple; outline preserves width, cap/join and dash gap color. Creates and ends each renderer context independently, without remapping or altering XOR state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.StrokeArcMarker">
+<span class="target" id="group__marker__shape__output_1ga630c8254e4edb8e4b0183b30f4b16860"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StrokeArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.StrokeArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stroke the mapped ellipse through curved or native renderer services. </p>
+<p>Skips zero extent, empty outline or nonpositive width. An export context selects document output; otherwise uses the screen renderer unless XOR is requested. Native fallback receives clipped flattened segments as well as the exact ellipse. Renderer arc handling owns continuous-path dash/join behavior; this helper does not join vertices itself. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline">
+<span class="target" id="group__marker__shape__output_1gae298ed0c814266ae188f6f58ca87b34c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawImmediatePolygonOutline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw or erase a polygon/arc outline using existing native state. </p>
+<p>Borrows the old outline GC and geometry. Polygon outlines submit cached segments. Arcs temporarily force the XOR flag while calling StrokeArcMarker to bypass Cairo, then restore it. The caller owns xorState bookkeeping and must retain valid old resources until the call completes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.DrawArcMarker">
+<span class="target" id="group__marker__shape__output_1ga578759b318f5b4628d73fdfe3bb3ebb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawArcMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.DrawArcMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Fill a closed mapped arc and then stroke its outline. </p>
+<p>Skips zero extent. Open arcs never fill. Selected-renderer fill contexts consume the exact ellipse; native fallback also receives the clipped fill polygon. Stroke dispatch is shared with export/immediate outline paths. Does not change immediate-XOR bookkeeping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerShapeOutput.ArcMarkerExport">
+<span class="target" id="group__marker__shape__output_1gae6f22152ce7abad4c9ed08348f44c4b9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ArcMarkerExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerShapeOutput.ArcMarkerExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export the exact mapped ellipse with its closure and appearance. </p>
+<p>Skips zero extent and omits fill for open arcs. Borrows geometry/export context, emits a fill if requested and calls the shared arc stroke path. Does not export the flattened picking polygon as the primary curve or modify screen XOR state. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -537,6 +817,49 @@ commands. Namespaces disambiguate private names without changing C linkage.</p>
 <li><a class="reference internal" href="#c.rbcGrMarkerCommands.Rbc_MarkerOp"><code class="docutils literal notranslate"><span class="pre">Rbc_MarkerOp()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-geometry-and-lifetime">Line geometry and lifetime</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.ComputeArrowHead"><code class="docutils literal notranslate"><span class="pre">ComputeArrowHead()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.PointInsideExtents"><code class="docutils literal notranslate"><span class="pre">PointInsideExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.MapLineMarker"><code class="docutils literal notranslate"><span class="pre">MapLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.PointInLineMarker"><code class="docutils literal notranslate"><span class="pre">PointInLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.RegionInLineMarker"><code class="docutils literal notranslate"><span class="pre">RegionInLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.ParseArrowShape"><code class="docutils literal notranslate"><span class="pre">ParseArrowShape()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.ConfigureLineMarker"><code class="docutils literal notranslate"><span class="pre">ConfigureLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.FreeLineMarker"><code class="docutils literal notranslate"><span class="pre">FreeLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.CreateLineMarker"><code class="docutils literal notranslate"><span class="pre">CreateLineMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLine.LineMarker"><code class="docutils literal notranslate"><span class="pre">LineMarker</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#polygon-and-arc-geometry-and-ownership">Polygon and arc geometry and ownership</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.MapPolygonMarker"><code class="docutils literal notranslate"><span class="pre">MapPolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.PointInPolygonMarker"><code class="docutils literal notranslate"><span class="pre">PointInPolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.RegionInPolygonMarker"><code class="docutils literal notranslate"><span class="pre">RegionInPolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="docutils literal notranslate"><span class="pre">ConfigurePolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.FreePolygonMarker"><code class="docutils literal notranslate"><span class="pre">FreePolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.MapArcMarker"><code class="docutils literal notranslate"><span class="pre">MapArcMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.PointInArcMarker"><code class="docutils literal notranslate"><span class="pre">PointInArcMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.RegionInArcMarker"><code class="docutils literal notranslate"><span class="pre">RegionInArcMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreatePolygonMarker"><code class="docutils literal notranslate"><span class="pre">CreatePolygonMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.CreateArcMarker"><code class="docutils literal notranslate"><span class="pre">CreateArcMarker</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerPolygon.PolygonMarker"><code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geometric-renderer-dispatch">Geometric renderer dispatch</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawRenderedMarkerSegments"><code class="docutils literal notranslate"><span class="pre">DrawRenderedMarkerSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawNativeLineSegments"><code class="docutils literal notranslate"><span class="pre">DrawNativeLineSegments()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor"><code class="docutils literal notranslate"><span class="pre">EraseLineMarkerXor()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawRenderedArrowHead"><code class="docutils literal notranslate"><span class="pre">DrawRenderedArrowHead()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawLineMarker"><code class="docutils literal notranslate"><span class="pre">DrawLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.ArrowHeadExport"><code class="docutils literal notranslate"><span class="pre">ArrowHeadExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.LineMarkerExport"><code class="docutils literal notranslate"><span class="pre">LineMarkerExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawPolygonMarker"><code class="docutils literal notranslate"><span class="pre">DrawPolygonMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.PolygonMarkerExport"><code class="docutils literal notranslate"><span class="pre">PolygonMarkerExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.StrokeArcMarker"><code class="docutils literal notranslate"><span class="pre">StrokeArcMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawImmediatePolygonOutline"><code class="docutils literal notranslate"><span class="pre">DrawImmediatePolygonOutline()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.DrawArcMarker"><code class="docutils literal notranslate"><span class="pre">DrawArcMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerShapeOutput.ArcMarkerExport"><code class="docutils literal notranslate"><span class="pre">ArcMarkerExport()</span></code></a></li>
 </ul>
 </li>
 </ul>

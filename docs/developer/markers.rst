@@ -326,3 +326,175 @@ still-used tracks or Y axes, including hidden markers. ``Rbc_MarkerFontsChanged`
 likewise visits hidden text markers, resets text style and layout, rebuilds the
 rotated bounding outline and sets ``MAP_ITEM``. Hidden geometry must be ready to
 remap when the marker is shown again.
+
+Geometric markers: line, polygon and arc
+----------------------------------------
+
+These three classes share renderer services but deliberately retain different
+geometry and picking contracts. ``LineMarker`` owns its segment array and
+private GC, with fixed-size arrowhead arrays inside the record.
+``PolygonMarker`` is also the storage type for arcs: ``CreateArcMarker`` changes
+the class callback table, while configuration and resource release continue to
+use ``ConfigurePolygonMarker`` and ``FreePolygonMarker``.
+
+.. list-table:: Geometry ownership and consumers
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Record/cache
+     - Contents
+     - Consumers
+   * - Line ``segments``
+     - Plot-clipped independent shaft segments, with arrow necks substituted
+     - Screen/export strokes and point picking
+   * - Line arrow arrays
+     - Five unique display vertices plus a repeated tip
+     - Screen/export fills and point/region tests
+   * - Polygon ``screenPts``
+     - All mapped world vertices, with pixel offsets
+     - Polygon point/region tests and generation of clipped caches
+   * - Polygon/arc ``fillPts``
+     - Rectangle-clipped fill polygon
+     - Polygon output, native arc fallback and arc fill picking
+   * - Polygon/arc ``outlinePts``
+     - Rectangle-clipped outline segments
+     - Polygon output, native arc fallback and arc stroke picking
+   * - Arc ``screenPts`` and ``nArcPts``
+     - Flattened ellipse path, including style-dependent closure
+     - Arc enclosure tests and clipped-cache generation
+   * - Arc ``arc``
+     - Unclipped center, radii, normalized start, signed extent and closure
+     - Curved screen and document renderers
+
+The mappers discard old geometry before allocating replacements. Checked
+``Tcl_AttemptAlloc`` failures do not propagate Tcl errors: line mapping remains
+empty/clipped, polygon mapping can retain only one successful output cache, and
+arc mapping can retain exact curve geometry without its flattened caches. Do not
+assume that a non-clipped arc necessarily has points available for picking.
+These are void mapping callbacks, not transactional configuration operations.
+
+Line shafts and arrowheads
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``MapLineMarker`` first obtains plot extents, maps the original endpoint and its
+immediate neighbor, and applies pixel offsets. It creates a requested head only
+if the tip is inside those extents. Coincident endpoint/neighbor pairs suppress
+that head; mapping does not search farther along the polyline for a direction.
+The resulting shaft endpoint is backed up to the neck before the shaft edges
+are individually clipped. A surviving arrowhead can keep the marker drawable
+even when no shaft segment survives.
+
+``ComputeArrowHead`` follows Tk-style arrow construction. Shape distances are
+adjusted by a small epsilon, lateral width includes half the effective shaft
+width, and neck interpolation determines the shaft backup. ``ParseArrowShape``
+requires exactly three valid screen distances; it adds no separate positivity
+or ordering validation. The effective width used for head geometry is at least
+one pixel.
+
+Screen alignment conversions belong to output, not mapping. Native arrowed
+shafts round coordinates in 128-segment stack batches. The rendered fill helper
+copies the five unique head vertices and adds half a pixel to align area
+boundaries with the rendered shaft. Neither conversion changes the cached
+doubles used for picking and document output.
+
+The line's ``-fill`` color is the dash-gap/background color, not a separate
+arrow fill: heads use the outline. Screen drawing may recover an absent outline
+from the GC foreground. ``ArrowHeadExport`` instead omits heads when the explicit
+outline is empty. Export sends mapped doubles through renderer contexts and
+does not replay the screen XOR operation or pixel-alignment adjustments.
+
+Polygon fill versus outline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``MapPolygonMarker`` maps all world vertices and offsets once. It clips fill
+only when a fill foreground exists. Outline generation requires a foreground
+and positive width and clips every original edge, including last-to-first.
+This separation matters: polygon clipping can add viewport-boundary edges to a
+fill, but those new edges must not become an artificial visible outline.
+
+Screen drawing submits the clipped fill first and the independent outline
+segments second. Fill styles carry foreground, background and stipple. Stroke
+styles carry width, caps, joins, dashes and optional dash-gap color. Selected
+renderer operations have native GC fallbacks; XOR forces native paths.
+Polygon export uses the same clipped caches through document renderer contexts.
+The class does not promise a single continuous stroked polygon after clipping.
+
+Arc mapping and output
+~~~~~~~~~~~~~~~~~~~~~~
+
+An arc takes exactly two world corners. After mapping those corners, the mapper
+constructs an axis-aligned display ellipse from their center and absolute
+half-differences. Thus logarithmic, descending and inverted axes affect the
+box mapping; arc angles are then display-space angles. Positive angles use
+``x = cx + rx*cos(angle)`` and ``y = cy - ry*sin(angle)``.
+
+Zero extent, zero radii and nonfinite mapped geometry produce no usable arc.
+Start is reduced modulo 360 degrees and extent is clamped to one signed turn.
+A full turn closes on the first point. A partial open arc stays open, a chord
+returns directly to the first point, and a pieslice adds the center before
+returning. Open arcs ignore fill for drawing and export.
+
+Flattening targets a 0.15-pixel chord error, with angular steps no larger than
+0.1 radians and a maximum of 8192 segments. At extreme zoom the cap can prevent
+that error target from being met. Conservative visibility therefore uses the
+full ellipse bounds plus outline margin, not only the flattened path. Curved
+renderers consume the exact ellipse and their context applies clipping. Native
+fallback additionally receives flattened, clipped fill/outline geometry.
+``StrokeArcMarker`` delegates continuous-path dash and join handling to the
+renderer instead of restarting strokes at each flattened vertex.
+
+Picking differences
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table:: Point and region semantics
+   :header-rows: 1
+   :widths: 15 40 45
+
+   * - Class
+     - Point picking
+     - Region queries
+   * - Line
+     - Arrow interior or clipped shaft within graph halo
+     - Original mapped edges and cached heads; enclosure requires all original
+       vertices and full heads inside
+   * - Polygon
+     - Interior of the full mapped polygon, even without a visible fill
+     - Full mapped polygon, independent of clipped output caches
+   * - Arc
+     - Clipped fill or clipped outline within max(halo, half linewidth)
+     - Enclosure uses full flattened vertices; overlap uses clipped fill/outline
+
+Region queries do not expand by stroke width. Arc queries are flattened tests,
+not analytic ellipse intersections, and require nonempty output caches. Line
+region queries remap original world points whereas point picking consumes the
+segment cache. These differences are current behavior, not a unified notion of
+visible painted coverage. The caller must still arrange valid mapped state.
+
+Configuration and XOR lifetime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both configuration callbacks stage common options and converted class values
+before replacing active derived state. The polygon/arc callback also acquires
+new color pairs; the line callback's colors are Tk-managed. Replacement GCs are
+constructed before committing, and error paths release staged resources. The
+outer Tk option transaction remains responsible for restoring option fields.
+
+Line configuration uses immediate drawing only for graph-wide XOR markers;
+track-owned markers and track transitions use scheduled drawing. Polygon/arc
+immediate drawing additionally requires an outline-only case and no pending
+axis reset. Open arcs count as outline-only even if fill options were supplied.
+The private outline GC gets the XOR function; the shared fill GC does not get
+that same function merely because the marker has ``-xor`` enabled.
+
+``DrawImmediatePolygonOutline`` preserves native erase behavior for arcs by
+temporarily forcing the XOR dispatch flag and then restoring it. Cleanup must
+retain the old GC and mapped geometry until erasure is complete; it then frees
+class-owned caches/GCs and, for polygon/arc, color pairs. Common cleanup owns
+Tk options, world coordinates, tags, axis references and the record itself.
+
+Line configuration and cleanup share ``EraseLineMarkerXor``. It redraws the
+recorded shaft and each enabled head with the original native GC before those
+resources are replaced or freed, then clears ``xorState``. Head-only geometry
+is erased even when no shaft segment survives clipping. Newly installed options
+such as ``-xor``, ``-arrow`` and colors must not select the erase operation:
+only the old mapped caches and GC describe the image currently on screen.
