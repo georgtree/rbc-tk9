@@ -50,8 +50,28 @@ char *Rbc_NameOfTile(Rbc_Tile tile);
  * stops the current pass. Callback data remains owned by the caller.
  */
 void Rbc_SetTileChangedProc(Rbc_Tile tile, Rbc_TileChangedProc *changeProc, ClientData clientData);
+/**
+ * @brief Draw one rectangle using borrowed native tile resources.
+ * Requires a live client/window and a usable cached pixmap with positive tile
+ * dimensions. None drawables or nonpositive dimensions are ignored. Does not
+ * refresh pending image changes; native failures have no status return.
+ * Transparency uses platform masks rather than continuous alpha blending.
+ */
 void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, int x, int y, int width, int height);
+/**
+ * @brief Draw a borrowed rectangle array with one shared tile.
+ * None drawables, NULL arrays and nonpositive counts are ignored. Other
+ * lifetime requirements match Rbc_TileRectangle. Windows retains DCs across
+ * the batch; X11 batches opaque requests but draws masked rectangles singly.
+ */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XRectangle *rectArr, Tcl_Size nRects);
+/**
+ * @brief Draw a borrowed nonempty polygon with a shared tile.
+ * Requires a valid drawable, live client and usable cache. Callers must reject
+ * empty arrays; unlike rectangle helpers, polygon guards differ by platform.
+ * Uses native fill rules and temporary clipping resources for transparency.
+ * Does not force image refresh or propagate native drawing errors.
+ */
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XPoint *pointArr, int nPoints);
 /**
  * @brief Return a borrowed cached pixmap, or None for no tile.

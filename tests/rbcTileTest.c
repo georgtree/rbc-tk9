@@ -115,8 +115,85 @@ done:
     Tcl_DecrRefCount(test.log);
     return result;
 }
+#ifdef WIN32
+/* Exercise the shared Windows blitter with an asymmetric transparent tile.
+ * Check the complete destination, including pixels outside the fill bounds. */
+static int TilePixelsCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    HDC screen, source, mask, destination;
+    HBITMAP sourceBitmap, maskBitmap, destinationBitmap;
+    HGDIOBJ oldSource, oldMask, oldDestination;
+    Tile tile;
+    TileClient client;
+    int x, y, ox, oy, transparent, failures = 0;
+    (void)data;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "xOrigin yOrigin transparent");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetIntFromObj(interp, objv[1], &ox) != TCL_OK ||
+        Tcl_GetIntFromObj(interp, objv[2], &oy) != TCL_OK ||
+        Tcl_GetBooleanFromObj(interp, objv[3], &transparent) != TCL_OK) return TCL_ERROR;
+    memset(&tile, 0, sizeof(tile));
+    memset(&client, 0, sizeof(client));
+    screen = GetDC(NULL);
+    source = CreateCompatibleDC(screen);
+    mask = CreateCompatibleDC(screen);
+    destination = CreateCompatibleDC(screen);
+    sourceBitmap = CreateCompatibleBitmap(screen, 4, 3);
+    maskBitmap = CreateBitmap(4, 3, 1, 1, NULL);
+    destinationBitmap = CreateCompatibleBitmap(screen, 14, 12);
+    ReleaseDC(NULL, screen);
+    if (!source || !mask || !destination || !sourceBitmap || !maskBitmap || !destinationBitmap)
+        Tcl_Panic("tile pixel test GDI allocation failed");
+    oldSource = SelectObject(source, sourceBitmap);
+    oldMask = SelectObject(mask, maskBitmap);
+    oldDestination = SelectObject(destination, destinationBitmap);
+    for (y = 0; y < 3; y++) {
+        for (x = 0; x < 4; x++) {
+            int opaque = !transparent || (x + 2 * y) % 3 == 0;
+            SetPixel(source, x, y, opaque ? RGB(255, 0, 0) : RGB(0, 0, 0));
+            SetPixel(mask, x, y, opaque ? RGB(0, 0, 0) : RGB(255, 255, 255));
+        }
+    }
+    for (y = 0; y < 12; y++)
+        for (x = 0; x < 14; x++) SetPixel(destination, x, y, RGB(0, 255, 0));
+    SetTextColor(destination, RGB(0, 0, 0));
+    SetBkColor(destination, RGB(255, 255, 255));
+    tile.width = 4;
+    tile.height = 3;
+    tile.mask = transparent ? (Pixmap)1 : None;
+    client.tilePtr = &tile;
+    client.xOrigin = ox;
+    client.yOrigin = oy;
+    TileRegion(source, destination, mask, &client, 2, 2, 9, 7);
+    for (y = 0; y < 12; y++) {
+        for (x = 0; x < 14; x++) {
+            int tx = ((x - ox) % 4 + 4) % 4;
+            int ty = ((y - oy) % 3 + 3) % 3;
+            int painted = x >= 2 && x < 11 && y >= 2 && y < 9 &&
+                (!transparent || (tx + 2 * ty) % 3 == 0);
+            COLORREF expected = painted ? RGB(255, 0, 0) : RGB(0, 255, 0);
+            if (GetPixel(destination, x, y) != expected) failures++;
+        }
+    }
+    SelectObject(source, oldSource);
+    SelectObject(mask, oldMask);
+    SelectObject(destination, oldDestination);
+    DeleteObject(sourceBitmap);
+    DeleteObject(maskBitmap);
+    DeleteObject(destinationBitmap);
+    DeleteDC(source);
+    DeleteDC(mask);
+    DeleteDC(destination);
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(failures));
+    return TCL_OK;
+}
+#endif
 DLLEXPORT int Rbctiletest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL || Tk_InitStubs(interp, "9.0", 0) == NULL) return TCL_ERROR;
     Tcl_CreateObjCommand2(interp, "::rbctiletest", TileTestCmd, NULL, NULL);
+#ifdef WIN32
+    Tcl_CreateObjCommand2(interp, "::rbctilepixels", TilePixelsCmd, NULL, NULL);
+#endif
     return Tcl_PkgProvide(interp, "rbctiletest", "1.0");
 }

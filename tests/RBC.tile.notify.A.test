@@ -1,4 +1,4 @@
-# Private lifecycle harness; ordinary suite runs skip it.
+# Private tile harness; ordinary suite runs skip it.
 package provide tile.notify
 package require tcltest
 namespace import tcltest::*
@@ -23,6 +23,20 @@ namespace eval tile.notify {
     } {
         test RBC.tile.notify.A.1.$case "tile lifetime: $scenario" \
             -constraints tileHarness -body [list ::rbctiletest $scenario] -result $expected
+    }
+    foreach {case ox oy} {
+        1 2 2
+        2 1 2
+        3 2 1
+        4 1 1
+        5 -3 -2
+        6 5 6
+    } {
+        foreach transparent {0 1} {
+            test RBC.tile.notify.A.2.$case.$transparent "tile pixels: origin $ox,$oy transparency $transparent" \
+                -constraints {tileHarness win} \
+                -body [list ::rbctilepixels $ox $oy $transparent] -result 0
+        }
     }
 }
 cleanupTests

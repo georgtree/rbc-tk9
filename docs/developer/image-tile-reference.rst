@@ -58,3 +58,24 @@ Tile lifecycle implementation
    :members:
 
 .. c:namespace:: NULL
+
+Native tiled shapes
+-------------------
+
+.. doxygenfunction:: Rbc_TileRectangle
+
+.. doxygenfunction:: Rbc_TileRectangles
+
+.. doxygenfunction:: Rbc_TilePolygon
+
+.. c:namespace:: rbcTileMasks
+
+.. doxygengroup:: tile_native_masks
+   :members:
+   :content-only:
+
+.. c:namespace:: NULL
+
+The mask helper reference above describes X11. Windows TileRegion and DC
+batching are described in :doc:`images-tiles` and beside their definitions;
+the default Doxygen preprocessing selects the non-Windows implementation.

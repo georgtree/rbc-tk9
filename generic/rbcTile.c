@@ -676,30 +676,15 @@ void Rbc_SetTSOrigin(Tk_Window tkwin, TileClient *clientPtr, int x, int y) {
 #define COPYFG 0x00CA0749  /* dest = (pat & src) | (!pat & dst) */
 #define COPYBG 0x00AC0744  /* dest = (!pat & src) | (pat & dst) */
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Blit a Windows tile repeatedly across a rectangular region.
  *
- * TileRegion --
- *
- *      TODO: Description
- *
- * Parameters:
- *      HDC srcDC - Source device context.
- *      HDC destDC - Destination device context.
- *      HDC maskDC - If non-NULL, device context of the mask tile mask.
- *      TileClient *clientPtr
- *      int x
- *      int y
- *      int width
- *      int height
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires positive cached tile dimensions and borrowed source/destination
+ * DCs. Aligns the first repetition to the client origin, then clips edge
+ * copies to the requested rectangle. Opaque copies use SRCCOPY. Transparent
+ * copies combine SRCAND and SRCPAINT with matching mask/color source offsets
+ * at cropped tile boundaries. Does not
+ * acquire/release DCs or report BitBlt failure.
  */
 static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr, int x, int y, int width, int height) {
     Tile *tilePtr = clientPtr->tilePtr;
@@ -779,7 +764,7 @@ static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr,
                 SetBkColor(destDC, RGB(255, 255, 255));
                 SetTextColor(destDC, RGB(0, 0, 0));
 #endif
-                BitBlt(destDC, destX, destY, destWidth, destHeight, maskDC, 0, 0, SRCAND);
+                BitBlt(destDC, destX, destY, destWidth, destHeight, maskDC, srcX, srcY, SRCAND);
                 BitBlt(destDC, destX, destY, destWidth, destHeight, srcDC, srcX, srcY, SRCPAINT);
 #ifdef notdef
                 Rbc_WinReleaseDrawableDC(maskStatePtr);
@@ -791,27 +776,15 @@ static void TileRegion(HDC srcDC, HDC destDC, HDC maskDC, TileClient *clientPtr,
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Fill a Windows polygon by clipping tiled bounding-box copies.
  *
- * Rbc_TilePolygon --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      XPoint pointArr[]
- *      int nPoints
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires a nonempty point array and live cached tile; None drawable is
+ * ignored. Copies points relative to the inclusive bounding box, converts
+ * them to device coordinates, installs a polygon region using the GC fill
+ * rule and tiles the bounds. Restores bitmap selection, deletes temporary
+ * DC/region and releases acquired DCs. Explicitly clears the polygon clip
+ * before release; does not report allocation or native drawing failures.
  */
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XPoint pointArr[], int nPoints) {
     HBITMAP oldBitmap;
@@ -889,29 +862,15 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, 
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Draw one tiled rectangle through Windows DCs.
  *
- * Rbc_TileRectangle --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      int x
- *      int y
- *      unsigned int width
- *      unsigned int height
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Ignores None drawables and nonpositive dimensions. Requires a live client
+ * with usable cached pixmap and positive tile size. Acquires the destination
+ * DC, selects the source bitmap into a temporary memory DC, and optionally
+ * acquires the mask DC for TileRegion. Restores the selected bitmap, deletes
+ * the memory DC and releases acquired DCs. Native API failures are not
+ * propagated; no tile refresh or window ownership is acquired.
  */
 void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     HBITMAP oldBitmap;
@@ -947,27 +906,14 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
     Rbc_WinReleaseDrawableDC(dcStatePtr);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Draw a rectangle batch while retaining Windows drawing contexts.
  *
- * Rbc_TileRectangles --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      XRectangle rectArr[]
- *      int nRectangles
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Ignores None drawables, NULL arrays and nonpositive counts. Acquires and
+ * selects source/destination resources once, optionally acquires one mask DC,
+ * and calls TileRegion for each rectangle. Restores bitmap selection and
+ * releases DCs after the batch. Borrows the array; uses client-stored origin
+ * and requires usable cached tile resources.
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
                         Tcl_Size nRectangles) {
@@ -1014,33 +960,20 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
 
 #else
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @defgroup tile_native_masks X11 tile transparency masks
+ * @brief Temporary mask construction for native tiled shapes.
+ */
+
+/**
+ * @ingroup tile_native_masks
+ * @brief Build an X11 rectangle-sized repeating transparency mask.
  *
- * RectangleMask --
- *
- *      Creates a rectangular mask also stippled by the mask of the
- *      tile.  This is used to draw the tiled polygon images with
- *      transparent areas.
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      int x
- *      int y
- *      unsigned int width
- *      unsigned int height
- *      Pixmap mask
- *      int xOrigin
- *      int yOrigin
- *
- * Results:
- *      A bitmap mask is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires positive dimensions and a valid one-bit stipple. Allocates a
+ * depth-one pixmap, fills it using FillOpaqueStippled at the client origin
+ * translated into mask-local coordinates, and releases the temporary private
+ * GC. Returns an owned pixmap for Tk_FreePixmap; does not modify the source
+ * mask or return an error status.
  */
 static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, int width, int height, Pixmap mask,
                             int xOrigin, int yOrigin) {
@@ -1063,31 +996,14 @@ static Pixmap RectangleMask(Display *display, Drawable drawable, int x, int y, i
     return bitmap;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw one tiled rectangle through an X11 tiled GC.
  *
- * Rbc_TileRectangle --
- *
- *      Draws a rectangle filled by a tiled image.  This differs from
- *      the normal XFillRectangle call in that we also try to handle
- *      a transparency mask.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      int x
- *      int y
- *      unsigned int width
- *      unsigned int height
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws the rectangle.
- *
- *----------------------------------------------------------------------
+ * Ignores None drawables and nonpositive dimensions. Opaque drawing uses
+ * XFillRectangle directly. Transparency allocates a rectangle-local mask,
+ * installs it on the shared server GC, fills, resets clip mask/origin to
+ * None/zero and frees the mask. Does not preserve a previously installed
+ * server-GC clip or force tile refresh.
  */
 void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, int x, int y, int width, int height) {
     Tile *tilePtr;
@@ -1114,29 +1030,14 @@ void Rbc_TileRectangle(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw an X11 rectangle batch with transparency-aware batching.
  *
- * Rbc_TileRectangles --
- *
- *      Draws rectangles filled by a tiled image.  This differs from
- *      the normal XFillRectangles call in that we also try to handle
- *      a transparency mask.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      XRectangle rectArr[]
- *      int nRectangles
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws the given rectangles.
- *
- *----------------------------------------------------------------------
+ * Ignores None drawables, NULL arrays and nonpositive counts. Masked tiles
+ * use Rbc_TileRectangle separately for each rectangle. Opaque tiles use
+ * XFillRectangles in request-sized chunks while retaining Tcl_Size offsets.
+ * If no rectangle fits the reported request limit, returns without drawing.
+ * Borrows array and tile resources; does not refresh the cache.
  */
 void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XRectangle rectArr[],
                         Tcl_Size nRectangles) {
@@ -1176,31 +1077,16 @@ void Rbc_TileRectangles(Tk_Window tkwin, Drawable drawable, TileClient *clientPt
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup tile_native_masks
+ * @brief Build an X11 polygon-shaped repeating transparency mask.
  *
- * PolygonMask --
- *
- *      Creates a polygon shaped mask also stippled by the mask
- *      of the tile.  This is used to draw the tiled polygon images
- *      with transparent areas.
- *
- * Parameters:
- *      Display *display
- *      XPoint *pointArr
- *      int nPoints
- *      Region2D *regionPtr
- *      Pixmap mask
- *      int xOrigin
- *      int yOrigin
- *
- * Results:
- *      A bitmap mask is returned.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the supplied inclusive bounding box to allocate a depth-one pixmap.
+ * Copies and translates XPoint coordinates, clears the mask with the default
+ * GC foreground, then draws a Complex polygon using FillStippled and the
+ * translated client origin. Frees temporary points and GC; returns an owned
+ * pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds;
+ * translated coordinates are still stored as XPoint shorts.
  */
 static Pixmap PolygonMask(Display *display, XPoint *pointArr, int nPoints, Region2D *regionPtr, Pixmap mask,
                           int xOrigin, int yOrigin) {
@@ -1233,29 +1119,14 @@ static Pixmap PolygonMask(Display *display, XPoint *pointArr, int nPoints, Regio
     return bitmap;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Fill an X11 polygon with an optional repeated transparency mask.
  *
- * Rbc_TilePolygon --
- *
- *      Draws a polygon filled by a tiled image.  This differs from
- *      the normal XFillPolygon call in that we also try to handle
- *      a transparency mask.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Drawable drawable
- *      TileClient *clientPtr
- *      XPoint pointArr[]
- *      int nPoints
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws the polygon.
- *
- *----------------------------------------------------------------------
+ * Requires a valid drawable, live tile and nonempty point array. Opaque
+ * drawing calls XFillPolygon with Complex/CoordModeOrigin. Masked drawing
+ * computes inclusive bounds, installs PolygonMask on the shared GC, fills,
+ * resets clip mask/origin to None/zero and frees the temporary mask. Unlike
+ * rectangle helpers this path does not reject None or empty input itself.
  */
 void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, TileClient *clientPtr, XPoint pointArr[], int nPoints) {
     Tile *tilePtr;

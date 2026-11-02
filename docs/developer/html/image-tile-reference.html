@@ -252,6 +252,47 @@
 </dd></dl>
 
 </section>
+<section id="native-tiled-shapes">
+<h2>Native tiled shapes<a class="headerlink" href="#native-tiled-shapes" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_TileRectangle">
+<span class="target" id="rbc_tile_8h_1abfcdc59312cfdf672f3d5faf5ef21aed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TileRectangle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TileRectangle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw one rectangle using borrowed native tile resources. </p>
+<p>Requires a live client/window and a usable cached pixmap with positive tile dimensions. None drawables or nonpositive dimensions are ignored. Does not refresh pending image changes; native failures have no status return. Transparency uses platform masks rather than continuous alpha blending. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_TileRectangles">
+<span class="target" id="rbc_tile_8h_1a8ba091adb423f09523cb47949ddb1ce4"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TileRectangles</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">XRectangle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rectArr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nRects</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TileRectangles" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a borrowed rectangle array with one shared tile. </p>
+<p>None drawables, NULL arrays and nonpositive counts are ignored. Other lifetime requirements match Rbc_TileRectangle. Windows retains DCs across the batch; X11 batches opaque requests but draws masked rectangles singly. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.Rbc_TilePolygon">
+<span class="target" id="rbc_tile_8h_1adf15bf2766774e30b8b95b9f8eb5661a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TilePolygon</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_TilePolygon" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a borrowed nonempty polygon with a shared tile. </p>
+<p>Requires a valid drawable, live client and usable cache. Callers must reject empty arrays; unlike rectangle helpers, polygon guards differ by platform. Uses native fill rules and temporary clipping resources for transparency. Does not force image refresh or propagate native drawing errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTileMasks.RectangleMask">
+<span class="target" id="group__tile__native__masks_1gacd475b1f98104f76fe7887fa131c201e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RectangleMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.RectangleMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build an X11 rectangle-sized repeating transparency mask. </p>
+<p>Requires positive dimensions and a valid one-bit stipple. Allocates a depth-one pixmap, fills it using FillOpaqueStippled at the client origin translated into mask-local coordinates, and releases the temporary private GC. Returns an owned pixmap for Tk_FreePixmap; does not modify the source mask or return an error status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTileMasks.PolygonMask">
+<span class="target" id="group__tile__native__masks_1gae17db453d2aa8827dc1909971fd34b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolygonMask</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">XPoint</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointArr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">nPoints</span></span>, <span class="n"><span class="pre">Region2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">regionPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">xOrigin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">yOrigin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTileMasks.PolygonMask" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build an X11 polygon-shaped repeating transparency mask. </p>
+<p>Uses the supplied inclusive bounding box to allocate a depth-one pixmap. Copies and translates XPoint coordinates, clears the mask with the default GC foreground, then draws a Complex polygon using FillStippled and the translated client origin. Frees temporary points and GC; returns an owned pixmap for Tk_FreePixmap. Requires a valid nonempty point array and bounds; translated coordinates are still stored as XPoint shorts. </p>
+</dd></dl>
+
+<p>The mask helper reference above describes X11. Windows TileRegion and DC
+batching are described in <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> and beside their definitions;
+the default Doxygen preprocessing selects the non-Windows implementation.</p>
+</section>
 </section>
 
 
@@ -298,6 +339,14 @@
 <li><a class="reference internal" href="#c.rbcTileLifecycle.Tile"><code class="docutils literal notranslate"><span class="pre">Tile</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTileLifecycle.Rbc_TileClientStruct"><code class="docutils literal notranslate"><span class="pre">Rbc_TileClientStruct</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcTileLifecycle.TileKey"><code class="docutils literal notranslate"><span class="pre">TileKey</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#native-tiled-shapes">Native tiled shapes</a><ul>
+<li><a class="reference internal" href="#c.Rbc_TileRectangle"><code class="docutils literal notranslate"><span class="pre">Rbc_TileRectangle()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_TileRectangles"><code class="docutils literal notranslate"><span class="pre">Rbc_TileRectangles()</span></code></a></li>
+<li><a class="reference internal" href="#c.Rbc_TilePolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_TilePolygon()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileMasks.RectangleMask"><code class="docutils literal notranslate"><span class="pre">RectangleMask()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTileMasks.PolygonMask"><code class="docutils literal notranslate"><span class="pre">PolygonMask()</span></code></a></li>
 </ul>
 </li>
 </ul>

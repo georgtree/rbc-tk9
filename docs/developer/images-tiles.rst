@@ -163,3 +163,65 @@ idle update only clears the pixmap; it does not reset the cached dimensions,
 mask or GC at that point. Final server destruction releases those resources.
 Consumers must use the deleted-image-aware helpers rather than infer liveness
 from cached dimensions alone.
+
+Native shape drawing
+--------------------
+
+Tile draw calls consume the existing native cache. They do not run pending
+image updates, retain the client window or produce an error status. The caller
+must provide a live client and drawable with compatible depth/display and a
+usable pixmap. Windows repetition additionally requires positive tile width
+and height. A deleted image with stale cached dimensions is not a valid tile
+source merely because its size query is nonzero.
+
+Rectangle helpers consistently ignore None drawables and nonpositive sizes;
+batch helpers also ignore NULL arrays and nonpositive counts. Polygon callers
+must provide nonempty arrays: Windows computes bounds from the first point,
+and X11's masked path does likewise. These are XPoint/XRectangle interfaces,
+so geometry has already crossed the native short-coordinate boundary.
+
+.. list-table:: Platform drawing strategy
+   :header-rows: 1
+   :widths: 22 39 39
+
+   * - Shape
+     - Windows
+     - X11
+   * - Rectangle
+     - Repeated BitBlt copies aligned to the client origin.
+     - XFillRectangle with the server's tiled GC.
+   * - Rectangle batch
+     - One source/destination DC setup for the whole batch.
+     - Opaque requests are chunked to the server request limit; masked
+       rectangles are handled separately.
+   * - Polygon
+     - Polygon region clips repetitions over the inclusive bounding box.
+     - XFillPolygon uses Complex and CoordModeOrigin; transparency adds a
+       polygon-sized one-bit clip mask.
+
+Windows TileRegion aligns the first repetition at or before the destination
+origin, then crops color copies along the boundary. Opaque copies use SRCCOPY.
+Masked copies use SRCAND followed by SRCPAINT, with destination text/background
+colors set for monochrome expansion. Source and mask DCs are borrowed by this
+inner helper; the enclosing shape function owns acquisition, selection and
+release. It restores the old source bitmap before deleting the memory DC.
+
+Windows masked copies use the same source coordinates for the mask and color
+passes, including cropped first rows and columns. The private tile harness
+checks resulting pixels against the tile origin for both positive and negative
+origins, including untouched pixels outside the requested rectangle.
+
+X11 RectangleMask translates the client origin into rectangle-local coordinates
+and fills an owned one-bit pixmap with FillOpaqueStippled. PolygonMask translates
+copied points into bounding-box coordinates, clears its bitmap, then uses
+FillStippled for the polygon interior. Both release temporary GCs and return
+pixmaps which the drawing caller must free. Transparency is represented by
+binary masks here, not continuous-alpha compositing.
+
+Masked X11 drawing temporarily installs that mask and its destination origin on
+the shared tile GC, then explicitly resets the clip to None and origin to zero.
+It does not save a caller's previous server-GC clip. Likewise, origin setters
+change shared GC state, while Windows repetition reads the individual client's
+stored origin. Consumers must establish the intended drawing state rather than
+assume a prior client's origin or clip is isolated. The outer renderer remains
+responsible for its own clipping policy.
