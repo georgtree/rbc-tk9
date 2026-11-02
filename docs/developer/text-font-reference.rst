@@ -20,3 +20,13 @@ These interfaces are private. See :doc:`text-fonts` for ownership and lifetime.
 .. doxygenfunction:: Rbc_ExportFontsFree
 
 .. doxygenfunction:: Rbc_FontUnicodeProgram
+
+Shared text drawing implementation
+----------------------------------
+
+.. c:namespace:: rbcTextDrawing
+
+.. doxygengroup:: text_drawing
+   :members:
+
+.. c:namespace-pop::

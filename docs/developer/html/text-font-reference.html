@@ -106,6 +106,125 @@
 <p>Borrow token and a populated export font. The caller initializes program and owns its DString storage. Rebuilds a temporary sfnt with replacement cmap; retains outlines rather than subsetting them, and leaves font unchanged. Returns TCL_OK after appending, or TCL_ERROR with an export diagnostic. Temporary program allocations are released on both paths. </p>
 </dd></dl>
 
+<section id="shared-text-drawing-implementation">
+<h2>Shared text drawing implementation<a class="headerlink" href="#shared-text-drawing-implementation" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__text__drawing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Text</span> <span class="pre">geometry</span> <span class="pre">and</span> <span class="pre">native</span> <span class="pre">drawing</span></span></dt>
+<dd><p>Private helpers; layouts borrow strings and styles borrow Tk resources. </p>
+<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
+<p>See “license.terms” for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.TextLayoutInt">
+<span class="target" id="group__text__drawing_1ga06552f132c2d629615d778604c872582"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutInt</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.TextLayoutInt" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Saturate a wide signed coordinate to the native int range. </p>
+<p>No allocation or interpreter error is involved; negative coordinates remain valid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.TextLayoutSize">
+<span class="target" id="group__text__drawing_1ga49e22b6f19c8085ecf073b53053ea185"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.TextLayoutSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clamp a wide size to the nonnegative int range. </p>
+<p>Nonpositive inputs become zero; values above INT_MAX become INT_MAX. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.GetTextLayoutByteCount">
+<span class="target" id="group__text__drawing_1gad271261f5aa7a2e2d200879adda127c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetTextLayoutByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nFrags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.GetTextLayoutByteCount" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute allocation bytes for a variable-length fragment array. </p>
+<p>Uses offsetof(TextLayout, fragArr), including for zero fragments. Negative counts or size_t overflow cause Tcl_Panic rather than a recoverable error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.TextRotatedSize">
+<span class="target" id="group__text__drawing_1ga962e823ed3754f6bb7ce97cd5190977e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextRotatedSize</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.TextRotatedSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a rotated extent into bounded nonnegative integer geometry. </p>
+<p>Nonfinite or nonpositive values become zero; large finite values saturate at INT_MAX. Remaining values use the existing ROUND convention. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.TextLayoutCoordinate">
+<span class="target" id="group__text__drawing_1ga8c52b8c236453237641ea475c3fea67a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutCoordinate</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.TextLayoutCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a floating coordinate with finite checks and int saturation. </p>
+<p>Nonfinite values become zero; finite out-of-range values saturate at the corresponding int endpoint. Remaining values use ROUND. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.DrawTextLayout">
+<span class="target" id="group__text__drawing_1ga8637195db94e08651fa117b0a5924198"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw borrowed fragments relative to an already anchored box origin. </p>
+<p>For zero theta, add fragment baselines with saturated integer arithmetic and call Tk_DrawChars. Otherwise rotate each baseline about the unrotated box center, translate to the rounded rotated box, and call TkDrawAngledChars. theta is in degrees and must satisfy the bounding-box helper preconditions. The caller supplies a live drawable, compatible GC and font. This helper neither selects foreground colors nor retains or frees layout resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_GetBoundingBox">
+<span class="target" id="group__text__drawing_1ga7f0b32b209bdf6d6b0ba0c12affdab9f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBoundingBox</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotWidthPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rotHeightPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bbox</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_GetBoundingBox" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute the centered bounding box of a rotated rectangle. </p>
+<p>width and height describe the unrotated rectangle. theta is in degrees; callers supply a finite, normalized angle in [0, 360). Both dimension outputs are required; bbox may be NULL or point to four Point2D entries. Corners retain the original NW, NE, SE, SW indexing around the origin. Positive angles rotate visually counterclockwise in screen coordinates. Exact quadrants avoid trigonometric rounding. Other angles rotate each corner and double the maximum positive coordinates. No resources are owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_TranslateAnchor">
+<span class="target" id="group__text__drawing_1ga710339477b7f20ad9e07016de55701aa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TranslateAnchor</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transXPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transYPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_TranslateAnchor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Translate an integer anchor position to the box upper-left corner. </p>
+<p>Both output pointers are required. NULL and NW anchors leave the position unchanged. Center offsets use integer division; subtraction is performed in Tcl_WideInt and saturated to int. No drawing or allocation occurs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_TranslatePoint">
+<span class="target" id="group__text__drawing_1ga9eaf87124d3f609e7465390e3976306a"></span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TranslatePoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_TranslatePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a floating upper-left position from a borrowed anchor point. </p>
+<p>Does not modify pointPtr. Center offsets retain half-pixel fractions, unlike Rbc_TranslateAnchor; no integer saturation is applied. NULL and NW anchors return the original position. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_SetDrawTextStyle">
+<span class="target" id="group__text__drawing_1ga99b3b4cd2bf62803b6efdbda37aa74f9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetDrawTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="n"><span class="pre">gc</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">normalColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set drawing attributes using borrowed font, colors and GC. </p>
+<p>Applies Rbc_InitTextStyle defaults, then installs supplied attributes. No resource is acquired or released, including a previously installed GC. border, width and height remain untouched. A supplied borrowed GC must not subsequently be released through Rbc_FreeTextStyle. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_SetPrintTextStyle">
+<span class="target" id="group__text__drawing_1ga4d830019251c862c1400b2cb4aa6bf73"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_SetPrintTextStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fgColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">activeColor</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowColor</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">theta</span></span>, <span class="n"><span class="pre">Tk_Anchor</span></span><span class="w"> </span><span class="n"><span class="pre">anchor</span></span>, <span class="n"><span class="pre">Tk_Justify</span></span><span class="w"> </span><span class="n"><span class="pre">justify</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">leader</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">shadowOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set print attributes without acquiring native drawing resources. </p>
+<p>Applies Rbc_InitTextStyle defaults, then borrows the supplied font and colors. gc, border, width and height remain untouched; this does not prepare an uninitialized style for native drawing or GC cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawTextLayout">
+<span class="target" id="group__text__drawing_1gae9244565553d910ca8d42f3041c91b94"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTextLayout</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawTextLayout" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a borrowed layout with anchor, rotation and style-state effects. </p>
+<p>Requires a valid font and drawable-compatible GC. Normal color is needed by color-restoration paths, activeColor for active text, and border for disabled or emphasis text. Normalizes theta in place; callers must supply a finite angle whose quotient by 360 is representable as int. Disabled/emphasis rendering takes precedence over shadow and active text, drawing two border-colored passes one pixel apart. Otherwise an optional shadow precedes the normal or active pass. Changed foreground is reset to the normal color, not the GC foreground on entry. The GC must permit this mutation. Rotation uses Tk angled text, not a temporary bitmap. The layout and style resources remain owned by the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawText2">
+<span class="target" id="group__text__drawing_1gab599c8055991a9e640185095e8eb1cfa"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText2</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">Dim2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">areaPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText2" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a temporary layout and optionally return its rotated dimensions. </p>
+<p>NULL or empty text draws nothing and sets a supplied areaPtr to zero. Nonempty text uses Rbc_DrawTextLayout, inheriting its style requirements and theta mutation. areaPtr may be NULL; dimensions use rounded rotated extents and exclude anchor position. Frees only the temporary layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_DrawText">
+<span class="target" id="group__text__drawing_1ga009de008c7dddf76a280881f210435bf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawText</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_DrawText" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw nonempty text using a temporary borrowed-string layout. </p>
+<p>NULL or empty text is a no-op. Otherwise delegates to Rbc_DrawTextLayout and frees the layout, retaining the caller-owned string, font and colors. Inherits the drawing helper requirements and theta/GC side effects. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcTextDrawing.Rbc_GetBitmapGC">
+<span class="target" id="group__text__drawing_1gabf79a13340322d6c3b5901be4e6dd260"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetBitmapGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcTextDrawing.Rbc_GetBitmapGC" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow a cached depth-one GC keyed by Display pointer. </p>
+<p>Creates the GC from a temporary one-pixel bitmap on the first request for a display, initially with foreground and background zero. Later calls return the same mutable GC without resetting its attributes. Callers must not free it and must establish all state needed for their operation. The process-static table has no cleanup or synchronization here; it is not a per-window, per-screen or per-interpreter ownership mechanism. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -128,6 +247,24 @@
 <li><a class="reference internal" href="#c.Rbc_ExportFontCharacter"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFontCharacter()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_ExportFontsFree"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportFontsFree()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_FontUnicodeProgram"><code class="docutils literal notranslate"><span class="pre">Rbc_FontUnicodeProgram()</span></code></a></li>
+<li><a class="reference internal" href="#shared-text-drawing-implementation">Shared text drawing implementation</a><ul>
+<li><a class="reference internal" href="#c.rbcTextDrawing.TextLayoutInt"><code class="docutils literal notranslate"><span class="pre">TextLayoutInt()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.TextLayoutSize"><code class="docutils literal notranslate"><span class="pre">TextLayoutSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.GetTextLayoutByteCount"><code class="docutils literal notranslate"><span class="pre">GetTextLayoutByteCount()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.TextRotatedSize"><code class="docutils literal notranslate"><span class="pre">TextRotatedSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.TextLayoutCoordinate"><code class="docutils literal notranslate"><span class="pre">TextLayoutCoordinate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.DrawTextLayout"><code class="docutils literal notranslate"><span class="pre">DrawTextLayout()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_GetBoundingBox"><code class="docutils literal notranslate"><span class="pre">Rbc_GetBoundingBox()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_TranslateAnchor"><code class="docutils literal notranslate"><span class="pre">Rbc_TranslateAnchor()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_TranslatePoint"><code class="docutils literal notranslate"><span class="pre">Rbc_TranslatePoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_SetDrawTextStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="docutils literal notranslate"><span class="pre">Rbc_SetPrintTextStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_DrawTextLayout"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTextLayout()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_DrawText2"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText2()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_DrawText"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcTextDrawing.Rbc_GetBitmapGC"><code class="docutils literal notranslate"><span class="pre">Rbc_GetBitmapGC()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

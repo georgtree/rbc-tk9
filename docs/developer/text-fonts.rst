@@ -50,6 +50,71 @@ not free font, colors, border or the style itself, and does not clear the GC
 field. Repeated cleanup therefore requires an explicit reset. These are existing
 helper contracts, not an automatic resource-management convention.
 
+Native layout presentation
+--------------------------
+
+``Rbc_DrawTextLayout`` consumes the existing unrotated layout. It normalizes
+``theta`` in the style, computes and rounds the rotated bounding dimensions,
+then translates the requested anchor to that box's upper-left corner. The
+private drawing loop places each fragment baseline relative to this origin.
+For zero rotation it uses ``Tk_DrawChars``. For other angles it rotates the
+baseline around the layout center and calls Tk's private ``TkDrawAngledChars``.
+It does not create, rotate or stipple a bitmap of the text.
+
+Angles must be finite and bounded before entering this layer: the historical
+``FMOD`` macro converts a quotient to ``int``. The later finite checks on
+coordinates do not make arbitrary angles safe. Direct callers of
+``Rbc_GetBoundingBox`` should supply normalized angles in [0, 360); its exact
+quadrant switch assumes that convention. Corner outputs preserve the original
+NW, NE, SE, SW indexing, centered at the origin, rather than sorting the rotated
+corners by their final position.
+
+Integer anchor translation uses integer half-width/half-height and saturates
+wide intermediate subtraction to ``int``. ``Rbc_TranslatePoint`` instead keeps
+fractional half-pixel offsets. Layout sizes clamp negative results to zero and
+large values to ``INT_MAX``; floating drawing coordinates also handle nonfinite
+values before rounding. These policies bound representation, not visibility:
+clipping remains the drawing context's responsibility.
+
+State selects the drawing passes in this order:
+
+.. list-table:: Native text passes
+   :header-rows: 1
+   :widths: 25 75
+
+   * - State
+     - Drawing behavior
+   * - Disabled or emphasis
+     - Two border-colored passes, offset by one pixel; emphasis swaps colors.
+       Shadow and active-color paths are bypassed.
+   * - Normal or active
+     - A positive-offset, non-NULL-color shadow is drawn first, if configured;
+       then the main pass uses the current foreground or active color.
+
+Color-changing paths reset the GC foreground to the style's normal color,
+not to the original GC value. The normal path without a shadow does not
+explicitly select the normal color, so the supplied GC must already have the
+intended foreground. Callers must supply any colors or border required by the
+selected state and permit the temporary GC mutation. ``Rbc_SetPrintTextStyle``
+does not initialize a GC and is not sufficient preparation for native drawing.
+
+``Rbc_DrawText`` and ``Rbc_DrawText2`` build and release temporary layouts while
+borrowing the input string. Both skip NULL and empty strings; the latter also
+zeros a supplied result area on that path. Its nonempty result is the rounded
+rotated layout size, independent of the anchor position. Exporters retain their
+own text serialization paths; these native draw calls do not embed fonts.
+
+Bitmap GC lifetime
+------------------
+
+``Rbc_GetBitmapGC`` supplies a different resource: a shared mutable depth-one GC
+cached by Display pointer in a process-static hash table. Its creation bitmap
+is temporary, but the GC is retained. Subsequent requests do not reset its
+foreground, background or other attributes. Callers borrow it, establish their
+required state and must not free it through text-style cleanup. The cache has
+no teardown or synchronization in this module; it should not be treated as a
+per-interpreter or thread-isolated resource owner.
+
 Document-local font resolution
 ------------------------------
 

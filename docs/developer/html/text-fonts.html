@@ -84,6 +84,73 @@ not free font, colors, border or the style itself, and does not clear the GC
 field. Repeated cleanup therefore requires an explicit reset. These are existing
 helper contracts, not an automatic resource-management convention.</p>
 </section>
+<section id="native-layout-presentation">
+<h2>Native layout presentation<a class="headerlink" href="#native-layout-presentation" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTextLayout</span></code> consumes the existing unrotated layout. It normalizes
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> in the style, computes and rounds the rotated bounding dimensions,
+then translates the requested anchor to that box’s upper-left corner. The
+private drawing loop places each fragment baseline relative to this origin.
+For zero rotation it uses <code class="docutils literal notranslate"><span class="pre">Tk_DrawChars</span></code>. For other angles it rotates the
+baseline around the layout center and calls Tk’s private <code class="docutils literal notranslate"><span class="pre">TkDrawAngledChars</span></code>.
+It does not create, rotate or stipple a bitmap of the text.</p>
+<p>Angles must be finite and bounded before entering this layer: the historical
+<code class="docutils literal notranslate"><span class="pre">FMOD</span></code> macro converts a quotient to <code class="docutils literal notranslate"><span class="pre">int</span></code>. The later finite checks on
+coordinates do not make arbitrary angles safe. Direct callers of
+<code class="docutils literal notranslate"><span class="pre">Rbc_GetBoundingBox</span></code> should supply normalized angles in [0, 360); its exact
+quadrant switch assumes that convention. Corner outputs preserve the original
+NW, NE, SE, SW indexing, centered at the origin, rather than sorting the rotated
+corners by their final position.</p>
+<p>Integer anchor translation uses integer half-width/half-height and saturates
+wide intermediate subtraction to <code class="docutils literal notranslate"><span class="pre">int</span></code>. <code class="docutils literal notranslate"><span class="pre">Rbc_TranslatePoint</span></code> instead keeps
+fractional half-pixel offsets. Layout sizes clamp negative results to zero and
+large values to <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code>; floating drawing coordinates also handle nonfinite
+values before rounding. These policies bound representation, not visibility:
+clipping remains the drawing context’s responsibility.</p>
+<p>State selects the drawing passes in this order:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Native text passes</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Drawing behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Disabled or emphasis</p></td>
+<td><p>Two border-colored passes, offset by one pixel; emphasis swaps colors.
+Shadow and active-color paths are bypassed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Normal or active</p></td>
+<td><p>A positive-offset, non-NULL-color shadow is drawn first, if configured;
+then the main pass uses the current foreground or active color.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Color-changing paths reset the GC foreground to the style’s normal color,
+not to the original GC value. The normal path without a shadow does not
+explicitly select the normal color, so the supplied GC must already have the
+intended foreground. Callers must supply any colors or border required by the
+selected state and permit the temporary GC mutation. <code class="docutils literal notranslate"><span class="pre">Rbc_SetPrintTextStyle</span></code>
+does not initialize a GC and is not sufficient preparation for native drawing.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_DrawText</span></code> and <code class="docutils literal notranslate"><span class="pre">Rbc_DrawText2</span></code> build and release temporary layouts while
+borrowing the input string. Both skip NULL and empty strings; the latter also
+zeros a supplied result area on that path. Its nonempty result is the rounded
+rotated layout size, independent of the anchor position. Exporters retain their
+own text serialization paths; these native draw calls do not embed fonts.</p>
+</section>
+<section id="bitmap-gc-lifetime">
+<h2>Bitmap GC lifetime<a class="headerlink" href="#bitmap-gc-lifetime" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GetBitmapGC</span></code> supplies a different resource: a shared mutable depth-one GC
+cached by Display pointer in a process-static hash table. Its creation bitmap
+is temporary, but the GC is retained. Subsequent requests do not reset its
+foreground, background or other attributes. Callers borrow it, establish their
+required state and must not free it through text-style cleanup. The cache has
+no teardown or synchronization in this module; it should not be treated as a
+per-interpreter or thread-isolated resource owner.</p>
+</section>
 <section id="document-local-font-resolution">
 <h2>Document-local font resolution<a class="headerlink" href="#document-local-font-resolution" title="Link to this heading">¶</a></h2>
 <p>An export context lazily owns an <code class="docutils literal notranslate"><span class="pre">ExportFontCache</span></code> through <code class="docutils literal notranslate"><span class="pre">fontData</span></code>.
@@ -168,6 +235,8 @@ modules.</p>
 <li><a class="reference internal" href="#">Text layout and document fonts</a><ul>
 <li><a class="reference internal" href="#layouts-borrow-the-text">Layouts borrow the text</a></li>
 <li><a class="reference internal" href="#styles-are-not-universal-owners">Styles are not universal owners</a></li>
+<li><a class="reference internal" href="#native-layout-presentation">Native layout presentation</a></li>
+<li><a class="reference internal" href="#bitmap-gc-lifetime">Bitmap GC lifetime</a></li>
 <li><a class="reference internal" href="#document-local-font-resolution">Document-local font resolution</a></li>
 <li><a class="reference internal" href="#native-sources-and-font-programs">Native sources and font programs</a></li>
 <li><a class="reference internal" href="#backend-integration-and-cleanup">Backend integration and cleanup</a></li>
