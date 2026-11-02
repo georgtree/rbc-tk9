@@ -213,5 +213,25 @@ namespace eval graph.legend {
         destroy .graph1
     } -result {Line1}
 	
+    set coordinateCase 0
+    foreach state {visible hidden empty} {
+        foreach badPosition {@bad @x,1 @1,y @1,2,3} {
+            test RBC.graph.legend.bind.A.2.[incr coordinateCase] \
+                "malformed coordinates fail for a $state legend: $badPosition" -setup {
+                        ::rbc::graph .graph1
+                        .graph1 element create entry -data {1 1 2 2} -label Entry
+                        pack .graph1
+                        update
+                        if {$state eq "hidden"} {.graph1 legend configure -hide yes}
+                        if {$state eq "empty"} {.graph1 element configure entry -label {}}
+                        update
+                    } -body {
+                        set code [catch {.graph1 legend get $badPosition} message]
+                        list $code [string match *position* $message] \
+                            [.graph1 legend get @-100,-100]
+                    } -cleanup {destroy .graph1} -result {1 1 {}}
+        }
+    }
+
 	cleanupTests
 }

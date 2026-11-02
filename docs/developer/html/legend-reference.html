@@ -42,89 +42,482 @@
             
   <section id="legend-c-reference">
 <h1>Legend C reference<a class="headerlink" href="#legend-c-reference" title="Link to this heading">¶</a></h1>
-<p>These private interfaces borrow graph, legend and track records. See
-<a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> for ownership and ordering, and <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event routing.</p>
-<section id="mapping-and-scheduling">
-<h2>Mapping and scheduling<a class="headerlink" href="#mapping-and-scheduling" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> for ownership, layout, placement, redraw and command
+contracts. These are internal services, not public stubs. The documentation
+namespaces below disambiguate static helper names without changing C linkage.</p>
+<section id="creation-and-configuration">
+<h2>Creation and configuration<a class="headerlink" href="#creation-and-configuration" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__configuration"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">creation</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rbc_MapLegend">
-<span class="target" id="rbc_gr_legd_8h_1acb975f87451e8dca48d032db0deb1bbf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">width</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapLegend" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Compute entry and total dimensions for one legend. </p>
-<p>
-Resets cached dimensions before measuring eligible labeled elements. Hidden legends or unusable dimensions produce an empty layout. Single-row layouts use individual entry widths; multi-row layouts use uniform cells. Does not paint; placement is handled separately by the legend origin calculation. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>legendPtr</strong> – Borrowed initialized legend and its owning graph. </p></li>
-<li><p><strong>width</strong> – Available plot width; an external window can override it. </p></li>
-<li><p><strong>height</strong> – Available plot height; an external window can override it.</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.IsLegendPositionPrefix">
+<span class="target" id="group__legend__configuration_1gacdee939df0655ae3dad66bd4f4eefd10"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsLegendPositionPrefix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fullName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.IsLegendPositionPrefix" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recognize a nonempty case-sensitive placement keyword prefix. </p>
+<p>Returns a boolean for the borrowed spelling and fullName. Empty and overlong spellings fail; does not allocate or change interpreter state. </p>
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rbc_MapTrackLegends">
-<span class="target" id="rbc_gr_track_8h_1a71032498d47369c17f65890c39db451e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapTrackLegends</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_MapTrackLegends" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Map local legends after full track rectangles have been laid out. </p>
-<p>
-Uses full world width and height and sets each legend origin. Local legends do not contribute graph margins. Does not draw or schedule redisplay. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph with current track geometry.</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.GetLegendPositionFromObj">
+<span class="target" id="group__legend__configuration_1ga6a63e8108debc31958be84b93e3fa466"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLegendPositionFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition" title="LegendPosition"><span class="n"><span class="pre">LegendPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.GetLegendPositionFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a global placement into a temporary position record. </p>
+<p>Empty input selects rightmargin. Accepts keyword prefixes, a dot-prefixed external path or &#64;x,y with Tcl long expressions. The returned windowName borrows the object string. Returns TCL_OK or TCL_ERROR with a diagnostic; output may be partially initialized on error. Coordinate expressions can execute Tcl, so callers must maintain owner and argument lifetime. </p>
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rbc_RedrawExternalLegend">
-<span class="target" id="rbc_graph_8h_1ac857609075546a95292bd12792f5082a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RedrawExternalLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RedrawExternalLegend" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Schedule the global external legend’s independent idle redraw. </p>
-<p>
-Does nothing for an absent, resource-released or non-window legend. Coalesces pending idle work; does not draw synchronously or remap the graph. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Borrowed graph whose global legend may be absent.</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.SetLegendPositionObject">
+<span class="target" id="group__legend__configuration_1gaa67fb360926e4406bb7abd8931b113f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetLegendPositionObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.SetLegendPositionObject" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace the retained position object after an internal placement change. </p>
+<p>Creates and retains a string object, swaps it into the legend and releases the previous reference. Does not parse placement, change site or schedule work. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.ConfigureLegend">
+<span class="target" id="group__legend__configuration_1ga55180dce4e0dfc91af597d8313843eca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">mask</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.ConfigureLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare derived options and external placement before committing. </p>
+<p>Candidate Tk fields are already installed. Validates nonnegative counts and widths, stages padding/shadow/position and prepares any new external window. Local positions use exact names and reject windows/coordinates. Commits derived state after ordinary failures are past, then resets style and schedules layout/redraw as the mask requires. Returns TCL_OK or TCL_ERROR, freeing staged resources on error. Caller restores Tk fields; callback side effects from expressions/window operations are not rolled back. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.Rbc_CreateLegend">
+<span class="target" id="group__legend__configuration_1gaed78c7f6361ff159f86449f7da6e5708"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.Rbc_CreateLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create and configure the graph-owned legend and its binding table. </p>
+<p>Requires a graph window and option proxy. Allocates zeroed storage, installs the graph pointer, initializes text style and component options under legend/Legend, then configures derived state. Returns TCL_OK on success. On failure destroys partial legend state and returns TCL_ERROR. Allocation is asserted; this is an internal constructor, not a public stubs API. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend">
+<span class="target" id="group__legend__configuration_1gac555697c92e5e2bd198d173672b8950d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateTrackLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an opt-in local legend sharing graph event infrastructure. </p>
+<p>Requires a track without an existing legend. Creates a private tag table, borrows or lazily creates trackLegendBindings and initializes component options under trackLegend/TrackLegend. Returns TCL_OK on success; failure destroys the partial local legend but retains the graph-owned shared table. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrLegendConfiguration.LegendPosition">
+<span class="target" id="struct_legend_position"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendPosition</span></span></span><a class="headerlink" href="#c.rbcGrLegendConfiguration.LegendPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Staged position; windowName borrows the parsed Tcl object’s string. </p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
-<section id="cleanup">
-<h2>Cleanup<a class="headerlink" href="#cleanup" title="Link to this heading">¶</a></h2>
+<section id="measurement-and-placement">
+<h2>Measurement and placement<a class="headerlink" href="#measurement-and-placement" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__layout"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">measurement</span> <span class="pre">and</span> <span class="pre">placement</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rbc_ReleaseLegendTkResources">
-<span class="target" id="rbc_graph_8h_1a9141112271fa7d80e7f5ad11e223201c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleaseLegendTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleaseLegendTkResources" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Release global and local legend options while the Tk window is live. </p>
-<p>
-Cancels pending legend redraws, frees text-style resources and the separately owned shadow color, then frees Tk options and their table. Leaves legend records and binding tables for final destruction. Repeated release is guarded. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Owning graph with valid track list and Tk window context.</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.LegendLayoutSize">
+<span class="target" id="group__legend__layout_1ga5a600f2c17b0ddfc73c37107a7114e7a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendLayoutSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_WideInt</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.LegendLayoutSize" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clamp a wide layout dimension to a nonnegative int. </p>
+<p>Nonpositive values return zero; larger positive values saturate at INT_MAX. No allocation or graph mutation occurs. </p>
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rbc_DestroyTrackLegend">
-<span class="target" id="rbc_gr_track_8h_1a33a593148c79900916ec26c6be6e4088"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_DestroyTrackLegend" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Destroy one local legend and clear its owning track pointer. </p>
-<p>
-Cancels idle work and removes the legend’s tag bindings, but retains the shared track-legend binding table. Release Tk resources before window loss. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>graphPtr</strong> – Owning graph; shared local binding table must still be live. </p></li>
-<li><p><strong>track</strong> – Track whose optional legend is destroyed.</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.LegendCoordinate">
+<span class="target" id="group__legend__layout_1gaa9d8bc687d91118d2ba7bdcda58aa477"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendCoordinate</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.LegendCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Saturate a finite coordinate before conversion to int. </p>
+<p>Values within int bounds truncate toward zero. The caller must exclude NaN; this helper does not report a conversion error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.GetLegendPixelDimension">
+<span class="target" id="group__legend__layout_1gab1b7c8e41a7a12dac598dd1b7f05fa03"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLegendPixelDimension</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">entrySize</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">borderWidth</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Rbc_Pad</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">padPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dimensionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.GetLegendPixelDimension" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Check a cell-count dimension including border and exterior padding. </p>
+<p>Returns TCL_OK and writes dimensionPtr only when all inputs are nonnegative and the complete dimension fits in int. Returns TCL_ERROR without changing output otherwise. Uses division before multiplication; performs no allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.LegendHasElement">
+<span class="target" id="group__legend__layout_1ga37e8e29d3056ae3ddc109c7f10b771cb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendHasElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.LegendHasElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test track membership independently of label or visibility. </p>
+<p>A global legend accepts every borrowed element. A local legend accepts only elements with the same track pointer. Callers separately check label and display-list eligibility; no reference is acquired. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.SetLegendOrigin">
+<span class="target" id="group__legend__layout_1ga2024cedf7fa95c3516eaa9796caa56bc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetLegendOrigin</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.SetLegendOrigin" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute legend placement from cached dimensions and its owning region. </p>
+<p>Requires current graph/track geometry. Local placement uses full world bounds; global placement uses margins, plot bounds or screen coordinates. Negative explicit coordinates are relative to the graph window extent. Applies the anchor and padding with saturated arithmetic. External placement forces the NW anchor and origin zero. Does not remeasure entries. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.LegendEntryWidth">
+<span class="target" id="group__legend__layout_1gaa002949e215a2742c01c63431dd26e80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendEntryWidth</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.LegendEntryWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a compact single-row width or the uniform grid-cell width. </p>
+<p>Borrows a labeled element and initialized text style. In one row, remeasures that label and adds entryInset; otherwise returns cached style.width. Mapping must already have validated the dimensions and label state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_MapLegend">
+<span class="target" id="group__legend__layout_1ga8b232a09185748815015de802900fdb3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">plotWidth</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">plotHeight</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_MapLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Measure entries and replace cached legend dimensions. </p>
+<p>Borrows an initialized legend and owning graph. plotWidth/plotHeight are available dimensions; an external window larger than one pixel overrides them. Resets layout first, then counts labeled display-list elements in scope. Single rows use individual widths; multiple rows use maximum-size cells. Unusable or overflowing dimensions leave an empty layout. Does not set the origin or draw; may request new external-window geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendSite">
+<span class="target" id="group__legend__layout_1ga3cb3c48808d6382abe646373a8a29c9f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendSite</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendSite" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s placement code. </p>
+<p>Requires a non-NULL live legend. Reads site without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendWidth">
+<span class="target" id="group__legend__layout_1ga5f9d96429a978cc1a938d7f623d4b585"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendWidth</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendWidth" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s cached width. </p>
+<p>Requires a non-NULL live legend. Reads width without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendHeight">
+<span class="target" id="group__legend__layout_1gabb66af339eb143d7946590724a9631c2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendHeight</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendHeight" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s cached height. </p>
+<p>Requires a non-NULL live legend. Reads height without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendIsHidden">
+<span class="target" id="group__legend__layout_1ga71df10b47a717f234bf49803dcca303c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendIsHidden</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendIsHidden" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s hidden flag. </p>
+<p>Requires a non-NULL live legend. Reads hidden without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendIsRaised">
+<span class="target" id="group__legend__layout_1ga58bec7edae60faf155dc665f866326d9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendIsRaised</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendIsRaised" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s raised flag. </p>
+<p>Requires a non-NULL live legend. Reads raised without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendX">
+<span class="target" id="group__legend__layout_1ga92f47e608ba7db25591d5f43cbac3f50"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendX" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s cached origin X. </p>
+<p>Requires a non-NULL live legend. Reads x without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_LegendY">
+<span class="target" id="group__legend__layout_1gaa93f06f44c37c7118a2b879df55e2e58"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_LegendY" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the legend’s cached origin Y. </p>
+<p>Requires a non-NULL live legend. Reads y without remapping, scheduling work or acquiring a reference; cached geometry need not be current. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLayout.Rbc_MapTrackLegends">
+<span class="target" id="group__legend__layout_1ga71032498d47369c17f65890c39db451e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MapTrackLegends</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLayout.Rbc_MapTrackLegends" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map local legends after full track geometry is available. </p>
+<p>Uses world widths/heights, then computes origins. Local legends do not reserve graph margins. Borrows graph and tracks, and does not draw or schedule redisplay; visible clipping is handled separately. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="picking-and-binding-identity">
+<h2>Picking and binding identity<a class="headerlink" href="#picking-and-binding-identity" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__bindings"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">picking</span> <span class="pre">and</span> <span class="pre">binding</span> <span class="pre">identity</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.LegendTag">
+<span class="target" id="group__legend__bindings_1ga1aca6ea75aacd93d6880817d748a7c1e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendTag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.LegendTag" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intern a stable binding tag in the owning legend scope. </p>
+<p>Global legends use the graph element-tag table; local legends use their own string-key table. Returns a borrowed key pointer valid until that table is destroyed. Identical strings in separate local tables have distinct binding identities. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.LegendTags">
+<span class="target" id="group__legend__bindings_1gae179f9c461c7b3d741c71ff35a92bdb9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendTags</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="binding-reference.html#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="n"><span class="pre">table</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">context</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.LegendTags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append name, class and configured tags for a picked legend entry. </p>
+<p>Borrows the element object and destination list. Context identifies the legend; NULL context falls back to the graph-wide legend. Interns tags through LegendTag. Does not evaluate binding scripts or own the element. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.PickLegendIn">
+<span class="target" id="group__legend__bindings_1gaff983f31f9649f7181e5e709c473680e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickLegendIn</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.PickLegendIn" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the borrowed element at a point within one mapped legend. </p>
+<p>Recomputes origin, rejects hidden/empty legends and points outside a local track clip, then excludes outer borders and padding. One row scans measured widths; a grid uses column-major cell indices with overflow checks. Walks the display list in reverse, applying label and track filters. Returns NULL for no entry; does not update graph layout or acquire an element reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.LegendContains">
+<span class="target" id="group__legend__bindings_1ga81bbc60992635e6632d025f54d1a26e7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendContains</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.LegendContains" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test the legend rectangle for occlusion, including blank areas. </p>
+<p>Recomputes origin and rejects hidden/empty/unattached legends. Local legends additionally require the point inside visible track bounds. This boolean test deliberately differs from entry picking: padding can occlude content. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.LegendAtPoint">
+<span class="target" id="group__legend__bindings_1gabcf00a684ad5b76409f4b6b5e015282d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">LegendAtPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.LegendAtPoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the topmost in-widget legend rectangle at a graph point. </p>
+<p>Requires a live graph-wide legend. Checks raised then non-raised layers, global before local within each layer, and tracks in list order. Excludes external windows. Returns a borrowed legend or NULL, without picking an entry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.Rbc_PointInLegend">
+<span class="target" id="group__legend__bindings_1ga7a1511c961fcf5cf6fa2e44bc0eef118"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.Rbc_PointInLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether any in-widget legend occludes a graph point. </p>
+<p>Delegates to LegendAtPoint, including blank legend areas. Does not remap the graph or test external legend windows. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.Rbc_PointInTrackLegend">
+<span class="target" id="group__legend__bindings_1ga3305db994d7e50b84ed4bdcc668c0003"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PointInTrackLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.Rbc_PointInTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether the topmost legend at a graph point is local. </p>
+<p>Returns false when a global legend occludes a local one. Uses current mapped geometry and borrows the graph; no binding scripts are run. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.PickLegendEntry">
+<span class="target" id="group__legend__bindings_1ga390d292db864ca94ef35558dbf026a7f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickLegendEntry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">contextPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.PickLegendEntry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Adapt global or external legend picking to the binding interface. </p>
+<p>clientData is the graph. Writes the global legend to optional contextPtr, even if no entry is found. In-widget picking requires it to be topmost; external picking uses that window’s coordinates directly. Returns a borrowed element or NULL. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.PickTrackLegendEntry">
+<span class="target" id="group__legend__bindings_1gadca51c22a226828fc4c124afe9acc42b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PickTrackLegendEntry</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">contextPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.PickTrackLegendEntry" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Adapt local legend picking with an explicit legend context. </p>
+<p>clientData is the graph and contextPtr must be writable. Stores the topmost legend, then returns a borrowed entry only if that legend is local. Context can identify a global legend even when the returned item is NULL. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendBindings.Rbc_LegendRemoveElement">
+<span class="target" id="group__legend__bindings_1ga1c19ef8c223674e33be7cdf5384e5e56"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendRemoveElement</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendBindings.Rbc_LegendRemoveElement" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Forget an element object in global and shared local binding state. </p>
+<p>Passes the borrowed element pointer to Rbc_DeleteBindings in both relevant tables, clearing current/new item state as needed. Does not remove interned string tags, erase tag scripts by name, free the element or edit display order. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="screen-and-document-output">
+<h2>Screen and document output<a class="headerlink" href="#screen-and-document-output" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__output"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">screen</span> <span class="pre">and</span> <span class="pre">document</span> <span class="pre">output</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_DrawLegend">
+<span class="target" id="group__legend__output_1ga842caeea4d8bcafa407d771d319a1500"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_DrawLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compose a mapped legend in a temporary pixmap and copy it to output. </p>
+<p>Requires live window, graph and element records and current layout. Clears DRAW_LEGEND even when hidden or empty. Sets origin, composes background, active/relief entry borders, element symbol callbacks, text and outer border. Local copies are intersected with the visible track rectangle. Frees the pixmap and closes the text context. Borrows entries; does not own elements or provide a mutation-safe snapshot across symbol callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_LegendExport">
+<span class="target" id="group__legend__output_1gae6914e557e0f2d49c9a1d5054a3e970f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendExport</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_LegendExport" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Emit mapped legend decoration, symbols and labels to an export backend. </p>
+<p>Borrows legend, export context and displayed elements. Hidden/empty layouts emit nothing. Subtracts exterior padding from the output box, sets origin and handles decorations before visiting entries in column-major order. Uses each concrete element’s exportSymbolProc and closes its own output context. Local clipping and external-legend exclusion belong to callers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_DrawTrackLegends">
+<span class="target" id="group__legend__output_1gae1d0a746f63995e6a0a9422388a25bed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DrawTrackLegends</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">raised</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw local legends in one requested raised layer. </p>
+<p>Borrows tracks in list order. Selects legends with matching raised flag and a noncollapsed visible track rectangle; Rbc_DrawLegend handles hidden and empty legends and clips the final copy. Does not remap tracks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendOutput.Rbc_ExportTrackLegends">
+<span class="target" id="group__legend__output_1ga7cda3ba1724f6fc07582b950fef43a5c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportTrackLegends</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportContext</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">raised</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendOutput.Rbc_ExportTrackLegends" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Export a local legend layer within each visible track clip. </p>
+<p>Selects matching raised flags and noncollapsed track rectangles. Opens an output context, pushes the inclusive visible rectangle as a clip, exports the legend, then balances clip/context cleanup. Does not remap track geometry. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="windows-scheduling-and-cleanup">
+<h2>Windows, scheduling and cleanup<a class="headerlink" href="#windows-scheduling-and-cleanup" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__lifetime"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">window</span> <span class="pre">and</span> <span class="pre">resource</span> <span class="pre">lifetime</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.EventuallyRedrawLegend">
+<span class="target" id="group__legend__lifetime_1ga6a1979f58745327d3ef6f64e2450eebb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EventuallyRedrawLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.EventuallyRedrawLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Coalesce a legend idle draw while its target window exists. </p>
+<p>Schedules DisplayLegend only with a non-NULL window and no REDRAW_PENDING flag, then marks the request pending. Does not check whether the window is mapped; the idle handler does that. Caller must cancel before freeing records. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_RedrawExternalLegend">
+<span class="target" id="group__legend__lifetime_1gac857609075546a95292bd12792f5082a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RedrawExternalLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_RedrawExternalLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Schedule the global external legend’s independent redraw. </p>
+<p>Borrows a graph whose legend may be absent. Does nothing for an absent, resource-released or non-window legend. Coalesces idle work without drawing synchronously or remapping the graph. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.PrepareLegendWindow">
+<span class="target" id="group__legend__lifetime_1ga4a091b4693d6a7bbe0bc201461f07ba9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareLegendWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pathName</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tkwinPtr</span></span>, <span class="n"><span class="pre">Tcl_Command</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cmdTokenPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.PrepareLegendWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create a candidate external window, command and event association. </p>
+<p>Borrows interpreter, legend and path. The command forwards to the graph instance dispatcher; it is not a standalone legend dispatcher. Returns TCL_OK and writes both handles only on success. Returns TCL_ERROR after cleaning partial associations otherwise. The caller owns adoption/cleanup of successful candidates; no packing or mapping is performed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.CloseExternalLegendWindow">
+<span class="target" id="group__legend__lifetime_1ga0e1978a0e13b4727a74cb005d227f94f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CloseExternalLegendWindow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.CloseExternalLegendWindow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Detach and destroy an external legend window before replacement. </p>
+<p>No-op for an absent window or the graph window. Cancels idle work, resets stored handles before deleting the old command/window associations, and moves the binding table back to the graph. Does not set the new site or position object; the configuration caller completes that transition. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.ReleaseLegendTkResources">
+<span class="target" id="group__legend__lifetime_1ga9d31d9ed26981d763dc82e6af1cf5e4e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseLegendTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.ReleaseLegendTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one legend’s Tk resources while the graph window is valid. </p>
+<p>Accepts NULL and guards absent/already released option tables. Cancels idle work, frees text drawing resources before option fonts/colors, frees the separately acquired shadow, and releases options/table. Clears an in-widget window pointer but retains an external one for final destruction. Does not free the legend record or binding table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources">
+<span class="target" id="group__legend__lifetime_1ga9141112271fa7d80e7f5ad11e223201c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleaseLegendTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release local and global legend options before window loss. </p>
+<p>Requires the owning graph’s valid track list and Tk window context. Visits local legends first, then the optional global legend. Per-record guards prevent duplicate release; final destruction owns records and bindings. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendEventProc">
+<span class="target" id="group__legend__lifetime_1gaf58fb56cc170552439c10370ca4837c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendEventProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">XEvent</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">eventPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendEventProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Handle exposure, resize and destruction of the external legend window. </p>
+<p>Coalesces exposes and configure events into idle draws. DestroyNotify removes command/instance associations, cancels pending work, restores rightmargin and its retained option string, moves bindings to the graph and requests graph remapping/redrawing. Borrows a live legend record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.DisplayLegend">
+<span class="target" id="group__legend__lifetime_1gae1d75475d905b9f87cbd3bc0c351ba56"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DisplayLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.DisplayLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Consume an idle redraw and paint a mapped legend window. </p>
+<p>Clears REDRAW_PENDING first. Missing windows are skipped. External windows of at most one pixel are skipped; changed dimensions trigger remapping. Unmapped windows are not painted. The scheduled record must remain live until the callback runs or is cancelled. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.DestroyLegend">
+<span class="target" id="group__legend__lifetime_1ga41d4387fc00fd370112b961bda7b117f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.DestroyLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Free one legend after releasing resources and external associations. </p>
+<p>Accepts NULL. Cancels idle work, releases Tk resources if the graph window still exists, and destroys any external command/window after clearing its stored handles. Local legends remove their private tag bindings and table; global legends destroy their owned binding table. Frees the record, but does not clear owner pointers or destroy the shared local binding table. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_DestroyLegend">
+<span class="target" id="group__legend__lifetime_1ga4cd36c64c59d3645abd4ee8324881e15"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_DestroyLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy the global legend and shared local-legend binding table. </p>
+<p>Clears graph-owned pointers. Local legends must already have been destroyed before their shared binding table disappears. Tk resources should have been released while the graph window was valid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend">
+<span class="target" id="group__legend__lifetime_1ga33a593148c79900916ec26c6be6e4088"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_DestroyTrackLegend</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy a local legend and clear its track pointer. </p>
+<p>Requires the shared local binding table to remain live. An absent legend is harmless. Releases local tag bindings, not the shared binding table; Tk resources must be released before window loss. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.Rbc_LegendFontsChanged">
+<span class="target" id="group__legend__lifetime_1ga195e4348339c04ac0f2c763d03dde5c5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendLifetime.Rbc_LegendFontsChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh local/global text styles and external redraw scheduling. </p>
+<p>Borrows graph and track records. Resets styles only when window and font are available; an external global legend receives an idle redraw request. Does not itself remap legends or schedule in-widget graph redisplay. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrLegendLifetime.LegendStruct">
+<span class="target" id="struct_legend_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendStruct</span></span></span><a class="headerlink" href="#c.rbcGrLegendLifetime.LegendStruct" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graph- or track-owned legend with borrowed elements and scoped bindings. </p>
+<p>Owns option state, derived shadow/text resources and optional external associations. A local legend owns tags but borrows the shared event table; a global legend owns its binding table. Cached dimensions are not entry records: entries remain in the graph’s element display list. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="command-handlers">
+<h2>Command handlers<a class="headerlink" href="#command-handlers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__legend__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Legend</span> <span class="pre">command</span> <span class="pre">dispatch</span></span></dt>
+<dd><p>Internal legend services; not part of the public stubs API. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.GetOp">
+<span class="target" id="group__legend__commands_1gaf78669eea2cbb8b5d9eace665a545f2c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.GetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query the current entry or pick an entry at &#64;x,y in this legend. </p>
+<p>Uses normalized arguments with the selector at objv[3]. Hidden/empty layouts return TCL_OK without setting a name. Local current lookup checks binding context; coordinate lookup uses PickLegendIn. Does not resolve ordinary element-name strings. Malformed coordinates return TCL_ERROR with the parser diagnostic, even for hidden or empty legends. Valid queries with no matching entry return TCL_OK without setting a name. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.ActivateOp">
+<span class="target" id="group__legend__commands_1ga6ce54ea5231f72c17c2e054358dd1b46"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ActivateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.ActivateOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Set matching element label flags and return active names in scope. </p>
+<p>Normalized operation name selects activation or deactivation. Matches patterns against the complete element table, filtered by track, and changes shared LABEL_ACTIVE flags. No patterns changes nothing. Returns a Tcl list of all active names in scope, in hash order, including undisplayed elements. Schedules graph/backing redraw for plot legends and cheaper legend redraw when appropriate; track graphs also refresh other copies of shared entries. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.BindOp">
+<span class="target" id="group__legend__commands_1gaa88147280484418f5497b6717e8abc0f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.BindOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List interned tags or delegate a legend binding query/update. </p>
+<p>Normalized arguments begin with the operation at objv[2]. With no tag, returns the owning tag table’s keys in hash order; these need not all have scripts. Otherwise interns the supplied tag and delegates remaining arguments to the shared binding service. Returns its Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.CgetOp">
+<span class="target" id="group__legend__commands_1ga2ebe373e814637ce9eb207ea16304b83"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a retained legend option value through Tk. </p>
+<p>Borrows a live legend and normalized option name at objv[3]. Returns TCL_OK with the value or TCL_ERROR from Tk. Does not configure or redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.ConfigureOp">
+<span class="target" id="group__legend__commands_1ga0519879920e5bec55b3c2267feb33243"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query options or apply a saved-options configuration transaction. </p>
+<p>Normalized objc of three queries all options; four queries one. Other calls install candidate values with Tk_SetOptions and ConfigureLegend. Derived failure restores saved options while preserving the diagnostic; success frees saved options. Returns a Tcl status. Does not undo arbitrary application side effects from coordinate expressions or window callbacks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.Rbc_LegendOp">
+<span class="target" id="group__legend__commands_1gaf61f23e7f5e4a6dc6ceafd922289558b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_LegendOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.Rbc_LegendOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and dispatch a graph-wide legend operation. </p>
+<p>Borrows the complete graph-command argument vector, with operation at index two. Shared dispatch checks spelling and arity, then calls the selected handler. Returns TCL_OK/TCL_ERROR; this dispatcher adds no layout refresh or object-lifetime preservation around the handler. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.TrackLegendBboxOp">
+<span class="target" id="group__legend__commands_1ga0ab6c26d2a099231fec85ff1569ca5bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackLegendBboxOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Legend</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">legendPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.TrackLegendBboxOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the clipped local legend box as x y width height. </p>
+<p>Requires current track/legend layout and a local legend. Hidden, empty or fully clipped legends leave no result. Intersects the legend extent with inclusive visible track bounds and returns pixel dimensions, not right and bottom coordinates. Recomputes origin but does not remap. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.Rbc_TrackLegendOp">
+<span class="target" id="group__legend__commands_1gaa5f389473e69d7608769e2b3112453c4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TrackLegendOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Normalize a nested track-legend command and refresh layout before dispatch. </p>
+<p>Requires a track with a live legend. Creates an owned normalized argument vector, validates operation/arity, refreshes layout and dispatches only on success, then releases the vector. Returns the Tcl status of the failing stage or handler. Borrows graph/track/legend; adds no preservation boundary around layout callbacks. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrLegendCommands.LegendOpSpec">
+<span class="target" id="struct_legend_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LegendOpSpec</span></span></span><a class="headerlink" href="#c.rbcGrLegendCommands.LegendOpSpec" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared dispatch header followed by a legend-specific handler pointer. </p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -141,15 +534,80 @@ Cancels idle work and removes the legend’s tag bindings, but retains the share
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Legend C reference</a><ul>
-<li><a class="reference internal" href="#mapping-and-scheduling">Mapping and scheduling</a><ul>
-<li><a class="reference internal" href="#c.Rbc_MapLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_MapLegend()</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_MapTrackLegends"><code class="docutils literal notranslate"><span class="pre">Rbc_MapTrackLegends()</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_RedrawExternalLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_RedrawExternalLegend()</span></code></a></li>
+<li><a class="reference internal" href="#creation-and-configuration">Creation and configuration</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.IsLegendPositionPrefix"><code class="docutils literal notranslate"><span class="pre">IsLegendPositionPrefix()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.GetLegendPositionFromObj"><code class="docutils literal notranslate"><span class="pre">GetLegendPositionFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.SetLegendPositionObject"><code class="docutils literal notranslate"><span class="pre">SetLegendPositionObject()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.ConfigureLegend"><code class="docutils literal notranslate"><span class="pre">ConfigureLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.Rbc_CreateLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTrackLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendConfiguration.LegendPosition"><code class="docutils literal notranslate"><span class="pre">LegendPosition</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#cleanup">Cleanup</a><ul>
-<li><a class="reference internal" href="#c.Rbc_ReleaseLegendTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseLegendTkResources()</span></code></a></li>
-<li><a class="reference internal" href="#c.Rbc_DestroyTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackLegend()</span></code></a></li>
+<li><a class="reference internal" href="#measurement-and-placement">Measurement and placement</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.LegendLayoutSize"><code class="docutils literal notranslate"><span class="pre">LegendLayoutSize()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.LegendCoordinate"><code class="docutils literal notranslate"><span class="pre">LegendCoordinate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.GetLegendPixelDimension"><code class="docutils literal notranslate"><span class="pre">GetLegendPixelDimension()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.LegendHasElement"><code class="docutils literal notranslate"><span class="pre">LegendHasElement()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.SetLegendOrigin"><code class="docutils literal notranslate"><span class="pre">SetLegendOrigin()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.LegendEntryWidth"><code class="docutils literal notranslate"><span class="pre">LegendEntryWidth()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_MapLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_MapLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendSite"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendSite()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendWidth"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendWidth()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendHeight"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendHeight()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendIsHidden"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendIsHidden()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendIsRaised"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendIsRaised()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendX"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendX()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_LegendY"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendY()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLayout.Rbc_MapTrackLegends"><code class="docutils literal notranslate"><span class="pre">Rbc_MapTrackLegends()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#picking-and-binding-identity">Picking and binding identity</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.LegendTag"><code class="docutils literal notranslate"><span class="pre">LegendTag()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.LegendTags"><code class="docutils literal notranslate"><span class="pre">LegendTags()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.PickLegendIn"><code class="docutils literal notranslate"><span class="pre">PickLegendIn()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.LegendContains"><code class="docutils literal notranslate"><span class="pre">LegendContains()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.LegendAtPoint"><code class="docutils literal notranslate"><span class="pre">LegendAtPoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.Rbc_PointInLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_PointInLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.Rbc_PointInTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_PointInTrackLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.PickLegendEntry"><code class="docutils literal notranslate"><span class="pre">PickLegendEntry()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.PickTrackLegendEntry"><code class="docutils literal notranslate"><span class="pre">PickTrackLegendEntry()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendBindings.Rbc_LegendRemoveElement"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendRemoveElement()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#screen-and-document-output">Screen and document output</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendOutput.Rbc_DrawLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendOutput.Rbc_LegendExport"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendExport()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="docutils literal notranslate"><span class="pre">Rbc_DrawTrackLegends()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendOutput.Rbc_ExportTrackLegends"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportTrackLegends()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-scheduling-and-cleanup">Windows, scheduling and cleanup</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.EventuallyRedrawLegend"><code class="docutils literal notranslate"><span class="pre">EventuallyRedrawLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_RedrawExternalLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_RedrawExternalLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.PrepareLegendWindow"><code class="docutils literal notranslate"><span class="pre">PrepareLegendWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.CloseExternalLegendWindow"><code class="docutils literal notranslate"><span class="pre">CloseExternalLegendWindow()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.ReleaseLegendTkResources"><code class="docutils literal notranslate"><span class="pre">ReleaseLegendTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources"><code class="docutils literal notranslate"><span class="pre">Rbc_ReleaseLegendTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendEventProc"><code class="docutils literal notranslate"><span class="pre">LegendEventProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.DisplayLegend"><code class="docutils literal notranslate"><span class="pre">DisplayLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.DestroyLegend"><code class="docutils literal notranslate"><span class="pre">DestroyLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_DestroyLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTrackLegend()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.Rbc_LegendFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendFontsChanged()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendLifetime.LegendStruct"><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#command-handlers">Command handlers</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.GetOp"><code class="docutils literal notranslate"><span class="pre">GetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.ActivateOp"><code class="docutils literal notranslate"><span class="pre">ActivateOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.BindOp"><code class="docutils literal notranslate"><span class="pre">BindOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.CgetOp"><code class="docutils literal notranslate"><span class="pre">CgetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.ConfigureOp"><code class="docutils literal notranslate"><span class="pre">ConfigureOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.Rbc_LegendOp"><code class="docutils literal notranslate"><span class="pre">Rbc_LegendOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.TrackLegendBboxOp"><code class="docutils literal notranslate"><span class="pre">TrackLegendBboxOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.Rbc_TrackLegendOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackLegendOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLegendCommands.LegendOpSpec"><code class="docutils literal notranslate"><span class="pre">LegendOpSpec</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -1,21 +1,66 @@
 Legend C reference
 ==================
 
-These private interfaces borrow graph, legend and track records. See
-:doc:`legends` for ownership and ordering, and :doc:`bindings` for event routing.
+See :doc:`legends` for ownership, layout, placement, redraw and command
+contracts. These are internal services, not public stubs. The documentation
+namespaces below disambiguate static helper names without changing C linkage.
 
-Mapping and scheduling
-----------------------
+Creation and configuration
+--------------------------
 
-.. doxygenfunction:: Rbc_MapLegend
+.. c:namespace-push:: rbcGrLegendConfiguration
 
-.. doxygenfunction:: Rbc_MapTrackLegends
+.. doxygengroup:: legend_configuration
+   :members:
 
-.. doxygenfunction:: Rbc_RedrawExternalLegend
+.. c:namespace-pop::
 
-Cleanup
--------
+Measurement and placement
+-------------------------
 
-.. doxygenfunction:: Rbc_ReleaseLegendTkResources
+.. c:namespace-push:: rbcGrLegendLayout
 
-.. doxygenfunction:: Rbc_DestroyTrackLegend
+.. doxygengroup:: legend_layout
+   :members:
+
+.. c:namespace-pop::
+
+Picking and binding identity
+----------------------------
+
+.. c:namespace-push:: rbcGrLegendBindings
+
+.. doxygengroup:: legend_bindings
+   :members:
+
+.. c:namespace-pop::
+
+Screen and document output
+--------------------------
+
+.. c:namespace-push:: rbcGrLegendOutput
+
+.. doxygengroup:: legend_output
+   :members:
+
+.. c:namespace-pop::
+
+Windows, scheduling and cleanup
+-------------------------------
+
+.. c:namespace-push:: rbcGrLegendLifetime
+
+.. doxygengroup:: legend_lifetime
+   :members:
+
+.. c:namespace-pop::
+
+Command handlers
+----------------
+
+.. c:namespace-push:: rbcGrLegendCommands
+
+.. doxygengroup:: legend_commands
+   :members:
+
+.. c:namespace-pop::

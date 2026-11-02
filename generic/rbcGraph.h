@@ -711,22 +711,7 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
  */
 Point2D Rbc_Map2D(Graph *graphPtr, double x, double y, Axis2D *pairPtr);
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin);
-/**
- * @brief Release global and local legend options while the Tk window is live.
- * @param graphPtr Owning graph with valid track list and Tk window context.
- *
- * Cancels pending legend redraws, frees text-style resources and the separately
- * owned shadow color, then frees Tk options and their table. Leaves legend
- * records and binding tables for final destruction. Repeated release is guarded.
- */
 void Rbc_ReleaseLegendTkResources(Graph *graphPtr);
-/**
- * @brief Schedule the global external legend's independent idle redraw.
- * @param graphPtr Borrowed graph whose global legend may be absent.
- *
- * Does nothing for an absent, resource-released or non-window legend.
- * Coalesces pending idle work; does not draw synchronously or remap the graph.
- */
 void Rbc_RedrawExternalLegend(Graph *graphPtr);
 void Rbc_ComputeStacks(Graph *graphPtr);
 void Rbc_AxisFontsChanged(Graph *graphPtr);

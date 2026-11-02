@@ -376,6 +376,23 @@ namespace eval trackgraph.legend {
                 [.tg track exists $name]
     } -cleanup {destroy .tg; unset name} -result {0 1 {TCL WRONGARGS} 1 1}
 
+    set coordinateCase 0
+    foreach state {visible hidden empty} {
+        foreach badPosition {@bad @x,1 @1,y @1,2,3} {
+            test RBC.trackgraph.legend.A.20.[incr coordinateCase] \
+                "malformed coordinates fail for a $state legend: $badPosition" -setup {
+                        LocalLegendSetup
+                        if {$state eq "hidden"} {.tg track legend voltage configure -hide yes}
+                        if {$state eq "empty"} {.tg element configure v -label {}}
+                        update
+                    } -body {
+                        set code [catch {.tg track legend voltage get $badPosition} message]
+                        list $code [string match *position* $message] \
+                            [.tg track legend voltage get @-100,-100]
+                    } -cleanup {destroy .tg} -result {1 1 {}}
+        }
+    }
+
     cleanupTests
 }
 namespace delete ::trackgraph.legend

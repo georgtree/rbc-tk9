@@ -124,6 +124,7 @@ proc ::rbcDocBuild::main {arguments} {
         @VECTOR_INT_HEADER@ [doxyQuote [file join $root generic rbcVectorInt.h]] \
         @ELEMENT_HEADER@ [doxyQuote [file join $root generic rbcGrElem.h]] \
         @LEGEND_HEADER@ [doxyQuote [file join $root generic rbcGrLegd.h]] \
+        @LEGEND_SOURCE@ [doxyQuote [file join $root generic rbcGrLegd.c]] \
         @TRACK_SOURCE@ [doxyQuote [file join $root generic rbcGrTrack.c]] \
         @TRACK_HEADER@ [doxyQuote [file join $root generic rbcGrTrack.h]] \
         @CONFIG_HEADER@ [doxyQuote [file join $root generic rbcInt.h]] \

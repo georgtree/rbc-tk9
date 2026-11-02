@@ -96,24 +96,9 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
  */
 int Rbc_TrackYViewOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track);
-/**
- * @brief Destroy one local legend and clear its owning track pointer.
- * @param graphPtr Owning graph; shared local binding table must still be live.
- * @param track Track whose optional legend is destroyed.
- *
- * Cancels idle work and removes the legend's tag bindings, but retains the
- * shared track-legend binding table. Release Tk resources before window loss.
- */
 void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track);
 int Rbc_TrackLegendOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 int Rbc_PointInTrackLegend(Graph *graphPtr, int x, int y);
-/**
- * @brief Map local legends after full track rectangles have been laid out.
- * @param graphPtr Borrowed graph with current track geometry.
- *
- * Uses full world width and height and sets each legend origin. Local legends
- * do not contribute graph margins. Does not draw or schedule redisplay.
- */
 void Rbc_MapTrackLegends(Graph *graphPtr);
 void Rbc_DrawTrackLegends(Graph *graphPtr, Drawable drawable, int raised);
 void Rbc_ExportTrackLegends(Graph *graphPtr, Rbc_ExportContext *exportPtr, int raised);
