@@ -677,3 +677,126 @@ and processes both marker layers. Hidden, wholly clipped or collapsed-track
 children are unmapped; partial overlap retains the full child with graph-parent
 clipping only. Export delegates capture only for a currently mapped child and
 does not map hidden children to manufacture an export image.
+
+Pass dispatch and batching
+--------------------------
+
+``Rbc_DrawMarkers`` first synchronizes real window children regardless of the
+requested under/over pass. Trackgraphs then use ``DrawTrackMarkers`` and return;
+ordinary graphs continue through stroke reuse and, on Windows, native batches.
+All paths borrow marker records and their mapped resources. They assume the
+caller has prepared mapping and retained graph lifetime; the batch arrays are
+not an ownership mechanism for marker records.
+
+Ordinary drawing filters window markers, empty coordinates, the other layer,
+hidden/clipped markers and markers whose associated element exists and is
+hidden. Skipped markers contribute no pixels and need not break an otherwise
+compatible run. A visible incompatible marker must end the current run before
+it draws. No optimization may reorder visible overlapping content.
+
+Windows native batches
+~~~~~~~~~~~~~~~~~~~~~~
+
+Before drawing, the Windows path computes upper bounds for five scratch arrays.
+This preliminary scan deliberately counts eligible markers even if hidden,
+clipped or in another layer. Segment counts are summed; fill/text marker arrays
+and bitmap-position arrays count records. Size overflow disables the affected
+batch, and failed ``Tcl_AttemptAlloc`` calls leave that array unavailable. The
+main pass then falls back to ordinary class drawing for that batch type.
+There is no per-marker allocation in the middle of assembling a native run.
+
+.. list-table:: Native run eligibility and style matching
+   :header-rows: 1
+   :widths: 18 52 30
+
+   * - Run
+     - Eligibility
+     - Compatibility within run
+   * - Line
+     - Native, non-XOR, no arrows, solid one-pixel butt/miter stroke with
+       explicit foreground and mapped segments
+     - Foreground pixel
+   * - Polygon outline
+     - Same narrow stroke style, without a drawable fill
+     - Outline foreground pixel
+   * - Polygon fill
+     - Native solid foreground, no XOR/stipple/background/drawable outline,
+       and 3..INT_MAX mapped fill points
+     - Fill foreground pixel
+   * - Text
+     - Layout/string/foreground present, no background, special text state
+       or visible shadow; also usable with Cairo-selected graphs
+     - Each marker retains its own font/style; only the target is shared
+   * - Bitmap
+     - Native opaque bitmap with both colors, no destination mask and only
+       right-angle rotation
+     - Same destination bitmap, dimensions and GC foreground/background
+
+Eligibility must be established before the ``SameWin*Style`` helpers are used.
+Those helpers intentionally omit properties already fixed by their predicates.
+For example, matching foreground pixels alone is sufficient for the eligible
+one-pixel solid line run, but would be wrong for arbitrary line styles.
+
+The main pass flushes other batch types before appending to one run, and flushes
+the same type on style changes. Individual class drawing flushes every pending
+native run first. End-of-list flushes handle runs with no following marker.
+Flush helpers clear counts/style pointers but do not free scratch arrays or
+marker resources.
+
+Line and outline runs copy segments into pass-owned arrays. Polygon fills retain
+marker pointers and submit polygons individually under one native batch context,
+whose scratch capacity is the maximum polygon point count in the run. Text runs
+invoke ``DrawTextMarkerRun`` synchronously through renderer target services;
+the callback retains nothing. Bitmap runs store integer positions and reuse a
+representative bitmap/GC. These distinctions preserve original primitive and
+text semantics rather than forcing every class through one aggregate path.
+
+Cairo context reuse and native targets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``GetMarkerStroke`` accepts solid, non-XOR line shafts without arrows and polygon
+outlines without drawable fills. It returns a borrowed ``MarkerStroke`` view;
+a FALSE result must not be used, even if some fields were written. Arcs retain
+their class-specific continuous-curve path. Style equality compares width, cap,
+join and RGB values, not pointer identity.
+
+Compatible strokes reuse an open renderer context, but each marker still calls
+``Rbc_RenderSegments`` separately. Merging all paths into one stroke would
+change antialiased overlap coverage. Incompatible visible content closes the
+context before dispatch; failure to create one falls back to the class draw
+callback. Context reuse therefore changes setup cost, not painter order.
+
+On Windows, ``MarkersNeedRenderTarget`` avoids an extra Cairo target for passes
+containing only native text without backgrounds, real windows, or XOR line/
+polygon content. Its scan is conservative: it does not repeat the associated-
+element hidden check, so it may request a target that turns out unnecessary.
+The renderer owns target acquisition/completion; marker code owns run order and
+eligibility. Text and bitmap native services remain renderer responsibilities.
+
+Track and export paths
+~~~~~~~~~~~~~~~~~~~~~~
+
+Trackgraphs do not enter the ordinary native-batch allocation pass. They walk
+visible markers in order, drawing graph-wide markers directly and track-owned
+markers through one reusable clip context. Each local rectangle is bounded by
+the graph drawable; zero-width and very short regions are skipped. Class drawing
+runs between ``Rbc_EnterTrack``/``Rbc_LeaveTrack`` calls, and clip scopes are ended
+before advancing. No shared Tk GC is rewritten to enforce track clipping.
+
+Document export has its own ordered traversal and class callbacks, not the
+screen batches. It filters layer/coordinates/hidden state and associated hidden
+elements, and wraps non-window track exports in paired viewport/clip scopes.
+Graph-wide exports do not use the same blanket ``clipped`` check as screen
+drawing; class geometry and exporter clipping remain relevant. Window markers
+retain their mapped-child capture behavior.
+
+Windows scratch ownership
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ordinary Windows pass owns all five scratch arrays: line segments, polygon
+segments, polygon-fill marker pointers, text-marker pointers and bitmap
+positions. Flush helpers reset batch bookkeeping but do not release storage.
+After the final synchronous flush, ``Rbc_DrawMarkers`` frees every allocated
+array before ending the marker render target. NULL arrays from unused batches
+or allocation failures require no release. Freeing the text-marker pointer
+array does not free the markers, layouts or fonts it borrowed.

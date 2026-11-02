@@ -53,6 +53,10 @@
  * Internal concrete marker implementation.
  */
 
+/** @defgroup marker_batches Marker pass batching and renderer dispatch
+ * Internal style predicates, synchronous runs and clipping.
+ */
+
 #include <float.h>
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
@@ -5820,10 +5824,16 @@ void Rbc_MarkersExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, int under)
     }
 }
 
-#ifdef WIN32
+#if defined(WIN32) || defined(RBC_DOXYGEN)
 
-/* The renderer owns the shared native target; marker order and eligibility
- * remain with the component. The callback is synchronous and retains nothing. */
+/**
+ * @ingroup marker_batches
+ * @brief Draw an eligible Windows text run synchronously in array order.
+ *
+ * Borrows the marker-pointer array for count entries and delegates each to
+ * DrawTextMarker. Renderer services own the shared native target. Retains no
+ * pointers and neither filters eligibility nor merges text layouts.
+ */
 static void DrawTextMarkerRun(void *clientData, Drawable drawable, Tcl_Size count) {
     TextMarker **markers = clientData;
     Tcl_Size i;
@@ -5832,6 +5842,15 @@ static void DrawTextMarkerRun(void *clientData, Drawable drawable, Tcl_Size coun
     }
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Test eligibility for shared-target Windows text drawing.
+ *
+ * Requires a string, foreground and layout, with no background GC, disabled/
+ * emphasis/active text-style state or visible shadow. Does not require equal
+ * fonts/colors across the run and does not reject Cairo: glyph drawing stays
+ * native. Outer traversal owns layer and visibility filtering.
+ */
 static int CanBatchWinTextMarker(TextMarker *tmPtr) {
     if ((tmPtr == NULL) || (tmPtr->string == NULL) || (tmPtr->style.color == NULL) || (tmPtr->textPtr == NULL)) {
         return FALSE;
@@ -5856,19 +5875,14 @@ static int CanBatchWinTextMarker(TextMarker *tmPtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_batches
+ * @brief Test eligibility for the narrow Windows native line batch.
  *
- * CanBatchWinLineMarker --
- *
- *      Return non-zero when a line marker can safely participate in
- *      the simple Windows marker batch.
- *
- *      Keep this deliberately narrow initially.  The benchmark case
- *      consists of solid, one-pixel, non-XOR line markers without
- *      arrowheads.
- *
- *----------------------------------------------------------------------
+ * Requires nonempty segments/GC and explicit outline, native rendering, no
+ * XOR or arrows, solid dashes, exactly one-pixel width, butt caps and miter
+ * joins. Dash-gap fill is irrelevant for these solid strokes. Does not test
+ * layer, hidden state or associated-element visibility.
  */
 static int CanBatchWinLineMarker(LineMarker *lmPtr) {
     if ((lmPtr == NULL) || (lmPtr->gc == NULL) || (lmPtr->segments == NULL) || (lmPtr->nSegments <= 0)) {
@@ -5908,6 +5922,14 @@ static int CanBatchWinLineMarker(LineMarker *lmPtr) {
     return TRUE;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Test native outline-only polygon batch eligibility.
+ *
+ * Requires mapped segments/GC, explicit foreground, one-pixel solid butt/
+ * miter stroke, non-Cairo and non-XOR. Rejects a drawable fill to preserve
+ * fill-before-outline ordering. Outer traversal filters marker visibility.
+ */
 static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->outlineGC == NULL) || (pmPtr->outlinePts == NULL) || (pmPtr->nOutlinePts <= 0)) {
         return FALSE;
@@ -5943,6 +5965,14 @@ static int CanBatchWinPolygonOutlineMarker(PolygonMarker *pmPtr) {
     return TRUE;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Test native solid fill-only polygon batch eligibility.
+ *
+ * Requires GC, foreground and 3..INT_MAX fill points; rejects Cairo, XOR,
+ * stipple, background color and any drawable outline. This narrow predicate
+ * makes the subsequent style comparison valid; it does not filter layers.
+ */
 static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
     if ((pmPtr == NULL) || (pmPtr->fillGC == NULL) || (pmPtr->fillPts == NULL) || (pmPtr->nFillPts < 3) ||
         (pmPtr->nFillPts > INT_MAX) || (pmPtr->fill.fgColor == NULL)) {
@@ -5977,6 +6007,15 @@ static int CanBatchWinPolygonFillMarker(PolygonMarker *pmPtr) {
     return TRUE;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Test opaque unmasked native bitmap batch eligibility.
+ *
+ * Requires destination bitmap, dimensions, GC and both colors; rejects Cairo
+ * and destination masks. Accepts right-angle rotations within DBL_EPSILON
+ * after modulo reduction. Arbitrary rotations retain the individual
+ * background-polygon/mask path.
+ */
 static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
     double theta;
 
@@ -6012,15 +6051,13 @@ static int CanBatchWinBitmapMarker(BitmapMarker *bmPtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_batches
+ * @brief Compare foreground pixels of already eligible native line markers.
  *
- * SameWinLineMarkerStyle --
- *
- *      Return non-zero when two already-eligible line markers can be
- *      rendered with the same GC.
- *
- *----------------------------------------------------------------------
+ * Returns FALSE for NULL records. Eligibility must have established valid
+ * colors and identical width/cap/join/dash/XOR characteristics. Borrows inputs
+ * and does not compare geometry or GC identity.
  */
 static int SameWinLineMarkerStyle(LineMarker *aPtr, LineMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
@@ -6033,6 +6070,13 @@ static int SameWinLineMarkerStyle(LineMarker *aPtr, LineMarker *bPtr) {
     return (aPtr->outlineColor->pixel == bPtr->outlineColor->pixel);
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Compare foreground pixels of eligible polygon outlines.
+ *
+ * Returns FALSE for NULL records. Caller must first establish outline-only
+ * batch eligibility, including non-NULL foreground and fixed stroke style.
+ */
 static int SameWinPolygonOutlineStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
         return FALSE;
@@ -6040,6 +6084,13 @@ static int SameWinPolygonOutlineStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) 
     return (aPtr->outline.fgColor->pixel == bPtr->outline.fgColor->pixel);
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Compare foreground pixels of eligible solid polygon fills.
+ *
+ * Returns FALSE for NULL records. Requires prior fill-only eligibility;
+ * stipple, background, outline and XOR differences have already been excluded.
+ */
 static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
         return FALSE;
@@ -6047,6 +6098,15 @@ static int SameWinPolygonFillStyle(PolygonMarker *aPtr, PolygonMarker *bPtr) {
     return (aPtr->fill.fgColor->pixel == bPtr->fill.fgColor->pixel);
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Compare the shared source and GC colors of eligible bitmap markers.
+ *
+ * Returns FALSE for NULL records. Otherwise compares destination bitmap
+ * identity, dimensions and native GC foreground/background pixels. Placement
+ * is deliberately excluded and collected separately. Eligibility guarantees
+ * the borrowed GC and bitmap state are valid.
+ */
 static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
     if ((aPtr == NULL) || (bPtr == NULL)) {
         return FALSE;
@@ -6056,12 +6116,13 @@ static int SameWinBitmapStyle(BitmapMarker *aPtr, BitmapMarker *bPtr) {
            (aPtr->gc->background == bPtr->gc->background);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_batches
+ * @brief Draw pending native line segments and reset batch bookkeeping.
  *
- * FlushWinLineMarkerBatch --
- *
- *----------------------------------------------------------------------
+ * Borrows the array, representative marker and its GC. Emits only for a
+ * non-NULL style and positive count, then clears style/count even when empty.
+ * Does not free the pass-owned array or marker resources.
  */
 static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMarker **stylePtrPtr, Segment2D *segments,
                                     Tcl_Size *nSegmentsPtr) {
@@ -6072,6 +6133,14 @@ static void FlushWinLineMarkerBatch(Graph *graphPtr, Drawable drawable, LineMark
     *nSegmentsPtr = 0;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Draw pending polygon-outline segments and reset the batch.
+ *
+ * Borrows representative outline GC and segment storage. Opens/ends a native
+ * segment context only for a nonempty styled batch. Clears style/count;
+ * allocation ownership remains with the outer drawing pass.
+ */
 static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
                                        Segment2D *segments, Tcl_Size *nSegmentsPtr) {
     if ((*stylePtrPtr != NULL) && (*nSegmentsPtr > 0)) {
@@ -6083,6 +6152,14 @@ static void FlushWinPolygonMarkerBatch(Graph *graphPtr, Drawable drawable, Polyg
     *nSegmentsPtr = 0;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Draw a compatible fill run with one native polygon batch context.
+ *
+ * Borrows markers/style and returns for missing/empty input. Computes maximum
+ * point count for renderer scratch capacity, then submits each polygon in
+ * array order. Does not merge polygon geometry or assume equal vertex counts.
+ */
 static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, PolygonMarker *stylePtr,
                                       PolygonMarker **markers, Tcl_Size nMarkers) {
     Rbc_RenderContext *ctx;
@@ -6098,6 +6175,13 @@ static void DrawWinPolygonFillMarkers(Graph *graphPtr, Drawable drawable, Polygo
     Rbc_RenderEnd(ctx);
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Submit pending polygon fills and clear style/count.
+ *
+ * Delegates nonempty styled runs to DrawWinPolygonFillMarkers. Borrows the
+ * marker-pointer array; neither destroys markers nor frees batch storage.
+ */
 static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, PolygonMarker **stylePtrPtr,
                                      PolygonMarker **markers, Tcl_Size *nMarkersPtr) {
     if ((*stylePtrPtr != NULL) && (*nMarkersPtr > 0)) {
@@ -6107,6 +6191,14 @@ static void FlushWinPolygonFillBatch(Graph *graphPtr, Drawable drawable, Polygon
     *nMarkersPtr = 0;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Submit a synchronous shared-target text run and clear its count.
+ *
+ * Borrows the marker-pointer array and dispatches through Rbc_RenderScreenRun
+ * and DrawTextMarkerRun. Empty batches do nothing. Array ownership remains
+ * with Rbc_DrawMarkers; this helper does not free it.
+ */
 static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMarker **markers, Tcl_Size *nMarkersPtr) {
     if (*nMarkersPtr > 0) {
         Rbc_RenderScreenRun(graphPtr, drawable, markers, *nMarkersPtr, DrawTextMarkerRun);
@@ -6114,6 +6206,14 @@ static void FlushWinTextMarkerBatch(Graph *graphPtr, Drawable drawable, TextMark
     *nMarkersPtr = 0;
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Draw compatible bitmap placements and reset batch bookkeeping.
+ *
+ * Borrows the representative bitmap/GC/dimensions and position array. Sends
+ * a nonempty run to renderer bitmap services, then clears style/count.
+ * Does not acquire or release source bitmap ownership.
+ */
 static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, BitmapMarker **stylePtrPtr,
                                       Rbc_RenderPosition *positions, Tcl_Size *nPositionsPtr) {
     BitmapMarker *bmPtr = *stylePtrPtr;
@@ -6127,7 +6227,13 @@ static void FlushWinBitmapMarkerBatch(Graph *graphPtr, Drawable drawable, Bitmap
 
 #endif /* WIN32 */
 
-/* Share context state while preserving each marker's separate stroke. */
+/**
+ * @ingroup marker_batches
+ * @brief Borrowed Cairo stroke view valid while its marker caches remain alive.
+ *
+ * Holds no ownership or lifetime references. Style equality permits context
+ * reuse only; each marker must still be submitted as its own stroke.
+ */
 typedef struct {
     const Segment2D *segments;
     Tcl_Size count;
@@ -6135,6 +6241,16 @@ typedef struct {
     int width, cap, join;
 } MarkerStroke;
 
+/**
+ * @ingroup marker_batches
+ * @brief Describe a Cairo-compatible line or polygon-outline stroke.
+ *
+ * Writes a borrowed segment/color view for non-XOR solid lines without
+ * arrows, or polygons without drawable fills. Requires the appropriate GC
+ * and returns TRUE only for nonempty geometry and explicit color. Width is
+ * normalized to at least one. Output may be partially written on FALSE and
+ * must not be used then. Arcs and non-Cairo graphs are excluded.
+ */
 static int GetMarkerStroke(Marker *markerPtr, MarkerStroke *stroke) {
     if (markerPtr->graphPtr->renderer != RBC_RENDERER_CAIRO) {
         return FALSE;
@@ -6168,13 +6284,29 @@ static int GetMarkerStroke(Marker *markerPtr, MarkerStroke *stroke) {
     return (stroke->segments != NULL) && (stroke->count > 0) && (stroke->color != NULL);
 }
 
+/**
+ * @ingroup marker_batches
+ * @brief Compare renderer stroke state independently of marker identity.
+ *
+ * Requires two successful stroke descriptors. Compares width, cap, join and
+ * RGB channels, not color-pointer identity or segment storage. A match allows
+ * context reuse, not path merging or a single combined alpha operation.
+ */
 static int SameMarkerStroke(const MarkerStroke *a, const MarkerStroke *b) {
     return (a->width == b->width) && (a->cap == b->cap) && (a->join == b->join) && (a->color->red == b->color->red) &&
            (a->color->green == b->color->green) && (a->color->blue == b->color->blue);
 }
 
-#ifdef WIN32
-/* Text-only passes keep their native batching without an extra target copy. */
+#if defined(WIN32) || defined(RBC_DOXYGEN)
+/**
+ * @ingroup marker_batches
+ * @brief Conservatively decide whether a Windows Cairo pass needs a target.
+ *
+ * Returns FALSE for non-Cairo graphs. Scans the requested layer, skipping
+ * hidden/clipped/coordinate-free markers, windows, background-free text and
+ * XOR line/polygon markers. Does not repeat associated-element hidden checks,
+ * so TRUE can overestimate actual drawing. Owns no render target itself.
+ */
 static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
     Rbc_ChainLink *link;
 
@@ -6203,10 +6335,17 @@ static int MarkersNeedRenderTarget(Graph *graphPtr, int under) {
 }
 #endif
 
-/* Track markers retain painter order, including interleaved graph-wide markers.
- * Copy only the owning row into and out of one reusable scratch pixmap. This
- * clips native text, masks and images without changing their shared Tk GCs.
- * Ordinary graphs keep the existing batched marker path below. */
+/**
+ * @ingroup marker_batches
+ * @brief Draw one trackgraph marker layer in painter order with per-track clipping.
+ *
+ * Skips windows and ineligible visibility/layer/element associations.
+ * Graph-wide markers draw directly. Track-owned markers use a lazily created
+ * reusable screen clip context with bounded rectangles and paired viewport
+ * entry/exit around class drawing. An unavailable clip drawable skips that
+ * marker. Ends each clip scope and the reusable context; no ordinary-graph
+ * batch arrays or cross-marker stroke context are used.
+ */
 static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *link;
     Rbc_RenderContext *clip = NULL;
@@ -6250,6 +6389,14 @@ static void DrawTrackMarkers(Graph *graphPtr, Drawable drawable, int under) {
     }        
 }
 
+/*
+ * Synchronize real children first, then select the track or ordinary pass.
+ * Windows scratch arrays are sized before traversal; allocation failure falls
+ * back to individual class drawing. Flush incompatible visible runs before
+ * dispatch and preserve separate Cairo stroke submissions. Renderer contexts
+ * and native targets must be ended after the last batch. All pass-owned arrays
+ * are released only after their final synchronous flush.
+ */
 void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     Rbc_ChainLink *linkPtr;
     Marker *markerPtr;
@@ -6261,7 +6408,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
         DrawTrackMarkers(graphPtr, drawable, under);
         return;
     }
-#ifdef WIN32
+#if defined(WIN32) || defined(RBC_DOXYGEN)
     Rbc_RenderTarget *renderTarget = NULL;
     Segment2D *lineSegments;
     LineMarker *lineStylePtr;
@@ -6469,7 +6616,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
             Rbc_RenderEnd(strokeContext);
             strokeContext = NULL;
         }
-#ifdef WIN32
+#if defined(WIN32) || defined(RBC_DOXYGEN)
         /*
          * Batch consecutive compatible simple line markers.
          *
@@ -6624,7 +6771,7 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     }
     if (strokeContext != NULL)
         Rbc_RenderEnd(strokeContext);
-#ifdef WIN32
+#if defined(WIN32) || defined(RBC_DOXYGEN)
     /*
      * Flush a batch ending at the end of the display list.
      */
@@ -6641,6 +6788,9 @@ void Rbc_DrawMarkers(Graph *graphPtr, Drawable drawable, int under) {
     }
     if (polygonFillMarkers != NULL) {
         ckfree(polygonFillMarkers);
+    }
+    if (textMarkers != NULL) {
+        ckfree(textMarkers);
     }
     if (bitmapPositions != NULL) {
         ckfree(bitmapPositions);

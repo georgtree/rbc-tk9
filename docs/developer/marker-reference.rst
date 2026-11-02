@@ -36,8 +36,7 @@ Shared implementation reference
 -------------------------------
 
 These groups cover common transactions, lifecycle, mapping helpers and
-commands. Concrete class contracts follow below; platform batching remains separate
-documentation work. Namespaces disambiguate private names without changing C linkage.
+commands. Concrete class contracts and pass batching follow below. Namespaces disambiguate private names without changing C linkage.
 
 Option preparation and commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -145,6 +144,16 @@ Window marker geometry management and callbacks
 .. c:namespace-push:: rbcGrMarkerWindow
 
 .. doxygengroup:: marker_window
+   :members:
+
+.. c:namespace-pop::
+
+Pass batching and renderer dispatch
+-----------------------------------
+
+.. c:namespace-push:: rbcGrMarkerBatches
+
+.. doxygengroup:: marker_batches
    :members:
 
 .. c:namespace-pop::

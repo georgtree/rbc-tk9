@@ -160,8 +160,7 @@ option-table fields are included directly:</p>
 <section id="shared-implementation-reference">
 <h2>Shared implementation reference<a class="headerlink" href="#shared-implementation-reference" title="Link to this heading">¶</a></h2>
 <p>These groups cover common transactions, lifecycle, mapping helpers and
-commands. Concrete class contracts follow below; platform batching remains separate
-documentation work. Namespaces disambiguate private names without changing C linkage.</p>
+commands. Concrete class contracts and pass batching follow below. Namespaces disambiguate private names without changing C linkage.</p>
 <section id="option-preparation-and-commit">
 <h3>Option preparation and commit<a class="headerlink" href="#option-preparation-and-commit" title="Link to this heading">¶</a></h3>
 <dl>
@@ -1125,6 +1124,165 @@ documentation work. Namespaces disambiguate private names without changing C lin
 </dd></dl>
 
 </section>
+<section id="pass-batching-and-renderer-dispatch">
+<h2>Pass batching and renderer dispatch<a class="headerlink" href="#pass-batching-and-renderer-dispatch" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__batches"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Marker</span> <span class="pre">pass</span> <span class="pre">batching</span> <span class="pre">and</span> <span class="pre">renderer</span> <span class="pre">dispatch</span></span></dt>
+<dd><p>Internal style predicates, synchronous runs and clipping. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawTextMarkerRun">
+<span class="target" id="group__marker__batches_1gaa3d8e86f59ee67c96ff6107695188cd8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTextMarkerRun</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawTextMarkerRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw an eligible Windows text run synchronously in array order. </p>
+<p>Borrows the marker-pointer array for count entries and delegates each to DrawTextMarker. Renderer services own the shared native target. Retains no pointers and neither filters eligibility nor merges text layouts. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinTextMarker">
+<span class="target" id="group__marker__batches_1ga0ea8ca6903158ac91aa6ac37bc23ded4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinTextMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TextMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinTextMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test eligibility for shared-target Windows text drawing. </p>
+<p>Requires a string, foreground and layout, with no background GC, disabled/ emphasis/active text-style state or visible shadow. Does not require equal fonts/colors across the run and does not reject Cairo: glyph drawing stays native. Outer traversal owns layer and visibility filtering. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinLineMarker">
+<span class="target" id="group__marker__batches_1ga70f9272f063642954ff71e71d9350c7a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinLineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinLineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test eligibility for the narrow Windows native line batch. </p>
+<p>Requires nonempty segments/GC and explicit outline, native rendering, no XOR or arrows, solid dashes, exactly one-pixel width, butt caps and miter joins. Dash-gap fill is irrelevant for these solid strokes. Does not test layer, hidden state or associated-element visibility. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinPolygonOutlineMarker">
+<span class="target" id="group__marker__batches_1gacd15fd0201b738ffca4cf66e55de5803"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinPolygonOutlineMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonOutlineMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test native outline-only polygon batch eligibility. </p>
+<p>Requires mapped segments/GC, explicit foreground, one-pixel solid butt/ miter stroke, non-Cairo and non-XOR. Rejects a drawable fill to preserve fill-before-outline ordering. Outer traversal filters marker visibility. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinPolygonFillMarker">
+<span class="target" id="group__marker__batches_1gadb78f34e562be374e6efd8acf9c43ee2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinPolygonFillMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonFillMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test native solid fill-only polygon batch eligibility. </p>
+<p>Requires GC, foreground and 3..INT_MAX fill points; rejects Cairo, XOR, stipple, background color and any drawable outline. This narrow predicate makes the subsequent style comparison valid; it does not filter layers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.CanBatchWinBitmapMarker">
+<span class="target" id="group__marker__batches_1ga1bb886ac6552e00a520f50de44fd608f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CanBatchWinBitmapMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bmPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.CanBatchWinBitmapMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test opaque unmasked native bitmap batch eligibility. </p>
+<p>Requires destination bitmap, dimensions, GC and both colors; rejects Cairo and destination masks. Accepts right-angle rotations within DBL_EPSILON after modulo reduction. Arbitrary rotations retain the individual background-polygon/mask path. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinLineMarkerStyle">
+<span class="target" id="group__marker__batches_1gaf2e1a41734bc5c5c23d04171801a8d05"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinLineMarkerStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinLineMarkerStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare foreground pixels of already eligible native line markers. </p>
+<p>Returns FALSE for NULL records. Eligibility must have established valid colors and identical width/cap/join/dash/XOR characteristics. Borrows inputs and does not compare geometry or GC identity. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinPolygonOutlineStyle">
+<span class="target" id="group__marker__batches_1gafd9da6702bd2d684a55f016e47a94754"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinPolygonOutlineStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinPolygonOutlineStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare foreground pixels of eligible polygon outlines. </p>
+<p>Returns FALSE for NULL records. Caller must first establish outline-only batch eligibility, including non-NULL foreground and fixed stroke style. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinPolygonFillStyle">
+<span class="target" id="group__marker__batches_1gaaf4a0a31c70e39c6529635dbcc24e352"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinPolygonFillStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinPolygonFillStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare foreground pixels of eligible solid polygon fills. </p>
+<p>Returns FALSE for NULL records. Requires prior fill-only eligibility; stipple, background, outline and XOR differences have already been excluded. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameWinBitmapStyle">
+<span class="target" id="group__marker__batches_1gae6d5ebe051af2e3c67f225163196171b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameWinBitmapStyle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">aPtr</span></span>, <span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameWinBitmapStyle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare the shared source and GC colors of eligible bitmap markers. </p>
+<p>Returns FALSE for NULL records. Otherwise compares destination bitmap identity, dimensions and native GC foreground/background pixels. Placement is deliberately excluded and collected separately. Eligibility guarantees the borrowed GC and bitmap state are valid. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinLineMarkerBatch">
+<span class="target" id="group__marker__batches_1gada71e04c0d153c2f02a6de92f0cfdcfc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinLineMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">LineMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinLineMarkerBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw pending native line segments and reset batch bookkeeping. </p>
+<p>Borrows the array, representative marker and its GC. Emits only for a non-NULL style and positive count, then clears style/count even when empty. Does not free the pass-owned array or marker resources. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinPolygonMarkerBatch">
+<span class="target" id="group__marker__batches_1gae905fa1381cdedeef36468e9a9d5f3be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinPolygonMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">Segment2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">segments</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nSegmentsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinPolygonMarkerBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw pending polygon-outline segments and reset the batch. </p>
+<p>Borrows representative outline GC and segment storage. Opens/ends a native segment context only for a nonempty styled batch. Clears style/count; allocation ownership remains with the outer drawing pass. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawWinPolygonFillMarkers">
+<span class="target" id="group__marker__batches_1gacacef9a75f7885dc2a5e79b71ccbf947"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawWinPolygonFillMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nMarkers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawWinPolygonFillMarkers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw a compatible fill run with one native polygon batch context. </p>
+<p>Borrows markers/style and returns for missing/empty input. Computes maximum point count for renderer scratch capacity, then submits each polygon in array order. Does not merge polygon geometry or assume equal vertex counts. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinPolygonFillBatch">
+<span class="target" id="group__marker__batches_1ga365a366607d8a1b5021cb31c1fb04a30"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinPolygonFillBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <span class="n"><span class="pre">PolygonMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nMarkersPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinPolygonFillBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit pending polygon fills and clear style/count. </p>
+<p>Delegates nonempty styled runs to DrawWinPolygonFillMarkers. Borrows the marker-pointer array; neither destroys markers nor frees batch storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinTextMarkerBatch">
+<span class="target" id="group__marker__batches_1gac9c211428e603d54d202ee6ddf876c07"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinTextMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">TextMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markers</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nMarkersPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinTextMarkerBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Submit a synchronous shared-target text run and clear its count. </p>
+<p>Borrows the marker-pointer array and dispatches through Rbc_RenderScreenRun and DrawTextMarkerRun. Empty batches do nothing. Array ownership remains with Rbc_DrawMarkers; this helper does not free it. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.FlushWinBitmapMarkerBatch">
+<span class="target" id="group__marker__batches_1gaac94523ab6ee4589886324a5fc9c19f0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushWinBitmapMarkerBatch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="n"><span class="pre">BitmapMarker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stylePtrPtr</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderPosition" title="Rbc_RenderPosition"><span class="n"><span class="pre">Rbc_RenderPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">positions</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nPositionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.FlushWinBitmapMarkerBatch" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw compatible bitmap placements and reset batch bookkeeping. </p>
+<p>Borrows the representative bitmap/GC/dimensions and position array. Sends a nonempty run to renderer bitmap services, then clears style/count. Does not acquire or release source bitmap ownership. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.GetMarkerStroke">
+<span class="target" id="group__marker__batches_1ga0fe24727b08a28c80ca6b105eb3d33c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerStroke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stroke</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.GetMarkerStroke" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Describe a Cairo-compatible line or polygon-outline stroke. </p>
+<p>Writes a borrowed segment/color view for non-XOR solid lines without arrows, or polygons without drawable fills. Requires the appropriate GC and returns TRUE only for nonempty geometry and explicit color. Width is normalized to at least one. Output may be partially written on FALSE and must not be used then. Arcs and non-Cairo graphs are excluded. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.SameMarkerStroke">
+<span class="target" id="group__marker__batches_1ga4621b43130a58590920b82f50abba4c4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SameMarkerStroke</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">a</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke" title="MarkerStroke"><span class="n"><span class="pre">MarkerStroke</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.SameMarkerStroke" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare renderer stroke state independently of marker identity. </p>
+<p>Requires two successful stroke descriptors. Compares width, cap, join and RGB channels, not color-pointer identity or segment storage. A match allows context reuse, not path merging or a single combined alpha operation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.MarkersNeedRenderTarget">
+<span class="target" id="group__marker__batches_1gaf39b06d80f4d5fb255a52412bf145588"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MarkersNeedRenderTarget</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.MarkersNeedRenderTarget" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Conservatively decide whether a Windows Cairo pass needs a target. </p>
+<p>Returns FALSE for non-Cairo graphs. Scans the requested layer, skipping hidden/clipped/coordinate-free markers, windows, background-free text and XOR line/polygon markers. Does not repeat associated-element hidden checks, so TRUE can overestimate actual drawing. Owns no render target itself. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.DrawTrackMarkers">
+<span class="target" id="group__marker__batches_1gaa251901f6662afbb13b08b3d8a838284"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DrawTrackMarkers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerBatches.DrawTrackMarkers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Draw one trackgraph marker layer in painter order with per-track clipping. </p>
+<p>Skips windows and ineligible visibility/layer/element associations. Graph-wide markers draw directly. Track-owned markers use a lazily created reusable screen clip context with bounded rectangles and paired viewport entry/exit around class drawing. An unavailable clip drawable skips that marker. Ends each clip scope and the reusable context; no ordinary-graph batch arrays or cross-marker stroke context are used. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGrMarkerBatches.MarkerStroke">
+<span class="target" id="struct_marker_stroke"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MarkerStroke</span></span></span><a class="headerlink" href="#c.rbcGrMarkerBatches.MarkerStroke" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrowed Cairo stroke view valid while its marker caches remain alive. </p>
+<p>Holds no ownership or lifetime references. Style equality permits context reuse only; each marker must still be submitted as its own stroke. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1300,6 +1458,30 @@ documentation work. Namespaces disambiguate private names without changing C lin
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.ChildCustodyProc"><code class="docutils literal notranslate"><span class="pre">ChildCustodyProc()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.CreateWindowMarker"><code class="docutils literal notranslate"><span class="pre">CreateWindowMarker</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrMarkerWindow.WindowMarker"><code class="docutils literal notranslate"><span class="pre">WindowMarker</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.DrawTextMarkerRun"><code class="docutils literal notranslate"><span class="pre">DrawTextMarkerRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.CanBatchWinTextMarker"><code class="docutils literal notranslate"><span class="pre">CanBatchWinTextMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.CanBatchWinLineMarker"><code class="docutils literal notranslate"><span class="pre">CanBatchWinLineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonOutlineMarker"><code class="docutils literal notranslate"><span class="pre">CanBatchWinPolygonOutlineMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.CanBatchWinPolygonFillMarker"><code class="docutils literal notranslate"><span class="pre">CanBatchWinPolygonFillMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.CanBatchWinBitmapMarker"><code class="docutils literal notranslate"><span class="pre">CanBatchWinBitmapMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.SameWinLineMarkerStyle"><code class="docutils literal notranslate"><span class="pre">SameWinLineMarkerStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.SameWinPolygonOutlineStyle"><code class="docutils literal notranslate"><span class="pre">SameWinPolygonOutlineStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.SameWinPolygonFillStyle"><code class="docutils literal notranslate"><span class="pre">SameWinPolygonFillStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.SameWinBitmapStyle"><code class="docutils literal notranslate"><span class="pre">SameWinBitmapStyle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.FlushWinLineMarkerBatch"><code class="docutils literal notranslate"><span class="pre">FlushWinLineMarkerBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.FlushWinPolygonMarkerBatch"><code class="docutils literal notranslate"><span class="pre">FlushWinPolygonMarkerBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.DrawWinPolygonFillMarkers"><code class="docutils literal notranslate"><span class="pre">DrawWinPolygonFillMarkers()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.FlushWinPolygonFillBatch"><code class="docutils literal notranslate"><span class="pre">FlushWinPolygonFillBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.FlushWinTextMarkerBatch"><code class="docutils literal notranslate"><span class="pre">FlushWinTextMarkerBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.FlushWinBitmapMarkerBatch"><code class="docutils literal notranslate"><span class="pre">FlushWinBitmapMarkerBatch()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.GetMarkerStroke"><code class="docutils literal notranslate"><span class="pre">GetMarkerStroke()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.SameMarkerStroke"><code class="docutils literal notranslate"><span class="pre">SameMarkerStroke()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkersNeedRenderTarget"><code class="docutils literal notranslate"><span class="pre">MarkersNeedRenderTarget()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.DrawTrackMarkers"><code class="docutils literal notranslate"><span class="pre">DrawTrackMarkers()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerBatches.MarkerStroke"><code class="docutils literal notranslate"><span class="pre">MarkerStroke</span></code></a></li>
 </ul>
 </li>
 </ul>

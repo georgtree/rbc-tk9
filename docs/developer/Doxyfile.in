@@ -18,7 +18,9 @@ ENABLE_PREPROCESSING   = YES
 # in documentation input; leave compiled declarations unchanged.
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
-PREDEFINED            = RBC_HAVE_CAIRO=1 EXTERN:= INLINE= register= "TCL_FORMAT_PRINTF(a,b)="
+# Include marker Windows batch contracts without selecting Windows branches
+# in unrelated modules or changing normal compiler preprocessing.
+PREDEFINED            = RBC_DOXYGEN=1 RBC_HAVE_CAIRO=1 EXTERN:= INLINE= register= "TCL_FORMAT_PRINTF(a,b)="
 SEARCH_INCLUDES        = NO
 GENERATE_HTML          = NO
 GENERATE_LATEX         = NO
