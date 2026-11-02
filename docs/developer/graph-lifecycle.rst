@@ -27,6 +27,92 @@ pixmap. ``tkwin`` and ``interp`` identify the associated Tk/Tcl objects; holding
 those pointers is not a lifetime guarantee. Components can be deleted while
 the graph record remains alive.
 
+Widget option transactions
+--------------------------
+
+The widget itself uses ``Tk_InitOptions`` with its real window. Unlike axes,
+tracks and export components, it does not create a synthetic named component
+for resource-database lookup. Initialization and derived configuration are
+separate: defaults may have been installed successfully while their retained
+values still need conversion. Initial configuration therefore runs even with
+an empty explicit option list and forces the initialization masks.
+
+Tk owns the option objects and ordinary option resources. RBC retains several
+values as objects and converts them into separate live fields:
+
+.. list-table:: Derived option candidates
+   :header-rows: 1
+   :widths: 24 38 38
+
+   * - Candidate
+     - Stored result
+     - Ownership at commit
+   * - Distances
+     - Borders, margins, halo and requested size
+     - Copy integers selected by a staged mask.
+   * - Padding
+     - X/Y two-sided plot padding
+     - Copy only staged axes.
+   * - Bar mode
+     - Internal mode enumeration
+     - Copy the staged mode; normal aliases infront.
+   * - Shadow
+     - Title-shadow color and offset
+     - Move the acquired color, then release the old shadow.
+   * - Tile
+     - Tile client or NULL
+     - Move the client, register the callback, then release the old client.
+
+The transaction context borrows the original option/value vector. It must have
+an even length and remain valid throughout configuration; it is cleared before
+return or rollback. Canonical option lookup recognizes aliases and unambiguous
+abbreviations. Each prepare helper first determines which options were supplied
+explicitly. On initial configuration, only unoverridden defaults are parsed.
+It then processes every explicit occurrence in caller order, rather than only
+the last value retained by Tk. An invalid earlier occurrence is consequently
+not concealed by a later valid occurrence.
+
+Scalar candidates own no resources. Shadow and tile staging acquire a new
+candidate before releasing an earlier one, and prepare failure cleans up that
+candidate. An empty tile is a staged NULL, distinct from an unstaged value.
+Commit transfers resource ownership and disarms the candidate; cleanup must
+never release a successfully transferred resource a second time.
+
+``ConfigureGraphOptions`` applies Tk options with saved-option support, then
+calls ``ConfigureGraph`` to prepare derived values. That function validates
+track options and renderer availability, rejects nonfinite aspect, bar width
+and baseline, and prepares the selected candidate families before committing
+any of them. All reportable retained-value conversion failures precede this
+commit boundary. Failure returns to the wrapper to restore Tk-managed fields.
+Success frees the saved options and marks initial configuration complete.
+
+This is not a snapshot of every graph field. For example, track-option
+validation can invalidate the cached scrollbar fraction before a later
+validation fails. That notification bookkeeping is outside both Tk's saved
+options and the five candidate records. Likewise, candidate preparation is
+not a general lifetime barrier around external resource-provider callbacks.
+Code extending configuration must review those boundaries explicitly.
+
+After commit, configuration normalizes nonpositive bar width to 0.1, updates
+requested window geometry and internal border, rebuilds graph GCs and text
+style, and reconfigures crosshairs. Inversion adjusts physical axis pointers
+and marks ranges dirty. Layout and representation masks request world
+recomputation; plot background, renderer and separator changes invalidate
+backing pixels as appropriate. Successful configuration always requests a
+redraw. A renderer change additionally requests remapping because automatic
+decimation density depends on the renderer.
+
+Polar's default aspect policy is tracked separately from its public numeric
+aspect value. An option-database aspect disables automatic data-unit aspect
+at creation. A successful explicit aspect option also disables it; a failed
+configuration does not perform that success-only transition.
+
+Option teardown must occur while the Tk window is valid. It clears the
+borrowed context, frees Tk-owned options and deletes the option table, and is
+safe to repeat. Derived GCs, title shadow and tile are released by graph
+destruction instead. Partial initialization undefines the window cursor before
+freeing its option resource, so the window does not retain a freed cursor.
+
 Redraw requests and dirty state
 -------------------------------
 

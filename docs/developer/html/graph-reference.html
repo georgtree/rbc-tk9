@@ -44,7 +44,8 @@
 <h1>Graph lifecycle C reference<a class="headerlink" href="#graph-lifecycle-c-reference" title="Link to this heading">¶</a></h1>
 <p>These are private interfaces. Shared contracts live at their header declarations;
 static lifecycle helpers are documented next to their definitions. This section
-intentionally includes selected lifecycle functions, not every graph operation.</p>
+covers lifecycle callbacks and option transactions; command and drawing
+operations have separate coverage.</p>
 <section id="shared-entry-points">
 <h2>Shared entry points<a class="headerlink" href="#shared-entry-points" title="Link to this heading">¶</a></h2>
 <dl class="c function">
@@ -195,6 +196,226 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 </dd></dl>
 
 </section>
+<section id="widget-option-transactions">
+<h2>Widget option transactions<a class="headerlink" href="#widget-option-transactions" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphOptionFromObj">
+<span class="target" id="group__graph__option__transactions_1ga43c6003d623492eb8f493f81128035c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphOptionFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">GraphOptionName</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionMap</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nOptions</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphOptionFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Classify a canonical graph option through a private map. </p>
+<p>Borrows the object and map. Unknown or ambiguous names, and options absent from the map, return zero; this helper does not report an interpreter error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.IsGraphOption">
+<span class="target" id="group__graph__option__transactions_1gaa1257233c13ffb9defddc8978101e737"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsGraphOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.IsGraphOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare an option spelling with one canonical graph option. </p>
+<p>Resolves aliases and unambiguous abbreviations through graphOptionSpecs. Returns false if resolution fails; neither argument is retained. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelOption">
+<span class="target" id="group__graph__option__transactions_1gaff9c450ad8a13540c2d7fcbdafb75e9d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify a retained graph distance option. </p>
+<p>Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The classification is used both for explicit-override masks and ordered parsing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelObject">
+<span class="target" id="group__graph__option__transactions_1ga6b1cac71366ce30c7f8e704a210dda25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelObject" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow the retained Tcl object for a graph distance. </p>
+<p>Does not change its reference count. The option must be a valid distance selector; invalid selectors panic rather than returning a recoverable error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPixelOption">
+<span class="target" id="group__graph__option__transactions_1gaffdaaaf19621df8e08a85c5c803c2057"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPixelOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse one distance into a candidate transaction. </p>
+<p>Uses the graph window for unit conversion. All distances except highlight thickness require nonnegative values; highlight thickness uses Tk conversion directly. On success sets the selected field and mask bit; on conversion error leaves that candidate unchanged and returns TCL_ERROR. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphPixelTransaction">
+<span class="target" id="group__graph__option__transactions_1gab07360e4a922ca7c433fae9f9a3b111f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphPixelTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare distance values without changing live numeric fields. </p>
+<p>Requires an even borrowed option vector in the graph context. Zeroes the transaction, parses unoverridden retained defaults on first configuration, then parses every explicit occurrence in caller order. An invalid earlier occurrence fails even if a later occurrence is valid. Partial candidates on error own no resources and can be discarded. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphPixelTransaction">
+<span class="target" id="group__graph__option__transactions_1gadcac338812108ffec6609289e34567bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphPixelTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphPixelTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Publish only staged graph distances. </p>
+<p>Copies selected integers into graph and margin fields, then clears the mask. No conversion, geometry request or redraw occurs here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingOption">
+<span class="target" id="group__graph__option__transactions_1gac26422a65ec20089eec0373b867ef736"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Identify retained X or Y plot padding. </p>
+<p>Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options. The input object remains caller-owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingObject">
+<span class="target" id="group__graph__option__transactions_1ga79acff74738d316bcdfe3a38bb9f86f9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingObject" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow the retained Tcl object for plot padding. </p>
+<p>Returns the X or Y object without retaining it. Invalid selectors panic. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPaddingOption">
+<span class="target" id="group__graph__option__transactions_1ga3ea6b5da7b915191ed641bad8de46f34"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPaddingOption" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse one plot-padding candidate. </p>
+<p>Rbc_GetPadFromObj validates using the graph window. On success stores the padding and sets its mask bit; on error reports TCL_ERROR without publishing any live padding. The selector must be X or Y. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphPaddingTransaction">
+<span class="target" id="group__graph__option__transactions_1ga27898c927c8d1b35c0af4765d3b54fab"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphPaddingTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphPaddingTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare both plot-padding fields in caller order. </p>
+<p>Zeroes the transaction and requires an even borrowed option vector. First configuration parses defaults only for axes without an explicit override. Every explicit occurrence is validated, including superseded ones. Partial candidates on failure require no resource cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphPaddingTransaction">
+<span class="target" id="group__graph__option__transactions_1ga61794d54f00d9f239cc2770d2c38b003"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphPaddingTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphPaddingTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Publish staged plot padding and clear its mask. </p>
+<p>Unstaged axes keep their current padding. This helper does not request layout or redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphBarModeFromObj">
+<span class="target" id="group__graph__option__transactions_1gac05a22b83de2c49fb8393491fb0ba979"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphBarModeFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">BarMode</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">modePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphBarModeFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse a graph-wide bar mode with Tcl abbreviation rules. </p>
+<p>Normal and infront map to MODE_INFRONT. Writes the destination only on success; invalid or ambiguous names return TCL_ERROR with a diagnostic. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphBarMode">
+<span class="target" id="group__graph__option__transactions_1ga002272e9fcd84644c42805c400cf4a9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphBarMode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphBarMode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate and retain one candidate bar mode. </p>
+<p>Updates the transaction only after successful conversion. Neither the input object nor a resource is retained; the live mode is unchanged. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphBarModeTransaction">
+<span class="target" id="group__graph__option__transactions_1ga1ef8c4fbc7ae76af29937f5e46eeb3bb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphBarModeTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphBarModeTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare the graph-wide mode from defaults and explicit options. </p>
+<p>Zeroes the transaction. On first configuration, uses the retained default only when no explicit mode occurs. Parses all explicit occurrences in order and stops at the first error; the borrowed option vector must be even. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphBarModeTransaction">
+<span class="target" id="group__graph__option__transactions_1ga1142804ae703cc8b7bf4081db2c5e1a6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphBarModeTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphBarModeTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphBarModeTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Publish a staged bar mode. </p>
+<p>Leaves the live mode unchanged when unstaged and clears the staged flag after copying. No mapping or drawing is performed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphShadow">
+<span class="target" id="group__graph__option__transactions_1ga74c9d9bf70048022492e1d377b10cae4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Shadow</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shadowPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphShadow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release an owned title-shadow color and reset its value. </p>
+<p>Accepts a non-NULL Shadow record whose color may be NULL. Clears both color and offset, allowing repeated cleanup of the same record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphShadow">
+<span class="target" id="group__graph__option__transactions_1ga68d6c48cb0b5ba10d005512afcb41b3d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphShadow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphShadow" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a replacement title shadow before discarding a candidate. </p>
+<p>On parse failure returns TCL_ERROR and keeps the prior candidate. On success releases any previously staged shadow, owns the new color in the transaction and marks it staged. The live title style is not changed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphShadowTransaction">
+<span class="target" id="group__graph__option__transactions_1gaf9d4cdaddb6617a467154b846109f083"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Discard an uncommitted shadow candidate. </p>
+<p>Releases its color when staged and zeroes the complete transaction. Safe for a zero-initialized or already committed transaction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphShadowTransaction">
+<span class="target" id="group__graph__option__transactions_1gaf4475028e216c03267dd1d4562d2e77d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare an owned shadow candidate from retained options. </p>
+<p>Requires a fresh transaction and an even borrowed argument vector. First configuration uses the default only if not overridden. Processes explicit occurrences in order. On any conversion error releases all staged ownership and returns TCL_ERROR; success leaves cleanup or commit to the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphShadowTransaction">
+<span class="target" id="group__graph__option__transactions_1ga034341d6dba7f55f78d12448d3a00a25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphShadowTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphShadowTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphShadowTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer the shadow candidate to the live title style. </p>
+<p>An unstaged transaction is a no-op. Otherwise moves ownership to the graph, disarms the transaction and releases the old live shadow color. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphTile">
+<span class="target" id="group__graph__option__transactions_1gad8ecc75a98c37ee9788d20894e72a3df"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphTile" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Acquire a candidate tile, including an explicit empty tile. </p>
+<p>A NULL or empty object stages NULL. A nonempty name acquires a tile client. Acquisition failure keeps the prior candidate. Success frees any earlier candidate and transfers ownership to the transaction, not the graph. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.FreeGraphTileTransaction">
+<span class="target" id="group__graph__option__transactions_1ga063ec932d523e890164082a9b5b4e04f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.FreeGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release any uncommitted tile client and zero the transaction. </p>
+<p>Safe for a zero-initialized or committed transaction. Does not release the graph live tile. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.PrepareGraphTileTransaction">
+<span class="target" id="group__graph__option__transactions_1ga891f0c1c1ccdba1ceaddcf5958cdbc8a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.PrepareGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare a tile client from retained defaults and explicit options. </p>
+<p>Requires a fresh transaction and an even borrowed option vector. Parses the initial default only if not overridden, then every explicit occurrence in order. Failure releases staged ownership; success requires commit or cleanup by the caller. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.CommitGraphTileTransaction">
+<span class="target" id="group__graph__option__transactions_1ga3196fa7695e8e1316f884110e8e0ab66"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitGraphTileTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphTileTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.CommitGraphTileTransaction" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Install the tile candidate and its graph-change callback. </p>
+<p>Moves ownership to the graph and disarms the transaction before freeing the previous live tile. A staged NULL clears the tile; an unstaged transaction does nothing. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.InitGraphOptions">
+<span class="target" id="group__graph__option__transactions_1gaf7ecdde2fa5fb38bebf8e4ad5cd1eee7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitGraphOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.InitGraphOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize Tk-managed widget options and their database defaults. </p>
+<p>Uses the actual widget window rather than a named component. Repeated calls after success are harmless. On Tk_InitOptions failure undefines the window cursor before freeing partially initialized options and the table. Success marks resources live but does not construct derived RBC fields. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.ResetGraphOptionContext">
+<span class="target" id="group__graph__option__transactions_1gaf7c8a76a944b24a8d1bdbbf68035c246"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetGraphOptionContext</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ResetGraphOptionContext" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clear borrowed configuration arguments and the active option mask. </p>
+<p>Does not decrement object references: the argument vector is caller-owned. Used before configuration and before restoring or releasing options. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureGraphOptions">
+<span class="target" id="group__graph__option__transactions_1ga66cdc6219a1db14a7e5051080c0fb603"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureGraphOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maskPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureGraphOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply Tk options and validate derived graph resources. </p>
+<p>Requires initialized options and an even option/value vector. Exposes the borrowed original arguments only during ConfigureGraph, forcing initialization masks on the first call. Derived conversion failure clears that context and restores Tk saved options. Success frees saved options, marks the graph configured and optionally returns the Tk change mask. A successful explicit Polar aspect disables automatic aspect; a renderer change invalidates mapping and backing pixels. Rollback concerns option resources, not all auxiliary notification state touched by validation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureNewGraph">
+<span class="target" id="group__graph__option__transactions_1ga6a06d07edb33baf8ef9b4032b1a2bb67"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureNewGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureNewGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize widget defaults and perform the first derived configuration. </p>
+<p>Always calls ConfigureGraphOptions, including with zero arguments. Polar uses automatic data-unit aspect only when the option database supplies no aspect; a successful explicit aspect overrides that policy. Returns TCL_ERROR on initialization or configuration failure; creation owns graph cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.ReleaseGraphOptionResources">
+<span class="target" id="group__graph__option__transactions_1ga13e902ec537c80f80b980ce8c64f8f20"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseGraphOptionResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ReleaseGraphOptionResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release Tk-owned options while the graph window remains valid. </p>
+<p>No-op before initialization or after release. Clears borrowed transaction context, frees options and deletes the table. Derived GCs, shadow and tile remain owned by the graph destruction path. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphOptions.ConfigureGraph">
+<span class="target" id="group__graph__option__transactions_1gaadbf6e7b518ee3710975ae218ebd16d7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.ConfigureGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate retained graph values, then commit derived resources. </p>
+<p>Requires initialized options and active configuration context. Validates track options, renderer availability and finite aspect, bar width and baseline, then prepares distance, padding, mode, shadow and tile candidates. Reportable conversion errors precede commits; owned candidates are freed on failure. After commit normalizes nonpositive bar width, updates geometry and GCs, reconfigures text and crosshairs, invalidates affected caches and schedules redraw. Tk option rollback belongs to ConfigureGraphOptions; auxiliary track notification bookkeeping is not part of these candidate transactions. </p>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -221,6 +442,40 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <li><a class="reference internal" href="#c.DestroyGraph"><code class="docutils literal notranslate"><span class="pre">DestroyGraph()</span></code></a></li>
 <li><a class="reference internal" href="#c.DisplayGraphFrame"><code class="docutils literal notranslate"><span class="pre">DisplayGraphFrame()</span></code></a></li>
 <li><a class="reference internal" href="#c.DisplayGraph"><code class="docutils literal notranslate"><span class="pre">DisplayGraph()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#widget-option-transactions">Widget option transactions</a><ul>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphOptionFromObj"><code class="docutils literal notranslate"><span class="pre">GetGraphOptionFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.IsGraphOption"><code class="docutils literal notranslate"><span class="pre">IsGraphOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphPixelOption"><code class="docutils literal notranslate"><span class="pre">GetGraphPixelOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphPixelObject"><code class="docutils literal notranslate"><span class="pre">GetGraphPixelObject()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.StageGraphPixelOption"><code class="docutils literal notranslate"><span class="pre">StageGraphPixelOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.PrepareGraphPixelTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGraphPixelTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.CommitGraphPixelTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGraphPixelTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphPaddingOption"><code class="docutils literal notranslate"><span class="pre">GetGraphPaddingOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphPaddingObject"><code class="docutils literal notranslate"><span class="pre">GetGraphPaddingObject()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.StageGraphPaddingOption"><code class="docutils literal notranslate"><span class="pre">StageGraphPaddingOption()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.PrepareGraphPaddingTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGraphPaddingTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.CommitGraphPaddingTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGraphPaddingTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.GetGraphBarModeFromObj"><code class="docutils literal notranslate"><span class="pre">GetGraphBarModeFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.StageGraphBarMode"><code class="docutils literal notranslate"><span class="pre">StageGraphBarMode()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.PrepareGraphBarModeTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGraphBarModeTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.CommitGraphBarModeTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGraphBarModeTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.FreeGraphShadow"><code class="docutils literal notranslate"><span class="pre">FreeGraphShadow()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.StageGraphShadow"><code class="docutils literal notranslate"><span class="pre">StageGraphShadow()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.FreeGraphShadowTransaction"><code class="docutils literal notranslate"><span class="pre">FreeGraphShadowTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.PrepareGraphShadowTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGraphShadowTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.CommitGraphShadowTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGraphShadowTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.StageGraphTile"><code class="docutils literal notranslate"><span class="pre">StageGraphTile()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.FreeGraphTileTransaction"><code class="docutils literal notranslate"><span class="pre">FreeGraphTileTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.PrepareGraphTileTransaction"><code class="docutils literal notranslate"><span class="pre">PrepareGraphTileTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.CommitGraphTileTransaction"><code class="docutils literal notranslate"><span class="pre">CommitGraphTileTransaction()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.InitGraphOptions"><code class="docutils literal notranslate"><span class="pre">InitGraphOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.ResetGraphOptionContext"><code class="docutils literal notranslate"><span class="pre">ResetGraphOptionContext()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.ConfigureGraphOptions"><code class="docutils literal notranslate"><span class="pre">ConfigureGraphOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.ConfigureNewGraph"><code class="docutils literal notranslate"><span class="pre">ConfigureNewGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.ReleaseGraphOptionResources"><code class="docutils literal notranslate"><span class="pre">ReleaseGraphOptionResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphOptions.ConfigureGraph"><code class="docutils literal notranslate"><span class="pre">ConfigureGraph()</span></code></a></li>
 </ul>
 </li>
 </ul>

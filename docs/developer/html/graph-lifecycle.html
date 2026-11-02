@@ -64,6 +64,96 @@ pixmap. <code class="docutils literal notranslate"><span class="pre">tkwin</span
 those pointers is not a lifetime guarantee. Components can be deleted while
 the graph record remains alive.</p>
 </section>
+<section id="widget-option-transactions">
+<h2>Widget option transactions<a class="headerlink" href="#widget-option-transactions" title="Link to this heading">¶</a></h2>
+<p>The widget itself uses <code class="docutils literal notranslate"><span class="pre">Tk_InitOptions</span></code> with its real window. Unlike axes,
+tracks and export components, it does not create a synthetic named component
+for resource-database lookup. Initialization and derived configuration are
+separate: defaults may have been installed successfully while their retained
+values still need conversion. Initial configuration therefore runs even with
+an empty explicit option list and forces the initialization masks.</p>
+<p>Tk owns the option objects and ordinary option resources. RBC retains several
+values as objects and converts them into separate live fields:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Derived option candidates</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 38.0%" />
+<col style="width: 38.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Candidate</p></th>
+<th class="head"><p>Stored result</p></th>
+<th class="head"><p>Ownership at commit</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Distances</p></td>
+<td><p>Borders, margins, halo and requested size</p></td>
+<td><p>Copy integers selected by a staged mask.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Padding</p></td>
+<td><p>X/Y two-sided plot padding</p></td>
+<td><p>Copy only staged axes.</p></td>
+</tr>
+<tr class="row-even"><td><p>Bar mode</p></td>
+<td><p>Internal mode enumeration</p></td>
+<td><p>Copy the staged mode; normal aliases infront.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shadow</p></td>
+<td><p>Title-shadow color and offset</p></td>
+<td><p>Move the acquired color, then release the old shadow.</p></td>
+</tr>
+<tr class="row-even"><td><p>Tile</p></td>
+<td><p>Tile client or NULL</p></td>
+<td><p>Move the client, register the callback, then release the old client.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The transaction context borrows the original option/value vector. It must have
+an even length and remain valid throughout configuration; it is cleared before
+return or rollback. Canonical option lookup recognizes aliases and unambiguous
+abbreviations. Each prepare helper first determines which options were supplied
+explicitly. On initial configuration, only unoverridden defaults are parsed.
+It then processes every explicit occurrence in caller order, rather than only
+the last value retained by Tk. An invalid earlier occurrence is consequently
+not concealed by a later valid occurrence.</p>
+<p>Scalar candidates own no resources. Shadow and tile staging acquire a new
+candidate before releasing an earlier one, and prepare failure cleans up that
+candidate. An empty tile is a staged NULL, distinct from an unstaged value.
+Commit transfers resource ownership and disarms the candidate; cleanup must
+never release a successfully transferred resource a second time.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureGraphOptions</span></code> applies Tk options with saved-option support, then
+calls <code class="docutils literal notranslate"><span class="pre">ConfigureGraph</span></code> to prepare derived values. That function validates
+track options and renderer availability, rejects nonfinite aspect, bar width
+and baseline, and prepares the selected candidate families before committing
+any of them. All reportable retained-value conversion failures precede this
+commit boundary. Failure returns to the wrapper to restore Tk-managed fields.
+Success frees the saved options and marks initial configuration complete.</p>
+<p>This is not a snapshot of every graph field. For example, track-option
+validation can invalidate the cached scrollbar fraction before a later
+validation fails. That notification bookkeeping is outside both Tk’s saved
+options and the five candidate records. Likewise, candidate preparation is
+not a general lifetime barrier around external resource-provider callbacks.
+Code extending configuration must review those boundaries explicitly.</p>
+<p>After commit, configuration normalizes nonpositive bar width to 0.1, updates
+requested window geometry and internal border, rebuilds graph GCs and text
+style, and reconfigures crosshairs. Inversion adjusts physical axis pointers
+and marks ranges dirty. Layout and representation masks request world
+recomputation; plot background, renderer and separator changes invalidate
+backing pixels as appropriate. Successful configuration always requests a
+redraw. A renderer change additionally requests remapping because automatic
+decimation density depends on the renderer.</p>
+<p>Polar’s default aspect policy is tracked separately from its public numeric
+aspect value. An option-database aspect disables automatic data-unit aspect
+at creation. A successful explicit aspect option also disables it; a failed
+configuration does not perform that success-only transition.</p>
+<p>Option teardown must occur while the Tk window is valid. It clears the
+borrowed context, frees Tk-owned options and deletes the option table, and is
+safe to repeat. Derived GCs, title shadow and tile are released by graph
+destruction instead. Partial initialization undefines the window cursor before
+freeing its option resource, so the window does not retain a freed cursor.</p>
+</section>
 <section id="redraw-requests-and-dirty-state">
 <h2>Redraw requests and dirty state<a class="headerlink" href="#redraw-requests-and-dirty-state" title="Link to this heading">¶</a></h2>
 <p><a class="reference internal" href="graph-reference.html#c.Rbc_EventuallyRedrawGraph" title="Rbc_EventuallyRedrawGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EventuallyRedrawGraph()</span></code></a> coalesces requests with <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>.
@@ -72,8 +162,8 @@ backing store. A component mutator must set the appropriate dirty flags first.
 Scheduling does not require a mapped window; presentation checks mapping later.
 An active axis formatter also makes a redraw request a cancellation signal
 for the current layout.</p>
-<table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Common graph flags</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Common graph flags</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 32.0%" />
 <col style="width: 68.0%" />
@@ -224,6 +314,7 @@ only adds contracts and prose.</p>
     <ul>
 <li><a class="reference internal" href="#">Graph lifecycle and redisplay</a><ul>
 <li><a class="reference internal" href="#creation-and-ownership">Creation and ownership</a></li>
+<li><a class="reference internal" href="#widget-option-transactions">Widget option transactions</a></li>
 <li><a class="reference internal" href="#redraw-requests-and-dirty-state">Redraw requests and dirty state</a></li>
 <li><a class="reference internal" href="#layout-and-cancellation">Layout and cancellation</a></li>
 <li><a class="reference internal" href="#frame-drawing-and-presentation">Frame drawing and presentation</a></li>

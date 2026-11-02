@@ -139,6 +139,11 @@ Rbc_Uid rbcWindowMarkerUid;
 
 
 
+/**
+ * @defgroup graph_option_transactions Graph option transactions
+ * @brief Retained values, resource ownership and widget option commit ordering.
+ */
+
 typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
     GRAPH_PIXEL_OPTION_BORDER_WIDTH,
@@ -383,6 +388,13 @@ typedef struct {
     Rbc_GraphOpProc *proc;
 } GraphOpSpec;
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Classify a canonical graph option through a private map.
+ *
+ * Borrows the object and map. Unknown or ambiguous names, and options absent
+ * from the map, return zero; this helper does not report an interpreter error.
+ */
 static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionMap, size_t nOptions) {
     const char *name;
     size_t i;
@@ -399,6 +411,13 @@ static int GetGraphOptionFromObj(Tcl_Obj *objPtr, const GraphOptionName *optionM
     return 0;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Compare an option spelling with one canonical graph option.
+ *
+ * Resolves aliases and unambiguous abbreviations through graphOptionSpecs.
+ * Returns false if resolution fails; neither argument is retained.
+ */
 static int IsGraphOption(Tcl_Obj *objPtr, const char *optionName) {
     const char *name;
 
@@ -406,6 +425,13 @@ static int IsGraphOption(Tcl_Obj *objPtr, const char *optionName) {
     return ((name != NULL) && (strcmp(name, optionName) == 0));
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Identify a retained graph distance option.
+ *
+ * Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The
+ * classification is used both for explicit-override masks and ordered parsing.
+ */
 static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
     static const GraphOptionName optionMap[] = {{"-highlightthickness", GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH},
                                                 {"-borderwidth", GRAPH_PIXEL_OPTION_BORDER_WIDTH},
@@ -420,6 +446,13 @@ static GraphPixelOption GetGraphPixelOption(Tcl_Obj *objPtr) {
     return (GraphPixelOption)GetGraphOptionFromObj(objPtr, optionMap, sizeof(optionMap) / sizeof(optionMap[0]));
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Borrow the retained Tcl object for a graph distance.
+ *
+ * Does not change its reference count. The option must be a valid distance
+ * selector; invalid selectors panic rather than returning a recoverable error.
+ */
 static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
     switch (option) {
     case GRAPH_PIXEL_OPTION_BORDER_WIDTH:
@@ -449,6 +482,15 @@ static Tcl_Obj *GetGraphPixelObject(Graph *graphPtr, GraphPixelOption option) {
     }
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Parse one distance into a candidate transaction.
+ *
+ * Uses the graph window for unit conversion. All distances except highlight
+ * thickness require nonnegative values; highlight thickness uses Tk conversion
+ * directly. On success sets the selected field and mask bit; on conversion
+ * error leaves that candidate unchanged and returns TCL_ERROR.
+ */
 static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOption option,
                                  GraphPixelTransaction *transactionPtr) {
     int value;
@@ -510,6 +552,16 @@ static int StageGraphPixelOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPixelOpt
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Prepare distance values without changing live numeric fields.
+ *
+ * Requires an even borrowed option vector in the graph context. Zeroes the
+ * transaction, parses unoverridden retained defaults on first configuration,
+ * then parses every explicit occurrence in caller order. An invalid earlier
+ * occurrence fails even if a later occurrence is valid. Partial candidates
+ * on error own no resources and can be discarded.
+ */
 static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *transactionPtr) {
     unsigned int explicitMask;
     GraphPixelOption option;
@@ -561,6 +613,13 @@ static int PrepareGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Publish only staged graph distances.
+ *
+ * Copies selected integers into graph and margin fields, then clears the
+ * mask. No conversion, geometry request or redraw occurs here.
+ */
 static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & GRAPH_PIXEL_OPTION_MASK(GRAPH_PIXEL_OPTION_BORDER_WIDTH)) {
         graphPtr->borderWidth = transactionPtr->borderWidth;
@@ -595,12 +654,25 @@ static void CommitGraphPixelTransaction(Graph *graphPtr, GraphPixelTransaction *
     transactionPtr->stagedMask = 0;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Identify retained X or Y plot padding.
+ *
+ * Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options.
+ * The input object remains caller-owned.
+ */
 static GraphPaddingOption GetGraphPaddingOption(Tcl_Obj *objPtr) {
     static const GraphOptionName optionMap[] = {{"-plotpadx", GRAPH_PADDING_OPTION_X},
                                                 {"-plotpady", GRAPH_PADDING_OPTION_Y}};
     return (GraphPaddingOption)GetGraphOptionFromObj(objPtr, optionMap, sizeof(optionMap) / sizeof(optionMap[0]));
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Borrow the retained Tcl object for plot padding.
+ *
+ * Returns the X or Y object without retaining it. Invalid selectors panic.
+ */
 static Tcl_Obj *GetGraphPaddingObject(Graph *graphPtr, GraphPaddingOption option) {
     switch (option) {
     case GRAPH_PADDING_OPTION_X:
@@ -614,6 +686,14 @@ static Tcl_Obj *GetGraphPaddingObject(Graph *graphPtr, GraphPaddingOption option
     }
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Parse one plot-padding candidate.
+ *
+ * Rbc_GetPadFromObj validates using the graph window. On success stores the
+ * padding and sets its mask bit; on error reports TCL_ERROR without publishing
+ * any live padding. The selector must be X or Y.
+ */
 static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddingOption option,
                                    GraphPaddingTransaction *transactionPtr) {
     Rbc_Pad pad;
@@ -637,6 +717,15 @@ static int StageGraphPaddingOption(Graph *graphPtr, Tcl_Obj *objPtr, GraphPaddin
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Prepare both plot-padding fields in caller order.
+ *
+ * Zeroes the transaction and requires an even borrowed option vector. First
+ * configuration parses defaults only for axes without an explicit override.
+ * Every explicit occurrence is validated, including superseded ones. Partial
+ * candidates on failure require no resource cleanup.
+ */
 static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransaction *transactionPtr) {
     unsigned int explicitMask;
     GraphPaddingOption option;
@@ -677,6 +766,13 @@ static int PrepareGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Publish staged plot padding and clear its mask.
+ *
+ * Unstaged axes keep their current padding. This helper does not request
+ * layout or redraw.
+ */
 static void CommitGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & GRAPH_PADDING_OPTION_MASK(GRAPH_PADDING_OPTION_X)) {
         graphPtr->padX = transactionPtr->padX;
@@ -687,6 +783,13 @@ static void CommitGraphPaddingTransaction(Graph *graphPtr, GraphPaddingTransacti
     transactionPtr->stagedMask = 0;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Parse a graph-wide bar mode with Tcl abbreviation rules.
+ *
+ * Normal and infront map to MODE_INFRONT. Writes the destination only on
+ * success; invalid or ambiguous names return TCL_ERROR with a diagnostic.
+ */
 static int GetGraphBarModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, BarMode *modePtr) {
     static const struct {
         const char *name;
@@ -703,6 +806,13 @@ static int GetGraphBarModeFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, BarMode *
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Validate and retain one candidate bar mode.
+ *
+ * Updates the transaction only after successful conversion. Neither the
+ * input object nor a resource is retained; the live mode is unchanged.
+ */
 static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTransaction *transactionPtr) {
     BarMode mode;
 
@@ -714,6 +824,14 @@ static int StageGraphBarMode(Graph *graphPtr, Tcl_Obj *objPtr, GraphBarModeTrans
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Prepare the graph-wide mode from defaults and explicit options.
+ *
+ * Zeroes the transaction. On first configuration, uses the retained default
+ * only when no explicit mode occurs. Parses all explicit occurrences in order
+ * and stops at the first error; the borrowed option vector must be even.
+ */
 static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransaction *transactionPtr) {
     int explicitlySet;
     Tcl_Size i;
@@ -743,6 +861,13 @@ static int PrepareGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransacti
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Publish a staged bar mode.
+ *
+ * Leaves the live mode unchanged when unstaged and clears the staged flag
+ * after copying. No mapping or drawing is performed.
+ */
 static void CommitGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransaction *transactionPtr) {
     if (transactionPtr->staged) {
         graphPtr->mode = transactionPtr->mode;
@@ -750,6 +875,13 @@ static void CommitGraphBarModeTransaction(Graph *graphPtr, GraphBarModeTransacti
     }
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Release an owned title-shadow color and reset its value.
+ *
+ * Accepts a non-NULL Shadow record whose color may be NULL. Clears both
+ * color and offset, allowing repeated cleanup of the same record.
+ */
 static void FreeGraphShadow(Shadow *shadowPtr) {
     if (shadowPtr->color != NULL) {
         Tk_FreeColor(shadowPtr->color);
@@ -758,6 +890,14 @@ static void FreeGraphShadow(Shadow *shadowPtr) {
     shadowPtr->offset = 0;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Acquire a replacement title shadow before discarding a candidate.
+ *
+ * On parse failure returns TCL_ERROR and keeps the prior candidate. On
+ * success releases any previously staged shadow, owns the new color in the
+ * transaction and marks it staged. The live title style is not changed.
+ */
 static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransaction *transactionPtr) {
     Shadow newShadow;
 
@@ -778,6 +918,13 @@ static int StageGraphShadow(Graph *graphPtr, Tcl_Obj *objPtr, GraphShadowTransac
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Discard an uncommitted shadow candidate.
+ *
+ * Releases its color when staged and zeroes the complete transaction.
+ * Safe for a zero-initialized or already committed transaction.
+ */
 static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
     if (transactionPtr->staged) {
         FreeGraphShadow(&transactionPtr->shadow);
@@ -785,6 +932,15 @@ static void FreeGraphShadowTransaction(GraphShadowTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Prepare an owned shadow candidate from retained options.
+ *
+ * Requires a fresh transaction and an even borrowed argument vector. First
+ * configuration uses the default only if not overridden. Processes explicit
+ * occurrences in order. On any conversion error releases all staged ownership
+ * and returns TCL_ERROR; success leaves cleanup or commit to the caller.
+ */
 static int PrepareGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction *transactionPtr) {
     int explicitlySet;
     Tcl_Size i;
@@ -818,6 +974,13 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Transfer the shadow candidate to the live title style.
+ *
+ * An unstaged transaction is a no-op. Otherwise moves ownership to the
+ * graph, disarms the transaction and releases the old live shadow color.
+ */
 static void CommitGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction *transactionPtr) {
     Shadow oldShadow;
 
@@ -832,6 +995,14 @@ static void CommitGraphShadowTransaction(Graph *graphPtr, GraphShadowTransaction
     FreeGraphShadow(&oldShadow);
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Acquire a candidate tile, including an explicit empty tile.
+ *
+ * A NULL or empty object stages NULL. A nonempty name acquires a tile client.
+ * Acquisition failure keeps the prior candidate. Success frees any earlier
+ * candidate and transfers ownership to the transaction, not the graph.
+ */
 static int StageGraphTile(Graph *graphPtr, Tcl_Obj *objPtr, GraphTileTransaction *transactionPtr) {
     Rbc_Tile newTile;
 
@@ -852,6 +1023,13 @@ static int StageGraphTile(Graph *graphPtr, Tcl_Obj *objPtr, GraphTileTransaction
     return TCL_OK;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Release any uncommitted tile client and zero the transaction.
+ *
+ * Safe for a zero-initialized or committed transaction. Does not release
+ * the graph live tile.
+ */
 static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
     if (transactionPtr->staged && (transactionPtr->tile != NULL)) {
         Rbc_FreeTile(transactionPtr->tile);
@@ -859,6 +1037,15 @@ static void FreeGraphTileTransaction(GraphTileTransaction *transactionPtr) {
     memset(transactionPtr, 0, sizeof(*transactionPtr));
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Prepare a tile client from retained defaults and explicit options.
+ *
+ * Requires a fresh transaction and an even borrowed option vector. Parses
+ * the initial default only if not overridden, then every explicit occurrence
+ * in order. Failure releases staged ownership; success requires commit or
+ * cleanup by the caller.
+ */
 static int PrepareGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *transactionPtr) {
     int explicitlySet;
     Tcl_Size i;
@@ -892,6 +1079,14 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup graph_option_transactions
+ * @brief Install the tile candidate and its graph-change callback.
+ *
+ * Moves ownership to the graph and disarms the transaction before freeing
+ * the previous live tile. A staged NULL clears the tile; an unstaged
+ * transaction does nothing.
+ */
 static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *transactionPtr) {
     Rbc_Tile oldTile;
 
@@ -1405,33 +1600,14 @@ static ClientData PickEntry(ClientData clientData, int x, int y, ClientData *con
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Initialize Tk-managed widget options and their database defaults.
  *
- * InitGraphOptions --
- *
- *      Creates the graph option table and installs its default and
- *      option-database values.
- *
- *      Unlike graph components, the graph is the actual widget record.
- *      Its options are therefore initialized directly with
- *      Tk_InitOptions rather than Rbc_InitComponentOptions.
- *
- *      This function does not construct derived graph resources.
- *      ConfigureGraphOptions performs that work through ConfigureGraph.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record.
- *
- * Results:
- *      TCL_OK if the graph options were initialized successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Creates graphPtr->optionTable and stores Tk-managed option
- *      resources in the Graph record.
- *
- *----------------------------------------------------------------------
+ * Uses the actual widget window rather than a named component. Repeated
+ * calls after success are harmless. On Tk_InitOptions failure undefines the
+ * window cursor before freeing partially initialized options and the table.
+ * Success marks resources live but does not construct derived RBC fields.
  */
 static int InitGraphOptions(Graph *graphPtr) {
     if (graphPtr->optionsInitialized) {
@@ -1464,25 +1640,12 @@ static int InitGraphOptions(Graph *graphPtr) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Clear borrowed configuration arguments and the active option mask.
  *
- * ResetGraphOptionContext --
- *
- *      Clears the temporary context retained while a modern graph
- *      configuration transaction is active.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The graph no longer retains pointers to the caller-owned option
- *      vector.
- *
- *----------------------------------------------------------------------
+ * Does not decrement object references: the argument vector is caller-owned.
+ * Used before configuration and before restoring or releasing options.
  */
 static void ResetGraphOptionContext(Graph *graphPtr) {
     graphPtr->optionMask = 0;
@@ -1490,35 +1653,18 @@ static void ResetGraphOptionContext(Graph *graphPtr) {
     graphPtr->optionObjv = NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Apply Tk options and validate derived graph resources.
  *
- * ConfigureGraphOptions --
- *
- *      Applies graph option/value pairs transactionally and invokes
- *      ConfigureGraph to validate retained values and construct derived
- *      graph resources.
- *
- *      The original option vector and effective Tk type mask are
- *      temporarily retained in the Graph record so ConfigureGraph can
- *      process repeated retained options in caller order.
- *
- * Parameters:
- *      Graph *graphPtr       - Graph widget record.
- *      int objc              - Number of option/value objects.
- *      Tcl_Obj *const objv[] - Option/value objects.
- *      int *maskPtr          - Optional destination for the changed-option
- *                              mask returned by Tk_SetOptions.
- *
- * Results:
- *      TCL_OK if all options and derived resources were configured.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      On success, updates the graph configuration.
- *      On failure, restores all Tk-managed option fields.
- *
- *----------------------------------------------------------------------
+ * Requires initialized options and an even option/value vector. Exposes the
+ * borrowed original arguments only during ConfigureGraph, forcing initialization
+ * masks on the first call. Derived conversion failure clears that context
+ * and restores Tk saved options. Success frees saved options, marks the graph
+ * configured and optionally returns the Tk change mask. A successful explicit
+ * Polar aspect disables automatic aspect; a renderer change invalidates mapping
+ * and backing pixels. Rollback concerns option resources, not all auxiliary
+ * notification state touched by validation.
  */
 static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[], int *maskPtr) {
     Tk_SavedOptions savedOptions;
@@ -1588,33 +1734,14 @@ static int ConfigureGraphOptions(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Initialize widget defaults and perform the first derived configuration.
  *
- * ConfigureNewGraph --
- *
- *      Initializes the modern graph option table and applies the
- *      creation-time option/value pairs.
- *
- *      ConfigureGraphOptions is called even when objc is zero because
- *      Tk_InitOptions may have installed defaults or option-database
- *      values that must be converted into the live graph fields.
- *
- * Parameters:
- *      Graph *graphPtr       - Graph widget record.
- *      int objc              - Number of option/value objects.
- *      Tcl_Obj *const objv[] - Creation-time option/value objects.
- *
- * Results:
- *      TCL_OK if the option table and derived graph resources were
- *      initialized successfully.
- *      TCL_ERROR otherwise.
- *
- * Side Effects:
- *      Initializes the modern graph option lifecycle and configures the
- *      graph.
- *
- *----------------------------------------------------------------------
+ * Always calls ConfigureGraphOptions, including with zero arguments. Polar
+ * uses automatic data-unit aspect only when the option database supplies no
+ * aspect; a successful explicit aspect overrides that policy. Returns TCL_ERROR
+ * on initialization or configuration failure; creation owns graph cleanup.
  */
 static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (InitGraphOptions(graphPtr) != TCL_OK) {
@@ -1643,32 +1770,13 @@ static int ConfigureNewGraph(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const objv
     return ConfigureGraphOptions(graphPtr, objc, objv, NULL);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Release Tk-owned options while the graph window remains valid.
  *
- * ReleaseGraphOptionResources --
- *
- *      Releases resources owned directly by the modern Tk graph option
- *      table.
- *
- *      Derived graph resources, including graphics contexts, the title
- *      shadow, and the tile, remain the responsibility of the existing
- *      graph destruction path.
- *
- *      This function must be called while graphPtr->tkwin is still
- *      valid.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Releases Tk-managed graph option resources. Repeated calls and
- *      calls before graph option initialization are harmless.
- *
- *----------------------------------------------------------------------
+ * No-op before initialization or after release. Clears borrowed transaction
+ * context, frees options and deletes the table. Derived GCs, shadow and tile
+ * remain owned by the graph destruction path.
  */
 static void ReleaseGraphOptionResources(Graph *graphPtr) {
     if ((!graphPtr->optionsInitialized) || graphPtr->tkResourcesReleased) {
@@ -1688,27 +1796,18 @@ static void ReleaseGraphOptionResources(Graph *graphPtr) {
     graphPtr->tkResourcesReleased = TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_option_transactions
+ * @brief Validate retained graph values, then commit derived resources.
  *
- * ConfigureGraph --
- *
- *      Allocates resources for the graph.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *
- * Results:
- *      TCL_OK if the graph was configured successfully.
- *      TCL_ERROR if a retained option value or replacement resource
- *      could not be prepared.
- *
- * Side effects:
- *      Configuration information, such as text string, colors, font,
- *      etc. get set for graphPtr;  old resources get freed, if there
- *      were any.  The graph is redisplayed.
- *
- *----------------------------------------------------------------------
+ * Requires initialized options and active configuration context. Validates
+ * track options, renderer availability and finite aspect, bar width and baseline,
+ * then prepares distance, padding, mode, shadow and tile candidates. Reportable
+ * conversion errors precede commits; owned candidates are freed on failure.
+ * After commit normalizes nonpositive bar width, updates geometry and GCs,
+ * reconfigures text and crosshairs, invalidates affected caches and schedules
+ * redraw. Tk option rollback belongs to ConfigureGraphOptions; auxiliary track
+ * notification bookkeeping is not part of these candidate transactions.
  */
 static int ConfigureGraph(Graph *graphPtr) {
     GraphBarModeTransaction barModeTransaction;
