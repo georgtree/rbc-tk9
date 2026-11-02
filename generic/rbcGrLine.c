@@ -54,6 +54,10 @@
  * Private configuration orchestration, resampling and scalar adapters.
  */
 
+/** @defgroup line_cache_internals Line cache internals
+ * Private source-summary ownership, append retention and bucket searches.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -3915,6 +3919,14 @@ static int LineNeedsPixelDecimation(Graph *graphPtr, Line *linePtr) {
         LINE_DECIMATE_CAIRO_POINTS_PER_PIXEL : LINE_DECIMATE_NATIVE_POINTS_PER_PIXEL);
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Release owned summaries and reset cache identity.
+ *
+ * Frees the block array and zeros the complete cache record. Borrowed X/Y
+ * source arrays are neither freed nor retained. Does not clear element change
+ * metadata, map geometry or deliver vector notifications.
+ */
 static void InvalidateLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
 
@@ -3925,6 +3937,21 @@ static void InvalidateLineDecimateCache(Line *linePtr) {
     memset(cachePtr, 0, sizeof(*cachePtr));
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Build source-domain summaries for one finite monotonic-X run.
+ *
+ * Invalidates the previous cache first, records current source identity and
+ * marks built even if construction fails. Borrows X/Y arrays and allocates
+ * one block summary per LINE_DECIMATE_BLOCK_SIZE samples. Equal X values
+ * are allowed; reversals or nonfinite coordinates make the run unsupported.
+ *
+ * Stores earliest source indices for tied Y extrema and positivity summaries.
+ * Unsupported data releases blocks but retains built/identity state, avoiding
+ * repeated attempts until invalidation. Size/allocation failure likewise
+ * returns FALSE with an unsupported built cache. TRUE means summaries exist,
+ * not that current logarithmic axes accept the source domain.
+ */
 static int BuildLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
     Element *elemPtr;
@@ -4046,25 +4073,15 @@ unsupported:
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Recompute one existing block after a precise Y-only update.
  *
- * RebuildLineDecimateYBlock --
- *
- *      Rebuilds the Y-dependent summary for one existing Stage-3
- *      decimation block.
- *
- *      Source X is deliberately not inspected here: this helper is
- *      used only when the graph has received a precisely ranged Y-only
- *      update.
- *
- * Results:
- *      TRUE if the block was rebuilt successfully.
- *
- *      FALSE if the new Y data cannot be represented by the cached
- *      continuous-data path.
- *
- *----------------------------------------------------------------------
+ * Requires a supported cache with current borrowed Y storage and unchanged X.
+ * Validates the block, scans finite Y values and computes earliest extrema and
+ * nonpositive count before modifying summaries. Returns FALSE without changing
+ * the block on invalid input or inconsistent positivity accounting. On success
+ * updates block/global counts and allPositiveY. Does not inspect X or allocate.
  */
 static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
     LineDecimateCache *cachePtr;
@@ -4133,6 +4150,17 @@ static int RebuildLineDecimateYBlock(Line *linePtr, Tcl_Size blockIndex) {
     return TRUE;
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Ensure source summaries exist and fit the current log domains.
+ *
+ * Invalidates built state when source pointers or paired count differ, then
+ * builds once if necessary. Returns FALSE for unsupported summaries or a log
+ * axis whose source contains nonpositive values. Log rejection retains the
+ * cache for later linear-axis reuse. Pointer/count checks do not detect in-place
+ * writes; notification-driven refresh/invalidation remains required. May allocate
+ * summaries but does not synchronize vectors or consume change metadata.
+ */
 static int EnsureLineDecimateCache(Line *linePtr) {
     LineDecimateCache *cachePtr;
     Tcl_Size nPoints;
@@ -4250,6 +4278,15 @@ static int RefreshLineDecimateCache(Line *linePtr) {
     return TRUE;
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Find earliest Y extrema in an inclusive source range.
+ *
+ * Requires valid current cache summaries and 0 <= first <= last < nPoints.
+ * Uses whole aligned block summaries and scans boundary fragments. Strict
+ * comparisons preserve the earliest source index on ties. Writes min/max
+ * indices, performs no allocation, and does not validate the caller's range.
+ */
 static void GetCachedRangeExtrema(Line *linePtr, Tcl_Size first, Tcl_Size last, Tcl_Size *minIndexPtr,
                                   Tcl_Size *maxIndexPtr) {
     LineDecimateCache *cachePtr;
@@ -4289,6 +4326,15 @@ static void GetCachedRangeExtrema(Line *linePtr, Tcl_Size first, Tcl_Size last, 
     *maxIndexPtr = maxIndex;
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Map a cached source index to a bounded physical pixel bucket.
+ *
+ * Requires a valid index and current axis/viewport state. Returns FALSE without
+ * writing bucketPtr for nonfinite mapped abscissa. Values outside pixelMin/pixelMax
+ * use sentinel buckets one unit beyond the respective boundary; inside values
+ * use truncation toward zero, not floor. Does not modify the cache.
+ */
 static int GetCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size index, double pixelMin, double pixelMax,
                                 double *bucketPtr) {
     double x;
@@ -4309,6 +4355,15 @@ static int GetCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size index, 
     return TRUE;
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Binary-search the first source index beyond the current bucket.
+ *
+ * Requires monotonic mapped buckets, a valid first index and nonzero direction.
+ * Searches after first, returning nPoints when no later bucket exists. Sets okPtr
+ * TRUE on success. If mapping fails, sets it FALSE and returns an intermediate
+ * bound that callers must not use as a valid bucket boundary. No allocation.
+ */
 static Tcl_Size FindNextCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Size first, double currentBucket,
                                           int direction, double pixelMin, double pixelMax, int *okPtr) {
     Tcl_Size low;
@@ -4335,6 +4390,16 @@ static Tcl_Size FindNextCachedPixelBucket(Graph *graphPtr, Line *linePtr, Tcl_Si
     return low;
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Check whether full mapped center arrays may be omitted.
+ *
+ * First applies general pixel-decimation eligibility, then rejects normal
+ * symbols/value labels and any configured error-bar data. Whole-element active
+ * symbols/labels also require full centers; explicit active selections can map
+ * independently. This is a semantic gate, not a density or cache-validity test.
+ * Borrows line/pen state and makes no changes.
+ */
 static int CanPreMapDecimateLine(Line *linePtr) {
     Element *elemPtr;
     LinePen *penPtr;
@@ -4382,19 +4447,14 @@ static int CanPreMapDecimateLine(Line *linePtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Check metadata proof that a cached source prefix is unchanged.
  *
- * CanRetainLineDecimatePrefix --
- *
- *      Determines whether the first nPoints source values represented
- *      by an existing Stage-3 cache are known to be unchanged.
- *
- *      A vector append may relocate its backing array.  Pointer
- *      equality therefore is not required when the vector supplied an
- *      exact changed range beginning at or beyond the cached prefix.
- *
- *----------------------------------------------------------------------
+ * With no pending change, requires the same source pointer. Full/unknown
+ * changes reject retention. An exact pending range beginning at or beyond
+ * nPoints permits retention even if vector storage relocated. Does not compare
+ * values or validate the full range; relies on truthful producer notifications.
  */
 static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cachedValues, Tcl_Size nPoints) {
     if (!vPtr->changePending) {
@@ -4416,22 +4476,14 @@ static int CanRetainLineDecimatePrefix(const ElemVector *vPtr, const double *cac
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Check mapped data-X ordering independently within each run.
  *
- * IsMonotonicMappedAbscissa --
- *
- *      Tests whether each continuous mapped run is monotonic along the
- *      physical screen dimension corresponding to data X.
- *
- *      Axis transforms are monotonic, so monotonic data X remains
- *      monotonic here even with logarithmic axes, -descending, and
- *      -invertxy.  The direction itself does not matter.
- *
- *      Discontinuous runs are tested independently because no segment
- *      will ever connect two such runs.
- *
- *----------------------------------------------------------------------
+ * Accepts either direction and repeated coordinates; resets direction at each
+ * break-before flag. Fewer than two points succeed. Uses physical screen roles
+ * for inversion, without modifying input or allocating. Caller supplies finite
+ * mapped points; this helper is not a nonfinite-value validator.
  */
 static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr) {
     Tcl_Size i;
@@ -4466,18 +4518,13 @@ static int IsMonotonicMappedAbscissa(Graph *graphPtr, MapInfo *mapPtr) {
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Append distinct bucket representatives in source order.
  *
- * AppendPixelBucket --
- *
- *      Adds the first, minimum-ordinate, maximum-ordinate, and last
- *      point of one screen-pixel bucket.
- *
- *      The selected source positions are sorted into original data order
- *      before being appended.  Duplicate representatives are removed.
- *
- *----------------------------------------------------------------------
+ * Sorts first/min/max/last indices and appends each distinct candidate, advancing
+ * countPtr. Caller must provide enough output capacity; no bounds check or
+ * allocation occurs. Deduplicates within this bucket only.
  */
 static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, Tcl_Size *selected,
                               Tcl_Size *countPtr) {
@@ -4527,6 +4574,16 @@ INLINE static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double 
     return Rbc_HMap(graphPtr, linePtr->core.axes.x, x);
 }
 
+/**
+ * @ingroup line_cache_internals
+ * @brief Append bounded source representatives with run-boundary flags.
+ *
+ * Sorts and deduplicates first/min/max/last within the bucket. Checks capacity
+ * before each append, setting a break flag only on the first emitted candidate
+ * of a new run when prior output exists. Returns FALSE on exhaustion, leaving
+ * any preceding appends and updated count intact; caller must discard or handle
+ * that partial result. Does not allocate or deduplicate against earlier buckets.
+ */
 static int AppendSourcePixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxIndex, Tcl_Size last, int startsRun,
                                    Tcl_Size capacity, Tcl_Size *selected, unsigned char *selectedBreakBefore,
                                    Tcl_Size *countPtr) {
@@ -4908,26 +4965,16 @@ static int BuildPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr, MapIn
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Find a half-open source range inside inclusive screen bounds.
  *
- * GetCachedSourceRangeForAbscissa --
- *
- *      Finds the half-open source-index range [first,last) whose
- *      physical mapped data-X coordinate lies between low and high.
- *
- *      The Stage-3 cache guarantees that source X is globally
- *      monotonic.  The mapped direction may nevertheless be reversed
- *      by axis -descending or graph -invertxy, so determine ordering
- *      from the mapped endpoint abscissas.
- *
- * Results:
- *      TRUE on success.  firstPtr and lastPtr receive a half-open
- *      source range.  An empty range is represented by first == last.
- *
- *      FALSE if the mapped abscissa cannot safely be evaluated.
- *
- *----------------------------------------------------------------------
+ * Requires a valid monotonic-X cache and prepared axes/viewport. Orders low/high,
+ * then binary-searches mapped endpoints in either direction. Equal mapped
+ * endpoints yield the full range or empty range. Initializes outputs to zero;
+ * nonfinite mapping returns FALSE, and outputs must then be ignored. Success
+ * may be empty. Does not apply a query distance metric: callers decide whether
+ * pruning by mapped data X is valid for their search.
  */
 static int GetCachedSourceRangeForAbscissa(Graph *graphPtr, Line *linePtr, double low, double high, Tcl_Size *firstPtr,
                                            Tcl_Size *lastPtr) {
@@ -5316,31 +5363,19 @@ static int BuildCachedPixelDecimatedScreenPoints(Graph *graphPtr, Line *linePtr,
     return TRUE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_cache_internals
+ * @brief Retain or extend summaries after proven source-tail growth.
  *
- * GrowLineDecimateCache --
+ * Requires built supported state, no shrinkage and metadata proving both
+ * cached prefixes unchanged. Pointer relocation is allowed with exact ranges.
+ * If paired count is unchanged, rebinds borrowed arrays without extending blocks.
  *
- *      Extends an existing supported Stage-3 cache when the source XY
- *      data have only grown at the end.
- *
- *      The cached prefix is preserved.  Only newly exposed source
- *      samples are checked for finite values, X monotonicity, and
- *      logarithmic-domain eligibility.
- *
- *      If the old final block was partial, that block is rebuilt
- *      because newly appended samples now belong to it.  Additional
- *      64-sample blocks are constructed as necessary.
- *
- *      Backing-array relocation is allowed when exact vector change
- *      information proves that the cached prefix was not modified.
- *
- * Results:
- *      TRUE if the cache was successfully retained/grown.
- *
- *      FALSE if the caller must invalidate and rebuild/fall back.
- *
- *----------------------------------------------------------------------
+ * Validates new finite samples and X ordering before mutation. Rebuilds the old
+ * partial final block and any new blocks, preserving earliest tied extrema.
+ * Allocates replacement block storage only when more blocks are needed, then
+ * commits pointers, counts, direction and positivity summaries. FALSE requests
+ * caller invalidation; it does not report a Tcl error or clear change metadata.
  */
 static int GrowLineDecimateCache(Line *linePtr, Tcl_Size nPoints) {
     LineDecimateCache *cachePtr;

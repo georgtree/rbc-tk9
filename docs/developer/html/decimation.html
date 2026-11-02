@@ -135,9 +135,10 @@ See <a class="reference internal" href="vectors.html"><span class="doc">Vector o
 <p>Closest-point searching uses the full mapped source-point array when available,
 or maps original samples on demand when the pre-map path omitted that array.
 A point omitted from the display trace therefore remains selectable with its
-original index and value. For searches
-considering X distance, a valid monotonic cache narrows the candidate interval;
-Y-only searches cannot use that X-distance bound. Candidate samples are mapped
+original index and value. A valid monotonic cache can narrow candidates only
+when mapped data X contributes to the distance metric: both-direction queries,
+screen-X queries in normal graphs, and screen-Y queries in inverted graphs.
+The other directional query must retain the full source range. Candidate samples are mapped
 and checked against plot extents before distance comparison. This does not make
 interpolated segment picking identical to nearest-sample picking.</p>
 <p>Symbols and error geometry have their own source-based mapping requirements.
@@ -150,6 +151,60 @@ Thus SVG, PDF and PostScript do not inherit screen-density loss from the display
 cache. Other explicitly configured processing, such as geometric reduction,
 remains separate. Export restoration remaps the screen afterward; see
 <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
+</section>
+<section id="cache-state-and-borrowed-storage">
+<h2>Cache state and borrowed storage<a class="headerlink" href="#cache-state-and-borrowed-storage" title="Link to this heading">¶</a></h2>
+<p>BuildLineDecimateCache first releases old summaries, then records source pointers,
+paired point count and built state. Built does not mean supported: empty input,
+allocation failure, nonfinite data or changes in source-X direction can leave a built
+but unsupported record. This prevents repeated construction attempts for the
+same observed source identity. InvalidateLineDecimateCache releases only owned
+blocks and clears the record; it never owns or prolongs the source arrays.</p>
+<p>EnsureLineDecimateCache detects pointer/count changes as a secondary safeguard.
+In-place changes with unchanged identity still require notifications and refresh.
+Its logarithmic-domain checks are separate from support: nonpositive data can
+remain summarized for linear axes while a log axis temporarily rejects the cache.</p>
+<p>RebuildLineDecimateYBlock scans one block before changing its summary, preserving
+the earliest equal minimum/maximum. Global nonpositive-Y accounting is adjusted
+by removing the old block contribution and adding the new one. A refresh over
+several blocks is not an all-block transaction: failure requests invalidation,
+including when preceding blocks were already rebuilt.</p>
+<section id="growth-and-prefix-proof">
+<h3>Growth and prefix proof<a class="headerlink" href="#growth-and-prefix-proof" title="Link to this heading">¶</a></h3>
+<p>CanRetainLineDecimatePrefix trusts exact change metadata rather than comparing
+values. Without a notification it requires pointer equality; an exact range wholly
+beyond the cached prefix permits relocated storage. Full or unknown changes reject
+retention. The vector producer must report all writes correctly.</p>
+<p>GrowLineDecimateCache validates newly paired samples and ordering before extending
+summaries. It rebuilds a partial old final block because appended samples can
+change its extrema. If only the longer input grew, paired count may be unchanged;
+rebinding source pointers still matters for a later append to the shorter input.
+Failure asks the caller to invalidate, and does not itself consume change flags.</p>
+</section>
+<section id="bucket-and-range-contracts">
+<h3>Bucket and range contracts<a class="headerlink" href="#bucket-and-range-contracts" title="Link to this heading">¶</a></h3>
+<p>GetCachedRangeExtrema takes an inclusive, nonempty source range and uses aligned
+whole blocks plus boundary scans. GetCachedSourceRangeForAbscissa instead returns
+a half-open source-index interval for inclusive screen-coordinate bounds. These
+range conventions are deliberately different. Equal mapped endpoint coordinates
+produce either the whole source range or an empty range.</p>
+<p>GetCachedPixelBucket truncates visible coordinates toward zero and uses one
+sentinel bucket beyond each viewport bound. FindNextCachedPixelBucket requires
+monotonic bucket ordering and a nonzero direction. Its result is usable only when
+its explicit success flag is true; a failed mapping can return an intermediate
+search bound.</p>
+<p>Representative append helpers sort first/minimum/maximum/last source indices and
+remove duplicates within that bucket. AppendPixelBucket relies on caller capacity.
+AppendSourcePixelBucket checks each write but can fail after partial appends, so
+its FALSE return is not an unchanged-output guarantee. Break flags mark the first
+representative of a later run; duplicates across distinct buckets are not removed
+by these helpers.</p>
+<p>CanPreMapDecimateLine is only an eligibility check. It excludes normal symbols,
+value labels and error data because they require full center/style mappings.
+Explicit active selections can be mapped independently, whereas whole-element
+active symbols or labels require retained centers. Density and cache validity
+remain separate decisions.</p>
+</section>
 </section>
 </section>
 
@@ -168,6 +223,11 @@ remains separate. Export restoration remaps the screen afterward; see
 <li><a class="reference internal" href="#mapping-paths-and-fallback">Mapping paths and fallback</a></li>
 <li><a class="reference internal" href="#persistent-cache-maintenance">Persistent cache maintenance</a></li>
 <li><a class="reference internal" href="#picking-symbols-and-exports">Picking, symbols and exports</a></li>
+<li><a class="reference internal" href="#cache-state-and-borrowed-storage">Cache state and borrowed storage</a><ul>
+<li><a class="reference internal" href="#growth-and-prefix-proof">Growth and prefix proof</a></li>
+<li><a class="reference internal" href="#bucket-and-range-contracts">Bucket and range contracts</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

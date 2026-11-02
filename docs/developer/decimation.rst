@@ -97,9 +97,10 @@ Picking, symbols and exports
 Closest-point searching uses the full mapped source-point array when available,
 or maps original samples on demand when the pre-map path omitted that array.
 A point omitted from the display trace therefore remains selectable with its
-original index and value. For searches
-considering X distance, a valid monotonic cache narrows the candidate interval;
-Y-only searches cannot use that X-distance bound. Candidate samples are mapped
+original index and value. A valid monotonic cache can narrow candidates only
+when mapped data X contributes to the distance metric: both-direction queries,
+screen-X queries in normal graphs, and screen-Y queries in inverted graphs.
+The other directional query must retain the full source range. Candidate samples are mapped
 and checked against plot extents before distance comparison. This does not make
 interpolated segment picking identical to nearest-sample picking.
 
@@ -114,3 +115,66 @@ Thus SVG, PDF and PostScript do not inherit screen-density loss from the display
 cache. Other explicitly configured processing, such as geometric reduction,
 remains separate. Export restoration remaps the screen afterward; see
 :doc:`exports`.
+
+Cache state and borrowed storage
+--------------------------------
+
+BuildLineDecimateCache first releases old summaries, then records source pointers,
+paired point count and built state. Built does not mean supported: empty input,
+allocation failure, nonfinite data or changes in source-X direction can leave a built
+but unsupported record. This prevents repeated construction attempts for the
+same observed source identity. InvalidateLineDecimateCache releases only owned
+blocks and clears the record; it never owns or prolongs the source arrays.
+
+EnsureLineDecimateCache detects pointer/count changes as a secondary safeguard.
+In-place changes with unchanged identity still require notifications and refresh.
+Its logarithmic-domain checks are separate from support: nonpositive data can
+remain summarized for linear axes while a log axis temporarily rejects the cache.
+
+RebuildLineDecimateYBlock scans one block before changing its summary, preserving
+the earliest equal minimum/maximum. Global nonpositive-Y accounting is adjusted
+by removing the old block contribution and adding the new one. A refresh over
+several blocks is not an all-block transaction: failure requests invalidation,
+including when preceding blocks were already rebuilt.
+
+Growth and prefix proof
+~~~~~~~~~~~~~~~~~~~~~~~
+
+CanRetainLineDecimatePrefix trusts exact change metadata rather than comparing
+values. Without a notification it requires pointer equality; an exact range wholly
+beyond the cached prefix permits relocated storage. Full or unknown changes reject
+retention. The vector producer must report all writes correctly.
+
+GrowLineDecimateCache validates newly paired samples and ordering before extending
+summaries. It rebuilds a partial old final block because appended samples can
+change its extrema. If only the longer input grew, paired count may be unchanged;
+rebinding source pointers still matters for a later append to the shorter input.
+Failure asks the caller to invalidate, and does not itself consume change flags.
+
+Bucket and range contracts
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GetCachedRangeExtrema takes an inclusive, nonempty source range and uses aligned
+whole blocks plus boundary scans. GetCachedSourceRangeForAbscissa instead returns
+a half-open source-index interval for inclusive screen-coordinate bounds. These
+range conventions are deliberately different. Equal mapped endpoint coordinates
+produce either the whole source range or an empty range.
+
+GetCachedPixelBucket truncates visible coordinates toward zero and uses one
+sentinel bucket beyond each viewport bound. FindNextCachedPixelBucket requires
+monotonic bucket ordering and a nonzero direction. Its result is usable only when
+its explicit success flag is true; a failed mapping can return an intermediate
+search bound.
+
+Representative append helpers sort first/minimum/maximum/last source indices and
+remove duplicates within that bucket. AppendPixelBucket relies on caller capacity.
+AppendSourcePixelBucket checks each write but can fail after partial appends, so
+its FALSE return is not an unchanged-output guarantee. Break flags mark the first
+representative of a later run; duplicates across distinct buckets are not removed
+by these helpers.
+
+CanPreMapDecimateLine is only an eligibility check. It excludes normal symbols,
+value labels and error data because they require full center/style mappings.
+Explicit active selections can be mapped independently, whereas whole-element
+active symbols or labels require retained centers. Density and cache validity
+remain separate decisions.
