@@ -193,3 +193,118 @@ cannot undo arbitrary Tcl side effects. The low-level parsers do not themselves
 retain graph/axis lifetime or validate it after evaluation. Treat them as Tcl
 evaluation boundaries when auditing reentrancy, rather than assuming that all
 configuration parsing is callback-free.
+
+Ranges and tick generation
+--------------------------
+
+Range calculation precedes tick-array allocation, label layout and mapping.
+The range fields are not interchangeable:
+
+.. list-table::
+   :header-rows: 1
+
+   * - State
+     - Meaning
+   * - ``valueRange``
+     - Accumulated element bounds, subsequently repaired for empty/degenerate data.
+   * - ``reqMin`` / ``reqMax``
+     - User requests, or the undefined sentinel for automatic limits.
+   * - ``min`` / ``max``
+     - Resolved display limits before scaling and loose-endpoint policy.
+   * - ``axisRange``
+     - Prepared mapping bounds; logarithmic axes store base-ten exponents here.
+   * - ``majorSweep`` / ``minorSweep``
+     - Recipes for generated ticks, not allocated arrays.
+   * - ``t1Ptr`` / ``t2Ptr``
+     - Explicit or generated tick arrays, distinguished by configuration flags.
+
+``Rbc_ResetAxes`` prepares bar frequencies and stacks before collecting
+extents. It excludes hidden and plot-hidden elements, but visits all registered
+axes, including pending deletions retained by consumers. Polar grid axes with
+no contributing data receive a symmetric fallback; Smith grid axes always
+include the intrinsic unit-circle bounds in their accumulated nonlogarithmic
+range. Explicit requested limits are applied later and can still restrict the
+displayed region.
+
+``FixAxisRange`` supplies missing bounds, expands degenerate data and applies
+requested endpoints. Automatic window shifting applies only when neither
+endpoint was requested. Reset then constrains the scaling inputs by configured
+scroll limits, selects linear or logarithmic scaling, and requests later layout
+and mapping. It does not construct labels or paint the graph.
+
+Linear sweep policy
+~~~~~~~~~~~~~~~~~~~
+
+The automatic interval uses decimal 1/2/5/10 multiples, targeting approximately
+four intervals. A requested positive interval is tried first, but historical
+behavior reduces an overly large interval by halves. An interval producing
+more than ``MAXTICKS`` or nonfinite sweep arithmetic is rejected internally
+and replaced by the automatic interval. If neither produces a usable sweep,
+the range is retained with no generated major ticks.
+
+``GetLinearSweep`` computes enclosing endpoints in units of the step. It
+validates the count while still represented as a double, before converting to
+``Tcl_Size``. This avoids overflowing the raw endpoint difference or converting
+an unbounded count to an integer. ``RoundToStep`` similarly avoids integer
+rounding and retains the input when quotient/product arithmetic is unusable.
+
+Loose policy applies separately to each endpoint. ``tight`` keeps the resolved
+endpoint; ordinary ``loose`` uses an enclosing tick unless that endpoint was
+explicitly requested; ``always`` uses the enclosing tick even for an explicit
+request. The tick sweep can extend beyond the mapping range, so later geometry
+must filter ticks against the range.
+
+Logarithmic sweep policy
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Logarithmic mapping stores exponent coordinates. A span covering at most ten
+enclosing decades uses a major step of one decade. Wider spans select a nice
+interval in exponent space. Requested linear ``-stepsize`` is not consulted
+by this scaling routine.
+
+Narrow logarithmic minor ticks use the eight offsets ``log10(2)`` through
+``log10(9)``. Their sweep has ``step == 0`` as a special selector; it does not
+mean repeated coincident ticks. Wider logarithmic sweeps instead use four
+fractions at 0.2 increments between major ticks.
+
+``LogAxisValue`` converts back only within the interval bounded by ``DBL_MIN``
+and ``DBL_MAX`` and returns ``NAN`` outside it. Here ``DBL_MIN`` means the
+smallest positive *normal* double, not the smallest subnormal value. Exact
+endpoint handling avoids power-function rounding across these bounds.
+
+Explicit arrays and ownership
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``SweepTicks`` replaces generated arrays but preserves arrays selected by
+``AXIS_CONFIG_MAJOR`` or ``AXIS_CONFIG_MINOR``. Explicit major ticks disable
+automatic minor generation; an explicit minor list remains available. With
+explicit majors, minor fractions are placed between adjacent major entries,
+including descending pairs. Equal endpoints, missing following endpoints,
+fractions outside the open interval and rounded positions outside it are
+rejected. No minor is extrapolated after the final explicit major.
+
+``GenerateTicks`` returns an owned allocation even for an empty sweep.
+Invalid internal sweeps degrade to empty arrays rather than a layout error.
+Allocation itself uses the fatal Tcl allocator. ``Rbc_AllocAxisMajorTicks``
+always returns an independent array: it copies an existing cache or generates
+from the sweep when no cache exists, notably for hidden Polar axes. Its copy
+path uses attempted allocation and can return NULL. Callers must both check
+that result and free successful results; they must not assume every cache is
+an explicitly supplied list.
+
+Numerical mapping boundary
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``SetAxisRange`` caches the endpoint difference and reciprocal. Very small
+absolute spans receive a unit cached range without changing the endpoints.
+Overflow-sized spans are handled by half-scaled normalization/interpolation.
+These helpers do not establish a universal finite-result guarantee:
+extrapolation and extreme inputs can still be nonfinite. Mapping consumers
+must retain their checks before integer conversion or rendering.
+
+Horizontal and vertical helpers use the full owning-track world rectangle,
+not just its visible clipped portion. Descending reversal and downward screen
+Y are applied after normalization. The low-level forward coordinate helpers
+expect logarithmic conversion to have happened already; inverse helpers
+convert exponents back to data values. See :doc:`mapping` for clipping and
+viewport responsibilities.

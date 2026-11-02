@@ -45,3 +45,13 @@ Option transaction internals
    :members:
 
 .. c:namespace-pop::
+
+Ranges, coordinates and tick sweeps
+-----------------------------------
+
+.. c:namespace-push:: rbcGrAxisRanges
+
+.. doxygengroup:: axis_ranges
+   :members:
+
+.. c:namespace-pop::

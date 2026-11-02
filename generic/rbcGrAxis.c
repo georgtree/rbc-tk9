@@ -10,6 +10,7 @@
  */
 
 /** @defgroup axis_transactions Axis option transactions */
+/** @defgroup axis_ranges Axis ranges and tick sweeps */
 /** @defgroup axis_registry Axis registry and lifetime */
 /** @defgroup axis_configuration Axis configuration entry points */
 /** @defgroup axis_commands Axis command dispatch and bindings */
@@ -496,6 +497,13 @@ static int IsAxisOption(Tcl_Obj *objPtr, const char *optionName) {
     return ((name != NULL) && (strcmp(name, optionName) == 0));
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Round a finite value to a multiple of a finite nonzero step.
+ *
+ * Uses halfway-away-from-zero rounding without an integer conversion. Returns the original value if
+ * inputs, quotient or rounded product cannot be used safely; does not report a Tcl error.
+ */
 static double RoundToStep(double value, double step) {
     double scaled;
     double result;
@@ -519,6 +527,14 @@ static double RoundToStep(double value, double step) {
     return result;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Compute bounded enclosing tick endpoints and count.
+ *
+ * Requires finite endpoints and a positive finite step. Works in step units to avoid subtracting large
+ * raw endpoints. Rejects nonfinite quotients/products and counts outside 1..MAXTICKS before converting
+ * to Tcl_Size. Returns TRUE and assigns all outputs only on success; FALSE leaves outputs untouched.
+ */
 static int GetLinearSweep(double min, double max, double step, double *tickMinPtr, double *tickMaxPtr,
                           Tcl_Size *nTicksPtr) {
     double first;
@@ -562,6 +578,14 @@ static int GetLinearSweep(double min, double max, double step, double *tickMinPt
     return TRUE;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Select a practical automatic linear tick interval.
+ *
+ * First applies NiceNum to the representable positive span, aiming for DEF_NUM_TICKS intervals. If
+ * that fails, uses quarter-scaled endpoint subtraction to avoid span overflow. Returns a positive
+ * finite nice step when possible, otherwise 1.0; does not allocate or report errors.
+ */
 static double AutomaticLinearStep(double min, double max) {
     double range;
     double step;
@@ -611,25 +635,13 @@ static int AxisRotatedSize(double value) {
     return ROUND(value);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Store endpoints and cached normalization factors.
  *
- * SetAxisRange --
- *
- *      TODO: Description
- *
- * Parameters:
- *      AxisRange *rangePtr
- *      double min
- *      double max
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Stores min/max unchanged, computes their difference and substitutes a unit range when its absolute
+ * value is below DBL_EPSILON. Stores the reciprocal as scale. Does not sort or validate endpoints; an
+ * overflowed difference remains nonfinite for the normalization helpers to handle.
  */
 static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
     rangePtr->min = min;
@@ -641,6 +653,14 @@ static void SetAxisRange(AxisRange *rangePtr, double min, double max) {
     rangePtr->scale = 1.0 / rangePtr->range;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Normalize a coordinate against a prepared axis range.
+ *
+ * Uses cached range/scale for finite spans. For an overflowed span, halves endpoints and the value
+ * before division; returns NAN when the half-span is invalid or zero. Does not clip to 0..1 or apply
+ * logarithms, descending direction or screen offsets.
+ */
 static double NormalizeAxisValue(const AxisRange *rangePtr, double value) {
     /*
      * Use the ordinary expression whenever the stored range is
@@ -665,6 +685,14 @@ static double NormalizeAxisValue(const AxisRange *rangePtr, double value) {
     }
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Reconstruct an axis-space value from a normalized coordinate.
+ *
+ * Uses cached range and minimum for finite spans, or a half-scaled endpoint interpolation for
+ * overflowed spans. Does not clamp the normalized coordinate. Extrapolation may produce nonfinite
+ * results; callers must validate values before drawing or integer conversion.
+ */
 static double InterpolateAxisValue(const AxisRange *rangePtr, double norm) {
     if (FINITE(rangePtr->range)) {
         return norm * rangePtr->range + rangePtr->min;
@@ -677,6 +705,14 @@ static double InterpolateAxisValue(const AxisRange *rangePtr, double norm) {
     return ((1.0 - norm) * (rangePtr->min * 0.5) + norm * (rangePtr->max * 0.5)) * 2.0;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Convert a base-ten exponent within the supported normal-double interval.
+ *
+ * Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) with NAN. Returns exact
+ * DBL_MIN/DBL_MAX at the endpoints to avoid power rounding across them. Otherwise requires a finite
+ * positive power result. This policy deliberately does not expose subnormal values.
+ */
 static double LogAxisValue(double exponent) {
     double minExponent;
     double maxExponent;
@@ -706,6 +742,14 @@ static double LogAxisValue(double exponent) {
     return value;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Map an already converted axis-space value horizontally.
+ *
+ * Normalizes, rejects nonfinite normalized values and applies descending reversal. Uses the owning
+ * track world rectangle when present, otherwise graph horizontal range/offset. Track spans have a one-
+ * pixel minimum. Does not perform logarithmic conversion or clipping.
+ */
 static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value) {
     value = NormalizeAxisValue(&axisPtr->axisRange, value);
     if (!FINITE(value)) {
@@ -720,6 +764,14 @@ static double MapHorizontalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double
     return value * graphPtr->hRange + graphPtr->hOffset;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Map an already converted axis-space value vertically.
+ *
+ * Normalizes, rejects nonfinite normalized values and applies descending reversal and downward screen
+ * Y direction. Uses the owning track world rectangle or graph vertical range/offset. Track spans have
+ * a one-pixel minimum; no clipping or logarithmic conversion occurs here.
+ */
 static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double value) {
     value = NormalizeAxisValue(&axisPtr->axisRange, value);
     if (!FINITE(value)) {
@@ -735,6 +787,14 @@ static double MapVerticalAxisCoordinate(Graph *graphPtr, Axis *axisPtr, double v
     return (1.0 - value) * graphPtr->vRange + graphPtr->vOffset;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Construct a positive logarithmic interval around one value.
+ *
+ * Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one decade centred on the
+ * value, shifting the interval at supported exponent endpoints, and converts it with LogAxisValue.
+ * Writes both outputs without changing an Axis record.
+ */
 static void MakeLogRange(double value, double *minPtr, double *maxPtr) {
     double exponent;
     double low;
@@ -764,32 +824,13 @@ static void MakeLogRange(double value, double *minPtr, double *maxPtr) {
     *maxPtr = LogAxisValue(high);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Test a finite coordinate against a prepared range.
  *
- * InRange --
- *
- *      Determines if a value lies within a given range.
- *
- *      The value is normalized and compared against the interval
- *      [0..1], where 0.0 is the minimum and 1.0 is the maximum.
- *      DBL_EPSILON is the smallest number that can be represented
- *      on the host machine, such that (1.0 + epsilon) != 1.0.
- *
- *      Please note, *max* can't equal *min*.
- *
- * Parameters:
- *      double x
- *      AxisRange *rangePtr
- *
- * Results:
- *      If the value is within the interval [min..max], 1 is
- *      returned; 0 otherwise.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tolerance around the
+ * unit interval. Uses axis-space coordinates, which are exponents for logarithmic axes; does not
+ * perform raw-data log conversion.
  */
 static int InRange(double x, AxisRange *rangePtr) {
     double norm;
@@ -804,6 +845,13 @@ static int InRange(double x, AxisRange *rangePtr) {
     return ((norm >= -DBL_EPSILON) && ((norm - 1.0) < DBL_EPSILON));
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Resolve logical axis identity into screen orientation.
+ *
+ * Compares the logical Y class with graph inversion. Borrows graph and axis; does not modify their
+ * class or layout.
+ */
 static int AxisIsHorizontal(Graph *graphPtr, Axis *axisPtr) {
     return ((axisPtr->classUid == rbcYAxisUid) == graphPtr->inverted);
 }
@@ -2596,7 +2644,14 @@ static void CommitAxisShadowTransaction(Axis *axisPtr, AxisShadowTransaction *tr
     transactionPtr->stagedMask = 0;
 }
 
-/* Undo horizontal normalization using the full owning-track extent. */
+/**
+ * @ingroup axis_ranges
+ * @brief Invert horizontal mapping into a logical data value.
+ *
+ * Normalizes against the full owning-track world extent or graph horizontal scale, reverses descending
+ * direction and interpolates axis space. Converts logarithmic exponents through LogAxisValue.
+ * Extrapolates outside the plot and may return nonfinite values; no layout is performed.
+ */
 static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double value;
 
@@ -2615,7 +2670,14 @@ static double InvHMap(Graph *graphPtr, Axis *axisPtr, double x) {
     return value;
 }
 
-/* Undo vertical normalization, including the downward screen direction. */
+/**
+ * @ingroup axis_ranges
+ * @brief Invert vertical mapping into a logical data value.
+ *
+ * Normalizes against the full owning-track world extent or graph vertical scale, reverses descending
+ * direction and accounts for downward screen Y. Interpolates axis space and converts logarithmic
+ * exponents. Does not clip or refresh layout; callers must handle nonfinite results.
+ */
 static double InvVMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double value;
 
@@ -2692,25 +2754,13 @@ Point2D Rbc_InvMap2D(Graph *graphPtr, double x, double y, Axis2D *axesPtr) {
     return point;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Accumulate an element extent into an axis data range.
  *
- * GetDataLimits --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Axis *axisPtr
- *      double min
- *      double max
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Expands valueRange endpoints by comparison only; does not validate the extent, recompute cached
+ * range/scale or apply requested limits. Rbc_ResetAxes initializes the accumulation sentinels before
+ * calling this helper.
  */
 static void GetDataLimits(Axis *axisPtr, double min, double max) {
     if (axisPtr->valueRange.min > min) {
@@ -2721,23 +2771,15 @@ static void GetDataLimits(Axis *axisPtr, double min, double max) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Resolve accumulated data bounds and requested display limits.
  *
- * FixAxisRange --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Axis *axisPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Supplies empty-data defaults, expands degenerate ranges and repairs invalid logarithmic inputs
+ * before caching valueRange. Copies data limits into min/max, applies requested endpoints and adjusts
+ * automatic endpoints when necessary. Applies automatic window shifting only when neither requested
+ * endpoint is defined, clamping negative shiftBy to zero. Marks AXIS_DIRTY and updates previous limits
+ * when resolved min/max change. Does not generate ticks or map geometry.
  */
 static void FixAxisRange(Axis *axisPtr) {
     double min, max;
@@ -2857,30 +2899,13 @@ static void FixAxisRange(Axis *axisPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Choose a decimal 1/2/5/10 multiple near a positive magnitude.
  *
- * NiceNum --
- *
- *      Reference: Paul Heckbert, "Nice Numbers for Graph Labels",
- *             Graphics Gems, pp 61-63.
- *
- *      Finds a "nice" number approximately equal to x.
- *
- * Parameters:
- *      double x
- *      int round - If non-zero, round. Otherwise take ceiling of value.
- *      ClientData clientData
- *      Rbc_BindPickProc *pickProc
- *      Rbc_BindTagProc *tagProc
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Uses Heckbert's nice-number method (Graphics Gems, pages 61-63). The round argument selects nearest-
+ * style thresholds rather than upward enclosure. Expects a positive input; does not guarantee a finite
+ * positive result for extreme magnitudes, so scaling callers validate it. No graph state is changed.
  */
 static double NiceNum(double x, int round) {
     double expt; /* Exponent of x */
@@ -2913,23 +2938,15 @@ static double NiceNum(double x, int round) {
     return nice * EXP10(expt);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Allocate values from an internal tick sweep.
  *
- * GenerateTicks --
- *
- *      TODO: Description
- *
- * Parameters:
- *      TickSweep *sweepPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns an owned allocation, possibly with zero ticks. Invalid counts or nonfinite sweep fields
+ * produce an empty array. A zero step selects the fixed log10(2)..log10(9) table and allows at most
+ * eight entries. Other steps generate rounded successive values, stopping before a nonfinite value.
+ * Uses ckalloc, so allocation failure is not a recoverable NULL result. Free the returned allocation
+ * with ckfree.
  */
 static Ticks *GenerateTicks(TickSweep *sweepPtr) {
     static const double logTable[] = {0.301029995663981, 0.477121254719662, 0.602059991327962, 0.698970004336019,
@@ -2984,6 +3001,15 @@ static Ticks *GenerateTicks(TickSweep *sweepPtr) {
     return ticksPtr;
 }
 
+/**
+ * @ingroup axis_ranges
+ * @brief Return an independently owned major-tick array.
+ *
+ * Copies t1Ptr when present, whether explicit or cached generated ticks; size or attempted-allocation
+ * failure then returns NULL. Otherwise generates from majorSweep, supporting hidden Polar axes without
+ * rectangular tick caches. The axis and prepared sweep are borrowed; callers free the result with
+ * ckfree. Generation uses the fatal allocator rather than the copy path's attempted allocator.
+ */
 Ticks *Rbc_AllocAxisMajorTicks(Axis *axisPtr) {
     Ticks *ticksPtr;
     size_t size;
@@ -3014,87 +3040,16 @@ Ticks *Rbc_AllocAxisMajorTicks(Axis *axisPtr) {
     return GenerateTicks(&axisPtr->majorSweep);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Prepare logarithmic mapping bounds and tick sweeps.
  *
- * LogScaleAxis --
- *
- *      Determine the range and units of a log scaled axis.
- *
- *      Unless the axis limits are specified, the axis is scaled
- *      automatically, where the smallest and largest major ticks encompass
- *      the range of actual data values.  When an axis limit is specified,
- *      that value represents the smallest(min)/largest(max) value in the
- *      displayed range of values.
- *
- *      Both manual and automatic scaling are affected by the step used.  By
- *      default, the step is the largest power of ten to divide the range in
- *      more than one piece.
- *
- *      Automatic scaling:
- *      Find the smallest number of units which contain the range of values.
- *      The minimum and maximum major tick values will be represent the
- *      range of values for the axis. This greatest number of major ticks
- *      possible is 10.
- *
- *      Manual scaling:
- *          Make the minimum and maximum data values the represent the range of
- *          the values for the axis.  The minimum and maximum major ticks will be
- *          inclusive of this range.  This provides the largest area for plotting
- *          and the expected results when the axis min and max values have be set
- *          by the user (.e.g zooming).  The maximum number of major ticks is 20.
- *
- *          For log scale, there's the possibility that the minimum and
- *          maximum data values are the same magnitude.  To represent the
- *          points properly, at least one full decade should be shown.
- *          However, if you zoom a log scale plot, the results should be
- *          predictable. Therefore, in that case, show only minor ticks.
- *          Lastly, there should be an appropriate way to handle numbers
- *          <=0.
- *
- *              maxY
- *                |    units = magnitude (of least significant digit)
- *                |    high  = largest unit tick < max axis value
- *          high _|    low   = smallest unit tick > min axis value
- *                |
- *                |    range = high - low
- *                |    # ticks = greatest factor of range/units
- *               _|
- *            U   |
- *            n   |
- *            i   |
- *            t  _|
- *                |
- *                |
- *                |
- *           low _|
- *                |
- *                |_minX________________maxX__
- *                |   |       |      |       |
- *         minY  low                        high
- *               minY
- *
- *
- *      numTicks = Number of ticks
- *      min = Minimum value of axis
- *      max = Maximum value of axis
- *      range    = Range of values (max - min)
- *
- *      If the number of decades is greater than ten, it is assumed
- *      that the full set of log-style ticks can't be drawn properly.
- *
- * Parameters:
- *      Axis *axisPtr
- *      double min
- *      double max
- *
- * Results:
- *      None
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ---------------------------------------------------------------------- */
+ * Repairs invalid positive inputs and collapsed logarithms, then selects major ticks in exponent
+ * space. Spans exceeding ten enclosing decades use a nice exponent interval; narrower spans use unit
+ * decades. Applies endpoint loose policies and supported exponent bounds. Narrow minor sweeps use the
+ * zero-step log table; wide sweeps use four fractions at 0.2 increments. Explicit major ticks disable
+ * automatic minors. Writes axisRange and both sweep records, without allocating tick arrays.
+ */
 static void LogScaleAxis(Axis *axisPtr, double min, double max) {
     double logMin;
     double logMax;
@@ -3219,71 +3174,15 @@ static void LogScaleAxis(Axis *axisPtr, double min, double max) {
     SetAxisRange(&axisPtr->axisRange, axisMin, axisMax);
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Prepare linear mapping bounds and tick sweeps.
  *
- * LinearScaleAxis --
- *
- *      Determine the units of a linear scaled axis.
- *
- *      The axis limits are either the range of the data values mapped
- *      to the axis (autoscaled), or the values specified by the -min
- *      and -max options (manual).
- *
- *      If autoscaled, the smallest and largest major ticks will
- *      encompass the range of data values.  If the -loose option is
- *      selected, the next outer ticks are choosen.  If tight, the
- *      ticks are at or inside of the data limits are used.
- *
- *      If manually set, the ticks are at or inside the data limits
- *      are used.  This makes sense for zooming.  You want the
- *      selected range to represent the next limit, not something a
- *      bit bigger.
- *
- *      Note: I added an "always" value to the -loose option to force
- *            the manually selected axes to be loose. It's probably
- *            not a good idea.
- *
- *              maxY
- *                |    units = magnitude (of least significant digit)
- *                |    high  = largest unit tick < max axis value
- *          high _|    low   = smallest unit tick > min axis value
- *                |
- *                |    range = high - low
- *                |    # ticks = greatest factor of range/units
- *               _|
- *            U   |
- *            n   |
- *            i   |
- *            t  _|
- *                |
- *                |
- *                |
- *           low _|
- *                |
- *                |_minX________________maxX__
- *                |   |       |      |       |
- *         minY  low                        high
- *               minY
- *
- *      numTicks = Number of ticks
- *      min = Minimum value of axis
- *      max = Maximum value of axis
- *      range    = Range of values (max - min)
- *
- * Parameters:
- *      Axis *axisPtr
- *      double min
- *      double max
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      The axis tick information is set.  The actual tick values will
- *      be generated later.
- *
- * ----------------------------------------------------------------------
+ * Tries a requested positive step, reducing overly large intervals by halves. Falls back to
+ * AutomaticLinearStep if the requested sweep is impractical, then to no major ticks if necessary.
+ * Applies independent loose policies to mapping endpoints. Automatic minors subdivide the major
+ * interval unless explicit major ticks are configured. Writes axisRange and sweep records; actual
+ * arrays are generated later.
  */
 static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     double step;
@@ -3377,23 +3276,13 @@ static void LinearScaleAxis(Axis *axisPtr, double min, double max) {
     axisPtr->minorSweep.nSteps = nTicks;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Refresh generated tick caches while retaining explicit arrays.
  *
- * SweepTicks --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Axis *axisPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Replaces t1Ptr/t2Ptr only when their AXIS_CONFIG_MAJOR/MINOR flags are clear. Frees old generated
+ * arrays and owns the new GenerateTicks results. Does not change explicit arrays, recompute sweeps or
+ * report recoverable allocation errors.
  */
 static void SweepTicks(Axis *axisPtr) {
     if ((axisPtr->flags & AXIS_CONFIG_MAJOR) == 0) {
@@ -3410,23 +3299,16 @@ static void SweepTicks(Axis *axisPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup axis_ranges
+ * @brief Recompute data ranges and scaling sweeps for the graph.
  *
- * Rbc_ResetAxes --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Prepares bar frequencies/stacks, resets every registered axis to accumulation sentinels and collects
+ * extents from elements that are neither hidden nor plotHidden. Applies Polar empty-grid fallbacks or
+ * Smith unit-circle bounds to mapped nonlogarithmic grid axes. Resolves requested ranges, constrains
+ * scaling inputs by scroll limits and computes linear/log sweeps. Clears RESET_AXES and requests
+ * geometry, layout, mapping and redraw; does not allocate tick caches or draw. Registered delete-
+ * pending records are included because consumers may still reference them.
  */
 void Rbc_ResetAxes(Graph *graphPtr) {
     Rbc_ChainLink *linkPtr;
@@ -3868,10 +3750,14 @@ static void MakeTick(Graph *graphPtr, Axis *axisPtr, double value, int tick, int
     }
 }
 
-/*
- * Resolve a minor tick in the same coordinates as the major ticks
- * (base-10 exponents for log axes). Explicit majors bound each interval;
- * automatic sweeps retain their regular step and edge subdivisions.
+/**
+ * @ingroup axis_ranges
+ * @brief Resolve a minor fraction against a major interval.
+ *
+ * Requires a valid major array index. With explicit majors, requires a following distinct endpoint and
+ * a fraction strictly inside 0..1, interpolates between adjacent entries, and rejects rounded results
+ * outside that open interval. Otherwise adds majorSweep.step times fraction. Returns FALSE for
+ * invalid/nonfinite results without assigning the output; TRUE writes an axis-space coordinate.
  */
 static int GetMinorTickPosition(const Axis *axisPtr, const Ticks *majorPtr, Tcl_Size index,
                                 double fraction, double *valuePtr) {

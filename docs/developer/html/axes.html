@@ -232,6 +232,117 @@ evaluation boundaries when auditing reentrancy, rather than assuming that all
 configuration parsing is callback-free.</p>
 </section>
 </section>
+<section id="ranges-and-tick-generation">
+<h2>Ranges and tick generation<a class="headerlink" href="#ranges-and-tick-generation" title="Link to this heading">¶</a></h2>
+<p>Range calculation precedes tick-array allocation, label layout and mapping.
+The range fields are not interchangeable:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">valueRange</span></code></p></td>
+<td><p>Accumulated element bounds, subsequently repaired for empty/degenerate data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reqMin</span></code> / <code class="docutils literal notranslate"><span class="pre">reqMax</span></code></p></td>
+<td><p>User requests, or the undefined sentinel for automatic limits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min</span></code> / <code class="docutils literal notranslate"><span class="pre">max</span></code></p></td>
+<td><p>Resolved display limits before scaling and loose-endpoint policy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">axisRange</span></code></p></td>
+<td><p>Prepared mapping bounds; logarithmic axes store base-ten exponents here.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">majorSweep</span></code> / <code class="docutils literal notranslate"><span class="pre">minorSweep</span></code></p></td>
+<td><p>Recipes for generated ticks, not allocated arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">t1Ptr</span></code> / <code class="docutils literal notranslate"><span class="pre">t2Ptr</span></code></p></td>
+<td><p>Explicit or generated tick arrays, distinguished by configuration flags.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ResetAxes</span></code> prepares bar frequencies and stacks before collecting
+extents. It excludes hidden and plot-hidden elements, but visits all registered
+axes, including pending deletions retained by consumers. Polar grid axes with
+no contributing data receive a symmetric fallback; Smith grid axes always
+include the intrinsic unit-circle bounds in their accumulated nonlogarithmic
+range. Explicit requested limits are applied later and can still restrict the
+displayed region.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FixAxisRange</span></code> supplies missing bounds, expands degenerate data and applies
+requested endpoints. Automatic window shifting applies only when neither
+endpoint was requested. Reset then constrains the scaling inputs by configured
+scroll limits, selects linear or logarithmic scaling, and requests later layout
+and mapping. It does not construct labels or paint the graph.</p>
+<section id="linear-sweep-policy">
+<h3>Linear sweep policy<a class="headerlink" href="#linear-sweep-policy" title="Link to this heading">¶</a></h3>
+<p>The automatic interval uses decimal 1/2/5/10 multiples, targeting approximately
+four intervals. A requested positive interval is tried first, but historical
+behavior reduces an overly large interval by halves. An interval producing
+more than <code class="docutils literal notranslate"><span class="pre">MAXTICKS</span></code> or nonfinite sweep arithmetic is rejected internally
+and replaced by the automatic interval. If neither produces a usable sweep,
+the range is retained with no generated major ticks.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GetLinearSweep</span></code> computes enclosing endpoints in units of the step. It
+validates the count while still represented as a double, before converting to
+<code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>. This avoids overflowing the raw endpoint difference or converting
+an unbounded count to an integer. <code class="docutils literal notranslate"><span class="pre">RoundToStep</span></code> similarly avoids integer
+rounding and retains the input when quotient/product arithmetic is unusable.</p>
+<p>Loose policy applies separately to each endpoint. <code class="docutils literal notranslate"><span class="pre">tight</span></code> keeps the resolved
+endpoint; ordinary <code class="docutils literal notranslate"><span class="pre">loose</span></code> uses an enclosing tick unless that endpoint was
+explicitly requested; <code class="docutils literal notranslate"><span class="pre">always</span></code> uses the enclosing tick even for an explicit
+request. The tick sweep can extend beyond the mapping range, so later geometry
+must filter ticks against the range.</p>
+</section>
+<section id="logarithmic-sweep-policy">
+<h3>Logarithmic sweep policy<a class="headerlink" href="#logarithmic-sweep-policy" title="Link to this heading">¶</a></h3>
+<p>Logarithmic mapping stores exponent coordinates. A span covering at most ten
+enclosing decades uses a major step of one decade. Wider spans select a nice
+interval in exponent space. Requested linear <code class="docutils literal notranslate"><span class="pre">-stepsize</span></code> is not consulted
+by this scaling routine.</p>
+<p>Narrow logarithmic minor ticks use the eight offsets <code class="docutils literal notranslate"><span class="pre">log10(2)</span></code> through
+<code class="docutils literal notranslate"><span class="pre">log10(9)</span></code>. Their sweep has <code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">==</span> <span class="pre">0</span></code> as a special selector; it does not
+mean repeated coincident ticks. Wider logarithmic sweeps instead use four
+fractions at 0.2 increments between major ticks.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LogAxisValue</span></code> converts back only within the interval bounded by <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code>
+and <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> and returns <code class="docutils literal notranslate"><span class="pre">NAN</span></code> outside it. Here <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> means the
+smallest positive <em>normal</em> double, not the smallest subnormal value. Exact
+endpoint handling avoids power-function rounding across these bounds.</p>
+</section>
+<section id="explicit-arrays-and-ownership">
+<h3>Explicit arrays and ownership<a class="headerlink" href="#explicit-arrays-and-ownership" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">SweepTicks</span></code> replaces generated arrays but preserves arrays selected by
+<code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MAJOR</span></code> or <code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MINOR</span></code>. Explicit major ticks disable
+automatic minor generation; an explicit minor list remains available. With
+explicit majors, minor fractions are placed between adjacent major entries,
+including descending pairs. Equal endpoints, missing following endpoints,
+fractions outside the open interval and rounded positions outside it are
+rejected. No minor is extrapolated after the final explicit major.</p>
+<p><code class="docutils literal notranslate"><span class="pre">GenerateTicks</span></code> returns an owned allocation even for an empty sweep.
+Invalid internal sweeps degrade to empty arrays rather than a layout error.
+Allocation itself uses the fatal Tcl allocator. <code class="docutils literal notranslate"><span class="pre">Rbc_AllocAxisMajorTicks</span></code>
+always returns an independent array: it copies an existing cache or generates
+from the sweep when no cache exists, notably for hidden Polar axes. Its copy
+path uses attempted allocation and can return NULL. Callers must both check
+that result and free successful results; they must not assume every cache is
+an explicitly supplied list.</p>
+</section>
+<section id="numerical-mapping-boundary">
+<h3>Numerical mapping boundary<a class="headerlink" href="#numerical-mapping-boundary" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">SetAxisRange</span></code> caches the endpoint difference and reciprocal. Very small
+absolute spans receive a unit cached range without changing the endpoints.
+Overflow-sized spans are handled by half-scaled normalization/interpolation.
+These helpers do not establish a universal finite-result guarantee:
+extrapolation and extreme inputs can still be nonfinite. Mapping consumers
+must retain their checks before integer conversion or rendering.</p>
+<p>Horizontal and vertical helpers use the full owning-track world rectangle,
+not just its visible clipped portion. Descending reversal and downward screen
+Y are applied after normalization. The low-level forward coordinate helpers
+expect logarithmic conversion to have happened already; inverse helpers
+convert exponents back to data values. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for clipping and
+viewport responsibilities.</p>
+</section>
+</section>
 </section>
 
 
@@ -252,6 +363,13 @@ configuration parsing is callback-free.</p>
 <li><a class="reference internal" href="#option-transaction-internals">Option transaction internals</a><ul>
 <li><a class="reference internal" href="#parsing-policies">Parsing policies</a></li>
 <li><a class="reference internal" href="#expression-evaluation-boundary">Expression evaluation boundary</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ranges-and-tick-generation">Ranges and tick generation</a><ul>
+<li><a class="reference internal" href="#linear-sweep-policy">Linear sweep policy</a></li>
+<li><a class="reference internal" href="#logarithmic-sweep-policy">Logarithmic sweep policy</a></li>
+<li><a class="reference internal" href="#explicit-arrays-and-ownership">Explicit arrays and ownership</a></li>
+<li><a class="reference internal" href="#numerical-mapping-boundary">Numerical mapping boundary</a></li>
 </ul>
 </li>
 </ul>

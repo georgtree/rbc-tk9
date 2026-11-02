@@ -644,6 +644,185 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 </dd></dl>
 
 </section>
+<section id="ranges-coordinates-and-tick-sweeps">
+<h2>Ranges, coordinates and tick sweeps<a class="headerlink" href="#ranges-coordinates-and-tick-sweeps" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__axis__ranges"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Axis</span> <span class="pre">ranges</span> <span class="pre">and</span> <span class="pre">tick</span> <span class="pre">sweeps</span></span></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.RoundToStep">
+<span class="target" id="group__axis__ranges_1ga7f5f718b25ed1b048ac93d21bc3df2fb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RoundToStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.RoundToStep" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Round a finite value to a multiple of a finite nonzero step. </p>
+<p>Uses halfway-away-from-zero rounding without an integer conversion. Returns the original value if inputs, quotient or rounded product cannot be used safely; does not report a Tcl error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.GetLinearSweep">
+<span class="target" id="group__axis__ranges_1gafad8c32c6e546b4047c8f5cbe8b0a04a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLinearSweep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">step</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tickMinPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tickMaxPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nTicksPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetLinearSweep" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute bounded enclosing tick endpoints and count. </p>
+<p>Requires finite endpoints and a positive finite step. Works in step units to avoid subtracting large raw endpoints. Rejects nonfinite quotients/products and counts outside 1..MAXTICKS before converting to Tcl_Size. Returns TRUE and assigns all outputs only on success; FALSE leaves outputs untouched. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.AutomaticLinearStep">
+<span class="target" id="group__axis__ranges_1ga035644b6515fece2f14dd79ca73b2e19"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AutomaticLinearStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.AutomaticLinearStep" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Select a practical automatic linear tick interval. </p>
+<p>First applies NiceNum to the representable positive span, aiming for DEF_NUM_TICKS intervals. If that fails, uses quarter-scaled endpoint subtraction to avoid span overflow. Returns a positive finite nice step when possible, otherwise 1.0; does not allocate or report errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.SetAxisRange">
+<span class="target" id="group__axis__ranges_1ga41447542c7f7959141b489874fa56bff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetAxisRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.SetAxisRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Store endpoints and cached normalization factors. </p>
+<p>Stores min/max unchanged, computes their difference and substitutes a unit range when its absolute value is below DBL_EPSILON. Stores the reciprocal as scale. Does not sort or validate endpoints; an overflowed difference remains nonfinite for the normalization helpers to handle. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.NormalizeAxisValue">
+<span class="target" id="group__axis__ranges_1ga03092d0fed167364f40e9608c5358bc2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NormalizeAxisValue</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.NormalizeAxisValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Normalize a coordinate against a prepared axis range. </p>
+<p>Uses cached range/scale for finite spans. For an overflowed span, halves endpoints and the value before division; returns NAN when the half-span is invalid or zero. Does not clip to 0..1 or apply logarithms, descending direction or screen offsets. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.InterpolateAxisValue">
+<span class="target" id="group__axis__ranges_1ga7e0e0df887e7497125c57f60e6f03bd5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InterpolateAxisValue</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">norm</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InterpolateAxisValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reconstruct an axis-space value from a normalized coordinate. </p>
+<p>Uses cached range and minimum for finite spans, or a half-scaled endpoint interpolation for overflowed spans. Does not clamp the normalized coordinate. Extrapolation may produce nonfinite results; callers must validate values before drawing or integer conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.LogAxisValue">
+<span class="target" id="group__axis__ranges_1ga7448b937a2f74ac7f3c48f7e2feaa2be"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogAxisValue</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">exponent</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LogAxisValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a base-ten exponent within the supported normal-double interval. </p>
+<p>Rejects nonfinite exponents and those outside log10(DBL_MIN)..log10(DBL_MAX) with NAN. Returns exact DBL_MIN/DBL_MAX at the endpoints to avoid power rounding across them. Otherwise requires a finite positive power result. This policy deliberately does not expose subnormal values. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.MapHorizontalAxisCoordinate">
+<span class="target" id="group__axis__ranges_1gad9ca3692230e1a706b65a91fb356e7c9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapHorizontalAxisCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MapHorizontalAxisCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map an already converted axis-space value horizontally. </p>
+<p>Normalizes, rejects nonfinite normalized values and applies descending reversal. Uses the owning track world rectangle when present, otherwise graph horizontal range/offset. Track spans have a one- pixel minimum. Does not perform logarithmic conversion or clipping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.MapVerticalAxisCoordinate">
+<span class="target" id="group__axis__ranges_1ga7ca7ac10b9f58c2f01693335c372d5f2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapVerticalAxisCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MapVerticalAxisCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map an already converted axis-space value vertically. </p>
+<p>Normalizes, rejects nonfinite normalized values and applies descending reversal and downward screen Y direction. Uses the owning track world rectangle or graph vertical range/offset. Track spans have a one-pixel minimum; no clipping or logarithmic conversion occurs here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.MakeLogRange">
+<span class="target" id="group__axis__ranges_1gaf3b2691a67b5b3562e447665c0590f61"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeLogRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">minPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">maxPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.MakeLogRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct a positive logarithmic interval around one value. </p>
+<p>Invalid or nonpositive input selects 0.001..1.0. Otherwise chooses roughly one decade centred on the value, shifting the interval at supported exponent endpoints, and converts it with LogAxisValue. Writes both outputs without changing an Axis record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.InRange">
+<span class="target" id="group__axis__ranges_1ga8454081649aa961f3245860357f863b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InRange</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="n"><span class="pre">AxisRange</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rangePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test a finite coordinate against a prepared range. </p>
+<p>Normalizes the coordinate, rejects nonfinite results and applies DBL_EPSILON tolerance around the unit interval. Uses axis-space coordinates, which are exponents for logarithmic axes; does not perform raw-data log conversion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.AxisIsHorizontal">
+<span class="target" id="group__axis__ranges_1ga29ef525bd3bcec89838f527ddb8e1960"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisIsHorizontal</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.AxisIsHorizontal" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve logical axis identity into screen orientation. </p>
+<p>Compares the logical Y class with graph inversion. Borrows graph and axis; does not modify their class or layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.InvHMap">
+<span class="target" id="group__axis__ranges_1ga5f2902f02b5151d12e53031bae0106f4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvHMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InvHMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invert horizontal mapping into a logical data value. </p>
+<p>Normalizes against the full owning-track world extent or graph horizontal scale, reverses descending direction and interpolates axis space. Converts logarithmic exponents through LogAxisValue. Extrapolates outside the plot and may return nonfinite values; no layout is performed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.InvVMap">
+<span class="target" id="group__axis__ranges_1ga654d95ba3c30417f8563078dd9d28c4b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InvVMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.InvVMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invert vertical mapping into a logical data value. </p>
+<p>Normalizes against the full owning-track world extent or graph vertical scale, reverses descending direction and accounts for downward screen Y. Interpolates axis space and converts logarithmic exponents. Does not clip or refresh layout; callers must handle nonfinite results. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.GetDataLimits">
+<span class="target" id="group__axis__ranges_1ga8fc14a4a2ccbba92bd3f76d0a6a53d81"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetDataLimits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetDataLimits" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Accumulate an element extent into an axis data range. </p>
+<p>Expands valueRange endpoints by comparison only; does not validate the extent, recompute cached range/scale or apply requested limits. Rbc_ResetAxes initializes the accumulation sentinels before calling this helper. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.FixAxisRange">
+<span class="target" id="group__axis__ranges_1ga7ef1c208b33ad1f8a8628c4166228fa9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FixAxisRange</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.FixAxisRange" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve accumulated data bounds and requested display limits. </p>
+<p>Supplies empty-data defaults, expands degenerate ranges and repairs invalid logarithmic inputs before caching valueRange. Copies data limits into min/max, applies requested endpoints and adjusts automatic endpoints when necessary. Applies automatic window shifting only when neither requested endpoint is defined, clamping negative shiftBy to zero. Marks AXIS_DIRTY and updates previous limits when resolved min/max change. Does not generate ticks or map geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.NiceNum">
+<span class="target" id="group__axis__ranges_1ga4543b2b49cdcfe17d12c2350c599a28f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NiceNum</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">round</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.NiceNum" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Choose a decimal 1/2/5/10 multiple near a positive magnitude. </p>
+<p>Uses Heckbert’s nice-number method (Graphics Gems, pages 61-63). The round argument selects nearest- style thresholds rather than upward enclosure. Expects a positive input; does not guarantee a finite positive result for extreme magnitudes, so scaling callers validate it. No graph state is changed. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.GenerateTicks">
+<span class="target" id="group__axis__ranges_1ga91be657b933e28521ed114798a49fccc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GenerateTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TickSweep</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sweepPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GenerateTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate values from an internal tick sweep. </p>
+<p>Returns an owned allocation, possibly with zero ticks. Invalid counts or nonfinite sweep fields produce an empty array. A zero step selects the fixed log10(2)..log10(9) table and allows at most eight entries. Other steps generate rounded successive values, stopping before a nonfinite value. Uses ckalloc, so allocation failure is not a recoverable NULL result. Free the returned allocation with ckfree. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks">
+<span class="target" id="group__axis__ranges_1ga16ac594195545aead997aa4fa10765fd"></span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AllocAxisMajorTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return an independently owned major-tick array. </p>
+<p>Copies t1Ptr when present, whether explicit or cached generated ticks; size or attempted-allocation failure then returns NULL. Otherwise generates from majorSweep, supporting hidden Polar axes without rectangular tick caches. The axis and prepared sweep are borrowed; callers free the result with ckfree. Generation uses the fatal allocator rather than the copy path’s attempted allocator. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.LogScaleAxis">
+<span class="target" id="group__axis__ranges_1ga3f8f1b75cd012339d3c1a96b3c2bf1a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogScaleAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LogScaleAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare logarithmic mapping bounds and tick sweeps. </p>
+<p>Repairs invalid positive inputs and collapsed logarithms, then selects major ticks in exponent space. Spans exceeding ten enclosing decades use a nice exponent interval; narrower spans use unit decades. Applies endpoint loose policies and supported exponent bounds. Narrow minor sweeps use the zero-step log table; wide sweeps use four fractions at 0.2 increments. Explicit major ticks disable automatic minors. Writes axisRange and both sweep records, without allocating tick arrays. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.LinearScaleAxis">
+<span class="target" id="group__axis__ranges_1gae5d0e6dd7129ac9a8db109f27661ff14"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LinearScaleAxis</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">min</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">max</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.LinearScaleAxis" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare linear mapping bounds and tick sweeps. </p>
+<p>Tries a requested positive step, reducing overly large intervals by halves. Falls back to AutomaticLinearStep if the requested sweep is impractical, then to no major ticks if necessary. Applies independent loose policies to mapping endpoints. Automatic minors subdivide the major interval unless explicit major ticks are configured. Writes axisRange and sweep records; actual arrays are generated later. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.SweepTicks">
+<span class="target" id="group__axis__ranges_1gabdbd51a764b737a514c5d3961691071a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SweepTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.SweepTicks" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh generated tick caches while retaining explicit arrays. </p>
+<p>Replaces t1Ptr/t2Ptr only when their AXIS_CONFIG_MAJOR/MINOR flags are clear. Frees old generated arrays and owns the new GenerateTicks results. Does not change explicit arrays, recompute sweeps or report recoverable allocation errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.Rbc_ResetAxes">
+<span class="target" id="group__axis__ranges_1ga6c86ee613c4bf7f54baed6bae85bd28f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ResetAxes</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.Rbc_ResetAxes" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Recompute data ranges and scaling sweeps for the graph. </p>
+<p>Prepares bar frequencies/stacks, resets every registered axis to accumulation sentinels and collects extents from elements that are neither hidden nor plotHidden. Applies Polar empty-grid fallbacks or Smith unit-circle bounds to mapped nonlogarithmic grid axes. Resolves requested ranges, constrains scaling inputs by scroll limits and computes linear/log sweeps. Clears RESET_AXES and requests geometry, layout, mapping and redraw; does not allocate tick caches or draw. Registered delete- pending records are included because consumers may still reference them. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrAxisRanges.GetMinorTickPosition">
+<span class="target" id="group__axis__ranges_1ga937ef567ab5f35ab099a34faf1ac9485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMinorTickPosition</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Ticks</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">majorPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">fraction</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisRanges.GetMinorTickPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a minor fraction against a major interval. </p>
+<p>Requires a valid major array index. With explicit majors, requires a following distinct endpoint and a fraction strictly inside 0..1, interpolates between adjacent entries, and rejects rounded results outside that open interval. Otherwise adds majorSweep.step times fraction. Returns FALSE for invalid/nonfinite results without assigning the output; TRUE writes an axis-space coordinate. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -747,6 +926,33 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 <li><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction"><code class="docutils literal notranslate"><span class="pre">AxisShadowTransaction</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTagsTransaction"><code class="docutils literal notranslate"><span class="pre">AxisTagsTransaction</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrAxisTransactions.AxisFormatTransaction"><code class="docutils literal notranslate"><span class="pre">AxisFormatTransaction</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ranges-coordinates-and-tick-sweeps">Ranges, coordinates and tick sweeps</a><ul>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.RoundToStep"><code class="docutils literal notranslate"><span class="pre">RoundToStep()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.GetLinearSweep"><code class="docutils literal notranslate"><span class="pre">GetLinearSweep()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.AutomaticLinearStep"><code class="docutils literal notranslate"><span class="pre">AutomaticLinearStep()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.SetAxisRange"><code class="docutils literal notranslate"><span class="pre">SetAxisRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.NormalizeAxisValue"><code class="docutils literal notranslate"><span class="pre">NormalizeAxisValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.InterpolateAxisValue"><code class="docutils literal notranslate"><span class="pre">InterpolateAxisValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.LogAxisValue"><code class="docutils literal notranslate"><span class="pre">LogAxisValue()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.MapHorizontalAxisCoordinate"><code class="docutils literal notranslate"><span class="pre">MapHorizontalAxisCoordinate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.MapVerticalAxisCoordinate"><code class="docutils literal notranslate"><span class="pre">MapVerticalAxisCoordinate()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.MakeLogRange"><code class="docutils literal notranslate"><span class="pre">MakeLogRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.InRange"><code class="docutils literal notranslate"><span class="pre">InRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.AxisIsHorizontal"><code class="docutils literal notranslate"><span class="pre">AxisIsHorizontal()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.InvHMap"><code class="docutils literal notranslate"><span class="pre">InvHMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.InvVMap"><code class="docutils literal notranslate"><span class="pre">InvVMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.GetDataLimits"><code class="docutils literal notranslate"><span class="pre">GetDataLimits()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.FixAxisRange"><code class="docutils literal notranslate"><span class="pre">FixAxisRange()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.NiceNum"><code class="docutils literal notranslate"><span class="pre">NiceNum()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.GenerateTicks"><code class="docutils literal notranslate"><span class="pre">GenerateTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks"><code class="docutils literal notranslate"><span class="pre">Rbc_AllocAxisMajorTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.LogScaleAxis"><code class="docutils literal notranslate"><span class="pre">LogScaleAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.LinearScaleAxis"><code class="docutils literal notranslate"><span class="pre">LinearScaleAxis()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.SweepTicks"><code class="docutils literal notranslate"><span class="pre">SweepTicks()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.Rbc_ResetAxes"><code class="docutils literal notranslate"><span class="pre">Rbc_ResetAxes()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrAxisRanges.GetMinorTickPosition"><code class="docutils literal notranslate"><span class="pre">GetMinorTickPosition()</span></code></a></li>
 </ul>
 </li>
 </ul>
