@@ -791,3 +791,70 @@ DrawRenderedStrips submits an independent segment batch through one strip stroke
 context. Both borrow mapped geometry and pen resources, resolve the default
 off-dash color, and end a successfully created context. Context creation failure
 skips drawing. These adapters neither map source data nor own persistent arrays.
+
+Line symbols and output dispatch
+--------------------------------
+
+Normal screen drawing and export use the same broad order: area fill,
+uncertainty band, strokes, then per-style error bars, symbols and labels.
+Independent strips use palette pens; connected trace chains use the normal pen.
+Drawing consumes mapped geometry. In particular, NormalLineExport does not itself
+remap or disable decimation: export preparation owns that responsibility.
+
+Active output is separate. Explicit active indices draw symbols and labels only,
+refreshing their geometry when pending. Whole-element activation also draws the
+available strokes. Neither active path adds fills or error bars. Both use the
+active pen and its scaled symbol size.
+
+Symbol selection and fallback
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SymbolInterval divides total palette center count by the requested maximum.
+It supplies a density interval, not a strict count cap. Normal output advances
+a shared counter across palette slices; styles without symbols still contribute
+their center count. Label selection uses a matching interval and slice offset.
+The screen path resets its interval after the normal pass; export uses local
+interval/counter variables. Active export bypasses sampling.
+
+DrawSymbols tries tiny Cairo points, Cairo bitmap symbols, then Cairo geometric
+symbols before native fallback. Tiny points use fill color only and bypass the
+interval. Geometric fill and outline passes start from the same counter so they
+select identical centers; the counter advances once for the entire pass.
+Segment-shaped symbols have no fill and retain hairline behavior.
+
+Bitmap drawing scales bitmap and optional mask once per pass. A transparent
+background uses the bitmap as its own mask. Renderer setup captures image data
+before temporary pixmaps are freed; selected centers are submitted in bounded
+batches. Explicit drawable targets, used for legends, bypass plot sampling.
+
+Native fallback skips clip setup for wholly interior batches. If conservative
+symbol bounds cross the plot boundary, it uses the screen clip adapter and its
+target drawable. DrawSymbolsUnclipped only translates pen resources into native
+renderer style and propagates the sampling counter; it does not establish a clip.
+
+GetRenderedSymbolShape retains native proportions and integer template rounding.
+None and bitmap symbols do not have a geometric template. Screen legend samples
+use explicitly sized targets and their own fallback sequence. Export legends use
+a single thicker trace segment, whereas the screen trace sample uses two adjacent
+segments; their constructions should not be assumed identical.
+
+Fills and labels
+~~~~~~~~~~~~~~~~
+
+DrawRenderedFill attempts Cairo output and reports whether it handled the fill.
+Tiles take precedence over patterns, including when a tile cannot be rendered;
+it does not expose the pattern underneath. DrawLineFill owns subsequent native
+fallback and suppresses an empty tile. Pattern opacity is separate from tile
+image transparency. Export fill policy is delegated to its backend. See
+:doc:`fills` for the resource and geometry contracts.
+
+DrawValues and ValuesExport filter centers against the unpadded viewport, select
+source indices and obtain retained label objects through Rbc_GetElementValueLabel.
+Each object is released after drawing or skipping an empty label. Screen labels
+check offset coordinates against integer limits and convert to integers; export
+labels retain double coordinates.
+
+These loops borrow arrays, pens and element records across label-command calls.
+The existing restriction on mutating drawing state or entering nested event loops
+therefore applies to both screen and export callbacks. Retaining the label result
+and preserving interpreter state do not protect borrowed drawing storage.

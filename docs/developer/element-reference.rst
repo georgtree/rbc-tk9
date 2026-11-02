@@ -124,3 +124,16 @@ This namespace only disambiguates private documentation symbols.
    :members:
 
 .. c:namespace-pop::
+
+Line symbol and output dispatch
+-------------------------------
+
+See :doc:`elements` for sampling, renderer fallback and label lifetime rules.
+These are private adapters; the namespace below is documentation-only.
+
+.. c:namespace-push:: rbcGrLineOutput
+
+.. doxygengroup:: line_output_dispatch
+   :members:
+
+.. c:namespace-pop::

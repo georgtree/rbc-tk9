@@ -46,6 +46,10 @@
  * Private distance searches, snapshot metadata and screen stroke adapters.
  */
 
+/** @defgroup line_output_dispatch Line symbol and output dispatch
+ * Private screen/export adapters, palette sampling and label lifetimes.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -9194,7 +9198,15 @@ static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penP
     }
 }
 
-/* Use the native symbol proportions and integer template vertices. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Build an origin-centered geometric symbol template.
+ *
+ * Zeros the caller-owned shape and fills circle, polygon or independent
+ * segment geometry using native proportions and integer rounding. Returns
+ * FALSE for unsupported types, including bitmap and none; such output is not
+ * a usable template. Borrows no persistent storage and performs no allocation.
+ */
 static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *shape) {
     int i;
 
@@ -9276,8 +9288,16 @@ static int GetRenderedSymbolShape(SymbolType type, int size, Rbc_RenderShape *sh
     return TRUE;
 }
 
-/* Draw plot symbols in bounded fill/outline passes; leave legends native. */
-/* Native tiny symbols use fill only and bypass symbol decimation. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Handle tiny Cairo symbols as filled points.
+ *
+ * Returns FALSE unless Cairo is selected and size is below three, or when
+ * context creation fails, allowing fallback. A missing effective fill color or
+ * nonpositive count is successfully handled without drawing. Resolves default
+ * fill to trace color and uses explicit drawable dimensions when supplied.
+ * Draws all centers without symbol-interval filtering, then ends the context.
+ */
 static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPtr, int size, Tcl_Size count,
                               const Point2D *points, int targetWidth, int targetHeight) {
     Rbc_RenderContext *ctx;
@@ -9301,7 +9321,20 @@ static int DrawRenderedPoints(Graph *graphPtr, Drawable drawable, LinePen *penPt
     return TRUE;
 }
 
-/* Share one scaled bitmap and Cairo source across this symbol pass. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw a Cairo bitmap-symbol pass with shared scaled resources.
+ *
+ * Requires Cairo, a bitmap symbol, size at least three, positive count and
+ * an effective foreground. Scales bitmap and optional mask once. Transparent
+ * background uses the bitmap itself as mask. Releases temporary pixmaps after
+ * context creation; renderer setup captures the required image data.
+ *
+ * Returns FALSE on ineligibility or setup failure for caller fallback. Submits
+ * selected centers in batches of 256, advancing the shared symbol counter only
+ * for plot drawing with a positive interval. Explicit drawable targets bypass
+ * that interval. Ends the context and returns TRUE after handling the pass.
+ */
 static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                      Tcl_Size nPoints, const Point2D *points, int targetWidth, int targetHeight) {
     Pixmap bitmap, mask = None;
@@ -9375,6 +9408,19 @@ static int DrawRenderedBitmapSymbols(Graph *graphPtr, Drawable drawable, Line *l
     return TRUE;
 }
 
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw geometric Cairo symbols in fill and outline passes.
+ *
+ * Returns FALSE for non-Cairo, tiny/unsupported shapes or failed context
+ * creation. Resolves default colors from the trace pen. Segment symbols omit
+ * fill and retain a hairline outline even at configured width zero.
+ *
+ * Each pass starts from the same counter so fill and outline select identical
+ * centers. Uses batches of 256 and advances the line counter once for the
+ * whole input when an interval is active. Ends the context and returns TRUE;
+ * geometry and pen resources remain borrowed.
+ */
 static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                Tcl_Size nSymbolPts, const Point2D *symbolPts) {
     Rbc_RenderContext *ctx;
@@ -9430,7 +9476,15 @@ static int DrawRenderedSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr
     return TRUE;
 }
 
-/* Error bars are solid and keep the native zero-width hairline convention. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Submit solid screen error-bar segments through a stroke context.
+ *
+ * Resolves default error-bar color to trace color and uses at least unit
+ * width for renderer stroke setup while retaining the native GC. Begins and
+ * ends one segment context; NULL context skips drawing. Borrows all arrays
+ * and pen resources and does not apply symbol sampling here.
+ */
 static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                   Tcl_Size count) {
     XColor *color = (penPtr->errorBarColor == COLOR_DEFAULT) ? penPtr->traceColor : penPtr->errorBarColor;
@@ -9442,6 +9496,15 @@ static void DrawRenderedErrorBars(Graph *graphPtr, Drawable drawable, LinePen *p
     }
 }
 
+/**
+ * @ingroup line_output_dispatch
+ * @brief Dispatch native symbol drawing and retain its sampling counter.
+ *
+ * Builds a temporary native style from the pen's GCs, bitmap, mask, interval
+ * and counter. Submits borrowed centers through a native symbol context,
+ * ends it and copies the updated style counter back to the line. Does not
+ * establish a plot clip; callers must supply an appropriate target/clip.
+ */
 static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                                  Tcl_Size nSymbolPts, Point2D *symbolPts) {
     static const Rbc_RenderSymbolType types[] = {
@@ -9459,37 +9522,18 @@ static void DrawSymbolsUnclipped(Graph *graphPtr, Drawable drawable, Line *lineP
     linePtr->symbolCounter = style.counter;
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw plot symbols with renderer fallbacks and boundary clipping.
  *
- * DrawSymbols --
+ * Skips empty arrays and SYMBOL_NONE. Tries tiny Cairo points, Cairo bitmaps
+ * and Cairo geometric symbols in order. If none handles the pass, bounds the
+ * plot rectangle by the drawable and checks conservative symbol padding.
  *
- *      Draw the symbols centered at the each given x,y coordinate
- *      in the array of points.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Drawable drawable - Pixmap or window to draw into
- *      Line *linePtr
- *      LinePen *penPtr
- *      int size - Size of element
- *      int nSymbolPts - Number of coordinates in array
- *      Point2D *symbolPts - Array of x,y coordinates for line
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws a symbol at each coordinate given.  If active,
- *      only those coordinates which are currently active are
- *      drawn.
- *
- * -----------------------------------------------------------------
- */
-
-/*
- * Draw element symbols clipped to the plot area.
- * Batches entirely inside the plot retain the existing drawing path.
+ * Wholly interior native batches draw directly. Boundary batches use a screen
+ * clip context and its target drawable, then end clip and context. Empty clips
+ * skip drawing. Borrows centers and pen resources; helpers may advance the
+ * line's shared sampling counter.
  */
 static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, int size,
                         Tcl_Size nSymbolPts, Point2D *symbolPts) {
@@ -9538,28 +9582,15 @@ static void DrawSymbols(Graph *graphPtr, Drawable drawable, Line *linePtr, LineP
     }
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw one legend sample into an explicitly sized drawable.
  *
- * DrawSymbol --
- *
- *      Draw the symbol centered at the each given x,y coordinate.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Drawable drawable - Pixmap or window to draw into
- *      Element *elemPtr - Line element information
- *      int x - Center position of symbol
- *      int y - Center position of symbol
- *      int size - Size of symbol.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws a symbol at the coordinate given.
- *
- * -----------------------------------------------------------------
+ * Uses the normal pen to draw a trace sample and optional centered symbol.
+ * The trace uses two adjacent segments, with a native legend-line fallback
+ * if context creation fails. Symbols try tiny points, bitmap rendering and
+ * geometric templates before native fallback. Does not establish a plot clip
+ * or remap source data; width/height describe the legend target.
  */
 static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int x, int y, int size, int width,
                        int height) {
@@ -9606,29 +9637,20 @@ static void DrawSymbol(Graph *graphPtr, Drawable drawable, Element *elemPtr, int
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Render sampled value labels at mapped centers on screen.
  *
- * DrawValues --
+ * Borrows point and parallel source-index arrays. Applies interval/offset
+ * selection and unpadded viewport filtering before obtaining source values.
+ * Rbc_GetElementValueLabel returns one retained Tcl object per label; this
+ * routine releases it even when empty. Offset positions outside integer range
+ * are skipped; accepted coordinates are converted to integers for screen text.
  *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Drawable drawable
- *      Line *linePtr
- *      LinePen *penPtr
- *      int nSymbolPts
- *      Point2D *symbolPts
- *      int *pointToData
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Owns and ends one text context. Label commands can run Tcl: callers must
+ * keep drawing records, arrays and pens stable, and callbacks must not mutate
+ * drawing state or enter nested event processing. This loop adds no lifetime
+ * or reentrancy guard.
  */
 static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts,
                        Point2D *symbolPts, const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
@@ -9675,29 +9697,15 @@ static void DrawValues(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Rbc_RenderEnd(text);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw explicit active points or the whole active element.
  *
- * DrawActiveLine --
- *
- *      Draws the connected line(s) representing the element. If the
- *      line is made up of non-line symbols and the line width
- *      parameter has been set (linewidth > 0), the element will also
- *      be drawn as a line (with the linewidth requested).  The line
- *      may consist of separate line segments.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Drawable drawable - Pixmap or window to draw into
- *      Element *elemPtr - Element to be drawn
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      X drawing commands are output.
- *
- *----------------------------------------------------------------------
+ * Returns when there is no active pen. Positive active count refreshes pending
+ * active geometry and draws its symbols/labels only. Negative count draws the
+ * whole mapped trace or strip plus symbols/labels; zero draws nothing.
+ * Uses the scaled active symbol size. Does not draw fills or error bars.
+ * Value-label callbacks have the same stability requirements as DrawValues.
  */
 static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -9744,7 +9752,17 @@ static void DrawActiveLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     }
 }
 
-/* Tiles take precedence, including when the image is empty or unsupported. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Attempt a Cairo tile or pattern fill before native fallback.
+ *
+ * Returns FALSE outside Cairo. A supplied tile takes precedence: obtains its
+ * photo block and delegates tile drawing, without trying the pattern if that
+ * fails. With no tile, None stipple declines the operation; missing foreground
+ * is recovered from the native GC. PATTERN_SOLID becomes no renderer stipple.
+ * Forwards pattern opacity; tile transparency comes from the image itself.
+ * Borrows geometry/resources and returns whether the renderer handled the fill.
+ */
 static int DrawRenderedFill(Graph *graphPtr, Drawable drawable, const Point2D *points, Tcl_Size count,
                              XColor *foreground, XColor *background, GC gc, Rbc_Tile tile,
                              Pixmap stipple, double opacity) {
@@ -9807,7 +9825,15 @@ static void DrawLineFill(Graph *graphPtr, Drawable drawable, const Point2D *poin
     Rbc_RenderEnd(ctx);
 }
 
-/* Use the same density interval for screen drawing and vector export. */
+/**
+ * @ingroup line_output_dispatch
+ * @brief Compute the shared screen/export symbol sampling interval.
+ *
+ * Returns zero when no positive requested maximum exists. Otherwise sums
+ * palette symbol counts and returns integer division by the requested maximum.
+ * Zero and one both select all centers in normal use. This is a density
+ * interval, not a strict maximum-count guarantee. Does not mutate the line.
+ */
 static Tcl_Size SymbolInterval(Line *linePtr) {
     Tcl_Size total = 0;
     Rbc_ChainLink *linkPtr;
@@ -9824,29 +9850,18 @@ static Tcl_Size SymbolInterval(Line *linePtr) {
     return total / (Tcl_Size)linePtr->reqMaxSymbols;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Draw mapped fills, strokes and palette annotations on screen.
  *
- * DrawNormalLine --
+ * Draws area then error-band polygons, followed by palette strip strokes or
+ * the normal-pen connected traces. Initializes shared symbol interval/counter,
+ * then draws each style's enabled error bars, symbols and value labels.
+ * Styles without symbols still advance the interval counter; label offsets
+ * track the parallel source-index slices. Resets symbolInterval on completion.
  *
- *      Draws the connected line(s) representing the element. If the
- *      line is made up of non-line symbols and the line width parameter
- *      has been set (linewidth > 0), the element will also be drawn as
- *      a line (with the linewidth requested).  The line may consist of
- *      separate line segments.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Drawable drawable - Pixmap or window to draw into
- *      Element *elemPtr - Element to be drawn
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      X drawing commands are output.
- *
- *----------------------------------------------------------------------
+ * Borrows mapped geometry and configured resources. Label callbacks require
+ * stable drawing state; this function does not protect iteration from mutation.
  */
 static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr) {
     LinePen *normalPenPtr;
@@ -9909,15 +9924,15 @@ static void DrawNormalLine(Graph *graphPtr, Drawable drawable, Element *elemPtr)
     linePtr->symbolInterval = 0;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export sampled symbols using a resolved renderer symbol style.
  *
- * SymbolsExport --
- *
- *      Resolve pen colors and export symbols through the renderer.
- *      Normal, active and legend symbols share this path.
- *
- *----------------------------------------------------------------------
+ * Borrows pen and center arrays, skipping none/empty symbols. Resolves default
+ * colors and passes bitmap/mask and size to an export-symbol context. For
+ * interval greater than one, requires a writable counter, advances it for
+ * every input and submits selected centers. Otherwise submits the full batch
+ * without touching the counter, which may be NULL. Ends the context.
  */
 static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen *penPtr, int size, Tcl_Size nSymbolPts,
                                 Point2D *symbolPts, Tcl_Size interval, Tcl_Size *counterPtr) {
@@ -9959,28 +9974,14 @@ static void SymbolsExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, LinePen
     Rbc_RenderEnd(ctx);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export a normal-pen legend sample.
  *
- * SymbolExport --
- *
- *      Draw the symbol centered at the each given x,y coordinate.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr - Line element information
- *      double x - Center position of symbol
- *      double y - Center position of symbol
- *      int size - Size of element
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Draws a symbol at the coordinate given.
- *
- * -----------------------------------------------------------------
+ * Emits an optional trace segment spanning twice the supplied size, with
+ * trace width increased by two and butt/miter stroke settings, then exports
+ * one centered symbol without sampling. Borrows the pen and export context;
+ * does not use the screen legend's two-segment construction.
  */
 static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr, double x, double y, int size) {
     LinePen *penPtr = LINE_PEN_FROM_CORE(elemPtr->normalPenPtr);
@@ -10000,15 +10001,13 @@ static void SymbolExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element 
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Create an export stroke context for a line pen.
  *
- * BeginLineExport --
- *
- *      Create a shared stroke context for a line pen, including its
- *      optional off-dash background. The caller ends the context.
- *
- *----------------------------------------------------------------------
+ * Uses trace color, width and dashes with butt caps and miter joins, then
+ * sets the optional off-dash background. Returns the renderer context for the
+ * caller to end. Does not own the pen or alter mapped geometry.
  */
 static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
@@ -10019,25 +10018,13 @@ static Rbc_RenderContext *BeginLineExport(Rbc_ExportContext *exportPtr, LinePen 
     return ctx;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export all connected traces through one pen stroke context.
  *
- * TracesExport --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ExportContext *exportPtr
- *      Line *linePtr
- *      LinePen *penPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Begins a line export context, submits each borrowed trace polyline in chain
+ * order and ends the context. Does not resample, remap or take ownership of
+ * trace arrays; export preparation must supply the desired geometry.
  */
 static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr) {
     Rbc_ChainLink *linkPtr;
@@ -10051,28 +10038,17 @@ static void TracesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
     Rbc_RenderEnd(ctx);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export sampled labels using double-precision mapped positions.
  *
- * ValuesExport --
+ * Applies the same interval/offset, viewport and source-value filtering as
+ * screen labels. Creates one output context and releases each retained label
+ * object after use. Exports center plus offset without screen integer conversion.
  *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_ExportContext *exportPtr
- *      Line *linePtr
- *      LinePen *penPtr
- *      int nSymbolPts
- *      Point2D *symbolPts
- *      int *pointToData
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Label callbacks may execute Tcl and require stable element, pen and mapping
+ * storage. Does not guard against callback mutation or nested event processing.
+ * Ends the output context; owns neither the export destination nor input arrays.
  */
 static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *penPtr, Tcl_Size nSymbolPts, Point2D *symbolPts,
                                const Tcl_Size *pointToData, Tcl_Size interval, Tcl_Size offset) {
@@ -10113,27 +10089,15 @@ static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
     Rbc_RenderEnd(output);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export explicit active symbols or whole-element highlighting.
  *
- * ActiveLineExport --
- *
- *      Generates PostScript commands to draw as "active" the points
- *      (symbols) and or line segments (trace) representing the
- *      element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript pen width, dashes, and color settings are changed.
- *
- *----------------------------------------------------------------------
+ * With an active pen, positive active count refreshes pending active geometry
+ * and exports symbols/labels. Negative count exports available strips/traces,
+ * symbols and labels for the whole element. Zero count or absent pen emits
+ * nothing. Uses scaled active size and no symbol sampling. Does not export
+ * active fills/error bars. Label callbacks require stable drawing resources.
  */
 static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr;
@@ -10179,26 +10143,19 @@ static void ActiveLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_output_dispatch
+ * @brief Export mapped fills, strokes and palette annotations in order.
  *
- * NormalLineExport --
+ * Exports area then error-band polygons through fill contexts, including tile,
+ * pattern and opacity policy handled by the backend. Exports palette strip
+ * strokes or normal-pen connected traces, then enabled error bars, symbols
+ * and labels per style. Shares a local symbol interval/counter across styles
+ * and keeps label source-index offsets aligned with palette slices.
  *
- *      Similar to the DrawLine procedure, prints PostScript related
- *      commands to form the connected line(s) representing the element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Rbc_ExportContext *exportPtr
- *      Element *elemPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      PostScript pen width, dashes, and color settings are changed.
- *
- *----------------------------------------------------------------------
+ * Borrows geometry already prepared for export; does not disable decimation
+ * or remap here. Backend-specific fill behavior remains in the renderer.
+ * Value-label callbacks require stable drawing state throughout traversal.
  */
 static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
