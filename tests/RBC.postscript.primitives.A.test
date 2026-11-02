@@ -56,6 +56,25 @@ namespace eval postscript.primitives {
         -constraints psHarness -body {
             ::rbcpsrastertest bitmap
         } -result "% sentinel\n\t<80804000>\n"
+    set case 0
+    foreach {negative positive} {-90 270 -180 180 -270 90 -450 270 -459 261} {
+        foreach anchor {nw n ne w center e sw s se} {
+            test RBC.postscript.primitives.A.6.[incr case] {equivalent rotations retain the same anchored box} \
+                -constraints psHarness -body {
+                    set first [lindex [split [::rbcpstexttest $negative $anchor] \n] 0]
+                    set second [lindex [split [::rbcpstexttest $positive $anchor] \n] 0]
+                    list [expr {[lrange $first 0 1] eq [lrange $second 0 1]}] \
+                        [expr {[lrange $first 3 4] eq [lrange $second 3 4]}] \
+                        [expr {[lindex $first 2] == $negative && [lindex $second 2] == $positive}]
+                } -result {1 1 1}
+        }
+    }
+    foreach {case offset expected} {1 2147483647 4294967294 2 -2147483648 -4294967296 3 12 24} {
+        test RBC.postscript.primitives.A.7.$case {fragment offset addition preserves the full coordinate} \
+            -constraints psHarness -body {
+                ::rbcpstexttest $offset
+            } -result "(A) 7 $expected $expected DrawAdjText\n"
+    }
     ::tcltest::cleanupTests
 }
 if {$psAvailable} {destroy .}

@@ -54,37 +54,27 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ReleasePsToken">
 <span class="target" id="rbc_ps_8h_1a00fbca318043d8c065bb063d8659063c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ReleasePsToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ReleasePsToken" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Release a non-NULL token and its output buffer. </p>
-<p>Borrowed interpreter, window and mapping variable names are not released. All pointers returned into the token become invalid. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PostScriptFromToken">
 <span class="target" id="rbc_ps_8h_1a0d4d74d894f0e131d8996ff7b1c693b2"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PostScriptFromToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PostScriptFromToken" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return the borrowed, NUL-terminated output buffer. </p>
-<p>Do not free the result. Appending output may relocate it; releasing the token invalidates it. This accessor does not finalize a document. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ScratchBufferFromToken">
 <span class="target" id="rbc_ps_8h_1abd4f1793fdea725db7dbdc5b8886cf89"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ScratchBufferFromToken</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ScratchBufferFromToken" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return borrowed mutable scratch storage of PSTOKEN_BUFSIZ + 1 bytes. </p>
-<p>Formatting and prolog reads reuse this storage. It is not the output buffer and must not be retained across those operations or token release. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_AppendToPostScript">
 <span class="target" id="rbc_ps_8h_1a225d5149418d7b444bc33e4e74daa768"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_AppendToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append a sequence of NUL-terminated strings, ending with a NULL pointer. </p>
-<p>Strings are copied without escaping. Callers supply PostScript syntax and must not pass binary data or pointers invalidated by output growth. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FormatToPostScript">
 <span class="target" id="rbc_ps_8h_1aa3f34d600b0aba4cd6bca8bd20cc404b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FormatToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FormatToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append printf-formatted PostScript, using scratch storage or a temporary allocation when the formatted result exceeds the scratch capacity. </p>
-<p>This void helper does not report a formatting failure to the interpreter. It performs no PostScript string escaping. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_AppendPostScriptString">
@@ -96,9 +86,7 @@
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FileToPostScript">
 <span class="target" id="rbc_ps_8h_1a30fe970592cb025cd2e4963e1c7b3ef4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FileToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_FileToPostScript" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append a text prolog from fileName relative to the rbc::library variable. </p>
-<p>Return TCL_ERROR for library lookup, open or read failure, with an interpreter diagnostic; otherwise return TCL_OK. Partial output is not rolled back. The channel is closed, but its close status is not propagated. Reads overwrite token scratch storage. Tcl variable and channel operations may execute callbacks; the enclosing export owns lifetime protection. </p>
-</dd></dl>
+<dd></dd></dl>
 
 <section id="legacy-drawing-primitives">
 <h2>Legacy drawing primitives<a class="headerlink" href="#legacy-drawing-primitives" title="Link to this heading">¶</a></h2>
@@ -254,8 +242,6 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <dt class="sig sig-object cpp">
 <span class="target" id="group__ps__raster__encoding"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">raster</span> <span class="pre">and</span> <span class="pre">bitmap</span> <span class="pre">encoding</span></span></dt>
 <dd><p>Legacy image conversion, bitmap payloads and capture wrappers. </p>
-<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
-<p>See “license.terms” for details. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
@@ -325,6 +311,64 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 </dd></dl>
 
 </section>
+<section id="font-mapping-and-text-placement">
+<h2>Font mapping and text placement<a class="headerlink" href="#font-mapping-and-text-placement" title="Link to this heading">¶</a></h2>
+<p>The X11 property helpers below supplement the shared font-selection path;
+Windows goes directly to the final fallback when family recognition fails.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__ps__text__mapping"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">font</span> <span class="pre">mapping</span> <span class="pre">and</span> <span class="pre">text</span> <span class="pre">placement</span></span></dt>
+<dd><p>Legacy font names and screen-metric text, without embedded outlines. </p>
+<p>Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo All rights reserved.</p>
+<p>See “license.terms” for details. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsText.NameOfAtom">
+<span class="target" id="group__ps__text__mapping_1gad0ab4c209fadaf482b7f39cc00c23df0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NameOfAtom</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Atom</span></span><span class="w"> </span><span class="n"><span class="pre">atom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.NameOfAtom" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Borrow an X11 atom name, translating Tk’s bad-atom sentinel to NULL. </p>
+<p>Requires a live Tk window. The returned name belongs to Tk and must not be freed. The helper does not acquire a font or allocate output storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsText.XFontStructToPostScript">
+<span class="target" id="group__ps__text__mapping_1ga6daf8c88f8b0fdf0e2353e93c2c9df80"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">XFontStructToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">XFontStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fontPtr</span></span>, <span class="n"><span class="pre">Tcl_DString</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">resultPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.XFontStructToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build a legacy PostScript name from borrowed X11 font properties. </p>
+<p>Requires an initialized result DString and a valid XFontStruct. Missing FULL_NAME, FOUNDRY or FAMILY_NAME returns NULL without replacing the result. Adobe families are kept; other foundries remove an optional ITC prefix and use an exact case-insensitive alias match, defaulting to Helvetica. If the full name starts with the original family, its remaining typeface is appended after a dash with spaces and dashes removed. Success replaces resultPtr and returns a borrowed pointer into it. No font is released here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsText.Rbc_FontToPostScript">
+<span class="target" id="group__ps__text__mapping_1ga19ed065006a9dc976ba8cb2081bf3a3b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_FontToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="n"><span class="pre">Tk_Font</span></span><span class="w"> </span><span class="n"><span class="pre">font</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.Rbc_FontToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append a PostScript font name and size using the legacy fallback chain. </p>
+<p>Borrows the token and Tk font. A found font-map array entry takes priority: its first list element supplies the raw font name; exactly two elements with an integer second element supply the size. Otherwise size remains twelve, including one-element entries. Parse errors do not stop output. Without a mapped entry, recognized family prefixes use Tk_PostscriptFontName. Other X11 families attempt XLoadQueryFont and property-based mapping, freeing the loaded font after copying its name into a temporary DString. Windows skips this attempt. Final fallback is Helvetica-Bold, normally at size twelve. Releases temporary Tcl descriptions, split lists and DStrings. No glyphs are embedded. Variable reads can execute traces; enclosing export code owns callback lifetime protection. This void helper does not report failure. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsText.TextLayoutToPostScript">
+<span class="target" id="group__ps__text__mapping_1ga62358dc4b2fcffb10c34798928b14fd6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TextLayoutToPostScript</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">PsToken</span></span><span class="w"> </span><span class="n"><span class="pre">psToken</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="n"><span class="pre">TextLayout</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">textPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.TextLayoutToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append nonempty layout fragments as adjusted PostScript text. </p>
+<p>Borrows a live token and layout. Empty fragments are skipped, avoiding the prolog division by string length. Each other fragment uses escaped Latin-1 literal contents and its measured width with DrawAdjText. Coordinates add x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding signed int overflow. Does not choose fonts, colors or transforms. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcPsText.Rbc_TextToPostScript">
+<span class="target" id="group__ps__text__mapping_1ga451f78009e0f1965e41d677d186e803b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_TextToPostScript</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">PsTokenStruct</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tokenPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">TextStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tsPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcPsText.Rbc_TextToPostScript" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append anchored, optionally shadowed text under a saved transform. </p>
+<p>NULL or empty strings append nothing. Borrows the string, style and Tk resources; allocates and frees a temporary layout. Requires finite bounded geometry and angles compatible with FMOD and ROUND. The bounding-box calculation normalizes the remainder into [0, 360), while BeginText receives the original style angle. Selects the font, optional positive-offset shadow, then active or normal foreground. Does not implement native disabled/emphasis two-pass relief. BeginText/EndText save and restore graphics state; style fields are not modified. Font/color array traces require enclosing lifetime protection, including the borrowed string retained by layout fragments. </p>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcPsText.FontMap">
+<span class="target" id="struct_font_map"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontMap</span></span></span><a class="headerlink" href="#c.rbcPsText.FontMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Immutable family alias and PostScript fallback-name pair. </p>
+<p>Strings are static; lookup does not create or own font resources. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -378,6 +422,15 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 <li><a class="reference internal" href="#c.rbcPsRaster.Rbc_WindowToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_WindowToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcPsRaster.Rbc_PhotoToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_PhotoToPostScript()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcPsRaster.Rbc_BitmapToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_BitmapToPostScript()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#font-mapping-and-text-placement">Font mapping and text placement</a><ul>
+<li><a class="reference internal" href="#c.rbcPsText.NameOfAtom"><code class="docutils literal notranslate"><span class="pre">NameOfAtom()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsText.XFontStructToPostScript"><code class="docutils literal notranslate"><span class="pre">XFontStructToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsText.Rbc_FontToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_FontToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsText.TextLayoutToPostScript"><code class="docutils literal notranslate"><span class="pre">TextLayoutToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsText.Rbc_TextToPostScript"><code class="docutils literal notranslate"><span class="pre">Rbc_TextToPostScript()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcPsText.FontMap"><code class="docutils literal notranslate"><span class="pre">FontMap</span></code></a></li>
 </ul>
 </li>
 </ul>

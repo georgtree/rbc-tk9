@@ -244,6 +244,86 @@ Both require a registered Tk bitmap because they query its dimensions with
 ``Tk_SizeOfBitmap``. Neither supplies an independent error channel or rolls
 back a partially emitted program.
 
+Legacy font selection
+---------------------
+
+``Rbc_FontToPostScript`` chooses a name and point size for the prolog's
+``SetFont``. It does not embed font programs or resolve fallback glyphs per
+character. Font selection follows this order:
+
+.. list-table:: Selection order
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Source
+     - Behavior
+   * - Configured font-map array
+     - Lookup by Tk_NameOfFont. A found entry ends the search, even when its
+       list or size is malformed.
+   * - Recognized family prefix
+     - Case-insensitive prefix match against the static alias list, followed
+       by Tk_PostscriptFontName for the actual name and size.
+   * - X11 core font properties
+     - XLoadQueryFont by Tk name, optional POINT_SIZE divided by ten, then
+       FULL_NAME/FOUNDRY/FAMILY_NAME mapping. This stage is absent on Windows.
+   * - Final fallback
+     - Helvetica-Bold, with size twelve unless an X11 point-size property was
+       obtained during the preceding attempt.
+
+A font-map entry's first element replaces the name. Its size is used only for
+an exactly two-element list with a valid integer second element. A one-element
+mapping retains the initial size twelve; it does not inherit the Tk font size.
+An empty list retains the Tk name. An invalid list or size may leave an
+interpreter diagnostic, but the helper still emits SetFont and returns void.
+Mapped names are inserted as PostScript name syntax without escaping or
+validation, so callers must supply usable PostScript names.
+
+For core X11 fonts, property mapping requires all three named properties.
+Adobe families remain unchanged. Other foundries strip a leading ``itc`` plus space and
+use an exact alias match, falling back to Helvetica. A typeface suffix is taken
+from the full name only when it starts with the original family; spaces and
+dashes are removed before appending that suffix. The returned mapped name lives
+in a caller-owned DString, allowing the X font to be freed before emission.
+Atom names themselves remain borrowed from Tk.
+
+The alias table is a compatibility heuristic, not an inventory of installed
+PostScript fonts. A prefix match in the Tk-family path and an exact match in
+the X11-property path are intentionally documented as different operations.
+SVG/PDF font embedding uses the separate machinery in :doc:`text-fonts`.
+
+Text transforms and fragment widths
+-----------------------------------
+
+``Rbc_TextToPostScript`` builds a borrowed-string layout, computes the rotated
+box, translates the requested anchor to that box's center, and emits BeginText.
+The prolog saves graphics state, translates to the center, rotates by the
+negative angle, then translates to the unrotated layout origin. Font selection
+and any shadow pass follow; the main pass selects active or normal foreground.
+EndText restores graphics state. No native disabled/emphasis relief pass is
+implemented here, and the style's angle is not rewritten.
+
+Each nonempty fragment emits its escaped literal string, measured screen width
+and baseline through DrawAdjText. That prolog procedure adjusts character
+spacing to match the requested width, flips the vertical scale and uses ashow.
+Empty fragments contribute layout spacing but emit no string, avoiding division
+by zero in the prolog's length-based adjustment. The string encoding remains
+ISO-8859-1 with unsupported characters replaced by spaces; width adjustment
+does not recover glyphs lost during that conversion.
+
+Font and color mapping can execute Tcl variable traces while the layout borrows
+its original string. The helper does not preserve the enclosing graph, style,
+font or string itself; callers own that lifetime protection. Temporary layouts,
+font-description objects, split-list arrays and mapped-name DStrings are released
+by their respective helpers.
+
+Fragment baselines and shadow offsets are added in ``Tcl_WideInt`` and emitted
+without narrowing to int. Normal coordinates retain the same decimal output;
+large sums no longer overflow signed int. The bounding-box calculation
+normalizes the angle remainder into [0, 360), so equivalent negative and
+positive rotations use the same anchor position. BeginText still receives the
+original angle and the style is unchanged. Callers must keep input angles and
+rounded dimensions within the conversion helpers' ranges.
+
 Maintenance checks
 ------------------
 

@@ -224,11 +224,66 @@ static int PsRasterTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, T
     return TCL_OK;
 }
 
+static int PsTextTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    PsToken token;
+    TextStyle style;
+    Tk_Window window = Tk_MainWindow(interp);
+    double angle;
+    Tk_Anchor anchor;
+    (void)data;
+    if (objc == 2) {
+        TextLayout layout;
+        int value;
+        if (Tcl_GetIntFromObj(interp, objv[1], &value) != TCL_OK) return TCL_ERROR;
+        memset(&layout, 0, sizeof(layout));
+        layout.nFrags = 1;
+        layout.fragArr[0].text = "A";
+        layout.fragArr[0].count = 1;
+        layout.fragArr[0].width = 7;
+        layout.fragArr[0].x = layout.fragArr[0].y = value;
+        token = Rbc_GetPsToken(interp, window);
+        TextLayoutToPostScript(token, value, value, &layout);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(token), -1));
+        Rbc_ReleasePsToken(token);
+        return TCL_OK;
+    }
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "offset | angle anchor");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetDoubleFromObj(interp, objv[1], &angle) != TCL_OK ||
+        Tk_GetAnchorFromObj(interp, objv[2], &anchor) != TCL_OK) return TCL_ERROR;
+    memset(&style, 0, sizeof(style));
+    Rbc_InitTextStyle(&style);
+    style.font = Tk_GetFont(interp, window, "Helvetica 12");
+    if (style.font == NULL) return TCL_ERROR;
+    /* The wrappers retain Tk stubs access after the color macros are undefined. */
+    style.color = TestGetColor(interp, window, "black");
+    if (style.color == NULL) {
+        Tk_FreeFont(style.font);
+        return TCL_ERROR;
+    }
+    style.theta = angle;
+    style.anchor = anchor;
+    token = Rbc_GetPsToken(interp, window);
+    Rbc_TextToPostScript(token, "Wide text label", &style, 100, 200);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(Rbc_PostScriptFromToken(token), -1));
+    Rbc_ReleasePsToken(token);
+    TestFreeColor(style.color);
+    Tk_FreeFont(style.font);
+    if (style.theta != angle) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("style angle was modified", -1));
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 DLLEXPORT int Rbcresourcetest_Init(Tcl_Interp *interp) {
     if (Tcl_InitStubs(interp, "9.0", 0) == NULL || Tk_InitStubs(interp, "9.0", 0) == NULL) {
         return TCL_ERROR;
     }
     Rbc_InitEpsCanvasItem(interp);
+    Tcl_CreateObjCommand2(interp, "::rbcpstexttest", PsTextTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpsrastertest", PsRasterTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcpslinetest", PsLineTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbccolorpairtest", ColorPairTestCmd, NULL, NULL);

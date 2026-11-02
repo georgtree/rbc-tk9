@@ -292,6 +292,89 @@ Both require a registered Tk bitmap because they query its dimensions with
 <code class="docutils literal notranslate"><span class="pre">Tk_SizeOfBitmap</span></code>. Neither supplies an independent error channel or rolls
 back a partially emitted program.</p>
 </section>
+<section id="legacy-font-selection">
+<h2>Legacy font selection<a class="headerlink" href="#legacy-font-selection" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_FontToPostScript</span></code> chooses a name and point size for the prolog’s
+<code class="docutils literal notranslate"><span class="pre">SetFont</span></code>. It does not embed font programs or resolve fallback glyphs per
+character. Font selection follows this order:</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Selection order</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Source</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Configured font-map array</p></td>
+<td><p>Lookup by Tk_NameOfFont. A found entry ends the search, even when its
+list or size is malformed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Recognized family prefix</p></td>
+<td><p>Case-insensitive prefix match against the static alias list, followed
+by Tk_PostscriptFontName for the actual name and size.</p></td>
+</tr>
+<tr class="row-even"><td><p>X11 core font properties</p></td>
+<td><p>XLoadQueryFont by Tk name, optional POINT_SIZE divided by ten, then
+FULL_NAME/FOUNDRY/FAMILY_NAME mapping. This stage is absent on Windows.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Final fallback</p></td>
+<td><p>Helvetica-Bold, with size twelve unless an X11 point-size property was
+obtained during the preceding attempt.</p></td>
+</tr>
+</tbody>
+</table>
+<p>A font-map entry’s first element replaces the name. Its size is used only for
+an exactly two-element list with a valid integer second element. A one-element
+mapping retains the initial size twelve; it does not inherit the Tk font size.
+An empty list retains the Tk name. An invalid list or size may leave an
+interpreter diagnostic, but the helper still emits SetFont and returns void.
+Mapped names are inserted as PostScript name syntax without escaping or
+validation, so callers must supply usable PostScript names.</p>
+<p>For core X11 fonts, property mapping requires all three named properties.
+Adobe families remain unchanged. Other foundries strip a leading <code class="docutils literal notranslate"><span class="pre">itc</span></code> plus space and
+use an exact alias match, falling back to Helvetica. A typeface suffix is taken
+from the full name only when it starts with the original family; spaces and
+dashes are removed before appending that suffix. The returned mapped name lives
+in a caller-owned DString, allowing the X font to be freed before emission.
+Atom names themselves remain borrowed from Tk.</p>
+<p>The alias table is a compatibility heuristic, not an inventory of installed
+PostScript fonts. A prefix match in the Tk-family path and an exact match in
+the X11-property path are intentionally documented as different operations.
+SVG/PDF font embedding uses the separate machinery in <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a>.</p>
+</section>
+<section id="text-transforms-and-fragment-widths">
+<h2>Text transforms and fragment widths<a class="headerlink" href="#text-transforms-and-fragment-widths" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_TextToPostScript</span></code> builds a borrowed-string layout, computes the rotated
+box, translates the requested anchor to that box’s center, and emits BeginText.
+The prolog saves graphics state, translates to the center, rotates by the
+negative angle, then translates to the unrotated layout origin. Font selection
+and any shadow pass follow; the main pass selects active or normal foreground.
+EndText restores graphics state. No native disabled/emphasis relief pass is
+implemented here, and the style’s angle is not rewritten.</p>
+<p>Each nonempty fragment emits its escaped literal string, measured screen width
+and baseline through DrawAdjText. That prolog procedure adjusts character
+spacing to match the requested width, flips the vertical scale and uses ashow.
+Empty fragments contribute layout spacing but emit no string, avoiding division
+by zero in the prolog’s length-based adjustment. The string encoding remains
+ISO-8859-1 with unsupported characters replaced by spaces; width adjustment
+does not recover glyphs lost during that conversion.</p>
+<p>Font and color mapping can execute Tcl variable traces while the layout borrows
+its original string. The helper does not preserve the enclosing graph, style,
+font or string itself; callers own that lifetime protection. Temporary layouts,
+font-description objects, split-list arrays and mapped-name DStrings are released
+by their respective helpers.</p>
+<p>Fragment baselines and shadow offsets are added in <code class="docutils literal notranslate"><span class="pre">Tcl_WideInt</span></code> and emitted
+without narrowing to int. Normal coordinates retain the same decimal output;
+large sums no longer overflow signed int. The bounding-box calculation
+normalizes the angle remainder into [0, 360), so equivalent negative and
+positive rotations use the same anchor position. BeginText still receives the
+original angle and the style is unchanged. Callers must keep input angles and
+rounded dimensions within the conversion helpers’ ranges.</p>
+</section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading">¶</a></h2>
 <p>When changing this layer, check ordinary and track graphs, nested clipping,
@@ -322,6 +405,8 @@ PostScript document.</p>
 <li><a class="reference internal" href="#text-and-fill-limitations">Text and fill limitations</a></li>
 <li><a class="reference internal" href="#raster-ownership-and-encoding">Raster ownership and encoding</a></li>
 <li><a class="reference internal" href="#bitmap-acquisition-and-payloads">Bitmap acquisition and payloads</a></li>
+<li><a class="reference internal" href="#legacy-font-selection">Legacy font selection</a></li>
+<li><a class="reference internal" href="#text-transforms-and-fragment-widths">Text transforms and fragment widths</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
 </ul>
 </li>

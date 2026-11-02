@@ -5,6 +5,8 @@
  * @brief Append drawing programs to a borrowed token; no page delivery.
  * @defgroup ps_raster_encoding PostScript raster and bitmap encoding
  * @brief Legacy image conversion, bitmap payloads and capture wrappers.
+ * @defgroup ps_text_mapping PostScript font mapping and text placement
+ * @brief Legacy font names and screen-metric text, without embedded outlines.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -31,24 +33,12 @@ static const char *NameOfAtom(Tk_Window tkwin, Atom atom);
 #endif /* WIN32 */
 static void TextLayoutToPostScript(struct PsTokenStruct *tokenPtr, int x, int y, TextLayout *textPtr);
 
-/*
- *--------------------------------------------------------------
+/**
+ * Allocate an empty, color-mode PostScript token.
  *
- * Rbc_GetPsToken --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * The caller owns the token and releases it with Rbc_ReleasePsToken(). The
+ * interpreter and window are borrowed; this function does not preserve them.
+ * Font and color mapping variable names initially are NULL.
  */
 PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin) {
     struct PsTokenStruct *tokenPtr;
@@ -63,87 +53,38 @@ PsToken Rbc_GetPsToken(Tcl_Interp *interp, Tk_Window tkwin) {
     return tokenPtr;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Release a non-NULL token and its output buffer.
  *
- * Rbc_ReleasePsToken --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrowed interpreter, window and mapping variable names are not released.
+ * All pointers returned into the token become invalid.
  */
 void Rbc_ReleasePsToken(struct PsTokenStruct *tokenPtr) {
     Tcl_DStringFree(&(tokenPtr->dString));
     ckfree((char *)tokenPtr);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Return the borrowed, NUL-terminated output buffer.
  *
- * Rbc_PostScriptFromToken --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Do not free the result. Appending output may relocate it; releasing the
+ * token invalidates it. This accessor does not finalize a document.
  */
 char *Rbc_PostScriptFromToken(struct PsTokenStruct *tokenPtr) { return Tcl_DStringValue(&(tokenPtr->dString)); }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Return borrowed mutable scratch storage of PSTOKEN_BUFSIZ + 1 bytes.
  *
- * Rbc_ScratchBufferFromToken --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Formatting and prolog reads reuse this storage. It is not the output buffer
+ * and must not be retained across those operations or token release.
  */
 char *Rbc_ScratchBufferFromToken(struct PsTokenStruct *tokenPtr) { return tokenPtr->scratchArr; }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Append a sequence of NUL-terminated strings, ending with a NULL pointer.
  *
- * Rbc_AppendToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      ...
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Strings are copied without escaping. Callers supply PostScript syntax and
+ * must not pass binary data or pointers invalidated by output growth.
  */
 void Rbc_AppendToPostScript(struct PsTokenStruct *tokenPtr, ...) {
     va_list argList;
@@ -160,25 +101,12 @@ void Rbc_AppendToPostScript(struct PsTokenStruct *tokenPtr, ...) {
     va_end(argList);
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Append printf-formatted PostScript, using scratch storage or a temporary
+ * allocation when the formatted result exceeds the scratch capacity.
  *
- * Rbc_FormatToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      char *fmt
- *      ...
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * This void helper does not report a formatting failure to the interpreter.
+ * It performs no PostScript string escaping.
  */
 void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...) {
     va_list argList;
@@ -205,6 +133,14 @@ void Rbc_FormatToPostScript(struct PsTokenStruct *tokenPtr, const char *fmt, ...
     ckfree(buffer);
 }
 
+/**
+ * Append escaped PostScript literal-string contents from Tcl UTF text.
+ *
+ * A negative length selects strlen; otherwise length is a byte count ending
+ * at a character boundary. NULL input is ignored. The caller supplies the
+ * surrounding parentheses. Delimiters, controls and non-ASCII characters use
+ * octal escapes; characters above ISO-8859-1 are replaced with a space.
+ */
 void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size length) {
     const char *src;
     const char *end;
@@ -242,24 +178,14 @@ void Rbc_AppendPostScriptString(PsToken psToken, const char *string, Tcl_Size le
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * Append a text prolog from fileName relative to the rbc::library variable.
  *
- * Rbc_FileToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      char *fileName
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Return TCL_ERROR for library lookup, open or read failure, with an
+ * interpreter diagnostic; otherwise return TCL_OK. Partial output is not
+ * rolled back. The channel is closed, but its close status is not propagated.
+ * Reads overwrite token scratch storage. Tcl variable and channel operations
+ * may execute callbacks; the enclosing export owns lifetime protection.
  */
 int Rbc_FileToPostScript(struct PsTokenStruct *tokenPtr, char *fileName) {
     Tcl_Channel channel;
@@ -616,25 +542,12 @@ int Rbc_ColorImageToPsData(Rbc_ColorImage image, int nComponents, Tcl_DString *r
 }
 
 #ifndef WIN32
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Borrow an X11 atom name, translating Tk's bad-atom sentinel to NULL.
+ * @ingroup ps_text_mapping
  *
- * NameOfAtom --
- *
- *      Wrapper routine for Tk_GetAtomName.  Returns NULL instead of
- *      "?bad atom?" if the atom can't be found.
- *
- * Parameters:
- *      Tk_Window tkwin
- *      Atom atom
- *
- * Results:
- *      The name of the atom is returned if found. Otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires a live Tk window. The returned name belongs to Tk and must not
+ * be freed. The helper does not acquire a font or allocate output storage.
  */
 static const char *NameOfAtom(Tk_Window tkwin, Atom atom) {
     const char *result;
@@ -647,6 +560,11 @@ static const char *NameOfAtom(Tk_Window tkwin, Atom atom) {
 }
 #endif /* WIN32 */
 
+/**
+ * @brief Immutable family alias and PostScript fallback-name pair.
+ * @ingroup ps_text_mapping
+ * Strings are static; lookup does not create or own font resources.
+ */
 typedef struct {
     const char *alias;
     const char *fontName;
@@ -726,28 +644,17 @@ static const FontMap psFontMap[] = {
 static const size_t nFontNames = sizeof(psFontMap) / sizeof(psFontMap[0]);
 
 #ifndef WIN32
-/*
- * -----------------------------------------------------------------
+/**
+ * @brief Build a legacy PostScript name from borrowed X11 font properties.
+ * @ingroup ps_text_mapping
  *
- * XFontStructToPostScript --
- *
- *      Map X11 font to a PostScript font. Currently, only fonts whose
- *      FOUNDRY property are "Adobe" are converted. Simply gets the
- *      XA_FULL_NAME and XA_FAMILY properties and pieces together a
- *      PostScript fontname.
- *
- * Parameters:
- *      Tk_Window tkwin - Window to query for atoms
- *      XFontStruct *fontPtr - Font structure to map to name
- *
- * Results:
- *      Returns the mapped PostScript font name if one is possible.
- *      Otherwise returns NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- * -----------------------------------------------------------------
+ * Requires an initialized result DString and a valid XFontStruct. Missing
+ * FULL_NAME, FOUNDRY or FAMILY_NAME returns NULL without replacing the result.
+ * Adobe families are kept; other foundries remove an optional ITC prefix
+ * and use an exact case-insensitive alias match, defaulting to Helvetica.
+ * If the full name starts with the original family, its remaining typeface
+ * is appended after a dash with spaces and dashes removed. Success replaces
+ * resultPtr and returns a borrowed pointer into it. No font is released here.
  */
 static const char *XFontStructToPostScript(Tk_Window tkwin, XFontStruct *fontPtr, Tcl_DString *resultPtr) {
     Atom atom;
@@ -1257,35 +1164,21 @@ void Rbc_PhotoToPostScript(struct PsTokenStruct *tokenPtr, Tk_PhotoHandle photo,
     Rbc_FreeColorImage(image);
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @brief Append a PostScript font name and size using the legacy fallback chain.
+ * @ingroup ps_text_mapping
  *
- * Rbc_FontToPostScript --
- *
- *      Map the Tk font to a PostScript font and point size.
- *
- *      If a Tcl array variable was specified, each element should be
- *      indexed by the X11 font name and contain a list of 1-2
- *      elements; the PostScript font name and the desired point size.
- *      The point size may be omitted and the X font point size will
- *      be used.
- *
- *      Otherwise, if the foundry is "Adobe", we try to do a plausible
- *      mapping looking at the full name of the font and building a
- *      string in the form of "Family-TypeFace".
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      Tk_Font font - Tk font to query about
- *
- * Returns:
- *      None.
- *
- * Side Effects:
- *      PostScript commands are output to change the type and the
- *      point size of the current font.
- *
- * -----------------------------------------------------------------
+ * Borrows the token and Tk font. A found font-map array entry takes priority:
+ * its first list element supplies the raw font name; exactly two elements
+ * with an integer second element supply the size. Otherwise size remains
+ * twelve, including one-element entries. Parse errors do not stop output.
+ * Without a mapped entry, recognized family prefixes use Tk_PostscriptFontName.
+ * Other X11 families attempt XLoadQueryFont and property-based mapping, freeing
+ * the loaded font after copying its name into a temporary DString. Windows
+ * skips this attempt. Final fallback is Helvetica-Bold, normally at size twelve.
+ * Releases temporary Tcl descriptions, split lists and DStrings. No glyphs
+ * are embedded. Variable reads can execute traces; enclosing export code
+ * owns callback lifetime protection. This void helper does not report failure.
  */
 void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
 #ifndef WIN32
@@ -1382,26 +1275,15 @@ void Rbc_FontToPostScript(struct PsTokenStruct *tokenPtr, Tk_Font font) {
 #endif /* !WIN32 */
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Append nonempty layout fragments as adjusted PostScript text.
+ * @ingroup ps_text_mapping
  *
- * TextLayoutToPostScript --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      int x
- *      int y
- *      TextLayout *textPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows a live token and layout. Empty fragments are skipped, avoiding the
+ * prolog division by string length. Each other fragment uses escaped Latin-1
+ * literal contents and its measured width with DrawAdjText. Coordinates add
+ * x/y to fragment baselines in Tcl_WideInt and emit the full sum, avoiding
+ * signed int overflow. Does not choose fonts, colors or transforms.
  */
 static void TextLayoutToPostScript(PsToken psToken, int x, int y, TextLayout *textPtr) {
     TextFragment *fragPtr;
@@ -1414,35 +1296,25 @@ static void TextLayoutToPostScript(PsToken psToken, int x, int y, TextLayout *te
         }
         Rbc_AppendToPostScript(psToken, "(", (char *)NULL);
         Rbc_AppendPostScriptString(psToken, fragPtr->text, fragPtr->count);
-        Rbc_FormatToPostScript(psToken, ") %d %d %d DrawAdjText\n", fragPtr->width, x + fragPtr->x, y + fragPtr->y);
+        Rbc_FormatToPostScript(psToken, ") %d %" TCL_LL_MODIFIER "d %" TCL_LL_MODIFIER "d DrawAdjText\n",
+                               fragPtr->width, (Tcl_WideInt)x + fragPtr->x, (Tcl_WideInt)y + fragPtr->y);
     }
 }
 
-/*
- * -----------------------------------------------------------------
+/**
+ * @brief Append anchored, optionally shadowed text under a saved transform.
+ * @ingroup ps_text_mapping
  *
- * Rbc_TextToPostScript --
- *
- *      Output PostScript commands to print a text string. The string
- *      may be rotated at any arbitrary angle, and placed according
- *      the anchor type given. The anchor indicates how to interpret
- *      the window coordinates as an anchor for the text bounding box.
- *
- * Parameters:
- *      struct PsTokenStruct *tokenPtr
- *      char *string - String to convert to PostScript
- *      TextStyle *tsPtr - Text attribute information
- *      double x - -
- *      double y - Window coordinates where to print text
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      Text string is drawn using the given font and GC on the graph
- *      window at the given coordinates, anchor, and rotation
- *
- * -----------------------------------------------------------------
+ * NULL or empty strings append nothing. Borrows the string, style and Tk
+ * resources; allocates and frees a temporary layout. Requires finite bounded
+ * geometry and angles compatible with FMOD and ROUND. The bounding-box
+ * calculation normalizes the remainder into [0, 360), while BeginText
+ * receives the original style angle.
+ * Selects the font, optional positive-offset shadow, then active or normal
+ * foreground. Does not implement native disabled/emphasis two-pass relief.
+ * BeginText/EndText save and restore graphics state; style fields are not
+ * modified. Font/color array traces require enclosing lifetime protection,
+ * including the borrowed string retained by layout fragments.
  */
 void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyle *tsPtr, double x, double y) {
     double theta;
@@ -1454,6 +1326,9 @@ void Rbc_TextToPostScript(struct PsTokenStruct *tokenPtr, char *string, TextStyl
         return;
     }
     theta = FMOD(tsPtr->theta, (double)360.0);
+    if (theta < 0.0) {
+        theta += 360.0;
+    }
     textPtr = Rbc_GetTextLayout(string, tsPtr);
     Rbc_GetBoundingBox(textPtr->width, textPtr->height, theta, &rotWidth, &rotHeight, (Point2D *)NULL);
     /*

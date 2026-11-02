@@ -43,3 +43,16 @@ platform comparison in :doc:`postscript-output`.
    :members:
 
 .. c:namespace-pop::
+
+Font mapping and text placement
+-------------------------------
+
+The X11 property helpers below supplement the shared font-selection path;
+Windows goes directly to the final fallback when family recognition fails.
+
+.. c:namespace:: rbcPsText
+
+.. doxygengroup:: ps_text_mapping
+   :members:
+
+.. c:namespace-pop::
