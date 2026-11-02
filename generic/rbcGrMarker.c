@@ -9,6 +9,22 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcGrMarker.c
+ * Shared marker services and concrete marker classes.
+ */
+/** @defgroup marker_configuration Marker common option transactions
+ * Internal services shared by concrete marker classes.
+ */
+/** @defgroup marker_mapping_core Marker coordinate mapping and picking
+ * Internal services shared by concrete marker classes.
+ */
+/** @defgroup marker_lifecycle_core Marker record and resource lifecycle
+ * Internal services shared by concrete marker classes.
+ */
+/** @defgroup marker_commands Marker registry and command dispatch
+ * Internal services shared by concrete marker classes.
+ */
+
 #include <float.h>
 #include "rbcGraph.h"
 #include "rbcGrTrack.h"
@@ -820,6 +836,16 @@ static MarkerClass windowMarkerClass = {
     .exportProc = WindowMarkerExport,
 };
 
+/**
+ * @ingroup marker_configuration
+ * @brief Initialize the concrete Tk option record while preserving the chosen name.
+ *
+ * Chooses monochrome specifications when supplied on a one-bit display. Uses
+ * a normalized component resource name and class identity. Temporarily detaches
+ * the owned preliminary name so partial Tk cleanup cannot free it. Returns
+ * TCL_OK with initialized options, or TCL_ERROR after releasing partial Tk
+ * resources and restoring the original name for caller cleanup.
+ */
 static int InitMarkerOptions(Marker *markerPtr) {
     Graph *graphPtr;
     const Tk_OptionSpec *optionSpecs;
@@ -858,6 +884,17 @@ static int InitMarkerOptions(Marker *markerPtr) {
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Apply one marker option transaction and commit a rename last.
+ *
+ * Requires initialized options. Installs candidate Tk fields, validates a
+ * nonempty name not starting with a dash, and rejects rename collisions when
+ * not creating. Passes optionMask to the class configuration callback and
+ * clears it afterwards. On error restores saved Tk fields and diagnostic;
+ * the class owns rollback of derived state. On success commits registry rename
+ * and frees saved options. Creation permits replacement, handled by CreateOp.
+ */
 static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *const objv[], int creating) {
     Graph *graphPtr;
     Tk_SavedOptions savedOptions;
@@ -923,6 +960,16 @@ static int ConfigureMarkerOptions(Marker *markerPtr, Tcl_Size objc, Tcl_Obj *con
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_lifecycle_core
+ * @brief Release one initialized marker before the graph window is lost.
+ *
+ * Guards uninitialized/already released records. Calls concrete cleanup before
+ * Tk frees option resources, then frees common coordinates/tags, drops axes,
+ * frees options/table and sets the release guard. Requires a live graph window.
+ * Registry links and record remain for final destruction. Class cleanup can
+ * release images or destroy a managed child; this is not just scalar cleanup.
+ */
 static void ReleaseMarkerTkResources(Marker *markerPtr) {
     Graph *graphPtr;
 
@@ -972,31 +1019,13 @@ void Rbc_ReleaseMarkerTkResources(Graph *graphPtr) {
     }
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_mapping_core
+ * @brief Reject disjoint inclusive marker and current plot rectangles.
  *
- * BoxesDontOverlap --
- *
- *      Tests if the bounding box of a marker overlaps the plotting
- *      area in any way.  If so, the marker will be drawn.  Just do a
- *      min/max test on the extents of both boxes.
- *
- *      Note: It's assumed that the extents of the bounding box lie
- *            within the area.  So for a 10x10 rectangle, bottom and
- *            left would be 9.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Extents2D *extsPtr
- *
- * Results:
- *      Returns 0 is the marker is visible in the plotting area, and
- *      1 otherwise (marker is clipped).
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Requires ordered extents and graph plot bounds, checked with assertions.
+ * Touching edges count as overlap. Returns true only for disjoint rectangles;
+ * does not clip partial overlaps or map coordinates.
  */
 static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr) {
     assert(extsPtr->right >= extsPtr->left);
@@ -1007,6 +1036,14 @@ static int BoxesDontOverlap(Graph *graphPtr, Extents2D *extsPtr) {
             (extsPtr->right < (double)graphPtr->left) || (extsPtr->bottom < (double)graphPtr->top));
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Parse an optional tag list into one owned allocation.
+ *
+ * Initializes output to NULL. NULL/empty input succeeds without storage.
+ * Tcl_SplitList owns both the returned pointer array and its strings in one
+ * allocation; the caller frees it with ckfree. Returns TCL_ERROR on list errors.
+ */
 static int GetMarkerTagsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***tagsPtrPtr) {
     const char **tags;
     Tcl_Size nTags;
@@ -1030,6 +1067,13 @@ static int GetMarkerTagsFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, char ***tag
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Parse an exact normal, active or disabled marker state.
+ *
+ * Borrows the non-NULL object. Writes statePtr only on success; otherwise
+ * returns TCL_ERROR with a diagnostic. Does not change drawing or binding state.
+ */
 static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *statePtr) {
     const char *string;
 
@@ -1049,6 +1093,17 @@ static int GetMarkerStateFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *state
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Stage an owned coordinate array with class-specific point counts.
+ *
+ * Initializes outputs to NULL/zero and accepts empty coordinates for every
+ * class. Nonempty lists must contain pairs and satisfy the class count limits.
+ * Checks allocation size and uses Tcl_AttemptAlloc. Each component is parsed
+ * through GetCoordinate, which can evaluate Tcl. Returns TCL_OK and transfers
+ * the array, or TCL_ERROR after freeing it. Borrows marker and list storage
+ * throughout; does not protect against callback mutation of owners/arguments.
+ */
 static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point2D **worldPtsPtr,
                                        Tcl_Size *nWorldPtsPtr) {
     Tcl_Interp *interp;
@@ -1127,6 +1182,14 @@ static int GetMarkerCoordinatesFromObj(Marker *markerPtr, Tcl_Obj *objPtr, Point
     return TCL_OK;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Release candidate common resources that have not been transferred.
+ *
+ * Frees tag/coordinate allocations and drops candidate axis references,
+ * clearing those pointers/counts. Track is borrowed and not released. Accepts
+ * a zeroed or partially populated candidate; does not free the candidate record.
+ */
 static void FreeParsedMarkerOptions(Graph *graphPtr, ParsedMarkerOptions *optionsPtr) {
     if (optionsPtr->tags != NULL) {
         ckfree((char *)optionsPtr->tags);
@@ -1147,6 +1210,16 @@ static void FreeParsedMarkerOptions(Graph *graphPtr, ParsedMarkerOptions *option
     }
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Prepare common tags, coordinates, state, axes and track association.
+ *
+ * Zeros the caller-owned candidate, then parses all common fields and
+ * acquires axis references. A nonempty track must name an existing trackgraph
+ * track, and Y-axis ownership must equal the selected track (including NULL).
+ * Returns TCL_OK with staged ownership or TCL_ERROR after candidate cleanup.
+ * Coordinate expressions can execute Tcl; live records are not preserved here.
+ */
 static int ParseMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr) {
     Graph *graphPtr;
 
@@ -1186,6 +1259,15 @@ error:
     return TCL_ERROR;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Transfer common candidate allocations and axis references to the marker.
+ *
+ * Releases old tags, coordinates and axes, moves candidate storage/references
+ * and copies borrowed track and state. Clears transferred pointers so candidate
+ * cleanup is safe. Does not register a name, map geometry or schedule redraw;
+ * the concrete configuration routine owns those remaining steps.
+ */
 static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsPtr) {
     Graph *graphPtr;
 
@@ -1216,6 +1298,15 @@ static void CommitMarkerOptions(Marker *markerPtr, ParsedMarkerOptions *optionsP
     markerPtr->state = optionsPtr->state;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Resolve an optional color or an allowed default-color sentinel.
+ *
+ * Initializes output to NULL. Empty input succeeds; when allowDefault is true,
+ * a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire
+ * a Tk color reference. Returns TCL_OK/TCL_ERROR; callers must distinguish the
+ * sentinel from an owned color when releasing the result.
+ */
 static int GetMarkerColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
                                  XColor **colorPtrPtr) {
     const char *string;
@@ -1237,6 +1328,15 @@ static int GetMarkerColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *o
     return (*colorPtrPtr != NULL) ? TCL_OK : TCL_ERROR;
 }
 
+/**
+ * @ingroup marker_configuration
+ * @brief Stage foreground and background from a list of at most two colors.
+ *
+ * Empty input yields a zeroed pair. Parses colors into temporary ownership;
+ * failure releases any first color and leaves the output pair unchanged.
+ * Success transfers the pair for eventual Rbc_FreeColorPair cleanup. Does not
+ * release an existing output pair, so callers must manage replacement explicitly.
+ */
 static int GetColorPairFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowDefault,
                                ColorPair *pairPtr) {
     ColorPair newPair;
@@ -1270,29 +1370,13 @@ static int GetColorPairFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *obj
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_configuration
+ * @brief Evaluate a coordinate with special elastic endpoint spellings.
  *
- * GetCoordinate --
- *
- *      Convert the expression string into a floating point value. The
- *      only reason we use this routine instead of Rbc_ExprDouble is to
- *      handle "elastic" bounds.  That is, convert the strings "-Inf",
- *      "Inf" into -(DBL_MAX) and DBL_MAX respectively.
- *
- * Parameters:
- *      Tcl_Interp *interp - Interpreter to send results back to
- *      const char *expr - Numeric expression string to parse
- *      double *valuePtr - Real-valued result of expression
- *
- * Results:
- *      The return value is a standard Tcl result.  The value of the
- *      expression is passed back via valuePtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Exact Inf, +Inf and -Inf become positive/negative DBL_MAX. Other strings
+ * are passed to Tcl_ExprDouble and may execute Tcl. Returns Tcl status and
+ * writes valuePtr on success. No general finite-value check is performed here.
  */
 static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr) {
     char c;
@@ -1310,7 +1394,16 @@ static int GetCoordinate(Tcl_Interp *interp, const char *expr, double *valuePtr)
     return TCL_OK;
 }
 
-/* Map horizontal marker coordinates, including elastic endpoint sentinels. */
+/**
+ * @ingroup marker_mapping_core
+ * @brief Map a horizontal marker coordinate, preserving elastic endpoints.
+ *
+ * Borrows current axis range and graph geometry. DBL_MAX sentinels select
+ * normalized endpoints; descending axes reverse them. Legacy log mapping uses
+ * log10 for positives and zero for negatives, then ordinary normalization.
+ * Track-owned axes use full world width, otherwise graph hRange/hOffset.
+ * Does not clamp normalized values or update layout.
+ */
 static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     double norm;
 
@@ -1339,7 +1432,14 @@ static double HMap(Graph *graphPtr, Axis *axisPtr, double x) {
     return ((norm * graphPtr->hRange) + graphPtr->hOffset);
 }
 
-/* Map vertical marker coordinates against full track geometry. */
+/**
+ * @ingroup marker_mapping_core
+ * @brief Map a vertical marker coordinate against full track or graph geometry.
+ *
+ * Uses the same sentinel, descending and legacy log rules as HMap, with
+ * screen-Y reversal. Track ownership selects world bounds even outside a
+ * temporary track drawing scope. Visible clipping must not replace this span.
+ */
 static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     double norm;
 
@@ -1369,7 +1469,14 @@ static double VMap(Graph *graphPtr, Axis *axisPtr, double y) {
     return (((1.0 - norm) * graphPtr->vRange) + graphPtr->vOffset);
 }
 
-/* Map logical marker coordinates to Point2D pixels, respecting inversion. */
+/**
+ * @ingroup marker_mapping_core
+ * @brief Map one borrowed world point through its axes and graph inversion.
+ *
+ * Uses marker-specific HMap/VMap, swapping logical axes when inverted.
+ * Returns screen coordinates without rounding or remapping graph layout.
+ * These helpers intentionally differ from ordinary element mapping.
+ */
 static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
     Point2D result;
 
@@ -1383,25 +1490,14 @@ static Point2D MapPoint(Graph *graphPtr, Point2D *pointPtr, Axis2D *axesPtr) {
     return result; /* Result is screen coordinate. */
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_lifecycle_core
+ * @brief Allocate an unregistered concrete marker and initialize common state.
  *
- * CreateMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      char *name
- *      Rbc_Uid classUid
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Dispatches by interned class identity and returns NULL for an unknown class.
+ * Concrete allocation is asserted. Copies the name, borrows graph/class, sets
+ * MAP_ITEM and initializes option lifecycle flags. Caller must initialize and
+ * configure options, then register the marker or destroy the partial record.
  */
 static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Marker *markerPtr;
@@ -1437,23 +1533,16 @@ static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid)
     return markerPtr;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_lifecycle_core
+ * @brief Remove binding and registry/list state and free a concrete marker.
  *
- * DestroyMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Marker *markerPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Requires a live marker. Marks backing store dirty for under markers, removes
+ * object bindings, and releases initialized resources while the window exists.
+ * Handles pre-initialization failure with explicit cleanup instead. Deletes
+ * non-NULL hash/list links and frees the record. Bulk teardown or replacement
+ * may clear hashPtr first to retain control of the hash entry. Does not itself
+ * schedule a graph redraw or make callback-driven registry mutation safe.
  */
 static void DestroyMarker(Marker *markerPtr) {
     Graph *graphPtr;
@@ -5500,6 +5589,14 @@ static Marker *CreateArcMarker(void) {
     return markerPtr;
 }
 
+/**
+ * @ingroup marker_commands
+ * @brief Resolve an exact marker name to a borrowed registry record.
+ *
+ * Returns TCL_OK and writes markerPtrPtr on success. Otherwise returns
+ * TCL_ERROR with graph/name diagnostic, leaving output unchanged. Does not
+ * search display order, accept patterns or acquire a lifetime reference.
+ */
 static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr) {
     Tcl_HashEntry *hPtr;
 
@@ -5513,26 +5610,13 @@ static int NameToMarker(Graph *graphPtr, const char *name, Marker **markerPtrPtr
     return TCL_ERROR;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Return display-list names matching any supplied glob pattern.
  *
- * NamesOp --
- *
- *      Returns a list of marker identifiers in the interpreter result;
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * No patterns returns all listed names. Traverses from first to last and
+ * emits each marker at most once; hidden markers remain eligible. Registry
+ * entries detached from the display list are not returned. Returns TCL_OK.
  */
 static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5559,24 +5643,13 @@ static int NamesOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Intern a binding tag in the graph marker-tag table.
  *
- * MakeMarkerTag --
- *
- *      Interns a binding tag in the graph's marker tag table.
- *
- * Parameters:
- *      Graph *graphPtr - Owning graph.
- *      char *tagName   - Binding tag to intern.
- *
- * Results:
- *      A stable identifier owned by the graph's marker tag table.
- *
- * Side Effects:
- *      Creates a table entry if the tag has not been seen before.
- *
- *----------------------------------------------------------------------
+ * Creates the string-key entry when needed and returns its borrowed key
+ * pointer, valid until table destruction. Does not require a named marker
+ * to exist or install a binding script.
  */
 static ClientData MakeMarkerTag(Graph *graphPtr, char *tagName) {
     Tcl_HashEntry *hPtr;
@@ -5587,6 +5660,14 @@ static ClientData MakeMarkerTag(Graph *graphPtr, char *tagName) {
     return Tcl_GetHashKey(&graphPtr->markers.tagTable, hPtr);
 }
 
+/**
+ * @ingroup marker_commands
+ * @brief Append name, class and configured tags in binding order.
+ *
+ * Borrows graph, marker and destination list. Interns tag identities in the
+ * marker-tag table; the list does not own their strings. Does not evaluate Tcl
+ * binding scripts or alter marker state.
+ */
 void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List list) {
     char **p;
 
@@ -5600,26 +5681,13 @@ void Rbc_AppendMarkerBindingTags(Graph *graphPtr, Marker *markerPtr, Rbc_List li
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief List interned marker tags or delegate a binding query/update.
  *
- * BindOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * No tag returns registry tag names in hash order, not only tags with scripts.
+ * Otherwise interns the tag at objv[3] and passes the remaining arguments to
+ * the graph binding table service. Returns its Tcl status.
  */
 static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     if (objc == 3) {
@@ -5640,26 +5708,12 @@ static int BindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
                                         MakeMarkerTag(graphPtr, Tcl_GetString(objv[3])), objc - 4, objv + 4);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Return a marker option through its concrete Tk option table.
  *
- * CgetOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Resolves objv[3] as an exact name and objv[4] as an option. Returns TCL_OK
+ * with its value or TCL_ERROR from lookup/Tk. Does not configure or redraw.
  */
 static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5676,26 +5730,15 @@ static int CgetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Query one marker or configure multiple named markers in sequence.
  *
- * ConfigureOp --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Scans names until the first dash-prefixed argument and validates them before
+ * applying options. Zero/one option arguments query the first named marker.
+ * Updates re-resolve each name and call ConfigureMarkerOptions independently.
+ * A later failure does not roll back earlier markers. Returns a Tcl status;
+ * it is not a multi-marker atomic transaction.
  */
 static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5752,29 +5795,16 @@ static int ConfigureOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Configure a new marker before replacing any same-named registry entry.
  *
- * CreateOp --
- *
- *      This procedure creates and initializes a new marker.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a pointer to a structure describing
- *      the new element.  If an error occurred, then the return
- *      value is NULL and an error message is left in the interpreter
- *      result.
- *
- * Side effects:
- *      Memory is allocated, etc.
- *
- * ----------------------------------------------------------------------
+ * Resolves the class and scans complete option pairs for the last -name prefix;
+ * otherwise generates markerN. Creates and initializes the concrete record,
+ * applies options and validates the final name before publishing. A duplicate
+ * name destroys the old marker while retaining its hash entry. Appends the new
+ * record to display order, invalidates under-layer backing when needed and
+ * schedules redraw. Returns the configured name or TCL_ERROR with cleanup.
  */
 static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5900,26 +5930,13 @@ static int CreateOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Destroy each existing exact name and ignore missing names.
  *
- * DeleteOp --
- *
- *      Deletes the marker given by markerId.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      The return value is a standard Tcl result.
- *
- * Side Effects:
- *      Graph will be redrawn to reflect the new display list.
- *
- * ----------------------------------------------------------------------
+ * Performs deletions sequentially, clears lookup diagnostics and schedules
+ * graph redraw even for no matching names. Returns TCL_OK. Concrete cleanup
+ * owns associated resources, which can include a managed child window.
  */
 static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5935,31 +5952,14 @@ static int DeleteOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Return the current marker only when the binding context is a marker.
  *
- * GetOp --
- *
- *      Find the legend entry from the given argument.  The argument
- *      can be either a screen position "@x,y" or the name of an
- *      element.
- *
- *      I don't know how useful it is to test with the name of an
- *      element.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Graph will be redrawn to reflect the new legend attributes.
- *
- *----------------------------------------------------------------------
+ * Recognizes only the exact selector current. Checks the common binding
+ * context before casting the current item, and verifies a supported marker
+ * class. Other selectors or absent/nonmarker items leave an empty result.
+ * Returns TCL_OK; does not pick coordinates or resolve ordinary names.
  */
 static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -5984,33 +5984,19 @@ static int GetOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *co
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Move a marker link before or after an optional display-list reference.
  *
- * RelinkOp --
- *
- *      Reorders the marker (given by the first name) before/after
- *      the another marker (given by the second name) in the
- *      marker display list.  If no second name is given, the
- *      marker is placed at the beginning/end of the list.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      Graph will be redrawn to reflect the new display list.
- *
- * ----------------------------------------------------------------------
+ * Borrows graph and resolves both exact names before changing display order.
+ * Invalid names return TCL_ERROR without unlinking either marker. A reference
+ * to the target itself is a successful no-op. Otherwise moves the existing
+ * link, invalidates backing storage when the moved marker is an underlay and
+ * schedules redraw. No marker ownership or registry entries change.
  */
 static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr, *placePtr;
-    Marker *markerPtr;
+    Marker *markerPtr, *referencePtr;
     const char *str;
 
     /* Find the marker to be raised or lowered. */
@@ -6020,15 +6006,18 @@ static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     /* Right now it's assumed that all markers are always in the
        display list. */
     linkPtr = markerPtr->linkPtr;
-    Rbc_ChainUnlinkLink(graphPtr->markers.displayList, markerPtr->linkPtr);
     placePtr = NULL;
     if (objc == 5) {
-        if (NameToMarker(graphPtr, Tcl_GetString(objv[4]), &markerPtr) != TCL_OK) {
+        if (NameToMarker(graphPtr, Tcl_GetString(objv[4]), &referencePtr) != TCL_OK) {
             return TCL_ERROR;
         }
-        placePtr = markerPtr->linkPtr;
+        placePtr = referencePtr->linkPtr;
+        if (placePtr == linkPtr) {
+            return TCL_OK;
+        }
     }
-    /* Link the marker at its new position. */
+    /* Both names are valid; move the existing display-list link. */
+    Rbc_ChainUnlinkLink(graphPtr->markers.displayList, linkPtr);
     str = Tcl_GetString(objv[2]);
     if (str[0] == 'a') {
         Rbc_ChainLinkAfter(graphPtr->markers.displayList, linkPtr, placePtr);
@@ -6042,26 +6031,16 @@ static int RelinkOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Return the first visible marker passing a class rectangle test.
  *
- * FindOp --
- *
- *      Returns if marker by a given ID currently exists.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Parses enclosed/overlapping and four integer screen coordinates, normalizes
+ * corner order and scans first-to-last display order. Filters hidden markers
+ * and existing hidden associated elements. Local searches require a visible
+ * track intersection; overlapping queries clip the search box to that track,
+ * enclosed queries retain the original box. Returns the first name or an empty
+ * result. No automatic layout refresh, layer filter or marker-state filter.
  */
 static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Rbc_ChainLink *linkPtr;
@@ -6158,26 +6137,12 @@ static int FindOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *c
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Report exact registry membership regardless of visibility or list order.
  *
- * ExistsOp --
- *
- *      Returns if marker by a given ID currently exists.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Returns TCL_OK with integer zero/one. Does not require coordinates or
+ * current geometry, and does not report an error for a missing name.
  */
 static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Tcl_HashEntry *hPtr;
@@ -6187,28 +6152,12 @@ static int ExistsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj 
     return TCL_OK;
 }
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Return the interned class identity for an existing marker.
  *
- * TypeOp --
- *
- *      Returns a symbolic name for the type of the marker whose ID is
- *      given.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result. The interpreter result will contain
- *      the symbolic type of the marker.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- * ----------------------------------------------------------------------
+ * Resolves an exact name and copies classUid into the interpreter result.
+ * Returns TCL_ERROR on missing name; does not configure or map the marker.
  */
 static int TypeOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Marker *markerPtr;
@@ -6236,28 +6185,13 @@ static const MarkerOpSpec markerOps[] = {{{"after", 4, 5, "marker ?afterMarker?"
                                          {{"type", 4, 4, "marker"}, TypeOp},
                                          {{NULL, 0, 0, NULL}, NULL}};
 
-/*
- * ----------------------------------------------------------------------
+/**
+ * @ingroup marker_commands
+ * @brief Validate operation and arity before shared marker command dispatch.
  *
- * Rbc_MarkerOp --
- *
- *      This procedure is invoked to process the Tcl command
- *      that corresponds to a widget managed by this module.
- *      See the user documentation for details on what it does.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *
- * Results:
- *      A standard Tcl result.
- *
- * Side effects:
- *      See the user documentation.
- *
- * ----------------------------------------------------------------------
+ * Uses the complete widget-command argument vector with the operation at
+ * index two. Returns shared-dispatch or handler Tcl status. Does not itself
+ * refresh layout or preserve marker records across application callbacks.
  */
 int Rbc_MarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     int index;
@@ -7173,8 +7107,14 @@ void Rbc_MapMarkers(Graph *graphPtr) {
     }
 }
 
-/* Check associations, not visibility. A NULL track selects graph-wide markers;
- * a NULL axis matches every marker owned by the selected track. */
+/**
+ * @ingroup marker_mapping_core
+ * @brief Test marker associations independently of display visibility.
+ *
+ * Scans the registry, including hidden and coordinate-free markers. NULL
+ * track means graph-wide markers; NULL axis matches all markers in that scope.
+ * Otherwise compares the marker Y-axis pointer. Borrows all records.
+ */
 int Rbc_MarkersUseTrack(Graph *graphPtr, RbcTrack *track, Axis *axis) {
     Tcl_HashSearch search;
     Tcl_HashEntry *entry;
@@ -7208,26 +7148,16 @@ void Rbc_DestroyMarkers(Graph *graphPtr) {
     Rbc_ChainDestroy(graphPtr->markers.displayList);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup marker_mapping_core
+ * @brief Pick the first eligible marker in reverse painter order.
  *
- * Rbc_NearestMarker --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *      int x - Screen coordinate
- *      int y -Screen coordinate
- *      int under
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Despite its name, this returns the first successful class point test rather
+ * than comparing distances. Requires mapped geometry. Filters by layer, nonempty
+ * coordinates, hidden flag and STATE_NORMAL; active/disabled states are excluded.
+ * Local picks enforce visible track bounds and clipping. Does not apply the
+ * associated-element hidden check used by drawing/FindOp. Returns borrowed
+ * marker or NULL, without layout refresh or lifetime preservation.
  */
 Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
     Rbc_ChainLink *linkPtr;
@@ -7256,7 +7186,14 @@ Marker *Rbc_NearestMarker(Graph *graphPtr, int x, int y, int under) {
     return NULL;
 }
 
-/* Include hidden markers: their cached layouts must be current when shown. */
+/**
+ * @ingroup marker_mapping_core
+ * @brief Refresh all text-marker layouts after a font change.
+ *
+ * Scans the registry including hidden text markers. Resets text style, replaces
+ * layout and rotated bounding geometry when text exists, then marks mapping
+ * dirty. Borrows graph/marker records; non-text markers are unaffected.
+ */
 void Rbc_MarkerFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;
     Tcl_HashEntry *entryPtr;

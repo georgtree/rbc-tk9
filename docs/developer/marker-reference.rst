@@ -31,3 +31,50 @@ option-table fields are included directly:
    :language: c
    :start-at: typedef Marker *(MarkerCreateProc)
    :end-at: } MarkerClass;
+
+Shared implementation reference
+-------------------------------
+
+Concrete marker geometry and platform batching remain separate documentation
+work. These groups cover common transactions, lifecycle, mapping helpers and
+commands. Namespaces disambiguate private names without changing C linkage.
+
+Option preparation and commit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. c:namespace-push:: rbcGrMarkerConfiguration
+
+.. doxygengroup:: marker_configuration
+   :members:
+
+.. c:namespace-pop::
+
+Record lifetime
+~~~~~~~~~~~~~~~
+
+.. c:namespace-push:: rbcGrMarkerLifetime
+
+.. doxygengroup:: marker_lifecycle_core
+   :members:
+
+.. c:namespace-pop::
+
+Mapping helpers and picking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. c:namespace-push:: rbcGrMarkerMapping
+
+.. doxygengroup:: marker_mapping_core
+   :members:
+
+.. c:namespace-pop::
+
+Registry and commands
+~~~~~~~~~~~~~~~~~~~~~
+
+.. c:namespace-push:: rbcGrMarkerCommands
+
+.. doxygengroup:: marker_commands
+   :members:
+
+.. c:namespace-pop::

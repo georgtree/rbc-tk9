@@ -126,3 +126,203 @@ Changes should be checked with both marker layers, overlapping display order,
 track scrolling and inversion, child hide/remap transitions, XOR replacement,
 and resized document export. Screen snapshots alone do not establish child
 window ownership or correct binding and region-test behavior.
+
+Common configuration and ownership
+----------------------------------
+
+Concrete marker records embed ``Marker`` as their first member, checked by
+static assertions. Class methods receive that common header and recover the
+concrete record. ``MarkerClass`` combines Tk option specifications with configure,
+map, draw, export, point-test, region-test and cleanup callbacks. The common
+constructor chooses a class; it does not initialize Tk options or publish a
+registry entry. Arc construction reuses polygon storage and several polygon
+services, rather than introducing a second common marker lifecycle.
+
+.. list-table:: Common resources and owners
+   :header-rows: 1
+
+   * - Resource
+     - Ownership and release
+   * - Marker record
+     - Concrete allocation; DestroyMarker frees it
+   * - Name and direct option fields
+     - Tk option ownership after initialization; partial-creation cleanup handles earlier state
+   * - worldPts
+     - Owned parsed coordinate array, replaced at common-option commit
+   * - tags
+     - One Tcl_SplitList allocation, freed as a whole
+   * - X/Y axes
+     - Acquired references, dropped on replacement or release
+   * - Track
+     - Borrowed association validated against Y-axis ownership
+   * - Registry hash entry and display link
+     - Graph infrastructure; marker stores handles for removal
+   * - Interned binding-tag strings
+     - Graph marker-tag table, not individual marker records
+   * - Mapped/type-specific resources
+     - Concrete class cleanup before Tk option cleanup
+
+``InitMarkerOptions`` temporarily detaches the preliminary name while applying
+component defaults through the option proxy. It uses the normalized marker name
+as resource name and the class UID as resource class. Monochrome alternatives
+are selected when available on a one-bit display. Both success and failure
+restore the preliminary name; an option-database name must not silently rename
+the new record or be freed twice during failed initialization.
+
+``ConfigureMarkerOptions`` installs candidate Tk fields under saved options,
+validates the name and calls the class configure method with ``optionMask``.
+Reconfiguration cannot rename over another existing marker. The registry rename
+is committed only after class configuration succeeds. On failure Tk fields are
+restored and the diagnostic retained. This wrapper cannot undo derived resources
+that a class commits prematurely; each class must stage its own fallible work.
+
+Common class preparation uses ``ParsedMarkerOptions``. ``ParseMarkerOptions``
+zeros it, parses tags, coordinates and state, acquires both axes and validates
+the optional track. The selected Y axis must belong to exactly that track,
+including the graph-wide NULL case. Failure releases candidate allocations and
+axis references. ``CommitMarkerOptions`` frees old common resources, transfers
+new allocations/references and clears transferred pointers. It does not register,
+map or schedule the marker; concrete configuration completes those tasks.
+
+Coordinate and color parsing
+----------------------------
+
+Empty coordinates are accepted for every marker class and suppress normal
+mapping/drawing until populated. Nonempty coordinate lists obey these limits:
+
+.. list-table:: Coordinate-list arity
+   :header-rows: 1
+
+   * - Class
+     - Number of X/Y pairs
+   * - Text, window
+     - Exactly one
+   * - Image, bitmap
+     - One or two
+   * - Line
+     - At least two
+   * - Polygon
+     - At least three
+   * - Arc
+     - Exactly two
+
+Odd list lengths fail before allocation. Byte-size checks and
+``Tcl_AttemptAlloc`` make coordinate allocation failure reportable as a Tcl
+error. Each component is evaluated separately. Exact ``Inf``, ``+Inf`` and
+``-Inf`` spellings select elastic DBL_MAX sentinels; other strings go through
+``Tcl_ExprDouble``. This parser does not impose a general finite-value policy.
+
+Expression evaluation can execute application Tcl. The parser borrows list
+storage and the marker record throughout evaluation; ordinary candidate cleanup
+is not protection against callbacks deleting owners or mutating borrowed inputs.
+Future lifetime changes must address that boundary explicitly.
+
+Single colors accept empty values as NULL and, when enabled by the caller,
+nonempty prefixes of ``defcolor`` as a sentinel. Other values acquire Tk colors.
+A color pair contains at most foreground and background. Pair conversion stages
+both colors, releases a successfully acquired first color if the second fails,
+and transfers ownership only on success. It does not free an older destination
+pair. Sentinel-aware release remains essential.
+
+Creation, replacement and rename
+--------------------------------
+
+``CreateOp`` resolves the marker type and scans complete option/value pairs for
+the last abbreviated or full ``-name`` occurrence. Without one it generates a
+``markerN`` name. The malformed trailing-option case is left to Tk configuration
+rather than reading past the argument vector. The concrete constructor copies
+the preliminary name; configured names must be nonempty and must not start with
+a dash.
+
+Creation configures the new record before replacing an existing same-named
+marker. Replacement detaches the old record's hash handle so its destructor
+cannot delete the entry being reused, then publishes the new value and appends
+its display link. This is destruction/recreation, not an in-place type change:
+class-owned resources of the old marker are released, including a managed child
+for a window marker. Reconfiguration uses different collision rules and rejects
+an existing destination name.
+
+``ConfigureOp`` validates the list of names before starting updates, but each
+marker update is its own transaction. A failure on a later marker leaves earlier
+successful updates in place. Query forms return information for the first named
+marker. Names are re-resolved as updates proceed, which matters if an earlier
+update renamed a marker.
+
+``DeleteOp`` ignores missing exact names, clears lookup diagnostics and schedules
+a redraw. ``ExistsOp`` tests the registry; ``NamesOp`` enumerates display order.
+Those views should agree in a valid registry/list state, but they are different
+structures and must be maintained together.
+
+Bindings, point picking and region searches
+-------------------------------------------
+
+Marker tags are interned in their own graph table. Binding enumeration appends
+name, class and configured tags in order. Tag strings can outlive a marker and
+can be registered before it exists. Deleting an object clears its object-pointer
+binding/current-item state; that is distinct from deleting scripts on an
+interned name tag.
+
+``marker get current`` checks the graph binding context before interpreting the
+current item as a marker. The handler does not accept coordinate picking or
+ordinary marker names; older legend-related comments here were misleading.
+``Rbc_NearestMarker`` is the point-picking service: it traverses display order
+backwards and returns the first class point test that succeeds, not a global
+minimum-distance result.
+
+The shared selection filters differ:
+
+.. list-table:: Shared query filters
+   :header-rows: 1
+
+   * - Operation
+     - Order and eligibility
+   * - Nearest point
+     - Reverse display order; requested layer, coordinates present, not hidden, STATE_NORMAL
+   * - Region find
+     - Forward display order; not hidden and no existing hidden associated element
+   * - Track-use query
+     - Registry order; association only, regardless of visibility or coordinates
+
+Both point and region queries enforce visible track constraints for local
+markers. Region overlapping mode intersects its query with track bounds;
+enclosed mode retains the original query rectangle after an intersection test.
+``FindOp`` normalizes integer rectangle corners and returns only the first match.
+It does not filter by layer or marker state. Point picking does not repeat the
+associated-element hidden check used by region queries and drawing. These are
+current contracts, not interchangeable implementations of visibility.
+
+The command dispatcher validates operation spelling and arity but does not
+itself refresh layout. Picking and class region methods consume current mapped
+state or use their own mapping helpers. Callers must not assume a command query
+implicitly performs the graph's complete layout pass.
+
+Display-order changes
+---------------------
+
+``RelinkOp`` resolves the target and optional reference before unlinking the
+existing display-list link. Invalid names leave both the registry and display
+order unchanged. Moving a marker relative to itself succeeds without changing
+order. A successful move retains the same marker and link, invalidates the
+backing store according to the moved marker's under-layer setting (not the
+reference marker's setting), and schedules redraw. Omitting the reference
+retains the existing front/back placement conventions.
+
+Teardown and invalidation details
+---------------------------------
+
+``DestroyMarker`` invalidates the backing store for under-layer markers and
+removes object bindings. Initialized records use the guarded Tk-resource release
+path; records that failed before initialization receive explicit common cleanup.
+It then deletes non-NULL registry/list handles and frees the concrete allocation.
+Callers, rather than this destructor, schedule the eventual redraw.
+
+Whole-registry destruction clears each marker's hash handle before invoking its
+destructor so iteration owns hash-table deletion. It finally destroys both the
+registry and tag table and the display chain. This is final teardown, not a
+repeatable empty-the-registry operation on an otherwise initialized graph.
+
+``Rbc_MarkersUseTrack`` examines all registered associations to prevent removing
+still-used tracks or Y axes, including hidden markers. ``Rbc_MarkerFontsChanged``
+likewise visits hidden text markers, resets text style and layout, rebuilds the
+rotated bounding outline and sets ``MAP_ITEM``. Hidden geometry must be ready to
+remap when the marker is shown again.

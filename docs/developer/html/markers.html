@@ -151,6 +151,214 @@ track scrolling and inversion, child hide/remap transitions, XOR replacement,
 and resized document export. Screen snapshots alone do not establish child
 window ownership or correct binding and region-test behavior.</p>
 </section>
+<section id="common-configuration-and-ownership">
+<h2>Common configuration and ownership<a class="headerlink" href="#common-configuration-and-ownership" title="Link to this heading">¶</a></h2>
+<p>Concrete marker records embed <code class="docutils literal notranslate"><span class="pre">Marker</span></code> as their first member, checked by
+static assertions. Class methods receive that common header and recover the
+concrete record. <code class="docutils literal notranslate"><span class="pre">MarkerClass</span></code> combines Tk option specifications with configure,
+map, draw, export, point-test, region-test and cleanup callbacks. The common
+constructor chooses a class; it does not initialize Tk options or publish a
+registry entry. Arc construction reuses polygon storage and several polygon
+services, rather than introducing a second common marker lifecycle.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Common resources and owners</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Resource</p></th>
+<th class="head"><p>Ownership and release</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Marker record</p></td>
+<td><p>Concrete allocation; DestroyMarker frees it</p></td>
+</tr>
+<tr class="row-odd"><td><p>Name and direct option fields</p></td>
+<td><p>Tk option ownership after initialization; partial-creation cleanup handles earlier state</p></td>
+</tr>
+<tr class="row-even"><td><p>worldPts</p></td>
+<td><p>Owned parsed coordinate array, replaced at common-option commit</p></td>
+</tr>
+<tr class="row-odd"><td><p>tags</p></td>
+<td><p>One Tcl_SplitList allocation, freed as a whole</p></td>
+</tr>
+<tr class="row-even"><td><p>X/Y axes</p></td>
+<td><p>Acquired references, dropped on replacement or release</p></td>
+</tr>
+<tr class="row-odd"><td><p>Track</p></td>
+<td><p>Borrowed association validated against Y-axis ownership</p></td>
+</tr>
+<tr class="row-even"><td><p>Registry hash entry and display link</p></td>
+<td><p>Graph infrastructure; marker stores handles for removal</p></td>
+</tr>
+<tr class="row-odd"><td><p>Interned binding-tag strings</p></td>
+<td><p>Graph marker-tag table, not individual marker records</p></td>
+</tr>
+<tr class="row-even"><td><p>Mapped/type-specific resources</p></td>
+<td><p>Concrete class cleanup before Tk option cleanup</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">InitMarkerOptions</span></code> temporarily detaches the preliminary name while applying
+component defaults through the option proxy. It uses the normalized marker name
+as resource name and the class UID as resource class. Monochrome alternatives
+are selected when available on a one-bit display. Both success and failure
+restore the preliminary name; an option-database name must not silently rename
+the new record or be freed twice during failed initialization.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureMarkerOptions</span></code> installs candidate Tk fields under saved options,
+validates the name and calls the class configure method with <code class="docutils literal notranslate"><span class="pre">optionMask</span></code>.
+Reconfiguration cannot rename over another existing marker. The registry rename
+is committed only after class configuration succeeds. On failure Tk fields are
+restored and the diagnostic retained. This wrapper cannot undo derived resources
+that a class commits prematurely; each class must stage its own fallible work.</p>
+<p>Common class preparation uses <code class="docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code>. <code class="docutils literal notranslate"><span class="pre">ParseMarkerOptions</span></code>
+zeros it, parses tags, coordinates and state, acquires both axes and validates
+the optional track. The selected Y axis must belong to exactly that track,
+including the graph-wide NULL case. Failure releases candidate allocations and
+axis references. <code class="docutils literal notranslate"><span class="pre">CommitMarkerOptions</span></code> frees old common resources, transfers
+new allocations/references and clears transferred pointers. It does not register,
+map or schedule the marker; concrete configuration completes those tasks.</p>
+</section>
+<section id="coordinate-and-color-parsing">
+<h2>Coordinate and color parsing<a class="headerlink" href="#coordinate-and-color-parsing" title="Link to this heading">¶</a></h2>
+<p>Empty coordinates are accepted for every marker class and suppress normal
+mapping/drawing until populated. Nonempty coordinate lists obey these limits:</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Coordinate-list arity</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Number of X/Y pairs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Text, window</p></td>
+<td><p>Exactly one</p></td>
+</tr>
+<tr class="row-odd"><td><p>Image, bitmap</p></td>
+<td><p>One or two</p></td>
+</tr>
+<tr class="row-even"><td><p>Line</p></td>
+<td><p>At least two</p></td>
+</tr>
+<tr class="row-odd"><td><p>Polygon</p></td>
+<td><p>At least three</p></td>
+</tr>
+<tr class="row-even"><td><p>Arc</p></td>
+<td><p>Exactly two</p></td>
+</tr>
+</tbody>
+</table>
+<p>Odd list lengths fail before allocation. Byte-size checks and
+<code class="docutils literal notranslate"><span class="pre">Tcl_AttemptAlloc</span></code> make coordinate allocation failure reportable as a Tcl
+error. Each component is evaluated separately. Exact <code class="docutils literal notranslate"><span class="pre">Inf</span></code>, <code class="docutils literal notranslate"><span class="pre">+Inf</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-Inf</span></code> spellings select elastic DBL_MAX sentinels; other strings go through
+<code class="docutils literal notranslate"><span class="pre">Tcl_ExprDouble</span></code>. This parser does not impose a general finite-value policy.</p>
+<p>Expression evaluation can execute application Tcl. The parser borrows list
+storage and the marker record throughout evaluation; ordinary candidate cleanup
+is not protection against callbacks deleting owners or mutating borrowed inputs.
+Future lifetime changes must address that boundary explicitly.</p>
+<p>Single colors accept empty values as NULL and, when enabled by the caller,
+nonempty prefixes of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as a sentinel. Other values acquire Tk colors.
+A color pair contains at most foreground and background. Pair conversion stages
+both colors, releases a successfully acquired first color if the second fails,
+and transfers ownership only on success. It does not free an older destination
+pair. Sentinel-aware release remains essential.</p>
+</section>
+<section id="creation-replacement-and-rename">
+<h2>Creation, replacement and rename<a class="headerlink" href="#creation-replacement-and-rename" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CreateOp</span></code> resolves the marker type and scans complete option/value pairs for
+the last abbreviated or full <code class="docutils literal notranslate"><span class="pre">-name</span></code> occurrence. Without one it generates a
+<code class="docutils literal notranslate"><span class="pre">markerN</span></code> name. The malformed trailing-option case is left to Tk configuration
+rather than reading past the argument vector. The concrete constructor copies
+the preliminary name; configured names must be nonempty and must not start with
+a dash.</p>
+<p>Creation configures the new record before replacing an existing same-named
+marker. Replacement detaches the old record’s hash handle so its destructor
+cannot delete the entry being reused, then publishes the new value and appends
+its display link. This is destruction/recreation, not an in-place type change:
+class-owned resources of the old marker are released, including a managed child
+for a window marker. Reconfiguration uses different collision rules and rejects
+an existing destination name.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigureOp</span></code> validates the list of names before starting updates, but each
+marker update is its own transaction. A failure on a later marker leaves earlier
+successful updates in place. Query forms return information for the first named
+marker. Names are re-resolved as updates proceed, which matters if an earlier
+update renamed a marker.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DeleteOp</span></code> ignores missing exact names, clears lookup diagnostics and schedules
+a redraw. <code class="docutils literal notranslate"><span class="pre">ExistsOp</span></code> tests the registry; <code class="docutils literal notranslate"><span class="pre">NamesOp</span></code> enumerates display order.
+Those views should agree in a valid registry/list state, but they are different
+structures and must be maintained together.</p>
+</section>
+<section id="bindings-point-picking-and-region-searches">
+<h2>Bindings, point picking and region searches<a class="headerlink" href="#bindings-point-picking-and-region-searches" title="Link to this heading">¶</a></h2>
+<p>Marker tags are interned in their own graph table. Binding enumeration appends
+name, class and configured tags in order. Tag strings can outlive a marker and
+can be registered before it exists. Deleting an object clears its object-pointer
+binding/current-item state; that is distinct from deleting scripts on an
+interned name tag.</p>
+<p><code class="docutils literal notranslate"><span class="pre">marker</span> <span class="pre">get</span> <span class="pre">current</span></code> checks the graph binding context before interpreting the
+current item as a marker. The handler does not accept coordinate picking or
+ordinary marker names; older legend-related comments here were misleading.
+<code class="docutils literal notranslate"><span class="pre">Rbc_NearestMarker</span></code> is the point-picking service: it traverses display order
+backwards and returns the first class point test that succeeds, not a global
+minimum-distance result.</p>
+<p>The shared selection filters differ:</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Shared query filters</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Order and eligibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Nearest point</p></td>
+<td><p>Reverse display order; requested layer, coordinates present, not hidden, STATE_NORMAL</p></td>
+</tr>
+<tr class="row-odd"><td><p>Region find</p></td>
+<td><p>Forward display order; not hidden and no existing hidden associated element</p></td>
+</tr>
+<tr class="row-even"><td><p>Track-use query</p></td>
+<td><p>Registry order; association only, regardless of visibility or coordinates</p></td>
+</tr>
+</tbody>
+</table>
+<p>Both point and region queries enforce visible track constraints for local
+markers. Region overlapping mode intersects its query with track bounds;
+enclosed mode retains the original query rectangle after an intersection test.
+<code class="docutils literal notranslate"><span class="pre">FindOp</span></code> normalizes integer rectangle corners and returns only the first match.
+It does not filter by layer or marker state. Point picking does not repeat the
+associated-element hidden check used by region queries and drawing. These are
+current contracts, not interchangeable implementations of visibility.</p>
+<p>The command dispatcher validates operation spelling and arity but does not
+itself refresh layout. Picking and class region methods consume current mapped
+state or use their own mapping helpers. Callers must not assume a command query
+implicitly performs the graph’s complete layout pass.</p>
+</section>
+<section id="display-order-changes">
+<h2>Display-order changes<a class="headerlink" href="#display-order-changes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RelinkOp</span></code> resolves the target and optional reference before unlinking the
+existing display-list link. Invalid names leave both the registry and display
+order unchanged. Moving a marker relative to itself succeeds without changing
+order. A successful move retains the same marker and link, invalidates the
+backing store according to the moved marker’s under-layer setting (not the
+reference marker’s setting), and schedules redraw. Omitting the reference
+retains the existing front/back placement conventions.</p>
+</section>
+<section id="teardown-and-invalidation-details">
+<h2>Teardown and invalidation details<a class="headerlink" href="#teardown-and-invalidation-details" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DestroyMarker</span></code> invalidates the backing store for under-layer markers and
+removes object bindings. Initialized records use the guarded Tk-resource release
+path; records that failed before initialization receive explicit common cleanup.
+It then deletes non-NULL registry/list handles and frees the concrete allocation.
+Callers, rather than this destructor, schedule the eventual redraw.</p>
+<p>Whole-registry destruction clears each marker’s hash handle before invoking its
+destructor so iteration owns hash-table deletion. It finally destroys both the
+registry and tag table and the display chain. This is final teardown, not a
+repeatable empty-the-registry operation on an otherwise initialized graph.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersUseTrack</span></code> examines all registered associations to prevent removing
+still-used tracks or Y axes, including hidden markers. <code class="docutils literal notranslate"><span class="pre">Rbc_MarkerFontsChanged</span></code>
+likewise visits hidden text markers, resets text style and layout, rebuilds the
+rotated bounding outline and sets <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code>. Hidden geometry must be ready to
+remap when the marker is shown again.</p>
+</section>
 </section>
 
 
@@ -169,6 +377,12 @@ window ownership or correct binding and region-test behavior.</p>
 <li><a class="reference internal" href="#window-markers">Window markers</a></li>
 <li><a class="reference internal" href="#xor-paths">XOR paths</a></li>
 <li><a class="reference internal" href="#export-and-cleanup">Export and cleanup</a></li>
+<li><a class="reference internal" href="#common-configuration-and-ownership">Common configuration and ownership</a></li>
+<li><a class="reference internal" href="#coordinate-and-color-parsing">Coordinate and color parsing</a></li>
+<li><a class="reference internal" href="#creation-replacement-and-rename">Creation, replacement and rename</a></li>
+<li><a class="reference internal" href="#bindings-point-picking-and-region-searches">Bindings, point picking and region searches</a></li>
+<li><a class="reference internal" href="#display-order-changes">Display-order changes</a></li>
+<li><a class="reference internal" href="#teardown-and-invalidation-details">Teardown and invalidation details</a></li>
 </ul>
 </li>
 </ul>

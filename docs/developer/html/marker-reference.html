@@ -157,6 +157,312 @@ option-table fields are included directly:</p>
 </pre></div>
 </div>
 </section>
+<section id="shared-implementation-reference">
+<h2>Shared implementation reference<a class="headerlink" href="#shared-implementation-reference" title="Link to this heading">¶</a></h2>
+<p>Concrete marker geometry and platform batching remain separate documentation
+work. These groups cover common transactions, lifecycle, mapping helpers and
+commands. Namespaces disambiguate private names without changing C linkage.</p>
+<section id="option-preparation-and-commit">
+<h3>Option preparation and commit<a class="headerlink" href="#option-preparation-and-commit" title="Link to this heading">¶</a></h3>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__configuration"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Marker</span> <span class="pre">common</span> <span class="pre">option</span> <span class="pre">transactions</span></span></dt>
+<dd><p>Internal services shared by concrete marker classes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.InitMarkerOptions">
+<span class="target" id="group__marker__configuration_1ga2813e1329eea95ba85dc8a44bea85e88"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.InitMarkerOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the concrete Tk option record while preserving the chosen name. </p>
+<p>Chooses monochrome specifications when supplied on a one-bit display. Uses a normalized component resource name and class identity. Temporarily detaches the owned preliminary name so partial Tk cleanup cannot free it. Returns TCL_OK with initialized options, or TCL_ERROR after releasing partial Tk resources and restoring the original name for caller cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.ConfigureMarkerOptions">
+<span class="target" id="group__marker__configuration_1ga86eea0bd4435e39e3ca563d99acd04d4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">creating</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.ConfigureMarkerOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Apply one marker option transaction and commit a rename last. </p>
+<p>Requires initialized options. Installs candidate Tk fields, validates a nonempty name not starting with a dash, and rejects rename collisions when not creating. Passes optionMask to the class configuration callback and clears it afterwards. On error restores saved Tk fields and diagnostic; the class owns rollback of derived state. On success commits registry rename and frees saved options. Creation permits replacement, handled by CreateOp. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerTagsFromObj">
+<span class="target" id="group__marker__configuration_1gad0bb8f47fc6ff69d9be9481bbc975349"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerTagsFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagsPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerTagsFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse an optional tag list into one owned allocation. </p>
+<p>Initializes output to NULL. NULL/empty input succeeds without storage. Tcl_SplitList owns both the returned pointer array and its strings in one allocation; the caller frees it with ckfree. Returns TCL_ERROR on list errors. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerStateFromObj">
+<span class="target" id="group__marker__configuration_1ga412a730d56419dd95bb31813ede4a11f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerStateFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">statePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerStateFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parse an exact normal, active or disabled marker state. </p>
+<p>Borrows the non-NULL object. Writes statePtr only on success; otherwise returns TCL_ERROR with a diagnostic. Does not change drawing or binding state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerCoordinatesFromObj">
+<span class="target" id="group__marker__configuration_1gaab4a7e5e8af97fc004a97b52e0737b14"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerCoordinatesFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">worldPtsPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">nWorldPtsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerCoordinatesFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage an owned coordinate array with class-specific point counts. </p>
+<p>Initializes outputs to NULL/zero and accepts empty coordinates for every class. Nonempty lists must contain pairs and satisfy the class count limits. Checks allocation size and uses Tcl_AttemptAlloc. Each component is parsed through GetCoordinate, which can evaluate Tcl. Returns TCL_OK and transfers the array, or TCL_ERROR after freeing it. Borrows marker and list storage throughout; does not protect against callback mutation of owners/arguments. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.FreeParsedMarkerOptions">
+<span class="target" id="group__marker__configuration_1ga7c9b6e903038a2c17f8c7f47f95698db"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeParsedMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.FreeParsedMarkerOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release candidate common resources that have not been transferred. </p>
+<p>Frees tag/coordinate allocations and drops candidate axis references, clearing those pointers/counts. Track is borrowed and not released. Accepts a zeroed or partially populated candidate; does not free the candidate record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.ParseMarkerOptions">
+<span class="target" id="group__marker__configuration_1ga1b277a69442001643c14ee8593cc568a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Prepare common tags, coordinates, state, axes and track association. </p>
+<p>Zeros the caller-owned candidate, then parses all common fields and acquires axis references. A nonempty track must name an existing trackgraph track, and Y-axis ownership must equal the selected track (including NULL). Returns TCL_OK with staged ownership or TCL_ERROR after candidate cleanup. Coordinate expressions can execute Tcl; live records are not preserved here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.CommitMarkerOptions">
+<span class="target" id="group__marker__configuration_1gabb516a0907c99dab613750a92113bdc8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitMarkerOptions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">ParsedMarkerOptions</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">optionsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transfer common candidate allocations and axis references to the marker. </p>
+<p>Releases old tags, coordinates and axes, moves candidate storage/references and copies borrowed track and state. Clears transferred pointers so candidate cleanup is safe. Does not register a name, map geometry or schedule redraw; the concrete configuration routine owns those remaining steps. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetMarkerColorFromObj">
+<span class="target" id="group__marker__configuration_1gae0aad59e8eb15ef1f68fb83d7d213e08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetMarkerColorFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowDefault</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetMarkerColorFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an optional color or an allowed default-color sentinel. </p>
+<p>Initializes output to NULL. Empty input succeeds; when allowDefault is true, a nonempty prefix of defcolor yields COLOR_DEFAULT. Other spellings acquire a Tk color reference. Returns TCL_OK/TCL_ERROR; callers must distinguish the sentinel from an owned color when releasing the result. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetColorPairFromObj">
+<span class="target" id="group__marker__configuration_1ga817a7f155c46a2378326c7707e276eff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetColorPairFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">allowDefault</span></span>, <span class="n"><span class="pre">ColorPair</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pairPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetColorPairFromObj" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage foreground and background from a list of at most two colors. </p>
+<p>Empty input yields a zeroed pair. Parses colors into temporary ownership; failure releases any first color and leaves the output pair unchanged. Success transfers the pair for eventual Rbc_FreeColorPair cleanup. Does not release an existing output pair, so callers must manage replacement explicitly. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerConfiguration.GetCoordinate">
+<span class="target" id="group__marker__configuration_1gafd8de9d388c4d22bd2f25822de9ddcca"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCoordinate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">expr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerConfiguration.GetCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Evaluate a coordinate with special elastic endpoint spellings. </p>
+<p>Exact Inf, +Inf and -Inf become positive/negative DBL_MAX. Other strings are passed to Tcl_ExprDouble and may execute Tcl. Returns Tcl status and writes valuePtr on success. No general finite-value check is performed here. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="record-lifetime">
+<h3>Record lifetime<a class="headerlink" href="#record-lifetime" title="Link to this heading">¶</a></h3>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__lifecycle__core"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Marker</span> <span class="pre">record</span> <span class="pre">and</span> <span class="pre">resource</span> <span class="pre">lifecycle</span></span></dt>
+<dd><p>Internal services shared by concrete marker classes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.ReleaseMarkerTkResources">
+<span class="target" id="group__marker__lifecycle__core_1ga548c35e3fb59d813f50d7d5ae7997ffe"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReleaseMarkerTkResources</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.ReleaseMarkerTkResources" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release one initialized marker before the graph window is lost. </p>
+<p>Guards uninitialized/already released records. Calls concrete cleanup before Tk frees option resources, then frees common coordinates/tags, drops axes, frees options/table and sets the release guard. Requires a live graph window. Registry links and record remain for final destruction. Class cleanup can release images or destroy a managed child; this is not just scalar cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.CreateMarker">
+<span class="target" id="group__marker__lifecycle__core_1ga0ca7b72dc5f369ab8b01b579b41f2002"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.CreateMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate an unregistered concrete marker and initialize common state. </p>
+<p>Dispatches by interned class identity and returns NULL for an unknown class. Concrete allocation is asserted. Copies the name, borrows graph/class, sets MAP_ITEM and initializes option lifecycle flags. Caller must initialize and configure options, then register the marker or destroy the partial record. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerLifetime.DestroyMarker">
+<span class="target" id="group__marker__lifecycle__core_1ga666aa08eb0dd11278f9219244e1e2309"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DestroyMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerLifetime.DestroyMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Remove binding and registry/list state and free a concrete marker. </p>
+<p>Requires a live marker. Marks backing store dirty for under markers, removes object bindings, and releases initialized resources while the window exists. Handles pre-initialization failure with explicit cleanup instead. Deletes non-NULL hash/list links and frees the record. Bulk teardown or replacement may clear hashPtr first to retain control of the hash entry. Does not itself schedule a graph redraw or make callback-driven registry mutation safe. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="mapping-helpers-and-picking">
+<h3>Mapping helpers and picking<a class="headerlink" href="#mapping-helpers-and-picking" title="Link to this heading">¶</a></h3>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__mapping__core"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Marker</span> <span class="pre">coordinate</span> <span class="pre">mapping</span> <span class="pre">and</span> <span class="pre">picking</span></span></dt>
+<dd><p>Internal services shared by concrete marker classes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.BoxesDontOverlap">
+<span class="target" id="group__marker__mapping__core_1gaa223c12dba6dcaea50eadfb44d613d7e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BoxesDontOverlap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.BoxesDontOverlap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reject disjoint inclusive marker and current plot rectangles. </p>
+<p>Requires ordered extents and graph plot bounds, checked with assertions. Touching edges count as overlap. Returns true only for disjoint rectangles; does not clip partial overlaps or map coordinates. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.HMap">
+<span class="target" id="group__marker__mapping__core_1ga160da3b546f5de350ffaadd7e87ef239"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.HMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a horizontal marker coordinate, preserving elastic endpoints. </p>
+<p>Borrows current axis range and graph geometry. DBL_MAX sentinels select normalized endpoints; descending axes reverse them. Legacy log mapping uses log10 for positives and zero for negatives, then ordinary normalization. Track-owned axes use full world width, otherwise graph hRange/hOffset. Does not clamp normalized values or update layout. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.VMap">
+<span class="target" id="group__marker__mapping__core_1gaa634792c76a20f1e3f2e19b60539da78"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VMap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axisPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.VMap" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map a vertical marker coordinate against full track or graph geometry. </p>
+<p>Uses the same sentinel, descending and legacy log rules as HMap, with screen-Y reversal. Track ownership selects world bounds even outside a temporary track drawing scope. Visible clipping must not replace this span. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.MapPoint">
+<span class="target" id="group__marker__mapping__core_1ga494dc46531d8001bfd277900eaa39915"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span>, <span class="n"><span class="pre">Axis2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.MapPoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Map one borrowed world point through its axes and graph inversion. </p>
+<p>Uses marker-specific HMap/VMap, swapping logical axes when inverted. Returns screen coordinates without rounding or remapping graph layout. These helpers intentionally differ from ordinary element mapping. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_MarkersUseTrack">
+<span class="target" id="group__marker__mapping__core_1ga23ef71601c6f0a2551c5c43fadf8e421"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkersUseTrack</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">RbcTrack</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">track</span></span>, <span class="n"><span class="pre">Axis</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">axis</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_MarkersUseTrack" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test marker associations independently of display visibility. </p>
+<p>Scans the registry, including hidden and coordinate-free markers. NULL track means graph-wide markers; NULL axis matches all markers in that scope. Otherwise compares the marker Y-axis pointer. Borrows all records. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_NearestMarker">
+<span class="target" id="group__marker__mapping__core_1gae8d3f0eda7122b9498834367ebcf71c4"></span><span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NearestMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">under</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_NearestMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pick the first eligible marker in reverse painter order. </p>
+<p>Despite its name, this returns the first successful class point test rather than comparing distances. Requires mapped geometry. Filters by layer, nonempty coordinates, hidden flag and STATE_NORMAL; active/disabled states are excluded. Local picks enforce visible track bounds and clipping. Does not apply the associated-element hidden check used by drawing/FindOp. Returns borrowed marker or NULL, without layout refresh or lifetime preservation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged">
+<span class="target" id="group__marker__mapping__core_1ga0418c329d35b95d233aaecf325310fa7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkerFontsChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh all text-marker layouts after a font change. </p>
+<p>Scans the registry including hidden text markers. Resets text style, replaces layout and rotated bounding geometry when text exists, then marks mapping dirty. Borrows graph/marker records; non-text markers are unaffected. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+<section id="registry-and-commands">
+<h3>Registry and commands<a class="headerlink" href="#registry-and-commands" title="Link to this heading">¶</a></h3>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__marker__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Marker</span> <span class="pre">registry</span> <span class="pre">and</span> <span class="pre">command</span> <span class="pre">dispatch</span></span></dt>
+<dd><p>Internal services shared by concrete marker classes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.NameToMarker">
+<span class="target" id="group__marker__commands_1ga6ee1324fec476cdc787a77fd46113f53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NameToMarker</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.NameToMarker" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve an exact marker name to a borrowed registry record. </p>
+<p>Returns TCL_OK and writes markerPtrPtr on success. Otherwise returns TCL_ERROR with graph/name diagnostic, leaving output unchanged. Does not search display order, accept patterns or acquire a lifetime reference. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.NamesOp">
+<span class="target" id="group__marker__commands_1ga35817a8f9f90cf487e885b731de45e29"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NamesOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.NamesOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return display-list names matching any supplied glob pattern. </p>
+<p>No patterns returns all listed names. Traverses from first to last and emits each marker at most once; hidden markers remain eligible. Registry entries detached from the display list are not returned. Returns TCL_OK. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.MakeMarkerTag">
+<span class="target" id="group__marker__commands_1ga748a6a6af13880f273c64cf64937d4c7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeMarkerTag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.MakeMarkerTag" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intern a binding tag in the graph marker-tag table. </p>
+<p>Creates the string-key entry when needed and returns its borrowed key pointer, valid until table destruction. Does not require a named marker to exist or install a binding script. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.Rbc_AppendMarkerBindingTags">
+<span class="target" id="group__marker__commands_1ga1ccd8ab5952bad3ab693153e1d5d4df8"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_AppendMarkerBindingTags</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Marker</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">markerPtr</span></span>, <span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.Rbc_AppendMarkerBindingTags" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append name, class and configured tags in binding order. </p>
+<p>Borrows graph, marker and destination list. Interns tag identities in the marker-tag table; the list does not own their strings. Does not evaluate Tcl binding scripts or alter marker state. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.BindOp">
+<span class="target" id="group__marker__commands_1ga733e36eecb9f4cd2861a5fb31f15d030"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.BindOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>List interned marker tags or delegate a binding query/update. </p>
+<p>No tag returns registry tag names in hash order, not only tags with scripts. Otherwise interns the tag at objv[3] and passes the remaining arguments to the graph binding table service. Returns its Tcl status. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.CgetOp">
+<span class="target" id="group__marker__commands_1ga069f177067bd608b94afcd87a8442575"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CgetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.CgetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a marker option through its concrete Tk option table. </p>
+<p>Resolves objv[3] as an exact name and objv[4] as an option. Returns TCL_OK with its value or TCL_ERROR from lookup/Tk. Does not configure or redraw. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.ConfigureOp">
+<span class="target" id="group__marker__commands_1ga7efe9127ae20ca96b7d6b6752b20004e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ConfigureOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.ConfigureOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Query one marker or configure multiple named markers in sequence. </p>
+<p>Scans names until the first dash-prefixed argument and validates them before applying options. Zero/one option arguments query the first named marker. Updates re-resolve each name and call ConfigureMarkerOptions independently. A later failure does not roll back earlier markers. Returns a Tcl status; it is not a multi-marker atomic transaction. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.CreateOp">
+<span class="target" id="group__marker__commands_1ga90c7491b4c2ff542af4a6a5c0b644944"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.CreateOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Configure a new marker before replacing any same-named registry entry. </p>
+<p>Resolves the class and scans complete option pairs for the last -name prefix; otherwise generates markerN. Creates and initializes the concrete record, applies options and validates the final name before publishing. A duplicate name destroys the old marker while retaining its hash entry. Appends the new record to display order, invalidates under-layer backing when needed and schedules redraw. Returns the configured name or TCL_ERROR with cleanup. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.DeleteOp">
+<span class="target" id="group__marker__commands_1ga478a3f6ac5ef81f3649c1afabab35cc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DeleteOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.DeleteOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy each existing exact name and ignore missing names. </p>
+<p>Performs deletions sequentially, clears lookup diagnostics and schedules graph redraw even for no matching names. Returns TCL_OK. Concrete cleanup owns associated resources, which can include a managed child window. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.GetOp">
+<span class="target" id="group__marker__commands_1ga45996fadd956f5f43872e47dfd56147f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.GetOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the current marker only when the binding context is a marker. </p>
+<p>Recognizes only the exact selector current. Checks the common binding context before casting the current item, and verifies a supported marker class. Other selectors or absent/nonmarker items leave an empty result. Returns TCL_OK; does not pick coordinates or resolve ordinary names. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.RelinkOp">
+<span class="target" id="group__marker__commands_1ga96174306a4dcc902fd2562a2de0bb3d6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RelinkOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.RelinkOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move a marker link before or after an optional display-list reference. </p>
+<p>Borrows graph and resolves both exact names before changing display order. Invalid names return TCL_ERROR without unlinking either marker. A reference to the target itself is a successful no-op. Otherwise moves the existing link, invalidates backing storage when the moved marker is an underlay and schedules redraw. No marker ownership or registry entries change. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.FindOp">
+<span class="target" id="group__marker__commands_1ga2b325882e9454af52ae5a49011734cd1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.FindOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the first visible marker passing a class rectangle test. </p>
+<p>Parses enclosed/overlapping and four integer screen coordinates, normalizes corner order and scans first-to-last display order. Filters hidden markers and existing hidden associated elements. Local searches require a visible track intersection; overlapping queries clip the search box to that track, enclosed queries retain the original box. Returns the first name or an empty result. No automatic layout refresh, layer filter or marker-state filter. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.ExistsOp">
+<span class="target" id="group__marker__commands_1ga42029521d57777acaf03200401b72666"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ExistsOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.ExistsOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report exact registry membership regardless of visibility or list order. </p>
+<p>Returns TCL_OK with integer zero/one. Does not require coordinates or current geometry, and does not report an error for a missing name. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.TypeOp">
+<span class="target" id="group__marker__commands_1gafd105d5a988d29b3152781d274293fb5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TypeOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.TypeOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the interned class identity for an existing marker. </p>
+<p>Resolves an exact name and copies classUid into the interpreter result. Returns TCL_ERROR on missing name; does not configure or map the marker. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrMarkerCommands.Rbc_MarkerOp">
+<span class="target" id="group__marker__commands_1gaf4f667c91e6ce033f09dea3f7faebc60"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_MarkerOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrMarkerCommands.Rbc_MarkerOp" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Validate operation and arity before shared marker command dispatch. </p>
+<p>Uses the complete widget-command argument vector with the operation at index two. Returns shared-dispatch or handler Tcl status. Does not itself refresh layout or preserve marker records across application callbacks. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
 </section>
 
 
@@ -182,6 +488,57 @@ option-table fields are included directly:</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#internal-class-interface">Internal class interface</a></li>
+<li><a class="reference internal" href="#shared-implementation-reference">Shared implementation reference</a><ul>
+<li><a class="reference internal" href="#option-preparation-and-commit">Option preparation and commit</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.InitMarkerOptions"><code class="docutils literal notranslate"><span class="pre">InitMarkerOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.ConfigureMarkerOptions"><code class="docutils literal notranslate"><span class="pre">ConfigureMarkerOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetMarkerTagsFromObj"><code class="docutils literal notranslate"><span class="pre">GetMarkerTagsFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetMarkerStateFromObj"><code class="docutils literal notranslate"><span class="pre">GetMarkerStateFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetMarkerCoordinatesFromObj"><code class="docutils literal notranslate"><span class="pre">GetMarkerCoordinatesFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.FreeParsedMarkerOptions"><code class="docutils literal notranslate"><span class="pre">FreeParsedMarkerOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.ParseMarkerOptions"><code class="docutils literal notranslate"><span class="pre">ParseMarkerOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.CommitMarkerOptions"><code class="docutils literal notranslate"><span class="pre">CommitMarkerOptions()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetMarkerColorFromObj"><code class="docutils literal notranslate"><span class="pre">GetMarkerColorFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetColorPairFromObj"><code class="docutils literal notranslate"><span class="pre">GetColorPairFromObj()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerConfiguration.GetCoordinate"><code class="docutils literal notranslate"><span class="pre">GetCoordinate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#record-lifetime">Record lifetime</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerLifetime.ReleaseMarkerTkResources"><code class="docutils literal notranslate"><span class="pre">ReleaseMarkerTkResources()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLifetime.CreateMarker"><code class="docutils literal notranslate"><span class="pre">CreateMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerLifetime.DestroyMarker"><code class="docutils literal notranslate"><span class="pre">DestroyMarker()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mapping-helpers-and-picking">Mapping helpers and picking</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.BoxesDontOverlap"><code class="docutils literal notranslate"><span class="pre">BoxesDontOverlap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.HMap"><code class="docutils literal notranslate"><span class="pre">HMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.VMap"><code class="docutils literal notranslate"><span class="pre">VMap()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.MapPoint"><code class="docutils literal notranslate"><span class="pre">MapPoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.Rbc_MarkersUseTrack"><code class="docutils literal notranslate"><span class="pre">Rbc_MarkersUseTrack()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.Rbc_NearestMarker"><code class="docutils literal notranslate"><span class="pre">Rbc_NearestMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerMapping.Rbc_MarkerFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_MarkerFontsChanged()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#registry-and-commands">Registry and commands</a><ul>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.NameToMarker"><code class="docutils literal notranslate"><span class="pre">NameToMarker()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.NamesOp"><code class="docutils literal notranslate"><span class="pre">NamesOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.MakeMarkerTag"><code class="docutils literal notranslate"><span class="pre">MakeMarkerTag()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.Rbc_AppendMarkerBindingTags"><code class="docutils literal notranslate"><span class="pre">Rbc_AppendMarkerBindingTags()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.BindOp"><code class="docutils literal notranslate"><span class="pre">BindOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.CgetOp"><code class="docutils literal notranslate"><span class="pre">CgetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.ConfigureOp"><code class="docutils literal notranslate"><span class="pre">ConfigureOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.CreateOp"><code class="docutils literal notranslate"><span class="pre">CreateOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.DeleteOp"><code class="docutils literal notranslate"><span class="pre">DeleteOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.GetOp"><code class="docutils literal notranslate"><span class="pre">GetOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.RelinkOp"><code class="docutils literal notranslate"><span class="pre">RelinkOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.FindOp"><code class="docutils literal notranslate"><span class="pre">FindOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.ExistsOp"><code class="docutils literal notranslate"><span class="pre">ExistsOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.TypeOp"><code class="docutils literal notranslate"><span class="pre">TypeOp()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrMarkerCommands.Rbc_MarkerOp"><code class="docutils literal notranslate"><span class="pre">Rbc_MarkerOp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
