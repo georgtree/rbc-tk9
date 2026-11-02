@@ -646,3 +646,74 @@ vectors remain owned by their creators.
 Font-change handling resets named-pen value styles through the pen registry and
 built-in styles through the element registry, including hidden elements. The
 caller remains responsible for arranging layout and redraw.
+
+Line mapping pipeline
+---------------------
+
+MapLine runs with the graph's axes and viewport already prepared. It consumes
+pending vector-change metadata after refreshing or invalidating source-domain
+decimation summaries, then resets old drawing geometry. Error-band mapping
+precedes center-line mapping. Cached and uncached pre-map reduction are attempted
+only when eligible and sufficiently dense; full point mapping is the fallback.
+See :doc:`decimation` for the source-summary and picking contracts.
+
+Normal symbol centers are copied before smoothing or trace reduction. Their
+mapping bounds include conservative padding from every palette pen and the
+active pen, retaining centers outside the plot whose symbols may overlap it.
+This expansion is not a drawing clip: renderers still clip to the viewport.
+Explicit active symbols are mapped separately.
+
+Smoothing, gaps and symbol selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GenerateSplineRuns copies each continuous run and smooths it independently,
+then joins the arrays while restoring break flags. Runs shorter than three
+points stay unchanged. An individual generator can fall back for one run while
+others remain smoothed. Failure to allocate or combine the temporary runs keeps
+the original complete map and sets effective smoothing to linear. The requested
+option remains unchanged. FreeMapRun releases temporary arrays and clears their
+record; CopyMapRun requires an unused destination and a valid source interval.
+
+After smoothing, the mapper applies pixel-density reduction where appropriate,
+then tolerance reduction. Reduced-symbol mode matches both original index and
+exact coordinates: a generated step corner or spline point with the same index
+must not substitute for an original center. Removing centers marks
+pointMapOmitted so exact picking can use original samples. This matching requires
+source order and must precede palette grouping.
+
+Clipping and palette grouping
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Area filling occurs before connected-trace clipping because MapTraces can change
+its temporary input coordinates. Trace breaks respect missing-data boundaries,
+clipping and the requested increasing/decreasing data-X direction. TraceAbscissa
+accounts for inverted and descending axes; it is an ordering coordinate, not an
+inverse transform. ClipSegment modifies endpoints and returns zero for acceptance.
+SaveTrace copies each surviving run into independently owned trace storage.
+
+MapStrip instead clips adjacent pairs independently, skips gap crossings and
+associates each segment with its starting source index. The element class selects
+this representation even in a trackgraph containing both line and strip elements.
+MapStrip does not apply the connected-line trace-direction filter.
+
+The general mapping path computes palette sizes, maps eligible XY error bars,
+filters error bars to match selected symbols, and calls MergePens last. With
+multiple styles, MergePens reorders arrays by palette order while preserving
+order inside each style. Style pointers are borrowed slices of line-owned
+allocations, not independently allocated geometry. A single style borrows the
+existing arrays directly. The restricted pre-map path uses this single-style
+case without allocating a source-sized style map.
+
+Mapping is not a transaction over the entire element. Old geometry is discarded
+first, and individual helpers have their own empty-result or unchanged-input
+fallbacks. This differs from configuration transactions that retain old resources
+until a candidate is ready.
+
+Source extents
+~~~~~~~~~~~~~~
+
+GetLineExtents computes bounds from source data rather than reduced or smoothed
+screen geometry. Ordinary XY bounds include error bars and account for positive
+minimums on log axes. Complex input and polar-coordinate input instead use a
+symmetric square enclosing the maximum Cartesian radius. No valid data leaves
+empty sentinel bounds; the caller owns source synchronization and axis reset.

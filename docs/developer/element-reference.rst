@@ -96,3 +96,17 @@ documentation-only.
    :members:
 
 .. c:namespace-pop::
+
+Line mapping pipeline
+---------------------
+
+These private contracts describe continuous runs, symbol selection, clipping,
+palette slices and the top-level mapping pass. See :doc:`elements` for ordering.
+The C namespace below only disambiguates documentation names.
+
+.. c:namespace-push:: rbcGrLineMapping
+
+.. doxygengroup:: line_mapping_pipeline
+   :members:
+
+.. c:namespace-pop::

@@ -1269,6 +1269,138 @@ documentation-only.</p>
 </dd></dl>
 
 </section>
+<section id="line-mapping-pipeline">
+<h2>Line mapping pipeline<a class="headerlink" href="#line-mapping-pipeline" title="Link to this heading">¶</a></h2>
+<p>These private contracts describe continuous runs, symbol selection, clipping,
+palette slices and the top-level mapping pass. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for ordering.
+The C namespace below only disambiguates documentation names.</p>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__line__mapping__pipeline"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">mapping</span> <span class="pre">pipeline</span></span></dt>
+<dd><p>Private continuous-run, clipping, symbol and palette geometry services. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.FreeMapRun">
+<span class="target" id="group__line__mapping__pipeline_1ga700eca9efcc0861bf9588e347af21d16"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeMapRun</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.FreeMapRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release a temporary map run and clear its record. </p>
+<p>Frees owned screen points, source indices and optional break flags, then zeros the complete MapInfo. The record itself remains caller-owned. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.CopyMapRun">
+<span class="target" id="group__line__mapping__pipeline_1gac16f3a1f7db2d0fc8a90146ca92bd648"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyMapRun</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">srcPtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">first</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dstPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.CopyMapRun" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy one continuous source interval into an empty temporary map. </p>
+<p>The caller supplies a valid first/length range and an unused destination. Zeros the destination before allocating; does not release previous contents. Copies points and original indices, deliberately omitting break flags because the interval represents one continuous run. Returns FALSE for nonpositive length, byte-count overflow or attempted-allocation failure, cleaning partial storage. Borrows and does not modify the source. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.GenerateSplineRuns">
+<span class="target" id="group__line__mapping__pipeline_1ga224c067fd0102ef26e0f02965d97fff8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GenerateSplineRuns</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">parametric</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GenerateSplineRuns" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Smooth discontinuous geometry one continuous run at a time. </p>
+<p>Requires a nonempty map with break flags. Copies each run, applies the selected ordinary or parametric generator to runs of at least three points, then concatenates results with new boundary flags. Individual generator fallbacks retain that run’s copied coordinates. Effective smoothing remains the requested mode if any run succeeds, otherwise PEN_SMOOTH_NONE.</p>
+<p>Replaces original map arrays only after all combined storage is ready. Run-copy, size or combined-allocation failure frees temporary storage, retains the original map and sets effective smoothing to PEN_SMOOTH_NONE. Does not change reqSmooth or report an interpreter error. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.SymbolPadding">
+<span class="target" id="group__line__mapping__pipeline_1ga925aa9a9632ff62b7bba43bf9ec19e9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolPadding</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LinePen</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.SymbolPadding" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return conservative pixel reach for a symbol. </p>
+<p>Returns zero for a NULL pen or SYMBOL_NONE, otherwise size plus twice the outline width and two pixels for rounding. Borrows the pen and does not compute exact symbol bounds or allocate storage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.GetSymbolMapExtents">
+<span class="target" id="group__line__mapping__pipeline_1ga0d4aeb495ce3f6b70856944d9d8d9b37"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSymbolMapExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GetSymbolMapExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Expand mapping extents to retain partially visible symbols. </p>
+<p>Starts from Rbc_GraphExtents and expands all sides by the largest padding among palette pens and the active pen. Whole-element activation can reuse normal symbol arrays, so the active pen must contribute. Calls ScaleSymbol, which may capture axis-range baselines. Returns conservative center bounds; actual drawing still requires clipping to the plot viewport. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.MapSymbols">
+<span class="target" id="group__line__mapping__pipeline_1ga17b06e4602588f25bab40e025214e645"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Copy visible candidate centers and original indices into the line. </p>
+<p>Borrows a source-ordered map and filters centers through expanded symbol extents. The caller must have cleared old symbol storage first. Transfers new arrays and count when any centers survive; otherwise frees candidates. Empty input, checked-size failure or attempted-allocation failure leaves existing line fields unchanged. Does not clip the symbol shapes themselves. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.FilterReducedSymbols">
+<span class="target" id="group__line__mapping__pipeline_1ga39c309c6604b9deb9cc237cead39cccb"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FilterReducedSymbols</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.FilterReducedSymbols" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retain original symbol centers that survived trace reduction. </p>
+<p>Requires both mappings in source order, before MergePens. Matches both source index and exact screen coordinates, since inserted step/spline points can share an original index. Compacts symbol points and indices in place without changing capacity. Sets pointMapOmitted if any centers are removed so exact picking can search source samples instead. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.MapStrip">
+<span class="target" id="group__line__mapping__pipeline_1ga0d5203f20c0c0ff31646a1efce9e3df9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapStrip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapStrip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Build independent clipped segments for a strip element. </p>
+<p>Borrows mapped points and skips pairs crossing a break flag. Clips each remaining adjacent pair against graph extents and records the starting point’s source index. Requires old strip storage to be cleared by the caller. Transfers arrays only when segments survive; frees empty candidates. Insufficient points, size failure or attempted-allocation failure leaves line fields unchanged. Does not apply the line trace-direction filter. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.MergePens">
+<span class="target" id="group__line__mapping__pipeline_1ga07769a11cc611274f3f8441d3e12a083"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MergePens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">PenStyle</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataToStyle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MergePens" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Group mapped geometry into palette-owned views of line storage. </p>
+<p>Requires a nonempty palette. For one style, attaches existing arrays without allocation and permits a NULL dataToStyle. For multiple styles, requires every source index to map to a valid palette style. Validates all byte counts before changing slices, then reorders strips, symbols and X/Y error segments with their parallel original-index arrays.</p>
+<p>Preserves order within each style and frees replaced backing arrays. Style pointers borrow slices; the line owns the complete allocations. Size failure returns without mutation; ordinary allocation uses ckalloc. Run source-order filtering before this operation. Trace chains are not reordered here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.OutCode">
+<span class="target" id="group__line__mapping__pipeline_1ga01b5e212578829727e4978417e9c0522"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OutCode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.OutCode" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Classify a finite point relative to a clipping rectangle. </p>
+<p>Returns a bit mask for sides strictly outside the rectangle. Points on its edges are inside. Borrows both arguments without mutation; callers supply valid ordered extents and finite coordinates. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.ClipSegment">
+<span class="target" id="group__line__mapping__pipeline_1gaed4de34447f60b74c7e42853e8fd407c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipSegment</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">code1</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">code2</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span>, <span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">q</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.ClipSegment" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Clip segment endpoints in place using supplied outcodes. </p>
+<p>Borrows a valid rectangle and writable finite endpoints with matching outcodes. Iteratively intersects outside endpoints with rectangle edges. Returns zero for an accepted segment and nonzero for rejection, opposite to a conventional success predicate. May modify endpoints even when the segment is ultimately rejected. Does not allocate or preserve originals. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.SaveTrace">
+<span class="target" id="group__line__mapping__pipeline_1ga915660a9cb73a84ae6838ba6bccfa492"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SaveTrace</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">start</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.SaveTrace" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append an owned copy of a mapped interval to the trace chain. </p>
+<p>Caller supplies a valid interval and allocation-safe length. Copies points and source indices; if no index array exists, uses positions in the map. Stores the starting map offset, creates the chain lazily and appends a new trace. Uses ckalloc; FreeTraces owns the resulting arrays and record. Does not transfer or modify the source map. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.TraceAbscissa">
+<span class="target" id="group__line__mapping__pipeline_1gae88681692df69e1475bd9f7741f8690e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TraceAbscissa</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.TraceAbscissa" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return a screen-derived coordinate ordered by increasing data X. </p>
+<p>Uses screen X normally and negated screen Y for inverted graphs, then undoes X-axis descending direction. This coordinate is for trace-direction comparisons, not an inverse transform or recovered data value. Borrows all arguments and performs no allocation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.MapTraces">
+<span class="target" id="group__line__mapping__pipeline_1ga75619fd6bda8494dce7445f94734df62"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapTraces</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">MapInfo</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">mapPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapTraces" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Split and clip a mapped polyline into owned drawable traces. </p>
+<p>Requires a nonempty writable map. Break flags prevent testing nonexistent connecting segments. Trace direction is measured in data-X order, including inverted and descending axes. Rejected segments and clipped exits split traces; only runs with at least two points are saved.</p>
+<p>Clipping mutates temporary map coordinates. An outside following point is restored after saving an accepted clipped exit, but the map is not generally preserved. SaveTrace copies surviving geometry into line-owned storage. Call fill and source-coordinate filtering before this destructive stage. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.MapLine">
+<span class="target" id="group__line__mapping__pipeline_1ga629b337db1d21ee27b7ad55c66d36ab7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MapLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.MapLine" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rebuild line-family drawing geometry in the current graph viewport. </p>
+<p>Borrows the element and graph with axes/viewports prepared by the caller. Refreshes or invalidates pending source-decimation summaries, consumes change metadata and resets old mapped geometry before early exits. Builds the error band, chooses cached/pre-map/full mapping, retains symbol centers, then applies smoothing, density/tolerance reduction and area fill. Dispatches strip segments versus connected traces by element class.</p>
+<p>Frees temporary map storage after geometry copies are made. The restricted pre-map path marks pointMapOmitted and attaches the single palette style without a source-sized style map. The general path computes style sizes, maps eligible XY error bars, filters them and finally merges palette slices. Individual helpers define allocation fallbacks; this void operation is not an all-or-nothing transaction and does not emit Tcl diagnostics. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGrLineMapping.GetLineExtents">
+<span class="target" id="group__line__mapping__pipeline_1gac0b3fe497d3ca6e91207ec0cd692441c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineExtents</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineMapping.GetLineExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute source-domain bounds for axis ranging. </p>
+<p>Initializes empty sentinel extents. Complex data or polar-coordinate input is converted pointwise to Cartesian coordinates and enclosed in a symmetric square using the largest finite-point radius; radius overflow clamps to DBL_MAX. No valid points retain the empty sentinel bounds.</p>
+<p>Ordinary XY input uses vector extrema, finding a positive minimum when a log axis requires it, and expands the result for error bars. Does not use smoothed or decimated screen geometry, allocate, or synchronize source data. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1398,6 +1530,25 @@ documentation-only.</p>
 <li><a class="reference internal" href="#c.rbcGrLineGeometry.DestroyLine"><code class="docutils literal notranslate"><span class="pre">DestroyLine()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineGeometry.Rbc_LineElement"><code class="docutils literal notranslate"><span class="pre">Rbc_LineElement()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGrLineGeometry.Rbc_LineFontsChanged"><code class="docutils literal notranslate"><span class="pre">Rbc_LineFontsChanged()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-mapping-pipeline">Line mapping pipeline</a><ul>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.FreeMapRun"><code class="docutils literal notranslate"><span class="pre">FreeMapRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.CopyMapRun"><code class="docutils literal notranslate"><span class="pre">CopyMapRun()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.GenerateSplineRuns"><code class="docutils literal notranslate"><span class="pre">GenerateSplineRuns()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.SymbolPadding"><code class="docutils literal notranslate"><span class="pre">SymbolPadding()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.GetSymbolMapExtents"><code class="docutils literal notranslate"><span class="pre">GetSymbolMapExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.MapSymbols"><code class="docutils literal notranslate"><span class="pre">MapSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.FilterReducedSymbols"><code class="docutils literal notranslate"><span class="pre">FilterReducedSymbols()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.MapStrip"><code class="docutils literal notranslate"><span class="pre">MapStrip()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.MergePens"><code class="docutils literal notranslate"><span class="pre">MergePens()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.OutCode"><code class="docutils literal notranslate"><span class="pre">OutCode()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.ClipSegment"><code class="docutils literal notranslate"><span class="pre">ClipSegment()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.SaveTrace"><code class="docutils literal notranslate"><span class="pre">SaveTrace()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.TraceAbscissa"><code class="docutils literal notranslate"><span class="pre">TraceAbscissa()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.MapTraces"><code class="docutils literal notranslate"><span class="pre">MapTraces()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.MapLine"><code class="docutils literal notranslate"><span class="pre">MapLine()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGrLineMapping.GetLineExtents"><code class="docutils literal notranslate"><span class="pre">GetLineExtents()</span></code></a></li>
 </ul>
 </li>
 </ul>

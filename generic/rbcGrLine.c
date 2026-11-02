@@ -38,6 +38,10 @@
  * Private mapping, cache ownership and line-family pen/element lifecycle.
  */
 
+/** @defgroup line_mapping_pipeline Line mapping pipeline
+ * Private continuous-run, clipping, symbol and palette geometry services.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -6331,6 +6335,13 @@ fallback:
     linePtr->smooth = PEN_SMOOTH_NONE;
 }
 
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Release a temporary map run and clear its record.
+ *
+ * Frees owned screen points, source indices and optional break flags, then
+ * zeros the complete MapInfo. The record itself remains caller-owned.
+ */
 static void FreeMapRun(MapInfo *mapPtr) {
     if (mapPtr->screenPts != NULL) {
         ckfree(mapPtr->screenPts);
@@ -6344,6 +6355,17 @@ static void FreeMapRun(MapInfo *mapPtr) {
     memset(mapPtr, 0, sizeof(*mapPtr));
 }
 
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Copy one continuous source interval into an empty temporary map.
+ *
+ * The caller supplies a valid first/length range and an unused destination.
+ * Zeros the destination before allocating; does not release previous contents.
+ * Copies points and original indices, deliberately omitting break flags because
+ * the interval represents one continuous run. Returns FALSE for nonpositive
+ * length, byte-count overflow or attempted-allocation failure, cleaning partial
+ * storage. Borrows and does not modify the source.
+ */
 static int CopyMapRun(const MapInfo *srcPtr, Tcl_Size first, Tcl_Size length, MapInfo *dstPtr) {
     size_t pointBytes;
     size_t indexBytes;
@@ -6375,6 +6397,21 @@ static int CopyMapRun(const MapInfo *srcPtr, Tcl_Size first, Tcl_Size length, Ma
     return TRUE;
 }
 
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Smooth discontinuous geometry one continuous run at a time.
+ *
+ * Requires a nonempty map with break flags. Copies each run, applies the
+ * selected ordinary or parametric generator to runs of at least three points,
+ * then concatenates results with new boundary flags. Individual generator
+ * fallbacks retain that run's copied coordinates. Effective smoothing remains
+ * the requested mode if any run succeeds, otherwise PEN_SMOOTH_NONE.
+ *
+ * Replaces original map arrays only after all combined storage is ready.
+ * Run-copy, size or combined-allocation failure frees temporary storage,
+ * retains the original map and sets effective smoothing to PEN_SMOOTH_NONE.
+ * Does not change reqSmooth or report an interpreter error.
+ */
 static void GenerateSplineRuns(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr, int parametric) {
     MapInfo *runs;
     Point2D *screenPts;
@@ -6542,9 +6579,13 @@ fallback:
     linePtr->smooth = PEN_SMOOTH_NONE;
 }
 
-/*
- * Conservative symbol reach in pixels, including outlines and
- * integer-coordinate rounding.
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Return conservative pixel reach for a symbol.
+ *
+ * Returns zero for a NULL pen or SYMBOL_NONE, otherwise size plus twice
+ * the outline width and two pixels for rounding. Borrows the pen and does
+ * not compute exact symbol bounds or allocate storage.
  */
 static double SymbolPadding(LinePen *penPtr, int size) {
     if ((penPtr == NULL) || (penPtr->symbol.type == SYMBOL_NONE)) {
@@ -6553,10 +6594,15 @@ static double SymbolPadding(LinePen *penPtr, int size) {
     return (double)size + 2.0 * (double)penPtr->symbol.outlineWidth + 2.0;
 }
 
-/*
- * Keep outside centers that may still contribute visible symbol pixels.
- * Include every normal style and the active pen: activating all points
- * can reuse the normal symbol array.
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Expand mapping extents to retain partially visible symbols.
+ *
+ * Starts from Rbc_GraphExtents and expands all sides by the largest padding
+ * among palette pens and the active pen. Whole-element activation can reuse
+ * normal symbol arrays, so the active pen must contribute. Calls ScaleSymbol,
+ * which may capture axis-range baselines. Returns conservative center bounds;
+ * actual drawing still requires clipping to the plot viewport.
  */
 static void GetSymbolMapExtents(Graph *graphPtr, Line *linePtr, Extents2D *extsPtr) {
     Rbc_ChainLink *linkPtr;
@@ -6587,26 +6633,15 @@ static void GetSymbolMapExtents(Graph *graphPtr, Line *linePtr, Extents2D *extsP
     extsPtr->bottom += padding;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Copy visible candidate centers and original indices into the line.
  *
- * MapSymbols --
- *
- *      Creates two arrays of points and pen indices, filled with
- *      the screen coordinates of the visible
- *
- * Parameters:
- *      Graph *graphPtr;
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is freed and allocated for the index array.
- *
- *----------------------------------------------------------------------
+ * Borrows a source-ordered map and filters centers through expanded symbol
+ * extents. The caller must have cleared old symbol storage first. Transfers
+ * new arrays and count when any centers survive; otherwise frees candidates.
+ * Empty input, checked-size failure or attempted-allocation failure leaves
+ * existing line fields unchanged. Does not clip the symbol shapes themselves.
  */
 static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
@@ -6652,10 +6687,15 @@ static void MapSymbols(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     }
 }
 
-/*
- * Keep only original samples that survived trace reduction. Spline samples
- * and step corners can carry the same source index, so compare coordinates
- * as well. Both mappings are still in source order here, before MergePens.
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Retain original symbol centers that survived trace reduction.
+ *
+ * Requires both mappings in source order, before MergePens. Matches both
+ * source index and exact screen coordinates, since inserted step/spline
+ * points can share an original index. Compacts symbol points and indices in
+ * place without changing capacity. Sets pointMapOmitted if any centers are
+ * removed so exact picking can search source samples instead.
  */
 static void FilterReducedSymbols(Line *linePtr, const MapInfo *mapPtr) {
     Tcl_Size i;
@@ -6783,25 +6823,16 @@ static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
     linePtr->core.flags &= ~ACTIVE_PENDING;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Build independent clipped segments for a strip element.
  *
- * MapStrip --
- *
- *      Creates an array of line segments of the graph coordinates.
- *
- * Parameters:
- *      Graph *graphPtr;
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is  allocated for the line segment array.
- *
- *----------------------------------------------------------------------
+ * Borrows mapped points and skips pairs crossing a break flag. Clips each
+ * remaining adjacent pair against graph extents and records the starting
+ * point's source index. Requires old strip storage to be cleared by the caller.
+ * Transfers arrays only when segments survive; frees empty candidates.
+ * Insufficient points, size failure or attempted-allocation failure leaves
+ * line fields unchanged. Does not apply the line trace-direction filter.
  */
 static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Extents2D exts;
@@ -6854,25 +6885,21 @@ static void MapStrip(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Group mapped geometry into palette-owned views of line storage.
  *
- * MergePens --
+ * Requires a nonempty palette. For one style, attaches existing arrays
+ * without allocation and permits a NULL dataToStyle. For multiple styles,
+ * requires every source index to map to a valid palette style. Validates all
+ * byte counts before changing slices, then reorders strips, symbols and
+ * X/Y error segments with their parallel original-index arrays.
  *
- *      Reorders the both arrays of points and segments to merge pens.
- *
- * Parameters:
- *      Line *linePtr
- *      PenStyle **dataToStyle
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      The old arrays are freed and new ones allocated containing
- *      the reordered points and segments.
- *
- *----------------------------------------------------------------------
+ * Preserves order within each style and frees replaced backing arrays.
+ * Style pointers borrow slices; the line owns the complete allocations.
+ * Size failure returns without mutation; ordinary allocation uses ckalloc.
+ * Run source-order filtering before this operation. Trace chains are not
+ * reordered here.
  */
 static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
     LinePenStyle *stylePtr;
@@ -7055,24 +7082,13 @@ static void MergePens(Line *linePtr, PenStyle **dataToStyle) {
 #define CLIP_RIGHT (1 << 2)
 #define CLIP_LEFT (1 << 3)
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Classify a finite point relative to a clipping rectangle.
  *
- * OutCode --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Extents2D *extsPtr
- *      Point2D *p
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns a bit mask for sides strictly outside the rectangle. Points on
+ * its edges are inside. Borrows both arguments without mutation; callers
+ * supply valid ordered extents and finite coordinates.
  */
 INLINE static int OutCode(Extents2D *extsPtr, Point2D *p) {
     int code;
@@ -7091,27 +7107,15 @@ INLINE static int OutCode(Extents2D *extsPtr, Point2D *p) {
     return code;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Clip segment endpoints in place using supplied outcodes.
  *
- * ClipSegment --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Extents2D *extsPtr
- *      register int code1
- *      register int code2
- *      register Point2D *p
- *      register Point2D *q
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Borrows a valid rectangle and writable finite endpoints with matching
+ * outcodes. Iteratively intersects outside endpoints with rectangle edges.
+ * Returns zero for an accepted segment and nonzero for rejection, opposite
+ * to a conventional success predicate. May modify endpoints even when the
+ * segment is ultimately rejected. Does not allocate or preserve originals.
  */
 static int ClipSegment(Extents2D *extsPtr, register int code1, register int code2, register Point2D *p,
                        register Point2D *q) {
@@ -7152,28 +7156,15 @@ static int ClipSegment(Extents2D *extsPtr, register int code1, register int code
     return (!inside);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Append an owned copy of a mapped interval to the trace chain.
  *
- * SaveTrace --
- *
- *      Creates a new trace and inserts it into the line's
- *      list of traces.
- *
- * Parameters:
- *      Line *linePtr
- *      Tcl_Size start  - Starting index of the trace in the mapped
- *                        point array.
- *      Tcl_Size length - Number of points forming the trace.
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Caller supplies a valid interval and allocation-safe length. Copies points
+ * and source indices; if no index array exists, uses positions in the map.
+ * Stores the starting map offset, creates the chain lazily and appends a new
+ * trace. Uses ckalloc; FreeTraces owns the resulting arrays and record.
+ * Does not transfer or modify the source map.
  */
 static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *mapPtr) {
     LineTrace *tracePtr;
@@ -7228,6 +7219,15 @@ static void FreeTraces(Line *linePtr) {
     linePtr->traces = NULL;
 }
 
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Return a screen-derived coordinate ordered by increasing data X.
+ *
+ * Uses screen X normally and negated screen Y for inverted graphs, then
+ * undoes X-axis descending direction. This coordinate is for trace-direction
+ * comparisons, not an inverse transform or recovered data value. Borrows all
+ * arguments and performs no allocation.
+ */
 static double TraceAbscissa(Graph *graphPtr, Line *linePtr, const Point2D *pointPtr) {
     double value;
     
@@ -7255,25 +7255,19 @@ static double TraceAbscissa(Graph *graphPtr, Line *linePtr, const Point2D *point
     return value;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Split and clip a mapped polyline into owned drawable traces.
  *
- * MapTraces --
+ * Requires a nonempty writable map. Break flags prevent testing nonexistent
+ * connecting segments. Trace direction is measured in data-X order, including
+ * inverted and descending axes. Rejected segments and clipped exits split
+ * traces; only runs with at least two points are saved.
  *
- *      Creates an array of line segments of the graph coordinates.
- *
- * Parameters:
- *      Graph *graphPtr
- *      Line *linePtr
- *      MapInfo *mapPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is  allocated for the line segment array.
- *
- *----------------------------------------------------------------------
+ * Clipping mutates temporary map coordinates. An outside following point is
+ * restored after saving an accepted clipped exit, but the map is not generally
+ * preserved. SaveTrace copies surviving geometry into line-owned storage.
+ * Call fill and source-coordinate filtering before this destructive stage.
  */
 static void MapTraces(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Tcl_Size start;
@@ -7826,25 +7820,23 @@ static void FilterLineErrorBars(Line *linePtr, PenStyle **dataToStyle) {
     ckfree(selected);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Rebuild line-family drawing geometry in the current graph viewport.
  *
- * MapLine --
+ * Borrows the element and graph with axes/viewports prepared by the caller.
+ * Refreshes or invalidates pending source-decimation summaries, consumes
+ * change metadata and resets old mapped geometry before early exits.
+ * Builds the error band, chooses cached/pre-map/full mapping, retains symbol
+ * centers, then applies smoothing, density/tolerance reduction and area fill.
+ * Dispatches strip segments versus connected traces by element class.
  *
- *      Calculates the actual window coordinates of the line element.
- *      The window coordinates are saved in an allocated point array.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Element *elemPtr - Element component record
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      Memory is (re)allocated for the point array.
- *
- *----------------------------------------------------------------------
+ * Frees temporary map storage after geometry copies are made. The restricted
+ * pre-map path marks pointMapOmitted and attaches the single palette style
+ * without a source-sized style map. The general path computes style sizes,
+ * maps eligible XY error bars, filters them and finally merges palette slices.
+ * Individual helpers define allocation fallbacks; this void operation is not
+ * an all-or-nothing transaction and does not emit Tcl diagnostics.
  */
 static void MapLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -8458,24 +8450,18 @@ static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPt
     ClosestSourcePoint(graphPtr, linePtr, searchPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_mapping_pipeline
+ * @brief Compute source-domain bounds for axis ranging.
  *
- * GetLineExtents --
+ * Initializes empty sentinel extents. Complex data or polar-coordinate input
+ * is converted pointwise to Cartesian coordinates and enclosed in a symmetric
+ * square using the largest finite-point radius; radius overflow clamps to
+ * DBL_MAX. No valid points retain the empty sentinel bounds.
  *
- *      Retrieves the range of the line element
- *
- * Parameters:
- *      Element *elemPtr
- *      Extents2D *extsPtr
- *
- * Results:
- *      Returns the number of data points in the element.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Ordinary XY input uses vector extrema, finding a positive minimum when a
+ * log axis requires it, and expands the result for error bars. Does not use
+ * smoothed or decimated screen geometry, allocate, or synchronize source data.
  */
 static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
     Line *linePtr;
