@@ -246,6 +246,75 @@ them into one polyline would change dash restart and the connection between rows
 Text-background polygons similarly retain addition of the anchor before short
 conversion and the Convex fill rule.</p>
 </section>
+<section id="x11-request-and-fallback-contracts">
+<h2>X11 request and fallback contracts<a class="headerlink" href="#x11-request-and-fallback-contracts" title="Link to this heading">¶</a></h2>
+<p>The X11 backend owns conversion workspace, but borrows component GCs and
+already mapped input. A trace context and its point buffer share one allocation.
+The base chunk capacity is one less than the XPoint request limit; the spare
+slot lets continuation requests repeat the preceding endpoint without exceeding
+that limit. This preserves connectivity. Each chunk is still a separate
+XDrawLines request, with no explicit accumulated dash offset carried between
+requests. Trace conversion directly narrows to short; independent strips use
+the shared segment helper’s protocol clipping instead.</p>
+<p>Circle and square symbol helpers allocate workspace for the complete incoming
+center array, then submit request-sized batches. Request batching therefore
+bounds server requests, not peak client allocation. Each batch is filled before
+its outlines are drawn. Polygon symbols instead fill the complete symbol set
+before drawing the complete outline set. Preserve this distinction when
+refactoring overlapping symbols: reordering fills and outlines can change the
+visible result.</p>
+<p>Coordinate conversion also differs intentionally in the current implementation:
+circles cast the center before subtracting radius, whereas squares subtract
+radius before casting. Both store unsigned-short diameters. These are historical
+rasterization rules, not general validation for arbitrarily large coordinates.
+Interval selection advances the caller’s mutable counter for every examined
+center; skipped centers still contribute to the next batch’s phase.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">X11 optional-service results</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service</p></th>
+<th class="head"><p>Result</p></th>
+<th class="head"><p>Shared caller action</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Fill-only polygon batch</p></td>
+<td><p>NULL context</p></td>
+<td><p>Use ordinary polygon drawing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Optimized bar borders</p></td>
+<td><p>FALSE</p></td>
+<td><p>Draw relief rectangles individually.</p></td>
+</tr>
+<tr class="row-even"><td><p>Direct platform clip</p></td>
+<td><p>FALSE, output untouched</p></td>
+<td><p>Use a reusable scratch pixmap.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Opaque bitmap batch</p></td>
+<td><p>FALSE, no drawing</p></td>
+<td><p>Replay the complete run with XCopyPlane.</p></td>
+</tr>
+<tr class="row-even"><td><p>Generic native run</p></td>
+<td><p>Synchronous callback</p></td>
+<td><p>Use the original drawable; no DC wrapper is needed.</p></td>
+</tr>
+</tbody>
+</table>
+<p>These declined optimizations are normal backend choices. In particular, they
+must not be interpreted as failed component rendering or as successfully
+installed empty clips. X11 clip payload size is zero, while the common clip
+frame still owns its scratch pixmap and bounds. Platform cleanup is a no-op;
+shared pop performs the visible-region copy back to the parent target.</p>
+<p>Single polygon requests are checked against both INT_MAX and the XPoint request
+limit. An oversized polygon is rejected rather than naively split: independent
+pieces need not reproduce its interior. Bar-fill batches are already packed and
+bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.</p>
+</section>
 </section>
 
 
@@ -267,6 +336,7 @@ conversion and the Convex fill rule.</p>
 <li><a class="reference internal" href="#runs-and-fallback-boundaries">Runs and fallback boundaries</a></li>
 <li><a class="reference internal" href="#shared-primitive-contracts">Shared primitive contracts</a></li>
 <li><a class="reference internal" href="#arc-strokes-and-arrowheads">Arc strokes and arrowheads</a></li>
+<li><a class="reference internal" href="#x11-request-and-fallback-contracts">X11 request and fallback contracts</a></li>
 </ul>
 </li>
 </ul>

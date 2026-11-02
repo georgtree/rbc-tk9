@@ -217,3 +217,64 @@ Native legend line samples deliberately use two separate line requests. Merging
 them into one polyline would change dash restart and the connection between rows.
 Text-background polygons similarly retain addition of the anchor before short
 conversion and the Convex fill rule.
+
+X11 request and fallback contracts
+----------------------------------
+
+The X11 backend owns conversion workspace, but borrows component GCs and
+already mapped input. A trace context and its point buffer share one allocation.
+The base chunk capacity is one less than the XPoint request limit; the spare
+slot lets continuation requests repeat the preceding endpoint without exceeding
+that limit. This preserves connectivity. Each chunk is still a separate
+XDrawLines request, with no explicit accumulated dash offset carried between
+requests. Trace conversion directly narrows to short; independent strips use
+the shared segment helper's protocol clipping instead.
+
+Circle and square symbol helpers allocate workspace for the complete incoming
+center array, then submit request-sized batches. Request batching therefore
+bounds server requests, not peak client allocation. Each batch is filled before
+its outlines are drawn. Polygon symbols instead fill the complete symbol set
+before drawing the complete outline set. Preserve this distinction when
+refactoring overlapping symbols: reordering fills and outlines can change the
+visible result.
+
+Coordinate conversion also differs intentionally in the current implementation:
+circles cast the center before subtracting radius, whereas squares subtract
+radius before casting. Both store unsigned-short diameters. These are historical
+rasterization rules, not general validation for arbitrarily large coordinates.
+Interval selection advances the caller's mutable counter for every examined
+center; skipped centers still contribute to the next batch's phase.
+
+.. list-table:: X11 optional-service results
+   :header-rows: 1
+   :widths: 30 25 45
+
+   * - Service
+     - Result
+     - Shared caller action
+   * - Fill-only polygon batch
+     - NULL context
+     - Use ordinary polygon drawing.
+   * - Optimized bar borders
+     - FALSE
+     - Draw relief rectangles individually.
+   * - Direct platform clip
+     - FALSE, output untouched
+     - Use a reusable scratch pixmap.
+   * - Opaque bitmap batch
+     - FALSE, no drawing
+     - Replay the complete run with XCopyPlane.
+   * - Generic native run
+     - Synchronous callback
+     - Use the original drawable; no DC wrapper is needed.
+
+These declined optimizations are normal backend choices. In particular, they
+must not be interpreted as failed component rendering or as successfully
+installed empty clips. X11 clip payload size is zero, while the common clip
+frame still owns its scratch pixmap and bounds. Platform cleanup is a no-op;
+shared pop performs the visible-region copy back to the parent target.
+
+Single polygon requests are checked against both INT_MAX and the XPoint request
+limit. An oversized polygon is rejected rather than naively split: independent
+pieces need not reproduce its interior. Bar-fill batches are already packed and
+bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.

@@ -1,14 +1,31 @@
 /* Native X11 geometry and batching. See license.terms.
  * Platform contexts remain private; shared Tk drawing is in rbcRenderNative.c. */
 #include "rbcRenderNative.h"
+/** @file rbcRenderNativeX11.c
+ * X11 request batching and platform fallback decisions.
+ */
+/** @defgroup native_x11_drawing X11 native backend
+ * Private X11 implementation of the shared native backend interface.
+ */
 #include <stdint.h>
 #include <X11/Xutil.h>
 
-/* Maximum vertices in an X11 polygon request, before component clipping allowances. */
+/**
+ * @brief Return the raw X11 polygon request capacity.
+ * @ingroup native_x11_drawing
+ *
+ * Uses XPoint request sizing for the borrowed graph display. Component clipping
+ * allowances are not subtracted here; this is not a promise that any polygon
+ * can be split safely.
+ */
 Tcl_Size Rbc_NativePolygonPointLimit(Graph *graphPtr) {
     return Rbc_MaxRequestSize(graphPtr->display, sizeof(XPoint));
 }
 
+/** @brief Owned X11 trace context with trailing point workspace.
+ * Borrows graph, target and GC; nativeMaxPoints excludes the extra slot used
+ * for a repeated continuation endpoint. One allocation owns state and points.
+ */
 struct Rbc_NativeTrace {
     Graph *graphPtr;
     Drawable nativeDrawable;
@@ -17,9 +34,16 @@ struct Rbc_NativeTrace {
     int nativeMaxPoints;
 };
 
-/* Native stroke contexts borrow the configured GC, including its clip and
- * raster operation. Keep the original request splitting and integer conversion;
- * dispatch occurs once per trace/segment batch, never once per point. */
+/**
+ * @brief Draw a connected trace in request-sized X11 chunks.
+ * @ingroup native_x11_drawing
+ *
+ * Borrows context and mapped points; NULL context/points, fewer than two points
+ * or insufficient capacity are no-ops. Converts directly to short coordinates.
+ * Each continuation repeats the previous endpoint, using the extra workspace
+ * slot reserved by BeginTrace. Separate requests preserve connectivity but do
+ * not carry an explicit accumulated dash offset. GC state remains borrowed.
+ */
 void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size nPoints) {
     Tcl_Size count, j, remaining;
     int maxPoints;
@@ -79,10 +103,26 @@ void Rbc_NativePolyline(Rbc_NativeTrace *ctx, const Point2D *screenPts, Tcl_Size
     }
 }
 
+/**
+ * @brief Delegate independent X11 strips to shared segment drawing.
+ * @ingroup native_x11_drawing
+ *
+ * Rbc_NativeSegments handles protocol clipping, conversion and request
+ * batching. No additional context or resource is acquired here.
+ */
 void Rbc_NativeStrips(Graph *graphPtr, Drawable drawable, GC gc, const Segment2D *segments, Tcl_Size nSegments) {
     Rbc_NativeSegments(graphPtr, drawable, gc, segments, nSegments);
 }
 
+/**
+ * @brief Allocate X11 trace state and point workspace together.
+ * @ingroup native_x11_drawing
+ *
+ * Borrows graph, drawable and configured GC. Reserves request capacity minus
+ * one as the base chunk size, plus one continuation endpoint slot. Returns
+ * NULL for insufficient capacity, size overflow or allocation failure.
+ * Release the owned allocation with Rbc_NativeEndTrace.
+ */
 Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc) {
     Rbc_NativeTrace *ctx;
     int maxPoints;
@@ -108,6 +148,13 @@ Rbc_NativeTrace *Rbc_NativeBeginTrace(Graph *graphPtr, Drawable drawable, GC gc)
     return ctx;
 }
 
+/**
+ * @brief Free the X11 trace allocation.
+ * @ingroup native_x11_drawing
+ *
+ * Accepts NULL. Does not free the borrowed graph, drawable or GC and does
+ * not flush or synchronize the X server.
+ */
 void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
     if (ctx == NULL) {
         return;
@@ -115,6 +162,13 @@ void Rbc_NativeEndTrace(Rbc_NativeTrace *ctx) {
     ckfree(ctx);
 }
 
+/**
+ * @brief Round a representable coordinate away from zero at ties.
+ * @ingroup native_x11_drawing
+ *
+ * Adds or subtracts one half before int conversion. Requires finite input
+ * within int range. This local helper is currently unused by X11 drawing.
+ */
 INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
 #define DRAW_SYMBOL(style) (((style)->counter % (style)->interval) == 0)
@@ -125,29 +179,16 @@ INLINE static int Round(double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); 
 #define MAX_DRAWRECTANGLES(d) Rbc_MaxRequestSize(d, sizeof(XRectangle))
 #define MAX_DRAWARCS(d) Rbc_MaxRequestSize(d, sizeof(XArc))
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw selected circle symbols in X11 arc batches.
+ * @ingroup native_x11_drawing
  *
- * Rbc_NativeCircles --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Display *display
- *      Drawable drawable
- *      Line *linePtr
- *      Rbc_RenderNativeSymbolStyle *style
- *      int nSymbolPts
- *      const Point2D *symbolPts
- *      int radius
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Owns one XArc array sized for all input centers, then submits request-sized
+ * chunks with fill before outline per chunk. Positive interval advances the
+ * style counter for every examined center. Converts centers to short before
+ * subtracting radius; diameter becomes unsigned short. Nonpositive count,
+ * size overflow, allocation failure or unusable request capacity skips output.
+ * Borrows style GCs and requires mapped coordinates and valid radius.
  */
 void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
                        const Point2D *symbolPts, int radius) {
@@ -212,14 +253,15 @@ void Rbc_NativeCircles(Display *display, Drawable drawable, Rbc_RenderNativeSymb
     ckfree((char *)arcArr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Draw selected square symbols in X11 rectangle batches.
+ * @ingroup native_x11_drawing
  *
- * Rbc_NativeSquares --
- *
- *      Draw square symbols using native X11 rectangle operations.
- *
- *----------------------------------------------------------------------
+ * Owns a temporary array sized for all centers, then emits bounded requests
+ * with fill before outline per chunk. Positive interval advances the mutable
+ * style counter for every center examined. Subtracts radius before short
+ * conversion, unlike circles; diameter becomes unsigned short. Nonpositive
+ * count, size overflow, allocation failure or unusable capacity skips output.
  */
 void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style, Tcl_Size nSymbolPts,
                        const Point2D *symbolPts, int r) {
@@ -282,6 +324,14 @@ void Rbc_NativeSquares(Display *display, Drawable drawable, Rbc_RenderNativeSymb
     ckfree(rectArr);
 }
 
+/**
+ * @brief Validate a single X11 polygon request length.
+ * @ingroup native_x11_drawing
+ *
+ * Returns the int count only when at least three vertices fit both INT_MAX
+ * and the display request limit. Otherwise returns zero. Does not partition
+ * a polygon or inspect its geometry.
+ */
 int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
     if ((nPoints < 3) || (nPoints > (Tcl_Size)INT_MAX)) {
         return 0;
@@ -296,16 +346,32 @@ int Rbc_NativePolygonPointCount(Display *display, Tcl_Size nPoints) {
     return (int)nPoints;
 }
 
+/**
+ * @brief Submit one prepared bar-fill rectangle batch.
+ * @ingroup native_x11_drawing
+ *
+ * Borrows graph, drawable, style GC and XRectangle array. Caller has already
+ * validated count and packed coordinates to fit the request; no allocation
+ * or additional clipping is performed here.
+ */
 void Rbc_NativeBarRectangles(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *penPtr,
                              XRectangle *rectangles, int nRects) {
     XFillRectangles(graphPtr->display, drawable, penPtr->gc, rectangles, nRects);
 }
-/* A fill-only marker run holds one native DC and brush. The component retains
- * style grouping and painter order; the backend only consumes mapped polygons. */
+/** @brief Placeholder for the unsupported X11 polygon-batch optimization.
+ * No instance is created by this backend. This is not a Windows DC owner.
+ */
 struct Rbc_NativePolygonBatch {
     Display *display;
 };
 
+/**
+ * @brief Decline the optional fill-only polygon optimization on X11.
+ * @ingroup native_x11_drawing
+ *
+ * Always returns NULL without acquiring resources. The shared caller must
+ * use its ordinary polygon path; NULL does not mean an empty clipping region.
+ */
 Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable drawable, GC gc, Tcl_Size maxPoints) {
     (void)graphPtr;
     (void)drawable;
@@ -314,17 +380,40 @@ Rbc_NativePolygonBatch *Rbc_NativeBeginPolygonBatch(Graph *graphPtr, Drawable dr
     return NULL;
 }
 
+/**
+ * @brief Provide the unused X11 polygon-batch interface entry.
+ * @ingroup native_x11_drawing
+ *
+ * No operation. X11 BeginPolygonBatch never returns a context, so callers
+ * should select the ordinary drawing path instead.
+ */
 void Rbc_NativeBatchPolygon(Rbc_NativePolygonBatch *batch, const Point2D *points, Tcl_Size count) {
     (void)batch;
     (void)points;
     (void)count;
 }
 
+/**
+ * @brief Release storage passed to the X11 polygon-batch endpoint.
+ * @ingroup native_x11_drawing
+ *
+ * Calls ckfree on the argument. No context is normally created by the X11
+ * constructor; this interface exists to match the platform backend contract.
+ */
 void Rbc_NativeEndPolygonBatch(Rbc_NativePolygonBatch *batch) {
     (void)batch;
     ckfree(batch);
 }
 
+/**
+ * @brief Fill all polygon symbols, then draw all outlines.
+ * @ingroup native_x11_drawing
+ *
+ * Borrows preconverted polygons and style GCs. Stride includes the closing
+ * point and is used for both fill and line requests. Twelve-vertex templates
+ * use Complex fill; others use Convex. Interval selection was performed by
+ * the shared caller. Does not allocate, clip or split individual polygons.
+ */
 void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNativeSymbolStyle *style,
                               const XPoint *polygons, Tcl_Size count, int stride, int vertices) {
     Tcl_Size i;
@@ -342,6 +431,13 @@ void Rbc_NativePolygonSymbols(Display *display, Drawable drawable, Rbc_RenderNat
     }
 }
 
+/**
+ * @brief Decline optimized bar borders on X11.
+ * @ingroup native_x11_drawing
+ *
+ * Always returns FALSE without drawing. The shared bar helper then draws
+ * relief borders individually.
+ */
 int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBarStyle *style,
                          const Rbc_RenderRectangle *rectangles, Tcl_Size count) {
     (void)graphPtr;
@@ -352,8 +448,23 @@ int Rbc_NativeBarBorders(Graph *graphPtr, Drawable drawable, const Rbc_RenderBar
     return FALSE;
 }
 
+/**
+ * @brief Report that X11 needs no platform clip payload.
+ * @ingroup native_x11_drawing
+ *
+ * Returns zero. Shared clip frames still own bounds, links and scratch
+ * pixmaps; no extra platform state follows the frame.
+ */
 size_t Rbc_NativeClipStateSize(void) { return 0; }
 
+/**
+ * @brief Decline direct platform clipping on X11.
+ * @ingroup native_x11_drawing
+ *
+ * Returns FALSE and leaves the output drawable untouched. The shared clip
+ * stack then creates or reuses its scratch target. This is a fallback signal,
+ * not a successfully installed empty clip.
+ */
 int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, int right, int bottom, void *state,
                            Drawable *drawablePtr) {
     (void)graphPtr;
@@ -367,11 +478,25 @@ int Rbc_NativePlatformClip(Graph *graphPtr, Drawable parent, int left, int top, 
     return FALSE;
 }
 
+/**
+ * @brief Provide the unused X11 direct-clip cleanup entry.
+ * @ingroup native_x11_drawing
+ *
+ * No operation; shared scratch clipping handles commit and resource lifetime.
+ */
 void Rbc_NativePlatformUnclip(void *state, Drawable drawable) {
     (void)state;
     (void)drawable;
 }
 
+/**
+ * @brief Invoke a native run callback synchronously on its original target.
+ * @ingroup native_x11_drawing
+ *
+ * Calls proc only when data is non-NULL and count is positive. Borrows data
+ * and drawable, with no wrapper or DC acquisition. A valid callback is
+ * required for nonempty runs; it must not retain temporary drawing resources.
+ */
 void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size count, Rbc_RenderRunProc *proc) {
     (void)graphPtr;
     if (data != NULL && count > 0) {
@@ -379,6 +504,13 @@ void Rbc_NativeRun(Graph *graphPtr, Drawable drawable, void *data, Tcl_Size coun
     }        
 }
 
+/**
+ * @brief Decline optimized opaque bitmap runs on X11.
+ * @ingroup native_x11_drawing
+ *
+ * Always returns FALSE without drawing or modifying GC state. The shared
+ * bitmap-run helper performs the complete XCopyPlane fallback.
+ */
 int Rbc_NativeOpaqueBitmapRun(Graph *graphPtr, Drawable drawable, Pixmap bitmap, GC gc, int width, int height,
                               const Rbc_RenderPosition *positions, Tcl_Size count) {
     (void)graphPtr;

@@ -8,9 +8,9 @@ behavior and ownership that cannot be inferred from a function signature.
 Trace batches
 -------------
 
-.. doxygenfunction:: Rbc_NativeBeginTrace
-
-.. doxygenfunction:: Rbc_NativeEndTrace
+The X11 constructor and destructor contracts are included with the platform
+implementation below. See :doc:`native-rendering` for the shared lifetime
+contract and Windows acquisition/restoration requirements.
 
 Clip stacks
 -----------
@@ -39,6 +39,25 @@ component resources or perform graph layout.
    :members:
 
 .. doxygenstruct:: Rbc_NativeClip
+   :members:
+
+.. c:namespace-pop::
+
+X11 platform implementation
+---------------------------
+
+These source contracts describe the X11 implementation. The common interface
+also has Windows implementations with different resource and batching rules.
+
+.. c:namespace:: rbcNativeX11
+
+.. doxygengroup:: native_x11_drawing
+   :members:
+
+.. doxygenstruct:: Rbc_NativeTrace
+   :members:
+
+.. doxygenstruct:: Rbc_NativePolygonBatch
    :members:
 
 .. c:namespace-pop::
