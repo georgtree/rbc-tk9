@@ -42,6 +42,10 @@
  * Private continuous-run, clipping, symbol and palette geometry services.
  */
 
+/** @defgroup line_picking_rendering Line picking and stroke dispatch
+ * Private distance searches, snapshot metadata and screen stroke adapters.
+ */
+
 #include <math.h>
 #include <stdint.h>
 #include "rbcGraph.h"
@@ -1566,18 +1570,50 @@ static int ComplexDivide(double nr, double ni, double dr, double di, double *rea
 
 #define LINE_PI 3.14159265358979323846264338327950288
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Insert a named value into a closest-result dictionary.
+ *
+ * Borrows the writable result dictionary and value; Tcl_DictObjPut retains
+ * the key/value on success. Allocates the key object and returns the Tcl
+ * status. Does not write interpreter variables or invoke their traces.
+ * The caller owns result lifetime and must supply an unshared dictionary.
+ */
 static int SetClosestInfoObj(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, Tcl_Obj *valueObjPtr) {
     return Tcl_DictObjPut(interp, resultObjPtr, Tcl_NewStringObj(name, -1), valueObjPtr);
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Append a double-valued closest-result field.
+ *
+ * Constructs a Tcl double and delegates dictionary insertion. Returns the
+ * insertion status; the result dictionary owns the inserted object on success.
+ * Does not format the number through a string or publish an array variable.
+ */
 static int SetClosestInfoDouble(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double value) {
     return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewDoubleObj(value));
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Append a string-valued closest-result field.
+ *
+ * Copies the NUL-terminated value into a Tcl string and returns dictionary
+ * insertion status. Borrows the result dictionary and does not publish variables.
+ */
 static int SetClosestInfoString(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, const char *value) {
     return SetClosestInfoObj(interp, resultObjPtr, name, Tcl_NewStringObj(value, -1));
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Append a real/imaginary pair as a two-element Tcl list.
+ *
+ * Creates two Tcl doubles and a list in real, imaginary order, then inserts
+ * that list into the borrowed result dictionary. Returns the insertion status.
+ * No RBC vector is created and no variable traces are run.
+ */
 static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const char *name, double real, double imag) {
     Tcl_Obj *objv[2];
 
@@ -8015,27 +8051,13 @@ static void MapLine(Graph *graphPtr, Element *elemPtr) {
     ckfree((char *)dataToStyle);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Measure Euclidean distance from a pixel query to a segment.
  *
- * DistanceToLine --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int x - Sample X coordinate.
- *      int y - Sample Y coordinate.
- *      Point2D *p - End point of the line segment.
- *      Point2D *q - End point of the line segment.
- *      Point2D *t - (out) Point on line segment.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Delegates to Rbc_GetClosestPointOnSegment using a double-precision query.
+ * Borrows endpoints and writes the nearest segment point to t. Returns the
+ * pixel distance, including endpoint clamping, without modifying endpoints.
  */
 static double DistanceToLine(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     Point2D sample;
@@ -8045,27 +8067,15 @@ static double DistanceToLine(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     return Rbc_GetClosestPointOnSegment(&sample, p, q, t);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Intersect a segment with the query screen X coordinate.
  *
- * DistanceToX --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int x - Sample X coordinate.
- *      int y - Sample Y coordinate.
- *      Point2D *p - End point of the line segment.
- *      Point2D *q - End point of the line segment.
- *      Point2D *t - (out) Point on line segment.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns DBL_MAX without writing t when X is outside the endpoint span.
+ * Otherwise writes the intersection and returns its absolute screen Y
+ * distance from the query. Near-vertical segments choose the nearer endpoint
+ * in Y, with ties choosing q; near-horizontal segments use their constant Y.
+ * This is a trace intersection metric, not point-search X distance.
  */
 static double DistanceToX(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     double dx, dy;
@@ -8108,27 +8118,15 @@ static double DistanceToX(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     return FABS(dist);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Intersect a segment with the query screen Y coordinate.
  *
- * DistanceToY --
- *
- *      TODO: Description
- *
- * Parameters:
- *      int x - Sample X coordinate.
- *      int y - Sample Y coordinate.
- *      Point2D *p - End point of the line segment.
- *      Point2D *q - End point of the line segment.
- *      Point2D *t - (out) Point on line segment.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Returns DBL_MAX without writing t when Y is outside the endpoint span.
+ * Otherwise writes the intersection and returns its absolute screen X
+ * distance from the query. Near-horizontal segments choose the nearer endpoint
+ * in X, with ties choosing q; near-vertical segments use their constant X.
+ * Borrows endpoints and does not allocate.
  */
 static double DistanceToY(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     double dx, dy;
@@ -8172,28 +8170,15 @@ static double DistanceToY(int x, int y, Point2D *p, Point2D *q, Point2D *t) {
     return FABS(dist);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Search connected mapped traces for a strict distance improvement.
  *
- * ClosestTrace --
- *
- *      Find the line segment closest to the given window coordinate
- *      in the element.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Line *linePtr - Line element record
- *      ClosestSearch *searchPtr - Info about closest point in element
- *      DistanceProc *distProc
- *
- * Results:
- *      If a new minimum distance is found, the information regarding
- *      it is returned via searchPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Calls the supplied script-free distance function on each consecutive pair.
+ * On improvement, stores element, distance, the segment start's source index
+ * and the inverse-mapped closest coordinate in the borrowed search record.
+ * Returns TRUE only if it improves the incoming distance; ties retain the
+ * previous candidate. Requires current trace geometry and prepared axes.
  */
 static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc) {
     Rbc_ChainLink *linkPtr;
@@ -8228,28 +8213,14 @@ static int ClosestTrace(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Search independent mapped segments for a closer interpolated hit.
  *
- * ClosestStrip --
- *
- *      Find the line segment closest to the given window coordinate
- *      in the element.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Line *linePtr - Line element record
- *      ClosestSearch *searchPtr - Info about closest point in element
- *      DistanceProc *distProc
- *
- * Results:
- *      If a new minimum distance is found, the information regarding
- *      it is returned via searchPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Uses the supplied distance callback and the parallel stripToData array.
+ * Commits a strict improvement to the search record, inverse-mapping the hit
+ * coordinate and reporting the segment's retained source index. Returns FALSE
+ * without changing the record if no segment improves it. Borrows geometry.
  */
 static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr, DistanceProc *distProc) {
     Point2D closest, b;
@@ -8280,26 +8251,15 @@ static int ClosestStrip(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr
     return FALSE;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Search retained original centers inside the plot rectangle.
  *
- * ClosestPoint --
- *
- *      Find the element whose data point is closest to the given screen
- *      coordinate.
- *
- * Parameters:
- *      Line *linePtr - Line element that we are looking at
- *      ClosestSearch *searchPtr - Assorted information related to searching for the closest point
- *
- * Results:
- *      If a new minimum distance is found, the information regarding
- *      it is returned via searchPtr.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Ignores centers outside unpadded graph extents even if part of their symbol
+ * could be visible. SEARCH_BOTH uses Euclidean distance; SEARCH_X and SEARCH_Y
+ * use absolute screen X and Y distances respectively. Strict improvements
+ * retain source indices and recover data coordinates from the source adapter.
+ * Requires current mapped arrays and source data; does not synchronize them.
  */
 static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
     Point2D *pointPtr;
@@ -8348,6 +8308,19 @@ static void ClosestMappedPoint(Line *linePtr, ClosestSearch *searchPtr) {
     }
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Search original samples when mapped centers were omitted.
+ *
+ * Maps finite source samples on demand and applies the same viewport and
+ * point-distance rules as ClosestMappedPoint. May build/use the decimation
+ * cache to restrict the source interval, then commits only a strict improvement.
+ * Reads source data without invoking Tcl callbacks.
+ *
+ * Candidate pruning uses the screen coordinate onto which data X maps:
+ * SEARCH_X normally, SEARCH_Y when inverted, or SEARCH_BOTH in either
+ * orientation. Other directional queries must search the full source range.
+ */
 static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
     Extents2D exts;
     Tcl_Size nPoints;
@@ -8364,17 +8337,17 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
     first = 0;
     last = nPoints;
     /*
-     * For SEARCH_BOTH and SEARCH_X, no point whose physical data-X
-     * screen coordinate differs from the query by at least minDist can
-     * improve the current result.
+     * Prune by source X only when its screen coordinate contributes to
+     * the distance metric. Data X maps to screen X normally and screen Y
+     * when inverted. The other directional metric ignores that coordinate
+     * and must retain the full source range.
      *
-     * When the Stage-3 cache is valid, use monotonic source X to find
-     * only that candidate interval by binary search.
-     *
-     * SEARCH_Y cannot use this optimization because X distance is
-     * ignored by that search mode.
+     * When the cache is valid, binary search finds the candidate interval
+     * that can improve the current distance.
      */
-    if (((searchPtr->along == SEARCH_BOTH) || (searchPtr->along == SEARCH_X)) && EnsureLineDecimateCache(linePtr)) {
+    if (((searchPtr->along == SEARCH_BOTH) ||
+         (searchPtr->along == (graphPtr->inverted ? SEARCH_Y : SEARCH_X))) &&
+        EnsureLineDecimateCache(linePtr)) {
         double queryAbscissa;
         Tcl_Size candidateFirst;
         Tcl_Size candidateLast;
@@ -8442,6 +8415,14 @@ static void ClosestSourcePoint(Graph *graphPtr, Line *linePtr, ClosestSearch *se
     }
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Dispatch exact point picking according to map completeness.
+ *
+ * Uses retained mapped centers unless pointMapOmitted requests an original
+ * source search. Borrows all inputs and updates the search record only through
+ * the selected helper. The source path may allocate a decimation cache.
+ */
 static void ClosestPoint(Graph *graphPtr, Line *linePtr, ClosestSearch *searchPtr) {
     if (!linePtr->pointMapOmitted) {
         ClosestMappedPoint(linePtr, searchPtr);
@@ -8900,27 +8881,16 @@ error:
     return TCL_ERROR;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup line_picking_rendering
+ * @brief Select point or interpolated picking for a line-family element.
  *
- * ClosestLine --
- *
- *      Find the closest point or line segment (if interpolated) to
- *      the given window coordinate in the line element.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *      Element *elemPtr - Element to examine
- *      ClosestSearch *searchPtr - Info about closest point in element
- *
- * Results:
- *      Returns the distance of the closest point among other
- *      information.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * SEARCH_AUTO selects traces only with more than one point and positive
+ * normal-pen trace width. Point mode uses ClosestPoint; trace mode chooses
+ * an intersection or Euclidean metric and dispatches strip versus connected
+ * geometry by element class. Directional trace searches fall back to points
+ * when no segment improves the incoming result; SEARCH_BOTH does not.
+ * Requires current geometry and the owning graph/track viewport.
  */
 static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *searchPtr) {
     Line *linePtr = LINE_FROM_CORE(elemPtr);
@@ -8959,6 +8929,16 @@ static void ClosestLine(Graph *graphPtr, Element *elemPtr, ClosestSearch *search
     }
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Append a safe source-index parameter value when available.
+ *
+ * Omits param without error while a named parameter vector has pending
+ * notification, lengths differ, storage is absent, or the hit index is invalid.
+ * Otherwise inserts the value at the reported source index, even for an
+ * interpolated geometric hit. Does not interpolate the parameter, synchronize
+ * the vector, or publish interpreter variables. Returns dictionary status.
+ */
 static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const ClosestSearch *searchPtr,
                                       Tcl_Obj *resultObjPtr) {
     ElemVector *paramPtr;
@@ -8991,10 +8971,34 @@ static int AppendLineParamClosestInfo(Graph *graphPtr, Line *linePtr, const Clos
     return SetClosestInfoDouble(graphPtr->interp, resultObjPtr, "param", paramPtr->valueArr[searchPtr->index]);
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Collect optional line/strip parameter metadata.
+ *
+ * Delegates to AppendLineParamClosestInfo using the borrowed hit record and
+ * writable result dictionary. No array traces run during this collection phase.
+ * The common closest handler owns later publication and dictionary lifetime.
+ */
 static int LineClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
     return AppendLineParamClosestInfo(graphPtr, LINE_FROM_CORE(elemPtr), searchPtr, resultObjPtr);
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Collect polar or Smith metadata from the plotted hit coordinate.
+ *
+ * Appends optional source-index param first. Finite Cartesian hit coordinates
+ * produce radius, a nonnegative radian angle normalized below a full turn,
+ * and source dataFormat. A zero radius produces zero angle. Nonfinite hit
+ * coordinates omit these fields without error.
+ *
+ * Smith representation additionally inserts gamma and z0, then normalized
+ * and physical impedance/admittance when their conversion succeeds. Impedance
+ * scales by z0 and admittance divides by z0. Metadata describes the geometric
+ * hit, except param which follows the source index. Returns the first Tcl
+ * dictionary error without rolling back preceding fields. Does not publish
+ * variables or invoke application callbacks.
+ */
 static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSearch *searchPtr, Tcl_Obj *resultObjPtr) {
     Line *linePtr;
     Tcl_Interp *interp;
@@ -9144,7 +9148,15 @@ static int PolarClosestInfo(Graph *graphPtr, Element *elemPtr, const ClosestSear
     return TCL_OK;
 }
 
-/* Draw all traces through one screen renderer context. */
+/**
+ * @ingroup line_picking_rendering
+ * @brief Draw connected traces through one screen stroke context.
+ *
+ * Borrows the pen and line geometry. Begins a trace stroke using GC, color,
+ * width and dashes, resolving default off-dash color to the trace color.
+ * Draws every stored polyline and ends the context. A NULL context silently
+ * skips drawing. Geometry and pen ownership remain with the element.
+ */
 static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePen *penPtr) {
     Rbc_RenderContext *ctx;
     Rbc_ChainLink *linkPtr;
@@ -9162,6 +9174,15 @@ static void DrawTraces(Graph *graphPtr, Drawable drawable, Line *linePtr, LinePe
     Rbc_RenderEnd(ctx);
 }
 
+/**
+ * @ingroup line_picking_rendering
+ * @brief Draw independent segments through one screen stroke context.
+ *
+ * Borrows the pen and segment array for the duration of the call. Resolves
+ * default off-dash color, begins a strip stroke, submits the segment batch and
+ * ends the context. A NULL context skips the batch. Does not remap geometry
+ * or retain the array beyond the call.
+ */
 static void DrawRenderedStrips(Graph *graphPtr, Drawable drawable, LinePen *penPtr, const Segment2D *segments,
                                Tcl_Size count) {
     Rbc_RenderContext *ctx = Rbc_RenderBeginStroke(graphPtr, drawable, penPtr->traceGC, RBC_RENDER_STROKE_STRIPS,

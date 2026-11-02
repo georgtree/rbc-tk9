@@ -602,5 +602,64 @@ namespace eval graph.element.decimate {
         destroy .graph1
     } -result {1 1}
 
+
+    # Exact directional picking must not prune along an ignored screen coordinate.
+    set testCase(6) 0
+    foreach elementKind {line} {
+        foreach inverted {0 1} {
+            foreach descending {0 1} {
+                foreach along {x y both} {
+                    test RBC.graph.element.decimate.A.6.[incr testCase(6)] {
+                        directional point picking agrees with full geometry in either orientation
+                    } -setup {
+                        set xs {}
+                        set ys {}
+                        for {set i 0} {$i <= 10000} {incr i} {
+                            lappend xs $i
+                            lappend ys [expr {$i == 100 ? 0.8 : 0.0}]
+                        }
+                        graph .graph1 -width 640 -height 480 -invertxy $inverted
+                        pack .graph1
+                        .graph1 legend configure -hide yes
+                        .graph1 axis configure x -min 0 -max 10000 -descending $descending
+                        .graph1 axis configure y -min -1 -max 1 -descending $descending
+                        .graph1 element create Element1 -xdata $xs -ydata $ys \
+                            -symbol none -linewidth 1 -smooth linear -reduce 0.0
+                    } -body {
+                        set result {}
+                        set snapshots {}
+                        foreach mode {none auto} {
+                            .graph1 element configure Element1 -decimate $mode
+                            update
+                            lassign [.graph1 transform 100 0.8] px py
+                            lassign [.graph1 transform 9000 -0.8] farX farY
+                            if {$along eq "x"} {set py $farY}
+                            if {$along eq "y"} {set px $farX}
+                            unset -nocomplain hit
+                            set found [.graph1 element closest $px $py hit \
+                                -along $along -interpolate no -halo 3 Element1]
+                            # Integer query pixels can select a neighbouring X sample.
+                            # Only the ordinate-only and Euclidean searches must hit the spike.
+                            set spike [expr {$along eq "both" ||
+                                ($inverted && $along eq "x") || (!$inverted && $along eq "y")}]
+                            lappend result $found [expr {$found && (!$spike || $hit(index) == 100) &&
+                                $hit(x) == [lindex $xs $hit(index)] && $hit(y) == [lindex $ys $hit(index)]}]
+                            if {$found} {
+                                lappend snapshots [list $hit(index) $hit(x) $hit(y) $hit(dist)]
+                            } else {
+                                lappend snapshots {}
+                            }
+                        }
+                        lappend result [expr {[lindex $snapshots 0] eq [lindex $snapshots 1]}]
+                        set result
+                    } -cleanup {
+                        unset -nocomplain hit xs ys result snapshots
+                        destroy .graph1
+                    } -result {1 1 1 1 1}
+                }
+            }
+        }
+    }
+
     cleanupTests
 }

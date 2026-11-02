@@ -717,3 +717,77 @@ screen geometry. Ordinary XY bounds include error bars and account for positive
 minimums on log axes. Complex input and polar-coordinate input instead use a
 symmetric square enclosing the maximum Cartesian radius. No valid data leaves
 empty sentinel bounds; the caller owns source synchronization and axis reset.
+
+Line-family picking and metadata
+--------------------------------
+
+ClosestLine chooses points or mapped segments. Automatic mode uses segments
+when the normal pen has positive trace width and the element has more than one
+point. Strip elements search independent segments; line and polar elements
+search connected trace chains. Both need current geometry and the correct graph
+or track viewport. These helpers do not synchronize pending source changes.
+
+Point and trace metrics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Point picking compares screen coordinates: both uses Euclidean distance, x uses
+absolute horizontal distance, and y uses absolute vertical distance. Only centers
+inside the unpadded plot rectangle participate, even when a symbol whose center
+is outside could contribute visible pixels. Hits recover original source indices
+and data coordinates. Strict comparisons preserve the earlier candidate on ties.
+
+Directional interpolated picking has different semantics. DistanceToX intersects
+a segment at the query's screen X coordinate and measures vertical distance;
+DistanceToY intersects at screen Y and measures horizontal distance. A query
+outside the corresponding endpoint span cannot hit that segment. Near-vertical
+or near-horizontal degenerate cases select the nearer endpoint where needed.
+Euclidean interpolation instead finds the nearest point on the finite segment.
+
+Interpolated results inverse-map the selected screen coordinate, but their index
+belongs to the segment's retained source start. A directional segment search that
+does not improve the incoming best distance falls back to point picking. A
+both-direction segment search has no such fallback.
+
+Source picking after reduction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ClosestPoint uses retained centers unless pointMapOmitted requests a source
+search. ClosestSourcePoint maps original samples on demand, rejecting nonfinite
+coordinates and centers outside the viewport. Cached monotonic source X can
+restrict candidate ranges, but the range restriction must be justified by the
+actual screen-distance metric.
+
+Pruning is valid for both-direction queries in either orientation. For a
+single-direction query it is valid only for screen X in normal graphs and screen
+Y in inverted graphs. The other direction must retain the full source range:
+a sample far away along the ignored coordinate can still be the closest hit.
+Axis descending settings change the range-search ordering, not this eligibility.
+
+Collect before publishing
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LineClosestInfo collects an optional parallel parameter value. It skips pending
+parameter-vector notifications, mismatched lengths and invalid indices rather
+than dereferencing stale storage. For an interpolated hit, param remains the
+source-index value; it is not geometrically interpolated.
+
+PolarClosestInfo derives radius and normalized radian angle from the final
+Cartesian hit, plus the source representation name. Smith results also include
+gamma, reference impedance, and convertible normalized and physical impedance
+and admittance. Singular conversions omit their respective fields. Parameter
+metadata follows the source index while these geometric fields follow the hit.
+
+The SetClosestInfo helpers build dictionary entries, including two-double lists
+for complex pairs. They do not write Tcl variables or run array traces. The
+common closest handler retains this snapshot before publishing it, separating
+geometry access from application trace callbacks. Collection errors return their
+Tcl status; previously inserted dictionary fields are not rolled back.
+
+Screen stroke adapters
+~~~~~~~~~~~~~~~~~~~~~~
+
+DrawTraces batches connected polylines through one trace stroke context;
+DrawRenderedStrips submits an independent segment batch through one strip stroke
+context. Both borrow mapped geometry and pen resources, resolve the default
+off-dash color, and end a successfully created context. Context creation failure
+skips drawing. These adapters neither map source data nor own persistent arrays.

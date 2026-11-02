@@ -110,3 +110,17 @@ The C namespace below only disambiguates documentation names.
    :members:
 
 .. c:namespace-pop::
+
+Line picking and stroke dispatch
+--------------------------------
+
+See :doc:`elements` for the distinction between point and trace metrics,
+snapshot metadata collection, and orientation-aware source-range pruning.
+This namespace only disambiguates private documentation symbols.
+
+.. c:namespace-push:: rbcGrLinePicking
+
+.. doxygengroup:: line_picking_rendering
+   :members:
+
+.. c:namespace-pop::
