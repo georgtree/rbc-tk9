@@ -340,3 +340,45 @@ first traced write. Reconfiguration cannot invalidate those names mid-loop.
 After each write it checks whether the widget survives and layout remains
 valid, stopping both further writes and the subsequent track-view notification
 on cancellation. Assignment errors continue to be ignored for compatibility.
+
+Construction helpers and notification ownership
+-----------------------------------------------
+
+``InitPens`` initializes the registry and creates activeLine before activeBar.
+A failure leaves already-created resources for the enclosing graph teardown;
+it is not an independently repeatable initialization operation. The successful
+constructor creates bindings only after all components and widget options have
+been configured. Trackgraph selection is initially a distinct constructor UID,
+then becomes a line-element class plus the trackGraph flag on the instance.
+
+``AdjustAxisPointers`` changes only which logical chains each physical margin
+borrows. It does not change axis classes or sites, relink axes or acquire
+references. Configuration separately invalidates ranges after inversion.
+Likewise, the tile callback only requests margin redisplay: despite its former
+comment, it does not rebuild a graphics context. Tile-client replacement and
+callback registration belong to the option transaction.
+
+Tk's world-change hook refreshes title metrics and component font resources
+without replaying configuration. It ignores partially configured graphs and
+requests both geometry recomputation and backing-store invalidation once live.
+This separates named-font changes from ordinary option parsing and ownership.
+
+The geometry-settling record owns its sample array but only borrows window
+identities. Each idle pass walks the current ancestry and compares identity,
+position, size and border width. It never dereferences a previously sampled
+window handle. Two consecutive unchanged passes are required after the latest
+change. A pending settle request absorbs later ordinary redraw requests via
+REDRAW_PENDING. Freeing the sampling record alone does not cancel an idle call;
+destruction must cancel scheduling separately before releasing it.
+
+``Rbc_GetGraphFromWindowData`` searches the supplied window and its ancestors
+for RBC instance data. The result is borrowed, with no added preservation or
+class check. This supports graph descendants but is not a generic checked
+conversion of arbitrary RBC instance data into a graph.
+
+The parent window class and anonymous option proxy are established before any
+Graph storage or registries are allocated. If proxy creation fails, the parent
+window is destroyed directly while the original interpreter error is preserved.
+No deferred Graph destructor is needed on that path. After Graph allocation,
+instance data, command and event-handler setup establish the normal ownership
+path before fallible component initialization begins.

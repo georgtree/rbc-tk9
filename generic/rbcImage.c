@@ -2730,7 +2730,6 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
         }
         if (temp <= 0.0) {
             i++;
-            fprintf(stderr, "Only got %d boxes\n", i);
             break;
         }
     }

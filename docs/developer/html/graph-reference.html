@@ -615,6 +615,93 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 </dd></dl>
 
 </section>
+<section id="construction-and-redraw-support">
+<h2>Construction and redraw support<a class="headerlink" href="#construction-and-redraw-support" title="Link to this heading">¶</a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.FreeGraphRedrawSettle">
+<span class="target" id="group__graph__lifecycle__support_1gaeca0202c3cffaba57e2d0e8f7c525312"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeGraphRedrawSettle</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.FreeGraphRedrawSettle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Release the pending ancestry-sampling record. </p>
+<p>Frees the owned sample array and record, then clears redrawSettle. A NULL record is harmless. Does not cancel an idle call or clear REDRAW_PENDING; the caller must handle scheduling state separately. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.SettleGraphRedraw">
+<span class="target" id="group__graph__lifecycle__support_1gaaadcb6a65baa78030720ef19e5bc0dc9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SettleGraphRedraw</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.SettleGraphRedraw" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Wait for two unchanged ancestry samples before presenting a frame. </p>
+<p>Requires the graph-owned redrawSettle record installed by EventuallyRedrawSettledGraph. Samples window identity, position, size and border from the widget through its toplevel; reallocates samples when the ancestry length changes. Changed geometry resets the stable-pass count. Requeues itself until two unchanged passes, then frees samples and delegates to DisplayGraph, which consumes REDRAW_PENDING. A dead window frees samples and clears the pending flag without drawing. Does not enter an event loop. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.EventuallyRedrawSettledGraph">
+<span class="target" id="group__graph__lifecycle__support_1ga859208203a05c0261f2c3e925e1d3b70"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EventuallyRedrawSettledGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.EventuallyRedrawSettledGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Replace ordinary idle drawing with ancestry-settled drawing. </p>
+<p>Does nothing for a dead window or an already active settle request. Cancels a pending DisplayGraph call, allocates a fresh sampling record, sets REDRAW_PENDING and schedules SettleGraphRedraw. Also requests external legend redraw. Callers set geometry and drawing invalidation flags themselves. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.GraphWorldChanged">
+<span class="target" id="group__graph__lifecycle__support_1ga0b5ce592fd4cb2a82373c0ff794ea112"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphWorldChanged</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.GraphWorldChanged" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Refresh derived font resources after a Tk world change. </p>
+<p>Ignores dead or not-yet-configured graphs. Resets title style and height, notifies axes, legends, markers, line and bar elements of font changes, then invalidates geometry and backing pixels and schedules redraw. Does not reparse option objects or deliberately evaluate application scripts. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.TileChangedProc">
+<span class="target" id="group__graph__lifecycle__support_1gac6de070efccb35af84ab93397cd9e30f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.TileChangedProc" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Request margin redisplay when the graph tile changes. </p>
+<p>The tile argument is unused. For a live window sets REDRAW_WORLD and schedules drawing; a dead window is ignored. Does not rebuild a GC or replace the tile client, whose ownership belongs to graph configuration. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.AdjustAxisPointers">
+<span class="target" id="group__graph__lifecycle__support_1ga6d594e3032a7107ef594f98f251382ad"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdjustAxisPointers</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.AdjustAxisPointers" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Associate logical axis chains with physical margins. </p>
+<p>Borrows the four existing chains. Normal order maps X/Y/X2/Y2 to bottom/left/top/right; inversion maps them to left/bottom/right/top. Does not change chain contents, axis classes, reference counts or axis sites, and does not itself invalidate geometry. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.InitPens">
+<span class="target" id="group__graph__lifecycle__support_1gaeb0e5cca5200190c65053ef6fb075b1b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitPens</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.InitPens" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Initialize the pen registry and create default active pens. </p>
+<p>Creates activeLine and activeBar in that order. Returns TCL_ERROR if either creation fails, retaining any already-created pen for graph teardown. Must run once on a new graph; does not roll back the registry locally. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.CreateGraph">
+<span class="target" id="group__graph__lifecycle__support_1ga6ceaa683d05301854e63e79f207e6127"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">CreateGraph</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Rbc_Uid</span></span><span class="w"> </span><span class="n"><span class="pre">classUid</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.CreateGraph" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Allocate a graph widget and install its components and lifecycle. </p>
+<p>Requires a pathname at objv[1]. Creates the Tk window, zeroed Graph, registries and display lists after creating the anonymous option proxy. Trackgraphs retain a distinct Tk class and trackGraph flag but use the line element class. Installs window instance data, class procedures, widget command and event handler before component configuration. Creates pens, axes, exporters, crosshairs, legend and grid before applying widget options, and creates bindings last. Success returns a widget-owned Graph; failure returns NULL with the interpreter error and destroys the window. Anonymous-window failure destroys the parent before any Graph storage is allocated and preserves the original interpreter error; later failures use the installed event handler. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.Rbc_GraphInit">
+<span class="target" id="group__graph__lifecycle__support_1ga9f85e5363a1daa77e09281bdff46ccc6"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GraphInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.Rbc_GraphInit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intern component class identifiers and register graph constructors. </p>
+<p>Creates graph, barchart, stripchart, polar and trackgraph Tcl commands in the interpreter. Initializes class identifiers including the contour identifier, but does not register a contour widget constructor. Returns TCL_OK; no graph widget is created here. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData">
+<span class="target" id="group__graph__lifecycle__support_1ga673221346359e5fc08f51eb45d4bf335"></span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetGraphFromWindowData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find graph instance data on a window or its ancestors. </p>
+<p>Walks Tk_Parent until non-NULL RBC window instance data is found. Returns a borrowed Graph pointer, or NULL when the chain is empty. Does not retain the graph or verify a component class; callers must supply a window chain whose RBC instance data follows the graph convention. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.GraphGeometrySample">
+<span class="target" id="struct_graph_geometry_sample"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphGeometrySample</span></span></span><a class="headerlink" href="#c.rbcGraphLifecycle.GraphGeometrySample" title="Link to this definition">¶</a><br /></dt>
+<dd><p>One borrowed window identity and its sampled integer geometry. </p>
+<p>The window handle is compared with the current ancestry, not retained or dereferenced through this record. The settle owner owns the sample array. </p>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rbcGraphLifecycle.GraphRedrawSettle">
+<span class="target" id="struct_graph_redraw_settle"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphRedrawSettle</span></span></span><a class="headerlink" href="#c.rbcGraphLifecycle.GraphRedrawSettle" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Graph-owned state for coalescing geometry-manager idle work. </p>
+<p>Owns count sample records; stablePasses counts consecutive unchanged samples. REDRAW_PENDING represents the scheduled work separately. </p>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -706,6 +793,21 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 <li><a class="reference internal" href="#c.rbcGraphCommands.DrawPlotRegion"><code class="docutils literal notranslate"><span class="pre">DrawPlotRegion()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphCommands.UpdateMarginTraces"><code class="docutils literal notranslate"><span class="pre">UpdateMarginTraces()</span></code></a></li>
 <li><a class="reference internal" href="#c.rbcGraphCommands.TrackgraphObjCmd"><code class="docutils literal notranslate"><span class="pre">TrackgraphObjCmd()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#construction-and-redraw-support">Construction and redraw support</a><ul>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.FreeGraphRedrawSettle"><code class="docutils literal notranslate"><span class="pre">FreeGraphRedrawSettle()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.SettleGraphRedraw"><code class="docutils literal notranslate"><span class="pre">SettleGraphRedraw()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.EventuallyRedrawSettledGraph"><code class="docutils literal notranslate"><span class="pre">EventuallyRedrawSettledGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.GraphWorldChanged"><code class="docutils literal notranslate"><span class="pre">GraphWorldChanged()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.TileChangedProc"><code class="docutils literal notranslate"><span class="pre">TileChangedProc()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.AdjustAxisPointers"><code class="docutils literal notranslate"><span class="pre">AdjustAxisPointers()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.InitPens"><code class="docutils literal notranslate"><span class="pre">InitPens()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.CreateGraph"><code class="docutils literal notranslate"><span class="pre">CreateGraph()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.Rbc_GraphInit"><code class="docutils literal notranslate"><span class="pre">Rbc_GraphInit()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData"><code class="docutils literal notranslate"><span class="pre">Rbc_GetGraphFromWindowData()</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.GraphGeometrySample"><code class="docutils literal notranslate"><span class="pre">GraphGeometrySample</span></code></a></li>
+<li><a class="reference internal" href="#c.rbcGraphLifecycle.GraphRedrawSettle"><code class="docutils literal notranslate"><span class="pre">GraphRedrawSettle</span></code></a></li>
 </ul>
 </li>
 </ul>

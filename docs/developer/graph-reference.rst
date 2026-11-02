@@ -45,3 +45,17 @@ Commands and screen composition
    :content-only:
 
 .. c:namespace:: NULL
+
+Construction and redraw support
+-------------------------------
+
+.. c:namespace:: rbcGraphLifecycle
+
+.. doxygengroup:: graph_lifecycle_support
+   :members:
+   :content-only:
+
+.. doxygenstruct:: GraphRedrawSettle
+   :members:
+
+.. c:namespace:: NULL

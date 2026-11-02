@@ -1106,6 +1106,11 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
 }
 
 
+/**
+ * @defgroup graph_lifecycle_support Graph construction and redraw support
+ * @brief Creation dependencies, geometry settling and resource notifications.
+ */
+
 /*
  * Expose may arrive while pack/grid is still propagating an ancestor resize.
  * A single idle callback can overtake the next level's geometry callback.
@@ -1116,17 +1121,38 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
  * This coalesces ordinary nested geometry work, not arbitrary future timers or
  * layout changes scheduled by application callbacks.
  */
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief One borrowed window identity and its sampled integer geometry.
+ *
+ * The window handle is compared with the current ancestry, not retained or
+ * dereferenced through this record. The settle owner owns the sample array.
+ */
 typedef struct {
     Tk_Window window;
     int x, y, width, height, border;
 } GraphGeometrySample;
 
+/**
+ * @brief Graph-owned state for coalescing geometry-manager idle work.
+ *
+ * Owns count sample records; stablePasses counts consecutive unchanged
+ * samples. REDRAW_PENDING represents the scheduled work separately.
+ */
 typedef struct GraphRedrawSettle {
     int count;
     int stablePasses;
     GraphGeometrySample *samples;
 } GraphRedrawSettle;
 
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Release the pending ancestry-sampling record.
+ *
+ * Frees the owned sample array and record, then clears redrawSettle. A NULL
+ * record is harmless. Does not cancel an idle call or clear REDRAW_PENDING;
+ * the caller must handle scheduling state separately.
+ */
 static void FreeGraphRedrawSettle(Graph *graphPtr) {
     GraphRedrawSettle *settle = graphPtr->redrawSettle;
     if (settle != NULL) {
@@ -1136,6 +1162,18 @@ static void FreeGraphRedrawSettle(Graph *graphPtr) {
     }
 }
 
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Wait for two unchanged ancestry samples before presenting a frame.
+ *
+ * Requires the graph-owned redrawSettle record installed by
+ * EventuallyRedrawSettledGraph. Samples window identity, position, size and
+ * border from the widget through its toplevel; reallocates samples when the
+ * ancestry length changes. Changed geometry resets the stable-pass count.
+ * Requeues itself until two unchanged passes, then frees samples and delegates
+ * to DisplayGraph, which consumes REDRAW_PENDING. A dead window frees samples
+ * and clears the pending flag without drawing. Does not enter an event loop.
+ */
 static void SettleGraphRedraw(ClientData clientData) {
     Graph *graphPtr = clientData;
     GraphRedrawSettle *settle = graphPtr->redrawSettle;
@@ -1182,6 +1220,15 @@ static void SettleGraphRedraw(ClientData clientData) {
     DisplayGraph(graphPtr);
 }
 
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Replace ordinary idle drawing with ancestry-settled drawing.
+ *
+ * Does nothing for a dead window or an already active settle request. Cancels
+ * a pending DisplayGraph call, allocates a fresh sampling record, sets
+ * REDRAW_PENDING and schedules SettleGraphRedraw. Also requests external legend
+ * redraw. Callers set geometry and drawing invalidation flags themselves.
+ */
 static void EventuallyRedrawSettledGraph(Graph *graphPtr) {
     if (graphPtr->tkwin == NULL || graphPtr->redrawSettle != NULL) return;
     if (graphPtr->flags & REDRAW_PENDING) {
@@ -1207,8 +1254,15 @@ void Rbc_EventuallyRedrawGraph(Graph *graphPtr) {
     }
 }
 
-/* Tk invokes this after changing a named font. Refresh derived resources
- * without reparsing options or evaluating application callbacks. */
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Refresh derived font resources after a Tk world change.
+ *
+ * Ignores dead or not-yet-configured graphs. Resets title style and height,
+ * notifies axes, legends, markers, line and bar elements of font changes, then
+ * invalidates geometry and backing pixels and schedules redraw. Does not
+ * reparse option objects or deliberately evaluate application scripts.
+ */
 static void GraphWorldChanged(ClientData clientData) {
     Graph *graphPtr = clientData;
 
@@ -1352,24 +1406,13 @@ static void GraphInstCmdDeleteProc(ClientData clientData) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Request margin redisplay when the graph tile changes.
  *
- * TileChangedProc --
- *
- *      Rebuilds the designated GC with the new tile pixmap.
- *
- * Parameters:
- *      ClientData clientData
- *      Rbc_Tile tile - Not used.
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * The tile argument is unused. For a live window sets REDRAW_WORLD and
+ * schedules drawing; a dead window is ignored. Does not rebuild a GC or
+ * replace the tile client, whose ownership belongs to graph configuration.
  */
 static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Graph *graphPtr = clientData;
@@ -1379,24 +1422,14 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     }
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Associate logical axis chains with physical margins.
  *
- * AdjustAxisPointers --
- *
- *      Sets the axis pointers according to whether the axis is
- *      inverted on not.  The axis sites are also reset.
- *
- * Parameters:
- *      Graph *graphPtr - Graph widget record
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Borrows the four existing chains. Normal order maps X/Y/X2/Y2 to
+ * bottom/left/top/right; inversion maps them to left/bottom/right/top. Does
+ * not change chain contents, axis classes, reference counts or axis sites,
+ * and does not itself invalidate geometry.
  */
 static void AdjustAxisPointers(Graph *graphPtr) {
     if (graphPtr->inverted) {
@@ -1412,23 +1445,13 @@ static void AdjustAxisPointers(Graph *graphPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Initialize the pen registry and create default active pens.
  *
- * InitPens --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Graph *graphPtr
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Creates activeLine and activeBar in that order. Returns TCL_ERROR if
+ * either creation fails, retaining any already-created pen for graph teardown.
+ * Must run once on a new graph; does not roll back the registry locally.
  */
 static int InitPens(Graph *graphPtr) {
     Tcl_InitHashTable(&graphPtr->penTable, TCL_STRING_KEYS);
@@ -2103,36 +2126,47 @@ static void DestroyGraph(DestroyData dataPtr) {
     ckfree((char *)graphPtr);
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Allocate a graph widget and install its components and lifecycle.
  *
- * CreateGraph --
- *
- *      This procedure creates and initializes a new widget.
- *
- * Parameters:
- *      Tcl_Interp *interp
- *      int objc
- *      Tcl_Obj *const objv[]
- *      Rbc_Uid classUid
- *
- * Results:
- *      The return value is a pointer to a structure describing
- *      the new widget.  If an error occurred, then the return
- *      value is NULL and an error message is left in the
- *      interpreter result.
- *
- * Side effects:
- *      Memory is allocated, a Tk_Window is created, etc.
- *
- *----------------------------------------------------------------------
+ * Requires a pathname at objv[1]. Creates the Tk window, zeroed Graph,
+ * registries and display lists after creating the anonymous option proxy. Trackgraphs retain
+ * a distinct Tk class and trackGraph flag but use the line element class.
+ * Installs window instance data, class procedures, widget command and event
+ * handler before component configuration. Creates pens, axes, exporters,
+ * crosshairs, legend and grid before applying widget options, and creates
+ * bindings last. Success returns a widget-owned Graph; failure returns NULL
+ * with the interpreter error and destroys the window. Anonymous-window failure
+ * destroys the parent before any Graph storage is allocated and preserves the
+ * original interpreter error; later failures use the installed event handler.
  */
 static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[], Rbc_Uid classUid) {
     Graph *graphPtr;
-    Tk_Window tkwin;
+    Tk_Window tkwin, optionProxy;
     const char *pathName = Tcl_GetString(objv[1]);
     tkwin = Tk_CreateWindowFromPath(interp, Tk_MainWindow(interp), pathName, NULL);
     if (tkwin == NULL) {
+        return NULL;
+    }
+    /* Complete fallible window setup before allocating the Graph registries.
+     * No widget command or destruction handler owns a Graph at this point. */
+    if (classUid == trackGraphUid) {
+        Tk_SetClass(tkwin, "Trackgraph");
+    } else if (classUid == rbcLineElementUid) {
+        Tk_SetClass(tkwin, "Graph");
+    } else if (classUid == rbcBarElementUid) {
+        Tk_SetClass(tkwin, "Barchart");
+    } else if (classUid == rbcStripElementUid) {
+        Tk_SetClass(tkwin, "Stripchart");
+    } else if (classUid == rbcPolarElementUid) {
+        Tk_SetClass(tkwin, "Polar");
+    }
+    optionProxy = Tk_CreateAnonymousWindow(interp, tkwin, NULL);
+    if (optionProxy == NULL) {
+        Tcl_InterpState state = Tcl_SaveInterpState(interp, TCL_ERROR);
+        Tk_DestroyWindow(tkwin);
+        Tcl_RestoreInterpState(interp, state);
         return NULL;
     }
     graphPtr = RbcCalloc(1, sizeof(Graph));
@@ -2152,7 +2186,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
      * Graph option lifecycle state.
      */
     graphPtr->optionTable = NULL;
-    graphPtr->optionProxy = NULL;
+    graphPtr->optionProxy = optionProxy;
     ResetGraphOptionContext(graphPtr);
     graphPtr->optionsConfigured = FALSE;
     graphPtr->optionsInitialized = FALSE;
@@ -2181,19 +2215,6 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
     graphPtr->elements.displayList = Rbc_ChainCreate();
     graphPtr->markers.displayList = Rbc_ChainCreate();
     graphPtr->axes.displayList = Rbc_ChainCreate();
-    if (classUid == rbcLineElementUid) {
-        Tk_SetClass(tkwin, graphPtr->trackGraph ? "Trackgraph" : "Graph");
-    } else if (classUid == rbcBarElementUid) {
-        Tk_SetClass(tkwin, "Barchart");
-    } else if (classUid == rbcStripElementUid) {
-        Tk_SetClass(tkwin, "Stripchart");
-    } else if (classUid == rbcPolarElementUid) {
-        Tk_SetClass(tkwin, "Polar");
-    }
-    graphPtr->optionProxy = Tk_CreateAnonymousWindow(interp, tkwin, NULL);
-    if (graphPtr->optionProxy == NULL) {
-        goto error;
-    }
     Rbc_SetWindowInstanceData(tkwin, graphPtr);
     Tk_SetClassProcs(tkwin, &graphClassProcs, graphPtr);
     /*
@@ -3537,6 +3558,15 @@ static int TrackgraphObjCmd(void *clientData, Tcl_Interp *interp, Tcl_Size objc,
     return NewGraph(interp, objc, objv, trackGraphUid);
 }
 
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Intern component class identifiers and register graph constructors.
+ *
+ * Creates graph, barchart, stripchart, polar and trackgraph Tcl commands
+ * in the interpreter. Initializes class identifiers including the contour
+ * identifier, but does not register a contour widget constructor. Returns
+ * TCL_OK; no graph widget is created here.
+ */
 int Rbc_GraphInit(Tcl_Interp *interp) {
     rbcBarElementUid = (Rbc_Uid)Tk_GetUid("BarElement");
     rbcLineElementUid = (Rbc_Uid)Tk_GetUid("LineElement");
@@ -3561,23 +3591,14 @@ int Rbc_GraphInit(Tcl_Interp *interp) {
     return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @ingroup graph_lifecycle_support
+ * @brief Find graph instance data on a window or its ancestors.
  *
- * Rbc_GetGraphFromWindowData --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Tk_Window tkwin
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Walks Tk_Parent until non-NULL RBC window instance data is found. Returns
+ * a borrowed Graph pointer, or NULL when the chain is empty. Does not retain
+ * the graph or verify a component class; callers must supply a window chain
+ * whose RBC instance data follows the graph convention.
  */
 Graph *Rbc_GetGraphFromWindowData(Tk_Window tkwin) {
     Graph *graphPtr;
