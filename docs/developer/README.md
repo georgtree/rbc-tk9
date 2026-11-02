@@ -9,7 +9,7 @@ quadratic interval selection and parametric cubic factorization, line
 decimation and cache maintenance, bar grouping and error positioning, area fills and uncertainty
 bands, polar data adapters and grid geometry, binding dispatch and picking, component option
 transactions and resource ownership, scrolling and viewport contracts, geometry and clipping
-contracts, chain/list ownership, image and tile ownership, text layout and document font ownership,
+contracts and private subdivision helpers, chain/list ownership, insertion and keyed lookup, image and tile ownership, text layout and document font ownership,
 export orchestration, SVG definitions and image encoding, PDF resource serialization and document
 ownership, PDF/PostScript drawing primitives and shared export capture, crosshair presentation and XOR configuration, legend ownership and layout, grid inheritance,
 tick-list transactions and output, pen and

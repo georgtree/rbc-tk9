@@ -136,6 +136,53 @@ that sorting succeeded under allocation pressure.</p>
 matching node. These documentation changes do not rename private functions or
 alter container behavior.</p>
 </section>
+<section id="insertion-and-lookup-contracts">
+<h2>Insertion and lookup contracts<a class="headerlink" href="#insertion-and-lookup-contracts" title="Link to this heading">¶</a></h2>
+<p>The C reference includes all creation, insertion and positional-lookup entry
+points as well as the private key-search helpers. Allocation uses Tcl’s fatal
+allocation policy for container and node creation; these functions do not
+return an interpreter diagnostic under memory pressure. The attempted scratch
+allocation in sorting is a separate, nonfatal policy.</p>
+<p>A detached record supplied to an insertion helper must have NULL neighbor
+pointers. In particular, insertion into an empty container assigns its head and
+tail without clearing arbitrary old link fields. Nodes created by the allocation
+helpers and records detached by normal unlinking meet this precondition.
+Hand-built records must meet it too. Insertion is not a membership check or a
+move operation: callers must unlink existing membership first.</p>
+<p>The list’s key type determines lookup semantics:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Representation</p></th>
+<th class="head"><p>Comparison</p></th>
+<th class="head"><p>Caller requirement</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>String</p></td>
+<td><p>First byte, then <code class="docutils literal notranslate"><span class="pre">strcmp</span></code></p></td>
+<td><p>Non-NULL NUL-terminated query string</p></td>
+</tr>
+<tr class="row-odd"><td><p>One word</p></td>
+<td><p>Pointer-sized identity</p></td>
+<td><p>Query value need not point to readable storage; NULL is allowed</p></td>
+</tr>
+<tr class="row-even"><td><p>Integer array</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">memcmp</span></code> over <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">*</span> <span class="pre">sizeof(int)</span></code> bytes</p></td>
+<td><p>Query has that many readable native <code class="docutils literal notranslate"><span class="pre">int</span></code> words</p></td>
+</tr>
+</tbody>
+</table>
+<p>All searches walk from the head and return the first match. Sorting or moving
+nodes can therefore change which duplicate is found without changing any key.
+Array keys are native-memory representations, not a portable byte encoding.
+Lookup returns a borrowed node; it adds no protection against deletion by a
+later callback. <code class="docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey</span></code> uses this same first-match rule.</p>
+</section>
 </section>
 
 
@@ -154,6 +201,7 @@ alter container behavior.</p>
 <li><a class="reference internal" href="#linking-and-moving">Linking and moving</a></li>
 <li><a class="reference internal" href="#borrowed-pointers-and-traversal">Borrowed pointers and traversal</a></li>
 <li><a class="reference internal" href="#sorting-and-positional-lookup">Sorting and positional lookup</a></li>
+<li><a class="reference internal" href="#insertion-and-lookup-contracts">Insertion and lookup contracts</a></li>
 </ul>
 </li>
 </ul>

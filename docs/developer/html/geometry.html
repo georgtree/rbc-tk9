@@ -130,6 +130,30 @@ belong to element/vector code.</p>
 <p>See <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a> for the seven function contracts. This chapter
 records the existing boundary and numerical conventions without changing them.</p>
 </section>
+<section id="private-validation-and-subdivision">
+<h2>Private validation and subdivision<a class="headerlink" href="#private-validation-and-subdivision" title="Link to this heading">¶</a></h2>
+<p>The internal helpers are included in <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a>. They deliberately
+have narrower contracts than command-level validation. <code class="docutils literal notranslate"><span class="pre">IsFinitePoint</span></code> tests
+a pointer and two coordinates; <code class="docutils literal notranslate"><span class="pre">IsValidExtents</span></code> accepts finite ordered bounds,
+including degenerate rectangles. Neither applies mapping, padding or rounding.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ClipTest</span></code> progressively narrows the parametric interval of the line clipper.
+A single rejected boundary test leaves its input interval unchanged, but earlier
+successful boundary tests may already have modified it. <code class="docutils literal notranslate"><span class="pre">Rbc_LineRectClip</span></code>
+keeps those parameters local and writes output only after all boundaries pass.
+Do not interpret that outer guarantee as a general rollback feature of the
+private helper.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AppendClipVertex</span></code> checks only storage and count capacity, then writes one
+vertex. It neither rejects non-finite coordinates nor removes duplicates.
+Successful appends are not rolled back when a later append fails. Consequently,
+the caller must discard the entire polygon on the clipper’s zero result.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FindSplit</span></code> returns squared distance and an original source index. Equal
+maximum distances retain the first interior point encountered. Invalid ranges
+or no interior point return -1, with the output index initialized to -1 when
+its pointer is supplied. The helper does not know array capacity or guarantee
+finite intermediate arithmetic. The outer simplifier compares squared values,
+so replacing this with a bounded-segment distance or a different tie rule would
+change existing results even if the new code looked mathematically similar.</p>
+</section>
 </section>
 
 
@@ -147,6 +171,7 @@ records the existing boundary and numerical conventions without changing them.</
 <li><a class="reference internal" href="#hit-testing">Hit testing</a></li>
 <li><a class="reference internal" href="#line-and-polygon-clipping-differ">Line and polygon clipping differ</a></li>
 <li><a class="reference internal" href="#simplification-and-original-indices">Simplification and original indices</a></li>
+<li><a class="reference internal" href="#private-validation-and-subdivision">Private validation and subdivision</a></li>
 </ul>
 </li>
 </ul>

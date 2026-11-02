@@ -8,8 +8,23 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcScroll.c
+ * Integer scroll conversion.
+ */
+/** @defgroup scroll_internals Integer scroll conversion
+ * Private helpers; callers retain storage and lifetime responsibilities.
+ */
 #include "rbcInt.h"
 
+/**
+ * @brief Saturate to int bounds and truncate an in-range value.
+ * @ingroup scroll_internals
+ *
+ * Requires a non-NaN value. Values above/below int bounds, including infinities,
+ * produce INT_MAX/INT_MIN; in-range conversion truncates toward zero. Does not
+ * round, apply viewport bounds or report errors. The scroll parser uses it first
+ * for a delta and then for offset-plus-delta to retain historical rounding.
+ */
 static int ClampScrollValue(long double value) {
     if (value > (long double)INT_MAX) {
         return INT_MAX;

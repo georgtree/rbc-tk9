@@ -16,3 +16,9 @@ These declarations remain in ``rbcInt.h``. See :doc:`geometry` for conventions.
 .. doxygenfunction:: Rbc_PointInSegments
 
 .. doxygenfunction:: Rbc_SimplifyLine
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: geometry_internals
+   :members:

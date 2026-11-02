@@ -105,3 +105,31 @@ belong to element/vector code.
 
 See :doc:`geometry-reference` for the seven function contracts. This chapter
 records the existing boundary and numerical conventions without changing them.
+
+Private validation and subdivision
+----------------------------------
+
+The internal helpers are included in :doc:`geometry-reference`. They deliberately
+have narrower contracts than command-level validation. ``IsFinitePoint`` tests
+a pointer and two coordinates; ``IsValidExtents`` accepts finite ordered bounds,
+including degenerate rectangles. Neither applies mapping, padding or rounding.
+
+``ClipTest`` progressively narrows the parametric interval of the line clipper.
+A single rejected boundary test leaves its input interval unchanged, but earlier
+successful boundary tests may already have modified it. ``Rbc_LineRectClip``
+keeps those parameters local and writes output only after all boundaries pass.
+Do not interpret that outer guarantee as a general rollback feature of the
+private helper.
+
+``AppendClipVertex`` checks only storage and count capacity, then writes one
+vertex. It neither rejects non-finite coordinates nor removes duplicates.
+Successful appends are not rolled back when a later append fails. Consequently,
+the caller must discard the entire polygon on the clipper's zero result.
+
+``FindSplit`` returns squared distance and an original source index. Equal
+maximum distances retain the first interior point encountered. Invalid ranges
+or no interior point return -1, with the output index initialized to -1 when
+its pointer is supplied. The helper does not know array capacity or guarantee
+finite intermediate arithmetic. The outer simplifier compares squared values,
+so replacing this with a bounded-segment distance or a different tie rule would
+change existing results even if the new code looked mathematically similar.

@@ -170,6 +170,21 @@ length and resource replacement. Distinguish local parser commit tests from
 callback deletion tests and option-transaction tests. Documentation-only changes
 do not alter any accepted values or runtime error behavior.</p>
 </section>
+<section id="legacy-color-pair-adapter">
+<h2>Legacy color-pair adapter<a class="headerlink" href="#legacy-color-pair-adapter" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrMisc.c</span></code> still defines the old <code class="docutils literal notranslate"><span class="pre">Tk_CustomOption</span></code> color-pair adapter,
+<code class="docutils literal notranslate"><span class="pre">rbcColorPairOption</span></code>. No current in-tree C option table references that
+adapter. It should not be confused with the maintained Tk option transactions
+used by the graph components.</p>
+<p>Its private <code class="docutils literal notranslate"><span class="pre">GetColorPair</span></code> acquires foreground and background independently,
+then assigns the output pair only after both succeed. If background lookup
+fails, it releases an acquired foreground reference while retaining the original
+Tk diagnostic and leaving the output pair unchanged. NULL and default-color
+sentinels are never passed to <code class="docutils literal notranslate"><span class="pre">Tk_FreeColor</span></code>. Successful parsing transfers both
+references to the pair, even when both names resolve to the same cached color.
+The private resource harness checks balanced acquisition/release on failure and
+success, including empty and default colors, through <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code>.</p>
+</section>
 </section>
 
 
@@ -188,6 +203,7 @@ do not alter any accepted values or runtime error behavior.</p>
 <li><a class="reference internal" href="#strings-and-matching-policies">Strings and matching policies</a></li>
 <li><a class="reference internal" href="#numeric-compatibility-macros">Numeric compatibility macros</a></li>
 <li><a class="reference internal" href="#maintenance-checks">Maintenance checks</a></li>
+<li><a class="reference internal" href="#legacy-color-pair-adapter">Legacy color-pair adapter</a></li>
 </ul>
 </li>
 </ul>

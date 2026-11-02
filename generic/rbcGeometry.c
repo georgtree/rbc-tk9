@@ -8,13 +8,34 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcGeometry.c
+ * Geometry validation and subdivision.
+ */
+/** @defgroup geometry_internals Geometry validation and subdivision
+ * Private helpers; callers retain storage and lifetime responsibilities.
+ */
 #include "rbcInt.h"
 #include <math.h>
 
+/**
+ * @brief Test a point pointer and both coordinates.
+ * @ingroup geometry_internals
+ *
+ * Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE.
+ * No allocation, mutation or coordinate transformation.
+ */
 static int IsFinitePoint(const Point2D *pointPtr) {
     return ((pointPtr != NULL) && FINITE(pointPtr->x) && FINITE(pointPtr->y));
 }
 
+/**
+ * @brief Test finite ordered rectangular extents.
+ * @ingroup geometry_internals
+ *
+ * Requires left <= right and top <= bottom after checking all coordinates.
+ * NULL or non-finite bounds return FALSE; zero width/height is accepted. Does
+ * not normalize reversed bounds or apply pixel-area expansion.
+ */
 static int IsValidExtents(const Extents2D *extsPtr) {
     return ((extsPtr != NULL) && FINITE(extsPtr->left) && FINITE(extsPtr->right) && FINITE(extsPtr->top) &&
             FINITE(extsPtr->bottom) && (extsPtr->left <= extsPtr->right) && (extsPtr->top <= extsPtr->bottom));
@@ -181,26 +202,15 @@ int Rbc_RegionInPolygon(const Extents2D *extsPtr, const Point2D *points, Tcl_Siz
     }
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Intersect a Liang-Barsky parameter interval with one boundary.
+ * @ingroup geometry_internals
  *
- * ClipTest --
- *
- *      TODO: Description
- *
- * Parameters:
- *      double ds
- *      double dr
- *      double *t1
- *      double *t2
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the
+ * entry parameter; positive ds can lower the exit parameter. A parallel edge
+ * (ds zero) rejects only when dr is negative. Returns boolean; this call leaves
+ * parameters untouched when it rejects, but earlier successful boundary calls
+ * may already have narrowed them. No allocation or independent finite checks.
  */
 static int ClipTest(double ds, double dr, double *t1, double *t2) {
     double t;
@@ -259,6 +269,15 @@ int Rbc_LineRectClip(const Extents2D *extsPtr, const Point2D *p, const Point2D *
     return TRUE;
 }
 
+/**
+ * @brief Append one vertex when the caller-provided buffer has room.
+ * @ingroup geometry_internals
+ *
+ * Requires a valid countPtr; rejects NULL points, negative count or count at
+ * or above capacity without changing storage/count. On success writes X/Y and
+ * increments count. Does not test coordinate finiteness or suppress duplicates.
+ * The clipper must discard the whole polygon on a failed append.
+ */
 static int AppendClipVertex(Point2D *points, Tcl_Size capacity, Tcl_Size *countPtr, double x, double y) {
     Tcl_Size count;
 
@@ -393,26 +412,19 @@ Tcl_Size Rbc_PolyRectClip(const Extents2D *extsPtr, const Point2D *points, Tcl_S
     return count;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Find the first farthest interior point for line simplification.
+ * @ingroup geometry_internals
  *
- * FindSplit --
+ * Requires valid source indices and caller storage for split. Returns maximum
+ * squared distance and writes its original source index; ties keep the first.
+ * Uses distance to the infinite endpoint line, not the bounded segment. If the
+ * endpoint distance is at most DBL_EPSILON, measures from the first endpoint.
  *
- *      TODO: Description
- *
- * Parameters:
- *      Point2D points[]
- *      int i - Indices specifying the range of points.
- *      int j - Indices specifying the range of points.
- *      int *split - (out) Index of next split.
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * NULL split returns -1. Otherwise initializes split to -1, also returning -1
+ * for invalid pointers/ranges or no interior point. Does not know array capacity
+ * or validate every coordinate; extreme intermediate arithmetic may overflow.
+ * No allocation or input mutation.
  */
 static double FindSplit(const Point2D points[], Tcl_Size i, Tcl_Size j, Tcl_Size *split) {
     Tcl_Size k;

@@ -155,6 +155,16 @@ the post-callback checks and avoid using graph state after its final release.
 See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for the surrounding lifetime and
 repicking rules, and <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a> for the shared contracts.</p>
 </section>
+<section id="integer-conversion-boundary">
+<h2>Integer conversion boundary<a class="headerlink" href="#integer-conversion-boundary" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ClampScrollValue</span></code> is documented in <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a>. Its input must
+not be NaN. It saturates outside the integer range and otherwise truncates
+toward zero; it does not apply the selected viewport policy. The legacy parser
+first truncates/saturates the requested delta, then separately adds and clamps
+that integer delta. Combining these steps into one floating-point addition can
+change historical results for fractional page deltas, especially across zero.
+The double-valued request parser deliberately leaves this policy to its owner.</p>
+</section>
 </section>
 
 
@@ -173,6 +183,7 @@ repicking rules, and <a class="reference internal" href="scroll-reference.html">
 <li><a class="reference internal" href="#axis-data-scrolling">Axis data scrolling</a></li>
 <li><a class="reference internal" href="#track-stack-versus-track-local-data">Track stack versus track-local data</a></li>
 <li><a class="reference internal" href="#scrollbar-callbacks-and-lifetime">Scrollbar callbacks and lifetime</a></li>
+<li><a class="reference internal" href="#integer-conversion-boundary">Integer conversion boundary</a></li>
 </ul>
 </li>
 </ul>

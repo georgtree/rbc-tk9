@@ -399,17 +399,17 @@ $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
 		$(filter-out rbcImage.$(OBJEXT),$(PKG_OBJECTS)) rbcImageTest.$(OBJEXT) $(SHLIB_LD_LIBS)
 
-# Inspect EPS instance releases and inject native parent-query failure.
+# Inspect EPS/color releases and inject native parent-query failure.
 test-resources: $(TEST_RESOURCE_LIB)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
 	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.resources.lifecycle.A.test` $(TESTFLAGS)
 
-rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(PKG_HEADERS)
+rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(srcdir)/generic/rbcGrMisc.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcResourceTest.c` -o $@
 
 $(TEST_RESOURCE_LIB): $(PKG_OBJECTS) rbcResourceTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
-		$(filter-out rbcCanvEps.$(OBJEXT) rbcWindow.$(OBJEXT),$(PKG_OBJECTS)) rbcResourceTest.$(OBJEXT) $(SHLIB_LD_LIBS)
+		$(filter-out rbcCanvEps.$(OBJEXT) rbcWindow.$(OBJEXT) rbcGrMisc.$(OBJEXT),$(PKG_OBJECTS)) rbcResourceTest.$(OBJEXT) $(SHLIB_LD_LIBS)
 
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)

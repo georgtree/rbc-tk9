@@ -1,4 +1,4 @@
-# Private EPS/window ownership checks; normal suite runs skip this harness.
+# Private EPS/window/color ownership checks; normal suite runs skip this harness.
 package provide resources.lifecycle
 package require tcltest
 namespace import tcltest::*
@@ -42,6 +42,24 @@ namespace eval resources.lifecycle {
                 catch {image delete $photo}
             } -result {0 1}
     }
+    foreach {case foreground background allowDefault expected} {
+        1 red __rbc_invalid_color__ 0 {1 1 1 1 1}
+        2 {} __rbc_invalid_color__ 0 {1 0 0 1 1}
+        3 defcolor __rbc_invalid_color__ 1 {1 0 0 1 1}
+        4 d __rbc_invalid_color__ 1 {1 0 0 1 1}
+        5 __rbc_invalid_color__ blue 0 {1 0 0 1 1}
+        6 red blue 0 {0 2 2 1 0}
+        7 red red 0 {0 2 2 1 0}
+        8 {} {} 0 {0 0 0 1 0}
+        9 defcolor defcolor 1 {0 0 0 1 0}
+        10 red {} 0 {0 1 1 1 0}
+    } {
+        test RBC.resources.lifecycle.A.3.$case {color-pair staging balances references and preserves output on failure} \
+            -constraints resourceHarness -body {
+                ::rbccolorpairtest $foreground $background $allowDefault
+            } -result $expected
+    }
+
 }
 cleanupTests
 if {$resourceAvailable} {destroy .}

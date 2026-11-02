@@ -110,3 +110,44 @@ See :doc:`container-reference` for selected lifecycle contracts. The historical
 ``Rb_ListDeleteNodeByKey`` spelling remains unchanged; it removes only the first
 matching node. These documentation changes do not rename private functions or
 alter container behavior.
+
+Insertion and lookup contracts
+-------------------------------
+
+The C reference includes all creation, insertion and positional-lookup entry
+points as well as the private key-search helpers. Allocation uses Tcl's fatal
+allocation policy for container and node creation; these functions do not
+return an interpreter diagnostic under memory pressure. The attempted scratch
+allocation in sorting is a separate, nonfatal policy.
+
+A detached record supplied to an insertion helper must have NULL neighbor
+pointers. In particular, insertion into an empty container assigns its head and
+tail without clearing arbitrary old link fields. Nodes created by the allocation
+helpers and records detached by normal unlinking meet this precondition.
+Hand-built records must meet it too. Insertion is not a membership check or a
+move operation: callers must unlink existing membership first.
+
+The list's key type determines lookup semantics:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Representation
+     - Comparison
+     - Caller requirement
+   * - String
+     - First byte, then ``strcmp``
+     - Non-NULL NUL-terminated query string
+   * - One word
+     - Pointer-sized identity
+     - Query value need not point to readable storage; NULL is allowed
+   * - Integer array
+     - ``memcmp`` over ``type * sizeof(int)`` bytes
+     - Query has that many readable native ``int`` words
+
+All searches walk from the head and return the first match. Sorting or moving
+nodes can therefore change which duplicate is found without changing any key.
+Array keys are native-memory representations, not a portable byte encoding.
+Lookup returns a borrowed node; it adds no protection against deletion by a
+later callback. ``Rb_ListDeleteNodeByKey`` uses this same first-match rule.

@@ -126,3 +126,20 @@ values, preserved old state, exact/prefix matching, empty lists, maximum dash
 length and resource replacement. Distinguish local parser commit tests from
 callback deletion tests and option-transaction tests. Documentation-only changes
 do not alter any accepted values or runtime error behavior.
+
+Legacy color-pair adapter
+-------------------------
+
+``rbcGrMisc.c`` still defines the old ``Tk_CustomOption`` color-pair adapter,
+``rbcColorPairOption``. No current in-tree C option table references that
+adapter. It should not be confused with the maintained Tk option transactions
+used by the graph components.
+
+Its private ``GetColorPair`` acquires foreground and background independently,
+then assigns the output pair only after both succeed. If background lookup
+fails, it releases an acquired foreground reference while retaining the original
+Tk diagnostic and leaving the output pair unchanged. NULL and default-color
+sentinels are never passed to ``Tk_FreeColor``. Successful parsing transfers both
+references to the pair, even when both names resolve to the same cached color.
+The private resource harness checks balanced acquisition/release on failure and
+success, including empty and default colors, through ``make test-resources``.

@@ -49,6 +49,14 @@ struct Rbc_ListStruct {
     int type;                           /* Type of keys in list. */
 };
 
+/**
+ * @brief Initialize caller-owned list storage with a key representation.
+ *
+ * Requires a non-NULL record. Stores type and clears endpoints/count; does not
+ * free prior nodes or validate type. Use TCL_STRING_KEYS, TCL_ONE_WORD_KEYS or an
+ * integer-array word count greater than TCL_ONE_WORD_KEYS. Reset a populated
+ * list before reinitializing it.
+ */
 void Rbc_ListInit(Rbc_List list, int type);
 /**
  * @brief Free linked nodes and copied keys while retaining the list key type.
@@ -56,7 +64,21 @@ void Rbc_ListInit(Rbc_List list, int type);
  * Nodes allocated but never inserted are not visited.
  */
 void Rbc_ListReset(Rbc_List list);
+/**
+ * @brief Allocate and initialize an empty keyed list.
+ *
+ * Returns caller-owned Tcl-allocated storage, eventually released through
+ * Rbc_ListDestroy. Type has the same preconditions as Rbc_ListInit and is not
+ * validated here. Allocation exhaustion is not an interpreter error.
+ */
 Rbc_List Rbc_ListCreate(int type);
+/**
+ * @brief Reset and free a heap-allocated keyed list.
+ *
+ * Accepts NULL. Releases linked nodes and copied keys, then the list itself.
+ * Does not free external payloads or one-word key targets. Do not pass stack or
+ * embedded storage; use Rbc_ListReset for those records.
+ */
 void Rbc_ListDestroy(Rbc_List list);
 /**
  * @brief Allocate a keyed node for a list without inserting it.
@@ -72,9 +94,41 @@ Rbc_ListNode Rbc_ListCreateNode(Rbc_List list, const char *key);
  * key targets are not freed. Never pass a newly created, never-inserted node.
  */
 void Rbc_ListDeleteNode(Rbc_ListNode node);
+/**
+ * @brief Create a keyed node and insert it at the tail.
+ *
+ * Requires a valid initialized list and a key matching its representation.
+ * Copies string/array keys and stores one-word keys by value. Duplicate keys are
+ * allowed. Returns the list-owned node; clientData is borrowed and unchanged.
+ * Allocation, invalid key type and count overflow use fatal allocation/panic paths.
+ */
 Rbc_ListNode Rbc_ListAppend(Rbc_List list, const char *key, ClientData clientData);
+/**
+ * @brief Create a keyed node and insert it at the head.
+ *
+ * Uses the same key-copy and payload-ownership rules as Rbc_ListAppend.
+ * Duplicate keys are allowed and the new node becomes the first matching node
+ * for lookup. Requires a valid list/key; returns a list-owned record.
+ */
 Rbc_ListNode Rbc_ListPrepend(Rbc_List list, const char *key, ClientData clientData);
+/**
+ * @brief Insert a node after a neighbor, or prepend for NULL.
+ *
+ * Accepts a newly created node or a normally unlinked node with NULL neighbors.
+ * Its key representation must match the destination list. Any non-NULL neighbor
+ * must belong to that list; an already inserted node must first be unlinked.
+ * Sets the node owner, neighbors, endpoints and count without allocation or
+ * callbacks. Count overflow panics; no membership or key-type check is performed.
+ */
 void Rbc_ListLinkAfter(Rbc_List list, Rbc_ListNode node, Rbc_ListNode afterNode);
+/**
+ * @brief Insert a node before a neighbor, or append for NULL.
+ *
+ * Requires the same detached/construction state and compatible key representation
+ * as Rbc_ListLinkAfter. Does not unlink prior membership or validate the neighbor.
+ * Sets owner and links, increments count, and panics on count overflow. Node
+ * payload and copied-key storage remain unchanged.
+ */
 void Rbc_ListLinkBefore(Rbc_List list, Rbc_ListNode node, Rbc_ListNode beforeNode);
 /**
  * @brief Detach an inserted node without freeing it or its payload.
@@ -89,7 +143,21 @@ void Rbc_ListUnlinkNode(Rbc_ListNode node);
  * list returns NULL. The node remains owned by its container/caller.
  */
 Rbc_ListNode Rbc_ListGetNode(Rbc_List list, const char *key);
+/**
+ * @brief Delete only the first matching node in current list order.
+ *
+ * A NULL list or absent key is a no-op. Otherwise unlinks and frees the node
+ * and copied key, leaving clientData and one-word key targets owned by the caller.
+ * Uses the historical Rb_ spelling. Does not call a payload destructor.
+ */
 void Rb_ListDeleteNodeByKey(Rbc_List list, const char *key);
+/**
+ * @brief Return a borrowed node at a zero-based position.
+ *
+ * Traverses from head when direction is positive, from tail otherwise.
+ * Returns NULL for a NULL list, negative position or position at/above length.
+ * Linear traversal does not mutate the list or retain the returned record.
+ */
 Rbc_ListNode Rbc_ListGetNthNode(Rbc_List list, Tcl_Size position, int direction);
 /**
  * @brief Reorder existing nodes with qsort without moving their allocations.

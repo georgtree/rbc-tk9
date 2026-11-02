@@ -16,25 +16,7 @@
 #define ALIGN(a) (((size_t)a + (sizeof(double) - 1)) & (~(sizeof(double) - 1)))
 #endif /* ALIGN */
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainCreate --
- *
- *      Creates a new linked list (chain) structure and initializes
- *      its pointers;
- *
- * Parameters:
- *      None
- *
- * Results:
- *      Returns a pointer to the newly created chain structure.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 Rbc_Chain *Rbc_ChainCreate() {
     Rbc_Chain *chainPtr;
 
@@ -50,26 +32,7 @@ void Rbc_ChainInit(Rbc_Chain *chainPtr) {
     chainPtr->headPtr = chainPtr->tailPtr = NULL;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainLinkAfter --
- *
- *      Inserts an entry following a given entry.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *      Rbc_ChainLink *linkPtr
- *      Rbc_ChainLink *afterPtr
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *afterPtr) {
     if (chainPtr->headPtr == NULL) {
         chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
@@ -97,25 +60,7 @@ void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLi
     chainPtr->nLinks++;
 }
 
-/*----------------------------------------------------------------------
- *
- * Rbc_ChainLinkBefore --
- *
- *      Inserts a link preceding a given link.
- *
- * Parameters:
- *      Rbc_Chain *chainPtr - Chain to contain new entry
- *      Rbc_ChainLink *linkPtr - New entry to be inserted
- *      Rbc_ChainLink *beforePtr - Entry to link before
- *
- * Results:
- *      None.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforePtr) {
     if (chainPtr->headPtr == NULL) {
         chainPtr->tailPtr = chainPtr->headPtr = linkPtr;
@@ -143,24 +88,7 @@ void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainL
     chainPtr->nLinks++;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainNewLink --
- *
- *      Creates a new link.
- *
- * Parameters:
- *      None
- *
- * Results:
- *      The return value is the pointer to the newly created link.
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 Rbc_ChainLink *Rbc_ChainNewLink() {
     Rbc_ChainLink *linkPtr;
 
@@ -225,25 +153,7 @@ void Rbc_ChainDeleteLink(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr) {
     ckfree((char *)linkPtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainAppend --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *      ClientData clientData
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData) {
     Rbc_ChainLink *linkPtr;
 
@@ -253,25 +163,7 @@ Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData) {
     return linkPtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ChainPrepend --
- *
- *      TODO: Description
- *
- * Parameters:
- *      Rbc_Chain *chainPtr
- *      ClientData clientData
- *
- * Results:
- *      TODO: Results
- *
- * Side Effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcChain.h. */
 Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData) {
     Rbc_ChainLink *linkPtr;
 

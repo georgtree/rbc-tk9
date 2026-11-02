@@ -78,6 +78,25 @@
 <p>Called after native display/layout work; does nothing for non-track graphs or during export. Preserves the graph across binding callbacks, rechecks the live window, then notifies the scrollbar. Callbacks may destroy the widget; the caller must not assume the graph survives this function. </p>
 </dd></dl>
 
+<section id="implementation-helpers">
+<h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__scroll__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Integer</span> <span class="pre">scroll</span> <span class="pre">conversion</span></span></dt>
+<dd><p>Private helpers; callers retain storage and lifetime responsibilities. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClampScrollValue">
+<span class="target" id="group__scroll__internals_1ga59014772ec7cb050a8ae0d20e5f84499"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClampScrollValue</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClampScrollValue" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Saturate to int bounds and truncate an in-range value. </p>
+<p>Requires a non-NaN value. Values above/below int bounds, including infinities, produce INT_MAX/INT_MIN; in-range conversion truncates toward zero. Does not round, apply viewport bounds or report errors. The scroll parser uses it first for a delta and then for offset-plus-delta to retain historical rounding. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -96,6 +115,10 @@
 <li><a class="reference internal" href="#c.Rbc_GetScrollInfoFromObj"><code class="docutils literal notranslate"><span class="pre">Rbc_GetScrollInfoFromObj()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_TrackYViewOp"><code class="docutils literal notranslate"><span class="pre">Rbc_TrackYViewOp()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_NotifyTrackView"><code class="docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a></li>
+<li><a class="reference internal" href="#implementation-helpers">Implementation helpers</a><ul>
+<li><a class="reference internal" href="#c.ClampScrollValue"><code class="docutils literal notranslate"><span class="pre">ClampScrollValue()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

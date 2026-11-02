@@ -9,6 +9,12 @@
  * See "license.terms" for details.
  */
 
+/** @file rbcList.c
+ * Keyed-list search and reclamation.
+ */
+/** @defgroup list_internals Keyed-list search and reclamation
+ * Private helpers; callers retain storage and lifetime responsibilities.
+ */
 #include "rbcInt.h"
 #include "rbcList.h"
 #include <stddef.h>
@@ -19,24 +25,13 @@ static Rbc_ListNode FindOneWord (struct Rbc_ListStruct *listPtr, const char *key
 static Rbc_ListNode FindArray (struct Rbc_ListStruct *listPtr, const char *key);
 static void FreeNode (struct Rbc_ListNodeStruct *nodePtr);
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Find the first node with equal string-key contents.
+ * @ingroup list_internals
  *
- * FindString --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to search
- *      const char *key - Key to match
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires a valid string-key list and non-NULL NUL-terminated key. Checks the
+ * first byte before strcmp while traversing head to tail. Returns a borrowed
+ * node or NULL without mutation, allocation or retention.
  */
 static struct Rbc_ListNodeStruct *FindString(struct Rbc_ListStruct *listPtr, const char *key) {
     register struct Rbc_ListNodeStruct *nodePtr;
@@ -51,24 +46,13 @@ static struct Rbc_ListNodeStruct *FindString(struct Rbc_ListStruct *listPtr, con
     return NULL;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Find the first node with the same pointer-sized key value.
+ * @ingroup list_internals
  *
- * FindOneWord --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to search
- *      const char *key - Key to match
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires a valid one-word-key list. Compares identity, not pointed-to contents;
+ * NULL is a valid key value. Returns a borrowed first match or NULL. Does not
+ * dereference keys or change membership/payload ownership.
  */
 static Rbc_ListNode FindOneWord(struct Rbc_ListStruct *listPtr, const char *key) {
     register struct Rbc_ListNodeStruct *nodePtr;
@@ -81,24 +65,14 @@ static Rbc_ListNode FindOneWord(struct Rbc_ListStruct *listPtr, const char *key)
     return NULL;
 }
 
-/*
- *--------------------------------------------------------------
+/**
+ * @brief Find the first node with equal integer-array key bytes.
+ * @ingroup list_internals
  *
- * FindArray --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to search
- *      const char *key - Key to match
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
+ * Requires a valid list whose type is the key's int count and a readable key
+ * buffer of that size. Invalid count or byte-size overflow panics. Uses memcmp
+ * on copied native int bytes, not text or portable serialization. Returns a
+ * borrowed first match or NULL without mutation or allocation.
  */
 static Rbc_ListNode FindArray(struct Rbc_ListStruct *listPtr, const char *key) {
     struct Rbc_ListNodeStruct *nodePtr;
@@ -119,44 +93,17 @@ static Rbc_ListNode FindArray(struct Rbc_ListStruct *listPtr, const char *key) {
     return NULL;
 }
 
-/*
- *----------------------------------------------------------------------
+/**
+ * @brief Free a node allocation and its inline copied key.
+ * @ingroup list_internals
  *
- * FreeNode --
- *
- *      Free the memory allocated for the node.
- *
- * Parameters:
- *      struct Rbc_ListNodeStruct *nodePtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
+ * Caller must already have removed the node from membership, or be disposing
+ * of a never-inserted record. Does not unlink, adjust list count or free payloads
+ * or one-word key targets. All pointers into the node become invalid.
  */
 static void FreeNode(struct Rbc_ListNodeStruct *nodePtr) { ckfree((char *)nodePtr); }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListCreate --
- *
- *      Creates a new linked list structure and initializes its pointers
- *
- * Parameters:
- *      int type
- *
- * Results:
- *      Returns a pointer to the newly created list structure.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 Rbc_List Rbc_ListCreate(int type) {
     struct Rbc_ListStruct *listPtr;
 
@@ -254,51 +201,14 @@ void Rbc_ListDestroy(struct Rbc_ListStruct *listPtr) {
     }
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListInit --
- *
- *      Initializes a linked list.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      int type
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 void Rbc_ListInit(struct Rbc_ListStruct *listPtr, int type) {
     listPtr->nNodes = 0;
     listPtr->headPtr = listPtr->tailPtr = NULL;
     listPtr->type = type;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListLinkAfter --
- *
- *      Inserts an node following a given node.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      struct Rbc_ListNodeStruct *nodePtr
- *      struct Rbc_ListNodeStruct *afterPtr
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 void Rbc_ListLinkAfter(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct *nodePtr,
                        struct Rbc_ListNodeStruct *afterPtr) {
     if (listPtr->nNodes == TCL_SIZE_MAX) {
@@ -328,26 +238,7 @@ void Rbc_ListLinkAfter(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct
     listPtr->nNodes++;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListLinkBefore --
- *
- *      Inserts an node preceding a given node.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to contain new node
- *      struct Rbc_ListNodeStruct *nodePtr - New node to be inserted
- *      struct Rbc_ListNodeStruct *beforePtr - Node to link before
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 void Rbc_ListLinkBefore(struct Rbc_ListStruct *listPtr, struct Rbc_ListNodeStruct *nodePtr,
                         struct Rbc_ListNodeStruct *beforePtr) {
     if (listPtr->nNodes == TCL_SIZE_MAX) {
@@ -421,25 +312,7 @@ void Rbc_ListDeleteNode(struct Rbc_ListNodeStruct *nodePtr) {
     FreeNode(nodePtr);
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rb_ListDeleteNodeByKey --
- *
- *      Find the node and free the memory allocated for the node.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      const char *key
- *
- * Results:
- *      None.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 void Rb_ListDeleteNodeByKey(struct Rbc_ListStruct *listPtr, const char *key) {
     struct Rbc_ListNodeStruct *nodePtr;
 
@@ -449,26 +322,7 @@ void Rb_ListDeleteNodeByKey(struct Rbc_ListStruct *listPtr, const char *key) {
     }
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_ListAppend --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      const char *key
- *      ClientData clientData
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 Rbc_ListNode Rbc_ListAppend(struct Rbc_ListStruct *listPtr, const char *key, ClientData clientData) {
     struct Rbc_ListNodeStruct *nodePtr;
 
@@ -478,26 +332,7 @@ Rbc_ListNode Rbc_ListAppend(struct Rbc_ListStruct *listPtr, const char *key, Cli
     return nodePtr;
 }
 
-/*
- *--------------------------------------------------------------
- *
- * Rbc_ListPrepend --
- *
- *      TODO: Description
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr
- *      const char *key
- *      ClientData clientData
- *
- * Results:
- *      TODO: Results
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *--------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 Rbc_ListNode Rbc_ListPrepend(struct Rbc_ListStruct *listPtr, const char *key, ClientData clientData) {
     struct Rbc_ListNodeStruct *nodePtr;
 
@@ -507,27 +342,7 @@ Rbc_ListNode Rbc_ListPrepend(struct Rbc_ListStruct *listPtr, const char *key, Cl
     return nodePtr;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * Rbc_ListGetNthNode --
- *
- *      Find the node based upon a given position in list.
- *
- * Parameters:
- *      struct Rbc_ListStruct *listPtr - List to traverse
- *      Tcl_Size position - Index of node to select from front or back of the list.
- *      int direction
- *
- * Results:
- *      Returns the pointer to the node, if that numbered element
- *      exists. Otherwise NULL.
- *
- * Side effects:
- *      TODO: Side Effects
- *
- *----------------------------------------------------------------------
- */
+/* Contract and ownership are documented in rbcList.h. */
 Rbc_ListNode Rbc_ListGetNthNode(struct Rbc_ListStruct *listPtr, Tcl_Size position, int direction) {
     struct Rbc_ListNodeStruct *nodePtr;
 

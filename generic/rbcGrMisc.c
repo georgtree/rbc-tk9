@@ -115,6 +115,10 @@ static int GetColorPair(Tcl_Interp *interp, Tk_Window tkwin, const char *fgStr, 
     } else {
         bgColor = Tk_GetColor(interp, tkwin, Tk_GetUid(bgStr));
         if (bgColor == NULL) {
+            /* The pair is not committed yet; release only an acquired color. */
+            if ((fgColor != NULL) && (fgColor != COLOR_DEFAULT)) {
+                Tk_FreeColor(fgColor);
+            }
             return TCL_ERROR;
         }
     }

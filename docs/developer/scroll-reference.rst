@@ -12,3 +12,9 @@ These interfaces are private. See :doc:`scrolling` for viewport policy.
 .. doxygenfunction:: Rbc_TrackYViewOp
 
 .. doxygenfunction:: Rbc_NotifyTrackView
+
+Implementation helpers
+----------------------
+
+.. doxygengroup:: scroll_internals
+   :members:

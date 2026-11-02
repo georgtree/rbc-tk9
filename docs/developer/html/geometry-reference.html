@@ -92,6 +92,54 @@
 <p>Caller supplies valid finite points through high and space for high-low+1 indices; no array lengths are supplied or checked here. Use a finite, nonnegative tolerance in the same coordinate units as input. The algorithm measures distance to the infinite endpoint line, or to the endpoint when endpoints coincide. Retains interval endpoints in input order, splitting only when squared distance exceeds squared tolerance. Returns zero on rejected bounds/allocation failure; discard any partial output. Input is borrowed and unchanged; temporary stack storage is released before return. </p>
 </dd></dl>
 
+<section id="implementation-helpers">
+<h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading">¶</a></h2>
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="group__geometry__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Geometry</span> <span class="pre">validation</span> <span class="pre">and</span> <span class="pre">subdivision</span></span></dt>
+<dd><p>Private helpers; callers retain storage and lifetime responsibilities. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsFinitePoint">
+<span class="target" id="group__geometry__internals_1gad7ef01e31d78aa6ba2fedfaa4f884055"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsFinitePoint</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pointPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsFinitePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test a point pointer and both coordinates. </p>
+<p>Returns FALSE for NULL or either non-finite coordinate; otherwise TRUE. No allocation, mutation or coordinate transformation. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.IsValidExtents">
+<span class="target" id="group__geometry__internals_1gac361265550a8ce6655f627e144f6b8c1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsValidExtents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Extents2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">extsPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.IsValidExtents" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test finite ordered rectangular extents. </p>
+<p>Requires left &lt;= right and top &lt;= bottom after checking all coordinates. NULL or non-finite bounds return FALSE; zero width/height is accepted. Does not normalize reversed bounds or apply pixel-area expansion. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.ClipTest">
+<span class="target" id="group__geometry__internals_1gaaedc01c8d3570d77dc0ff465a36d69e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClipTest</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">ds</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">dr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t1</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">t2</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ClipTest" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Intersect a Liang-Barsky parameter interval with one boundary. </p>
+<p>Caller supplies initialized t1/t2, normally 0/1. Negative ds can raise the entry parameter; positive ds can lower the exit parameter. A parallel edge (ds zero) rejects only when dr is negative. Returns boolean; this call leaves parameters untouched when it rejects, but earlier successful boundary calls may already have narrowed them. No allocation or independent finite checks. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.AppendClipVertex">
+<span class="target" id="group__geometry__internals_1ga44deaa9fc4fec698228031deeaca816b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendClipVertex</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">points</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">capacity</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">countPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">y</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.AppendClipVertex" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append one vertex when the caller-provided buffer has room. </p>
+<p>Requires a valid countPtr; rejects NULL points, negative count or count at or above capacity without changing storage/count. On success writes X/Y and increments count. Does not test coordinate finiteness or suppress duplicates. The clipper must discard the whole polygon on a failed append. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.FindSplit">
+<span class="target" id="group__geometry__internals_1gaacf3858388b533684b93e04a0a15dcb1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FindSplit</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Point2D</span></span><span class="w"> </span><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">i</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">j</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">split</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.FindSplit" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the first farthest interior point for line simplification. </p>
+<p>Requires valid source indices and caller storage for split. Returns maximum squared distance and writes its original source index; ties keep the first. Uses distance to the infinite endpoint line, not the bounded segment. If the endpoint distance is at most DBL_EPSILON, measures from the first endpoint.</p>
+<p>NULL split returns -1. Otherwise initializes split to -1, also returning -1 for invalid pointers/ranges or no interior point. Does not know array capacity or validate every coordinate; extreme intermediate arithmetic may overflow. No allocation or input mutation. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -112,6 +160,14 @@
 <li><a class="reference internal" href="#c.Rbc_RegionInPolygon"><code class="docutils literal notranslate"><span class="pre">Rbc_RegionInPolygon()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_PointInSegments"><code class="docutils literal notranslate"><span class="pre">Rbc_PointInSegments()</span></code></a></li>
 <li><a class="reference internal" href="#c.Rbc_SimplifyLine"><code class="docutils literal notranslate"><span class="pre">Rbc_SimplifyLine()</span></code></a></li>
+<li><a class="reference internal" href="#implementation-helpers">Implementation helpers</a><ul>
+<li><a class="reference internal" href="#c.IsFinitePoint"><code class="docutils literal notranslate"><span class="pre">IsFinitePoint()</span></code></a></li>
+<li><a class="reference internal" href="#c.IsValidExtents"><code class="docutils literal notranslate"><span class="pre">IsValidExtents()</span></code></a></li>
+<li><a class="reference internal" href="#c.ClipTest"><code class="docutils literal notranslate"><span class="pre">ClipTest()</span></code></a></li>
+<li><a class="reference internal" href="#c.AppendClipVertex"><code class="docutils literal notranslate"><span class="pre">AppendClipVertex()</span></code></a></li>
+<li><a class="reference internal" href="#c.FindSplit"><code class="docutils literal notranslate"><span class="pre">FindSplit()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

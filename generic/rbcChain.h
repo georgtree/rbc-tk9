@@ -54,6 +54,13 @@ typedef struct {
  * Does not free existing links. Use Reset to clear an initialized chain.
  */
 void Rbc_ChainInit(Rbc_Chain *chainPtr);
+/**
+ * @brief Allocate an initialized empty chain.
+ *
+ * Uses Tcl allocation; allocation exhaustion is not a recoverable Tcl error.
+ * The caller owns the container and eventually uses Rbc_ChainDestroy. No payload
+ * or link is created.
+ */
 Rbc_Chain *Rbc_ChainCreate();
 /**
  * @brief Reset and free a heap-allocated chain, accepting NULL.
@@ -61,6 +68,13 @@ Rbc_Chain *Rbc_ChainCreate();
  * with the caller.
  */
 void Rbc_ChainDestroy(Rbc_Chain *chainPtr);
+/**
+ * @brief Allocate a detached link with NULL neighbors and payload.
+ *
+ * Caller owns the Tcl-allocated record until insertion. Link it once into a
+ * chain, or release the detached allocation with ckfree. No external payload is
+ * allocated or retained; allocation exhaustion follows Tcl's allocation policy.
+ */
 Rbc_ChainLink *Rbc_ChainNewLink(void);
 /**
  * @brief Allocate a detached zeroed link with aligned trailing storage.
@@ -69,7 +83,21 @@ Rbc_ChainLink *Rbc_ChainNewLink(void);
  * Link it into a chain or release the detached allocation with ckfree.
  */
 Rbc_ChainLink *Rbc_ChainAllocLink(size_t size);
+/**
+ * @brief Allocate a link and append a borrowed payload pointer.
+ *
+ * Requires an initialized non-NULL chain. Returns the newly linked record,
+ * owned by the chain. Does not copy, retain or release clientData. Insertion
+ * increments the count and panics on count overflow.
+ */
 Rbc_ChainLink *Rbc_ChainAppend(Rbc_Chain *chainPtr, ClientData clientData);
+/**
+ * @brief Allocate a link and prepend a borrowed payload pointer.
+ *
+ * Requires an initialized non-NULL chain. Returns the newly linked record,
+ * owned by the chain. clientData remains independently owned. Allocation/count
+ * failure is not reported through an interpreter.
+ */
 Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData);
 /**
  * @brief Free all linked records and leave an empty initialized chain.
@@ -77,7 +105,23 @@ Rbc_ChainLink *Rbc_ChainPrepend(Rbc_Chain *chainPtr, ClientData clientData);
  * by ChainAllocLink is part of each freed record; run any payload cleanup first.
  */
 void Rbc_ChainReset(Rbc_Chain *chainPtr);
+/**
+ * @brief Insert a detached link after a neighbor, or prepend for NULL.
+ *
+ * Requires a valid chain, a detached link with NULL neighbor pointers, and a
+ * non-NULL neighbor belonging to that chain. Does not validate membership or
+ * unlink an already inserted link. Updates endpoints, neighbors and count without
+ * allocation or callbacks; count overflow panics. Payload ownership is unchanged.
+ */
 void Rbc_ChainLinkAfter(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *afterLinkPtr);
+/**
+ * @brief Insert a detached link before a neighbor, or append for NULL.
+ *
+ * Requires a valid chain, a detached link with NULL neighbor pointers, and a
+ * non-NULL neighbor belonging to that chain. No membership validation or automatic
+ * unlinking occurs. Updates endpoints, neighbors and count without allocation;
+ * count overflow panics. The chain owns the inserted record, not its payload.
+ */
 void Rbc_ChainLinkBefore(Rbc_Chain *chainPtr, Rbc_ChainLink *linkPtr, Rbc_ChainLink *beforeLinkPtr);
 /**
  * @brief Detach a link without freeing its record or payload.

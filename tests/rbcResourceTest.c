@@ -1,4 +1,4 @@
-/* Private EPS/window resource tests; no installed API or production command. */
+/* Private EPS/window/color resource tests; no installed API or production command. */
 #include "rbcInt.h"
 #include "rbcImage.h"
 
@@ -27,6 +27,52 @@ static Status TestQueryTree(Display *display, Window window, Window *root, Windo
 #ifndef WIN32
 #undef XQueryTree
 #endif
+
+/* Count actual Tk references, not just pair contents, including failed parses. */
+static int colorGets, colorFrees;
+static XColor *TestGetColor(Tcl_Interp *interp, Tk_Window window, Tk_Uid name) {
+    XColor *color = Tk_GetColor(interp, window, name);
+    if (color != NULL) colorGets++;
+    return color;
+}
+static void TestFreeColor(XColor *color) {
+    colorFrees++;
+    Tk_FreeColor(color);
+}
+#undef Tk_GetColor
+#undef Tk_FreeColor
+#define Tk_GetColor TestGetColor
+#define Tk_FreeColor TestFreeColor
+#include "../generic/rbcGrMisc.c"
+#undef Tk_GetColor
+#undef Tk_FreeColor
+
+static int ColorPairTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
+    ColorPair pair;
+    int allowDefault, code, unchanged, hasError;
+    Tcl_Obj *result;
+    (void)data;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "foreground background allowDefault");
+        return TCL_ERROR;
+    }
+    if (Tcl_GetBooleanFromObj(interp, objv[3], &allowDefault) != TCL_OK) return TCL_ERROR;
+    pair.fgColor = pair.bgColor = COLOR_DEFAULT;
+    colorGets = colorFrees = 0;
+    code = GetColorPair(interp, Tk_MainWindow(interp), Tcl_GetString(objv[1]),
+                       Tcl_GetString(objv[2]), &pair, allowDefault);
+    unchanged = pair.fgColor == COLOR_DEFAULT && pair.bgColor == COLOR_DEFAULT;
+    hasError = Tcl_GetCharLength(Tcl_GetObjResult(interp)) > 0;
+    if (code == TCL_OK) Rbc_FreeColorPair(&pair);
+    result = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(NULL, result, Tcl_NewIntObj(code));
+    Tcl_ListObjAppendElement(NULL, result, Tcl_NewIntObj(colorGets));
+    Tcl_ListObjAppendElement(NULL, result, Tcl_NewIntObj(colorFrees));
+    Tcl_ListObjAppendElement(NULL, result, Tcl_NewBooleanObj(code == TCL_OK || unchanged));
+    Tcl_ListObjAppendElement(NULL, result, Tcl_NewBooleanObj(hasError));
+    Tcl_SetObjResult(interp, result);
+    return TCL_OK;
+}
 
 static int ResourceTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     const char *op;
@@ -79,6 +125,7 @@ DLLEXPORT int Rbcresourcetest_Init(Tcl_Interp *interp) {
         return TCL_ERROR;
     }
     Rbc_InitEpsCanvasItem(interp);
+    Tcl_CreateObjCommand2(interp, "::rbccolorpairtest", ColorPairTestCmd, NULL, NULL);
     Tcl_CreateObjCommand2(interp, "::rbcresourcetest", ResourceTestCmd, NULL, NULL);
     return Tcl_PkgProvide(interp, "rbcresourcetest", "1.0");
 }

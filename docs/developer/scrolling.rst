@@ -118,3 +118,14 @@ not guarantee a live Tk window or unchanged axes/tracks. Callers must respect
 the post-callback checks and avoid using graph state after its final release.
 See :doc:`graph-lifecycle` and :doc:`bindings` for the surrounding lifetime and
 repicking rules, and :doc:`scroll-reference` for the shared contracts.
+
+Integer conversion boundary
+----------------------------
+
+``ClampScrollValue`` is documented in :doc:`scroll-reference`. Its input must
+not be NaN. It saturates outside the integer range and otherwise truncates
+toward zero; it does not apply the selected viewport policy. The legacy parser
+first truncates/saturates the requested delta, then separately adds and clamps
+that integer delta. Combining these steps into one floating-point addition can
+change historical results for fractional page deltas, especially across zero.
+The double-valued request parser deliberately leaves this policy to its owner.
