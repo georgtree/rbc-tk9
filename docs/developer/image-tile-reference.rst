@@ -24,3 +24,37 @@ These interfaces are private. See :doc:`images-tiles` for resource lifetimes.
 .. doxygenfunction:: Rbc_PhotoRegionToColorImage
 
 .. doxygenfunction:: Rbc_ColorImageToPhoto
+
+Tile queries and origins
+------------------------
+
+.. doxygenfunction:: Rbc_NameOfTile
+
+.. doxygenfunction:: Rbc_SizeOfTile
+
+.. doxygenfunction:: Rbc_SetTileOrigin
+
+.. doxygenfunction:: Rbc_SetTSOrigin
+
+Tile lifecycle implementation
+-----------------------------
+
+.. c:namespace:: rbcTileLifecycle
+
+.. doxygengroup:: tile_lifecycle
+   :members:
+   :content-only:
+
+.. doxygenstruct:: TileInterpData
+   :members:
+
+.. doxygenstruct:: Tile
+   :members:
+
+.. doxygenstruct:: Rbc_TileClientStruct
+   :members:
+
+.. doxygenstruct:: TileKey
+   :members:
+
+.. c:namespace:: NULL

@@ -35,6 +35,11 @@ int Rbc_GetTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageName, Rbc_
  * notification. Active notification snapshots defer record reclamation.
  */
 void Rbc_FreeTile(Rbc_Tile tile);
+/**
+ * @brief Return the borrowed image name; NULL yields an empty string.
+ * An invalid magic value yields "not a tile". Neither result validates a stale
+ * pointer. The server owns a live name; callers must not modify or free it.
+ */
 char *Rbc_NameOfTile(Rbc_Tile tile);
 /**
  * @brief Install or replace one client's borrowed notification callback and data.
@@ -54,6 +59,11 @@ void Rbc_TilePolygon(Tk_Window tkwin, Drawable drawable, Rbc_Tile tile, XPoint *
  * processed at idle, so this is a cache query, not a forced refresh.
  */
 Pixmap Rbc_PixmapOfTile(Rbc_Tile tile);
+/**
+ * @brief Read cached tile dimensions without forcing an idle refresh.
+ * Both output pointers are required. NULL or invalid tokens yield zero sizes;
+ * deleted images may retain their last cached dimensions.
+ */
 void Rbc_SizeOfTile(Rbc_Tile tile, int *widthPtr, int *heightPtr);
 /**
  * @brief Borrow the tile's Tk image without acquiring another image reference.
@@ -68,7 +78,18 @@ Tk_Image Rbc_ImageOfTile(Rbc_Tile tile);
  * Tk-owned and is invalidated by image changes or deletion. No copy is made.
  */
 int Rbc_GetTilePhoto(Rbc_Tile tile, Tk_PhotoImageBlock *blockPtr);
+/**
+ * @brief Align a client pattern origin through its window ancestry.
+ * Requires a live client and window. Adds position and border offsets up to
+ * the toplevel, negates the result and updates both client origin and shared
+ * server GC. Does not retain windows or change other clients stored origins.
+ */
 void Rbc_SetTileOrigin(Tk_Window tkwin, Rbc_Tile tile, int x, int y);
+/**
+ * @brief Set a client origin directly in drawable coordinates.
+ * Requires a live client and compatible window. Updates its stored origin
+ * and the shared server GC; callers must establish origins for each draw.
+ */
 void Rbc_SetTSOrigin(Tk_Window tkwin, Rbc_Tile tile, int x, int y);
 
 #endif /* _RBCTILE */

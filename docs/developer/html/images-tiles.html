@@ -165,6 +165,36 @@ The void photo-write wrapper described above still lacks status propagation.</p>
 transforms are covered in <a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a> and color processing in
 <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a>. See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for temporary-image and private Tk adapters.</p>
 </section>
+<section id="registry-and-refresh-implementation">
+<h2>Registry and refresh implementation<a class="headerlink" href="#registry-and-refresh-implementation" title="Link to this heading">¶</a></h2>
+<p>Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter
+associated data. TileInterpData owns the table; it is not process-global or
+thread-local sharing. A server is registered only after image acquisition and
+initial redraw succeed. The first client is appended after that registration.
+Failure to acquire the Tk image removes the newly reserved hash entry.</p>
+<p>There are two distinct release phases. DestroyClient removes membership and
+invalidates the token immediately, and DestroyTile releases image/native
+resources immediately. FreeTileRecord later reclaims only record storage once
+notification snapshots release their preserves. Neither preserve extends the
+lifetime of a window, image resource, callback data or client chain link.</p>
+<p>UpdateTile snapshots membership after refreshing the cache. It deliberately
+does not snapshot callback pointers, so replacing another client’s callback
+changes that client’s delivery in the same pass. It also does not save the
+interpreter result around callbacks. Clients which evaluate Tcl must apply
+their own result-preservation policy where needed.</p>
+<p>The refresh path has a different callback boundary from notification delivery.
+Tk_GetImage and Tk_RedrawImage can invoke an image provider. Initial redraw
+occurs before any client is attached; subsequent redraw uses the first client’s
+borrowed window before membership is snapshotted. The client-notification
+preserves do not by themselves make arbitrary provider reentrancy safe. This
+is a separate lifetime boundary to review when extending supported image types.</p>
+<p>Redraw replaces a size-dependent pixmap before releasing its predecessor, then
+refreshes the tiled GC, dimensions and optional photo mask. A deleted image’s
+idle update only clears the pixmap; it does not reset the cached dimensions,
+mask or GC at that point. Final server destruction releases those resources.
+Consumers must use the deleted-image-aware helpers rather than infer liveness
+from cached dimensions alone.</p>
+</section>
 </section>
 
 
@@ -183,6 +213,7 @@ transforms are covered in <a class="reference internal" href="image-transforms.h
 <li><a class="reference internal" href="#idle-refresh-and-notification">Idle refresh and notification</a></li>
 <li><a class="reference internal" href="#origin-and-renderer-boundaries">Origin and renderer boundaries</a></li>
 <li><a class="reference internal" href="#cleanup-and-regression-coverage">Cleanup and regression coverage</a></li>
+<li><a class="reference internal" href="#registry-and-refresh-implementation">Registry and refresh implementation</a></li>
 </ul>
 </li>
 </ul>

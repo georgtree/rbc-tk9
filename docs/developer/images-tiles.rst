@@ -128,3 +128,38 @@ See :doc:`image-tile-reference` for the maintained C contracts and
 :doc:`image-resampling` for resizing and filtering. Bitmap
 transforms are covered in :doc:`image-transforms` and color processing in
 :doc:`image-colors`. See :doc:`image-compatibility` for temporary-image and private Tk adapters.
+
+Registry and refresh implementation
+-----------------------------------
+
+Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter
+associated data. TileInterpData owns the table; it is not process-global or
+thread-local sharing. A server is registered only after image acquisition and
+initial redraw succeed. The first client is appended after that registration.
+Failure to acquire the Tk image removes the newly reserved hash entry.
+
+There are two distinct release phases. DestroyClient removes membership and
+invalidates the token immediately, and DestroyTile releases image/native
+resources immediately. FreeTileRecord later reclaims only record storage once
+notification snapshots release their preserves. Neither preserve extends the
+lifetime of a window, image resource, callback data or client chain link.
+
+UpdateTile snapshots membership after refreshing the cache. It deliberately
+does not snapshot callback pointers, so replacing another client's callback
+changes that client's delivery in the same pass. It also does not save the
+interpreter result around callbacks. Clients which evaluate Tcl must apply
+their own result-preservation policy where needed.
+
+The refresh path has a different callback boundary from notification delivery.
+Tk_GetImage and Tk_RedrawImage can invoke an image provider. Initial redraw
+occurs before any client is attached; subsequent redraw uses the first client's
+borrowed window before membership is snapshotted. The client-notification
+preserves do not by themselves make arbitrary provider reentrancy safe. This
+is a separate lifetime boundary to review when extending supported image types.
+
+Redraw replaces a size-dependent pixmap before releasing its predecessor, then
+refreshes the tiled GC, dimensions and optional photo mask. A deleted image's
+idle update only clears the pixmap; it does not reset the cached dimensions,
+mask or GC at that point. Final server destruction releases those resources.
+Consumers must use the deleted-image-aware helpers rather than infer liveness
+from cached dimensions alone.
